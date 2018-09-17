@@ -1,0 +1,27 @@
+﻿<Page
+      x:Class="PixivWPF.Pages.PageNav"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:PixivWPF.Pages"
+      xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
+      mc:Ignorable="d" 
+      d:DesignHeight="300" d:DesignWidth="300"
+      x:Name="NavPage"
+      Title="Navigation">
+
+    <Grid>
+        <StackPanel>
+            <Button HorizontalContentAlignment="Left" Style="{DynamicResource SquareButtonStyle}" Content="Day Top" mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <Button HorizontalContentAlignment="Left" Style="{DynamicResource SquareButtonStyle}" Content="Week Top" mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <Button HorizontalContentAlignment="Left" Style="{DynamicResource SquareButtonStyle}" Content="Month Top" mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+        </StackPanel>
+        <StackPanel VerticalAlignment="Bottom">
+            <ToggleButton x:Name="ToggleTheme" x:Uid="ToggleTheme" Content="Toggle Theme" 
+                          Style="{DynamicResource SquareButtonStyle}" 
+                          HorizontalContentAlignment="Left" BorderThickness="1"
+                          Click="ToggleTheme_Click"/>
+        </StackPanel>
+    </Grid>
+</Page>
