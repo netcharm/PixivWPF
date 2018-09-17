@@ -1,4 +1,20 @@
-﻿using Newtonsoft.Json;
+﻿//PixivUniversal
+//Copyright(C) 2017 Pixeez Plus Project
+
+//This program is free software; you can redistribute it and/or
+//modify it under the terms of the GNU General Public License
+//as published by the Free Software Foundation; version 2
+//of the License.
+
+//This program is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+//GNU General Public License for more details.
+
+//You should have received a copy of the GNU General Public License
+//along with this program; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +39,10 @@ namespace Pixeez.Objects
 
         [JsonProperty("px_480mw")]
         public string Px480mw { get; set; }
+        [JsonProperty("square_medium")]
+        public string SquareMedium { get; set; }
+        [JsonProperty("original")]
+        public string Original { get; set; }
     }
 
     public class FavoritedCount
@@ -65,12 +85,49 @@ namespace Pixeez.Objects
         [JsonProperty("pages")]
         public IList<Page> Pages { get; set; }
     }
+    public class NormalWork:Work
+    {
+        [JsonProperty("tags")]
+        public override IList<string> Tags { get; set; }
+        [JsonProperty("created_time")]
+        public DateTimeOffset CreatedTime { get; set; }
+        [JsonProperty("favorite_id")]
+        public long? FavoriteId { get; set; }
 
-    public class Work
+        [JsonProperty("user")]
+        public User user { get; set; }
+        public override UserBase User => user;
+        public bool BookMarked
+        {
+            get
+            {
+                return IsBookMarked();
+            }
+        }
+
+        public override bool IsBookMarked()
+        {
+            if (FavoriteId == 0)
+                return false;
+            return true;
+        }
+
+        public override DateTime GetCreatedDate()
+        {
+            return CreatedTime.LocalDateTime;
+        }
+
+        public override void SetBookMarkedValue(bool value)
+        {
+            FavoriteId = value ? -1 : 0;
+        }
+    }
+    public abstract class Work:IWorkExtended
     {
 
         [JsonProperty("id")]
         public long? Id { get; set; }
+        public abstract UserBase User { get; }
 
         [JsonProperty("title")]
         public string Title { get; set; }
@@ -78,8 +135,7 @@ namespace Pixeez.Objects
         [JsonProperty("caption")]
         public string Caption { get; set; }
 
-        [JsonProperty("tags")]
-        public IList<string> Tags { get; set; }
+        public virtual IList<string> Tags { get; set; }
 
         [JsonProperty("tools")]
         public IList<string> Tools { get; set; }
@@ -102,23 +158,16 @@ namespace Pixeez.Objects
         [JsonProperty("age_limit")]
         public string AgeLimit { get; set; }
 
-        [JsonProperty("created_time")]
-        public DateTimeOffset CreatedTime { get; set; }
-
         [JsonProperty("reuploaded_time")]
         public string ReuploadedTime { get; set; }
 
-        [JsonProperty("user")]
-        public User User { get; set; }
+
 
         [JsonProperty("is_manga")]
         public bool? IsManga { get; set; }
 
         [JsonProperty("is_liked")]
         public bool? IsLiked { get; set; }
-
-        [JsonProperty("favorite_id")]
-        public long? FavoriteId { get; set; }
 
         [JsonProperty("page_count")]
         public int? PageCount { get; set; }
@@ -134,5 +183,8 @@ namespace Pixeez.Objects
 
         [JsonProperty("content_type")]
         public string ContentType { get; set; }
+        public abstract void SetBookMarkedValue(bool value);
+        public abstract bool IsBookMarked();
+        public abstract DateTime GetCreatedDate();
     }
 }

@@ -18,11 +18,11 @@ namespace PixivWPF.Common
     /// <summary>
     /// LoginDialog.xaml 的交互逻辑
     /// </summary>
-    public partial class LoginDialog : MetroWindow
+    public partial class PixivLoginDialog : MetroWindow
     {
         public string AccessToken = string.Empty;
 
-        public LoginDialog()
+        public PixivLoginDialog()
         {
             InitializeComponent();
 

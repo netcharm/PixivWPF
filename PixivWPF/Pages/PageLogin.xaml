@@ -47,8 +47,8 @@
                     <ColumnDefinition Width=".5*"/>
                     <ColumnDefinition Width=".5*"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" x:Name="btnLogin" x:Uid="btnLogin" Content="Login" Margin="12, 12, 12, 12" Click="Login_Click"/>
-                <Button Grid.Column="1" Content="Cancel" Margin="12, 12, 12, 12"/>
+                <Button Grid.Column="0" x:Name="btnLogin" x:Uid="btnLogin" Content="Login" Margin="12, 12, 12, 12" Click="Login_Click" IsDefault="True"/>
+                <Button Grid.Column="1" Content="Cancel" Margin="12, 12, 12, 12" Click="Cancel_Click"/>
             </Grid>
         </StackPanel>
     </Grid>

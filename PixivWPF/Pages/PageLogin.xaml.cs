@@ -16,6 +16,7 @@ using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Common;
 using MahApps.Metro;
+using Pixeez;
 
 namespace PixivWPF.Pages
 {
@@ -68,8 +69,17 @@ namespace PixivWPF.Pages
                     var proxyserver = proxy;
                     if (!useproxy) proxyserver = string.Empty;
                     var accesstoken = Setting.Token();
-                    
-                    var tokens = string.IsNullOrEmpty(accesstoken) ? await Pixeez.Auth.AuthorizeAsync(user, pass, proxyserver, useproxy) : Pixeez.Auth.AuthorizeWithAccessToken(accesstoken, proxy, useproxy);
+
+                    var tokens = Auth.AuthorizeWithAccessToken(accesstoken, proxy, useproxy);
+                    var deviceId = Setting.GetDeviceId();
+                    var result = await Auth.AuthorizeAsync(user, pass, null, proxyserver, useproxy);
+                    //var result = await Auth.AuthorizeAsync(user, pass, accesstoken, deviceId, proxyserver, useproxy);
+                    if (!string.IsNullOrEmpty(result.Authorize.AccessToken))
+                    {
+                        accesstoken = result.Authorize.AccessToken;
+                        Setting.Token(accesstoken);
+                        tokens = result.Tokens;
+                    }
 
                     if(!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pass))
                     {
@@ -85,9 +95,9 @@ namespace PixivWPF.Pages
                         if(Tag is Frame)
                         {
                             var frame = Tag as Frame;
-                            if(frame.Tag is Common.LoginDialog)
+                            if(frame.Tag is Common.PixivLoginDialog)
                             {
-                                var win = frame.Tag as Common.LoginDialog;
+                                var win = frame.Tag as Common.PixivLoginDialog;
                                 win.AccessToken = tokens.AccessToken;
                                 win.Close();
                             }
@@ -98,9 +108,15 @@ namespace PixivWPF.Pages
                 }
                 catch (Exception ex)
                 {
-                    await window.ShowMessageAsync("Error", ex.Message);
+                    await window.ShowMessageAsync("ERROR", ex.Message);
                 }
             }
+        }
+
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            //Application.Current.MainWindow.Close();
+            Application.Current.Shutdown();
         }
     }
 }

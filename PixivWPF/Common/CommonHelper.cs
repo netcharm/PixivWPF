@@ -6,11 +6,149 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Management;
+using Microsoft.Win32;
+using System.Windows.Media;
+using System.Net;
+using System.Windows.Media.Imaging;
+using System.Net.Http;
+using System.Collections;
+using System.Threading;
+using System.Windows.Controls;
+using MahApps.Metro.Controls;
+using System.Text.RegularExpressions;
 
 namespace PixivWPF.Common
 {
-    class CommonHelper
+    public static class CommonHelper
     {
+        public static string ToLineBreak(this string text, int lineLength)
+        {
+            //return Regex.Replace(text, @"(.{" + lineLength + @"})", "$1" + Environment.NewLine);
+            var t = Regex.Replace(text, @"[\n\r]", "", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            //t = Regex.Replace(t, @"<[^>]*>", "$1", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            t = Regex.Replace(t, @"(<br *?/>)", Environment.NewLine, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            t = Regex.Replace(t, @"(<a .*?>(.*?)</a>)|(<strong>(.*?)</strong>)", "$2", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            t = Regex.Replace(t, @"<.*?>(.*?)</.*?>", "$1", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            return Regex.Replace(t, @"(.{" + lineLength + @"})", "$1" + Environment.NewLine, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+        }
+
+        // To return an array of strings instead:
+        public static string[] Slice(this string text, int lineLength)
+        {
+            //return Regex.Matches(text, @"(.{" + lineLength + @"})").Cast<Match>().Select(m => m.Value).ToArray();
+            var t = Regex.Replace(text, @"[\n\r]", "", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            t = Regex.Replace(t, @"(<br *?/>)", Environment.NewLine, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            t = Regex.Replace(t, @"(<a .*?>(.*?)</a>)|(<strong>(.*?)</strong>)", "$2", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            t = Regex.Replace(t, @"<.*?>(.*?)</.*?>", "$1", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            return Regex.Matches(t, @"(.{" + lineLength + @"})", RegexOptions.IgnoreCase | RegexOptions.Multiline).Cast<Match>().Select(m => m.Value).ToArray();
+        }
+
+        public static async Task<ImageSource> GetImageFromURL(this string url)
+        {
+            ImageSource result = null;
+
+            var uri = new Uri(url);
+            var webRequest = WebRequest.CreateDefault(uri);
+            var ext = Path.GetExtension(url).ToLower();
+            switch (ext)
+            {
+                case ".jpeg":
+                case ".jpg":
+                    webRequest.ContentType = "image/jpeg";
+                    break;
+                case ".png":
+                    webRequest.ContentType = "image/png";
+                    break;
+                case ".bmp":
+                    webRequest.ContentType = "image/bmp";
+                    break;
+                case ".gif":
+                    webRequest.ContentType = "image/gif";
+                    break;
+                case ".tiff":
+                case ".tif":
+                    webRequest.ContentType = "image/tiff";
+                    break;
+                default:
+                    webRequest.ContentType = "application/octet-stream";
+                    break;
+            }
+
+            var proxy = Setting.ProxyServer();
+            var useproxy = Setting.UseProxy();
+            HttpClientHandler handler = new HttpClientHandler()
+            {
+                Proxy = string.IsNullOrEmpty(Setting.ProxyServer()) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
+                UseProxy = string.IsNullOrEmpty(proxy) || !useproxy ? false : true
+            };
+            using (HttpClient client = new HttpClient(handler))
+            {
+                HttpResponseMessage response = await client.GetAsync(url);
+                byte[] content = await response.Content.ReadAsByteArrayAsync();
+                //return "data:image/png;base64," + Convert.ToBase64String(content);
+                BitmapImage image = new BitmapImage();
+                image.BeginInit();
+                image.StreamSource = new MemoryStream(content);
+                image.EndInit();
+                image.Freeze();
+                result = image;
+            }
+
+            //await webRequest.BeginGetResponse((ar) =>
+            //{
+            //    var response = webRequest.EndGetResponse(ar);
+            //    var stream = response.GetResponseStream();
+            //    if (stream.CanRead)
+            //    {
+            //        byte[] buffer = new byte[response.ContentLength];
+            //        stream.BeginRead(buffer, 0, buffer.Length, (aResult) =>
+            //        {
+            //            stream.EndRead(aResult);
+            //            //File.WriteAllBytes("c:\\test.jpg", buffer);
+            //            BitmapImage image = new BitmapImage();
+            //            image.BeginInit();
+            //            image.StreamSource = new MemoryStream(buffer);
+            //            image.EndInit();
+            //            image.Freeze();
+            //            result = image;
+            //        }, null);
+            //    }
+            //}, null);
+
+            return (result);
+        }
+
+        public static async Task<ImageSource> ToImageSource(this string url, Pixeez.Tokens tokens)
+        {
+            BitmapImage result = null;
+            using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+            {
+                result = (BitmapImage) await response.ToImageSource();
+            }
+            return (result);
+        }
+
+        public static async Task<ImageSource> ToImageSource(this Pixeez.AsyncResponse response)
+        {
+            BitmapImage result = null;
+            using (var stream = await response.GetResponseStreamAsync())
+            {
+                result = (BitmapImage)stream.ToImageSource();
+            }
+            return (result);
+        }
+
+        public static ImageSource ToImageSource(this Stream stream)
+        {
+            //await imgStream.GetResponseStreamAsync();
+            BitmapImage result = new BitmapImage();
+            result.BeginInit();
+            result.StreamSource = stream;
+            result.EndInit();
+            result.Freeze();
+            return (result);
+        }
     }
 
     [JsonObject(MemberSerialization.OptOut)]
@@ -124,6 +262,27 @@ namespace PixivWPF.Common
                 result = true;
             }
             return (result);
+        }
+
+        public static string GetDeviceId()
+        {
+            string location = @"SOFTWARE\Microsoft\Cryptography";
+            string name = "MachineGuid";
+
+            using (RegistryKey localMachineX64View = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
+            {
+                using (RegistryKey rk = localMachineX64View.OpenSubKey(location))
+                {
+                    if (rk == null)
+                        throw new KeyNotFoundException(string.Format("Key Not Found: {0}", location));
+
+                    object machineGuid = rk.GetValue(name);
+                    if (machineGuid == null)
+                        throw new IndexOutOfRangeException(string.Format("Index Not Found: {0}", name));
+
+                    return machineGuid.ToString().Replace("-","");
+                }
+            }
         }
     }
 }

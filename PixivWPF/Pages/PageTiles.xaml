@@ -10,24 +10,47 @@
       Title="PageTiles">
 
     <Page.Resources>
-        <DataTemplate x:Key="ImageTile">
-            <StackPanel>
-                <Image Source="{Binding Source}" />
-                <TextBlock Text="{Binding Title}"/>
-            </StackPanel>
+        <DataTemplate x:Key="ImageTile" x:Name="ImageTile" x:Uid="ImageTile">
+            <Grid Background="{StaticResource AccentColorBrush}" Width="136">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="128"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <mah:ProgressRing Grid.Row="0" Width="72" Height="72" Opacity="0.38" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Image Grid.Row="0" 
+                       Source="{Binding Source}" 
+                       ToolTip="{Binding Caption}"
+                       Tag="{Binding Illust}"
+                       Stretch="Uniform" Width="128" Height="128"
+                       Margin="4,4,4,4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="1" Text="{Binding Subject}"/>
+            </Grid>
         </DataTemplate>
-        
     </Page.Resources>
     
     <Grid>
-        <ItemsControl x:Name="ImageTiles" x:Uid="ImageTiles" 
-                      ItemsSource="{Binding Items, Mode=OneWay}" 
-                      ItemTemplate="{StaticResource ImageTile}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="740"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <ListView Grid.Column="0"
+                  x:Name="ImageTiles" x:Uid="ImageTiles"
+                  IsSynchronizedWithCurrentItem="true"
+                  HorizontalAlignment="Stretch"
+                  SelectionChanged="ImageTiles_SelectionChanged"
+                  ItemsSource="{Binding local:ImageList, Mode=OneWay}" 
+                  ItemTemplate="{StaticResource ImageTile}" mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
+                    <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
                     <UniformGrid Columns="5"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
-        </ItemsControl>
+        </ListView>
+        <Image Grid.Column="1"
+               x:Name="Preview" x:Uid="Preview" 
+               Stretch="Uniform" 
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <mah:ProgressRing Grid.Column="1" x:Name="PreviewWait" Width="128" Height="128" Opacity="0.62" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Hidden"/>
     </Grid>
 </Page>
