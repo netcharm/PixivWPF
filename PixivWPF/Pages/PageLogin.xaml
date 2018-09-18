@@ -16,13 +16,13 @@
     <Grid>
         <StackPanel>
             <Image x:Name="Logo"  Stretch="Uniform" Margin="12, 12, 12, 12" MinHeight="64"/>
-            <TextBlock x:Name="headerUser" x:Uid="headerUser" Text="Usermame" Margin="12, 12, 12, 4" />
+            <TextBlock x:Name="headerUser" x:Uid="headerUser" Text="Usermame" Margin="12, 12, 12, 4" Foreground="{DynamicResource AccentColorBrush}"/>
             <TextBox x:Name="edUser" x:Uid="edUser" AcceptsReturn="False" Margin="12, 12, 12, 12" 
                      mah:TextBoxHelper.Watermark="Your Name"
                      mah:TextBoxHelper.UseFloatingWatermark="True" 
                      mah:TextBoxHelper.AutoWatermark="True" 
                      mah:TextBoxHelper.ClearTextButton="True"/>
-            <TextBlock x:Name="headerPass" x:Uid="headerPass" Text="Password" Margin="12, 12, 12, 4" />
+            <TextBlock x:Name="headerPass" x:Uid="headerPass" Text="Password" Margin="12, 12, 12, 4" Foreground="{DynamicResource AccentColorBrush}"/>
             <PasswordBox x:Name="edPass" x:Uid="edPass" Margin="12, 12, 12, 12"
                          mah:TextBoxHelper.Watermark="Your Password"
                          mah:TextBoxHelper.UseFloatingWatermark="True" 
@@ -33,8 +33,8 @@
                     <ColumnDefinition Width=".5*"/>
                     <ColumnDefinition Width=".5*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" x:Name="headerProxy" x:Uid="headerProxy" Text="HTTP Proxy Server" HorizontalAlignment="Left" />
-                <CheckBox Grid.Column="1" x:Name="chkUseProxy" x:Uid="chkUseProxy" Content="Using Proxy" IsChecked="True" FlowDirection="RightToLeft" />
+                <TextBlock Grid.Column="0" x:Name="headerProxy" x:Uid="headerProxy" Text="HTTP Proxy Server" HorizontalAlignment="Left" Foreground="{DynamicResource AccentColorBrush}" />
+                <CheckBox Grid.Column="1" x:Name="chkUseProxy" x:Uid="chkUseProxy" Content="Using Proxy" IsChecked="True" FlowDirection="RightToLeft" Foreground="{DynamicResource AccentColorBrush}" />
             </Grid>
             <TextBox x:Name="edProxy" x:Uid="edProxy" AcceptsReturn="False" Margin="12, 12, 12, 12" 
                      mah:TextBoxHelper.Watermark="Your Proxy Server"
@@ -47,8 +47,8 @@
                     <ColumnDefinition Width=".5*"/>
                     <ColumnDefinition Width=".5*"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" x:Name="btnLogin" x:Uid="btnLogin" Content="Login" Margin="12, 12, 12, 12" Click="Login_Click" IsDefault="True"/>
-                <Button Grid.Column="1" Content="Cancel" Margin="12, 12, 12, 12" Click="Cancel_Click"/>
+                <Button Grid.Column="0" x:Name="btnLogin" x:Uid="btnLogin" Content="Login" Margin="12, 12, 12, 12" Click="Login_Click" IsDefault="True" Foreground="{DynamicResource AccentColorBrush}"/>
+                <Button Grid.Column="1" x:Name="btnCancel" x:Uid="btnCancel" Content="Cancel" Margin="12, 12, 12, 12" Click="Cancel_Click" Foreground="{DynamicResource AccentColorBrush}"/>
             </Grid>
         </StackPanel>
     </Grid>

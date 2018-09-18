@@ -17,13 +17,80 @@ using System.Threading;
 using System.Windows.Controls;
 using MahApps.Metro.Controls;
 using System.Text.RegularExpressions;
+using MahApps.Metro.Controls.Dialogs;
 
 namespace PixivWPF.Common
 {
+    public enum PixivPage
+    {
+        None,
+        WorkSet,
+        Recommanded,
+        Latest,
+        My,
+        MyWork,
+        User,
+        UserWork,
+        Favorite,
+        FavoritePrivate,
+        Follow,
+        FollowPrivate,
+        Bookmark,
+        MyBookmark,
+        DailyTop,
+        WeeklyTop,
+        MonthlyTop
+    }
+
     public static class CommonHelper
     {
+        private static Setting setting = Setting.Load();
+
+        public static async Task<Pixeez.Tokens> ShowLogin()
+        {
+            Pixeez.Tokens result = null;
+            var accesstoken = setting.AccessToken;
+            try
+            {
+                if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.AccessToken))
+                {
+                    if(DateTime.Now.ToFileTime() - setting.Update < 300000)
+                    {
+                        result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.AccessToken, setting.Proxy, setting.UsingProxy);
+                            //var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, "", setting.Proxy, setting.UsingProxy);
+                            setting.AccessToken = authResult.Authorize.AccessToken;
+                            result = authResult.Tokens;
+                        }
+                        catch (Exception)
+                        {
+                            result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
+                        }
+                    }
+                }
+                else
+                {
+                    var dlgLogin = new PixivLoginDialog() { AccessToken=accesstoken };
+                    var ret = dlgLogin.ShowDialog();
+                    result = dlgLogin.Tokens;
+                }
+            }
+            catch(Exception ex)
+            {
+                MetroWindow window = Application.Current.MainWindow as MetroWindow;
+                await window.ShowMessageAsync("ERROR", ex.Message);
+            }
+            return (result);
+        }
+
         public static string ToLineBreak(this string text, int lineLength)
         {
+            if (string.IsNullOrEmpty(text)) return (string.Empty);
             //return Regex.Replace(text, @"(.{" + lineLength + @"})", "$1" + Environment.NewLine);
             var t = Regex.Replace(text, @"[\n\r]", "", RegexOptions.IgnoreCase | RegexOptions.Multiline);
             //t = Regex.Replace(t, @"<[^>]*>", "$1", RegexOptions.IgnoreCase | RegexOptions.Multiline);
@@ -36,6 +103,7 @@ namespace PixivWPF.Common
         // To return an array of strings instead:
         public static string[] Slice(this string text, int lineLength)
         {
+            if (string.IsNullOrEmpty(text)) return (new string[] { });
             //return Regex.Matches(text, @"(.{" + lineLength + @"})").Cast<Match>().Select(m => m.Value).ToArray();
             var t = Regex.Replace(text, @"[\n\r]", "", RegexOptions.IgnoreCase | RegexOptions.Multiline);
             t = Regex.Replace(t, @"(<br *?/>)", Environment.NewLine, RegexOptions.IgnoreCase | RegexOptions.Multiline);
@@ -122,9 +190,13 @@ namespace PixivWPF.Common
         public static async Task<ImageSource> ToImageSource(this string url, Pixeez.Tokens tokens)
         {
             BitmapImage result = null;
+            url = Regex.Replace(url, @"//.*?\.pixiv.net/", "//i.pximg.net/", RegexOptions.IgnoreCase);
             using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
             {
-                result = (BitmapImage) await response.ToImageSource();
+                if (response.Source.StatusCode == HttpStatusCode.OK)
+                    result = (BitmapImage)await response.ToImageSource();
+                else
+                    result = null;
             }
             return (result);
         }
@@ -157,6 +229,54 @@ namespace PixivWPF.Common
         private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
         private static string config = Path.Combine(AppPath, "config.json");
         private static Setting Cache = null;// Load(config);
+
+        [JsonIgnore]
+        private string username = string.Empty;
+        [JsonIgnore]
+        public string User
+        {
+            get
+            {
+                return (username);
+            }
+            set
+            {
+                username = value;
+            }
+        }
+
+        [JsonIgnore]
+        private string password = string.Empty;
+        [JsonIgnore]
+        public string Pass
+        {
+            get
+            {
+                return (password);
+            }
+            set
+            {
+                password = value;
+            }
+        }
+
+        [JsonIgnore]
+        private Pixeez.Objects.User myinfo = null;
+        [JsonIgnore]
+        public Pixeez.Objects.User MyInfo
+        {
+            get { return myinfo; }
+            set { myinfo = value; }
+        }
+
+        [JsonIgnore]
+        private long update = 0;
+        [JsonIgnore]
+        public long Update
+        {
+            get { return update; }
+            set { update = value; }
+        }
 
         private string accesstoken = string.Empty;
         public string AccessToken

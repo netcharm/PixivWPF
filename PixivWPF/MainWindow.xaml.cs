@@ -30,10 +30,16 @@ namespace PixivWPF
 
             MainContent = ContentFrame;
 
-            NavFrame.Content = new Pages.PageNav() { Tag = NavFrame };
             //ContentFrame.Content = new Pages.PageLogin() { Tag = ContentFrame };
-            ContentFrame.Content = new Pages.PageTiles() { Tag = ContentFrame };
+            var pagetiles = new Pages.PageTiles() { Tag = ContentFrame };
+            var pagenav = new Pages.PageNav() { Tag = pagetiles };
 
+            ContentFrame.Content = pagetiles;
+            NavFrame.Content = pagenav;
+
+            ContentFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
+            NavFrame.NavigationUIVisibility = NavigationUIVisibility.Automatic;
+            //ContentFrame.CacheMode
             var setting = Setting.Load();
         }
     }

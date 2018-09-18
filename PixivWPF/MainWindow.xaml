@@ -18,10 +18,16 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Frame Grid.Column="0" x:Name="NavFrame" NavigationUIVisibility="Visible">
+            <Frame.CacheMode>
+                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+            </Frame.CacheMode>
 
         </Frame>
         <Frame Grid.Column="1" x:Name="ContentFrame">
-            
+            <Frame.CacheMode>
+                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+            </Frame.CacheMode>
+
         </Frame>
     </Grid>
 </Controls:MetroWindow>

@@ -35,11 +35,13 @@
         </Grid.ColumnDefinitions>
         <ListView Grid.Column="0"
                   x:Name="ImageTiles" x:Uid="ImageTiles"
-                  IsSynchronizedWithCurrentItem="true"
-                  HorizontalAlignment="Stretch"
+                  IsSynchronizedWithCurrentItem="true"                  
                   SelectionChanged="ImageTiles_SelectionChanged"
                   ItemsSource="{Binding local:ImageList, Mode=OneWay}" 
-                  ItemTemplate="{StaticResource ImageTile}" mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
+                  ItemTemplate="{StaticResource ImageTile}"
+                  BorderBrush="Transparent"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Top"
+                  mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
@@ -47,10 +49,20 @@
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ListView>
-        <Image Grid.Column="1"
-               x:Name="Preview" x:Uid="Preview" 
-               Stretch="Uniform" 
-               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <mah:ProgressRing Grid.Column="1" x:Name="PreviewWait" Width="128" Height="128" Opacity="0.62" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Hidden"/>
+        <mah:ProgressRing Grid.Column="0" 
+                          x:Name="ImageTilesWait" 
+                          Width="128" Height="128" 
+                          Opacity="0.9" Visibility="Hidden"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Viewbox Grid.Column="1" StretchDirection="DownOnly" Margin="8,0,0,0" >
+            <Image x:Name="Preview" x:Uid="Preview" 
+                   Stretch="None"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Viewbox>
+        <mah:ProgressRing Grid.Column="1" Margin="8,0,0,0"
+                          x:Name="PreviewWait"
+                          Width="128" Height="128" Opacity="0.62" 
+                          Visibility="Hidden"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </Page>

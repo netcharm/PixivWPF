@@ -6,18 +6,85 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:PixivWPF.Pages"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
-      mc:Ignorable="d" 
-      d:DesignHeight="300" d:DesignWidth="300"
+      mc:Ignorable="d"       
       x:Name="NavPage"
-      Title="Navigation">
+      Title="Navigation"
+      d:DesignHeight="450" 
+      d:DesignWidth="160">
 
     <Grid>
-        <StackPanel>
-            <Button HorizontalContentAlignment="Left" Style="{DynamicResource SquareButtonStyle}" Content="Day Top" mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <Button HorizontalContentAlignment="Left" Style="{DynamicResource SquareButtonStyle}" Content="Week Top" mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <Button HorizontalContentAlignment="Left" Style="{DynamicResource SquareButtonStyle}" Content="Month Top" mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" VerticalAlignment="Top">
+            <Button x:Name="btnGotoRecommended" x:Uid="btnGotoRecommended" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Recommended" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <Button x:Name="btnGotoLatest" x:Uid="btnGotoLatest" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Latest" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <Button x:Name="btnGotoFollowing" x:Uid="btnGotoFollowing" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Following" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <Button x:Name="btnGotoFollowingPrivate" x:Uid="btnGotoFollowingPrivate" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Following Private" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <Button x:Name="btnGotoFavorite" x:Uid="btnGotoFavorite" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Favorite" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <Button x:Name="btnGotoFavoritePrivate" x:Uid="btnGotoFavoritePrivate" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Favorite Private" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
+
+            <Button x:Name="btnGotoRankingDaily" x:Uid="btnGotoRankingDaily" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Daily Top" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <Button x:Name="btnGotoRankingWeekly" x:Uid="btnGotoRankingWeekly" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
+                    Content="Weekly Top" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <Button x:Name="btnGotoRankingMonthly" x:Uid="btnGotoRankingMonthly" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Monthly Top" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
         </StackPanel>
-        <StackPanel VerticalAlignment="Bottom">
+
+        <StackPanel Grid.Row="1" >
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width=".5*"/>
+                    <ColumnDefinition Width=".5*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" x:Name="btnGotoPrevPage" x:Uid="btnGotoPrevPage" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Prev Page" Click="NavPage_Click" IsEnabled="False"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+                <Button Grid.Column="1" x:Name="btnGotoNextPage" x:Uid="btnGotoNextPage" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Right"
+                    Content="Next Page" Click="NavPage_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3"  VerticalAlignment="Bottom">
+            <Button x:Name="btnGotoLogin" x:Uid="btnGotoLogin" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Login" Click="NavLogin_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
             <ToggleButton x:Name="ToggleTheme" x:Uid="ToggleTheme" Content="Toggle Theme" 
                           Style="{DynamicResource SquareButtonStyle}" 
                           HorizontalContentAlignment="Left" BorderThickness="1"
