@@ -30,7 +30,7 @@
     
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="740"/>
+            <ColumnDefinition Width="730"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <ListView Grid.Column="0"
@@ -40,7 +40,7 @@
                   ItemsSource="{Binding local:ImageList, Mode=OneWay}" 
                   ItemTemplate="{StaticResource ImageTile}"
                   BorderBrush="Transparent"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Top"
+                  HorizontalAlignment="Center" VerticalAlignment="Top"
                   mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>

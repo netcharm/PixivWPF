@@ -63,7 +63,7 @@ namespace PixivWPF.Pages
                     {
                         try
                         {
-                            if(item.Source == null)
+                            if (item.Source == null)
                             {
                                 item.Source = await item.Thumb.ToImageSource(tokens);
                                 ImageTiles.Items.Refresh();
@@ -164,7 +164,7 @@ namespace PixivWPF.Pages
 
         public async void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false)
         {
-             if (TargetPage != target)
+            if (TargetPage != target)
             {
                 NextURL = null;
                 ImageTiles.Items.Refresh();
@@ -180,7 +180,7 @@ namespace PixivWPF.Pages
 
             switch (target)
             {
-                case PixivPage.None:                    
+                case PixivPage.None:
                     break;
                 case PixivPage.Recommanded:
                     ShowRecommanded(NextURL);
@@ -238,56 +238,7 @@ namespace PixivWPF.Pages
                 ImageTilesWait.Visibility = Visibility.Visible;
                 foreach (var illust in root.illusts)
                 {
-                    try
-                    {
-                        var url = illust.ImageUrls.SquareMedium;
-                        if (string.IsNullOrEmpty(url))
-                        {
-                            if (!string.IsNullOrEmpty(illust.ImageUrls.Small))
-                            {
-                                url = illust.ImageUrls.Small;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Px128x128))
-                            {
-                                url = illust.ImageUrls.Px128x128;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Px480mw))
-                            {
-                                url = illust.ImageUrls.Px480mw;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Medium))
-                            {
-                                url = illust.ImageUrls.Medium;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Large))
-                            {
-                                url = illust.ImageUrls.Large;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Original))
-                            {
-                                url = illust.ImageUrls.Original;
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            var i = new ImageItem()
-                            {
-                                NextURL = nexturl,
-                                Thumb = url,
-                                ID = illust.Id.ToString(),
-                                UserID = illust.User.Id.ToString(),
-                                Subject = illust.Title,
-                                Caption = illust.Caption.ToLineBreak(72),
-                                Illust = illust
-                            };
-                            ImageList.Add(i);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        await window.ShowMessageAsync("ERROR", ex.Message);
-                    }
+                    illust.AddTo(ImageList, nexturl);
                 }
                 ImageTilesWait.Visibility = Visibility.Hidden;
                 UpdateImageTile(tokens);
@@ -311,63 +262,14 @@ namespace PixivWPF.Pages
                 ImageTilesWait.Visibility = Visibility.Visible;
                 foreach (var illust in root)
                 {
-                    try
-                    {
-                        var url = illust.ImageUrls.SquareMedium;
-                        if (string.IsNullOrEmpty(url))
-                        {
-                            if (!string.IsNullOrEmpty(illust.ImageUrls.Small))
-                            {
-                                url = illust.ImageUrls.Small;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Px128x128))
-                            {
-                                url = illust.ImageUrls.Px128x128;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Px480mw))
-                            {
-                                url = illust.ImageUrls.Px480mw;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Medium))
-                            {
-                                url = illust.ImageUrls.Medium;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Large))
-                            {
-                                url = illust.ImageUrls.Large;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Original))
-                            {
-                                url = illust.ImageUrls.Original;
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            var i = new ImageItem()
-                            {
-                                NextURL = nexturl,
-                                Thumb = url,
-                                ID = illust.Id.ToString(),
-                                UserID = illust.User.Id.ToString(),
-                                Subject = illust.Title,
-                                Caption = illust.Caption.ToLineBreak(72),
-                                Illust = illust
-                            };
-                            ImageList.Add(i);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        await window.ShowMessageAsync("ERROR", ex.Message);
-                    }
+                    illust.AddTo(ImageList, nexturl);
                 }
                 ImageTilesWait.Visibility = Visibility.Hidden;
                 UpdateImageTile(tokens);
             }
         }
 
-        public async void ShowFavorite(string nexturl = null, long uid=0, bool IsPrivate = false)
+        public async void ShowFavorite(string nexturl = null, long uid = 0, bool IsPrivate = false)
         {
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
@@ -386,56 +288,7 @@ namespace PixivWPF.Pages
                 ImageTilesWait.Visibility = Visibility.Visible;
                 foreach (var illust in root.illusts)
                 {
-                    try
-                    {
-                        var url = illust.ImageUrls.SquareMedium;
-                        if (string.IsNullOrEmpty(url))
-                        {
-                            if (!string.IsNullOrEmpty(illust.ImageUrls.Small))
-                            {
-                                url = illust.ImageUrls.Small;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Px128x128))
-                            {
-                                url = illust.ImageUrls.Px128x128;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Px480mw))
-                            {
-                                url = illust.ImageUrls.Px480mw;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Medium))
-                            {
-                                url = illust.ImageUrls.Medium;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Large))
-                            {
-                                url = illust.ImageUrls.Large;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Original))
-                            {
-                                url = illust.ImageUrls.Original;
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            var i = new ImageItem()
-                            {
-                                NextURL = nexturl,
-                                Thumb = url,
-                                ID = illust.Id.ToString(),
-                                UserID = illust.User.Id.ToString(),
-                                Subject = illust.Title,
-                                Caption = illust.Caption.ToLineBreak(72),
-                                Illust = illust
-                            };
-                            ImageList.Add(i);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        await window.ShowMessageAsync("ERROR", ex.Message);
-                    }
+                    illust.AddTo(ImageList, nexturl);
                 }
                 ImageTilesWait.Visibility = Visibility.Hidden;
                 UpdateImageTile(tokens);
@@ -447,7 +300,6 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            //var works = await tokens.GetMyFollowingWorksAsync("private");
             var condition = IsPrivate ? "private" : "public";
             var root = nexturl == null ? await tokens.GetMyFollowingWorksAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
             nexturl = root.next_url ?? string.Empty;
@@ -458,56 +310,7 @@ namespace PixivWPF.Pages
                 ImageTilesWait.Visibility = Visibility.Visible;
                 foreach (var illust in root.illusts)
                 {
-                    try
-                    {
-                        var url = illust.ImageUrls.SquareMedium;
-                        if (string.IsNullOrEmpty(url))
-                        {
-                            if (!string.IsNullOrEmpty(illust.ImageUrls.Small))
-                            {
-                                url = illust.ImageUrls.Small;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Px128x128))
-                            {
-                                url = illust.ImageUrls.Px128x128;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Px480mw))
-                            {
-                                url = illust.ImageUrls.Px480mw;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Medium))
-                            {
-                                url = illust.ImageUrls.Medium;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Large))
-                            {
-                                url = illust.ImageUrls.Large;
-                            }
-                            else if (!string.IsNullOrEmpty(illust.ImageUrls.Original))
-                            {
-                                url = illust.ImageUrls.Original;
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            var i = new ImageItem()
-                            {
-                                NextURL = nexturl,
-                                Thumb = url,
-                                ID = illust.Id.ToString(),
-                                UserID = illust.User.Id.ToString(),
-                                Subject = illust.Title,
-                                Caption = illust.Caption.ToLineBreak(72),
-                                Illust = illust
-                            };
-                            ImageList.Add(i);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        await window.ShowMessageAsync("ERROR", ex.Message);
-                    }
+                    illust.AddTo(ImageList, nexturl);
                 }
                 ImageTilesWait.Visibility = Visibility.Hidden;
                 UpdateImageTile(tokens);
@@ -534,49 +337,7 @@ namespace PixivWPF.Pages
                         foreach (var work in works.Works)
                         {
                             var illust = work.Work;
-                            var url = illust.ImageUrls.SquareMedium;
-                            if (string.IsNullOrEmpty(url))
-                            {
-                                if (!string.IsNullOrEmpty(illust.ImageUrls.Small))
-                                {
-                                    url = illust.ImageUrls.Small;
-                                }
-                                else if (!string.IsNullOrEmpty(illust.ImageUrls.Px128x128))
-                                {
-                                    url = illust.ImageUrls.Px128x128;
-                                }
-                                else if (!string.IsNullOrEmpty(illust.ImageUrls.Px480mw))
-                                {
-                                    url = illust.ImageUrls.Px480mw;
-                                }
-                                else if (!string.IsNullOrEmpty(illust.ImageUrls.Medium))
-                                {
-                                    url = illust.ImageUrls.Medium;
-                                }
-                                else if (!string.IsNullOrEmpty(illust.ImageUrls.Large))
-                                {
-                                    url = illust.ImageUrls.Large;
-                                }
-                                else if (!string.IsNullOrEmpty(illust.ImageUrls.Original))
-                                {
-                                    url = illust.ImageUrls.Original;
-                                }
-                            }
-
-                            if (!string.IsNullOrEmpty(url))
-                            {
-                                var i = new ImageItem()
-                                {
-                                    NextURL = nexturl,
-                                    Thumb = url,
-                                    ID = illust.Id.ToString(),
-                                    UserID = illust.User.Id.ToString(),
-                                    Subject = illust.Title,
-                                    Caption = illust.Caption.ToLineBreak(72),
-                                    Illust = illust
-                                };
-                                ImageList.Add(i);
-                            }
+                            illust.AddTo(ImageList, nexturl);
                         }
                     }
                     catch (Exception ex)
@@ -587,7 +348,7 @@ namespace PixivWPF.Pages
                 ImageTilesWait.Visibility = Visibility.Hidden;
                 UpdateImageTile(tokens);
             }
-        }        
+        }
     }
 
     public class ImageItem : FrameworkElement//, INotifyPropertyChanged
@@ -604,11 +365,89 @@ namespace PixivWPF.Pages
         public string Thumb { get; set; }
         public string Subject { get; set; }
         public string Caption { get; set; }
+        public string ToolTip { get; set; }
         public string UserID { get; set; }
         public string ID { get; set; }
         //public Pixeez.Objects.IllustWork Illust { get; set; }
         public Pixeez.Objects.Work Illust { get; set; }
         public string AccessToken { get; set; }
         public string NextURL { get; set; }
+
     }
+
+    public static class ImageTileHelper
+    {
+        //public static void AddTo(this Pixeez.Objects.IllustWork[] works, IList<ImageItem> Colloection, string nexturl = "")
+        //{
+
+        //}
+
+        public static void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Colloection, string nexturl = "")
+        {
+            //ImageTilesWait.Visibility = Visibility.Visible;
+            foreach (var illust in works)
+            {
+                illust.AddTo(Colloection, nexturl);
+            }
+            //ImageTilesWait.Visibility = Visibility.Hidden;
+            //UpdateImageTile(tokens);
+        }
+
+        public static async void AddTo(this Pixeez.Objects.Work illust, IList<ImageItem> Colloection, string nexturl = "")
+        {
+            try
+            {
+                var url = illust.ImageUrls.SquareMedium;
+                if (string.IsNullOrEmpty(url))
+                {
+                    if (!string.IsNullOrEmpty(illust.ImageUrls.Small))
+                    {
+                        url = illust.ImageUrls.Small;
+                    }
+                    else if (!string.IsNullOrEmpty(illust.ImageUrls.Px128x128))
+                    {
+                        url = illust.ImageUrls.Px128x128;
+                    }
+                    else if (!string.IsNullOrEmpty(illust.ImageUrls.Px480mw))
+                    {
+                        url = illust.ImageUrls.Px480mw;
+                    }
+                    else if (!string.IsNullOrEmpty(illust.ImageUrls.Medium))
+                    {
+                        url = illust.ImageUrls.Medium;
+                    }
+                    else if (!string.IsNullOrEmpty(illust.ImageUrls.Large))
+                    {
+                        url = illust.ImageUrls.Large;
+                    }
+                    else if (!string.IsNullOrEmpty(illust.ImageUrls.Original))
+                    {
+                        url = illust.ImageUrls.Original;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(url))
+                {
+                    var i = new ImageItem()
+                    {
+                        NextURL = nexturl,
+                        Thumb = url,
+                        ID = illust.Id.ToString(),
+                        UserID = illust.User.Id.ToString(),
+                        Subject = illust.Title,
+                        Caption = illust.Caption,
+                        ToolTip = illust.Caption.ToLineBreak(72),
+                        Illust = illust
+                    };
+                    Colloection.Add(i);
+                }
+            }
+            catch (Exception ex)
+            {
+                MetroWindow window = Application.Current.MainWindow as MetroWindow;
+                await window.ShowMessageAsync("ERROR", ex.Message);
+            }
+        }
+    }
+
 }
