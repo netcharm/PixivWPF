@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -22,20 +23,27 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class PageNav : Page
     {
+        private Setting setting = Setting.Load();
         private PixivPage page = PixivPage.Recommanded;
+
+        private Brush ToggleOnBG = new SolidColorBrush(Colors.Transparent);
+        private Brush ToggleOffBG = new SolidColorBrush(Colors.Transparent);
 
         public PageNav()
         {
             InitializeComponent();
+
+            cbAccent.Items.Clear();
+            cbAccent.ItemsSource = Theme.Accents;
+            cbAccent.SelectedIndex = cbAccent.Items.IndexOf(Theme.CurrentAccent);
+
+            ToggleOnBG = Theme.AccentColorBrush;
         }
 
         private void ToggleTheme_Click(object sender, RoutedEventArgs e)
         {
-            Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-            var appTheme = appStyle.Item1;
-            var appAccent = appStyle.Item2;
-
-            ThemeManager.ChangeAppStyle(Application.Current, appAccent, ThemeManager.GetInverseAppTheme(appTheme));
+            Theme.Toggle();
+            ToggleOnBG = Theme.AccentColorBrush;
         }
 
         private void NavItem_Click(object sender, RoutedEventArgs e)
@@ -46,6 +54,29 @@ namespace PixivWPF.Pages
                 targetPage = this.Tag as PageTiles;
             else
                 return;
+
+            ToggleButton[] btns = new ToggleButton[] {
+                btnGotoRecommended, btnGotoLatest,
+                btnGotoFollowing, btnGotoFollowingPrivate,
+                btnGotoFavorite, btnGotoFavoritePrivate,
+                btnGotoRankingDaily, btnGotoRankingWeekly,
+                btnGotoRankingMonthly, btnGotoRankingYearly
+            };
+
+            foreach (var btn in btns)
+            {
+                var b = btn as ToggleButton;
+                if (b == sender)
+                {
+                    b.IsChecked = true;
+                    b.Background = ToggleOnBG;
+                }
+                else
+                {
+                    b.IsChecked = false;
+                    b.Background = ToggleOffBG;
+                }
+            }
 
             if(sender == btnGotoRecommended)
             {
@@ -123,5 +154,18 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void Accent_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if(cbAccent.SelectedIndex>=0 && cbAccent.SelectedIndex < cbAccent.Items.Count)
+            {
+                if(cbAccent.SelectedValue is string)
+                {
+                    var accent = cbAccent.SelectedValue as string;
+                    Theme.CurrentAccent = accent;
+                    //Theme.SetAccent(accent);
+                    ToggleOnBG = Theme.AccentColorBrush;
+                }
+            }
+        }
     }
 }

@@ -27,6 +27,12 @@ namespace PixivWPF.Common
         {
             InitializeComponent();
 
+            var setting = Setting.Load();
+            if (!string.IsNullOrEmpty(setting.Theme))
+                Common.Theme.CurrentTheme = setting.Theme;
+            if (!string.IsNullOrEmpty(setting.Accent))
+                Common.Theme.CurrentAccent = setting.Accent;
+
             ContentFrame.Tag = this;
             ContentFrame.Content = new Pages.PageLogin() { Tag = ContentFrame };
         }

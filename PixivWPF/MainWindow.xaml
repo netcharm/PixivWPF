@@ -10,7 +10,8 @@
         BorderBrush="{DynamicResource AccentColorBrush}"
         GlowBrush="{DynamicResource AccentColorBrush}"
         BorderThickness="1"
-        WindowStartupLocation="CenterScreen" MinWidth="800" MinHeight="600">
+        WindowStartupLocation="CenterScreen" MinWidth="800" MinHeight="600"
+        Closing="MainWindow_Closing">
 
     <Grid>
         <Grid.ColumnDefinitions>

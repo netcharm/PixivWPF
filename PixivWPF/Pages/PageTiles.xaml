@@ -11,18 +11,19 @@
 
     <Page.Resources>
         <DataTemplate x:Key="ImageTile" x:Name="ImageTile" x:Uid="ImageTile">
-            <Grid Background="{StaticResource AccentColorBrush}" Width="136">
+            <Grid Background="{StaticResource AccentColorBrush}" Width="128" Tag="{Binding Illust}" Margin="0,4">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="128"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <mah:ProgressRing Grid.Row="0" Width="72" Height="72" Opacity="0.38" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <mah:ProgressRing Grid.Row="0" Width="72" Height="72" Opacity="0.62" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <Image Grid.Row="0" 
                        Source="{Binding Source}" 
-                       ToolTip="{Binding Caption}"
+                       ToolTip="{Binding ToolTip}"
                        Tag="{Binding Illust}"
                        Stretch="Uniform" Width="128" Height="128"
                        Margin="4,4,4,4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <mah:Badged Grid.Row="0" Badge="{Binding Count}" BadgePlacementMode="TopRight" Margin="0,16,16,0" FontSize="16" FontFamily="Consolas" Visibility="{Binding Badge}" />
                 <TextBlock Grid.Row="1" Text="{Binding Subject}"/>
             </Grid>
         </DataTemplate>
@@ -45,7 +46,7 @@
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
-                    <UniformGrid Columns="5"/>
+                    <UniformGrid Columns="5" HorizontalAlignment="Center" VerticalAlignment="Top"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ListView>
@@ -54,12 +55,12 @@
                           Width="128" Height="128" 
                           Opacity="0.9" Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <Viewbox Grid.Column="1" StretchDirection="DownOnly" Margin="8,0,0,0" >
+        <Viewbox Grid.Column="1" StretchDirection="DownOnly" Margin="4,4,4,4" >
             <Image x:Name="Preview" x:Uid="Preview" 
                    Stretch="None"
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Viewbox>
-        <mah:ProgressRing Grid.Column="1" Margin="8,0,0,0"
+        <mah:ProgressRing Grid.Column="1" Margin="4,4,4,4"
                           x:Name="PreviewWait"
                           Width="128" Height="128" Opacity="0.62" 
                           Visibility="Hidden"

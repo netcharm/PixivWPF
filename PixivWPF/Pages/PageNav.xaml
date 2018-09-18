@@ -20,44 +20,48 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" VerticalAlignment="Top">
-            <Button x:Name="btnGotoRecommended" x:Uid="btnGotoRecommended" 
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+            <ToggleButton x:Name="btnGotoRecommended" x:Uid="btnGotoRecommended" 
+                    Style="{DynamicResource AccentedSquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Recommended" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <Button x:Name="btnGotoLatest" x:Uid="btnGotoLatest" 
+            <ToggleButton x:Name="btnGotoLatest" x:Uid="btnGotoLatest" 
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Latest" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <Button x:Name="btnGotoFollowing" x:Uid="btnGotoFollowing" 
+            <ToggleButton x:Name="btnGotoFollowing" x:Uid="btnGotoFollowing" 
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Following" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <Button x:Name="btnGotoFollowingPrivate" x:Uid="btnGotoFollowingPrivate" 
+            <ToggleButton x:Name="btnGotoFollowingPrivate" x:Uid="btnGotoFollowingPrivate" 
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Following Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <Button x:Name="btnGotoFavorite" x:Uid="btnGotoFavorite" 
+            <ToggleButton x:Name="btnGotoFavorite" x:Uid="btnGotoFavorite" 
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Favorite" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <Button x:Name="btnGotoFavoritePrivate" x:Uid="btnGotoFavoritePrivate" 
+            <ToggleButton x:Name="btnGotoFavoritePrivate" x:Uid="btnGotoFavoritePrivate" 
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Favorite Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
 
-            <Button x:Name="btnGotoRankingDaily" x:Uid="btnGotoRankingDaily" 
+            <ToggleButton x:Name="btnGotoRankingDaily" x:Uid="btnGotoRankingDaily" 
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Daily Top" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <Button x:Name="btnGotoRankingWeekly" x:Uid="btnGotoRankingWeekly" 
+            <ToggleButton x:Name="btnGotoRankingWeekly" x:Uid="btnGotoRankingWeekly" 
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
                     Content="Weekly Top" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <Button x:Name="btnGotoRankingMonthly" x:Uid="btnGotoRankingMonthly" 
+            <ToggleButton x:Name="btnGotoRankingMonthly" x:Uid="btnGotoRankingMonthly" 
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Monthly Top" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoRankingYearly" x:Uid="btnGotoRankingYearly" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Yearly Top" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
         </StackPanel>
 
@@ -85,10 +89,11 @@
                     Content="Login" Click="NavLogin_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
-            <ToggleButton x:Name="ToggleTheme" x:Uid="ToggleTheme" Content="Toggle Theme" 
-                          Style="{DynamicResource SquareButtonStyle}" 
-                          HorizontalContentAlignment="Left" BorderThickness="1"
-                          Click="ToggleTheme_Click"/>
+            <ComboBox x:Name="cbAccent" x:Uid="cbAccent" Margin="0,0,0,4" IsEditable="False" SelectionChanged="Accent_SelectionChanged" />
+            <Button x:Name="ToggleTheme" x:Uid="ToggleTheme" Content="Toggle Theme" 
+                    Style="{DynamicResource SquareButtonStyle}" 
+                    HorizontalContentAlignment="Left" BorderThickness="1"
+                    Click="ToggleTheme_Click"/>
         </StackPanel>
     </Grid>
 </Page>

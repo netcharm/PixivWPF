@@ -50,6 +50,8 @@ namespace PixivWPF.Pages
                 Logo.Source = new BitmapImage(uri);
             }
 
+            edUser.Focus();
+
             edUser.Text = setting.User;
             edPass.Password = setting.Pass;
             edProxy.Text = setting.Proxy;

@@ -18,6 +18,7 @@ using System.Windows.Controls;
 using MahApps.Metro.Controls;
 using System.Text.RegularExpressions;
 using MahApps.Metro.Controls.Dialogs;
+using MahApps.Metro;
 
 namespace PixivWPF.Common
 {
@@ -223,6 +224,84 @@ namespace PixivWPF.Common
         }
     }
 
+    public static class Theme
+    {
+        private static List<string> accents = new List<string>() {
+                //"BaseDark","BaseLight",
+                "Amber","Blue","Brown","Cobalt","Crimson","Cyan", "Emerald","Green",
+                "Indigo","Lime","Magenta","Mauve","Olive","Orange", "Pink",
+                "Purple","Red","Sienna","Steel","Taupe","Teal","Violet","Yellow"
+        };
+        private static Setting setting = Setting.Load();
+        public static IList<string> Accents
+        {
+            get { return accents; }
+        }
+
+        public static void Toggle()
+        {
+            Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+            var appTheme = appStyle.Item1;
+            var appAccent = appStyle.Item2;
+
+            var target = ThemeManager.GetInverseAppTheme(appTheme);
+            ThemeManager.ChangeAppStyle(Application.Current, appAccent, target);
+            setting.Theme = target.Name;
+            setting.Save();
+        }
+
+        public static string CurrentAccent
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return appAccent.Name;
+            }
+            set
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent(value), appTheme);
+                setting.Accent = value;
+                setting.Save();
+            }
+        }
+
+        public static string CurrentTheme
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return appTheme.Name;
+            }
+            set
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                ThemeManager.ChangeAppStyle(Application.Current, appAccent, ThemeManager.GetAppTheme(value));
+                setting.Theme = value;
+                setting.Save();
+            }
+        }
+
+        public static Brush AccentColorBrush
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return appAccent.Resources["AccentColorBrush"] as Brush;
+            }
+        }
+    }
+
     [JsonObject(MemberSerialization.OptOut)]
     class Setting
     {
@@ -316,6 +395,12 @@ namespace PixivWPF.Common
                 useproxy = value;
             }
         }
+
+        private string theme = string.Empty;
+        public string Theme { get; set; }
+
+        private string accent = string.Empty;
+        public string Accent { get; set; }
 
         public bool Save(string configfile = "")
         {

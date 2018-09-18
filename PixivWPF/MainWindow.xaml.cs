@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,30 @@ namespace PixivWPF
             NavFrame.NavigationUIVisibility = NavigationUIVisibility.Automatic;
             //ContentFrame.CacheMode
             var setting = Setting.Load();
+            if (!string.IsNullOrEmpty(setting.Theme))
+                Common.Theme.CurrentTheme = setting.Theme;
+            if (!string.IsNullOrEmpty(setting.Accent))
+                Common.Theme.CurrentAccent = setting.Accent;
+        }
+
+        private async void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+#if !DEBUG
+            e.Cancel = true;
+
+            var opt = new MetroDialogSettings();
+            opt.AffirmativeButtonText = "Yes";
+            opt.NegativeButtonText = "No";
+            opt.DefaultButtonFocus = MessageDialogResult.Affirmative;
+            opt.DialogMessageFontSize = 24;
+            opt.DialogResultOnCancel = MessageDialogResult.Canceled;
+
+            var ret = await this.ShowMessageAsync("Confirm", "Continue Exit?", MessageDialogStyle.AffirmativeAndNegative, opt);
+            if(ret == MessageDialogResult.Affirmative)
+            {
+                Application.Current.Shutdown();
+            }
+#endif
         }
     }
 }

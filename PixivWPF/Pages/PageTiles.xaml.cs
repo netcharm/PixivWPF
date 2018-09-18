@@ -225,13 +225,17 @@ namespace PixivWPF.Pages
 
         public async void ShowRecommanded(string nexturl = null)
         {
+            ImageTilesWait.Visibility = Visibility.Visible;
             var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Visibility = Visibility.Hidden;
             if (tokens == null) return;
 
+            ImageTilesWait.Visibility = Visibility.Visible;
             //var works = await tokens.GetMyFollowingWorksAsync("private");
             var root = nexturl == null ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
             nexturl = root.next_url ?? string.Empty;
             NextURL = nexturl;
+            ImageTilesWait.Visibility = Visibility.Hidden;
 
             if (root.illusts != null)
             {
@@ -247,15 +251,19 @@ namespace PixivWPF.Pages
 
         public async void ShowLatest(string nexturl = null)
         {
+            ImageTilesWait.Visibility = Visibility.Visible;
             var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Visibility = Visibility.Visible;
             if (tokens == null) return;
 
+            ImageTilesWait.Visibility = Visibility.Visible;
             //var works = await tokens.GetMyFollowingWorksAsync("private");
             //var root = nexturl == null ? await tokens.GetLatestWorksAsync() : await tokens.AccessNewApiAsync<Pixeez.Objects.Pagination>(nexturl);
             var page = string.IsNullOrEmpty(NextURL) ? 1 : Convert.ToInt32(NextURL);
             var root = await tokens.GetLatestWorksAsync(page);
             nexturl = root.Pagination.Next.ToString() ?? string.Empty;
             NextURL = nexturl;
+            ImageTilesWait.Visibility = Visibility.Hidden;
 
             if (root != null)
             {
@@ -271,9 +279,12 @@ namespace PixivWPF.Pages
 
         public async void ShowFavorite(string nexturl = null, long uid = 0, bool IsPrivate = false)
         {
+            ImageTilesWait.Visibility = Visibility.Visible;
             var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Visibility = Visibility.Hidden;
             if (tokens == null) return;
 
+            ImageTilesWait.Visibility = Visibility.Visible;
             //var works = await tokens.GetMyFollowingWorksAsync("private");
             var condition = IsPrivate ? "private" : "public";
             if (setting.MyInfo != null && uid == 0) uid = (long)setting.MyInfo.Id;
@@ -282,6 +293,7 @@ namespace PixivWPF.Pages
             var root = nexturl == null ? await tokens.GetUserFavoriteWorksAsync(uid, condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
             nexturl = root.next_url ?? string.Empty;
             NextURL = nexturl;
+            ImageTilesWait.Visibility = Visibility.Hidden;
 
             if (root.illusts != null)
             {
@@ -297,13 +309,17 @@ namespace PixivWPF.Pages
 
         public async void ShowFollowing(string nexturl = null, bool IsPrivate = false)
         {
+            ImageTilesWait.Visibility = Visibility.Visible;
             var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Visibility = Visibility.Hidden;
             if (tokens == null) return;
 
+            ImageTilesWait.Visibility = Visibility.Visible;
             var condition = IsPrivate ? "private" : "public";
             var root = nexturl == null ? await tokens.GetMyFollowingWorksAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
             nexturl = root.next_url ?? string.Empty;
             NextURL = nexturl;
+            ImageTilesWait.Visibility = Visibility.Hidden;
 
             if (root.illusts != null)
             {
@@ -319,13 +335,17 @@ namespace PixivWPF.Pages
 
         public async void ShowRanking(string nexturl = null, string condition = "daily")
         {
+            ImageTilesWait.Visibility = Visibility.Visible;
             var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Visibility = Visibility.Hidden;
             if (tokens == null) return;
 
+            ImageTilesWait.Visibility = Visibility.Visible;
             var page = string.IsNullOrEmpty(NextURL) ? 1 : Convert.ToInt32(NextURL);
             var root = await tokens.GetRankingAllAsync(condition, page);
             nexturl = root.Pagination.Next.ToString() ?? string.Empty;
             NextURL = nexturl;
+            ImageTilesWait.Visibility = Visibility.Hidden;
 
             if (root != null)
             {
@@ -351,21 +371,14 @@ namespace PixivWPF.Pages
         }
     }
 
-    public class ImageItem : FrameworkElement//, INotifyPropertyChanged
+    public class ImageItem : FrameworkElement
     {
-        //public static readonly DependencyProperty ImageProperty = DependencyProperty.Register("ImageItem", typeof(ImageSource), typeof(PageTiles));
-
-        //public ImageSource Source
-        //{
-        //    get { return (ImageSource)GetValue(ImageProperty); }
-        //    set { SetValue(ImageProperty, value); }
-        //}
-
         public ImageSource Source { get; set; }
         public string Thumb { get; set; }
         public string Subject { get; set; }
         public string Caption { get; set; }
-        public string ToolTip { get; set; }
+        public int Count { get; set; }
+        public Visibility Badge { get; set; }
         public string UserID { get; set; }
         public string ID { get; set; }
         //public Pixeez.Objects.IllustWork Illust { get; set; }
@@ -377,20 +390,12 @@ namespace PixivWPF.Pages
 
     public static class ImageTileHelper
     {
-        //public static void AddTo(this Pixeez.Objects.IllustWork[] works, IList<ImageItem> Colloection, string nexturl = "")
-        //{
-
-        //}
-
         public static void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Colloection, string nexturl = "")
         {
-            //ImageTilesWait.Visibility = Visibility.Visible;
             foreach (var illust in works)
             {
                 illust.AddTo(Colloection, nexturl);
             }
-            //ImageTilesWait.Visibility = Visibility.Hidden;
-            //UpdateImageTile(tokens);
         }
 
         public static async void AddTo(this Pixeez.Objects.Work illust, IList<ImageItem> Colloection, string nexturl = "")
@@ -432,6 +437,8 @@ namespace PixivWPF.Pages
                     {
                         NextURL = nexturl,
                         Thumb = url,
+                        Count = (int)illust.PageCount,
+                        Badge = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
                         ID = illust.Id.ToString(),
                         UserID = illust.User.Id.ToString(),
                         Subject = illust.Title,
