@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PixivWPF.Common;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -13,5 +14,13 @@ namespace PixivWPF
     /// </summary>
     public partial class App : Application
     {
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+            var setting = Setting.Load();
+            if (!string.IsNullOrEmpty(setting.Theme))
+                Common.Theme.CurrentTheme = setting.Theme;
+            if (!string.IsNullOrEmpty(setting.Accent))
+                Common.Theme.CurrentAccent = setting.Accent;
+        }
     }
 }

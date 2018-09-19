@@ -5,35 +5,45 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:PixivWPF.Pages"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+      xmlns:wpf="clr-namespace:TheArtOfDev.HtmlRenderer.WPF;assembly=HtmlRenderer.WPF"
       mc:Ignorable="d" 
       d:DesignHeight="300" d:DesignWidth="300"
-      Title="PageTiles">
+      Title="Image Master Detail Viewer">
 
     <Page.Resources>
         <DataTemplate x:Key="ImageTile" x:Name="ImageTile" x:Uid="ImageTile">
-            <Grid Background="{StaticResource AccentColorBrush}" Width="128" Tag="{Binding Illust}" Margin="0,4">
+            <Grid Background="{DynamicResource AccentColorBrush}" Width="128" Tag="{Binding Illust}" Margin="0,4">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="128"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <mah:ProgressRing Grid.Row="0" Width="72" Height="72" Opacity="0.62" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <mah:ProgressRing Grid.Row="0" Width="72" Height="72" Opacity="0.62" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AccentColorBrush}"/>
                 <Image Grid.Row="0" 
                        Source="{Binding Source}" 
                        ToolTip="{Binding ToolTip}"
                        Tag="{Binding Illust}"
                        Stretch="Uniform" Width="128" Height="128"
                        Margin="4,4,4,4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <mah:Badged Grid.Row="0" Badge="{Binding Count}" BadgePlacementMode="TopRight" Margin="0,16,16,0" FontSize="16" FontFamily="Consolas" Visibility="{Binding Badge}" />
-                <TextBlock Grid.Row="1" Text="{Binding Subject}"/>
+                <mah:Badged Grid.Row="0" Badge="{Binding Count}" BadgePlacementMode="TopRight" Margin="0,16,16,0" FontSize="16" FontFamily="Consolas" Visibility="{Binding Badge}" BadgeBackground="{DynamicResource AccentColorBrush}" />
+                <TextBlock Grid.Row="1" Text="{Binding Subject}" Foreground="{DynamicResource LabelTextBrush}"/>
             </Grid>
         </DataTemplate>
+        
+        <!--<ContextMenu x:Key="ActionsMenu">
+            <MenuItem x:Name="ActionOpenIllustSet" x:Uid="ActionOpenIllustSet" Header="Open Illust Set" Visibility="Collapsed" Click="ActionOpenIllustSet_Click"/>
+            <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" Header="Author Info" Visibility="Collapsed" Click="ActionIllustUserInfo_Click"/>
+            <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" Header="Relative Illust" Click="ActionIllustRelative_Click"/>
+            <Separator />
+            <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
+        </ContextMenu>-->
     </Page.Resources>
     
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="730"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto" MinWidth="700"/>
+            <ColumnDefinition Width="*" MinWidth="400"/>
         </Grid.ColumnDefinitions>
+        <!-- Illust List Viewport -->
         <ListView Grid.Column="0"
                   x:Name="ImageTiles" x:Uid="ImageTiles"
                   IsSynchronizedWithCurrentItem="true"                  
@@ -53,17 +63,98 @@
         <mah:ProgressRing Grid.Column="0" 
                           x:Name="ImageTilesWait" 
                           Width="128" Height="128" 
+                          Foreground="{DynamicResource AccentColorBrush}"
                           Opacity="0.9" Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <Viewbox Grid.Column="1" StretchDirection="DownOnly" Margin="4,4,4,4" >
-            <Image x:Name="Preview" x:Uid="Preview" 
+        <!-- Illust Preview Viewport -->
+        <ScrollViewer Grid.Column="1" Margin="4,4,8,4" HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
+            <Grid Grid.Column="1" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <!-- Illust Preview -->
+                <Viewbox Grid.Row="0" StretchDirection="DownOnly">
+                    <Image x:Name="Preview" x:Uid="Preview" 
                    Stretch="None"
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Viewbox>
-        <mah:ProgressRing Grid.Column="1" Margin="4,4,4,4"
+                </Viewbox>
+                <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge" BadgePlacementMode="BottomRight" Margin="0,0,16,16" FontSize="16" FontFamily="Consolas" Visibility="{Binding Badge}" BadgeBackground="{DynamicResource AccentColorBrush}" />
+                
+                <!-- Illust Author Info -->
+                <Grid Grid.Row="1" Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="32"/>
+                        <RowDefinition Height="32"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="64"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="64"/>
+                    </Grid.ColumnDefinitions>
+                    <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorIcon" 
+                       Width="64" Height="64" Stretch="Uniform"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="IllustTitle" Margin="4,0,0,0"
+                               Foreground="{DynamicResource LabelTextBrush}"
+                               HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" x:Name="IllustAuthor" Margin="4,0,0,0" 
+                               Foreground="{DynamicResource LabelTextBrush}"
+                               HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" 
+                            x:Name="IllustActions" x:Uid="IllustActions" Click="Actions_Click"
+                            Visibility="Hidden"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            Style="{DynamicResource MetroCircleButtonStyle}"
+                            Foreground="{DynamicResource LabelTextBrush}">
+                        <Rectangle Width="24" Height="24" Fill="{DynamicResource AccentColorBrush}">
+                            <Rectangle.OpacityMask>
+                                <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_list1}"/>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="ActionOpenIllustSet" x:Uid="ActionOpenIllustSet" Header="Open Illust Set" Visibility="Collapsed" Click="ActionOpenIllustSet_Click"/>
+                                <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" Header="Author Info" Visibility="Collapsed" Click="ActionIllustUserInfo_Click"/>
+                                <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" Header="Relative Illust" Click="ActionIllustRelative_Click"/>
+                                <Separator />
+                                <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                </Grid>
+                <!-- Illust Info -->
+                <Grid Grid.Row="2" Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" x:Name="IllustTag" x:Uid="IllustTag" Text="Tags:"
+                               Foreground="{DynamicResource LabelTextBrush}"
+                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Visibility="Hidden"/>
+                    <wpf:HtmlPanel Grid.Column="1" x:Name="IllustTags" x:Uid="IllustTags" 
+                                   Margin="8,0,0,0" MinHeight="48"
+                                   Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
+                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                                   HorizontalContentAlignment="Left" VerticalContentAlignment="Top"/>
+                </Grid>
+                <!-- Illust Info -->
+                <wpf:HtmlPanel Grid.Row="3" Margin="0,4,0,0" x:Name="IllustDesc" 
+                               Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
+                               HorizontalAlignment="Stretch"/>
+
+            </Grid>
+        </ScrollViewer>
+        <mah:ProgressRing Grid.Column="1"
                           x:Name="PreviewWait"
                           Width="128" Height="128" Opacity="0.62" 
+                          Foreground="{DynamicResource AccentColorBrush}"
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
+    
 </Page>

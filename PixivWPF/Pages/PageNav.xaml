@@ -9,10 +9,10 @@
       mc:Ignorable="d"       
       x:Name="NavPage"
       Title="Navigation"
-      d:DesignHeight="450" 
+      d:DesignHeight="600" 
       d:DesignWidth="160">
 
-    <Grid>
+    <Grid Margin="4,4,4,4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -21,7 +21,7 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" VerticalAlignment="Top">
             <ToggleButton x:Name="btnGotoRecommended" x:Uid="btnGotoRecommended" 
-                    Style="{DynamicResource AccentedSquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Recommended" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoLatest" x:Uid="btnGotoLatest" 
@@ -84,16 +84,20 @@
         </StackPanel>
 
         <StackPanel Grid.Row="3"  VerticalAlignment="Bottom">
-            <Button x:Name="btnGotoLogin" x:Uid="btnGotoLogin" 
+            <Button x:Name="btnGotoLogin" x:Uid="btnGotoLogin" Visibility="Collapsed"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Login" Click="NavLogin_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
+            <TextBlock x:Name="lbAccent" x:Uid="lbAccent" Text="Accent Select" Foreground="{DynamicResource AccentColorBrush}" Margin="0,0,0,4"/>
             <ComboBox x:Name="cbAccent" x:Uid="cbAccent" Margin="0,0,0,4" IsEditable="False" SelectionChanged="Accent_SelectionChanged" />
             <Button x:Name="ToggleTheme" x:Uid="ToggleTheme" Content="Toggle Theme" 
                     Style="{DynamicResource SquareButtonStyle}" 
+                    Margin="0,4,0,0"
                     HorizontalContentAlignment="Left" BorderThickness="1"
-                    Click="ToggleTheme_Click"/>
+                    Click="ToggleTheme_Click" 
+                    mah:ControlsHelper.ContentCharacterCasing="Normal"
+                    mah:ButtonHelper.PreserveTextCase="True"/>
         </StackPanel>
     </Grid>
 </Page>

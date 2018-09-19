@@ -29,6 +29,70 @@ namespace PixivWPF.Pages
         private Brush ToggleOnBG = new SolidColorBrush(Colors.Transparent);
         private Brush ToggleOffBG = new SolidColorBrush(Colors.Transparent);
 
+        internal void CheckPage()
+        {
+            ToggleButton[] btns = new ToggleButton[] {
+                btnGotoRecommended, btnGotoLatest,
+                btnGotoFollowing, btnGotoFollowingPrivate,
+                btnGotoFavorite, btnGotoFavoritePrivate,
+                btnGotoRankingDaily, btnGotoRankingWeekly,
+                btnGotoRankingMonthly, btnGotoRankingYearly
+            };
+
+            var sender = btnGotoRecommended;
+            if (page == PixivPage.Latest)
+            {
+                sender = btnGotoLatest;
+            }
+            else if (page == PixivPage.Follow)
+            {
+                sender = btnGotoFollowing;
+            }
+            else if (page == PixivPage.FollowPrivate)
+            {
+                sender = btnGotoFollowing;
+            }
+            else if (page == PixivPage.Favorite)
+            {
+                sender = btnGotoFollowing;
+            }
+            else if (page == PixivPage.FavoritePrivate)
+            {
+                sender = btnGotoFollowing;
+            }
+            else if (page == PixivPage.DailyTop)
+            {
+                sender = btnGotoFollowing;
+            }
+            else if (page == PixivPage.WeeklyTop)
+            {
+                sender = btnGotoFollowing;
+            }
+            else if (page == PixivPage.MonthlyTop)
+            {
+                sender = btnGotoFollowing;
+            }
+            else
+            {
+                sender = btnGotoRecommended;
+            }
+
+            foreach (var btn in btns)
+            {
+                var b = btn as ToggleButton;
+                if (b == sender)
+                {
+                    b.IsChecked = true;
+                    b.Background = ToggleOnBG;
+                }
+                else
+                {
+                    b.IsChecked = false;
+                    b.Background = ToggleOffBG;
+                }
+            }
+        }
+
         public PageNav()
         {
             InitializeComponent();
@@ -38,6 +102,8 @@ namespace PixivWPF.Pages
             cbAccent.SelectedIndex = cbAccent.Items.IndexOf(Theme.CurrentAccent);
 
             ToggleOnBG = Theme.AccentColorBrush;
+
+            CheckPage();
         }
 
         private void ToggleTheme_Click(object sender, RoutedEventArgs e)
@@ -55,34 +121,11 @@ namespace PixivWPF.Pages
             else
                 return;
 
-            ToggleButton[] btns = new ToggleButton[] {
-                btnGotoRecommended, btnGotoLatest,
-                btnGotoFollowing, btnGotoFollowingPrivate,
-                btnGotoFavorite, btnGotoFavoritePrivate,
-                btnGotoRankingDaily, btnGotoRankingWeekly,
-                btnGotoRankingMonthly, btnGotoRankingYearly
-            };
-
-            foreach (var btn in btns)
-            {
-                var b = btn as ToggleButton;
-                if (b == sender)
-                {
-                    b.IsChecked = true;
-                    b.Background = ToggleOnBG;
-                }
-                else
-                {
-                    b.IsChecked = false;
-                    b.Background = ToggleOffBG;
-                }
-            }
-
-            if(sender == btnGotoRecommended)
+            if (sender == btnGotoRecommended)
             {
                 page = PixivPage.Recommanded;
             }
-            else if(sender == btnGotoLatest)
+            else if (sender == btnGotoLatest)
             {
                 page = PixivPage.Latest;
             }
@@ -118,6 +161,7 @@ namespace PixivWPF.Pages
             {
                 page = PixivPage.Recommanded;
             }
+            CheckPage();
             targetPage.ShowImages(page, IsAppend);
         }
 
@@ -141,8 +185,8 @@ namespace PixivWPF.Pages
         private void NavLogin_Click(object sender, RoutedEventArgs e)
         {
             var accesstoken = Setting.Token();
-            if (string.IsNullOrEmpty(accesstoken))
-            {
+            //if (string.IsNullOrEmpty(accesstoken))
+            //{
                 var dlgLogin = new PixivLoginDialog() { AccessToken=string.Empty};
                 var ret = dlgLogin.ShowDialog();
                 //if (ret == true)
@@ -151,7 +195,7 @@ namespace PixivWPF.Pages
                     accesstoken = dlgLogin.AccessToken;
                     Setting.Token(accesstoken);
                 }
-            }
+            //}
         }
 
         private void Accent_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -162,8 +206,8 @@ namespace PixivWPF.Pages
                 {
                     var accent = cbAccent.SelectedValue as string;
                     Theme.CurrentAccent = accent;
-                    //Theme.SetAccent(accent);
                     ToggleOnBG = Theme.AccentColorBrush;
+                    CheckPage();
                 }
             }
         }

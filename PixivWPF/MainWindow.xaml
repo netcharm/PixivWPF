@@ -13,6 +13,29 @@
         WindowStartupLocation="CenterScreen" MinWidth="800" MinHeight="600"
         Closing="MainWindow_Closing">
 
+    <Controls:MetroWindow.Flyouts>
+        <Controls:FlyoutsControl>
+
+        </Controls:FlyoutsControl>
+    </Controls:MetroWindow.Flyouts>
+
+    <Controls:MetroWindow.WindowButtonCommands>
+        <Controls:WindowButtonCommands Style="{DynamicResource MahApps.Metro.Styles.WindowButtonCommands.Win10}" />
+    </Controls:MetroWindow.WindowButtonCommands>
+
+    <Controls:MetroWindow.RightWindowCommands>
+        <Controls:WindowCommands ShowLastSeparator="True">
+            <Button Click="CommandLogin_Click"
+                    ToolTip="Open Login Dialog">
+                <Rectangle Width="16" Height="16" Fill="{DynamicResource IdealForegroundColorBrush}">
+                    <Rectangle.OpacityMask>
+                        <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_user}"/>
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+            </Button>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.RightWindowCommands>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="160"/>

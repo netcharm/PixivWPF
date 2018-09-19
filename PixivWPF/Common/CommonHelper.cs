@@ -53,19 +53,20 @@ namespace PixivWPF.Common
             var accesstoken = setting.AccessToken;
             try
             {
-                if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.AccessToken))
+                if (Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 2592000)
                 {
-                    if(DateTime.Now.ToFileTime() - setting.Update < 300000)
-                    {
-                        result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
-                    }
-                    else
+                    result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.AccessToken))
                     {
                         try
                         {
                             var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.AccessToken, setting.Proxy, setting.UsingProxy);
                             //var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, "", setting.Proxy, setting.UsingProxy);
                             setting.AccessToken = authResult.Authorize.AccessToken;
+                            setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
                             result = authResult.Tokens;
                         }
                         catch (Exception)
@@ -73,12 +74,12 @@ namespace PixivWPF.Common
                             result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
                         }
                     }
-                }
-                else
-                {
-                    var dlgLogin = new PixivLoginDialog() { AccessToken=accesstoken };
-                    var ret = dlgLogin.ShowDialog();
-                    result = dlgLogin.Tokens;
+                    else
+                    {
+                        var dlgLogin = new PixivLoginDialog() { AccessToken=accesstoken };
+                        var ret = dlgLogin.ShowDialog();
+                        result = dlgLogin.Tokens;
+                    }
                 }
             }
             catch(Exception ex)
@@ -290,6 +291,17 @@ namespace PixivWPF.Common
             }
         }
 
+        public static Color AccentColor
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (Color)appAccent.Resources["AccentColor"];
+            }
+        }
+
         public static Brush AccentColorBrush
         {
             get
@@ -299,6 +311,66 @@ namespace PixivWPF.Common
                 Accent appAccent = appStyle.Item2;
                 return appAccent.Resources["AccentColorBrush"] as Brush;
             }
+        }
+
+        public static Color TextColor
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["LabelTextBrush"] as Brush).ToColor();
+            }
+        }
+
+        public static Brush TextColorBrush
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["LabelTextBrush"] as Brush);
+            }
+        }
+
+        public static Color ToColor(this Brush b, bool prefixsharp = true)
+        {
+            if(b is SolidColorBrush)
+            {
+                return (b as SolidColorBrush).Color;
+            }
+            else
+            {
+                var hc = b.ToString();//.Replace("#", "");
+                var c = System.Drawing.ColorTranslator.FromHtml(hc);
+                var rc = Color.FromArgb(c.A, c.R, c.G, c.B);
+                return (rc);
+            }
+        }
+
+        public static string ToHtml(this Brush b, bool prefixsharp = true)
+        {
+            if (prefixsharp)
+                return (b.ToString());
+            else
+                return (b.ToString().Replace("#", ""));
+        }
+
+        public static string ToHtml(this Color c, bool alpha = true, bool prefixsharp=true)
+        {
+            string result = string.Empty;
+
+            if (alpha)
+                result = string.Format("{0:X2}{1:X2}{2:X2}{3:X2}", c.A, c.R, c.G, c.B);
+            else
+                result = string.Format("{0:X2}{1:X2}{2:X2}", c.R, c.G, c.B);
+
+            if (prefixsharp)
+                result = $"#{result}";
+
+            return (result);
         }
     }
 
@@ -348,9 +420,9 @@ namespace PixivWPF.Common
             set { myinfo = value; }
         }
 
-        [JsonIgnore]
+        //[JsonIgnore]
         private long update = 0;
-        [JsonIgnore]
+        //[JsonIgnore]
         public long Update
         {
             get { return update; }
@@ -402,17 +474,25 @@ namespace PixivWPF.Common
         private string accent = string.Empty;
         public string Accent { get; set; }
 
-        public bool Save(string configfile = "")
+        private string lastSaveFolder = string.Empty;
+        public string SaveFolder { get; set; }
+
+
+        public async Task<bool> Save(string configfile = "")
         {
             bool result = false;
             try
             {
-                if (!string.IsNullOrEmpty(configfile)) config = configfile;
+                if (string.IsNullOrEmpty(configfile)) configfile = config;
                 var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
-                File.WriteAllText(config, text, new UTF8Encoding(true));
+                File.WriteAllText(configfile, text, new UTF8Encoding(true));
                 result = true;
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                MetroWindow window = Application.Current.MainWindow as MetroWindow;
+                await window.ShowMessageAsync("ERROR", ex.Message);
+            }
             return (result);
         }
 
@@ -424,11 +504,14 @@ namespace PixivWPF.Common
                 if (Cache is Setting) result = Cache;
                 else
                 {
-                    if (!string.IsNullOrEmpty(configfile)) config = configfile;
+                    if (string.IsNullOrEmpty(configfile)) configfile = config;
                     if (File.Exists(config))
                     {
-                        var text = File.ReadAllText(config);
-                        Cache = JsonConvert.DeserializeObject<Setting>(text);
+                        var text = File.ReadAllText(configfile);
+                        if (text.Length < 20)
+                            Cache = new Setting();
+                        else
+                            Cache = JsonConvert.DeserializeObject<Setting>(text);
                         result = Cache;
                     }
                 }

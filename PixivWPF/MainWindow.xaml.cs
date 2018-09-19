@@ -40,12 +40,6 @@ namespace PixivWPF
 
             ContentFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
             NavFrame.NavigationUIVisibility = NavigationUIVisibility.Automatic;
-            //ContentFrame.CacheMode
-            var setting = Setting.Load();
-            if (!string.IsNullOrEmpty(setting.Theme))
-                Common.Theme.CurrentTheme = setting.Theme;
-            if (!string.IsNullOrEmpty(setting.Accent))
-                Common.Theme.CurrentAccent = setting.Accent;
         }
 
         private async void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -66,6 +60,15 @@ namespace PixivWPF
                 Application.Current.Shutdown();
             }
 #endif
+        }
+
+        private async void CommandLogin_Click(object sender, RoutedEventArgs e)
+        {
+            var accesstoken = Setting.Token();
+            var dlgLogin = new PixivLoginDialog() { AccessToken = accesstoken };
+            var ret = dlgLogin.ShowDialog();
+            accesstoken = dlgLogin.AccessToken;
+            Setting.Token(accesstoken);
         }
     }
 }

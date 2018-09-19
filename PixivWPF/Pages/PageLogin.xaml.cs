@@ -29,6 +29,24 @@ namespace PixivWPF.Pages
         private Setting setting = Setting.Load();
         private Pixeez.Tokens tokens = null;
 
+        private void CloseWindow()
+        {
+            if (Tag is Frame)
+            {
+                var frame = Tag as Frame;
+                if (frame.Tag is PixivLoginDialog)
+                {
+                    var win = frame.Tag as PixivLoginDialog;
+                    win.Close();
+                }
+            }
+            else
+            {
+                //Application.Current.MainWindow.Close();
+                Application.Current.Shutdown();
+            }
+        }
+
         public PageLogin()
         {
             InitializeComponent();
@@ -96,6 +114,7 @@ namespace PixivWPF.Pages
                         setting.Proxy = proxy;
                         setting.UsingProxy = useproxy;
                         setting.MyInfo = result.Authorize.User;
+                        setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
                         setting.Save();
                     }
 
@@ -117,6 +136,7 @@ namespace PixivWPF.Pages
                 catch (Exception ex)
                 {
                     await window.ShowMessageAsync("ERROR", ex.Message);
+                    CloseWindow();
                 }
             }
             btnLogin.IsEnabled = true;
@@ -129,20 +149,7 @@ namespace PixivWPF.Pages
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
-            if (Tag is Frame)
-            {
-                var frame = Tag as Frame;
-                if (frame.Tag is PixivLoginDialog)
-                {
-                    var win = frame.Tag as PixivLoginDialog;
-                    win.Close();
-                }
-            }
-            else
-            {
-                //Application.Current.MainWindow.Close();
-                Application.Current.Shutdown();
-            }
+            CloseWindow();
         }
     }
 }
