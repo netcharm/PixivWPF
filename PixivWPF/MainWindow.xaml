@@ -29,7 +29,7 @@
                     ToolTip="Open Navigation Flyout">
                 <Rectangle Width="16" Height="16" Fill="{DynamicResource IdealForegroundColorBrush}">
                     <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_page}"/>
+                        <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_page_search}"/>
                     </Rectangle.OpacityMask>
                 </Rectangle>
             </Button>
@@ -62,6 +62,14 @@
                     </Rectangle.OpacityMask>
                 </Rectangle>
             </Button>
+            <Button Click="CommandToggleTheme_Click"
+                    ToolTip="Toggle Application Theme">
+                <Rectangle Width="16" Height="16" Fill="{DynamicResource IdealForegroundColorBrush}">
+                    <Rectangle.OpacityMask>
+                        <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_contrast}"/>
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+            </Button>
         </Controls:WindowCommands>
     </Controls:MetroWindow.RightWindowCommands>
 
@@ -82,7 +90,7 @@
         </Frame>
         <Controls:Flyout Grid.Column="0" Grid.ColumnSpan="2" 
                          x:Name="NavFlyout" x:Uid="NavFlyout" Header="Navigation" 
-                         Position="Left" Width="200" 
+                         Position="Left" Width="Auto" 
                          IsAutoCloseEnabled="True" AutoCloseInterval="10000"
                          CloseButtonVisibility="Visible" ExternalCloseButton="Left"
                          Theme="Accent" Opacity="0.95"

@@ -38,7 +38,7 @@ namespace PixivWPF.Pages
         private string NextURL = null;
         private bool UPDATING = false;
 
-        public async void UpdateImageTile(Pixeez.Tokens tokens)
+        public void UpdateImageTile(Pixeez.Tokens tokens)
         {
             if (UPDATING) return;
 
@@ -142,7 +142,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowImages(PixivPage target, string page)
+        public void ShowImages(PixivPage target, string page)
         {
             if (TargetPage != target)
             {
@@ -198,10 +198,9 @@ namespace PixivWPF.Pages
                     ShowRanking(NextURL, "monthly");
                     break;
             }
-            //UpdateImageTile(tokens);
         }
 
-        public async void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false)
+        public void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false)
         {
             if (TargetPage != target)
             {

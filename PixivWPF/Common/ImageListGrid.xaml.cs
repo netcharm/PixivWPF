@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,19 +25,20 @@ namespace PixivWPF.Common
     /// </summary>
     public partial class ImageListGrid : ListView
     {
-        public static readonly DependencyProperty ColumnsProperty =
-            DependencyProperty.Register("Columns", typeof(int), typeof(ImageListGrid),
-            new FrameworkPropertyMetadata(5, new PropertyChangedCallback(ColumnsPropertyChangedCallback)));
-        private static PropertyChangedCallback ColumnsPropertyChangedCallback;
+        //public static readonly DependencyProperty ColumnsProperty =
+        //    DependencyProperty.Register("Columns", typeof(int), typeof(ImageListGrid),
+        //    new FrameworkPropertyMetadata(5, new PropertyChangedCallback(ColumnsPropertyChangedCallback)));
+        //private static PropertyChangedCallback ColumnsPropertyChangedCallback;
         [Description("Get or Set Columns for display Image Tile Grid")]
         [Category("Common Properties")]
+        [DefaultValue(5)]
         public int Columns { get; set; }
 
 
         private ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
-        public ObservableCollection<ImageItem> Items
+        public new ObservableCollection<ImageItem> Items
         {
             get { return ImageList; }
         }
@@ -44,6 +46,44 @@ namespace PixivWPF.Common
         public ImageListGrid()
         {
             InitializeComponent();
+        }
+
+        private bool UPDATING = false;
+        public void UpdateImageTile(Pixeez.Tokens tokens, int parallel=10)
+        {
+            if (UPDATING) return;
+
+            var needUpdate = ImageList.Where(item => item.Source == null);
+
+            new Thread(delegate ()
+            {
+                var opt = new ParallelOptions();
+
+                if (parallel <= 0) parallel = 1;
+                else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
+
+                opt.MaxDegreeOfParallelism = parallel;
+                Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                {
+                    item.Dispatcher.BeginInvoke(new Action(async () =>
+                    {
+                        try
+                        {
+                            if (item.Source == null)
+                            {
+                                item.Source = await item.Thumb.ToImageSource(tokens);
+                                ImageTiles.Items.Refresh();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MetroWindow window = Application.Current.MainWindow as MetroWindow;
+                            await window.ShowMessageAsync("ERROR", ex.Message);
+                        }
+                    }));
+                });
+                UPDATING = false;
+            }).Start();
         }
     }
 

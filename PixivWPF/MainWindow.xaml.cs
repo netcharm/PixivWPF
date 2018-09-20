@@ -47,9 +47,9 @@ namespace PixivWPF
             NavFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
         }
 
+#if !DEBUG
         private async void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-#if !DEBUG
             e.Cancel = true;
 
             var opt = new MetroDialogSettings();
@@ -64,10 +64,20 @@ namespace PixivWPF
             {
                 Application.Current.Shutdown();
             }
+        }
+#else
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+
+        }
 #endif
+
+        private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
+        {
+            Common.Theme.Toggle();
         }
 
-        private async void CommandLogin_Click(object sender, RoutedEventArgs e)
+        private void CommandLogin_Click(object sender, RoutedEventArgs e)
         {
             var accesstoken = Setting.Token();
             var dlgLogin = new PixivLoginDialog() { AccessToken = accesstoken };
@@ -90,5 +100,6 @@ namespace PixivWPF
         {
 
         }
+
     }
 }

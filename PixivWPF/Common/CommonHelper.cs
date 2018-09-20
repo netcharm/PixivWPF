@@ -565,23 +565,19 @@ namespace PixivWPF.Common
         private string lastSaveFolder = string.Empty;
         public string SaveFolder { get; set; }
 
-
-        public async Task<bool> Save(string configfile = "")
+        public async void Save(string configfile = "")
         {
-            bool result = false;
             try
             {
                 if (string.IsNullOrEmpty(configfile)) configfile = config;
                 var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
                 File.WriteAllText(configfile, text, new UTF8Encoding(true));
-                result = true;
             }
             catch (Exception ex)
             {
                 MetroWindow window = Application.Current.MainWindow as MetroWindow;
                 await window.ShowMessageAsync("ERROR", ex.Message);
             }
-            return (result);
         }
 
         public static Setting Load(string configfile="")
