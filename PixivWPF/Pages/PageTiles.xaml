@@ -17,15 +17,19 @@
                     <RowDefinition Height="128"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <mah:ProgressRing Grid.Row="0" Width="72" Height="72" Opacity="0.62" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AccentColorBrush}"/>
+                <mah:ProgressRing Grid.Row="0" Width="72" Height="72" Opacity="0.62" 
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                  Foreground="{DynamicResource AccentColorBrush}"/>
                 <Image Grid.Row="0" 
                        Source="{Binding Source}" 
                        ToolTip="{Binding ToolTip}"
                        Tag="{Binding Illust}"
                        Stretch="Uniform" Width="128" Height="128"
                        Margin="4,4,4,4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <mah:Badged Grid.Row="0" Badge="{Binding Count}" BadgePlacementMode="TopRight" Margin="0,16,16,0" FontSize="16" FontFamily="Consolas" Visibility="{Binding Badge}" BadgeBackground="{DynamicResource AccentColorBrush}" />
-                <TextBlock Grid.Row="1" Text="{Binding Subject}" Foreground="{DynamicResource LabelTextBrush}"/>
+                <mah:Badged Grid.Row="0" Badge="{Binding Count}" BadgePlacementMode="TopRight" Margin="0,16,16,0" 
+                            FontSize="16" FontFamily="Consolas" Visibility="{Binding Badge}" 
+                            BadgeBackground="{DynamicResource AccentColorBrush}" />
+                <TextBlock Grid.Row="1" Text="{Binding Subject}" Foreground="{DynamicResource LabelTextBrush}" Visibility="{Binding TitleVisibility}"/>
             </Grid>
         </DataTemplate>
         

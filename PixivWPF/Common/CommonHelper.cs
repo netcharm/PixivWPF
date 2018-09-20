@@ -53,7 +53,7 @@ namespace PixivWPF.Common
             var accesstoken = setting.AccessToken;
             try
             {
-                if (Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 2592000)
+                if (Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 3600)
                 {
                     result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
                 }
@@ -90,7 +90,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string ToLineBreak(this string text, int lineLength)
+        public static string InsertLineBreak(this string text, int lineLength)
         {
             if (string.IsNullOrEmpty(text)) return (string.Empty);
             //return Regex.Replace(text, @"(.{" + lineLength + @"})", "$1" + Environment.NewLine);
@@ -291,6 +291,50 @@ namespace PixivWPF.Common
             }
         }
 
+        public static Color WhiteColor
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["WhiteColor"] as Brush).ToColor();
+            }
+        }
+
+        public static Brush WhiteBrush
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["WhiteBrush"] as Brush);
+            }
+        }
+
+        public static Color BlackColor
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["BlackColor"] as Brush).ToColor();
+            }
+        }
+
+        public static Brush BlackBrush
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["BlackBrush"] as Brush);
+            }
+        }
+
         public static Color AccentColor
         {
             get
@@ -302,7 +346,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static Brush AccentColorBrush
+        public static Brush AccentBrush
         {
             get
             {
@@ -320,11 +364,33 @@ namespace PixivWPF.Common
                 Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["TextBrush"] as Brush).ToColor();
+            }
+        }
+
+        public static Brush TextBrush
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["TextBrush"] as Brush);
+            }
+        }
+
+        public static Color LabelTextColor
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
                 return (appTheme.Resources["LabelTextBrush"] as Brush).ToColor();
             }
         }
 
-        public static Brush TextColorBrush
+        public static Brush LabelTextBrush
         {
             get
             {
@@ -332,6 +398,28 @@ namespace PixivWPF.Common
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
                 return (appTheme.Resources["LabelTextBrush"] as Brush);
+            }
+        }
+
+        public static Color IdealForegroundColor
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["IdealForegroundColorBrush"] as Brush).ToColor();
+            }
+        }
+
+        public static Brush IdealForegroundBrush
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["IdealForegroundColorBrush"] as Brush);
             }
         }
 

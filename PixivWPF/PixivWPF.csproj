@@ -81,6 +81,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Common\ImageListGrid.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Common\LoginDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -95,6 +99,9 @@
     </Compile>
     <Compile Include="Common\CommonHelper.cs" />
     <Compile Include="Common\DownloadItems.cs" />
+    <Compile Include="Common\ImageListGrid.xaml.cs">
+      <DependentUpon>ImageListGrid.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Common\LoginDialog.xaml.cs">
       <DependentUpon>LoginDialog.xaml</DependentUpon>
     </Compile>

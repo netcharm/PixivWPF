@@ -21,26 +21,32 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" VerticalAlignment="Top">
             <ToggleButton x:Name="btnGotoRecommended" x:Uid="btnGotoRecommended" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Recommended" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoLatest" x:Uid="btnGotoLatest" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Latest" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoFollowing" x:Uid="btnGotoFollowing" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Following" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoFollowingPrivate" x:Uid="btnGotoFollowingPrivate" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Following Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoFavorite" x:Uid="btnGotoFavorite" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Favorite" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoFavoritePrivate" x:Uid="btnGotoFavoritePrivate" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Favorite Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
@@ -48,18 +54,22 @@
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
 
             <ToggleButton x:Name="btnGotoRankingDaily" x:Uid="btnGotoRankingDaily" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Daily Top" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingWeekly" x:Uid="btnGotoRankingWeekly" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
                     Content="Weekly Top" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingMonthly" x:Uid="btnGotoRankingMonthly" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Monthly Top" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingYearly" x:Uid="btnGotoRankingYearly" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Yearly Top" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
@@ -73,10 +83,12 @@
                     <ColumnDefinition Width=".5*"/>
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" x:Name="btnGotoPrevPage" x:Uid="btnGotoPrevPage" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Prev Page" Click="NavPage_Click" IsEnabled="False"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
                 <Button Grid.Column="1" x:Name="btnGotoNextPage" x:Uid="btnGotoNextPage" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Right"
                     Content="Next Page" Click="NavPage_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
@@ -85,14 +97,20 @@
 
         <StackPanel Grid.Row="3"  VerticalAlignment="Bottom">
             <Button x:Name="btnGotoLogin" x:Uid="btnGotoLogin" Visibility="Collapsed"
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Login" Click="NavLogin_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
-            <TextBlock x:Name="lbAccent" x:Uid="lbAccent" Text="Accent Select" Foreground="{DynamicResource AccentColorBrush}" Margin="0,0,0,4"/>
-            <ComboBox x:Name="cbAccent" x:Uid="cbAccent" Margin="0,0,0,4" IsEditable="False" SelectionChanged="Accent_SelectionChanged" />
+            <TextBlock x:Name="lbAccent" x:Uid="lbAccent" Text="Accent Select" Margin="0,0,0,4"
+                       Foreground="{DynamicResource IdealForegroundColorBrush}"/>
+            <ComboBox x:Name="cbAccent" x:Uid="cbAccent" Margin="0,0,0,4" 
+                      IsEditable="False" 
+                      Foreground="{DynamicResource IdealForegroundColorBrush}"
+                      SelectionChanged="Accent_SelectionChanged" />
             <Button x:Name="ToggleTheme" x:Uid="ToggleTheme" Content="Toggle Theme" 
                     Style="{DynamicResource SquareButtonStyle}" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Margin="0,4,0,0"
                     HorizontalContentAlignment="Left" BorderThickness="1"
                     Click="ToggleTheme_Click" 

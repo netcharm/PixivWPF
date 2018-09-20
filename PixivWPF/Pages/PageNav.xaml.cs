@@ -26,6 +26,8 @@ namespace PixivWPF.Pages
         private Setting setting = Setting.Load();
         private PixivPage page = PixivPage.Recommanded;
 
+        public MahApps.Metro.Controls.Flyout NavFlyout = null;
+
         private Brush ToggleOnBG = new SolidColorBrush(Colors.Transparent);
         private Brush ToggleOffBG = new SolidColorBrush(Colors.Transparent);
 
@@ -91,6 +93,13 @@ namespace PixivWPF.Pages
                     b.Background = ToggleOffBG;
                 }
             }
+
+            if (NavFlyout is MahApps.Metro.Controls.Flyout)
+            {
+                NavFlyout.Theme = MahApps.Metro.Controls.FlyoutTheme.Adapt;
+                NavFlyout.Theme = MahApps.Metro.Controls.FlyoutTheme.Accent;
+                //NavFlyout.Opacity = 0.95;
+            }
         }
 
         public PageNav()
@@ -101,15 +110,9 @@ namespace PixivWPF.Pages
             cbAccent.ItemsSource = Theme.Accents;
             cbAccent.SelectedIndex = cbAccent.Items.IndexOf(Theme.CurrentAccent);
 
-            ToggleOnBG = Theme.AccentColorBrush;
+            ToggleOnBG = Theme.AccentBrush;
 
             CheckPage();
-        }
-
-        private void ToggleTheme_Click(object sender, RoutedEventArgs e)
-        {
-            Theme.Toggle();
-            ToggleOnBG = Theme.AccentColorBrush;
         }
 
         private void NavItem_Click(object sender, RoutedEventArgs e)
@@ -206,10 +209,18 @@ namespace PixivWPF.Pages
                 {
                     var accent = cbAccent.SelectedValue as string;
                     Theme.CurrentAccent = accent;
-                    ToggleOnBG = Theme.AccentColorBrush;
+                    ToggleOnBG = Theme.AccentBrush;
                     CheckPage();
                 }
             }
         }
+
+        private void ToggleTheme_Click(object sender, RoutedEventArgs e)
+        {
+            Theme.Toggle();
+            ToggleOnBG = Theme.AccentBrush;
+            CheckPage();
+        }
+
     }
 }

@@ -33,13 +33,18 @@ namespace PixivWPF
 
             //ContentFrame.Content = new Pages.PageLogin() { Tag = ContentFrame };
             var pagetiles = new Pages.PageTiles() { Tag = ContentFrame };
-            var pagenav = new Pages.PageNav() { Tag = pagetiles };
+            var pagenav = new Pages.PageNav() { Tag = pagetiles, NavFlyout = NavFlyout };
 
             ContentFrame.Content = pagetiles;
             NavFrame.Content = pagenav;
 
+            NavFlyout.Content = pagenav;
+            NavFlyout.Theme = FlyoutTheme.Adapt;
+            NavFlyout.Theme = FlyoutTheme.Accent;
+            NavFlyout.Opacity = 0.95;
+
             ContentFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
-            NavFrame.NavigationUIVisibility = NavigationUIVisibility.Automatic;
+            NavFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
         }
 
         private async void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -69,6 +74,21 @@ namespace PixivWPF
             var ret = dlgLogin.ShowDialog();
             accesstoken = dlgLogin.AccessToken;
             Setting.Token(accesstoken);
+        }
+
+        private void CommandNav_Click(object sender, RoutedEventArgs e)
+        {
+            NavFlyout.IsOpen = !NavFlyout.IsOpen;
+        }
+
+        private void CommandNavPrev_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void CommandNavNext_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
