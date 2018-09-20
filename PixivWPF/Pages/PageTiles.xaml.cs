@@ -34,7 +34,7 @@ namespace PixivWPF.Pages
         private MetroWindow window = Application.Current.MainWindow as MetroWindow;
         internal ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
         private Setting setting = Setting.Load();
-        private PixivPage TargetPage = PixivPage.Recommanded;
+        public PixivPage TargetPage = PixivPage.Recommanded;
         private string NextURL = null;
         private bool UPDATING = false;
 
@@ -188,13 +188,13 @@ namespace PixivWPF.Pages
                     break;
                 case PixivPage.MyBookmark:
                     break;
-                case PixivPage.DailyTop:
+                case PixivPage.RankingDaily:
                     ShowRanking(NextURL, "daily");
                     break;
-                case PixivPage.WeeklyTop:
+                case PixivPage.RankingWeekly:
                     ShowRanking(NextURL, "weekly");
                     break;
-                case PixivPage.MonthlyTop:
+                case PixivPage.RankingMonthly:
                     ShowRanking(NextURL, "monthly");
                     break;
             }
@@ -248,13 +248,13 @@ namespace PixivWPF.Pages
                     break;
                 case PixivPage.MyBookmark:
                     break;
-                case PixivPage.DailyTop:
+                case PixivPage.RankingDaily:
                     ShowRanking(NextURL, "daily");
                     break;
-                case PixivPage.WeeklyTop:
+                case PixivPage.RankingWeekly:
                     ShowRanking(NextURL, "weekly");
                     break;
-                case PixivPage.MonthlyTop:
+                case PixivPage.RankingMonthly:
                     ShowRanking(NextURL, "monthly");
                     break;
             }

@@ -25,6 +25,9 @@ namespace PixivWPF
     {
         public Frame MainContent = null;
 
+        private Pages.PageTiles pagetiles = null;
+        private Pages.PageNav pagenav = null;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -32,8 +35,8 @@ namespace PixivWPF
             MainContent = ContentFrame;
 
             //ContentFrame.Content = new Pages.PageLogin() { Tag = ContentFrame };
-            var pagetiles = new Pages.PageTiles() { Tag = ContentFrame };
-            var pagenav = new Pages.PageNav() { Tag = pagetiles, NavFlyout = NavFlyout };
+            pagetiles = new Pages.PageTiles() { Tag = ContentFrame };
+            pagenav = new Pages.PageNav() { Tag = pagetiles, NavFlyout = NavFlyout };
 
             ContentFrame.Content = pagetiles;
             NavFrame.Content = pagenav;
@@ -45,6 +48,8 @@ namespace PixivWPF
 
             ContentFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
             NavFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
+
+            NavPageTitle.Text = pagetiles.TargetPage.ToString();
         }
 
 #if !DEBUG
@@ -91,15 +96,28 @@ namespace PixivWPF
             NavFlyout.IsOpen = !NavFlyout.IsOpen;
         }
 
+        private void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            NavPageTitle.Text = pagetiles.TargetPage.ToString();
+            pagetiles.ShowImages(pagetiles.TargetPage, false);
+        }
+
         private void CommandNavPrev_Click(object sender, RoutedEventArgs e)
         {
-
         }
 
         private void CommandNavNext_Click(object sender, RoutedEventArgs e)
         {
-
+            NavPageTitle.Text = pagetiles.TargetPage.ToString();
+            pagetiles.ShowImages(pagetiles.TargetPage, true);
         }
 
+        private void NavFlyout_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if(e.NewValue is PixivPage)
+            {
+                NavPageTitle.Text = e.NewValue.ToString();
+            }
+        }
     }
 }

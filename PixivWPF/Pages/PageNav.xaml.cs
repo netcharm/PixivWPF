@@ -52,27 +52,31 @@ namespace PixivWPF.Pages
             }
             else if (page == PixivPage.FollowPrivate)
             {
-                sender = btnGotoFollowing;
+                sender = btnGotoFollowingPrivate;
             }
             else if (page == PixivPage.Favorite)
             {
-                sender = btnGotoFollowing;
+                sender = btnGotoFavorite;
             }
             else if (page == PixivPage.FavoritePrivate)
             {
-                sender = btnGotoFollowing;
+                sender = btnGotoFavoritePrivate;
             }
-            else if (page == PixivPage.DailyTop)
+            else if (page == PixivPage.RankingDaily)
             {
-                sender = btnGotoFollowing;
+                sender = btnGotoRankingDaily;
             }
-            else if (page == PixivPage.WeeklyTop)
+            else if (page == PixivPage.RankingWeekly)
             {
-                sender = btnGotoFollowing;
+                sender = btnGotoRankingWeekly;
             }
-            else if (page == PixivPage.MonthlyTop)
+            else if (page == PixivPage.RankingMonthly)
             {
-                sender = btnGotoFollowing;
+                sender = btnGotoRankingMonthly;
+            }
+            else if (page == PixivPage.RankingYearly)
+            {
+                sender = btnGotoRankingYearly;
             }
             else
             {
@@ -98,6 +102,7 @@ namespace PixivWPF.Pages
             {
                 NavFlyout.Theme = MahApps.Metro.Controls.FlyoutTheme.Adapt;
                 NavFlyout.Theme = MahApps.Metro.Controls.FlyoutTheme.Accent;
+                NavFlyout.DataContext = page;
                 //NavFlyout.Opacity = 0.95;
             }
         }
@@ -150,15 +155,19 @@ namespace PixivWPF.Pages
             }
             else if (sender == btnGotoRankingDaily)
             {
-                page = PixivPage.DailyTop;
+                page = PixivPage.RankingDaily;
             }
             else if (sender == btnGotoRankingWeekly)
             {
-                page = PixivPage.WeeklyTop;
+                page = PixivPage.RankingWeekly;
             }
             else if (sender == btnGotoRankingMonthly)
             {
-                page = PixivPage.MonthlyTop;
+                page = PixivPage.RankingMonthly;
+            }
+            else if (sender == btnGotoRankingYearly)
+            {
+                page = PixivPage.RankingYearly;
             }
             else
             {

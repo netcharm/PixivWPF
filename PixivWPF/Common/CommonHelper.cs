@@ -38,9 +38,10 @@ namespace PixivWPF.Common
         FollowPrivate,
         Bookmark,
         MyBookmark,
-        DailyTop,
-        WeeklyTop,
-        MonthlyTop
+        RankingDaily,
+        RankingWeekly,
+        RankingMonthly,
+        RankingYearly
     }
 
     public static class CommonHelper

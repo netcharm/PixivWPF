@@ -33,8 +33,16 @@
                     </Rectangle.OpacityMask>
                 </Rectangle>
             </Button>
+            <Button Click="CommandNavRefresh_Click"
+                    ToolTip="Refresh Current Page">
+                <Rectangle Width="16" Height="16" Fill="{DynamicResource IdealForegroundColorBrush}">
+                    <Rectangle.OpacityMask>
+                        <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_refresh}"/>
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+            </Button>
             <Button Click="CommandNavPrev_Click"
-                    ToolTip="Goto Prev Page">
+                    ToolTip="Goto Prev Page" Visibility="Collapsed">
                 <Rectangle Width="16" Height="16" Fill="{DynamicResource IdealForegroundColorBrush}">
                     <Rectangle.OpacityMask>
                         <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_navigate_previous}"/>
@@ -49,6 +57,9 @@
                     </Rectangle.OpacityMask>
                 </Rectangle>
             </Button>
+            <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" 
+                       HorizontalAlignment="Left" VerticalAlignment="Center"
+                       Foreground="{DynamicResource IdealForegroundColorBrush}"/>
         </Controls:WindowCommands>
     </Controls:MetroWindow.LeftWindowCommands>
 
@@ -94,7 +105,7 @@
                          IsAutoCloseEnabled="True" AutoCloseInterval="10000"
                          CloseButtonVisibility="Visible" ExternalCloseButton="Left"
                          Theme="Accent" Opacity="0.95"
-                         Foreground="{DynamicResource LabelTextBrush}" Background="{DynamicResource WhiteColorBrush}">
+                         Foreground="{DynamicResource LabelTextBrush}" Background="{DynamicResource WhiteColorBrush}" DataContextChanged="NavFlyout_DataContextChanged">
             <!-- Your custom content here -->
             
         </Controls:Flyout>
