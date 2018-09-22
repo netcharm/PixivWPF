@@ -50,6 +50,9 @@ namespace PixivWPF
             NavFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
 
             NavPageTitle.Text = pagetiles.TargetPage.ToString();
+
+            CommandToggleTheme.ItemsSource = Common.Theme.Accents;
+            CommandToggleTheme.SelectedIndex = Common.Theme.Accents.IndexOf(Common.Theme.CurrentAccent);
         }
 
 #if !DEBUG
@@ -80,6 +83,16 @@ namespace PixivWPF
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
             Common.Theme.Toggle();
+            if(pagenav is Pages.PageNav) pagenav.CheckPage();
+        }
+
+        private void CommandToggleTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if(CommandToggleTheme.SelectedIndex>=0 && CommandToggleTheme.SelectedIndex< CommandToggleTheme.Items.Count)
+            {
+                Common.Theme.CurrentAccent = Common.Theme.Accents[CommandToggleTheme.SelectedIndex];
+                if (pagenav is Pages.PageNav) pagenav.CheckPage();
+            }
         }
 
         private void CommandLogin_Click(object sender, RoutedEventArgs e)
@@ -119,5 +132,6 @@ namespace PixivWPF
                 NavPageTitle.Text = e.NewValue.ToString();
             }
         }
+
     }
 }

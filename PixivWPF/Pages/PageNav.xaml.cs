@@ -83,6 +83,8 @@ namespace PixivWPF.Pages
                 sender = btnGotoRecommended;
             }
 
+            ToggleOnBG = Theme.AccentBrush;
+
             foreach (var btn in btns)
             {
                 var b = btn as ToggleButton;
@@ -218,7 +220,6 @@ namespace PixivWPF.Pages
                 {
                     var accent = cbAccent.SelectedValue as string;
                     Theme.CurrentAccent = accent;
-                    ToggleOnBG = Theme.AccentBrush;
                     CheckPage();
                 }
             }
@@ -227,7 +228,6 @@ namespace PixivWPF.Pages
         private void ToggleTheme_Click(object sender, RoutedEventArgs e)
         {
             Theme.Toggle();
-            ToggleOnBG = Theme.AccentBrush;
             CheckPage();
         }
 

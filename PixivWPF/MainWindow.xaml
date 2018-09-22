@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:local="clr-namespace:PixivWPF"
         mc:Ignorable="d"
         Title="Pixiv" 
@@ -13,6 +14,20 @@
         WindowStartupLocation="CenterScreen" MinWidth="800" MinHeight="600"
         Closing="MainWindow_Closing">
 
+
+    <Controls:MetroWindow.Resources>
+        <Style x:Key="MetroSplitButton" TargetType="{x:Type Controls:SplitButton}">
+            <Setter Property="Background" Value="Transparent" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentColorBrush}" />
+                    <Setter Property="BorderThickness" Value="1" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Controls:MetroWindow.Resources>
+    
     <Controls:MetroWindow.Flyouts>
         <Controls:FlyoutsControl>
 
@@ -64,23 +79,36 @@
     </Controls:MetroWindow.LeftWindowCommands>
 
     <Controls:MetroWindow.RightWindowCommands>
-        <Controls:WindowCommands ShowLastSeparator="True">
+        <Controls:WindowCommands ShowLastSeparator="False">
             <Button Click="CommandLogin_Click"
                     ToolTip="Open Login Dialog">
-                <Rectangle Width="16" Height="16" Fill="{DynamicResource IdealForegroundColorBrush}">
+                <iconPacks:PackIconModern Kind="User" />
+                <!--<Rectangle Width="16" Height="16" Fill="{DynamicResource IdealForegroundColorBrush}">
                     <Rectangle.OpacityMask>
                         <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_user}"/>
                     </Rectangle.OpacityMask>
-                </Rectangle>
+                </Rectangle>-->
             </Button>
-            <Button Click="CommandToggleTheme_Click"
-                    ToolTip="Toggle Application Theme">
-                <Rectangle Width="16" Height="16" Fill="{DynamicResource IdealForegroundColorBrush}">
-                    <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_contrast}"/>
-                    </Rectangle.OpacityMask>
-                </Rectangle>
+            <Button Click="CommandToggleTheme_Click" >
+                <iconPacks:PackIconModern Kind="Contrast" />
             </Button>
+            <Controls:SplitButton x:Name="CommandToggleTheme"
+                                  ToolTip="Toggle Application Theme"
+                                  Background="Transparent"
+                                  AlternationCount="2"
+                                  BorderBrush="{DynamicResource AccentColorBrush}"
+                                  Click="CommandToggleTheme_Click" SelectionChanged="CommandToggleTheme_SelectionChanged">
+
+                              <!--ArrowBrush="{DynamicResource IdealForegroundDisabledBrush}"
+                                  Foreground="{DynamicResource IdealForegroundDisabledBrush}"
+                                  Background="Transparent" 
+                                  Style="{DynamicResource MetroSplitButton}"
+                                  BorderThickness="1" BorderBrush="{Binding Path=WindowTitleBrush, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Controls:MetroWindow}}}"-->
+
+                <Controls:SplitButton.Icon>
+                    <iconPacks:PackIconModern Kind="ClothesShirt" />
+                </Controls:SplitButton.Icon>
+            </Controls:SplitButton>
         </Controls:WindowCommands>
     </Controls:MetroWindow.RightWindowCommands>
 

@@ -1,4 +1,4 @@
-﻿<Page x:Class="PixivWPF.Pages.PageTiles"
+﻿<Page
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,13 +6,14 @@
       xmlns:local="clr-namespace:PixivWPF.Pages"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       xmlns:wpf="clr-namespace:TheArtOfDev.HtmlRenderer.WPF;assembly=HtmlRenderer.WPF"
+      xmlns:Common="clr-namespace:PixivWPF.Common" x:Class="PixivWPF.Pages.PageTiles"
       mc:Ignorable="d" 
       d:DesignHeight="300" d:DesignWidth="300"
       Title="Image Master Detail Viewer">
 
     <Page.Resources>
         <DataTemplate x:Key="ImageTile" x:Name="ImageTile" x:Uid="ImageTile">
-            <Grid Background="{DynamicResource AccentColorBrush}" Width="128" Tag="{Binding Illust}" Margin="0,4">
+            <Grid Background="{DynamicResource AccentColorBrush}" Width="128" Tag="{Binding Illust}" Margin="0,4,0,4">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="128"/>
                     <RowDefinition Height="Auto"/>
@@ -25,14 +26,14 @@
                        ToolTip="{Binding ToolTip}"
                        Tag="{Binding Illust}"
                        Stretch="Uniform" Width="128" Height="128"
-                       Margin="4,4,4,4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <mah:Badged Grid.Row="0" Badge="{Binding Count}" BadgePlacementMode="TopRight" Margin="0,16,16,0" 
-                            FontSize="16" FontFamily="Consolas" Visibility="{Binding Badge}" 
+                            FontSize="16" FontFamily="Consolas" Visibility="{Binding BadgeVisibility}" 
                             BadgeBackground="{DynamicResource AccentColorBrush}" />
                 <TextBlock Grid.Row="1" Text="{Binding Subject}" Foreground="{DynamicResource LabelTextBrush}" Visibility="{Binding TitleVisibility}"/>
             </Grid>
         </DataTemplate>
-        
+
         <!--<ContextMenu x:Key="ActionsMenu">
             <MenuItem x:Name="ActionOpenIllustSet" x:Uid="ActionOpenIllustSet" Header="Open Illust Set" Visibility="Collapsed" Click="ActionOpenIllustSet_Click"/>
             <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" Header="Author Info" Visibility="Collapsed" Click="ActionIllustUserInfo_Click"/>
@@ -41,29 +42,32 @@
             <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
         </ContextMenu>-->
     </Page.Resources>
-    
+
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="700"/>
+            <ColumnDefinition Width="Auto" MinWidth="692"/>
             <ColumnDefinition Width="*" MinWidth="400"/>
         </Grid.ColumnDefinitions>
         <!-- Illust List Viewport -->
-        <ListView Grid.Column="0"
-                  x:Name="ImageTiles" x:Uid="ImageTiles"
-                  IsSynchronizedWithCurrentItem="true"                  
+        <ScrollViewer Grid.Column="0" x:Name="ImageTilesViewer" ScrollChanged="ImageTilesViewer_ScrollChanged">
+            <ListView 
+                  x:Name="ListImageTiles" x:Uid="ImageTiles"
+                  IsSynchronizedWithCurrentItem="true"
+                  SelectionMode="Single"
                   SelectionChanged="ImageTiles_SelectionChanged"
                   ItemsSource="{Binding local:ImageList, Mode=OneWay}" 
                   ItemTemplate="{StaticResource ImageTile}"
                   BorderBrush="Transparent"
                   HorizontalAlignment="Center" VerticalAlignment="Top"
                   mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
-                    <UniformGrid Columns="5" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ListView>
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
+                        <UniformGrid Columns="5" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.IsSharedSizeScope="True" ScrollViewer.CanContentScroll="True" UseLayoutRounding="True"/>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+            </ListView>
+        </ScrollViewer>
         <mah:ProgressRing Grid.Column="0" 
                           x:Name="ImageTilesWait" 
                           Width="128" Height="128" 
@@ -72,8 +76,11 @@
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
         <!-- Illust Preview Viewport -->
         <ScrollViewer Grid.Column="1" Margin="4,4,8,4" HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
-            <Grid Grid.Column="1" >
+            <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -84,10 +91,16 @@
                 <Viewbox Grid.Row="0" StretchDirection="DownOnly">
                     <Image x:Name="Preview" x:Uid="Preview" 
                    Stretch="None"
-                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
+                            </ContextMenu>
+                        </Image.ContextMenu>
+                    </Image>
                 </Viewbox>
                 <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge" BadgePlacementMode="BottomRight" Margin="0,0,16,16" FontSize="16" FontFamily="Consolas" Visibility="{Binding Badge}" BadgeBackground="{DynamicResource AccentColorBrush}" />
-                
+
                 <!-- Illust Author Info -->
                 <Grid Grid.Row="1" Margin="0,8,0,0">
                     <Grid.RowDefinitions>
@@ -115,23 +128,25 @@
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Style="{DynamicResource MetroCircleButtonStyle}"
                             Foreground="{DynamicResource LabelTextBrush}">
-                        <Rectangle Width="24" Height="24" Fill="{DynamicResource AccentColorBrush}">
-                            <Rectangle.OpacityMask>
-                                <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_list1}"/>
-                            </Rectangle.OpacityMask>
-                        </Rectangle>
                         <Button.ContextMenu>
                             <ContextMenu>
                                 <MenuItem x:Name="ActionOpenIllustSet" x:Uid="ActionOpenIllustSet" Header="Open Illust Set" Visibility="Collapsed" Click="ActionOpenIllustSet_Click"/>
                                 <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" Header="Author Info" Visibility="Collapsed" Click="ActionIllustUserInfo_Click"/>
                                 <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" Header="Relative Illust" Click="ActionIllustRelative_Click"/>
                                 <Separator />
-                                <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
+                                <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click"/>
+                                <MenuItem x:Name="ActionSaveAllIllust" x:Uid="ActionSaveAllIllust" Header="Save All Illusts" Click="ActionSaveIllust_Click"/>
                             </ContextMenu>
                         </Button.ContextMenu>
+                        <Rectangle Width="24" Height="24" Fill="{DynamicResource AccentColorBrush}">
+                            <Rectangle.OpacityMask>
+                                <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_list1}"/>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
                     </Button>
                 </Grid>
-                <!-- Illust Info -->
+
+                <!-- Illust Tag -->
                 <Grid Grid.Row="2" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -146,10 +161,46 @@
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                    HorizontalContentAlignment="Left" VerticalContentAlignment="Top"/>
                 </Grid>
+
                 <!-- Illust Info -->
                 <wpf:HtmlPanel Grid.Row="3" Margin="0,4,0,0" x:Name="IllustDesc" 
                                Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Stretch"/>
+
+                <!-- Illust Subsets  -->
+                <TextBlock Grid.Row="4" x:Name="lblSubIllusts" x:Uid="lblSubIllusts" Text="Illust Sets" Visibility="Collapsed"/>
+                <Common:ImageListGrid Grid.Row="5" x:Name="SubIllusts" x:Uid="SubIllusts" 
+                                      Columns="5" TileWidth="128" TileHeight="128" 
+                                      SelectionMode="Extended" 
+                                      DadgeVisibility="Collapsed" TitleVisibility="Collapsed"
+                                      SelectionChanged="SubIllusts_SelectionChanged">
+                    <Common:ImageListGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem x:Uid="ActionOpenIllust" Header="Open Selected Illust(s)" Click="ActionOpenIllust_Click"/>
+                            <Separator/>
+                            <MenuItem x:Uid="ActionSaveIllust" Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click"/>
+                            <MenuItem x:Uid="ActionSaveAllIllust" Header="Save All Illusts" Click="ActionSaveIllust_Click"/>
+                        </ContextMenu>
+                    </Common:ImageListGrid.ContextMenu>
+                </Common:ImageListGrid>
+
+                <!-- Illust Relatives  -->
+                <TextBlock Grid.Row="6" x:Name="lblRelativeIllusts" x:Uid="lblRelativeIllusts" Text="Relative Illusts" Visibility="Collapsed"/>
+                <Common:ImageListGrid Grid.Row="7" x:Name="RelativeIllusts" x:Uid="RelativeIllusts"
+                                      Columns="5" TileWidth="128" TileHeight="128"
+                                      SelectionMode="Single"
+                                      SelectionChanged="RelativeIllusts_SelectionChanged">
+                    <!--<Common:ImageListGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem x:Uid="ActionOpenIllustSet" Header="Open Illust Set" Visibility="Collapsed" Click="ActionOpenIllustSet_Click"/>
+                            <MenuItem x:Uid="ActionIllustUserInfo" Header="Author Info" Visibility="Collapsed" Click="ActionIllustUserInfo_Click"/>
+                            <MenuItem x:Uid="ActionIllustRelative" Header="Relative Illust" Click="ActionIllustRelative_Click"/>
+                            <Separator />
+                            <MenuItem x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
+                        </ContextMenu>
+                    </Common:ImageListGrid.ContextMenu>-->
+                </Common:ImageListGrid>
+
 
             </Grid>
         </ScrollViewer>
@@ -160,5 +211,5 @@
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
-    
+
 </Page>

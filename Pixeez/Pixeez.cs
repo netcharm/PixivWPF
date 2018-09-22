@@ -197,7 +197,7 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)");
 
             FormUrlEncodedContent param;
-            if (refreshtoken == null)
+            if (string.IsNullOrEmpty(refreshtoken))
             {
                 param = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
@@ -218,6 +218,62 @@ namespace Pixeez
                     { "client_secret", "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK" },
                 });
             }
+
+            var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
+            if (!response.IsSuccessStatusCode)
+                throw new InvalidOperationException();
+
+            var json = await response.Content.ReadAsStringAsync();
+            var authorize = JToken.Parse(json).SelectToken("response").ToObject<Authorize>();
+
+            var tokens = new Tokens(authorize.AccessToken);
+
+            //var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
+            //response.EnsureSuccessStatusCode();
+
+            //var json = await response.Content.ReadAsStringAsync();
+            //var authorize = JToken.Parse(json).SelectToken("response").ToObject<Authorize>();
+
+            var result = new Pixeez.AuthResult();
+            result.Authorize = authorize;
+            result.Key = new AuthKey()
+            {
+                Password = password,
+                Username = username,
+                KeyExpTime = authorize.ExpiresIn.HasValue ? DateTime.UtcNow.AddSeconds(authorize.ExpiresIn.Value) : DateTime.UtcNow.AddSeconds(3600 * 365)
+            };
+            result.Tokens = new Tokens(authorize.AccessToken) { RefreshToken = authorize.RefreshToken };
+            return result;
+        }
+
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string proxy, bool useproxy = false)
+        {
+            Proxy = proxy;
+            UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
+
+            HttpClientHandler handler = new HttpClientHandler()
+            {
+                Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
+                UseProxy = string.IsNullOrEmpty(proxy) || !UsingProxy ? false : true
+            };
+            var httpClient = new HttpClient(handler);
+
+            //httpClient.DefaultRequestHeaders.Add("Referer", "http://www.pixiv.net/");
+            //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.0");
+            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
+            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "10.2.1");
+            httpClient.DefaultRequestHeaders.Add("App-Version", "6.4.0");
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)");
+
+            FormUrlEncodedContent param;
+            param = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "username", username },
+                { "password", password },
+                { "grant_type", "password" },
+                { "client_id", "bYGKuGVw91e0NMfPGp44euvGt59s" },
+                { "client_secret", "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK" },
+            });
 
             var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
             if (!response.IsSuccessStatusCode)
@@ -267,6 +323,8 @@ namespace Pixeez
         private Tokens() { }
         internal Tokens(string accessToken)
         {
+            Proxy = Auth.Proxy;
+            UsingProxy = Auth.UsingProxy;
             this.AccessToken = accessToken;
         }
         public async Task<AsyncResponse> SendRequestWithAuthAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
@@ -285,6 +343,14 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
             return await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
         }
+        /// <summary>
+        /// Fetch Image, Added by NetCharm
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="url"></param>
+        /// <param name="param"></param>
+        /// <param name="headers"></param>
+        /// <returns></returns>
         public async Task<AsyncResponse> SendRequestToGetImageAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
             Proxy = Auth.Proxy;
@@ -299,6 +365,7 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
             return await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
         }
+
         public async Task<AsyncResponse> SendRequestWithoutAuthAsync(MethodType type, string url, bool needauth = false, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
             Proxy = Auth.Proxy;
@@ -378,15 +445,22 @@ namespace Pixeez
                     uri += query_string;
                 }
 
-                var response = await httpClient.GetAsync(uri);
-                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
-                if (vl != null && vl == "gzip")
+                try
                 {
-                    asyncResponse = new StreamAsyncResponse(response, new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress));
+                    var response = await httpClient.GetAsync(uri);
+                    string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                    if (vl != null && vl == "gzip")
+                    {
+                        asyncResponse = new StreamAsyncResponse(response, new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress));
+                    }
+                    else
+                    {
+                        asyncResponse = new AsyncResponse(response);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    asyncResponse = new AsyncResponse(response);
+                    var r = ex.Message;
                 }
             }
 
@@ -418,7 +492,7 @@ namespace Pixeez
 
         public async Task<RecommendedRootobject> GetRecommendedWorks(string content_type = "illust", bool include_ranking_label = true, string filter = "for_ios",
             string max_bookmark_id_for_recommend = null, string min_bookmark_id_for_recent_illust = null,
-string offset = null, bool? include_ranking_illusts = null, string bookmark_illust_ids = null, bool req_auth = true)
+            string offset = null, bool? include_ranking_illusts = null, string bookmark_illust_ids = null, bool req_auth = true)
         {
             string url;
             if (req_auth)
@@ -464,10 +538,23 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
 
         public async Task<T> AccessNewApiAsync<T>(string url, bool req_auth = true, Dictionary<string, string> dic = null, MethodType methodtype = MethodType.GET)
         {
-            using (var res = await SendRequestWithoutAuthAsync(methodtype, url, req_auth, dic))
+            if (req_auth)
             {
-                var str = await res.GetResponseStringAsync();
-                return JToken.Parse(str).ToObject<T>();
+                //using (var res = await SendRequestAsync(methodtype, url, dic))
+                using (var res = await SendRequestWithoutAuthAsync(methodtype, url, req_auth, dic))
+                {
+                    var str = await res.GetResponseStringAsync();
+                    return JToken.Parse(str).ToObject<T>();
+                }
+
+            }
+            else
+            {
+                using (var res = await SendRequestWithoutAuthAsync(methodtype, url, req_auth, dic))
+                {
+                    var str = await res.GetResponseStringAsync();
+                    return JToken.Parse(str).ToObject<T>();
+                }
             }
         }
         public async Task<BookmarkDetailRootobject> GetBookMarkedDetailAsync(long illust_id, string restrict = "public")
@@ -495,6 +582,7 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
         {
             await SendRequestAsync(MethodType.POST, "https://public-api.secure.pixiv.net/v1/me/favorite-users.json", new Dictionary<string, string> { { "target_user_id", user_id.ToString() }, { "publicity", publicity } });
         }
+
         /// <summary>
         /// 可批量解除，逗号分隔
         /// </summary>
@@ -521,8 +609,12 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
 
         private async Task<T> AccessApiAsync<T>(MethodType type, string url, IDictionary<string, string> param, IDictionary<string, string> headers = null) where T : class
         {
+            //var dic = new Dictionary<string, string>(param);
+            //var ret = await AccessNewApiAsync<T>(url, true, dic, type);
+            //return (ret);
             return await AccessApiAsync<T>(await this.SendRequestAsync(type, url, param, headers));
         }
+
         private async Task<T> AccessApiAsync<T>(AsyncResponse res) where T : class
         {
             using (var response = res)
@@ -545,10 +637,8 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
                 { "illust_id", illust_id.ToString() },
                 { "filter", filter }
             };
-            //            if type(seed_illust_ids) == str:
-            //            params['seed_illust_ids'] = seed_illust_ids
-            //        if type(seed_illust_ids) == list:
-            //params['seed_illust_ids'] = ",".join([str(iid) for iid in seed_illust_ids])
+            if(!string.IsNullOrEmpty(seed_illust_ids))
+                dic.Add("seed_illust_ids[]", $"[{seed_illust_ids}]");
             return await AccessNewApiAsync<Illusts>(url, req_auth, dic);
         }
 
@@ -564,7 +654,7 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
             var param = new Dictionary<string, string>
             {
                 { "profile_image_sizes", "px_170x170,px_50x50" },
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw" },
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" },
                 { "include_stats", "true" },
             };
 
@@ -583,7 +673,7 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
             var param = new Dictionary<string, string>
             {
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
                 { "include_stats", "1" } ,
                 { "include_profile", "1" } ,
                 { "include_workspace", "1" } ,
@@ -779,7 +869,7 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
                 { "publicity", publicity } ,
                 { "include_stats", "1" } ,
                 { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
@@ -807,7 +897,7 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
                 { "publicity", publicity } ,
                 { "include_stats", "1" } ,
                 { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
@@ -857,7 +947,7 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
                 { "per_page", perPage.ToString() } ,
                 { "include_stats", "1" } ,
                 { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
@@ -895,7 +985,7 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
 
                 { "include_stats", "1" } ,
                 { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
@@ -955,7 +1045,7 @@ string offset = null, bool? include_ranking_illusts = null, string bookmark_illu
 
                 { "include_stats", "1" } ,
                 { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 

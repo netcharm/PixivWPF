@@ -23,7 +23,7 @@ namespace PixivWPF.Common
     /// <summary>
     /// ImageListGrid.xaml 的交互逻辑
     /// </summary>
-    public partial class ImageListGrid : ListView
+    public partial class ImageListGrid : UserControl
     {
         //public static readonly DependencyProperty ColumnsProperty =
         //    DependencyProperty.Register("Columns", typeof(int), typeof(ImageListGrid),
@@ -34,18 +34,112 @@ namespace PixivWPF.Common
         [DefaultValue(5)]
         public int Columns { get; set; }
 
+        [Description("Get or Set Tile Width")]
+        [Category("Common Properties")]
+        [DefaultValue(128)]
+        public int TileWidth { get; set; }
+
+        [Description("Get or Set Tile Height")]
+        [Category("Common Properties")]
+        [DefaultValue(128)]
+        public int TileHeight { get; set; }
+
+        [Description("Get or Set Image Tiles Select Item Index")]
+        [Category("Common Properties")]
+        public int SelectedIndex
+        {
+            get { return PART_ImageTiles.SelectedIndex; }
+            set { PART_ImageTiles.SelectedIndex = value; }
+        }
+
+        [Description("Get or Set Image Tiles Select Item")]
+        [Category("Common Properties")]
+        public ImageItem SelectedItem
+        {
+            get { return PART_ImageTiles.SelectedItem is ImageItem ? PART_ImageTiles.SelectedItem as ImageItem : null; }
+        }
+
+        [Description("Get or Set Image Tiles Select Items")]
+        [Category("Common Properties")]
+        public IList<ImageItem> SelectedItems
+        {
+            get
+            {
+                if (PART_ImageTiles.SelectedItems == null)
+                    return null;
+                else
+                {
+                    System.Collections.IList items = (System.Collections.IList)PART_ImageTiles.SelectedItems;
+                    var collection = items.Cast<ImageItem>();
+                    //IList<ImageItem> collection = (IList<ImageItem>)PART_ImageTiles.SelectedItems;
+                    return (collection.ToList());
+                }
+            }
+        }
+
+        [Description("Get or Set Image Tiles Selection Mode")]
+        [Category("Common Properties")]
+        public SelectionMode SelectionMode
+        {
+            get { return PART_ImageTiles.SelectionMode; }
+            set { PART_ImageTiles.SelectionMode = value; }
+        }
 
         private ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
-        public new ObservableCollection<ImageItem> Items
+        public ObservableCollection<ImageItem> Items
         {
             get { return ImageList; }
+        }
+
+        private Visibility badgevisibility = Visibility.Visible;
+        public Visibility DadgeVisibility
+        {
+            get { return badgevisibility; }
+            set { badgevisibility = value; }
+        }
+        public bool DisplayBadge
+        {
+            get
+            {
+                if (badgevisibility == Visibility.Visible) return true;
+                else return false;
+            }
+            set
+            {
+                if (value) badgevisibility = Visibility.Visible;
+                else badgevisibility = Visibility.Collapsed;
+            }
+        }
+
+        private Visibility titlevisibility = Visibility.Visible;
+        public Visibility TitleVisibility
+        {
+            get { return titlevisibility; }
+            set { titlevisibility = value; }
+        }
+        public bool DisplayTitle
+        {
+            get
+            {
+                if (titlevisibility == Visibility.Visible) return true;
+                else return false;
+            }
+            set
+            {
+                if (value) titlevisibility = Visibility.Visible;
+                else titlevisibility = Visibility.Collapsed;
+            }
         }
 
         public ImageListGrid()
         {
             InitializeComponent();
+            PART_ImageTiles.ItemsSource = ImageList;
+            //Columns = 5;
+            //TileWidth = 128;
+            //TileHeight = 128;
         }
 
         private bool UPDATING = false;
@@ -72,139 +166,67 @@ namespace PixivWPF.Common
                             if (item.Source == null)
                             {
                                 item.Source = await item.Thumb.ToImageSource(tokens);
-                                ImageTiles.Items.Refresh();
+                                PART_ImageTiles.Items.Refresh();
                             }
                         }
                         catch (Exception ex)
                         {
                             MetroWindow window = Application.Current.MainWindow as MetroWindow;
-                            await window.ShowMessageAsync("ERROR", ex.Message);
+                            await window.ShowMessageAsync("ERROR", $"Download Image Failed:\n{ex.Message}");
                         }
                     }));
                 });
                 UPDATING = false;
             }).Start();
         }
+
+        // Create custom routed event by first registering a RoutedEventID
+        // This event uses the bubbling routing strategy
+        public static readonly RoutedEvent SelectionChangedEvent = EventManager.RegisterRoutedEvent(
+            "SelectionChanged", RoutingStrategy.Bubble, typeof(SelectionChangedEventHandler), typeof(ImageListGrid));
+        public event SelectionChangedEventHandler SelectionChanged
+        {
+            add { AddHandler(SelectionChangedEvent, value); }
+            remove { RemoveHandler(SelectionChangedEvent, value); }
+        }
+        // This method raises the Tap event
+        void RaiseSelectionChangedEvent()
+        {
+            RoutedEventArgs newEventArgs = new RoutedEventArgs(SelectionChangedEvent);
+            RaiseEvent(newEventArgs);
+        }
+        // For demonstration purposes we raise the event when the MyButtonSimple is clicked
+        protected void OnSelectionChangedEvent()
+        {
+            RaiseSelectionChangedEvent();
+        }
+
+        // Create custom routed event by first registering a RoutedEventID
+        // This event uses the bubbling routing strategy
+        public static readonly RoutedEvent ScrollChangedEvent = EventManager.RegisterRoutedEvent(
+            "ScrollChanged", RoutingStrategy.Bubble, typeof(ScrollChangedEventHandler), typeof(ImageListGrid));
+        public event SelectionChangedEventHandler ScrollnChanged
+        {
+            add { AddHandler(SelectionChangedEvent, value); }
+            remove { RemoveHandler(SelectionChangedEvent, value); }
+        }
+        // This method raises the Tap event
+        void RaiseScrollChangedEvent()
+        {
+            RoutedEventArgs newEventArgs = new RoutedEventArgs(ScrollChangedEvent);
+            RaiseEvent(newEventArgs);
+        }
+        // For demonstration purposes we raise the event when the MyButtonSimple is clicked
+        protected void OnScrollChangedEvent()
+        {
+            RaiseScrollChangedEvent();
+        }
+
+        //public ImageListGrid()
+        //{
+        //    ImageTiles.SelectionChanged += SelectionChanged;
+        //    ImageTiles.ScrollChanged += ScrollChanged;
+        //}
     }
 
-    public class ImageItem : FrameworkElement
-    {
-        public ImageSource Source { get; set; }
-        public string Thumb { get; set; }
-        public string Subject { get; set; }
-        public string Caption { get; set; }
-        public int Count { get; set; }
-        //public Visibility Badge { get; set; }
-        public string UserID { get; set; }
-        public string ID { get; set; }
-        //public Pixeez.Objects.IllustWork Illust { get; set; }
-        public Pixeez.Objects.Work Illust { get; set; }
-        public string AccessToken { get; set; }
-        public string NextURL { get; set; }
-
-        private Visibility Badge = Visibility.Visible;
-        public bool DisplayBadge
-        {
-            get
-            {
-                if (Badge == Visibility.Visible) return true;
-                else return false;
-            }
-            set
-            {
-                if (value) Badge = Visibility.Visible;
-                else Badge = Visibility.Collapsed;
-            }
-        }
-
-        private Visibility TitleVisibility = Visibility.Visible;
-        public bool DisplayTitle
-        {
-            get
-            {
-                if (TitleVisibility == Visibility.Visible) return true;
-                else return false;
-            }
-            set
-            {
-                if (value) TitleVisibility = Visibility.Visible;
-                else TitleVisibility = Visibility.Collapsed;
-            }
-        }
-    }
-
-    public static class ImageTileHelper
-    {
-        public static void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Colloection, string nexturl = "")
-        {
-            foreach (var illust in works)
-            {
-                illust.AddTo(Colloection, nexturl);
-            }
-        }
-
-        public static async void AddTo(this Pixeez.Objects.Work illust, IList<ImageItem> Colloection, string nexturl = "")
-        {
-            try
-            {
-                if (illust is Pixeez.Objects.Work && Colloection is IList<ImageItem>)
-                {
-                    var url = illust.ImageUrls.SquareMedium;
-                    if (string.IsNullOrEmpty(url))
-                    {
-                        if (!string.IsNullOrEmpty(illust.ImageUrls.Small))
-                        {
-                            url = illust.ImageUrls.Small;
-                        }
-                        else if (!string.IsNullOrEmpty(illust.ImageUrls.Px128x128))
-                        {
-                            url = illust.ImageUrls.Px128x128;
-                        }
-                        else if (!string.IsNullOrEmpty(illust.ImageUrls.Px480mw))
-                        {
-                            url = illust.ImageUrls.Px480mw;
-                        }
-                        else if (!string.IsNullOrEmpty(illust.ImageUrls.Medium))
-                        {
-                            url = illust.ImageUrls.Medium;
-                        }
-                        else if (!string.IsNullOrEmpty(illust.ImageUrls.Large))
-                        {
-                            url = illust.ImageUrls.Large;
-                        }
-                        else if (!string.IsNullOrEmpty(illust.ImageUrls.Original))
-                        {
-                            url = illust.ImageUrls.Original;
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
-                        var i = new ImageItem()
-                        {
-                            NextURL = nexturl,
-                            Thumb = url,
-                            Count = (int)illust.PageCount,
-                            //Badge = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
-                            DisplayBadge = illust.PageCount > 1 ? true : false,
-                            ID = illust.Id.ToString(),
-                            UserID = illust.User.Id.ToString(),
-                            Subject = illust.Title,
-                            DisplayTitle = true,
-                            Caption = illust.Caption,
-                            ToolTip = tooltip,
-                            Illust = illust
-                        };
-                        Colloection.Add(i);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MetroWindow window = Application.Current.MainWindow as MetroWindow;
-                await window.ShowMessageAsync("ERROR", ex.Message);
-            }
-        }
-    }
 }
