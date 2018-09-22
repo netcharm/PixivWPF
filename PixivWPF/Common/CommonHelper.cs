@@ -191,6 +191,16 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens, DateTime dt)
+        {
+            var file = await url.ToImageFile(tokens);
+            File.SetCreationTime(file, dt);
+            File.SetLastWriteTime(file, dt);
+            File.SetLastAccessTime(file, dt);
+
+            return (file);
+        }
+
         public static async Task<ImageSource> GetImageFromURL(this string url)
         {
             ImageSource result = null;

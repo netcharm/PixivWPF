@@ -622,6 +622,7 @@ namespace PixivWPF.Pages
                 }
 
                 // ShowRelativeInline(tokens, item);
+                PreviewWait.Visibility = Visibility.Hidden;
             }
             catch (Exception ex)
             {
@@ -680,7 +681,26 @@ namespace PixivWPF.Pages
                         var pages = item.Tag as Pixeez.Objects.MetaPages;
                         if(!string.IsNullOrEmpty(pages.ImageUrls.Original))
                         {
-                            await pages.ImageUrls.Original.ToImageFile(tokens);
+                            //await pages.ImageUrls.Original.ToImageFile(tokens);
+
+                            var illust = item.Illust;
+                            var dt = DateTime.Now;
+                            if (illust is Pixeez.Objects.IllustWork)
+                            {
+                                var illustset = illust as Pixeez.Objects.IllustWork;
+                                dt = illustset.CreatedTime;
+                            }
+                            else if (illust is Pixeez.Objects.NormalWork)
+                            {
+                                var illustset = illust as Pixeez.Objects.NormalWork;
+                                dt = illustset.CreatedTime.UtcDateTime;
+                            }
+                            else if (!string.IsNullOrEmpty(illust.ReuploadedTime))
+                            {
+                                dt = DateTime.Parse(illust.ReuploadedTime);
+                            }
+
+                            await pages.ImageUrls.Original.ToImageFile(tokens, DateTime.Parse(item.Illust.ReuploadedTime));
                         }
                     }
                     SystemSounds.Beep.Play();
@@ -694,7 +714,26 @@ namespace PixivWPF.Pages
                     var pages = item.Tag as Pixeez.Objects.MetaPages;
                     if (!string.IsNullOrEmpty(pages.ImageUrls.Original))
                     {
-                        await pages.ImageUrls.Original.ToImageFile(tokens);
+                        //await pages.ImageUrls.Original.ToImageFile(tokens);
+
+                        var illust = item.Illust;
+                        var dt = DateTime.Now;
+                        if (illust is Pixeez.Objects.IllustWork)
+                        {
+                            var illustset = illust as Pixeez.Objects.IllustWork;
+                            dt = illustset.CreatedTime;
+                        }
+                        else if (illust is Pixeez.Objects.NormalWork)
+                        {
+                            var illustset = illust as Pixeez.Objects.NormalWork;
+                            dt = illustset.CreatedTime.UtcDateTime;
+                        }
+                        else if (!string.IsNullOrEmpty(illust.ReuploadedTime))
+                        {
+                            dt = DateTime.Parse(illust.ReuploadedTime);
+                        }
+
+                        await pages.ImageUrls.Original.ToImageFile(tokens, dt);
                         SystemSounds.Beep.Play();
                     }
                 }
@@ -706,7 +745,9 @@ namespace PixivWPF.Pages
                     var illust = Preview.Tag as Pixeez.Objects.Work;
                     var images = illust.ImageUrls;
                     var url = images.Original;
-                    
+
+                    var dt = DateTime.Now;
+
                     if (illust is Pixeez.Objects.IllustWork)
                     {
                         var illustset = illust as Pixeez.Objects.IllustWork;
@@ -714,8 +755,19 @@ namespace PixivWPF.Pages
                             url = illustset.meta_pages[0].ImageUrls.Original;
                         else if(illustset.meta_single_page is Pixeez.Objects.MetaSinglePage)
                             url = illustset.meta_single_page.OriginalImageUrl;
-                    }
 
+                        dt = illustset.CreatedTime;
+                    }
+                    else if(illust is Pixeez.Objects.NormalWork)
+                    {
+                        var illustset = illust as Pixeez.Objects.NormalWork;
+                        dt = illustset.CreatedTime.UtcDateTime;
+                    }
+                    else if (!string.IsNullOrEmpty(illust.ReuploadedTime))
+                    {
+                        dt = DateTime.Parse(illust.ReuploadedTime);
+                    }
+                        
                     if (string.IsNullOrEmpty(url))
                     {
                         if (!string.IsNullOrEmpty(images.Large))
@@ -734,7 +786,9 @@ namespace PixivWPF.Pages
 
                     if (!string.IsNullOrEmpty(url))
                     {
-                        await url.ToImageFile(tokens);
+                        //await url.ToImageFile(tokens);
+
+                        await url.ToImageFile(tokens, dt);
                         SystemSounds.Beep.Play();
                     }
                 }
