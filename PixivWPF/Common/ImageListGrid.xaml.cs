@@ -85,16 +85,20 @@ namespace PixivWPF.Common
             set { PART_ImageTiles.SelectionMode = value; }
         }
 
+        //public static readonly DependencyProperty ItemProperty =
+        //    DependencyProperty.Register("TileItems", typeof(IEnumerable<ImageItem>), typeof(ListView), new UIPropertyMetadata(null));
+
         private ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
         public ObservableCollection<ImageItem> Items
         {
             get { return ImageList; }
+            //set { ImageList = value; OnPropertyChanged(); }
         }
 
         private Visibility badgevisibility = Visibility.Visible;
-        public Visibility DadgeVisibility
+        public Visibility BadgeVisibility
         {
             get { return badgevisibility; }
             set { badgevisibility = value; }
@@ -143,7 +147,7 @@ namespace PixivWPF.Common
         }
 
         private bool UPDATING = false;
-        public void UpdateImageTile(Pixeez.Tokens tokens, int parallel=10)
+        public void UpdateImageTile(Pixeez.Tokens tokens, int parallel=15)
         {
             if (UPDATING) return;
 
@@ -179,6 +183,12 @@ namespace PixivWPF.Common
                 UPDATING = false;
             }).Start();
         }
+
+        public void Refresh()
+        {
+            PART_ImageTiles.Items.Refresh();
+        }
+
 
         // Create custom routed event by first registering a RoutedEventID
         // This event uses the bubbling routing strategy

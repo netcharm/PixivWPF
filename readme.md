@@ -20,6 +20,10 @@ It support visit pixiv through custom http proxy.
 1.
 1.
 
+## Known Bugs
+
+1. Thumbnail list view maybe hang-up UI when more than 120 images
+
 ## ToDo
 
 1. Add Proxy support to PixivUWP ([PixivUniversal](https://github.com/PixeezPlusProject/PixivUniversal))

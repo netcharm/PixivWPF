@@ -32,6 +32,7 @@ namespace PixivWPF
         {
             InitializeComponent();
 
+
             MainContent = ContentFrame;
 
             //ContentFrame.Content = new Pages.PageLogin() { Tag = ContentFrame };

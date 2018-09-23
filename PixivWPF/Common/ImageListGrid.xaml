@@ -9,12 +9,12 @@
              d:DesignHeight="300" d:DesignWidth="300">
 
     <UserControl.Resources>
-        <DataTemplate x:Key="ImageTileTemplate" x:Name="PART_ImageTile" x:Uid="ImageTile">
+        <DataTemplate x:Key="PART_ImageTileTemplate" x:Name="PART_ImageTile" x:Uid="ImageTile">
             <!--Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"-->
             <Grid Background="{DynamicResource AccentColorBrush}" 
                   Margin="0,4,0,4"
                   Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
-                  Tag="{Binding Illust}">
+                  Tag="{Binding Illust, Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="128"/>
                     <RowDefinition Height="Auto"/>
@@ -24,18 +24,19 @@
                                   HorizontalAlignment="Center" VerticalAlignment="Center" 
                                   Foreground="{DynamicResource AccentColorBrush}"/>
                 <Image Grid.Row="0" 
-                       Source="{Binding Source}" 
-                       ToolTip="{Binding ToolTip}"
-                       Tag="{Binding Illust}"
+                       Source="{Binding Source, Mode=OneWay}" 
+                       ToolTip="{Binding ToolTip, Mode=OneWay}"
+                       Tag="{Binding Illust, Mode=OneWay}"
                        Stretch="Uniform" 
                        Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <mah:Badged Grid.Row="0" Badge="{Binding Count}" BadgePlacementMode="TopRight" Margin="0,16,16,0" 
+                <mah:Badged Grid.Row="0"
+                            Badge="{Binding Count, Mode=OneWay}" BadgePlacementMode="TopRight" Margin="0,16,16,0" 
                             FontSize="16" FontFamily="Consolas" 
                             Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                             BadgeBackground="{DynamicResource AccentColorBrush}" />
-                <TextBlock Grid.Row="1" Text="{Binding Subject}" 
+                <TextBlock Grid.Row="1" Text="{Binding Subject, Mode=OneWay}" 
                            Foreground="{DynamicResource LabelTextBrush}" 
                            Visibility="{Binding Path=TitleVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"/>
             </Grid>
@@ -50,9 +51,12 @@
                   IsSynchronizedWithCurrentItem="true"
                   SelectionMode="{Binding SelectionMode, Mode=OneWay}"
                   ItemsSource="{Binding Items, Mode=OneWay}" 
-                  ItemTemplate="{StaticResource ImageTileTemplate}"
+                  ItemTemplate="{DynamicResource PART_ImageTileTemplate}"
                   BorderBrush="Transparent"
                   HorizontalAlignment="Center" VerticalAlignment="Top"
+                  Style="{DynamicResource VirtualisedMetroListView}"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.CacheLength ="500"                 
                   mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>

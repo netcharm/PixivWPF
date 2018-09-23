@@ -2,8 +2,10 @@
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -30,20 +32,19 @@ namespace PixivWPF.Common
         FollowPrivate,
         Bookmark,
         MyBookmark,
-        RankingDaily,
-        RankingDailyMale,
-        RankingDailyFemale,
-        RankingDailyR18,
-        RankingDailyMaleR18,
-        RankingDailyFemaleR18,
-        RankingWeekly,
-        RankingWeeklyOriginal,
-        RankingWeeklyRookie,
-        RankingWeeklyR18,
-        RankingWeeklyOriginalR18,
-        RankingWeeklyRookieR18,
-        RankingMonthly,
-        RankingYearly
+        RankingDay,
+        RankingDayMale,
+        RankingDayFemale,
+        RankingDayR18,
+        RankingDayMaleR18,
+        RankingDayFemaleR18,
+        RankingWeek,
+        RankingWeekOriginal,
+        RankingWeekRookie,
+        RankingWeekR18,
+        RankingWeekR18G,
+        RankingMonth,
+        RankingYear
     }
 
     public static class CommonHelper
@@ -156,11 +157,15 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens)
+        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens, bool is_meta_single_page=false)
         {
             string result = string.Empty;
             //url = Regex.Replace(url, @"//.*?\.pixiv.net/", "//i.pximg.net/", RegexOptions.IgnoreCase);
-            var fn = Path.GetFileName(url);
+            var fn = Path.GetFileName(url).Replace("_p", "_");
+            if (is_meta_single_page)
+                fn = fn.Replace("_0.", ".");
+
+            //var fn = Path.GetFileName(url).Replace("_p0.", ".").Replace("_p", "_");
             if (string.IsNullOrEmpty(setting.LastFolder))
             {
                 SaveFileDialog dlgSave = new SaveFileDialog();
@@ -181,7 +186,8 @@ namespace PixivWPF.Common
                     {
                         using (var ms = await response.ToMemoryStream())
                         {
-                            File.WriteAllBytes($"{Path.Combine(setting.LastFolder, fn)}", ms.ToArray());
+                            fn = Path.Combine(setting.LastFolder, Path.GetFileName(fn));
+                            File.WriteAllBytes($"{fn}", ms.ToArray());
                             result = fn;
                         }
                     }
@@ -191,14 +197,30 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens, DateTime dt)
+        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false)
         {
-            var file = await url.ToImageFile(tokens);
-            File.SetCreationTime(file, dt);
-            File.SetLastWriteTime(file, dt);
-            File.SetLastAccessTime(file, dt);
-
+            var file = await url.ToImageFile(tokens, is_meta_single_page);
+            if (!string.IsNullOrEmpty(file))
+            {
+                File.SetCreationTime(file, dt);
+                File.SetLastWriteTime(file, dt);
+                File.SetLastAccessTime(file, dt);
+            }
             return (file);
+        }
+
+        public static async Task<List<string>> ToImageFiles(Dictionary<string, DateTime> files, Pixeez.Tokens tokens, bool is_meta_single_page = false)
+        {
+            List<string> result = new List<string>();
+
+            foreach (var file in files)
+            {
+                var f = await file.Key.ToImageFile(tokens, file.Value, is_meta_single_page);
+                result.Add(f);
+            }
+            SystemSounds.Beep.Play();
+
+            return (result);
         }
 
         public static async Task<ImageSource> GetImageFromURL(this string url)
@@ -327,6 +349,51 @@ namespace PixivWPF.Common
         {
             MetroWindow window = Application.Current.MainWindow as MetroWindow;
             await window.ShowMessageAsync(title, content);
+        }
+
+        public static async void ShowProgressDialog(object sender, RoutedEventArgs e)
+        {
+            var mySettings = new MetroDialogSettings()
+            {
+                NegativeButtonText = "Close now",
+                AnimateShow = false,
+                AnimateHide = false
+            };
+
+            MetroWindow window = Application.Current.MainWindow as MetroWindow;
+
+            var controller = await window.ShowProgressAsync("Please wait...", "We are baking some cupcakes!", settings: mySettings);
+            controller.SetIndeterminate();
+
+            //await Task.Delay(5000);
+
+            controller.SetCancelable(true);
+
+            double i = 0.0;
+            while (i < 6.0)
+            {
+                double val = (i / 100.0) * 20.0;
+                controller.SetProgress(val);
+                controller.SetMessage("Baking cupcake: " + i + "...");
+
+                if (controller.IsCanceled)
+                    break; //canceled progressdialog auto closes.
+
+                i += 1.0;
+
+                //await Task.Delay(2000);
+            }
+
+            await controller.CloseAsync();
+
+            if (controller.IsCanceled)
+            {
+                await window.ShowMessageAsync("No cupcakes!", "You stopped baking!");
+            }
+            else
+            {
+                await window.ShowMessageAsync("Cupcakes!", "Your cupcakes are finished! Enjoy!");
+            }
         }
     }
 

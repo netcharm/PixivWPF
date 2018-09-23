@@ -30,6 +30,9 @@
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Latest" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
+
             <ToggleButton x:Name="btnGotoFollowing" x:Uid="btnGotoFollowing" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
@@ -40,6 +43,9 @@
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Following Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
+
             <ToggleButton x:Name="btnGotoFavorite" x:Uid="btnGotoFavorite" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
@@ -53,25 +59,79 @@
 
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
 
-            <ToggleButton x:Name="btnGotoRankingDaily" x:Uid="btnGotoRankingDaily" 
+            <ToggleButton x:Name="btnGotoRankingDay" x:Uid="btnGotoRankingDay" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
-                    Content="Daily Top" Click="NavItem_Click"
+                    Content="Ranking By Day" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <ToggleButton x:Name="btnGotoRankingWeekly" x:Uid="btnGotoRankingWeekly" 
+            <ToggleButton x:Name="btnGotoRankingDayR18" x:Uid="btnGotoRankingDayR18" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Ranking By Day R18" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoRankingDayMale" x:Uid="btnGotoRankingDayMale" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Ranking By Day Male" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoRankingDayFemale" x:Uid="btnGotoRankingDayFemale" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Ranking By Day Female" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoRankingDayMaleR18" x:Uid="btnGotoRankingDayMaleR18" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Ranking By Day Male R18" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoRankingDayFemaleR18" x:Uid="btnGotoRankingDayFemaleR18" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Ranking By Day Female R18" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
+
+            <ToggleButton x:Name="btnGotoRankingWeek" x:Uid="btnGotoRankingWeek" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
-                    Content="Weekly Top" Click="NavItem_Click"
+                    Content="Ranking By Week" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <ToggleButton x:Name="btnGotoRankingMonthly" x:Uid="btnGotoRankingMonthly" 
+            <ToggleButton x:Name="btnGotoRankingWeekOriginal" x:Uid="btnGotoRankingWeekOriginal" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
+                    Content="Ranking By Week Original" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoRankingWeekRookie" x:Uid="btnGotoRankingWeekRookie" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
+                    Content="Ranking By Week Rookie" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoRankingWeekR18" x:Uid="btnGotoRankingWeekR18" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
+                    Content="Ranking By Week R18" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoRankingWeekR18G" x:Uid="btnGotoRankingWeekR18G" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
+                    Content="Ranking By Week R18G" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
+
+            <ToggleButton x:Name="btnGotoRankingMonth" x:Uid="btnGotoRankingMonth" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
-                    Content="Monthly Top" Click="NavItem_Click"
+                    Content="Ranking By Month" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <ToggleButton x:Name="btnGotoRankingYearly" x:Uid="btnGotoRankingYearly" 
+
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
+
+            <ToggleButton x:Name="btnGotoRankingYear" x:Uid="btnGotoRankingYear" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
-                    Content="Yearly Top" Click="NavItem_Click"
+                    Content="Ranking By Year" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
         </StackPanel>
 

@@ -38,6 +38,13 @@ namespace PixivWPF.Pages
             private int  maxCount;
             private ScrollViewer target = null;
 
+            public AutoNextStatusChecker(int count)
+            {
+                invokeCount = 0;
+                maxCount = count;
+                target = null;
+            }
+
             public AutoNextStatusChecker(int count, ScrollViewer scroll)
             {
                 invokeCount = 0;
@@ -50,7 +57,7 @@ namespace PixivWPF.Pages
             {
                 AutoResetEvent autoEvent = (AutoResetEvent)stateInfo;
                 invokeCount++;
-                if (target.VerticalOffset == target.ScrollableHeight)
+                if (target is ScrollViewer && target.VerticalOffset == target.ScrollableHeight)
                 {
                     if (invokeCount >= maxCount)
                     {
@@ -63,47 +70,73 @@ namespace PixivWPF.Pages
             }
         }
 
+
         private MetroWindow window = Application.Current.MainWindow as MetroWindow;
+
+        //public static readonly DependencyProperty ItemsProperty =
+        //    DependencyProperty.Register("Items", typeof(ObservableCollection<ImageItem>), typeof(ListView), new UIPropertyMetadata(null));
+
         internal ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
         private Setting setting = Setting.Load();
         public PixivPage TargetPage = PixivPage.Recommanded;
         private string NextURL = null;
         private bool UPDATING = false;
+        private Thread UpdateThread = null;
 
         /// <summary>
         /// Create Auto Check Scroll Viewer for automatic load next page
         /// </summary>
-        private AutoResetEvent AutoNextEvent = null;
-        AutoNextStatusChecker  AutoNextChecker = null;
-        TimerCallback TimerCheck = null;
-        private Timer AutoNextTimer = null;
-        private int invokeCount;
-        private int  maxCount=20;
+        //private AutoResetEvent AutoNextEvent = null;
+        //AutoNextStatusChecker  AutoNextChecker = null;
+        //TimerCallback TimerCheck = null;
+        //private Timer AutoNextTimer = null;
+        //private int invokeCount;
+        //private int  maxCount=200;
 
+        //Action onCompleted = () =>
+        //{
+        //    //On complete action
+        //    //ListImageTiles.Items.Refresh();
+        //};
 
-        public void CheckStatus(object stateInfo)
+        //public void CheckStatus(object stateInfo)
+        //{
+        //    try
+        //    {
+        //        AutoResetEvent autoEvent = (AutoResetEvent)stateInfo;
+        //        //if (ImageTilesViewer.VerticalOffset == ImageTilesViewer.ScrollableHeight)
+        //        //if(UpdateThread is Thread && UpdateThread.IsAlive)
+        //        {
+        //            invokeCount++;
+        //            //if (invokeCount >= maxCount && !string.IsNullOrEmpty(setting.AccessToken))
+        //            if (invokeCount >= maxCount)
+        //            {                   
+        //                // Reset the counter and signal Main.
+        //                //ShowImages(TargetPage, NextURL);
+        //                //ListImageTiles.Items.Refresh();
+        //                //ListImageTiles.ItemsSource = null;
+        //                //ListImageTiles.ItemsSource = ImageList;
+        //                invokeCount = 0;
+        //                autoEvent.Set();
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var ret = ex.Message;
+        //    }                
+        //}
+        //////////////////////////////////////////////////////////////////
+
+        private void OnlyActiveItems(object sender, FilterEventArgs e)
         {
-            try
-            {
-                AutoResetEvent autoEvent = (AutoResetEvent)stateInfo;
-                if (ImageTilesViewer.VerticalOffset == ImageTilesViewer.ScrollableHeight)
-                {
-                    invokeCount++;
-                    if (invokeCount >= maxCount && !string.IsNullOrEmpty(setting.AccessToken))
-                    {
-                        // Reset the counter and signal Main.
-                        ShowImages(TargetPage, NextURL);
-                        invokeCount = 0;
-                        autoEvent.Set();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                var ret = ex.Message;
-            }                
+            e.Accepted = false;
+           
+            var item = e.Item as ImageItem;
+            if (item.Source == null) return;
+
+            e.Accepted = true;
         }
-        ////////////////////////////////////////////////////////////////
 
         internal void UpdateImageTile(Pixeez.Tokens tokens)
         {
@@ -111,30 +144,132 @@ namespace PixivWPF.Pages
 
             var needUpdate = ImageList.Where(item => item.Source == null);
 
-            new Thread(delegate ()
+            UpdateThread = new Thread(() =>
             {
-                var opt = new ParallelOptions();
-                opt.MaxDegreeOfParallelism = 10;
-                Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                try
                 {
-                    item.Dispatcher.BeginInvoke(new Action(async () =>
+                    var opt = new ParallelOptions();
+                    opt.MaxDegreeOfParallelism = 15;
+                    opt.TaskScheduler = TaskScheduler.Current;
+                    var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                     {
-                        try
+                        item.Dispatcher.BeginInvoke(new Action(async () =>
                         {
-                            if (item.Source == null)
+                            try
                             {
-                                item.Source = await item.Thumb.ToImageSource(tokens);
-                                ListImageTiles.Items.Refresh();
+                                if (item.Source == null)
+                                {
+                                    item.Source = await item.Thumb.ToImageSource(tokens);
+                                    //ListImageTiles.Items.DeferRefresh();
+                                    ListImageTiles.Items.Refresh();
+                                    //ListImageTiles.ItemsSource = null;
+                                    //ListImageTiles.ItemsSource = ImageList;
+
+                                    //ListImageTiles.InvalidateProperty(dp);
+                                }
                             }
-                        }
-                        catch (Exception ex)
+                            catch (Exception ex)
+                            {
+                                CommonHelper.ShowMessageDialog("ERROR", $"Download Image Failed:\n{ex.Message}");
+                            }
+                        }));
+                    });
+                    if (ret.IsCompleted)
+                    {
+                        UPDATING = !ret.IsCompleted;
+                    }
+                }
+                finally
+                {
+                    UPDATING = false;
+                }
+            });
+            UpdateThread.Start();
+
+            //new Thread(delegate ()
+            //{
+            //    var opt = new ParallelOptions();
+            //    opt.MaxDegreeOfParallelism = 10;
+            //    Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+            //    {
+            //        item.Dispatcher.BeginInvoke(new Action(async () =>
+            //        {
+            //            try
+            //            {
+            //                if (item.Source == null)
+            //                {
+            //                    item.Source = await item.Thumb.ToImageSource(tokens);
+            //                    //ListImageTiles.Items.Refresh();
+            //                }
+            //            }
+            //            catch (Exception ex)
+            //            {
+            //                CommonHelper.ShowMessageDialog("ERROR", $"Download Image Failed:\n{ex.Message}");
+            //            }
+            //        }));
+            //    });
+            //    UPDATING = false;
+            //}).Start();
+        }
+
+        internal void ShowIllustPages(Pixeez.Tokens tokens, ImageItem item, int start=0, int count=30)
+        {
+            try
+            {
+                PreviewWait.Visibility = Visibility.Visible;
+
+                SubIllustsPanel.Visibility = Visibility.Collapsed;
+                SubIllusts.Items.Clear();
+                if (item.Illust is Pixeez.Objects.IllustWork)
+                {
+                    var subset = item.Illust as Pixeez.Objects.IllustWork;
+                    if (subset.meta_pages.Count() > 1)
+                    {
+                        SubIllustsPanel.Visibility = Visibility.Visible;
+
+                        //var idx = 0;
+                        //foreach (var pages in subset.meta_pages)
+                        //{
+                        //    pages.AddTo(SubIllusts.Items, item.Illust, idx++, item.NextURL);
+                        //}
+
+                        btnSubIllustPrevPages.Tag = start - count;
+                        var total = subset.meta_pages.Count();
+                        for (var i = start; i < total; i++)
                         {
-                            CommonHelper.ShowMessageDialog("ERROR", $"Download Image Failed:\n{ex.Message}");
+                            if (i < 0) continue;
+
+                            var pages = subset.meta_pages[i];
+                            pages.AddTo(SubIllusts.Items, item.Illust, i, item.NextURL);
+
+                            if (i - start >= count - 1) break;
+                            btnSubIllustNextPages.Tag = i + 2;
                         }
-                    }));
-                });
-                UPDATING = false;
-            }).Start();
+
+                        if ((int)btnSubIllustPrevPages.Tag < 0)
+                            btnSubIllustPrevPages.Visibility = Visibility.Collapsed;
+                        else
+                            btnSubIllustPrevPages.Visibility = Visibility.Visible;
+
+                        if ((int)btnSubIllustNextPages.Tag >= total - 1)
+                            btnSubIllustNextPages.Visibility = Visibility.Collapsed;
+                        else
+                            btnSubIllustNextPages.Visibility = Visibility.Visible;
+
+                        SubIllustsPanel.InvalidateVisual();
+                        SubIllusts.UpdateImageTile(tokens);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                CommonHelper.ShowMessageDialog("ERROR", ex.Message);
+            }
+            finally
+            {
+                PreviewWait.Visibility = Visibility.Collapsed;
+            }
+
         }
 
         internal async void ShowRelativeInline(Pixeez.Tokens tokens, ImageItem item)
@@ -147,7 +282,7 @@ namespace PixivWPF.Pages
                 var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetRelatedWorks(item.Illust.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                 next_url = relatives.next_url ?? string.Empty;
 
-                lblRelativeIllusts.Visibility = Visibility.Collapsed;
+                RelativeIllustsPanel.Visibility = Visibility.Collapsed;
                 RelativeIllusts.Items.Clear();
                 if (relatives.illusts is Array)
                 {
@@ -156,7 +291,7 @@ namespace PixivWPF.Pages
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
                     }
                     RelativeIllusts.UpdateImageTile(tokens);
-                    lblRelativeIllusts.Visibility = Visibility.Visible;
+                    RelativeIllustsPanel.Visibility = Visibility.Visible;
                 }
             }
             catch (Exception ex)
@@ -178,10 +313,10 @@ namespace PixivWPF.Pages
 
             RelativeIllusts.Columns = 5;
 
-            AutoNextEvent = new AutoResetEvent(false);
-            AutoNextChecker = new AutoNextStatusChecker(maxCount, ImageTilesViewer);
-            TimerCheck = CheckStatus;
-            AutoNextTimer = new Timer(TimerCheck, AutoNextEvent, 2000, 100);
+            //AutoNextEvent = new AutoResetEvent(false);
+            //AutoNextChecker = new AutoNextStatusChecker(maxCount);
+            //TimerCheck = CheckStatus;
+            //AutoNextTimer = new Timer(TimerCheck, AutoNextEvent, 2000, 100);
 
             ShowImages();
         }
@@ -235,14 +370,41 @@ namespace PixivWPF.Pages
                     break;
                 case PixivPage.MyBookmark:
                     break;
-                case PixivPage.RankingDaily:
-                    ShowRanking(NextURL, "daily");
+                case PixivPage.RankingDay:
+                    ShowRanking(NextURL, "day");
                     break;
-                case PixivPage.RankingWeekly:
-                    ShowRanking(NextURL, "weekly");
+                case PixivPage.RankingDayMale:
+                    ShowRanking(NextURL, "day_male");
                     break;
-                case PixivPage.RankingMonthly:
-                    ShowRanking(NextURL, "monthly");
+                case PixivPage.RankingDayFemale:
+                    ShowRanking(NextURL, "day_female");
+                    break;
+                case PixivPage.RankingDayR18:
+                    ShowRanking(NextURL, "day_r18");
+                    break;
+                case PixivPage.RankingDayMaleR18:
+                    ShowRanking(NextURL, "day_male_r18");
+                    break;
+                case PixivPage.RankingDayFemaleR18:
+                    ShowRanking(NextURL, "day_female_r18");
+                    break;
+                case PixivPage.RankingWeek:
+                    ShowRanking(NextURL, "week");
+                    break;
+                case PixivPage.RankingWeekOriginal:
+                    ShowRanking(NextURL, "week_original");
+                    break;
+                case PixivPage.RankingWeekRookie:
+                    ShowRanking(NextURL, "week_rookie");
+                    break;
+                case PixivPage.RankingWeekR18:
+                    ShowRanking(NextURL, "week_r18");
+                    break;
+                case PixivPage.RankingWeekR18G:
+                    ShowRanking(NextURL, "week_r18g");
+                    break;
+                case PixivPage.RankingMonth:
+                    ShowRanking(NextURL, "month");
                     break;
             }
         }
@@ -257,16 +419,21 @@ namespace PixivWPF.Pages
             }
             if (!IsAppend)
             {
-                if(ListImageTiles.SelectionMode == SelectionMode.Single)
-                {
-                    ListImageTiles.SelectedItem = null;
-                }
-                else
-                {
-                    ListImageTiles.SelectedItems.Clear();
-                }
                 ListImageTiles.SelectedIndex = -1;
                 ImageList.Clear();
+                PreviewWait.Visibility = Visibility.Collapsed;
+            }
+            else if(ImageList.Count >= 90)
+            {
+                ListImageTiles.SelectedIndex = -1;
+                var items = new ObservableCollection<ImageItem>();
+                foreach(var item in ImageList.Skip(30))
+                {
+                    items.Add(item);
+                }
+                ImageList = items;
+                ListImageTiles.ItemsSource = items;
+                ListImageTiles.Items.Refresh();
                 PreviewWait.Visibility = Visibility.Collapsed;
             }
 
@@ -302,14 +469,41 @@ namespace PixivWPF.Pages
                     break;
                 case PixivPage.MyBookmark:
                     break;
-                case PixivPage.RankingDaily:
-                    ShowRanking(NextURL, "daily");
+                case PixivPage.RankingDay:
+                    ShowRanking(NextURL, "day");
                     break;
-                case PixivPage.RankingWeekly:
-                    ShowRanking(NextURL, "weekly");
+                case PixivPage.RankingDayMale:
+                    ShowRanking(NextURL, "day_male");
                     break;
-                case PixivPage.RankingMonthly:
-                    ShowRanking(NextURL, "monthly");
+                case PixivPage.RankingDayFemale:
+                    ShowRanking(NextURL, "day_female");
+                    break;
+                case PixivPage.RankingDayR18:
+                    ShowRanking(NextURL, "day_r18");
+                    break;
+                case PixivPage.RankingDayMaleR18:
+                    ShowRanking(NextURL, "day_male_r18");
+                    break;
+                case PixivPage.RankingDayFemaleR18:
+                    ShowRanking(NextURL, "day_female_r18");
+                    break;
+                case PixivPage.RankingWeek:
+                    ShowRanking(NextURL, "week");
+                    break;
+                case PixivPage.RankingWeekOriginal:
+                    ShowRanking(NextURL, "week_original");
+                    break;
+                case PixivPage.RankingWeekRookie:
+                    ShowRanking(NextURL, "week_rookie");
+                    break;
+                case PixivPage.RankingWeekR18:
+                    ShowRanking(NextURL, "week_r18");
+                    break;
+                case PixivPage.RankingWeekR18G:
+                    ShowRanking(NextURL, "week_r18g");
+                    break;
+                case PixivPage.RankingMonth:
+                    ShowRanking(NextURL, "month");
                     break;
             }
             //UpdateImageTile(tokens);
@@ -493,7 +687,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowRanking(string nexturl = null, string condition = "daily")
+        public async void ShowRankingAll(string nexturl = null, string condition = "daily")
         {
             ImageTilesWait.Visibility = Visibility.Visible;
             var tokens = await CommonHelper.ShowLogin();
@@ -534,6 +728,49 @@ namespace PixivWPF.Pages
                     }
                     ImageTilesWait.Visibility = Visibility.Hidden;
                     if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                    UpdateImageTile(tokens);
+                }
+            }
+            catch (Exception ex)
+            {
+                CommonHelper.ShowMessageDialog("ERROR", ex.Message);
+            }
+            finally
+            {
+                ImageTilesWait.Visibility = Visibility.Hidden;
+            }
+        }
+
+        public async void ShowRanking(string nexturl = null, string condition = "day")
+        {
+            ImageTilesWait.Visibility = Visibility.Visible;
+            var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Visibility = Visibility.Hidden;
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTilesWait.Visibility = Visibility.Visible;
+                //var works = await tokens.GetMyFollowingWorksAsync("private");
+                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                if (root == null || root.ranking_illusts == null)
+                {
+                    tokens = await CommonHelper.ShowLogin();
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+                ImageTilesWait.Visibility = Visibility.Hidden;
+
+                if (root.illusts != null)
+                {
+                    ImageTilesWait.Visibility = Visibility.Visible;
+                    foreach (var illust in root.illusts)
+                    {
+                        illust.AddTo(ImageList, nexturl);
+                    }
+                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTile(tokens);
                 }
             }
@@ -603,31 +840,33 @@ namespace PixivWPF.Pages
                 //IllustDesc.Text = $"<div color=\"{Common.Theme.TextColor.ToHtml(false)}\">{item.Illust.Caption}</div>";
                 IllustDesc.Text = $"<div class=\"t\">{item.Illust.Caption}</div>";
 
-                //var relatives = await tokens.GetRelatedWorks((long)item.Illust.Id.Value, "");
-
-                lblSubIllusts.Visibility = Visibility.Collapsed;
                 SubIllusts.Items.Clear();
-                if (item.Illust is Pixeez.Objects.IllustWork)
-                {
-                    var subset = item.Illust as Pixeez.Objects.IllustWork;
-                    if (subset.meta_pages.Count() > 1)
-                    {
-                        lblSubIllusts.Visibility = Visibility.Visible;
-                        foreach (var pages in subset.meta_pages)
-                        {
-                            pages.AddTo(SubIllusts.Items, item.Illust, item.NextURL);
-                        }
-                        SubIllusts.UpdateImageTile(tokens);
-                    }
-                }
+                SubIllusts.Refresh();
+                SubIllustsPanel.Visibility = Visibility.Collapsed;
+                ShowIllustPages(tokens, item);
+                //if (item.Illust.PageCount <= 30)
+                //{
+                //    ShowIllustPages(tokens, item);
+                //}
 
                 // ShowRelativeInline(tokens, item);
+                RelativeIllustsPanel.Visibility = Visibility.Collapsed;
                 PreviewWait.Visibility = Visibility.Hidden;
             }
             catch (Exception ex)
             {
                 CommonHelper.ShowMessageDialog("ERROR", ex.Message);
             }
+        }
+
+        private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
         }
 
         private void ImageTilesViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
@@ -648,6 +887,18 @@ namespace PixivWPF.Pages
         private void ActionIllustUserInfo_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private async void ActionIllustPages_Click(object sender, RoutedEventArgs e)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            var idx = ListImageTiles.SelectedIndex;
+            if (idx < 0) return;
+            var item = ImageList[idx];
+
+            ShowIllustPages(tokens, item);
         }
 
         private async void ActionIllustRelative_Click(object sender, RoutedEventArgs e)
@@ -700,7 +951,8 @@ namespace PixivWPF.Pages
                                 dt = DateTime.Parse(illust.ReuploadedTime);
                             }
 
-                            await pages.ImageUrls.Original.ToImageFile(tokens, DateTime.Parse(item.Illust.ReuploadedTime));
+                            var is_meta_single_page = illust.PageCount==1 ? true : false;
+                            await pages.ImageUrls.Original.ToImageFile(tokens, dt, is_meta_single_page);
                         }
                     }
                     SystemSounds.Beep.Play();
@@ -733,7 +985,8 @@ namespace PixivWPF.Pages
                             dt = DateTime.Parse(illust.ReuploadedTime);
                         }
 
-                        await pages.ImageUrls.Original.ToImageFile(tokens, dt);
+                        var is_meta_single_page = illust.PageCount==1 ? true : false;
+                        await pages.ImageUrls.Original.ToImageFile(tokens, dt, is_meta_single_page);
                         SystemSounds.Beep.Play();
                     }
                 }
@@ -787,22 +1040,97 @@ namespace PixivWPF.Pages
                     if (!string.IsNullOrEmpty(url))
                     {
                         //await url.ToImageFile(tokens);
-
-                        await url.ToImageFile(tokens, dt);
+                        var is_meta_single_page = illust.PageCount==1 ? true : false;
+                        await url.ToImageFile(tokens, dt, is_meta_single_page);
                         SystemSounds.Beep.Play();
                     }
                 }
             }
         }
 
-        private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
         {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
 
+            if (Preview.Tag is Pixeez.Objects.Work)
+            {
+                IllustsSaveProgress.Visibility = Visibility.Visible;
+                IllustsSaveProgress.Value = 0;
+                IProgress<int> progress = new Progress<int>(i => { IllustsSaveProgress.Value = i; });
+
+                var illust = Preview.Tag as Pixeez.Objects.Work;
+                var images = illust.ImageUrls;
+                var url = images.Original;
+                var dt = DateTime.Now;
+
+                if (string.IsNullOrEmpty(url))
+                {
+                    if (!string.IsNullOrEmpty(images.Large))
+                        url = images.Medium;
+                    else if (!string.IsNullOrEmpty(images.Medium))
+                        url = images.Medium;
+                    else if (!string.IsNullOrEmpty(images.Px480mw))
+                        url = images.Px480mw;
+                    else if (!string.IsNullOrEmpty(images.SquareMedium))
+                        url = images.SquareMedium;
+                    else if (!string.IsNullOrEmpty(images.Px128x128))
+                        url = images.Px128x128;
+                    else if (!string.IsNullOrEmpty(images.Small))
+                        url = images.Small;
+                }
+
+                if (illust is Pixeez.Objects.IllustWork)
+                {
+                    var illustset = illust as Pixeez.Objects.IllustWork;
+                    dt = illustset.CreatedTime;
+                    var is_meta_single_page = illust.PageCount==1 ? true : false;
+                    var idx=0;
+                    var total = illustset.meta_pages.Count();
+                    foreach (var pages in illustset.meta_pages)
+                    {
+                        if (string.IsNullOrEmpty(pages.ImageUrls.Original))
+                            await url.ToImageFile(tokens, dt, is_meta_single_page);
+                        else
+                            await pages.ImageUrls.Original.ToImageFile(tokens, dt, is_meta_single_page);
+
+                        idx++;
+                        progress.Report((int)((double)idx / total * 100));
+                    }
+                }
+                else if (illust is Pixeez.Objects.NormalWork)
+                {
+                    var illustset = illust as Pixeez.Objects.NormalWork;
+                    dt = illustset.CreatedTime.UtcDateTime;
+
+                    var is_meta_single_page = illust.PageCount==1 ? true : false;
+                    await url.ToImageFile(tokens, dt, is_meta_single_page);
+                }
+                IllustsSaveProgress.Value = 100;
+                IllustsSaveProgress.Visibility = Visibility.Collapsed;
+                SystemSounds.Beep.Play();
+            }
         }
 
-        private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void SubIllustPagesNav_Click(object sender, RoutedEventArgs e)
         {
+            if(sender == btnSubIllustPrevPages || sender==btnSubIllustNextPages)
+            {
+                var btn = sender as Button;
+                if(btn.Tag is int)
+                {
+                    var start = (int)btn.Tag;
 
+                    var tokens = await CommonHelper.ShowLogin();
+                    if (tokens == null) return;
+
+                    var idx = ListImageTiles.SelectedIndex;
+                    if (idx < 0) return;
+                    var item = ImageList[idx];
+
+                    ShowIllustPages(tokens, item, start);
+                }
+            }
         }
 
     }

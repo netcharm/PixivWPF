@@ -37,8 +37,9 @@ namespace PixivWPF.Pages
                 btnGotoRecommended, btnGotoLatest,
                 btnGotoFollowing, btnGotoFollowingPrivate,
                 btnGotoFavorite, btnGotoFavoritePrivate,
-                btnGotoRankingDaily, btnGotoRankingWeekly,
-                btnGotoRankingMonthly, btnGotoRankingYearly
+                btnGotoRankingDay, btnGotoRankingDayMale, btnGotoRankingDayFemale, btnGotoRankingDayR18, btnGotoRankingDayMaleR18, btnGotoRankingDayFemaleR18,
+                btnGotoRankingWeek, btnGotoRankingWeek, btnGotoRankingWeek, btnGotoRankingWeek, btnGotoRankingWeek,
+                btnGotoRankingMonth, btnGotoRankingYear
             };
 
             var sender = btnGotoRecommended;
@@ -62,21 +63,57 @@ namespace PixivWPF.Pages
             {
                 sender = btnGotoFavoritePrivate;
             }
-            else if (page == PixivPage.RankingDaily)
+            else if (page == PixivPage.RankingDay)
             {
-                sender = btnGotoRankingDaily;
+                sender = btnGotoRankingDay;
             }
-            else if (page == PixivPage.RankingWeekly)
+            else if (page == PixivPage.RankingDayR18)
             {
-                sender = btnGotoRankingWeekly;
+                sender = btnGotoRankingDayR18;
             }
-            else if (page == PixivPage.RankingMonthly)
+            else if (page == PixivPage.RankingDayMale)
             {
-                sender = btnGotoRankingMonthly;
+                sender = btnGotoRankingDayMale;
             }
-            else if (page == PixivPage.RankingYearly)
+            else if (page == PixivPage.RankingDayMaleR18)
             {
-                sender = btnGotoRankingYearly;
+                sender = btnGotoRankingDayMaleR18;
+            }
+            else if (page == PixivPage.RankingDayFemale)
+            {
+                sender = btnGotoRankingDayFemale;
+            }
+            else if (page == PixivPage.RankingDayFemaleR18)
+            {
+                sender = btnGotoRankingDay;
+            }
+            else if (page == PixivPage.RankingWeek)
+            {
+                sender = btnGotoRankingWeek;
+            }
+            else if (page == PixivPage.RankingWeekR18)
+            {
+                sender = btnGotoRankingWeekR18;
+            }
+            else if (page == PixivPage.RankingWeekR18G)
+            {
+                sender = btnGotoRankingWeekR18G;
+            }
+            else if (page == PixivPage.RankingWeekOriginal)
+            {
+                sender = btnGotoRankingWeekOriginal;
+            }
+            else if (page == PixivPage.RankingWeekRookie)
+            {
+                sender = btnGotoRankingWeekRookie;
+            }
+            else if (page == PixivPage.RankingMonth)
+            {
+                sender = btnGotoRankingMonth;
+            }
+            else if (page == PixivPage.RankingYear)
+            {
+                sender = btnGotoRankingYear;
             }
             else
             {
@@ -155,21 +192,57 @@ namespace PixivWPF.Pages
             {
                 page = PixivPage.FavoritePrivate;
             }
-            else if (sender == btnGotoRankingDaily)
+            else if (sender == btnGotoRankingDay)
             {
-                page = PixivPage.RankingDaily;
+                page = PixivPage.RankingDay;
             }
-            else if (sender == btnGotoRankingWeekly)
+            else if (sender == btnGotoRankingDayR18)
             {
-                page = PixivPage.RankingWeekly;
+                page = PixivPage.RankingDayR18;
             }
-            else if (sender == btnGotoRankingMonthly)
+            else if (sender == btnGotoRankingDayMale)
             {
-                page = PixivPage.RankingMonthly;
+                page = PixivPage.RankingDayMale;
             }
-            else if (sender == btnGotoRankingYearly)
+            else if (sender == btnGotoRankingDayMaleR18)
             {
-                page = PixivPage.RankingYearly;
+                page = PixivPage.RankingDayMaleR18;
+            }
+            else if (sender == btnGotoRankingDayFemale)
+            {
+                page = PixivPage.RankingDayFemale;
+            }
+            else if (sender == btnGotoRankingDayFemaleR18)
+            {
+                page = PixivPage.RankingDayFemaleR18;
+            }
+            else if (sender == btnGotoRankingWeek)
+            {
+                page = PixivPage.RankingWeek;
+            }
+            else if (sender == btnGotoRankingWeekR18)
+            {
+                page = PixivPage.RankingWeekR18;
+            }
+            else if (sender == btnGotoRankingWeekR18G)
+            {
+                page = PixivPage.RankingWeekR18G;
+            }
+            else if (sender == btnGotoRankingWeekOriginal)
+            {
+                page = PixivPage.RankingWeekOriginal;
+            }
+            else if (sender == btnGotoRankingWeekRookie)
+            {
+                page = PixivPage.RankingWeekRookie;
+            }
+            else if (sender == btnGotoRankingMonth)
+            {
+                page = PixivPage.RankingMonth;
+            }
+            else if (sender == btnGotoRankingYear)
+            {
+                page = PixivPage.RankingYear;
             }
             else
             {

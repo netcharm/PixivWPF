@@ -12,7 +12,18 @@ namespace PixivWPF.Common
 {
     public class ImageItem : FrameworkElement
     {
-        public ImageSource Source { get; set; }
+        //public static readonly DependencyProperty SourceProperty =
+        //    DependencyProperty.Register("Source", typeof(ImageSource), typeof(ImageItem), new UIPropertyMetadata(null));
+
+        private ImageSource source = null;
+        public ImageSource Source
+        {
+            get { return source; }
+            set
+            {
+                source = value;
+            }
+        }
         public string Thumb { get; set; }
         public string Subject { get; set; }
         public string Caption { get; set; }
@@ -28,11 +39,11 @@ namespace PixivWPF.Common
         public Visibility BadgeVisibility = Visibility.Visible;
         public bool DisplayBadge
         {
-            //get
-            //{
-            //    if (BadgeVisibility == Visibility.Visible) return true;
-            //    else return false;
-            //}
+            get
+            {
+                if (BadgeVisibility == Visibility.Visible) return true;
+                else return false;
+            }
             set
             {
                 if (value) BadgeVisibility = Visibility.Visible;
@@ -43,11 +54,11 @@ namespace PixivWPF.Common
         public Visibility TitleVisibility = Visibility.Visible;
         public bool DisplayTitle
         {
-            //get
-            //{
-            //    if (TitleVisibility == Visibility.Visible) return true;
-            //    else return false;
-            //}
+            get
+            {
+                if (TitleVisibility == Visibility.Visible) return true;
+                else return false;
+            }
             set
             {
                 if (value) TitleVisibility = Visibility.Visible;
@@ -109,8 +120,8 @@ namespace PixivWPF.Common
                             NextURL = nexturl,
                             Thumb = url,
                             Count = (int)illust.PageCount,
-                            //Badge = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
-                            DisplayBadge = illust.PageCount > 1 ? true : false,
+                            BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
+                            //DisplayBadge = illust.PageCount > 1 ? true : false,
                             ID = illust.Id.ToString(),
                             UserID = illust.User.Id.ToString(),
                             Subject = illust.Title,
@@ -130,12 +141,13 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.MetaPages pages, IList<ImageItem> Colloection, Pixeez.Objects.Work illust, string nexturl = "")
+        public static void AddTo(this Pixeez.Objects.MetaPages pages, IList<ImageItem> Colloection, Pixeez.Objects.Work illust, int index, string nexturl = "")
         {
             try
             {
                 if (pages is Pixeez.Objects.MetaPages && Colloection is IList<ImageItem>)
                 {
+                    var all_pages = (illust as Pixeez.Objects.IllustWork).meta_pages;
                     var url = pages.ImageUrls.SquareMedium;
                     if (string.IsNullOrEmpty(url))
                     {
@@ -171,8 +183,7 @@ namespace PixivWPF.Common
                         {
                             NextURL = nexturl,
                             Thumb = url,
-                            Count = 1,
-                            DisplayBadge = false,
+                            Count = index+1,
                             ID = illust.Id.ToString(),
                             UserID = illust.User.Id.ToString(),
                             DisplayTitle = false,
