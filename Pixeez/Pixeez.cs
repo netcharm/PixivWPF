@@ -939,7 +939,6 @@ namespace Pixeez
         public async Task<Paginated<Rank>> GetRankingAllAsync(string mode = "daily", int page = 1, int perPage = 30, string date = "", bool includeSanityLevel = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/ranking/all";
-
             var param = new Dictionary<string, string>
             {
                 { "mode", mode } ,
@@ -955,6 +954,26 @@ namespace Pixeez
                 param.Add("date", date);
 
             return await this.AccessApiAsync<Paginated<Rank>>(MethodType.GET, url, param);
+        }
+
+        public async Task<RecommendedRootobject> GetRankingAsync(string mode = "day", int page = 1, int perPage = 30, string date = "", bool req_auth = true, bool includeSanityLevel = true)
+        {
+            var url = "https://app-api.pixiv.net/v1/illust/ranking";
+            var param = new Dictionary<string, string>
+            {
+                { "mode", mode } ,
+                { "page", page.ToString() } ,
+                { "per_page", perPage.ToString() } ,
+                { "include_stats", "1" } ,
+                { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
+                { "profile_image_sizes", "px_170x170,px_50x50" } ,
+            };
+
+            if (!string.IsNullOrWhiteSpace(date))
+                param.Add("date", date);
+
+            return await this.AccessNewApiAsync<RecommendedRootobject>(url, true, param);
         }
 
         /// <summary>
