@@ -159,7 +159,9 @@ namespace PixivWPF.Pages
                             {
                                 if (item.Source == null)
                                 {
-                                    item.Source = await item.Thumb.ToImageSource(tokens);
+                                    //item.Source = await item.Thumb.ToImageSource(tokens);
+                                    item.Source = await item.Thumb.LoadImage(tokens);
+
                                     //ListImageTiles.Items.DeferRefresh();
                                     ListImageTiles.Items.Refresh();
                                     //ListImageTiles.ItemsSource = null;
@@ -427,7 +429,7 @@ namespace PixivWPF.Pages
             {
                 ListImageTiles.SelectedIndex = -1;
                 var items = new ObservableCollection<ImageItem>();
-                foreach(var item in ImageList.Skip(30))
+                foreach (var item in ImageList.Skip(30))
                 {
                     items.Add(item);
                 }

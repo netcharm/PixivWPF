@@ -169,7 +169,8 @@ namespace PixivWPF.Common
                         {
                             if (item.Source == null)
                             {
-                                item.Source = await item.Thumb.ToImageSource(tokens);
+                                //item.Source = await item.Thumb.ToImageSource(tokens);
+                                item.Source = await item.Thumb.LoadImage(tokens);
                                 PART_ImageTiles.Items.Refresh();
                             }
                         }

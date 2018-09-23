@@ -73,6 +73,11 @@ namespace PixivWPF.Common
             set { lastfolder = value; }
         }
 
+        [JsonIgnore]
+        public string APPPATH
+        {
+            get { return AppPath; }
+        }
 
         private string accesstoken = string.Empty;
         public string AccessToken
@@ -86,6 +91,20 @@ namespace PixivWPF.Common
                 accesstoken = value;
             }
         }
+
+        private string refreshtoken = string.Empty;
+        public string RefreshToken
+        {
+            get
+            {
+                return (refreshtoken);
+            }
+            set
+            {
+                refreshtoken = value;
+            }
+        }
+
 
         private string proxy = string.Empty;
         public string Proxy
@@ -120,6 +139,7 @@ namespace PixivWPF.Common
         public string Accent { get; set; }
 
         private string lastSaveFolder = string.Empty;
+        [JsonIgnore]
         public string SaveFolder { get; set; }
 
         public void Save(string configfile = "")

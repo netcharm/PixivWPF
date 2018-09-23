@@ -111,6 +111,7 @@ namespace PixivWPF.Pages
                         setting.User = user;
                         setting.Pass = pass;
                         setting.AccessToken = tokens.AccessToken;
+                        setting.RefreshToken = tokens.RefreshToken;
                         setting.Proxy = proxy;
                         setting.UsingProxy = useproxy;
                         setting.MyInfo = result.Authorize.User;

@@ -21,6 +21,7 @@ namespace PixivWPF.Common
     public partial class PixivLoginDialog : MetroWindow
     {
         public string AccessToken = string.Empty;
+        public string RefreshToken = string.Empty;
         public Pixeez.Tokens Tokens = null;
 
         public PixivLoginDialog()

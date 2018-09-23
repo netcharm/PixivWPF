@@ -50,37 +50,40 @@ namespace PixivWPF.Common
     public static class CommonHelper
     {
         private static Setting setting = Setting.Load();
+        private static CacheImage cache = new CacheImage();
 
         private static async void RefreshToken()
         {
-            if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.AccessToken))
+            if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
             {
                 try
                 {
-                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.AccessToken, setting.Proxy, setting.UsingProxy);
+                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
                     setting.AccessToken = authResult.Authorize.AccessToken;
+                    setting.RefreshToken = authResult.Authorize.RefreshToken;
                     setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
                     setting.Save();
                 }
                 catch (Exception ex)
                 {
-                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
-                    setting.AccessToken = authResult.Authorize.AccessToken;
-                    setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
-                    setting.Save();
+                    //if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass))
+                    {
+                        var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
+                        setting.AccessToken = authResult.Authorize.AccessToken;
+                        setting.RefreshToken = authResult.Authorize.RefreshToken;
+                        setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
+                        setting.Save();
+                    }
                     var rt = ex.Message;
                 }
-                //var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, "", setting.Proxy, setting.UsingProxy);
-                //setting.AccessToken = authResult.Authorize.AccessToken;
-                //setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
-                //setting.Save();
             }
         }
 
         public static async Task<Pixeez.Tokens> ShowLogin()
         {
             Pixeez.Tokens result = null;
-            var accesstoken = setting.AccessToken;
+            //var accesstoken = setting.AccessToken;
+            //var refreshtoken = setting.RefreshToken;
             try
             {
                 if (Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 3600)
@@ -90,16 +93,16 @@ namespace PixivWPF.Common
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.AccessToken))
+                    if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
                     {
                         try
                         {
-                            //RefreshToken();
-                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.AccessToken, setting.Proxy, setting.UsingProxy);
-                            //var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, "", setting.Proxy, setting.UsingProxy);
-                            setting.AccessToken = authResult.Authorize.AccessToken;
-                            setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
-                            result = authResult.Tokens;
+                            RefreshToken();
+                            //var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
+                            //setting.AccessToken = authResult.Authorize.AccessToken;
+                            //setting.RefreshToken = authResult.Authorize.RefreshToken;
+                            //setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
+                            //result = authResult.Tokens;
                         }
                         catch (Exception)
                         {
@@ -108,7 +111,7 @@ namespace PixivWPF.Common
                     }
                     else
                     {
-                        var dlgLogin = new PixivLoginDialog() { AccessToken=accesstoken };
+                        var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
                         var ret = dlgLogin.ShowDialog();
                         result = dlgLogin.Tokens;
                     }
@@ -153,6 +156,79 @@ namespace PixivWPF.Common
             {
                 result = new MemoryStream();
                 await stream.CopyToAsync(result);
+            }
+            return (result);
+        }
+
+        public static ImageSource ToImageSource(this Stream stream)
+        {
+            //await imgStream.GetResponseStreamAsync();
+            BitmapSource result = null;
+            try
+            {
+                //BitmapImage result = new BitmapImage();
+                //result.BeginInit();
+                //result.CacheOption = BitmapCacheOption.OnLoad;
+                //result.StreamSource = stream;
+                //result.EndInit();
+                //result.Freeze();
+
+                result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+            }
+            catch (Exception)
+            {
+                //result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+            }
+            return (result);
+        }
+
+        public static async Task<ImageSource> LoadImage(this string file)
+        {
+            ImageSource result = null;
+            if (File.Exists(file))
+            {
+                using (var stream = new FileStream(file, FileMode.Open))
+                {
+                    //result = stream.ToImageSource();
+                    await Task.Run(() => {
+                        result = stream.ToImageSource();
+                    });
+                }
+            }
+            return (result);
+        }
+
+        public static async Task<ImageSource> LoadImage(this string url, Pixeez.Tokens tokens)
+        {
+            ImageSource result = null;
+            if (cache is CacheImage)
+            {
+                result = await cache.GetImage(url, tokens);
+            }
+            return (result);
+        }
+
+        public static async Task<bool> ToImageFile(this string url, Pixeez.Tokens tokens, string file)
+        {
+            bool result = false;
+            if (!string.IsNullOrEmpty(file))
+            {
+                using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                {
+                    if (response.Source.StatusCode == HttpStatusCode.OK)
+                    {
+                        using (var ms = await response.ToMemoryStream())
+                        {
+                            var dir = Path.GetDirectoryName(file);
+                            if (!Directory.Exists(dir))
+                            {
+                                Directory.CreateDirectory(dir);
+                            }
+                            File.WriteAllBytes($"{file}", ms.ToArray());
+                            result = true;
+                        }
+                    }
+                }
             }
             return (result);
         }
@@ -274,27 +350,6 @@ namespace PixivWPF.Common
                 result = image;
             }
 
-            //await webRequest.BeginGetResponse((ar) =>
-            //{
-            //    var response = webRequest.EndGetResponse(ar);
-            //    var stream = response.GetResponseStream();
-            //    if (stream.CanRead)
-            //    {
-            //        byte[] buffer = new byte[response.ContentLength];
-            //        stream.BeginRead(buffer, 0, buffer.Length, (aResult) =>
-            //        {
-            //            stream.EndRead(aResult);
-            //            //File.WriteAllBytes("c:\\test.jpg", buffer);
-            //            BitmapImage image = new BitmapImage();
-            //            image.BeginInit();
-            //            image.StreamSource = new MemoryStream(buffer);
-            //            image.EndInit();
-            //            image.Freeze();
-            //            result = image;
-            //        }, null);
-            //    }
-            //}, null);
-
             return (result);
         }
 
@@ -320,29 +375,6 @@ namespace PixivWPF.Common
                 result = (ImageSource)stream.ToImageSource();
             }
             return (result);
-        }
-
-        public static ImageSource ToImageSource(this Stream stream)
-        {
-            //await imgStream.GetResponseStreamAsync();
-            try
-            {
-                //BitmapImage result = new BitmapImage();
-                //result.BeginInit();
-                //result.CacheOption = BitmapCacheOption.OnLoad;
-                //result.StreamSource = stream;
-                //result.EndInit();
-                //result.Freeze();
-
-                BitmapSource result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-                return (result);
-            }
-            catch (Exception)
-            {
-                BitmapSource result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-                return (result);
-            }
-            //return (result);
         }
 
         public static async void ShowMessageDialog(string title, string content)

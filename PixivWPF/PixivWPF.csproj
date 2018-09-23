@@ -112,6 +112,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Common\CacheClass.cs" />
     <Compile Include="Common\CommonHelper.cs" />
     <Compile Include="Common\DownloadItems.cs" />
     <Compile Include="Common\ImageListGrid.xaml.cs">
@@ -123,6 +124,8 @@
     </Compile>
     <Compile Include="Common\SettingClass.cs" />
     <Compile Include="Common\ThemeClass.cs" />
+    <Compile Include="Common\UniformGridPanel.cs" />
+    <Compile Include="Common\VirtualizingWrapPanel.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
