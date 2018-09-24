@@ -71,6 +71,7 @@ namespace PixivWPF.Pages
         }
 
         private MetroWindow window = Application.Current.MainWindow as MetroWindow;
+        private IllustDetailPage detailpage = new IllustDetailPage();
 
         //public static readonly DependencyProperty ItemsProperty =
         //    DependencyProperty.Register("Items", typeof(ObservableCollection<ImageItem>), typeof(ListView), new UIPropertyMetadata(null));
@@ -400,6 +401,8 @@ namespace PixivWPF.Pages
         public PageTiles()
         {
             InitializeComponent();
+
+            IllustDetail.Content = detailpage;
 
             UpdateTheme();
 
@@ -887,7 +890,10 @@ namespace PixivWPF.Pages
                 if (idx < 0) return;
 
                 var item = ImageList[idx];
-                UpdateDetail(item);
+
+                detailpage.UpdateDetail(item);
+
+                //UpdateDetail(item);
             }
             catch (Exception ex)
             {

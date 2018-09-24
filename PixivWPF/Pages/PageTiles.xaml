@@ -106,6 +106,8 @@
                           Opacity="0.9" Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
         <!-- Illust Preview Viewport -->
+        <Frame Grid.Column="1" Margin="4,4,8,4" x:Name="IllustDetail" x:Uid="IllustDetail"/>
+        
         <ScrollViewer Grid.Column="1" Margin="4,4,8,4"
                       HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
             <Grid>
