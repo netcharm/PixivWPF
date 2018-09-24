@@ -125,7 +125,7 @@
                 <!-- Illust Subsets -->
                 <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander"
                           Margin="0, 8" ExpandDirection="Down"
-                          Visibility="Collapsed" Header="Illust Sets Gallery"
+                          IsExpanded="False" Visibility="Collapsed" Header="Illust Sets Gallery"
                           Expanded="SubIllustsExpander_Expanded">
                     <StackPanel x:Name="SubIllustsPanel">
                         <!--<TextBlock x:Name="lblSubIllusts" x:Uid="lblSubIllusts" Text="Illust Sets"/>-->
@@ -155,7 +155,7 @@
                 <!-- Illust Relatives -->
                 <Expander Grid.Row="5" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" 
                           Margin="0, 8" ExpandDirection="Down" 
-                          Visibility="Collapsed" Header="Relative Illust Gallery"
+                          IsExpanded="False" Visibility="Collapsed" Header="Relative Illust Gallery"
                           Expanded="RelativeIllustsExpander_Expanded">
                     <StackPanel x:Name="RelativeIllustsPanel">
                         <!--<TextBlock x:Name="lblRelativeIllusts" x:Uid="lblRelativeIllusts" Text="Relative Illusts"/>-->

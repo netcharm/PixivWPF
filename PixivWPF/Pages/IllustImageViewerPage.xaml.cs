@@ -34,16 +34,16 @@ namespace PixivWPF.Pages
                 {
                     var illust = item.Illust as Pixeez.Objects.IllustWork;
                     var pages = illust.meta_pages[item.Count-1];
-                    var url = pages.ImageUrls.Medium;
+                    var url = pages.ImageUrls.Large;
                     if (string.IsNullOrEmpty(url))
                     {
-                        if (!string.IsNullOrEmpty(pages.ImageUrls.Large))
-                        {
-                            url = pages.ImageUrls.Large;
-                        }
-                        else if (!string.IsNullOrEmpty(pages.ImageUrls.Original))
+                        if (!string.IsNullOrEmpty(pages.ImageUrls.Original))
                         {
                             url = pages.ImageUrls.Original;
+                        }
+                        else if (!string.IsNullOrEmpty(pages.ImageUrls.Medium))
+                        {
+                            url = pages.ImageUrls.Large;
                         }
                         else if (!string.IsNullOrEmpty(pages.ImageUrls.Px480mw))
                         {

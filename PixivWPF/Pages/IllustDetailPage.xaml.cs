@@ -92,13 +92,17 @@ namespace PixivWPF.Pages
 
                 SubIllusts.Items.Clear();
                 SubIllusts.Refresh();
+                SubIllustsExpander.IsExpanded = false;
                 if (item.Illust.PageCount > 1)
                 {
                     SubIllustsExpander.Visibility = Visibility.Visible;
+                    System.Threading.Thread.Sleep(250);
                     SubIllustsExpander.IsExpanded = true;
                 }
                 else
+                {
                     SubIllustsExpander.Visibility = Visibility.Collapsed;
+                }
 
                 RelativeIllustsExpander.Visibility = Visibility.Visible;
                 RelativeNextPage.Visibility = Visibility.Collapsed;
@@ -208,16 +212,10 @@ namespace PixivWPF.Pages
         public IllustDetailPage()
         {
             InitializeComponent();
-        }
 
-        private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
+            RelativeIllusts.Columns = 5;
 
-        }
-
-        private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
+            PreviewWait.Visibility = Visibility.Collapsed;
         }
 
         private void Actions_Click(object sender, RoutedEventArgs e)
@@ -541,17 +539,9 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void RelativeIllustsExpander_Expanded(object sender, RoutedEventArgs e)
+        private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
 
-            if (Preview.Tag is ImageItem)
-            {
-                var item = Preview.Tag as ImageItem;
-                ShowRelativeInline(tokens, item);
-                RelativeNextPage.Visibility = Visibility.Visible;
-            }
         }
 
         private void SubIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -567,6 +557,24 @@ namespace PixivWPF.Pages
                 viewer.Height = 800;
                 viewer.Content = page;
                 viewer.Show();
+            }
+        }
+
+        private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private async void RelativeIllustsExpander_Expanded(object sender, RoutedEventArgs e)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (Preview.Tag is ImageItem)
+            {
+                var item = Preview.Tag as ImageItem;
+                ShowRelativeInline(tokens, item);
+                RelativeNextPage.Visibility = Visibility.Visible;
             }
         }
 

@@ -176,6 +176,14 @@ namespace PixivWPF.Common
                         }
                         catch (Exception ex)
                         {
+                            try
+                            {
+                                Thread.Sleep(100);
+                                item.Source = await item.Thumb.LoadImage(tokens);
+                                PART_ImageTiles.Items.Refresh();
+                            }
+                            catch (Exception) { }
+
                             MetroWindow window = Application.Current.MainWindow as MetroWindow;
                             await window.ShowMessageAsync("ERROR", $"Download Image Failed:\n{ex.Message}");
                         }

@@ -31,7 +31,7 @@
                     Content="Latest" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,2"/>
 
             <ToggleButton x:Name="btnGotoFollowing" x:Uid="btnGotoFollowing" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
@@ -44,7 +44,7 @@
                     Content="Following Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,2"/>
 
             <ToggleButton x:Name="btnGotoFavorite" x:Uid="btnGotoFavorite" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
@@ -57,7 +57,7 @@
                     Content="Favorite Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
 
             <ToggleButton x:Name="btnGotoRankingDay" x:Uid="btnGotoRankingDay" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
@@ -90,7 +90,7 @@
                     Content="Ranking By Day Female R18" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
 
             <ToggleButton x:Name="btnGotoRankingWeek" x:Uid="btnGotoRankingWeek" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"

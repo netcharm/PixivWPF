@@ -54,16 +54,16 @@ namespace PixivWPF.Common
         public async Task<ImageSource> GetImage(string url, Pixeez.Tokens tokens)
         {
             ImageSource result = null;
+            var trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
             var file = Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
-            file = file.Replace("/", "\\");
+            file = file.Replace("/", "\\").TrimStart(trimchars);
             file = Path.Combine(_CacheFolder, file);
 
             if (_caches.ContainsKey(url))
             {
-                var fcache = string.Empty;
-                _caches.TryGetValue(url, out fcache);
+                var fcache = _caches[url].TrimStart(trimchars);
                 file = Path.Combine(_CacheFolder, fcache);
-                if (File.Exists(fcache))
+                if (File.Exists(file))
                 {
                     result = await file.LoadImage();
                 }
