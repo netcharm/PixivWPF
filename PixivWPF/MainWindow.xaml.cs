@@ -28,10 +28,15 @@ namespace PixivWPF
         private Pages.PageTiles pagetiles = null;
         private Pages.PageNav pagenav = null;
 
+        public void UpdateTheme()
+        {
+            if (pagenav is Pages.PageNav) pagenav.CheckPage();
+            if (pagetiles is Pages.PageTiles) pagetiles.UpdateTheme();
+        }
+
         public MainWindow()
         {
             InitializeComponent();
-
 
             MainContent = ContentFrame;
 
@@ -84,7 +89,7 @@ namespace PixivWPF
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
             Common.Theme.Toggle();
-            if(pagenav is Pages.PageNav) pagenav.CheckPage();
+            this.UpdateTheme();
         }
 
         private void CommandToggleTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)

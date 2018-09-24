@@ -100,6 +100,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Common\ViewerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Common\LoginDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -115,10 +119,14 @@
     <Compile Include="Common\CacheClass.cs" />
     <Compile Include="Common\CommonHelper.cs" />
     <Compile Include="Common\DownloadItems.cs" />
+    <Compile Include="Common\HistoryClass.cs" />
     <Compile Include="Common\ImageListGrid.xaml.cs">
       <DependentUpon>ImageListGrid.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\ImageTileClass.cs" />
+    <Compile Include="Common\ViewerWindow.xaml.cs">
+      <DependentUpon>ViewerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Common\LoginDialog.xaml.cs">
       <DependentUpon>LoginDialog.xaml</DependentUpon>
     </Compile>
@@ -130,6 +138,14 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Pages\IllustDetailPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\IllustImageViewerPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\PageLogin.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -148,6 +164,12 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Pages\IllustDetailPage.xaml.cs">
+      <DependentUpon>IllustDetailPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\IllustImageViewerPage.xaml.cs">
+      <DependentUpon>IllustImageViewerPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\PageLogin.xaml.cs">
       <DependentUpon>PageLogin.xaml</DependentUpon>
     </Compile>

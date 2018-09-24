@@ -377,6 +377,11 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static void ShowMessageBox(this string content, string title)
+        {
+            ShowMessageDialog(title, content);
+        }
+
         public static async void ShowMessageDialog(string title, string content)
         {
             MetroWindow window = Application.Current.MainWindow as MetroWindow;

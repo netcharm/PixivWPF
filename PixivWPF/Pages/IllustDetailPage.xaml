@@ -1,4 +1,4 @@
-﻿<Page x:Class="PixivWPF.Pages.PageTiles"
+﻿<Page x:Class="PixivWPF.Pages.IllustDetailPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -8,105 +8,15 @@
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       xmlns:wpf="clr-namespace:TheArtOfDev.HtmlRenderer.WPF;assembly=HtmlRenderer.WPF"
       xmlns:Common="clr-namespace:PixivWPF.Common"
-      xmlns:auxc="clr-namespace:Auxide.Controls"
-      xmlns:vwp="clr-namespace:FutaTill"
       mc:Ignorable="d" 
-      d:DesignHeight="700" d:DesignWidth="1400"
-      Title="Image Master Detail Viewer">
-
-    <Page.Resources>
-        <CollectionViewSource x:Key="ActiveImageTiles" Source="{Binding local:ImageList, Mode=OneWay, IsAsync=True}" Filter="OnlyActiveItems"/>
-        
-        <DataTemplate x:Key="ImageTileTemplate" x:Name="ImageTile" x:Uid="ImageTile">
-            <StackPanel>
-                <Grid Background="{DynamicResource AccentColorBrush}" Width="128" Tag="{Binding Illust, Mode=OneWay}" Margin="0,4,0,4">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="128"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <mah:ProgressRing Grid.Row="0" Width="72" Height="72" Opacity="0.62" 
-                                  HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                  Foreground="{DynamicResource AccentColorBrush}"/>
-                    <Image Grid.Row="0" 
-                       Source="{Binding Source, Mode=OneWay, IsAsync=False}"
-                       ToolTip="{Binding ToolTip, Mode=OneWay}"
-                       Tag="{Binding Illust, Mode=OneWay}"
-                       Stretch="Uniform" Width="128" Height="128"
-                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <!--<Image.Source>
-                            <PriorityBinding>
-                                <Binding Path="Source" IsAsync="True" Mode="OneWay"></Binding>
-                            </PriorityBinding>
-                        </Image.Source>-->
-                    </Image>
-                    <mah:Badged Grid.Row="0" Badge="{Binding Count, Mode=OneWay}" BadgePlacementMode="TopRight" Margin="0,16,16,0"
-                            FontSize="16" FontFamily="Consolas" Visibility="{Binding BadgeVisibility, Mode=OneWay}"
-                            BadgeBackground="{DynamicResource AccentColorBrush}" />
-                    <TextBlock Grid.Row="1" Text="{Binding Subject, Mode=OneWay}" Foreground="{DynamicResource LabelTextBrush}" Visibility="{Binding TitleVisibility, Mode=OneWay}"/>
-                </Grid>
-            </StackPanel>
-        </DataTemplate>
-
-        <!--<ContextMenu x:Key="ActionsMenu">
-            <MenuItem x:Name="ActionOpenIllustSet" x:Uid="ActionOpenIllustSet" Header="Open Illust Set" Visibility="Collapsed" Click="ActionOpenIllustSet_Click"/>
-            <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" Header="Author Info" Visibility="Collapsed" Click="ActionIllustUserInfo_Click"/>
-            <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" Header="Relative Illust" Click="ActionIllustRelative_Click"/>
-            <Separator />
-            <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
-        </ContextMenu>-->
-    </Page.Resources>
+      d:DesignHeight="300" d:DesignWidth="300"
+      Title="IllustDetailPage">
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="692"/>
-            <ColumnDefinition Width="*" MinWidth="700"/>
+            <ColumnDefinition MinWidth="692"/>
         </Grid.ColumnDefinitions>
-        <!-- Illust List Viewport -->
-        <!--<ScrollViewer Grid.Column="0" x:Name="ImageTilesViewer" ScrollChanged="ImageTilesViewer_ScrollChanged">-->
-        <ListView 
-                  x:Name="ListImageTiles" x:Uid="ImageTiles"
-                  IsSynchronizedWithCurrentItem="true"
-                  SelectionMode="Single"
-                  SelectionChanged="ImageTiles_SelectionChanged"
-                  ItemsSource="{Binding Source={StaticResource ActiveImageTiles}}" 
-                  ItemTemplate="{DynamicResource ImageTileTemplate}"
-                  BorderBrush="Transparent"
-                  Style="{DynamicResource VirtualisedMetroListView}"
-                  VirtualizingPanel.IsVirtualizing="True"
-                  VirtualizingPanel.CacheLength ="500"
-                  HorizontalAlignment="Center" VerticalAlignment="Top"
-                  mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
-            <ListView.CacheMode>
-                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
-            </ListView.CacheMode>
-            <ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
-                    <!--<auxc:UniformGridPanel Orientation="Vertical" Columns="5" Rows="5" Width="700" Height="Auto">
-                        
-                    </auxc:UniformGridPanel>-->
 
-                    <!--<vwp:VirtualizingTilePanel Columns="5" ChildHeight="152" MinChildWidth="128">
-
-                    </vwp:VirtualizingTilePanel>-->
-
-                    <UniformGrid Columns="5" Grid.IsSharedSizeScope="True" 
-                                 HorizontalAlignment="Center" VerticalAlignment="Top" 
-                                 ScrollViewer.CanContentScroll="True" UseLayoutRounding="True">
-                        <UniformGrid.CacheMode>
-                            <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
-                        </UniformGrid.CacheMode>
-                    </UniformGrid>
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-        </ListView>
-        <!--</ScrollViewer>-->
-        <mah:ProgressRing Grid.Column="0" 
-                          x:Name="ImageTilesWait" 
-                          Width="128" Height="128" 
-                          Foreground="{DynamicResource AccentColorBrush}"
-                          Opacity="0.9" Visibility="Hidden"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
         <!-- Illust Preview Viewport -->
         <ScrollViewer Grid.Column="1" Margin="4,4,8,4"
                       HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
@@ -168,13 +78,19 @@
                             Foreground="{DynamicResource LabelTextBrush}">
                         <Button.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Name="ActionOpenIllustSet" x:Uid="ActionOpenIllustSet" Header="Open Illust Set" Visibility="Collapsed" Click="ActionOpenIllustSet_Click"/>
-                                <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" Header="Author Info" Visibility="Collapsed" Click="ActionIllustUserInfo_Click"/>
-                                <MenuItem x:Name="ActionIllustSet" x:Uid="ActionIllustPages" Header="Show Illust Pages" Click="ActionIllustPages_Click"/>
-                                <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" Header="Show Relative Illust" Click="ActionIllustRelative_Click"/>
+                                <MenuItem x:Name="ActionOpenIllustSet" x:Uid="ActionOpenIllustSet" 
+                                          Header="Open Illust Set" Visibility="Collapsed" Click="ActionOpenIllustSet_Click"/>
+                                <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" 
+                                          Header="Author Info" Visibility="Collapsed" Click="ActionIllustUserInfo_Click"/>
+                                <MenuItem x:Name="ActionIllustSet" x:Uid="ActionIllustPages" 
+                                          Header="Show Illust Pages" Click="ActionIllustPages_Click"/>
+                                <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" 
+                                          Header="Show Relative Illust" Click="ActionIllustRelative_Click"/>
                                 <Separator />
-                                <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click"/>
-                                <MenuItem x:Name="ActionSaveAllIllust" x:Uid="ActionSaveAllIllust" Header="Save All Illusts" Click="ActionSaveAllIllust_Click"/>
+                                <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" 
+                                          Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click"/>
+                                <MenuItem x:Name="ActionSaveAllIllust" x:Uid="ActionSaveAllIllust" 
+                                          Header="Save All Illusts" Click="ActionSaveAllIllust_Click"/>
                             </ContextMenu>
                         </Button.ContextMenu>
                         <Rectangle Width="24" Height="24" Fill="{DynamicResource AccentColorBrush}">
@@ -207,7 +123,7 @@
                                HorizontalAlignment="Stretch"/>
 
                 <!-- Illust Subsets -->
-                <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander" 
+                <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander"
                           Margin="0, 8" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Illust Sets Gallery"
                           Expanded="SubIllustsExpander_Expanded">
@@ -221,20 +137,24 @@
                                       SelectionChanged="SubIllusts_SelectionChanged" MouseDoubleClick="SubIllusts_MouseDoubleClick">
                             <Common:ImageListGrid.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem x:Uid="ActionOpenIllust" Header="Open Selected Illust(s)" Click="ActionOpenIllust_Click"/>
+                                    <MenuItem x:Uid="ActionOpenIllust" 
+                                          Header="Open Selected Illust(s)" Click="ActionOpenIllust_Click"/>
                                     <Separator/>
-                                    <MenuItem x:Uid="ActionSaveIllust" Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click"/>
-                                    <MenuItem x:Uid="ActionSaveAllIllust" Header="Save All Illusts" Click="ActionSaveAllIllust_Click"/>
+                                    <MenuItem x:Uid="ActionSaveIllust" 
+                                          Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click"/>
+                                    <MenuItem x:Uid="ActionSaveAllIllust" 
+                                          Header="Save All Illusts" Click="ActionSaveAllIllust_Click"/>
                                 </ContextMenu>
                             </Common:ImageListGrid.ContextMenu>
                         </Common:ImageListGrid>
-                        <Button x:Name="btnSubIllustNextPages" x:Uid="btnSubIllustNextPages" Content="NEXT PAGE" Click="SubIllustPagesNav_Click"/>
+                        <Button x:Name="btnSubIllustNextPages" x:Uid="btnSubIllustNextPages" 
+                            Content="NEXT PAGE" Click="SubIllustPagesNav_Click"/>
                     </StackPanel>
                 </Expander>
-                
+
                 <!-- Illust Relatives -->
                 <Expander Grid.Row="5" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" 
-                          Margin="0, 8" ExpandDirection="Down"
+                          Margin="0, 8" ExpandDirection="Down" 
                           Visibility="Collapsed" Header="Relative Illust Gallery"
                           Expanded="RelativeIllustsExpander_Expanded">
                     <StackPanel x:Name="RelativeIllustsPanel">
@@ -254,18 +174,10 @@
                         </Common:ImageListGrid>
                     </StackPanel>
                 </Expander>
-                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Grid.Row="5" x:Name="RelativePrevPage"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="24" Height="24" HorizontalAlignment="Right">
-                        <iconPacks:PackIconModern Kind="NavigatePrevious" />
-                    </Button>
-                    <Button Grid.Row="5" x:Name="RelativeNextPage"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="24" Height="24" HorizontalAlignment="Right">
-                        <iconPacks:PackIconModern Kind="NavigateNext" />
-                    </Button>
-                </StackPanel>
+                <Button Grid.Row="5" x:Name="RelativeNextPage"
+                        HorizontalAlignment="Right">
+                    <iconPacks:PackIconModern Kind="ArrowRight" />
+                </Button>
 
             </Grid>
         </ScrollViewer>
@@ -279,6 +191,6 @@
 
         <!-- Illust Save Progress -->
         <mah:MetroProgressBar Grid.Column="1" x:Name="IllustsSaveProgress" x:Uid="IllustsSaveProgress" Height="8" VerticalAlignment="Bottom" Visibility="Collapsed"/>
-    </Grid>
 
+    </Grid>
 </Page>

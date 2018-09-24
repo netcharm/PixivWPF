@@ -186,6 +186,7 @@ namespace PixivWPF.Common
                             Count = index+1,
                             ID = illust.Id.ToString(),
                             UserID = illust.User.Id.ToString(),
+                            Subject = $"{illust.Title} - {index+1}/{illust.PageCount}",
                             DisplayTitle = false,
                             Illust = illust,
                             Tag = pages

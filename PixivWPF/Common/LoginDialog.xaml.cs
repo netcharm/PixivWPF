@@ -24,6 +24,10 @@ namespace PixivWPF.Common
         public string RefreshToken = string.Empty;
         public Pixeez.Tokens Tokens = null;
 
+        public void UpdateTheme()
+        {
+        }
+
         public PixivLoginDialog()
         {
             InitializeComponent();

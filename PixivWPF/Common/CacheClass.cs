@@ -58,26 +58,34 @@ namespace PixivWPF.Common
             file = file.Replace("/", "\\");
             file = Path.Combine(_CacheFolder, file);
 
-            if (_caches.ContainsKey(url) || File.Exists(file))
+            if (_caches.ContainsKey(url))
             {
-                result = await file.LoadImage();
-                if(result is ImageSource)
+                var fcache = string.Empty;
+                _caches.TryGetValue(url, out fcache);
+                file = Path.Combine(_CacheFolder, fcache);
+                if (File.Exists(fcache))
                 {
-                    _caches[url] = file.Replace(_CacheFolder, "");
-                    Save();
+                    result = await file.LoadImage();
                 }
                 else
                 {
                     tokens = await CommonHelper.ShowLogin();
                     if (tokens == null) return null;
 
-                    var ret = await url.ToImageFile(tokens, file);
-                    if (ret)
+                    var success = await url.ToImageFile(tokens, file);
+                    if (success)
                     {
-                        _caches[url] = file.Replace(_CacheFolder, "");
-                        Save();
                         result = await file.LoadImage();
                     }
+                }
+            }
+            else if (File.Exists(file))
+            {
+                result = await file.LoadImage();
+                if (result is ImageSource)
+                {
+                    _caches[url] = file.Replace(_CacheFolder, "");
+                    Save();
                 }
             }
             else
@@ -85,14 +93,50 @@ namespace PixivWPF.Common
                 tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return null;
 
-                var ret = await url.ToImageFile(tokens, file);
-                if (ret)
+                var success = await url.ToImageFile(tokens, file);
+                if (success)
                 {
+                    result = await file.LoadImage();
                     _caches[url] = file.Replace(_CacheFolder, "");
                     Save();
-                    result = await file.LoadImage();
                 }
             }
+
+            //if (_caches.ContainsKey(url) || File.Exists(file))
+            //{
+            //    result = await file.LoadImage();
+            //    if(result is ImageSource)
+            //    {
+            //        _caches[url] = file.Replace(_CacheFolder, "");
+            //        Save();
+            //    }
+            //    else
+            //    {
+            //        tokens = await CommonHelper.ShowLogin();
+            //        if (tokens == null) return null;
+
+            //        var ret = await url.ToImageFile(tokens, file);
+            //        if (ret)
+            //        {
+            //            _caches[url] = file.Replace(_CacheFolder, "");
+            //            Save();
+            //            result = await file.LoadImage();
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    tokens = await CommonHelper.ShowLogin();
+            //    if (tokens == null) return null;
+
+            //    var ret = await url.ToImageFile(tokens, file);
+            //    if (ret)
+            //    {
+            //        _caches[url] = file.Replace(_CacheFolder, "");
+            //        Save();
+            //        result = await file.LoadImage();
+            //    }
+            //}
             return (result);
         }
 
