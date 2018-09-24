@@ -208,6 +208,7 @@ namespace PixivWPF.Pages
                     SubIllustsExpander.Visibility = Visibility.Collapsed;
 
                 RelativeIllustsExpander.Visibility = Visibility.Visible;
+                RelativeNextPage.Visibility = Visibility.Collapsed;
                 RelativeIllustsExpander.IsExpanded = false;
                 PreviewWait.Visibility = Visibility.Hidden;
             }
@@ -351,7 +352,6 @@ namespace PixivWPF.Pages
                         else
                             btnSubIllustNextPages.Visibility = Visibility.Visible;
 
-                        SubIllustsPanel.InvalidateVisual();
                         SubIllusts.UpdateImageTile(tokens);
                     }
                 }
@@ -367,19 +367,19 @@ namespace PixivWPF.Pages
 
         }
 
-        internal async void ShowRelativeInline(Pixeez.Tokens tokens, ImageItem item)
+        internal async void ShowRelativeInline(Pixeez.Tokens tokens, ImageItem item, string next_url="")
         {
             try
             {
                 PreviewWait.Visibility = Visibility.Visible;
 
-                var next_url = string.Empty;
                 var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetRelatedWorks(item.Illust.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                 next_url = relatives.next_url ?? string.Empty;
 
                 RelativeIllusts.Items.Clear();
                 if (relatives.illusts is Array)
                 {
+                    RelativeIllustsExpander.Tag = next_url;
                     foreach (var illust in relatives.illusts)
                     {
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
@@ -1256,6 +1256,7 @@ namespace PixivWPF.Pages
             {
                 var item = Preview.Tag as ImageItem;
                 ShowRelativeInline(tokens, item);
+                RelativeNextPage.Visibility = Visibility.Visible;
             }
         }
 
@@ -1267,7 +1268,7 @@ namespace PixivWPF.Pages
                 var page = new IllustImageViewerPage();
                 page.UpdateDetail(illust);
 
-                viewer.Title = illust.Subject;
+                viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
                 viewer.Width = 720;
                 viewer.Height = 800;
                 viewer.Content = page;
@@ -1283,11 +1284,31 @@ namespace PixivWPF.Pages
                 var page = new IllustDetailPage();
                 page.UpdateDetail(illust);
 
-                viewer.Title = illust.Subject;
+                viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
                 viewer.Width = 720;
                 viewer.Height = 800;
                 viewer.Content = page;
                 viewer.Show();
+            }
+        }
+
+        private void RelativePrevPage_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private async void RelativeNextPage_Click(object sender, RoutedEventArgs e)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (Preview.Tag is ImageItem)
+            {
+                var item = Preview.Tag as ImageItem;
+                var next_url = string.Empty;
+                if (RelativeIllustsExpander.Tag is string)
+                    next_url = RelativeIllustsExpander.Tag as string;
+                ShowRelativeInline(tokens, item, next_url);
             }
         }
 

@@ -8,8 +8,6 @@
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       xmlns:wpf="clr-namespace:TheArtOfDev.HtmlRenderer.WPF;assembly=HtmlRenderer.WPF"
       xmlns:Common="clr-namespace:PixivWPF.Common"
-      xmlns:auxc="clr-namespace:Auxide.Controls"
-      xmlns:vwp="clr-namespace:FutaTill"
       mc:Ignorable="d" 
       d:DesignHeight="700" d:DesignWidth="1400"
       Title="Image Master Detail Viewer">
@@ -237,32 +235,34 @@
                           Margin="0, 8" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Relative Illust Gallery"
                           Expanded="RelativeIllustsExpander_Expanded">
-                    <StackPanel x:Name="RelativeIllustsPanel">
-                        <!--<TextBlock x:Name="lblRelativeIllusts" x:Uid="lblRelativeIllusts" Text="Relative Illusts"/>-->
-                        <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="RelativeIllusts"
+                    <!--<TextBlock x:Name="lblRelativeIllusts" x:Uid="lblRelativeIllusts" Text="Relative Illusts"/>-->
+                    <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="RelativeIllusts"
                                       Columns="5" TileWidth="128" TileHeight="128"
                                       SelectionMode="Single"
                                       SelectionChanged="RelativeIllusts_SelectionChanged" MouseDoubleClick="RelativeIllusts_MouseDoubleClick">
-                            <Common:ImageListGrid.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem x:Uid="ActionOpenRelative" Header="Open Selected Illust(s)" Click="ActionOpenRelative_Click"/>
-                                    <Separator/>
-                                    <MenuItem x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click"/>
-                                    <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>
-                                </ContextMenu>
-                            </Common:ImageListGrid.ContextMenu>
-                        </Common:ImageListGrid>
-                    </StackPanel>
+                        <Common:ImageListGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Uid="ActionOpenRelative" Header="Open Selected Illust(s)" Click="ActionOpenRelative_Click"/>
+                                <Separator/>
+                                <MenuItem x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click"/>
+                                <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>
+                            </ContextMenu>
+                        </Common:ImageListGrid.ContextMenu>
+                    </Common:ImageListGrid>
                 </Expander>
-                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Grid.Row="5" x:Name="RelativePrevPage"
+                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,0,0">
+                    <Button x:Name="RelativePrevPage" Visibility="Collapsed"
+                            Style="{DynamicResource MetroCircleButtonStyle}"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="24" Height="24" HorizontalAlignment="Right">
+                            Width="24" Height="24" HorizontalAlignment="Right"
+                            Click="RelativePrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
-                    <Button Grid.Row="5" x:Name="RelativeNextPage"
+                    <Button x:Name="RelativeNextPage"
+                            Style="{DynamicResource MetroCircleButtonStyle}"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="24" Height="24" HorizontalAlignment="Right">
+                            Width="24" Height="24" HorizontalAlignment="Right"
+                            Click="RelativeNextPage_Click">
                         <iconPacks:PackIconModern Kind="NavigateNext" />
                     </Button>
                 </StackPanel>

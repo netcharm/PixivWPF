@@ -174,10 +174,22 @@
                         </Common:ImageListGrid>
                     </StackPanel>
                 </Expander>
-                <Button Grid.Row="5" x:Name="RelativeNextPage"
-                        HorizontalAlignment="Right">
-                    <iconPacks:PackIconModern Kind="ArrowRight" />
-                </Button>
+                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,0,0">
+                    <Button x:Name="RelativePrevPage" Visibility="Collapsed"
+                            Style="{DynamicResource MetroCircleButtonStyle}"
+                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Width="24" Height="24" HorizontalAlignment="Right"
+                            Click="RelativePrevPage_Click">
+                        <iconPacks:PackIconModern Kind="NavigatePrevious" />
+                    </Button>
+                    <Button x:Name="RelativeNextPage"
+                            Style="{DynamicResource MetroCircleButtonStyle}"
+                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Width="24" Height="24" HorizontalAlignment="Right"
+                            Click="RelativeNextPage_Click">
+                        <iconPacks:PackIconModern Kind="NavigateNext" />
+                    </Button>
+                </StackPanel>
 
             </Grid>
         </ScrollViewer>
