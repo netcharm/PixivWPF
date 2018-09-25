@@ -38,7 +38,7 @@ namespace PixivWPF.Pages
                 btnGotoFollowing, btnGotoFollowingPrivate,
                 btnGotoFavorite, btnGotoFavoritePrivate,
                 btnGotoRankingDay, btnGotoRankingDayMale, btnGotoRankingDayFemale, btnGotoRankingDayR18, btnGotoRankingDayMaleR18, btnGotoRankingDayFemaleR18,
-                btnGotoRankingWeek, btnGotoRankingWeek, btnGotoRankingWeek, btnGotoRankingWeek, btnGotoRankingWeek,
+                btnGotoRankingWeek, btnGotoRankingWeekOriginal, btnGotoRankingWeekRookie, btnGotoRankingWeekR18, btnGotoRankingWeekR18G,
                 btnGotoRankingMonth, btnGotoRankingYear
             };
 
@@ -226,7 +226,8 @@ namespace PixivWPF.Pages
             }
             else if (sender == btnGotoRankingWeekR18G)
             {
-                page = PixivPage.RankingWeekR18G;
+                return;
+                //page = PixivPage.RankingWeekR18G;
             }
             else if (sender == btnGotoRankingWeekOriginal)
             {
@@ -242,7 +243,8 @@ namespace PixivWPF.Pages
             }
             else if (sender == btnGotoRankingYear)
             {
-                page = PixivPage.RankingYear;
+                return;
+                //page = PixivPage.RankingYear;
             }
             else
             {

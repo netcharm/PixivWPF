@@ -28,6 +28,32 @@ namespace PixivWPF
         private Pages.PageTiles pagetiles = null;
         private Pages.PageNav pagenav = null;
 
+        private ICommand searchBoxCmd = new SimpleCommand();
+        public ICommand SearchBoxCmd
+        {
+            get
+            {
+                return this.searchBoxCmd ?? (this.searchBoxCmd = new SimpleCommand
+                {
+                    CanExecuteDelegate = x => true, ExecuteDelegate = async x =>
+                    {
+                        if (x is string)
+                        {
+                            await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("Wow, you typed Return and got", (string)x);
+                        }
+                        else if (x is TextBox)
+                        {
+                            await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("TextBox Button was clicked!", string.Format("Text: {0}", ((TextBox)x).Text));
+                        }
+                        else if (x is PasswordBox)
+                        {
+                            await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("PasswordBox Button was clicked!", string.Format("Password: {0}", ((PasswordBox)x).Password));
+                        }
+                    }
+                });
+            }
+        }
+
         public void UpdateTheme()
         {
             if (pagenav is Pages.PageNav) pagenav.CheckPage();
@@ -85,7 +111,6 @@ namespace PixivWPF
 
         }
 #endif
-
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
             Common.Theme.Toggle();
@@ -140,4 +165,6 @@ namespace PixivWPF
         }
 
     }
+
+
 }

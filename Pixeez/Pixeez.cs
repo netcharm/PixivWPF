@@ -1064,11 +1064,33 @@ namespace Pixeez
 
                 { "include_stats", "1" } ,
                 { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
+                //{ "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
             return await this.AccessApiAsync<Paginated<NormalWork>>(MethodType.GET, url, param);
         }
+
+        public async Task<Paginated<NormalWork>> GetLatestWorksNewAsync(int page = 1, int perPage = 30, bool includeSanityLevel = true, bool req_auth = true)
+        {
+            var url = "https://public-api.secure.pixiv.net/v1/works.json";
+
+            var param = new Dictionary<string, string>
+            {
+                { "page", page.ToString() } ,
+                { "per_page", perPage.ToString() } ,
+
+                { "include_stats", "1" } ,
+                { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
+                //{ "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
+                { "profile_image_sizes", "px_170x170,px_50x50" } ,
+            };
+
+            return await this.AccessNewApiAsync<Paginated<NormalWork>>(url, true, param);
+            //return await this.AccessApiAsync<Paginated<IllustWork>>(MethodType.GET, url, param);
+        }
+
     }
 }

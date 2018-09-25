@@ -58,123 +58,182 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="64"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="64"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorIcon" 
                        Width="64" Height="64" Stretch="Uniform"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" 
+                            Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
+                            Background="Transparent" Foreground="Transparent"
+                            Click="ActionIllustAuthourInfo_Click"/>
                     <TextBlock Grid.Row="0" Grid.Column="1" x:Name="IllustTitle" Margin="4,0,0,0"
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center"/>
                     <TextBlock Grid.Row="1" Grid.Column="1" x:Name="IllustAuthor" Margin="4,0,0,0" 
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" 
-                            x:Name="IllustActions" x:Uid="IllustActions" Click="Actions_Click"
-                            Visibility="Hidden"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Style="{DynamicResource MetroCircleButtonStyle}"
-                            Foreground="{DynamicResource LabelTextBrush}">
-                        <Button.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem x:Name="ActionOpenIllustSet" x:Uid="ActionOpenIllustSet" 
-                                          Header="Open Illust Set" Visibility="Collapsed" Click="ActionOpenIllustSet_Click"/>
-                                <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" 
-                                          Header="Author Info" Visibility="Collapsed" Click="ActionIllustUserInfo_Click"/>
-                                <MenuItem x:Name="ActionIllustSet" x:Uid="ActionIllustPages" 
-                                          Header="Show Illust Pages" Click="ActionIllustPages_Click"/>
-                                <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" 
-                                          Header="Show Relative Illust" Click="ActionIllustRelative_Click"/>
-                                <Separator />
-                                <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" 
+                    <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button x:Name="BookmarkIllust" x:Uid="BookmarkIllust" Click="Actions_Click"
+                                ToolTip="Bookmark Illust"
+                                Visibility="Hidden" Width="64" Height="64"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Style="{DynamicResource MetroCircleButtonStyle}"
+                                Foreground="{DynamicResource LabelTextBrush}">
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem x:Name="ActionBookmarkIllustPublic" x:Uid="ActionPublic" 
+                                          Header="Public" Click="ActionBookmarkIllust_Click"/>
+                                    <MenuItem x:Name="ActionBookmarkIllustPrivate" x:Uid="ActionPrivate" 
+                                          Header="Private" Click="ActionBookmarkIllust_Click"/>
+                                    <Separator/>
+                                    <MenuItem x:Name="ActionBookmarkIllustRemove" x:Uid="ActionRemove" 
+                                          Header="Remove" Click="ActionBookmarkIllust_Click"/>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                            <iconPacks:PackIconModern Kind="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}" 
+                                                      Foreground="{DynamicResource AccentColorBrush}" Width="32" Height="32"/>
+                        </Button>
+                        <Button x:Name="FollowAuthor" x:Uid="FollowAuthor" Margin="4,0,0,0" Click="Actions_Click"
+                                ToolTip="Follow Author"
+                                Visibility="Hidden" Width="64" Height="64"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Style="{DynamicResource MetroCircleButtonStyle}"
+                                Foreground="{DynamicResource LabelTextBrush}">
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem x:Name="ActionFollowAuthorPublic" x:Uid="ActionPublic" 
+                                          Header="Public" Click="ActionFollowAuthor_Click"/>
+                                    <MenuItem x:Name="ActionFollowAuthorPrivate" x:Uid="ActionPrivate" 
+                                          Header="Private" Click="ActionFollowAuthor_Click"/>
+                                    <Separator/>
+                                    <MenuItem x:Name="ActionFollowAuthorRemove" x:Uid="ActionRemove" 
+                                          Header="Remove" Click="ActionFollowAuthor_Click"/>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                            <iconPacks:PackIconModern Kind="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}" 
+                                                      Foreground="{DynamicResource AccentColorBrush}" Width="32" Height="32"/>
+                        </Button>
+                        <Button x:Name="IllustActions" x:Uid="IllustActions" Margin="4,0,0,0" Click="Actions_Click"
+                                ToolTip="Illust Actions"
+                                Visibility="Hidden" Width="64" Height="64"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Style="{DynamicResource MetroCircleButtonStyle}"
+                                Foreground="{DynamicResource LabelTextBrush}">
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" 
+                                          Header="Author Info" Visibility="Visible" Click="ActionIllustAuthourInfo_Click"/>
+                                    <Separator />
+                                    <MenuItem x:Name="ActionIllustSet" x:Uid="ActionIllustPages" 
+                                          Header="Show Illust Pages" Click="ActionShowIllustPages_Click"/>
+                                    <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" 
+                                          Header="Show Relative Illust" Click="ActionShowRelative_Click"/>
+                                    <Separator />
+                                    <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" 
                                           Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click"/>
-                                <MenuItem x:Name="ActionSaveAllIllust" x:Uid="ActionSaveAllIllust" 
+                                    <MenuItem x:Name="ActionSaveAllIllust" x:Uid="ActionSaveAllIllust" 
                                           Header="Save All Illusts" Click="ActionSaveAllIllust_Click"/>
-                            </ContextMenu>
-                        </Button.ContextMenu>
-                        <Rectangle Width="24" Height="24" Fill="{DynamicResource AccentColorBrush}">
-                            <Rectangle.OpacityMask>
-                                <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_list1}"/>
-                            </Rectangle.OpacityMask>
-                        </Rectangle>
-                    </Button>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                            <iconPacks:PackIconModern Kind="List" 
+                                                      Foreground="{DynamicResource AccentColorBrush}" Width="32" Height="32"/>
+                        </Button>
+                    </StackPanel>
                 </Grid>
 
                 <!-- Illust Tag -->
-                <Grid Grid.Row="2" Margin="0,8,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" x:Name="IllustTag" x:Uid="IllustTag" Text="Tags:"
+                <Expander Grid.Row="2" Margin="0,4,0,0" IsExpanded="True"
+                          x:Name="IllustTagExpander" x:Uid="IllustTagExpander"
+                          Header="Tags" Visibility="Collapsed">
+                    <Grid >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <!--<TextBlock Grid.Column="0" x:Name="IllustTag" x:Uid="IllustTag" Text="Tags:"
                                Foreground="{DynamicResource LabelTextBrush}"
-                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Visibility="Hidden"/>
-                    <wpf:HtmlPanel Grid.Column="1" x:Name="IllustTags" x:Uid="IllustTags" 
+                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Visibility="Hidden"/>-->
+                        <wpf:HtmlPanel Grid.Column="1" x:Name="IllustTags" x:Uid="IllustTags" 
                                    Margin="8,0,0,0" MinHeight="48"
                                    Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                    HorizontalContentAlignment="Left" VerticalContentAlignment="Top"/>
-                </Grid>
+                    </Grid>
+                </Expander>
 
                 <!-- Illust Info -->
-                <wpf:HtmlPanel Grid.Row="3" Margin="0,4,0,0" x:Name="IllustDesc" 
+                <Expander Grid.Row="3" Margin="0,4,0,0" IsExpanded="True"
+                          x:Name="IllustDescExpander" x:Uid="IllustDescExpander"
+                          Header="Description" Visibility="Collapsed">
+                    <wpf:HtmlPanel x:Name="IllustDesc" 
                                Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Stretch"/>
+                </Expander>
 
                 <!-- Illust Subsets -->
-                <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander"
-                          Margin="0, 8" ExpandDirection="Down"
-                          IsExpanded="False" Visibility="Collapsed" Header="Illust Sets Gallery"
+                <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander" Margin="0, 4, 0, 0"
+                          IsExpanded="False" ExpandDirection="Down" 
+                          Visibility="Collapsed" Header="Illust Sets Gallery"
                           Expanded="SubIllustsExpander_Expanded">
-                    <StackPanel x:Name="SubIllustsPanel">
-                        <!--<TextBlock x:Name="lblSubIllusts" x:Uid="lblSubIllusts" Text="Illust Sets"/>-->
-                        <Button x:Name="btnSubIllustPrevPages" x:Uid="btnSubIllustPrevPages" Content="PREV PAGE" Click="SubIllustPagesNav_Click"/>
-                        <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
+                    <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
                                       Columns="5" TileWidth="128" TileHeight="128" 
                                       SelectionMode="Extended" 
                                       BadgeVisibility="Visible" TitleVisibility="Collapsed"
                                       SelectionChanged="SubIllusts_SelectionChanged" MouseDoubleClick="SubIllusts_MouseDoubleClick">
-                            <Common:ImageListGrid.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem x:Uid="ActionOpenIllust" 
+                        <Common:ImageListGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Uid="ActionOpenIllust" 
                                           Header="Open Selected Illust(s)" Click="ActionOpenIllust_Click"/>
-                                    <Separator/>
-                                    <MenuItem x:Uid="ActionSaveIllust" 
+                                <Separator/>
+                                <MenuItem x:Uid="ActionSaveIllust" 
                                           Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click"/>
-                                    <MenuItem x:Uid="ActionSaveAllIllust" 
+                                <MenuItem x:Uid="ActionSaveAllIllust" 
                                           Header="Save All Illusts" Click="ActionSaveAllIllust_Click"/>
-                                </ContextMenu>
-                            </Common:ImageListGrid.ContextMenu>
-                        </Common:ImageListGrid>
-                        <Button x:Name="btnSubIllustNextPages" x:Uid="btnSubIllustNextPages" 
-                            Content="NEXT PAGE" Click="SubIllustPagesNav_Click"/>
-                    </StackPanel>
+                            </ContextMenu>
+                        </Common:ImageListGrid.ContextMenu>
+                    </Common:ImageListGrid>
                 </Expander>
+                <StackPanel Grid.Row="4" Orientation="Horizontal" x:Name="SubIllustsNavPanel" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,0,0">
+                    <Button x:Name="btnSubIllustPrevPages" Visibility="Collapsed"
+                            Style="{DynamicResource MetroCircleButtonStyle}"
+                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Width="24" Height="24" HorizontalAlignment="Right"
+                            Click="SubIllustPagesNav_Click">
+                        <iconPacks:PackIconModern Kind="NavigatePrevious" />
+                    </Button>
+                    <Button x:Name="btnSubIllustNextPages" Visibility="Collapsed"
+                            Style="{DynamicResource MetroCircleButtonStyle}"
+                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Width="24" Height="24" HorizontalAlignment="Right"
+                            Click="SubIllustPagesNav_Click">
+                        <iconPacks:PackIconModern Kind="NavigateNext" />
+                    </Button>
+                </StackPanel>
 
                 <!-- Illust Relatives -->
-                <Expander Grid.Row="5" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" 
-                          Margin="0, 8" ExpandDirection="Down" 
-                          IsExpanded="False" Visibility="Collapsed" Header="Relative Illust Gallery"
+                <Expander Grid.Row="5" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" Margin="0, 4, 0, 0" 
+                          IsExpanded="False" ExpandDirection="Down" 
+                          Visibility="Collapsed" Header="Relative Illust Gallery"
                           Expanded="RelativeIllustsExpander_Expanded">
-                    <StackPanel x:Name="RelativeIllustsPanel">
-                        <!--<TextBlock x:Name="lblRelativeIllusts" x:Uid="lblRelativeIllusts" Text="Relative Illusts"/>-->
-                        <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="RelativeIllusts"
+                    <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="RelativeIllusts"
                                       Columns="5" TileWidth="128" TileHeight="128"
-                                      SelectionMode="Single"
+                                      SelectionMode="Extended"
                                       SelectionChanged="RelativeIllusts_SelectionChanged" MouseDoubleClick="RelativeIllusts_MouseDoubleClick">
-                            <Common:ImageListGrid.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem x:Uid="ActionOpenRelative" Header="Open Selected Illust(s)" Click="ActionOpenRelative_Click"/>
-                                    <Separator/>
-                                    <MenuItem x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click"/>
-                                    <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>
-                                </ContextMenu>
-                            </Common:ImageListGrid.ContextMenu>
-                        </Common:ImageListGrid>
-                    </StackPanel>
+                        <Common:ImageListGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Uid="ActionOpenRelative" Header="Open Selected Illust(s)" Click="ActionOpenRelative_Click"/>
+                                <Separator/>
+                                <MenuItem x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click"/>
+                                <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>
+                            </ContextMenu>
+                        </Common:ImageListGrid.ContextMenu>
+                    </Common:ImageListGrid>
                 </Expander>
-                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,0,0">
+                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,0,0">
                     <Button x:Name="RelativePrevPage" Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"

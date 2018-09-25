@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -45,6 +46,30 @@ namespace PixivWPF.Common
         RankingWeekR18G,
         RankingMonth,
         RankingYear
+    }
+
+    public class SimpleCommand : ICommand
+    {
+        public Predicate<object> CanExecuteDelegate { get; set; }
+        public Action<object> ExecuteDelegate { get; set; }
+
+        public bool CanExecute(object parameter)
+        {
+            if (CanExecuteDelegate != null)
+                return CanExecuteDelegate(parameter);
+            return true; // if there is no can execute default to true
+        }
+
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+
+        public void Execute(object parameter)
+        {
+            ExecuteDelegate?.Invoke(parameter);
+        }
     }
 
     public static class CommonHelper
@@ -185,11 +210,10 @@ namespace PixivWPF.Common
         public static async Task<ImageSource> LoadImage(this string file)
         {
             ImageSource result = null;
-            if (File.Exists(file))
+            if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
-                using (var stream = new FileStream(file, FileMode.Open))
+                using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    //result = stream.ToImageSource();
                     await Task.Run(() => {
                         result = stream.ToImageSource();
                     });
@@ -201,7 +225,7 @@ namespace PixivWPF.Common
         public static async Task<ImageSource> LoadImage(this string url, Pixeez.Tokens tokens)
         {
             ImageSource result = null;
-            if (cache is CacheImage)
+            if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
                 result = await cache.GetImage(url, tokens);
             }

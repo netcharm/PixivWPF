@@ -7,7 +7,7 @@
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       xmlns:Common="clr-namespace:PixivWPF.Common"
       mc:Ignorable="d" 
-      d:DesignHeight="700" d:DesignWidth="1400"
+      d:DesignHeight="700" d:DesignWidth="1420"
       Title="Image Master Detail Viewer">
 
     <Page.Resources>
@@ -54,12 +54,13 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="692"/>
-            <ColumnDefinition Width="*" MinWidth="700"/>
+            <ColumnDefinition Width="Auto" MinWidth="694"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <!-- Illust List Viewport -->
         <!--<ScrollViewer Grid.Column="0" x:Name="ImageTilesViewer" ScrollChanged="ImageTilesViewer_ScrollChanged">-->
-        <ListView 
+        <!--<Expander Grid.Column="0" ExpandDirection="Right" IsExpanded="True" HorizontalAlignment="Left">-->
+            <ListView Grid.Column="0"
                   x:Name="ListImageTiles" x:Uid="ImageTiles"
                   IsSynchronizedWithCurrentItem="true"
                   SelectionMode="Single"
@@ -72,37 +73,39 @@
                   VirtualizingPanel.CacheLength ="500"
                   HorizontalAlignment="Center" VerticalAlignment="Top"
                   mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
-            <ListView.CacheMode>
-                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
-            </ListView.CacheMode>
-            <ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
-                    <!--<auxc:UniformGridPanel Orientation="Vertical" Columns="5" Rows="5" Width="700" Height="Auto">
+                <ListView.CacheMode>
+                    <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+                </ListView.CacheMode>
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
+                        <!--<auxc:UniformGridPanel Orientation="Vertical" Columns="5" Rows="5" Width="700" Height="Auto">
                         
                     </auxc:UniformGridPanel>-->
 
-                    <!--<vwp:VirtualizingTilePanel Columns="5" ChildHeight="152" MinChildWidth="128">
+                        <!--<vwp:VirtualizingTilePanel Columns="5" ChildHeight="152" MinChildWidth="128">
 
                     </vwp:VirtualizingTilePanel>-->
 
-                    <UniformGrid Columns="5" Grid.IsSharedSizeScope="True" 
+                        <UniformGrid Columns="5" Grid.IsSharedSizeScope="True" 
                                  HorizontalAlignment="Center" VerticalAlignment="Top" 
                                  ScrollViewer.CanContentScroll="True" UseLayoutRounding="True">
-                        <UniformGrid.CacheMode>
-                            <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
-                        </UniformGrid.CacheMode>
-                    </UniformGrid>
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-        </ListView>
-        <!--</ScrollViewer>-->
+                            <UniformGrid.CacheMode>
+                                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+                            </UniformGrid.CacheMode>
+                        </UniformGrid>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+            </ListView>
+            <!--</ScrollViewer>-->
+        <!--</Expander>-->
         <mah:ProgressRing Grid.Column="0" 
                           x:Name="ImageTilesWait" 
                           Width="128" Height="128" 
                           Foreground="{DynamicResource AccentColorBrush}"
                           Opacity="0.9" Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
         <!-- Illust Preview Viewport -->
         <Frame Grid.Column="1" Margin="4,4,8,4" x:Name="IllustDetail" x:Uid="IllustDetail"/>
         

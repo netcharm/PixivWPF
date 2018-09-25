@@ -1,4 +1,5 @@
-﻿using PixivWPF.Common;
+﻿using MahApps.Metro.IconPacks;
+using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,58 +53,206 @@ namespace PixivWPF.Pages
             {
                 PreviewWait.Visibility = Visibility.Visible;
 
-                Preview.Tag = item;
-
-                var url = item.Illust.ImageUrls.Large;
-                if (string.IsNullOrEmpty(url))
-                {
-                    url = item.Illust.ImageUrls.Medium;
-                }
-
                 var tokens = await CommonHelper.ShowLogin();
-                Preview.Source = await url.LoadImage(tokens);
+                Preview.Tag = item;
+                Preview.Source = await item.Illust.GetPreviewUrl().LoadImage(tokens);
 
                 IllustAuthor.Text = item.Illust.User.Name;
                 IllustAuthorIcon.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
                 IllustTitle.Text = item.Illust.Title;
 
-                var html = new StringBuilder();
-                foreach (var tag in item.Illust.Tags)
+                FollowAuthor.Visibility = Visibility.Visible;
+                if (item.Illust.User.is_followed == true)
                 {
-                    html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag_full&word={Uri.EscapeDataString(tag)}\" class=\"tag\">{tag}</a>");
-                }
-                IllustTags.Foreground = Common.Theme.TextBrush;
-                IllustTags.Text = string.Join(";", html);
-                IllustTag.Visibility = Visibility.Visible;
-                IllustActions.Visibility = Visibility.Visible;
-
-                PreviewBadge.Badge = item.Illust.PageCount;
-                if (item.Illust.PageCount > 1)
-                {
-                    PreviewBadge.Visibility = Visibility.Visible;
-                    ActionOpenIllustSet.Visibility = Visibility.Visible;
+                    FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
+                    ActionFollowAuthorRemove.IsEnabled = true;
                 }
                 else
                 {
-                    PreviewBadge.Visibility = Visibility.Hidden;
-                    ActionOpenIllustSet.Visibility = Visibility.Collapsed;
+                    FollowAuthor.Tag = PackIconModernKind.Add;// "Add";
+                    ActionFollowAuthorRemove.IsEnabled = false;
                 }
-                IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption}</div>";
+
+                BookmarkIllust.Visibility = Visibility.Visible;
+                if (item.Illust.IsBookMarked())
+                {
+                    BookmarkIllust.Tag = PackIconModernKind.Heart;// "Heart";
+                    ActionBookmarkIllustRemove.IsEnabled = true;
+                }
+                else
+                {
+                    BookmarkIllust.Tag = PackIconModernKind.HeartOutline;// "HeartOutline";
+                    ActionBookmarkIllustRemove.IsEnabled = false;
+                }
+
+                IllustActions.Visibility = Visibility.Visible;
+
+                if (item.Illust.Tags.Count > 0)
+                {
+                    var html = new StringBuilder();
+                    foreach (var tag in item.Illust.Tags)
+                    {
+                        html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag_full&word={Uri.EscapeDataString(tag)}\" class=\"tag\">{tag}</a>");
+                    }
+                    IllustTags.Foreground = Common.Theme.TextBrush;
+                    IllustTags.Text = string.Join(";", html);
+                    IllustTagExpander.Visibility = Visibility.Visible;
+                }
+                else IllustTagExpander.Visibility = Visibility.Collapsed;
+
+                if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
+                {
+                    IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption}</div>";
+                    IllustDescExpander.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    IllustDescExpander.Visibility = Visibility.Collapsed;
+                }
 
                 SubIllusts.Items.Clear();
                 SubIllusts.Refresh();
                 SubIllustsExpander.IsExpanded = false;
-                if (item.Illust.PageCount > 1)
+                PreviewBadge.Badge = item.Illust.PageCount;
+                if (item.Illust is Pixeez.Objects.IllustWork && item.Illust.PageCount > 1)
                 {
+                    PreviewBadge.Visibility = Visibility.Visible;
                     SubIllustsExpander.Visibility = Visibility.Visible;
+                    SubIllustsNavPanel.Visibility = Visibility.Visible;
                     System.Threading.Thread.Sleep(250);
                     SubIllustsExpander.IsExpanded = true;
                 }
                 else
                 {
                     SubIllustsExpander.Visibility = Visibility.Collapsed;
+                    SubIllustsNavPanel.Visibility = Visibility.Collapsed;
+                    PreviewBadge.Visibility = Visibility.Collapsed;
                 }
 
+                RelativeIllustsExpander.Header = "Related Works";
+                RelativeIllustsExpander.Visibility = Visibility.Visible;
+                RelativeNextPage.Visibility = Visibility.Collapsed;
+                RelativeIllustsExpander.IsExpanded = false;
+                PreviewWait.Visibility = Visibility.Hidden;
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            finally
+            {
+                PreviewWait.Visibility = Visibility.Hidden;
+            }
+        }
+
+        public async void UpdateDetail(Pixeez.Objects.UserBase user)
+        {
+            try
+            {
+                PreviewWait.Visibility = Visibility.Visible;
+
+                var tokens = await CommonHelper.ShowLogin();
+
+                var UserInfo = await tokens.GetUserInfoAsync(user.Id.Value.ToString());
+                var nuser = UserInfo.user;
+                var nprof = UserInfo.profile;
+                var nworks = UserInfo.workspace;
+
+                var Users = await tokens.GetUsersAsync(user.Id.Value);
+                var User = Users[0];
+
+                var url = User.ProfileImageUrls.Px170x170;
+                if (string.IsNullOrEmpty(url))
+                {
+                    if(!string.IsNullOrEmpty(User.ProfileImageUrls.Px50x50))
+                        url = User.ProfileImageUrls.Px50x50;
+                    else if (!string.IsNullOrEmpty(User.ProfileImageUrls.Px16x16))
+                        url = User.ProfileImageUrls.Px16x16;
+                }
+
+                Preview.Tag = User;
+                if(nprof.background_image_url is string)
+                    Preview.Source = await ((string)nprof.background_image_url).LoadImage(tokens);
+                else
+                    Preview.Source = await url.LoadImage(tokens);
+
+                IllustAuthor.Text = User.Name;
+                IllustAuthorIcon.Source = await User.GetAvatarUrl().LoadImage(tokens);
+                IllustTitle.Text = string.Empty;
+
+                FollowAuthor.Visibility = Visibility.Visible;
+                if (User.is_followed == true)
+                {
+                    FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
+                    ActionFollowAuthorRemove.IsEnabled = true;
+                }
+                else
+                {
+                    FollowAuthor.Tag = PackIconModernKind.Add;// "Add";
+                    ActionFollowAuthorRemove.IsEnabled = false;
+                }
+
+                BookmarkIllust.Visibility = Visibility.Collapsed;
+                IllustActions.Visibility = Visibility.Collapsed;
+
+                if (User.Profile.Tags != null)
+                {
+                    var html = new StringBuilder();
+                    //foreach (var tag in User.Tags)
+                    //{
+                    //    html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag_full&word={Uri.EscapeDataString(tag)}\" class=\"tag\">{tag}</a>");
+                    //}
+                    //IllustTags.Foreground = Common.Theme.TextBrush;
+                    //IllustTags.Text = string.Join(";", html);
+                    IllustTagExpander.Visibility = Visibility.Visible;
+                }
+                else IllustTagExpander.Visibility = Visibility.Collapsed;
+
+                if (!string.IsNullOrEmpty(User.Profile.Introduction) && User.Profile.Introduction.Length > 0)
+                {
+                    StringBuilder desc = new StringBuilder();
+                    desc.AppendLine($"Account: {nuser.Account} / [{nuser.Id}] / {nuser.Name} / {nuser.Email}");
+                    desc.AppendLine($"Stat: {User.Stats.Favorites} Favorites / {User.Stats.Following} Following / {User.Stats.Friends} Friends / {User.Stats.Works} Works");
+                    desc.AppendLine($"Stat_: {nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follow_users} Following / {nprof.total_follower} Follower / {nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels / {nprof.total_mypixiv_users} MyPixiv User");
+                    desc.AppendLine($"<hr/");
+                    desc.AppendLine($"Profile: {User.Profile.Gender} / {User.Profile.BirthDate} / {User.Profile.BloodType} / {User.Profile.Location} / {User.Profile.Job}");
+                    desc.AppendLine($"Profile_: {nprof.gender} / {nprof.birth} / {nprof.region} / {nprof.job}");
+                    desc.AppendLine($"<hr/>");
+                    desc.AppendLine($"Contacts: <a href=\"{nprof.twitter_url}\">@{nprof.twitter_account}</a> / {nprof.webpage}");
+                    desc.AppendLine($"<hr/>");
+
+                    var imgUrls = User.Profile.Workspace.ImageUrl;
+                    if (User.Profile.Workspace.ImageUrls != null)
+                    {
+                        imgUrls = $"{imgUrls} / {User.Profile.Workspace.ImageUrls.Large} / {User.Profile.Workspace.ImageUrls.Medium} / {User.Profile.Workspace.ImageUrls.Original}";
+                    }
+                    desc.AppendLine($"Workspace Device: {User.Profile.Workspace.Computer} / {User.Profile.Workspace.Monitor} / {User.Profile.Workspace.Tablet} / {User.Profile.Workspace.Mouse} / {User.Profile.Workspace.Printer} / {User.Profile.Workspace.Scanner} / {User.Profile.Workspace.Software}");
+                    desc.AppendLine($"Workspace Environment: {User.Profile.Workspace.Table} / {User.Profile.Workspace.Chair} / {User.Profile.Workspace.Music} / {User.Profile.Workspace.OnTable} / {User.Profile.Workspace.Other}");
+                    desc.AppendLine($"Workspace Device_: {nworks.pc} / {nworks.monitor} / {nworks.tablet} / {nworks.mouse} / {nworks.printer} / {nworks.scanner} / {nworks.tool}");
+                    desc.AppendLine($"Workspace Environment_: {nworks.desk} / {nworks.chair} / {nworks.desktop} / {nworks.music} / {nworks.comment}");
+                    desc.AppendLine($"Workspace Images: {imgUrls}");
+                    desc.AppendLine($"Workspace Images_: {nworks.workspace_image_url}");
+                    desc.AppendLine($"<hr/>");
+                    desc.AppendLine($"{nuser.comment}");
+                    desc.AppendLine($"{User.Profile.Introduction}");
+
+                    IllustDesc.Text = $"<div class=\"desc\">{string.Join("<br></br>\n", desc)}</div>";
+                    //IllustDesc.Text = $"<div class=\"desc\">{User.Profile.Introduction}</div>";
+                    IllustDescExpander.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    IllustDescExpander.Visibility = Visibility.Collapsed;
+                }
+
+                SubIllusts.Items.Clear();
+                SubIllusts.Refresh();
+                SubIllustsExpander.IsExpanded = false;
+                SubIllustsExpander.Visibility = Visibility.Collapsed;
+                SubIllustsNavPanel.Visibility = Visibility.Collapsed;
+                PreviewBadge.Visibility = Visibility.Collapsed;
+
+                RelativeIllustsExpander.Header = "Works";
                 RelativeIllustsExpander.Visibility = Visibility.Visible;
                 RelativeNextPage.Visibility = Visibility.Collapsed;
                 RelativeIllustsExpander.IsExpanded = false;
@@ -129,17 +278,10 @@ namespace PixivWPF.Pages
                 SubIllusts.Items.Clear();
                 if (item.Illust is Pixeez.Objects.IllustWork)
                 {
+                    System.Threading.Thread.Sleep(250);
                     var subset = item.Illust as Pixeez.Objects.IllustWork;
                     if (subset.meta_pages.Count() > 1)
                     {
-                        //SubIllustsPanel.Visibility = Visibility.Visible;
-
-                        //var idx = 0;
-                        //foreach (var pages in subset.meta_pages)
-                        //{
-                        //    pages.AddTo(SubIllusts.Items, item.Illust, idx++, item.NextURL);
-                        //}
-
                         btnSubIllustPrevPages.Tag = start - count;
                         var total = subset.meta_pages.Count();
                         for (var i = start; i < total; i++)
@@ -165,6 +307,12 @@ namespace PixivWPF.Pages
 
                         //SubIllustsPanel.InvalidateVisual();
                         SubIllusts.UpdateImageTile(tokens);
+                        var nullimages = SubIllusts.Items.Where(img => img.Source == null);
+                        if (nullimages.Count() > 0)
+                        {
+                            System.Threading.Thread.Sleep(250);
+                            SubIllusts.UpdateImageTile(tokens);
+                        }
                     }
                 }
             }
@@ -209,6 +357,36 @@ namespace PixivWPF.Pages
             }
         }
 
+        internal async void ShowUserWorksInline(Pixeez.Tokens tokens, Pixeez.Objects.User user, string next_url = "")
+        {
+            try
+            {
+                PreviewWait.Visibility = Visibility.Visible;
+
+                var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                next_url = relatives.next_url ?? string.Empty;
+
+                RelativeIllusts.Items.Clear();
+                if (relatives.illusts is Array)
+                {
+                    RelativeIllustsExpander.Tag = next_url;
+                    foreach (var illust in relatives.illusts)
+                    {
+                        illust.AddTo(RelativeIllusts.Items, relatives.next_url);
+                    }
+                    RelativeIllusts.UpdateImageTile(tokens);
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            finally
+            {
+                PreviewWait.Visibility = Visibility.Collapsed;
+            }
+        }
+
         public IllustDetailPage()
         {
             InitializeComponent();
@@ -218,45 +396,90 @@ namespace PixivWPF.Pages
             PreviewWait.Visibility = Visibility.Collapsed;
         }
 
+        #region Illust Actions
         private void Actions_Click(object sender, RoutedEventArgs e)
         {
-            IllustActions.ContextMenu.IsOpen = true;
+            if (sender == BookmarkIllust)
+                BookmarkIllust.ContextMenu.IsOpen = true;
+            else if (sender == FollowAuthor)
+                FollowAuthor.ContextMenu.IsOpen = true;
+            else if(sender == IllustActions)
+                IllustActions.ContextMenu.IsOpen = true;
         }
 
-        private void ActionOpenIllustSet_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void ActionIllustUserInfo_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private async void ActionIllustPages_Click(object sender, RoutedEventArgs e)
+        private async void ActionIllustAuthourInfo_Click(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if(Preview.Tag is ImageItem)
-            {
-                var item = Preview.Tag as ImageItem;
-                ShowIllustPages(tokens, item);
-            }
-        }
+            var viewer = new ViewerWindow();
+            var page = new IllustDetailPage();
 
-        private async void ActionIllustRelative_Click(object sender, RoutedEventArgs e)
-        {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
-
-            //var idx = ListImageTiles.SelectedIndex;
-            //if (idx < 0) return;
-            //var item = ImageList[idx];
             if (Preview.Tag is ImageItem)
             {
                 var item = Preview.Tag as ImageItem;
-                ShowRelativeInline(tokens, item);
+                var user = item.Illust.User;
+                page.UpdateDetail(user);
+                viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
+            }
+            else if (Preview.Tag is Pixeez.Objects.User)
+            {
+                var user = Preview.Tag as Pixeez.Objects.User;
+                page.UpdateDetail(user);
+                viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
+            }
+
+            viewer.Width = 720;
+            viewer.Height = 800;
+            viewer.Content = page;
+            viewer.Show();
+        }
+
+        private void ActionShowIllustPages_Click(object sender, RoutedEventArgs e)
+        {
+            SubIllustsExpander.IsExpanded = !SubIllustsExpander.IsExpanded;
+        }
+
+        private void ActionShowRelative_Click(object sender, RoutedEventArgs e)
+        {
+            if (!RelativeIllustsExpander.IsExpanded) RelativeIllustsExpander.IsExpanded = true;
+        }
+        #endregion
+
+        #region Illust Multi-Pages related routines
+        private async void SubIllustsExpander_Expanded(object sender, RoutedEventArgs e)
+        {
+            if (SubIllusts.Items.Count() <= 1)
+            {
+                var tokens = await CommonHelper.ShowLogin();
+                if (tokens == null) return;
+
+                if (Preview.Tag is ImageItem)
+                {
+                    var item = Preview.Tag as ImageItem;
+                    ShowIllustPages(tokens, item);
+                }
+            }
+        }
+
+        private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void SubIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            foreach (var illust in SubIllusts.SelectedItems)
+            {
+                var viewer = new ViewerWindow();
+                var page = new IllustImageViewerPage();
+                page.UpdateDetail(illust);
+
+                viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
+                viewer.Width = 720;
+                viewer.Height = 800;
+                viewer.Content = page;
+                viewer.Show();
             }
         }
 
@@ -487,11 +710,6 @@ namespace PixivWPF.Pages
                     var tokens = await CommonHelper.ShowLogin();
                     if (tokens == null) return;
 
-                    //var idx = ListImageTiles.SelectedIndex;
-                    //if (idx < 0) return;
-                    //var item = ImageList[idx];
-                    //ShowIllustPages(tokens, item, start);
-
                     if (Preview.Tag is ImageItem)
                     {
                         var item = Preview.Tag as ImageItem;
@@ -499,6 +717,31 @@ namespace PixivWPF.Pages
                     }
                 }
             }
+        }
+        #endregion
+
+        #region Relative Panel related routines
+        private async void RelativeIllustsExpander_Expanded(object sender, RoutedEventArgs e)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (Preview.Tag is ImageItem)
+            {
+                var item = Preview.Tag as ImageItem;
+                ShowRelativeInline(tokens, item);
+            }
+            else if(Preview.Tag is Pixeez.Objects.User)
+            {
+                var user = Preview.Tag as Pixeez.Objects.User;
+                ShowUserWorksInline(tokens, user);
+            }
+            RelativeNextPage.Visibility = Visibility.Visible;
+        }
+
+        private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
         }
 
         private void ActionOpenRelative_Click(object sender, RoutedEventArgs e)
@@ -525,57 +768,6 @@ namespace PixivWPF.Pages
         private void ActionSaveAllRelative_Click(object sender, RoutedEventArgs e)
         {
 
-        }
-
-        private async void SubIllustsExpander_Expanded(object sender, RoutedEventArgs e)
-        {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
-
-            if (Preview.Tag is ImageItem)
-            {
-                var item = Preview.Tag as ImageItem;
-                ShowIllustPages(tokens, item);
-            }
-        }
-
-        private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
-        }
-
-        private void SubIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            foreach (var illust in SubIllusts.SelectedItems)
-            {
-                var viewer = new ViewerWindow();
-                var page = new IllustImageViewerPage();
-                page.UpdateDetail(illust);
-
-                viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
-                viewer.Width = 720;
-                viewer.Height = 800;
-                viewer.Content = page;
-                viewer.Show();
-            }
-        }
-
-        private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
-        }
-
-        private async void RelativeIllustsExpander_Expanded(object sender, RoutedEventArgs e)
-        {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
-
-            if (Preview.Tag is ImageItem)
-            {
-                var item = Preview.Tag as ImageItem;
-                ShowRelativeInline(tokens, item);
-                RelativeNextPage.Visibility = Visibility.Visible;
-            }
         }
 
         private void RelativeIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -611,6 +803,92 @@ namespace PixivWPF.Pages
                 if (RelativeIllustsExpander.Tag is string)
                     next_url = RelativeIllustsExpander.Tag as string;
                 ShowRelativeInline(tokens, item, next_url);
+            }
+            else if (Preview.Tag is Pixeez.Objects.User)
+            {
+                var user = Preview.Tag as Pixeez.Objects.User;
+                var next_url = string.Empty;
+                if (RelativeIllustsExpander.Tag is string)
+                    next_url = RelativeIllustsExpander.Tag as string;
+                ShowUserWorksInline(tokens, user, next_url);
+            }
+            RelativeNextPage.Visibility = Visibility.Visible;
+        }
+        #endregion
+
+        private async void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (Preview.Tag is ImageItem)
+            {
+                var item = Preview.Tag as ImageItem;
+                var illust = item.Illust;
+
+                if (sender == ActionBookmarkIllustPublic)
+                {
+                    if (!illust.IsBookMarked())
+                    {
+                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id);
+                        BookmarkIllust.Tag = PackIconModernKind.Heart;
+                    }
+                }
+                else if (sender == ActionBookmarkIllustPrivate)
+                {
+                    if (!illust.IsBookMarked())
+                    {
+                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, null, "private");
+                        BookmarkIllust.Tag = PackIconModernKind.Heart;
+                    }
+                }
+                else if (sender == ActionBookmarkIllustRemove)
+                {
+                    if (illust.IsBookMarked())
+                    {
+                        await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
+                        await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
+                        BookmarkIllust.Tag = PackIconModernKind.HeartOutline;
+                    }
+                }
+            }
+        }
+
+        private async void ActionFollowAuthor_Click(object sender, RoutedEventArgs e)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (Preview.Tag is ImageItem)
+            {
+                var item = Preview.Tag as ImageItem;
+                var illust = item.Illust;
+
+                if (sender == ActionFollowAuthorPublic)
+                {
+                    if (illust.User.is_followed == false)
+                    {
+                        await tokens.AddFavouriteUser((long)illust.User.Id);
+                        FollowAuthor.Tag = PackIconModernKind.Check;
+                    }
+                }
+                else if (sender == ActionFollowAuthorPrivate)
+                {
+                    if (illust.User.is_followed == false)
+                    {
+                        await tokens.AddFavouriteUser((long)illust.User.Id, "private");
+                        BookmarkIllust.Tag = PackIconModernKind.Check;
+                    }
+                }
+                else if (sender == ActionFollowAuthorRemove)
+                {
+                    if (illust.User.is_followed == true)
+                    {
+                        await tokens.DeleteFavouriteUser(illust.User.Id.ToString());
+                        await tokens.DeleteFavouriteUser(illust.User.Id.ToString(), "private");
+                        BookmarkIllust.Tag = PackIconModernKind.Add;
+                    }
+                }
             }
         }
     }

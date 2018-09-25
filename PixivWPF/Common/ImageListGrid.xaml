@@ -54,7 +54,7 @@
         <ListView Grid.Row="0" x:Name="PART_ImageTiles" x:Uid="ImageTiles"
                   IsSynchronizedWithCurrentItem="true"
                   SelectionMode="{Binding SelectionMode, Mode=OneWay}"
-                  ItemsSource="{Binding Items, Mode=OneWay}" 
+                  ItemsSource="{Binding Items, Mode=OneWay, NotifyOnSourceUpdated=True}" 
                   ItemTemplate="{DynamicResource PART_ImageTileTemplate}"
                   BorderBrush="Transparent"
                   HorizontalAlignment="Center" VerticalAlignment="Top"
@@ -62,7 +62,8 @@
                   Style="{DynamicResource VirtualisedMetroListView}"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.CacheLength ="500"                 
-                  mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
+                  mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
+                  SelectionChanged="PART_ImageTiles_SelectionChanged">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->

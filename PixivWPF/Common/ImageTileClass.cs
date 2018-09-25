@@ -83,34 +83,36 @@ namespace PixivWPF.Common
             {
                 if (illust is Pixeez.Objects.Work && Colloection is IList<ImageItem>)
                 {
-                    var url = illust.ImageUrls.SquareMedium;
-                    if (string.IsNullOrEmpty(url))
-                    {
-                        if (!string.IsNullOrEmpty(illust.ImageUrls.Small))
-                        {
-                            url = illust.ImageUrls.Small;
-                        }
-                        else if (!string.IsNullOrEmpty(illust.ImageUrls.Px128x128))
-                        {
-                            url = illust.ImageUrls.Px128x128;
-                        }
-                        else if (!string.IsNullOrEmpty(illust.ImageUrls.Px480mw))
-                        {
-                            url = illust.ImageUrls.Px480mw;
-                        }
-                        else if (!string.IsNullOrEmpty(illust.ImageUrls.Medium))
-                        {
-                            url = illust.ImageUrls.Medium;
-                        }
-                        else if (!string.IsNullOrEmpty(illust.ImageUrls.Large))
-                        {
-                            url = illust.ImageUrls.Large;
-                        }
-                        else if (!string.IsNullOrEmpty(illust.ImageUrls.Original))
-                        {
-                            url = illust.ImageUrls.Original;
-                        }
-                    }
+                    var url = illust.GetThumbnailUrl();
+
+                    //var url = illust.ImageUrls.Px128x128;
+                    //if (string.IsNullOrEmpty(url))
+                    //{
+                    //    if (!string.IsNullOrEmpty(illust.ImageUrls.SquareMedium))
+                    //    {
+                    //        url = illust.ImageUrls.SquareMedium;
+                    //    }
+                    //    else if (!string.IsNullOrEmpty(illust.ImageUrls.Px480mw))
+                    //    {
+                    //        url = illust.ImageUrls.Px480mw;
+                    //    }
+                    //    else  if (!string.IsNullOrEmpty(illust.ImageUrls.Small))
+                    //    {
+                    //        url = illust.ImageUrls.Small;
+                    //    }
+                    //    else if (!string.IsNullOrEmpty(illust.ImageUrls.Medium))
+                    //    {
+                    //        url = illust.ImageUrls.Medium;
+                    //    }
+                    //    else if (!string.IsNullOrEmpty(illust.ImageUrls.Large))
+                    //    {
+                    //        url = illust.ImageUrls.Large;
+                    //    }
+                    //    else if (!string.IsNullOrEmpty(illust.ImageUrls.Original))
+                    //    {
+                    //        url = illust.ImageUrls.Original;
+                    //    }
+                    //}
 
                     if (!string.IsNullOrEmpty(url))
                     {
@@ -148,35 +150,7 @@ namespace PixivWPF.Common
                 if (pages is Pixeez.Objects.MetaPages && Colloection is IList<ImageItem>)
                 {
                     var all_pages = (illust as Pixeez.Objects.IllustWork).meta_pages;
-                    var url = pages.ImageUrls.SquareMedium;
-                    if (string.IsNullOrEmpty(url))
-                    {
-                        if (!string.IsNullOrEmpty(pages.ImageUrls.Small))
-                        {
-                            url = pages.ImageUrls.Small;
-                        }
-                        else if (!string.IsNullOrEmpty(pages.ImageUrls.Px128x128))
-                        {
-                            url = pages.ImageUrls.Px128x128;
-                        }
-                        else if (!string.IsNullOrEmpty(pages.ImageUrls.Px480mw))
-                        {
-                            url = pages.ImageUrls.Px480mw;
-                        }
-                        else if (!string.IsNullOrEmpty(pages.ImageUrls.Medium))
-                        {
-                            url = pages.ImageUrls.Medium;
-                        }
-                        else if (!string.IsNullOrEmpty(pages.ImageUrls.Large))
-                        {
-                            url = pages.ImageUrls.Large;
-                        }
-                        else if (!string.IsNullOrEmpty(pages.ImageUrls.Original))
-                        {
-                            url = pages.ImageUrls.Original;
-                        }
-                    }
-
+                    var url = pages.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
                         var i = new ImageItem()
@@ -199,6 +173,131 @@ namespace PixivWPF.Common
             {
                 CommonHelper.ShowMessageDialog("ERROR", ex.Message);
             }
+        }
+
+        public static string GetThumbnailUrl(this Pixeez.Objects.Work Illust)
+        {
+            var url = Illust.ImageUrls.Px128x128;
+            if (string.IsNullOrEmpty(url))
+            {
+                if (!string.IsNullOrEmpty(Illust.ImageUrls.SquareMedium))
+                    url = Illust.ImageUrls.SquareMedium;
+                else if (Illust is Pixeez.Objects.IllustWork)
+                {
+                    var illust = Illust as Pixeez.Objects.IllustWork;
+                    if (illust.meta_single_page != null)
+                        url = illust.meta_single_page.OriginalImageUrl;
+                    else if (illust.meta_pages is Array)
+                    {
+                        if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Px128x128))
+                            url = illust.meta_pages[0].ImageUrls.Px128x128;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.SquareMedium))
+                            url = illust.meta_pages[0].ImageUrls.SquareMedium;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Px480mw))
+                            url = illust.meta_pages[0].ImageUrls.Px480mw;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Medium))
+                            url = illust.meta_pages[0].ImageUrls.Medium;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Small))
+                            url = illust.meta_pages[0].ImageUrls.Small;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Large))
+                            url = illust.meta_pages[0].ImageUrls.Large;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Original))
+                            url = illust.meta_pages[0].ImageUrls.Original;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Px480mw))
+                    url = Illust.ImageUrls.Px480mw;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Medium))
+                    url = Illust.ImageUrls.Medium;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Small))
+                    url = Illust.ImageUrls.Small;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Large))
+                    url = Illust.ImageUrls.Large;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Original))
+                    url = Illust.ImageUrls.Original;
+            }
+            return (url);
+        }
+
+        public static string GetThumbnailUrl(this Pixeez.Objects.MetaPages pages)
+        {
+            var url = pages.ImageUrls.Px128x128;
+            if (string.IsNullOrEmpty(url))
+            {
+                if (!string.IsNullOrEmpty(pages.ImageUrls.Small))
+                {
+                    url = pages.ImageUrls.Small;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.SquareMedium))
+                {
+                    url = pages.ImageUrls.SquareMedium;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.Px480mw))
+                {
+                    url = pages.ImageUrls.Px480mw;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.Small))
+                {
+                    url = pages.ImageUrls.Px128x128;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.Medium))
+                {
+                    url = pages.ImageUrls.Medium;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.Large))
+                {
+                    url = pages.ImageUrls.Large;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.Original))
+                {
+                    url = pages.ImageUrls.Original;
+                }
+            }
+            return (url);
+        }
+
+        public static string GetPreviewUrl(this Pixeez.Objects.Work Illust)
+        {
+            var url = Illust.ImageUrls.Large;
+            if (string.IsNullOrEmpty(url))
+            {
+                if (!string.IsNullOrEmpty(Illust.ImageUrls.Original))
+                    url = Illust.ImageUrls.Original;
+                else if (Illust is Pixeez.Objects.IllustWork)
+                {
+                    var illust = Illust as Pixeez.Objects.IllustWork;
+                    if (illust.meta_single_page != null)
+                        url = illust.meta_single_page.OriginalImageUrl;
+                    else if (illust.meta_pages is Array)
+                    {
+                        if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Large))
+                            url = illust.meta_pages[0].ImageUrls.Large;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Original))
+                            url = illust.meta_pages[0].ImageUrls.Original;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Medium))
+                            url = illust.meta_pages[0].ImageUrls.Medium;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Px480mw))
+                            url = illust.meta_pages[0].ImageUrls.Px480mw;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.SquareMedium))
+                            url = illust.meta_pages[0].ImageUrls.SquareMedium;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Px128x128))
+                            url = illust.meta_pages[0].ImageUrls.Px128x128;
+                        else if (!string.IsNullOrEmpty(illust.meta_pages[0].ImageUrls.Small))
+                            url = illust.meta_pages[0].ImageUrls.Small;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Medium))
+                    url = Illust.ImageUrls.Medium;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Px480mw))
+                    url = Illust.ImageUrls.Px480mw;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.SquareMedium))
+                    url = Illust.ImageUrls.SquareMedium;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Px128x128))
+                    url = Illust.ImageUrls.Px128x128;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Small))
+                    url = Illust.ImageUrls.Small;
+            }
+            return (url);
         }
 
     }

@@ -25,10 +25,6 @@ namespace PixivWPF.Common
     /// </summary>
     public partial class ImageListGrid : UserControl
     {
-        //public static readonly DependencyProperty ColumnsProperty =
-        //    DependencyProperty.Register("Columns", typeof(int), typeof(ImageListGrid),
-        //    new FrameworkPropertyMetadata(5, new PropertyChangedCallback(ColumnsPropertyChangedCallback)));
-        //private static PropertyChangedCallback ColumnsPropertyChangedCallback;
         [Description("Get or Set Columns for display Image Tile Grid")]
         [Category("Common Properties")]
         [DefaultValue(5)]
@@ -85,16 +81,21 @@ namespace PixivWPF.Common
             set { PART_ImageTiles.SelectionMode = value; }
         }
 
-        //public static readonly DependencyProperty ItemProperty =
-        //    DependencyProperty.Register("TileItems", typeof(IEnumerable<ImageItem>), typeof(ListView), new UIPropertyMetadata(null));
-
         private ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
         public ObservableCollection<ImageItem> Items
         {
-            get { return ImageList; }
-            //set { ImageList = value; OnPropertyChanged(); }
+            get
+            {
+                return ImageList;
+            }
+            //set
+            //{
+            //    ImageList = value;
+            //    NotifyPropertyChanged("Items");
+            //    NotifyPropertyChanged("Source");
+            //}
         }
 
         private Visibility badgevisibility = Visibility.Visible;
@@ -137,6 +138,13 @@ namespace PixivWPF.Common
             }
         }
 
+        public event SelectionChangedEventHandler SelectionChanged;
+        public delegate void SelectionChangedEventHandler(object sender, SelectionChangedEventArgs e);
+        private void PART_ImageTiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SelectionChanged?.Invoke(sender, e);
+        }
+
         public ImageListGrid()
         {
             InitializeComponent();
@@ -152,45 +160,39 @@ namespace PixivWPF.Common
             if (UPDATING) return;
 
             var needUpdate = ImageList.Where(item => item.Source == null);
-
-            new Thread(delegate ()
+            if (needUpdate.Count() > 0)
             {
-                var opt = new ParallelOptions();
-
-                if (parallel <= 0) parallel = 1;
-                else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
-
-                opt.MaxDegreeOfParallelism = parallel;
-                Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                new Thread(delegate ()
                 {
-                    item.Dispatcher.BeginInvoke(new Action(async () =>
+                    var opt = new ParallelOptions();
+
+                    if (parallel <= 0) parallel = 1;
+                    else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
+                    opt.MaxDegreeOfParallelism = parallel;
+
+                    Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                     {
-                        try
-                        {
-                            if (item.Source == null)
-                            {
-                                //item.Source = await item.Thumb.ToImageSource(tokens);
-                                item.Source = await item.Thumb.LoadImage(tokens);
-                                PART_ImageTiles.Items.Refresh();
-                            }
-                        }
-                        catch (Exception ex)
+                        item.Dispatcher.BeginInvoke(new Action(async () =>
                         {
                             try
                             {
-                                Thread.Sleep(100);
-                                item.Source = await item.Thumb.LoadImage(tokens);
-                                PART_ImageTiles.Items.Refresh();
+                                if (item.Source == null)
+                                {
+                                    //item.Source = await item.Thumb.ToImageSource(tokens);
+                                    item.Source = await item.Thumb.LoadImage(tokens);
+                                    PART_ImageTiles.Items.Refresh();
+                                }
                             }
-                            catch (Exception) { }
-
-                            MetroWindow window = Application.Current.MainWindow as MetroWindow;
-                            await window.ShowMessageAsync("ERROR", $"Download Image Failed:\n{ex.Message}");
-                        }
-                    }));
-                });
-                UPDATING = false;
-            }).Start();
+                            catch (Exception ex)
+                            {
+                                var ret = ex.Message;
+                                //$"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                            }
+                        }));
+                    });
+                    UPDATING = false;
+                }).Start();
+            }
         }
 
         public void Refresh()
@@ -199,53 +201,6 @@ namespace PixivWPF.Common
         }
 
 
-        // Create custom routed event by first registering a RoutedEventID
-        // This event uses the bubbling routing strategy
-        public static readonly RoutedEvent SelectionChangedEvent = EventManager.RegisterRoutedEvent(
-            "SelectionChanged", RoutingStrategy.Bubble, typeof(SelectionChangedEventHandler), typeof(ImageListGrid));
-        public event SelectionChangedEventHandler SelectionChanged
-        {
-            add { AddHandler(SelectionChangedEvent, value); }
-            remove { RemoveHandler(SelectionChangedEvent, value); }
-        }
-        // This method raises the Tap event
-        void RaiseSelectionChangedEvent()
-        {
-            RoutedEventArgs newEventArgs = new RoutedEventArgs(SelectionChangedEvent);
-            RaiseEvent(newEventArgs);
-        }
-        // For demonstration purposes we raise the event when the MyButtonSimple is clicked
-        protected void OnSelectionChangedEvent()
-        {
-            RaiseSelectionChangedEvent();
-        }
-
-        // Create custom routed event by first registering a RoutedEventID
-        // This event uses the bubbling routing strategy
-        public static readonly RoutedEvent ScrollChangedEvent = EventManager.RegisterRoutedEvent(
-            "ScrollChanged", RoutingStrategy.Bubble, typeof(ScrollChangedEventHandler), typeof(ImageListGrid));
-        public event SelectionChangedEventHandler ScrollnChanged
-        {
-            add { AddHandler(SelectionChangedEvent, value); }
-            remove { RemoveHandler(SelectionChangedEvent, value); }
-        }
-        // This method raises the Tap event
-        void RaiseScrollChangedEvent()
-        {
-            RoutedEventArgs newEventArgs = new RoutedEventArgs(ScrollChangedEvent);
-            RaiseEvent(newEventArgs);
-        }
-        // For demonstration purposes we raise the event when the MyButtonSimple is clicked
-        protected void OnScrollChangedEvent()
-        {
-            RaiseScrollChangedEvent();
-        }
-
-        //public ImageListGrid()
-        //{
-        //    ImageTiles.SelectionChanged += SelectionChanged;
-        //    ImageTiles.ScrollChanged += ScrollChanged;
-        //}
     }
 
 }

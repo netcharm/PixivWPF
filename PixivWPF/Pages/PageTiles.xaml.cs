@@ -130,6 +130,7 @@ namespace PixivWPF.Pages
 
         public void UpdateTheme()
         {
+            detailpage.UpdateTheme();
         }
 
         private void OnlyActiveItems(object sender, FilterEventArgs e)
@@ -148,74 +149,77 @@ namespace PixivWPF.Pages
 
             var needUpdate = ImageList.Where(item => item.Source == null);
 
-            UpdateThread = new Thread(() =>
+            if (needUpdate.Count() > 0)
             {
-                try
+                using (ListImageTiles.Items.DeferRefresh())
                 {
-                    var opt = new ParallelOptions();
-                    opt.MaxDegreeOfParallelism = 15;
-                    opt.TaskScheduler = TaskScheduler.Current;
-                    var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                    UpdateThread = new Thread(() =>
                     {
-                        item.Dispatcher.BeginInvoke(new Action(async () =>
+                        try
                         {
-                            try
+                            var opt = new ParallelOptions();
+                            opt.MaxDegreeOfParallelism = 15;
+                            opt.TaskScheduler = TaskScheduler.Current;
+                            var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
-                                if (item.Source == null)
+                                item.Dispatcher.BeginInvoke(new Action(async () =>
                                 {
-                                    //item.Source = await item.Thumb.ToImageSource(tokens);
-                                    item.Source = await item.Thumb.LoadImage(tokens);
-
-                                    //ListImageTiles.Items.DeferRefresh();
-                                    ListImageTiles.Items.Refresh();
-                                    //ListImageTiles.ItemsSource = null;
-                                    //ListImageTiles.ItemsSource = ImageList;
-
-                                    //ListImageTiles.InvalidateProperty(dp);
-                                }
-                            }
-                            catch (Exception ex)
+                                    try
+                                    {
+                                        if (item.Source == null)
+                                        {
+                                            //item.Source = await item.Thumb.ToImageSource(tokens);
+                                            item.Source = await item.Thumb.LoadImage(tokens);
+                                            ListImageTiles.Items.Refresh();
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                    }
+                                }));
+                            });
+                            if (ret.IsCompleted)
                             {
-                                CommonHelper.ShowMessageDialog("ERROR", $"Download Image Failed:\n{ex.Message}");
+                                UPDATING = !ret.IsCompleted;
                             }
-                        }));
+                        }
+                        finally
+                        {
+                            UPDATING = false;
+                        }
                     });
-                    if (ret.IsCompleted)
-                    {
-                        UPDATING = !ret.IsCompleted;
-                    }
+                    UpdateThread.Start();
                 }
-                finally
-                {
-                    UPDATING = false;
-                }
-            });
-            UpdateThread.Start();
+            }
 
-            //new Thread(delegate ()
+            //if (needUpdate.Count() > 0)
             //{
-            //    var opt = new ParallelOptions();
-            //    opt.MaxDegreeOfParallelism = 10;
-            //    Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+            //    new Thread(delegate ()
             //    {
-            //        item.Dispatcher.BeginInvoke(new Action(async () =>
+            //        var opt = new ParallelOptions();
+            //        opt.MaxDegreeOfParallelism = 10;
+            //        Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
             //        {
-            //            try
+            //            item.Dispatcher.BeginInvoke(new Action(async () =>
             //            {
-            //                if (item.Source == null)
+            //                try
             //                {
-            //                    item.Source = await item.Thumb.ToImageSource(tokens);
-            //                    //ListImageTiles.Items.Refresh();
+            //                    if (item.Source == null)
+            //                    {
+            //                        item.Source = await item.Thumb.ToImageSource(tokens);
+            //                        //ListImageTiles.Items.Refresh();
+            //                    }
             //                }
-            //            }
-            //            catch (Exception ex)
-            //            {
-            //                CommonHelper.ShowMessageDialog("ERROR", $"Download Image Failed:\n{ex.Message}");
-            //            }
-            //        }));
-            //    });
-            //    UPDATING = false;
-            //}).Start();
+            //                catch (Exception ex)
+            //                {
+            //                    $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+            //                }
+            //            }));
+            //        });
+            //        UPDATING = false;
+            //    }).Start();
+            //}
         }
 
         public PageTiles()
@@ -420,6 +424,7 @@ namespace PixivWPF.Pages
                     ShowRanking(NextURL, "month");
                     break;
             }
+
             //UpdateImageTile(tokens);
         }
 
@@ -479,11 +484,7 @@ namespace PixivWPF.Pages
 
                 ImageTilesWait.Visibility = Visibility.Visible;
                 var root = await tokens.GetLatestWorksAsync(page);
-                if (root == null)
-                {
-                    tokens = await CommonHelper.ShowLogin();
-                    root = await tokens.GetLatestWorksAsync(page);
-                }
+                //var root = await tokens.GetLatestWorksNewAsync(page);
                 nexturl = root.Pagination.Next.ToString() ?? string.Empty;
                 NextURL = nexturl;
                 ImageTilesWait.Visibility = Visibility.Hidden;
