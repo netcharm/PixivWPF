@@ -68,8 +68,8 @@
             <TextBox x:Name="SearchBox" x:Uid="SearchBox" 
                      Width="144" Height="16"
                      Style="{DynamicResource SearchMetroTextBox}"
-                     mah:TextBoxHelper.ButtonCommand="{Binding SearchBoxCmd, Mode=OneWay}"
-                     mah:TextBoxHelper.Watermark="Searching ...">
+                     mah:TextBoxHelper.ButtonCommand="{Binding SearchBoxCmd, Mode=OneWay, IsAsync=True}"
+                     mah:TextBoxHelper.Watermark="Searching ..." TextInput="SearchBox_TextInput" KeyDown="SearchBox_KeyDown">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Return"
                                 Command="{Binding SearchBoxCmd, Mode=OneWay}"/>

@@ -56,6 +56,10 @@ namespace PixivWPF.Pages
                 var tokens = await CommonHelper.ShowLogin();
                 Preview.Tag = item;
                 Preview.Source = await item.Illust.GetPreviewUrl().LoadImage(tokens);
+                if (Preview.Source != null && Preview.Source.Width < 450)
+                {
+                    Preview.Source = await item.Illust.GetOriginalUrl().LoadImage(tokens);
+                }
 
                 IllustAuthor.Text = item.Illust.User.Name;
                 IllustAuthorIcon.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
@@ -130,7 +134,7 @@ namespace PixivWPF.Pages
                     PreviewBadge.Visibility = Visibility.Collapsed;
                 }
 
-                RelativeIllustsExpander.Header = "Related Works";
+                RelativeIllustsExpander.Header = "Related Illusts";
                 RelativeIllustsExpander.Visibility = Visibility.Visible;
                 RelativeNextPage.Visibility = Visibility.Collapsed;
                 RelativeIllustsExpander.IsExpanded = false;
@@ -200,18 +204,19 @@ namespace PixivWPF.Pages
                 if (nuser != null && nprof != null && nworks != null)
                 {
                     StringBuilder desc = new StringBuilder();
-                    desc.AppendLine($"Account: {nuser.Account} / [{nuser.Id}] / {nuser.Name} / {nuser.Email}");
-                    desc.AppendLine($"Stat: {nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follow_users} Following / {nprof.total_follower} Follower / {nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels / {nprof.total_mypixiv_users} MyPixiv User");
-                    desc.AppendLine($"<hr/>");
-                    desc.AppendLine($"Profile: {nprof.gender} / {nprof.birth} / {nprof.region} / {nprof.job}");
-                    desc.AppendLine($"<hr/>");
-                    desc.AppendLine($"Contacts: <a href=\"{nprof.twitter_url}\">@{nprof.twitter_account}</a> / {nprof.webpage}");
+                    desc.AppendLine($"Account:<br/> {nuser.Account} / [{nuser.Id}] / {nuser.Name} / {nuser.Email}");
+                    desc.AppendLine($"<br/>Stat:<br/> {nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follow_users} Following / {nprof.total_follower} Follower /<br/> {nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels /<br/> {nprof.total_mypixiv_users} MyPixiv User");
                     desc.AppendLine($"<hr/>");
 
-                    desc.AppendLine($"Workspace Device_: {nworks.pc} / {nworks.monitor} / {nworks.tablet} / {nworks.mouse} / {nworks.printer} / {nworks.scanner} / {nworks.tool}");
-                    desc.AppendLine($"Workspace Environment_: {nworks.desk} / {nworks.chair} / {nworks.desktop} / {nworks.music} / {nworks.comment}");
+                    desc.AppendLine($"<br/>Profile:<br/> {nprof.gender} / {nprof.birth} / {nprof.region} / {nprof.job}");
+                    desc.AppendLine($"<br/>Contacts:<br/>twitter: <a href=\"{nprof.twitter_url}\">@{nprof.twitter_account}</a> / web: {nprof.webpage}");
                     desc.AppendLine($"<hr/>");
-                    desc.AppendLine($"Workspace Images: {nworks.workspace_image_url}");
+
+                    desc.AppendLine($"<br/>Workspace Device_:<br/> {nworks.pc} / {nworks.monitor} / {nworks.tablet} / {nworks.mouse} / {nworks.printer} / {nworks.scanner} / {nworks.tool}");
+                    desc.AppendLine($"<br/>Workspace Environment:<br/> {nworks.desk} / {nworks.chair} / {nworks.desktop} / {nworks.music} / {nworks.comment}");
+                    desc.AppendLine($"<hr/>");
+
+                    desc.AppendLine($"<br/>Workspace Images:<br/> <img src=\"{nworks.workspace_image_url}\"/>");
 
                     IllustTags.Foreground = Common.Theme.TextBrush;
                     IllustTags.Text = string.Join(";", desc);
@@ -239,7 +244,7 @@ namespace PixivWPF.Pages
                 SubIllustsNavPanel.Visibility = Visibility.Collapsed;
                 PreviewBadge.Visibility = Visibility.Collapsed;
 
-                RelativeIllustsExpander.Header = "Works";
+                RelativeIllustsExpander.Header = "Illusts";
                 RelativeIllustsExpander.Visibility = Visibility.Visible;
                 RelativeNextPage.Visibility = Visibility.Collapsed;
                 RelativeIllustsExpander.IsExpanded = false;
@@ -404,27 +409,21 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            var viewer = new ViewerWindow();
-            var page = new IllustDetailPage();
-
             if (Preview.Tag is ImageItem)
             {
+                var viewer = new ViewerWindow();
+                var page = new IllustDetailPage();
+
                 var item = Preview.Tag as ImageItem;
                 var user = item.Illust.User;
                 page.UpdateDetail(user);
                 viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
-            }
-            else if (Preview.Tag is Pixeez.Objects.User)
-            {
-                var user = Preview.Tag as Pixeez.Objects.User;
-                page.UpdateDetail(user);
-                viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
-            }
 
-            viewer.Width = 720;
-            viewer.Height = 800;
-            viewer.Content = page;
-            viewer.Show();
+                viewer.Width = 720;
+                viewer.Height = 800;
+                viewer.Content = page;
+                viewer.Show();
+            }
         }
 
         private void ActionShowIllustPages_Click(object sender, RoutedEventArgs e)

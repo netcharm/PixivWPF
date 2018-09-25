@@ -31,5 +31,11 @@ namespace PixivWPF.Common
             InitializeComponent();
 
         }
+
+        private void Window_KeyUp(object sender, KeyEventArgs e)
+        {
+            e.Handled = true;
+            if (e.Key == Key.Escape) Close();
+        }
     }
 }

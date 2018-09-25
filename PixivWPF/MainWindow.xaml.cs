@@ -28,7 +28,7 @@ namespace PixivWPF
         private Pages.PageTiles pagetiles = null;
         private Pages.PageNav pagenav = null;
 
-        private ICommand searchBoxCmd = new SimpleCommand();
+        private ICommand searchBoxCmd;
         public ICommand SearchBoxCmd
         {
             get
@@ -164,6 +164,20 @@ namespace PixivWPF
             }
         }
 
+        private void SearchBox_TextInput(object sender, TextCompositionEventArgs e)
+        {
+            if (e.Text.Length > 0)
+            {
+            }
+        }
+
+        private void SearchBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Key== Key.Return)
+            {
+                SearchBoxCmd.Execute(SearchBox.Text);
+            }
+        }
     }
 
 

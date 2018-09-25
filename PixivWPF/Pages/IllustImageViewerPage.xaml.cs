@@ -33,29 +33,15 @@ namespace PixivWPF.Pages
                 if(item.Illust is Pixeez.Objects.IllustWork)
                 {
                     var illust = item.Illust as Pixeez.Objects.IllustWork;
-                    var pages = illust.meta_pages[item.Count-1];
-                    var url = pages.ImageUrls.Large;
-                    if (string.IsNullOrEmpty(url))
-                    {
-                        if (!string.IsNullOrEmpty(pages.ImageUrls.Original))
-                        {
-                            url = pages.ImageUrls.Original;
-                        }
-                        else if (!string.IsNullOrEmpty(pages.ImageUrls.Medium))
-                        {
-                            url = pages.ImageUrls.Large;
-                        }
-                        else if (!string.IsNullOrEmpty(pages.ImageUrls.Px480mw))
-                        {
-                            url = pages.ImageUrls.Px480mw;
-                        }
-                        else if (!string.IsNullOrEmpty(pages.ImageUrls.SquareMedium))
-                        {
-                            url = pages.ImageUrls.SquareMedium;
-                        }
-                    }
+                    var url = illust.GetPreviewUrl(item.Count-1);
+
                     var tokens = await CommonHelper.ShowLogin();
                     Preview.Source = await url.LoadImage(tokens);
+                    if (Preview.Source != null && Preview.Source.Width < 450)
+                    {
+                        url = illust.GetOriginalUrl();
+                        Preview.Source = await url.LoadImage(tokens);
+                    }
                 }
                 PreviewWait.Visibility = Visibility.Hidden;
             }
@@ -85,52 +71,32 @@ namespace PixivWPF.Pages
                 if (item.Illust is Pixeez.Objects.Work)
                 {
 
-                    var illust = item.Illust;
-                    var images = illust.ImageUrls;
-                    var url = images.Original;
+                    var Illust = item.Illust;
+                    var idx = item.Count-1;
+                    var url = Illust.GetOriginalUrl();
 
                     var dt = DateTime.Now;
 
-                    if (illust is Pixeez.Objects.IllustWork)
+                    if (Illust is Pixeez.Objects.IllustWork)
                     {
-                        var illustset = illust as Pixeez.Objects.IllustWork;
-                        if (illustset.meta_pages.Count() > 0)
-                            url = illustset.meta_pages[0].ImageUrls.Original;
-                        else if (illustset.meta_single_page is Pixeez.Objects.MetaSinglePage)
-                            url = illustset.meta_single_page.OriginalImageUrl;
-
-                        dt = illustset.CreatedTime;
+                        var illust = Illust as Pixeez.Objects.IllustWork;
+                        url = illust.GetOriginalUrl(idx);
+                        dt = illust.CreatedTime;
                     }
-                    else if (illust is Pixeez.Objects.NormalWork)
+                    else if (Illust is Pixeez.Objects.NormalWork)
                     {
-                        var illustset = illust as Pixeez.Objects.NormalWork;
-                        dt = illustset.CreatedTime.UtcDateTime;
+                        var illust = Illust as Pixeez.Objects.NormalWork;
+                        dt = illust.CreatedTime.UtcDateTime;
                     }
-                    else if (!string.IsNullOrEmpty(illust.ReuploadedTime))
+                    else if (!string.IsNullOrEmpty(Illust.ReuploadedTime))
                     {
-                        dt = DateTime.Parse(illust.ReuploadedTime);
-                    }
-
-                    if (string.IsNullOrEmpty(url))
-                    {
-                        if (!string.IsNullOrEmpty(images.Large))
-                            url = images.Medium;
-                        else if (!string.IsNullOrEmpty(images.Medium))
-                            url = images.Medium;
-                        else if (!string.IsNullOrEmpty(images.Px480mw))
-                            url = images.Px480mw;
-                        else if (!string.IsNullOrEmpty(images.SquareMedium))
-                            url = images.SquareMedium;
-                        else if (!string.IsNullOrEmpty(images.Px128x128))
-                            url = images.Px128x128;
-                        else if (!string.IsNullOrEmpty(images.Small))
-                            url = images.Small;
+                        dt = DateTime.Parse(Illust.ReuploadedTime);
                     }
 
                     if (!string.IsNullOrEmpty(url))
                     {
                         //await url.ToImageFile(tokens);
-                        var is_meta_single_page = illust.PageCount==1 ? true : false;
+                        var is_meta_single_page = Illust.PageCount==1 ? true : false;
                         await url.ToImageFile(tokens, dt, is_meta_single_page);
                         SystemSounds.Beep.Play();
                     }

@@ -185,24 +185,54 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static BitmapSource ConvertBitmapDPI(BitmapSource source, double dpi=96)
+        {
+            if (dpi == source.DpiX || dpi == source.DpiY) return (source);
+
+            int width = source.PixelWidth;
+            int height = source.PixelHeight;
+
+            int stride = width * source.Format.BitsPerPixel;
+            byte[] pixelData = new byte[stride * height];
+            source.CopyPixels(pixelData, stride, 0);
+
+            BitmapSource result = null;
+            using (var ms = new MemoryStream())
+            {
+                var nbmp = BitmapSource.Create(width, height, dpi, dpi, source.Format, null, pixelData, stride);
+                PngBitmapEncoder pngEnc = new PngBitmapEncoder();
+                pngEnc.Frames.Add(BitmapFrame.Create(nbmp));
+                pngEnc.Save(ms);
+                var pngDec = new PngBitmapDecoder(ms, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                result = pngDec.Frames[0];
+            }
+            return result;
+        }
+
         public static ImageSource ToImageSource(this Stream stream)
         {
             //await imgStream.GetResponseStreamAsync();
             BitmapSource result = null;
             try
             {
-                //BitmapImage result = new BitmapImage();
-                //result.BeginInit();
-                //result.CacheOption = BitmapCacheOption.OnLoad;
-                //result.StreamSource = stream;
-                //result.EndInit();
-                //result.Freeze();
+                var bmp = new BitmapImage();
+                bmp.BeginInit();
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.StreamSource = stream;
+                bmp.EndInit();
+                bmp.Freeze();
 
-                result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                if (bmp.DpiX > 96 || bmp.DpiY > 96)
+                    result = ConvertBitmapDPI(bmp, 96);
+                else
+                    result = bmp;
+                //result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
             }
             catch (Exception)
             {
-                //result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                result = BitmapFrame.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                if(result.DpiX > 96 || result.DpiY > 96)
+                    result = ConvertBitmapDPI(result, 96);
             }
             return (result);
         }
@@ -214,7 +244,8 @@ namespace PixivWPF.Common
             {
                 using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    await Task.Run(() => {
+                    await Task.Run(() =>
+                    {
                         result = stream.ToImageSource();
                     });
                 }

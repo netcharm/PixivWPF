@@ -71,7 +71,7 @@ namespace PixivWPF.Pages
         }
 
         private MetroWindow window = Application.Current.MainWindow as MetroWindow;
-        private IllustDetailPage detailpage = new IllustDetailPage();
+        private IllustDetailPage detail_page = new IllustDetailPage();
 
         //public static readonly DependencyProperty ItemsProperty =
         //    DependencyProperty.Register("Items", typeof(ObservableCollection<ImageItem>), typeof(ListView), new UIPropertyMetadata(null));
@@ -130,7 +130,7 @@ namespace PixivWPF.Pages
 
         public void UpdateTheme()
         {
-            detailpage.UpdateTheme();
+            detail_page.UpdateTheme();
         }
 
         private void OnlyActiveItems(object sender, FilterEventArgs e)
@@ -226,7 +226,7 @@ namespace PixivWPF.Pages
         {
             InitializeComponent();
 
-            IllustDetail.Content = detailpage;
+            IllustDetail.Content = detail_page;
 
             UpdateTheme();
 
@@ -440,11 +440,6 @@ namespace PixivWPF.Pages
                 ImageTilesWait.Visibility = Visibility.Visible;
                 //var works = await tokens.GetMyFollowingWorksAsync("private");
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                if (root == null || root.ranking_illusts == null)
-                {
-                    tokens = await CommonHelper.ShowLogin();
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
                 ImageTilesWait.Visibility = Visibility.Hidden;
@@ -527,11 +522,6 @@ namespace PixivWPF.Pages
                 else if (uid <= 0) return;
 
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetUserFavoriteWorksAsync(uid, condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                if (root == null)
-                {
-                    tokens = await CommonHelper.ShowLogin();
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetUserFavoriteWorksAsync(uid, condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
                 ImageTilesWait.Visibility = Visibility.Hidden;
@@ -571,11 +561,6 @@ namespace PixivWPF.Pages
                 ImageTilesWait.Visibility = Visibility.Visible;
                 var condition = IsPrivate ? "private" : "public";
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetMyFollowingWorksAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                if (root == null)
-                {
-                    tokens = await CommonHelper.ShowLogin();
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetMyFollowingWorksAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
                 ImageTilesWait.Visibility = Visibility.Hidden;
@@ -614,11 +599,6 @@ namespace PixivWPF.Pages
                 ImageTilesWait.Visibility = Visibility.Visible;
                 var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
                 var root = await tokens.GetRankingAllAsync(condition, page);
-                if (root == null)
-                {
-                    tokens = await CommonHelper.ShowLogin();
-                    root = await tokens.GetRankingAllAsync(condition, page);
-                }
                 nexturl = root.Pagination.Next.ToString() ?? string.Empty;
                 NextURL = nexturl;
                 ImageTilesWait.Visibility = Visibility.Hidden;
@@ -666,13 +646,7 @@ namespace PixivWPF.Pages
             try
             {
                 ImageTilesWait.Visibility = Visibility.Visible;
-                //var works = await tokens.GetMyFollowingWorksAsync("private");
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                if (root == null || root.ranking_illusts == null)
-                {
-                    tokens = await CommonHelper.ShowLogin();
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
                 ImageTilesWait.Visibility = Visibility.Hidden;
@@ -708,7 +682,7 @@ namespace PixivWPF.Pages
 
                 var item = ImageList[idx];
 
-                detailpage.UpdateDetail(item);
+                detail_page.UpdateDetail(item);
 
                 //UpdateDetail(item);
             }
