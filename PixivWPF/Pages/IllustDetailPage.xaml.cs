@@ -96,6 +96,7 @@ namespace PixivWPF.Pages
                     }
                     IllustTags.Foreground = Common.Theme.TextBrush;
                     IllustTags.Text = string.Join(";", html);
+                    IllustTagExpander.Header = "Tags";
                     IllustTagExpander.Visibility = Visibility.Visible;
                 }
                 else IllustTagExpander.Visibility = Visibility.Collapsed;
@@ -158,30 +159,31 @@ namespace PixivWPF.Pages
                 var nprof = UserInfo.profile;
                 var nworks = UserInfo.workspace;
 
-                var Users = await tokens.GetUsersAsync(user.Id.Value);
-                var User = Users[0];
+                //var Users = await tokens.GetUsersAsync(user.Id.Value);
+                //var User = Users[0];
 
-                var url = User.ProfileImageUrls.Px170x170;
-                if (string.IsNullOrEmpty(url))
-                {
-                    if(!string.IsNullOrEmpty(User.ProfileImageUrls.Px50x50))
-                        url = User.ProfileImageUrls.Px50x50;
-                    else if (!string.IsNullOrEmpty(User.ProfileImageUrls.Px16x16))
-                        url = User.ProfileImageUrls.Px16x16;
-                }
+                //var url = User.ProfileImageUrls.Px170x170;
+                //if (string.IsNullOrEmpty(url))
+                //{
+                //    if(!string.IsNullOrEmpty(User.ProfileImageUrls.Px50x50))
+                //        url = User.ProfileImageUrls.Px50x50;
+                //    else if (!string.IsNullOrEmpty(User.ProfileImageUrls.Px16x16))
+                //        url = User.ProfileImageUrls.Px16x16;
+                //}
 
-                Preview.Tag = User;
-                if(nprof.background_image_url is string)
+                Preview.Tag = user;
+
+                if (nprof.background_image_url is string)
                     Preview.Source = await ((string)nprof.background_image_url).LoadImage(tokens);
                 else
-                    Preview.Source = await url.LoadImage(tokens);
+                    Preview.Source = await nuser.GetPreviewUrl().LoadImage(tokens);
 
-                IllustAuthor.Text = User.Name;
-                IllustAuthorIcon.Source = await User.GetAvatarUrl().LoadImage(tokens);
+                IllustAuthor.Text = nuser.Name;
+                IllustAuthorIcon.Source = await nuser.GetAvatarUrl().LoadImage(tokens);
                 IllustTitle.Text = string.Empty;
 
                 FollowAuthor.Visibility = Visibility.Visible;
-                if (User.is_followed == true)
+                if (nuser.is_followed.Value)
                 {
                     FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
                     ActionFollowAuthorRemove.IsEnabled = true;
@@ -195,49 +197,34 @@ namespace PixivWPF.Pages
                 BookmarkIllust.Visibility = Visibility.Collapsed;
                 IllustActions.Visibility = Visibility.Collapsed;
 
-                if (User.Profile.Tags != null)
-                {
-                    var html = new StringBuilder();
-                    //foreach (var tag in User.Tags)
-                    //{
-                    //    html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag_full&word={Uri.EscapeDataString(tag)}\" class=\"tag\">{tag}</a>");
-                    //}
-                    //IllustTags.Foreground = Common.Theme.TextBrush;
-                    //IllustTags.Text = string.Join(";", html);
-                    IllustTagExpander.Visibility = Visibility.Visible;
-                }
-                else IllustTagExpander.Visibility = Visibility.Collapsed;
-
-                if (!string.IsNullOrEmpty(User.Profile.Introduction) && User.Profile.Introduction.Length > 0)
+                if (nuser != null && nprof != null && nworks != null)
                 {
                     StringBuilder desc = new StringBuilder();
                     desc.AppendLine($"Account: {nuser.Account} / [{nuser.Id}] / {nuser.Name} / {nuser.Email}");
-                    desc.AppendLine($"Stat: {User.Stats.Favorites} Favorites / {User.Stats.Following} Following / {User.Stats.Friends} Friends / {User.Stats.Works} Works");
-                    desc.AppendLine($"Stat_: {nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follow_users} Following / {nprof.total_follower} Follower / {nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels / {nprof.total_mypixiv_users} MyPixiv User");
-                    desc.AppendLine($"<hr/");
-                    desc.AppendLine($"Profile: {User.Profile.Gender} / {User.Profile.BirthDate} / {User.Profile.BloodType} / {User.Profile.Location} / {User.Profile.Job}");
-                    desc.AppendLine($"Profile_: {nprof.gender} / {nprof.birth} / {nprof.region} / {nprof.job}");
+                    desc.AppendLine($"Stat: {nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follow_users} Following / {nprof.total_follower} Follower / {nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels / {nprof.total_mypixiv_users} MyPixiv User");
+                    desc.AppendLine($"<hr/>");
+                    desc.AppendLine($"Profile: {nprof.gender} / {nprof.birth} / {nprof.region} / {nprof.job}");
                     desc.AppendLine($"<hr/>");
                     desc.AppendLine($"Contacts: <a href=\"{nprof.twitter_url}\">@{nprof.twitter_account}</a> / {nprof.webpage}");
                     desc.AppendLine($"<hr/>");
 
-                    var imgUrls = User.Profile.Workspace.ImageUrl;
-                    if (User.Profile.Workspace.ImageUrls != null)
-                    {
-                        imgUrls = $"{imgUrls} / {User.Profile.Workspace.ImageUrls.Large} / {User.Profile.Workspace.ImageUrls.Medium} / {User.Profile.Workspace.ImageUrls.Original}";
-                    }
-                    desc.AppendLine($"Workspace Device: {User.Profile.Workspace.Computer} / {User.Profile.Workspace.Monitor} / {User.Profile.Workspace.Tablet} / {User.Profile.Workspace.Mouse} / {User.Profile.Workspace.Printer} / {User.Profile.Workspace.Scanner} / {User.Profile.Workspace.Software}");
-                    desc.AppendLine($"Workspace Environment: {User.Profile.Workspace.Table} / {User.Profile.Workspace.Chair} / {User.Profile.Workspace.Music} / {User.Profile.Workspace.OnTable} / {User.Profile.Workspace.Other}");
                     desc.AppendLine($"Workspace Device_: {nworks.pc} / {nworks.monitor} / {nworks.tablet} / {nworks.mouse} / {nworks.printer} / {nworks.scanner} / {nworks.tool}");
                     desc.AppendLine($"Workspace Environment_: {nworks.desk} / {nworks.chair} / {nworks.desktop} / {nworks.music} / {nworks.comment}");
-                    desc.AppendLine($"Workspace Images: {imgUrls}");
-                    desc.AppendLine($"Workspace Images_: {nworks.workspace_image_url}");
                     desc.AppendLine($"<hr/>");
-                    desc.AppendLine($"{nuser.comment}");
-                    desc.AppendLine($"{User.Profile.Introduction}");
+                    desc.AppendLine($"Workspace Images: {nworks.workspace_image_url}");
 
+                    IllustTags.Foreground = Common.Theme.TextBrush;
+                    IllustTags.Text = string.Join(";", desc);
+                    IllustTagExpander.Header = "User Infomation";
+                    IllustTagExpander.Visibility = Visibility.Visible;
+                }
+                else IllustTagExpander.Visibility = Visibility.Collapsed;
+
+                if (!string.IsNullOrEmpty(nuser.comment) && nuser.comment.Length > 0)
+                {
+                    StringBuilder desc = new StringBuilder();
+                    desc.AppendLine($"{nuser.comment}");
                     IllustDesc.Text = $"<div class=\"desc\">{string.Join("<br></br>\n", desc)}</div>";
-                    //IllustDesc.Text = $"<div class=\"desc\">{User.Profile.Introduction}</div>";
                     IllustDescExpander.Visibility = Visibility.Visible;
                 }
                 else
@@ -357,12 +344,13 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal async void ShowUserWorksInline(Pixeez.Tokens tokens, Pixeez.Objects.User user, string next_url = "")
+        internal async void ShowUserWorksInline(Pixeez.Tokens tokens, Pixeez.Objects.UserBase user, string next_url = "")
         {
             try
             {
                 PreviewWait.Visibility = Visibility.Visible;
 
+                var lastUrl = next_url;
                 var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                 next_url = relatives.next_url ?? string.Empty;
 
@@ -374,6 +362,10 @@ namespace PixivWPF.Pages
                     {
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
                     }
+                    if(next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
+                        RelativeNextPage.Visibility = Visibility.Collapsed;
+                    else RelativeNextPage.Visibility = Visibility.Visible;
+
                     RelativeIllusts.UpdateImageTile(tokens);
                 }
             }
@@ -731,9 +723,9 @@ namespace PixivWPF.Pages
                 var item = Preview.Tag as ImageItem;
                 ShowRelativeInline(tokens, item);
             }
-            else if(Preview.Tag is Pixeez.Objects.User)
+            else if(Preview.Tag is Pixeez.Objects.UserBase)
             {
-                var user = Preview.Tag as Pixeez.Objects.User;
+                var user = Preview.Tag as Pixeez.Objects.UserBase;
                 ShowUserWorksInline(tokens, user);
             }
             RelativeNextPage.Visibility = Visibility.Visible;
@@ -804,9 +796,9 @@ namespace PixivWPF.Pages
                     next_url = RelativeIllustsExpander.Tag as string;
                 ShowRelativeInline(tokens, item, next_url);
             }
-            else if (Preview.Tag is Pixeez.Objects.User)
+            else if (Preview.Tag is Pixeez.Objects.UserBase)
             {
-                var user = Preview.Tag as Pixeez.Objects.User;
+                var user = Preview.Tag as Pixeez.Objects.UserBase;
                 var next_url = string.Empty;
                 if (RelativeIllustsExpander.Tag is string)
                     next_url = RelativeIllustsExpander.Tag as string;

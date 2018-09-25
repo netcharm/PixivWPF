@@ -175,6 +175,43 @@ namespace PixivWPF.Common
             }
         }
 
+        public static string GetThumbnailUrl(this Pixeez.Objects.MetaPages pages)
+        {
+            var url = pages.ImageUrls.Px128x128;
+            if (string.IsNullOrEmpty(url))
+            {
+                if (!string.IsNullOrEmpty(pages.ImageUrls.Small))
+                {
+                    url = pages.ImageUrls.Small;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.SquareMedium))
+                {
+                    url = pages.ImageUrls.SquareMedium;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.Px480mw))
+                {
+                    url = pages.ImageUrls.Px480mw;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.Small))
+                {
+                    url = pages.ImageUrls.Px128x128;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.Medium))
+                {
+                    url = pages.ImageUrls.Medium;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.Large))
+                {
+                    url = pages.ImageUrls.Large;
+                }
+                else if (!string.IsNullOrEmpty(pages.ImageUrls.Original))
+                {
+                    url = pages.ImageUrls.Original;
+                }
+            }
+            return (url);
+        }
+
         public static string GetThumbnailUrl(this Pixeez.Objects.Work Illust)
         {
             var url = Illust.ImageUrls.Px128x128;
@@ -219,43 +256,6 @@ namespace PixivWPF.Common
             return (url);
         }
 
-        public static string GetThumbnailUrl(this Pixeez.Objects.MetaPages pages)
-        {
-            var url = pages.ImageUrls.Px128x128;
-            if (string.IsNullOrEmpty(url))
-            {
-                if (!string.IsNullOrEmpty(pages.ImageUrls.Small))
-                {
-                    url = pages.ImageUrls.Small;
-                }
-                else if (!string.IsNullOrEmpty(pages.ImageUrls.SquareMedium))
-                {
-                    url = pages.ImageUrls.SquareMedium;
-                }
-                else if (!string.IsNullOrEmpty(pages.ImageUrls.Px480mw))
-                {
-                    url = pages.ImageUrls.Px480mw;
-                }
-                else if (!string.IsNullOrEmpty(pages.ImageUrls.Small))
-                {
-                    url = pages.ImageUrls.Px128x128;
-                }
-                else if (!string.IsNullOrEmpty(pages.ImageUrls.Medium))
-                {
-                    url = pages.ImageUrls.Medium;
-                }
-                else if (!string.IsNullOrEmpty(pages.ImageUrls.Large))
-                {
-                    url = pages.ImageUrls.Large;
-                }
-                else if (!string.IsNullOrEmpty(pages.ImageUrls.Original))
-                {
-                    url = pages.ImageUrls.Original;
-                }
-            }
-            return (url);
-        }
-
         public static string GetPreviewUrl(this Pixeez.Objects.Work Illust)
         {
             var url = Illust.ImageUrls.Large;
@@ -296,6 +296,48 @@ namespace PixivWPF.Common
                     url = Illust.ImageUrls.Px128x128;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.Small))
                     url = Illust.ImageUrls.Small;
+            }
+            return (url);
+        }
+
+        public static string GetPreviewUrl(this Pixeez.Objects.NewUser user)
+        {
+            var url = user.profile_image_urls.Large;
+            if (string.IsNullOrEmpty(url))
+            {
+                if (!string.IsNullOrEmpty(user.profile_image_urls.Original))
+                    url = user.profile_image_urls.Original;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Medium))
+                    url = user.profile_image_urls.Medium;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Px480mw))
+                    url = user.profile_image_urls.Px480mw;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.SquareMedium))
+                    url = user.profile_image_urls.SquareMedium;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Px128x128))
+                    url = user.profile_image_urls.Px128x128;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Small))
+                    url = user.profile_image_urls.Small;
+            }
+            return (url);
+        }
+
+        public static string GetThumbnailUrl(this Pixeez.Objects.NewUser user)
+        {
+            var url = user.profile_image_urls.Px128x128;
+            if (string.IsNullOrEmpty(url))
+            {
+                if (!string.IsNullOrEmpty(user.profile_image_urls.SquareMedium))
+                    url = user.profile_image_urls.SquareMedium;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Px480mw))
+                    url = user.profile_image_urls.Px480mw;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Medium))
+                    url = user.profile_image_urls.Medium;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Small))
+                    url = user.profile_image_urls.Small;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Large))
+                    url = user.profile_image_urls.Large;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Original))
+                    url = user.profile_image_urls.Original;
             }
             return (url);
         }
