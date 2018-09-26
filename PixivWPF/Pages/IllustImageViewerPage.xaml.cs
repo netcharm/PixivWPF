@@ -23,6 +23,7 @@ namespace PixivWPF.Pages
     public partial class IllustImageViewerPage : Page
     {
         internal object DataType = null;
+        internal Window window = null;
 
         public async void UpdateDetail(ImageItem item)
         {
@@ -43,33 +44,10 @@ namespace PixivWPF.Pages
                         url = illust.GetOriginalUrl(item.Index);
                         Preview.Source = await url.LoadImage(tokens);
                     }
+                    if (window == null) window = this.GetActiveWindow();
+                    window.Title = $"ID: {item.Subject}";
                 }
-                //if (item.Illust is Pixeez.Objects.IllustWork)
-                //{
-                //    var illust = item.Illust as Pixeez.Objects.IllustWork;
-                //    var url = illust.GetPreviewUrl(item.Index);
 
-                //    var tokens = await CommonHelper.ShowLogin();
-                //    Preview.Source = await url.LoadImage(tokens);
-                //    if (Preview.Source != null && Preview.Source.Width < 450)
-                //    {
-                //        url = illust.GetOriginalUrl(item.Index);
-                //        Preview.Source = await url.LoadImage(tokens);
-                //    }
-                //}
-                //else if (item.Illust is Pixeez.Objects.NormalWork)
-                //{
-                //    var illust = item.Illust as Pixeez.Objects.NormalWork;
-                //    var url = illust.GetPreviewUrl(item.Index);
-
-                //    var tokens = await CommonHelper.ShowLogin();
-                //    Preview.Source = await url.LoadImage(tokens);
-                //    if (Preview.Source != null && Preview.Source.Width < 450)
-                //    {
-                //        url = illust.GetOriginalUrl(item.Index);
-                //        Preview.Source = await url.LoadImage(tokens);
-                //    }
-                //}
                 PreviewWait.Visibility = Visibility.Hidden;
             }
             catch (Exception ex)
@@ -85,6 +63,7 @@ namespace PixivWPF.Pages
         public IllustImageViewerPage()
         {
             InitializeComponent();
+            window = Window.GetWindow(this);
         }
 
         private async void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
@@ -106,11 +85,55 @@ namespace PixivWPF.Pages
                     if (!string.IsNullOrEmpty(url))
                     {
                         //await url.ToImageFile(tokens);
-                        var is_meta_single_page = Illust.PageCount==1 ? true : false;
-                        await url.ToImageFile(tokens, dt, is_meta_single_page);
-                        SystemSounds.Beep.Play();
+                        try
+                        {
+                            var is_meta_single_page = Illust.PageCount==1 ? true : false;
+                            await url.ToImageFile(tokens, dt, is_meta_single_page);
+                            SystemSounds.Beep.Play();
+                        }
+                        catch(Exception ex)
+                        {
+                            ex.Message.ShowMessageBox("ERROR");
+                        }
                     }
                 }
+            }
+        }
+
+        private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            int offset = 0;
+            if (e.Delta < 0)
+                offset = 1;
+            else if (e.Delta > 0)
+                offset = -1;
+
+            if (DataType is ImageItem)
+            {
+                var item = DataType as ImageItem;
+                var illust = item.Illust;
+                int index_p = item.Index;
+                if (index_p < 0) index_p = 0;
+                var index_n = item.Index+offset;
+                if (index_n < 0) index_n = 0;
+                if (index_n >= item.Count - 1) index_n = item.Count - 1;
+                if (index_n == index_p) return;
+
+                var i = new ImageItem()
+                {
+                    NextURL = item.NextURL,
+                    Thumb = illust.GetThumbnailUrl(index_n),
+                    Index = index_n,
+                    Count = illust.PageCount.Value,
+                    BadgeValue = (index_n + 1).ToString(),
+                    ID = illust.Id.ToString(),
+                    UserID = illust.User.Id.ToString(),
+                    Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}",
+                    DisplayTitle = false,
+                    Illust = illust,
+                    Tag = item.Tag
+                };
+                UpdateDetail(i);
             }
         }
     }

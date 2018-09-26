@@ -71,7 +71,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private MetroWindow window = null;// CommonHelper.GetActiveWindow();
+        private Window window = null;
         private IllustDetailPage detail_page = new IllustDetailPage();
 
         //public static readonly DependencyProperty ItemsProperty =
@@ -247,6 +247,8 @@ namespace PixivWPF.Pages
 
         public void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false)
         {
+            if (window == null) window = this.GetActiveWindow();
+
             if (TargetPage != target)
             {
                 NextURL = null;

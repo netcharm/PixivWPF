@@ -37,7 +37,7 @@ namespace PixivWPF.Pages
                 var list = obj as ImageListGrid;
                 foreach (var illust in list.SelectedItems)
                 {
-                    var viewer = new ViewerWindow();
+                    var viewer = new ContentWindow();
                     if(list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var page = new IllustDetailPage();
@@ -58,7 +58,7 @@ namespace PixivWPF.Pages
             }
             else if(obj is ImageItem)
             {
-                var viewer = new ViewerWindow();
+                var viewer = new ContentWindow();
                 var page = new IllustImageViewerPage();
                 var illust = obj as ImageItem;
                 page.UpdateDetail(illust);
@@ -70,7 +70,6 @@ namespace PixivWPF.Pages
                 viewer.Show();
             }
         });
-
 
         public void UpdateTheme()
         {
@@ -500,6 +499,18 @@ namespace PixivWPF.Pages
                 IllustActions.ContextMenu.IsOpen = true;
         }
 
+        private void ActionCopyIllustInfo_Click(object sender, RoutedEventArgs e)
+        {
+            if(sender == ActionCopyIllustTitle)
+            {
+                Clipboard.SetText(IllustTitle.Text);
+            }
+            else if(sender == ActionCopyIllustAuthor)
+            {
+                Clipboard.SetText(IllustAuthor.Text);
+            }
+        }
+
         private async void ActionIllustAuthourInfo_Click(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
@@ -507,7 +518,7 @@ namespace PixivWPF.Pages
 
             if (DataType is ImageItem)
             {
-                var viewer = new ViewerWindow();
+                var viewer = new ContentWindow();
                 var page = new IllustDetailPage();
 
                 var item = DataType as ImageItem;
@@ -900,7 +911,7 @@ namespace PixivWPF.Pages
 
                     var tag  = link.Attributes["data-tag"];
 
-                    var viewer = new ViewerWindow();
+                    var viewer = new ContentWindow();
                     var page = new IllustWithTagPage();
 
                     page.UpdateDetail(tag);
@@ -914,6 +925,7 @@ namespace PixivWPF.Pages
                 }
             }
         }
+
     }
 
 }

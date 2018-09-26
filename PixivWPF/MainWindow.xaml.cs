@@ -178,6 +178,11 @@ namespace PixivWPF
                 SearchBoxCmd.Execute(SearchBox.Text);
             }
         }
+
+        private void CommandSeqrch_Click(object sender, RoutedEventArgs e)
+        {
+            SearchBoxCmd.Execute(SearchBox.Text);
+        }
     }
 
 

@@ -437,9 +437,11 @@ namespace PixivWPF.Common
             return (window);
         }
 
-        public static MetroWindow GetActiveWindow(this System.Windows.Controls.Page page)
+        public static Window GetActiveWindow(this System.Windows.Controls.Page page)
         {
-            return (GetActiveWindow());
+            var window = Window.GetWindow(page);
+            if (window == null) window = GetActiveWindow();
+            return (window);
         }
 
         public static void ShowMessageBox(this string content, string title)

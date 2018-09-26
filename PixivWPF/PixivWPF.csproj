@@ -100,7 +100,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Common\ViewerWindow.xaml">
+    <Page Include="Common\ContentWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -124,8 +124,8 @@
       <DependentUpon>ImageListGrid.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\ImageTileClass.cs" />
-    <Compile Include="Common\ViewerWindow.xaml.cs">
-      <DependentUpon>ViewerWindow.xaml</DependentUpon>
+    <Compile Include="Common\ContentWindow.xaml.cs">
+      <DependentUpon>ContentWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\LoginDialog.xaml.cs">
       <DependentUpon>LoginDialog.xaml</DependentUpon>

@@ -43,8 +43,16 @@
                         </Image.InputBindings>
                         <Image.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click"/>
-                                <MenuItem x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
+                                <MenuItem x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </ContextMenu>
                         </Image.ContextMenu>
                     </Image>
@@ -131,18 +139,50 @@
                                 Foreground="{DynamicResource LabelTextBrush}">
                             <Button.ContextMenu>
                                 <ContextMenu>
+                                    <MenuItem x:Name="ActionCopyIllustTitle" x:Uid="ActionCopyIllustTitle"
+                                          Header="Copy Illust Title" Visibility="Visible" Click="ActionCopyIllustInfo_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem x:Name="ActionCopyIllustAuthor" x:Uid="ActionCopyIllustAuthor" 
+                                          Header="Copy Author Name" Visibility="Visible" Click="ActionCopyIllustInfo_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" 
-                                          Header="Author Info" Visibility="Visible" Click="ActionIllustAuthourInfo_Click"/>
+                                          Header="Author Info" Visibility="Visible" Click="ActionIllustAuthourInfo_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="PeopleProfile" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <Separator />
                                     <MenuItem x:Name="ActionIllustSet" x:Uid="ActionIllustPages" 
-                                          Header="Show Illust Pages" Click="ActionShowIllustPages_Click"/>
+                                          Header="Show Illust Pages" Click="ActionShowIllustPages_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="ImageMultiple" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" 
-                                          Header="Show Relative Illust" Click="ActionShowRelative_Click"/>
+                                          Header="Show Relative Illust" Click="ActionShowRelative_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="ImageGallery" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <Separator />
                                     <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" 
-                                          Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click"/>
+                                          Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <MenuItem x:Name="ActionSaveAllIllust" x:Uid="ActionSaveAllIllust" 
-                                          Header="Save All Illusts" Click="ActionSaveAllIllust_Click"/>
+                                          Header="Save All Illusts" Click="ActionSaveAllIllust_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                 </ContextMenu>
                             </Button.ContextMenu>
                             <iconPacks:PackIconModern Kind="List" 
@@ -198,12 +238,24 @@
                         <Common:ImageListGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem x:Uid="ActionOpenIllust" 
-                                          Header="Open Selected Illust(s)" Click="ActionOpenIllust_Click"/>
+                                          Header="Open Selected Illust(s)" Click="ActionOpenIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <Separator/>
                                 <MenuItem x:Uid="ActionSaveIllust" 
-                                          Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click"/>
+                                          Header="Save Selected Illust(s)" Click="ActionSaveIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem x:Uid="ActionSaveAllIllust" 
-                                          Header="Save All Illusts" Click="ActionSaveAllIllust_Click"/>
+                                          Header="Save All Illusts" Click="ActionSaveAllIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </ContextMenu>
                         </Common:ImageListGrid.ContextMenu>
                     </Common:ImageListGrid>
@@ -239,10 +291,22 @@
                                           KeyUp="RelativeIllusts_KeyUp">
                         <Common:ImageListGrid.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Uid="ActionOpenRelative" Header="Open Selected Illust(s)" Click="ActionOpenRelative_Click"/>
-                                <Separator/>
-                                <MenuItem x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click"/>
-                                <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>
+                                <MenuItem x:Uid="ActionOpenRelative" Header="Open Selected Illust(s)" Click="ActionOpenRelative_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <!--<Separator/>
+                                <MenuItem x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>-->
                             </ContextMenu>
                         </Common:ImageListGrid.ContextMenu>
                     </Common:ImageListGrid>

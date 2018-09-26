@@ -9,14 +9,14 @@
       d:DesignHeight="300" d:DesignWidth="300"
       Title="IllustImageViewerPage">
 
-    <Grid>
+    <Grid MouseWheel="Preview_MouseWheel">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <!-- Illust Preview -->
-        <Viewbox Grid.Row="0" StretchDirection="DownOnly">
+        <Viewbox Grid.Row="0" StretchDirection="DownOnly" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Image x:Name="Preview" x:Uid="Preview" 
                    Stretch="None"
                    HorizontalAlignment="Center" VerticalAlignment="Center">

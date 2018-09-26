@@ -24,7 +24,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class PageLogin : Page
     {
-        private MetroWindow window = null;// CommonHelper.GetActiveWindow();
+        private Window window = null;
         private string AppPath = System.IO.Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString());
         private Setting setting = Setting.Load();
         private Pixeez.Tokens tokens = null;
@@ -80,6 +80,8 @@ namespace PixivWPF.Pages
 
         private async void Login_Click(object sender, RoutedEventArgs e)
         {
+            if(window == null) window = this.GetActiveWindow();
+
             btnLogin.IsEnabled = false;
             btnCancel.IsEnabled = false;
             edUser.IsEnabled = false;

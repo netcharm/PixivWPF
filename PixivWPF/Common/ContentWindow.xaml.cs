@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +18,7 @@ namespace PixivWPF.Common
     /// <summary>
     /// ImageViewerWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class ViewerWindow : Window
+    public partial class ContentWindow : MetroWindow
     {
 
         //public object Content
@@ -26,7 +27,7 @@ namespace PixivWPF.Common
         //    set { ViewerContent.Content = value; }
         //}
 
-        public ViewerWindow()
+        public ContentWindow()
         {
             InitializeComponent();
 

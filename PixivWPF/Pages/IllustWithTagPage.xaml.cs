@@ -29,7 +29,7 @@ namespace PixivWPF.Pages
                 var list = obj as ImageListGrid;
                 foreach (var illust in list.SelectedItems)
                 {
-                    var viewer = new ViewerWindow();
+                    var viewer = new ContentWindow();
                     if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var page = new IllustDetailPage();
@@ -50,7 +50,7 @@ namespace PixivWPF.Pages
             }
             else if (obj is ImageItem)
             {
-                var viewer = new ViewerWindow();
+                var viewer = new ContentWindow();
                 var page = new IllustImageViewerPage();
                 var illust = obj as ImageItem;
                 page.UpdateDetail(illust);
