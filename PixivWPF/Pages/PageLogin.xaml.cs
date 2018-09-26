@@ -24,7 +24,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class PageLogin : Page
     {
-        private MetroWindow window = (Application.Current.MainWindow as MetroWindow);
+        private MetroWindow window = null;// CommonHelper.GetActiveWindow();
         private string AppPath = System.IO.Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString());
         private Setting setting = Setting.Load();
         private Pixeez.Tokens tokens = null;
@@ -50,6 +50,8 @@ namespace PixivWPF.Pages
         public PageLogin()
         {
             InitializeComponent();
+
+            window = this.GetActiveWindow();
 
             Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
             var appTheme = appStyle.Item1;
@@ -136,7 +138,7 @@ namespace PixivWPF.Pages
                 }
                 catch (Exception ex)
                 {
-                    await window.ShowMessageAsync("ERROR", ex.Message);
+                    await ex.Message.ShowMessageBoxAsync("ERROR");
                     CloseWindow();
                 }
             }

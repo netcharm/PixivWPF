@@ -145,6 +145,20 @@ namespace PixivWPF.Common
             SelectionChanged?.Invoke(sender, e);
         }
 
+        public new event KeyUpEventHandler KeyUp;
+        public delegate void KeyUpEventHandler(object sender, KeyEventArgs e);
+        private void PART_ImageTiles_KeyUp(object sender, KeyEventArgs e)
+        {
+            KeyUp?.Invoke(sender, e);
+        }
+
+        public new event MouseWheelEventHandler MouseWheel;
+        public delegate void MouseWheelEventHandler(object sender, MouseWheelEventArgs e);
+        private void PART_ImageTiles_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            MouseWheel?.Invoke(sender, e);
+        }
+
         public ImageListGrid()
         {
             InitializeComponent();
@@ -199,7 +213,6 @@ namespace PixivWPF.Common
         {
             PART_ImageTiles.Items.Refresh();
         }
-
 
     }
 

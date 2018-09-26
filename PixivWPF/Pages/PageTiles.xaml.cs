@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -70,7 +71,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private MetroWindow window = Application.Current.MainWindow as MetroWindow;
+        private MetroWindow window = null;// CommonHelper.GetActiveWindow();
         private IllustDetailPage detail_page = new IllustDetailPage();
 
         //public static readonly DependencyProperty ItemsProperty =
@@ -169,6 +170,7 @@ namespace PixivWPF.Pages
                                         if (item.Source == null)
                                         {
                                             //item.Source = await item.Thumb.ToImageSource(tokens);
+                                            if(item.Illust.PageCount<=1) item.BadgeValue = null;
                                             item.Source = await item.Thumb.LoadImage(tokens);
                                             ListImageTiles.Items.Refresh();
                                         }
@@ -226,6 +228,8 @@ namespace PixivWPF.Pages
         {
             InitializeComponent();
 
+            window = this.GetActiveWindow();
+
             IllustDetail.Content = detail_page;
 
             UpdateTheme();
@@ -233,100 +237,12 @@ namespace PixivWPF.Pages
             ImageList.Clear();
             ListImageTiles.ItemsSource = ImageList;
 
-
             //AutoNextEvent = new AutoResetEvent(false);
             //AutoNextChecker = new AutoNextStatusChecker(maxCount);
             //TimerCheck = CheckStatus;
             //AutoNextTimer = new Timer(TimerCheck, AutoNextEvent, 2000, 100);
 
             ShowImages();
-        }
-
-        public void ShowImages(PixivPage target, string page)
-        {
-            if (TargetPage != target)
-            {
-                NextURL = null;
-                ListImageTiles.Items.Refresh();
-                TargetPage = target;
-            }
-
-            //if(ListImageTiles.SelectionMode == SelectionMode.Single)
-            //    ListImageTiles.SelectedItem = null;
-            //else
-            //    ListImageTiles.SelectedItems.Clear();
-            ListImageTiles.SelectedIndex = -1;
-            ImageList.Clear();
-
-            switch (target)
-            {
-                case PixivPage.None:
-                    break;
-                case PixivPage.Recommanded:
-                    ShowRecommanded(NextURL);
-                    break;
-                case PixivPage.Latest:
-                    ShowLatest(NextURL);
-                    break;
-                case PixivPage.Favorite:
-                    ShowFavorite(NextURL, 0);
-                    break;
-                case PixivPage.FavoritePrivate:
-                    ShowFavorite(NextURL, 0, true);
-                    break;
-                case PixivPage.Follow:
-                    ShowFollowing(NextURL);
-                    break;
-                case PixivPage.FollowPrivate:
-                    ShowFollowing(NextURL, true);
-                    break;
-                case PixivPage.My:
-                    break;
-                case PixivPage.MyWork:
-                    break;
-                case PixivPage.User:
-                    break;
-                case PixivPage.UserWork:
-                    break;
-                case PixivPage.MyBookmark:
-                    break;
-                case PixivPage.RankingDay:
-                    ShowRanking(NextURL, "day");
-                    break;
-                case PixivPage.RankingDayMale:
-                    ShowRanking(NextURL, "day_male");
-                    break;
-                case PixivPage.RankingDayFemale:
-                    ShowRanking(NextURL, "day_female");
-                    break;
-                case PixivPage.RankingDayR18:
-                    ShowRanking(NextURL, "day_r18");
-                    break;
-                case PixivPage.RankingDayMaleR18:
-                    ShowRanking(NextURL, "day_male_r18");
-                    break;
-                case PixivPage.RankingDayFemaleR18:
-                    ShowRanking(NextURL, "day_female_r18");
-                    break;
-                case PixivPage.RankingWeek:
-                    ShowRanking(NextURL, "week");
-                    break;
-                case PixivPage.RankingWeekOriginal:
-                    ShowRanking(NextURL, "week_original");
-                    break;
-                case PixivPage.RankingWeekRookie:
-                    ShowRanking(NextURL, "week_rookie");
-                    break;
-                case PixivPage.RankingWeekR18:
-                    ShowRanking(NextURL, "week_r18");
-                    break;
-                case PixivPage.RankingWeekR18G:
-                    ShowRanking(NextURL, "week_r18g");
-                    break;
-                case PixivPage.RankingMonth:
-                    ShowRanking(NextURL, "month");
-                    break;
-            }
         }
 
         public void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false)
@@ -364,6 +280,9 @@ namespace PixivWPF.Pages
                     break;
                 case PixivPage.Latest:
                     ShowLatest(NextURL);
+                    break;
+                case PixivPage.TrendingTags:
+                    ShowTrendingTags(NextURL);
                     break;
                 case PixivPage.Favorite:
                     ShowFavorite(NextURL, 0);
@@ -458,6 +377,8 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                setting.AccessToken = string.Empty;
+                setting.Update = 0;
                 ex.Message.ShowMessageBox("ERROR");
             }
             finally
@@ -497,6 +418,44 @@ namespace PixivWPF.Pages
                 }
             }
             catch(Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            finally
+            {
+                ImageTilesWait.Visibility = Visibility.Hidden;
+            }
+        }
+
+        public async void ShowTrendingTags(string nexturl = null)
+        {
+            ImageTilesWait.Visibility = Visibility.Visible;
+            var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Visibility = Visibility.Hidden;
+            if (tokens == null) return;
+
+            try
+            {
+                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
+
+                ImageTilesWait.Visibility = Visibility.Visible;
+                var root = await tokens.GetTrendingTagsIllustAsync();
+                nexturl = string.Empty;
+                NextURL = nexturl;
+                ImageTilesWait.Visibility = Visibility.Hidden;
+
+                if (root != null)
+                {
+                    ImageTilesWait.Visibility = Visibility.Visible;
+                    foreach (var tag in root.tags)
+                    {
+                        tag.illust.AddTo(ImageList, nexturl);
+                    }
+                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    UpdateImageTiles(tokens);
+                }
+            }
+            catch (Exception ex)
             {
                 ex.Message.ShowMessageBox("ERROR");
             }
@@ -692,6 +651,44 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void ListImageTiles_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                if (ListImageTiles.SelectedItem != null)
+                {
+
+                }
+            }
+        }
+
+        private void ListImageTiles_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+
+        }
+
+        private void ListImageTiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            //var originalSource = (DependencyObject)e.OriginalSource;
+            //while ((originalSource != null) && !(originalSource is ListViewItem)) originalSource = VisualTreeHelper.GetParent(originalSource);
+            //if (originalSource == null) return;
+
+            FrameworkElement originalSource = e.OriginalSource as FrameworkElement;
+            FrameworkElement source = e.Source as FrameworkElement;
+
+            if(originalSource.Name.Equals("Arrow", StringComparison.CurrentCultureIgnoreCase))
+            {
+                ShowImages(TargetPage, true);
+            }
+            else if(source == ListImageTiles)
+            {
+                ShowImages(TargetPage, true);
+            }
+            //if (originalSource.DataContext != source.DataContext)
+            //{
+            //    ShowImages(TargetPage, true);
+            //}
+        }
     }
 
 

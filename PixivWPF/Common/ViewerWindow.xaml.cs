@@ -30,6 +30,9 @@ namespace PixivWPF.Common
         {
             InitializeComponent();
 
+            ShowActivated = true;
+
+            Activate();
         }
 
         private void Window_KeyUp(object sender, KeyEventArgs e)

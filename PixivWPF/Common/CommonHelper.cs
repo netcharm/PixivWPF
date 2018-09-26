@@ -20,6 +20,7 @@ namespace PixivWPF.Common
     public enum PixivPage
     {
         None,
+        TrendingTags,
         WorkSet,
         Recommanded,
         Latest,
@@ -91,7 +92,7 @@ namespace PixivWPF.Common
                 }
                 catch (Exception ex)
                 {
-                    //if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass))
+                    if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass))
                     {
                         var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
                         setting.AccessToken = authResult.Authorize.AccessToken;
@@ -107,8 +108,6 @@ namespace PixivWPF.Common
         public static async Task<Pixeez.Tokens> ShowLogin()
         {
             Pixeez.Tokens result = null;
-            //var accesstoken = setting.AccessToken;
-            //var refreshtoken = setting.RefreshToken;
             try
             {
                 if (Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 3600)
@@ -144,8 +143,7 @@ namespace PixivWPF.Common
             }
             catch(Exception ex)
             {
-                MetroWindow window = Application.Current.MainWindow as MetroWindow;
-                await window.ShowMessageAsync("ERROR", ex.Message);
+                await ex.Message.ShowMessageBoxAsync("ERROR");
             }
             return (result);
         }
@@ -432,14 +430,37 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static MetroWindow GetActiveWindow()
+        {
+            MetroWindow window = Application.Current.Windows.OfType<MetroWindow>().SingleOrDefault(x => x.IsActive);
+            if (window == null) window = Application.Current.MainWindow as MetroWindow;
+            return (window);
+        }
+
+        public static MetroWindow GetActiveWindow(this System.Windows.Controls.Page page)
+        {
+            return (GetActiveWindow());
+        }
+
         public static void ShowMessageBox(this string content, string title)
         {
             ShowMessageDialog(title, content);
         }
 
+        public static async Task ShowMessageBoxAsync(this string content, string title)
+        {
+            await ShowMessageDialogAsync(title, content);
+        }
+
         public static async void ShowMessageDialog(string title, string content)
         {
-            MetroWindow window = Application.Current.MainWindow as MetroWindow;
+            MetroWindow window = GetActiveWindow();
+            await window.ShowMessageAsync(title, content);
+        }
+
+        public static async Task ShowMessageDialogAsync(string title, string content)
+        {
+            MetroWindow window = GetActiveWindow();
             await window.ShowMessageAsync(title, content);
         }
 
@@ -452,7 +473,7 @@ namespace PixivWPF.Common
                 AnimateHide = false
             };
 
-            MetroWindow window = Application.Current.MainWindow as MetroWindow;
+            MetroWindow window = GetActiveWindow();
 
             var controller = await window.ShowProgressAsync("Please wait...", "We are baking some cupcakes!", settings: mySettings);
             controller.SetIndeterminate();
@@ -480,6 +501,7 @@ namespace PixivWPF.Common
 
             if (controller.IsCanceled)
             {
+
                 await window.ShowMessageAsync("No cupcakes!", "You stopped baking!");
             }
             else
@@ -489,7 +511,17 @@ namespace PixivWPF.Common
         }
     }
 
-
+    public static class ExtensionMethods
+    {
+        public static DependencyObject GetVisualChildFromTreePath(this DependencyObject dpo, int[] path)
+        {
+            if (path.Length == 0) return dpo;
+            if (VisualTreeHelper.GetChildrenCount(dpo) == 0) return (dpo);
+            List<int> newPath = new List<int>(path);
+            newPath.RemoveAt(0);
+            return VisualTreeHelper.GetChild(dpo, path[0]).GetVisualChildFromTreePath(newPath.ToArray());
+        }
+    }
 
 
 }

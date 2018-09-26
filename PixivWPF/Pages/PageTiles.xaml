@@ -35,10 +35,16 @@
                             </PriorityBinding>
                         </Image.Source>-->
                     </Image>
-                    <mah:Badged Grid.Row="0" Badge="{Binding Count, Mode=OneWay}" BadgePlacementMode="TopRight" Margin="0,16,16,0"
-                            FontSize="16" FontFamily="Consolas" Visibility="{Binding BadgeVisibility, Mode=OneWay}"
-                            BadgeBackground="{DynamicResource AccentColorBrush}" />
-                    <TextBlock Grid.Row="1" Text="{Binding Subject, Mode=OneWay}" Foreground="{DynamicResource LabelTextBrush}" Visibility="{Binding TitleVisibility, Mode=OneWay}"/>
+                    <mah:Badged Grid.Row="0" 
+                                Badge="{Binding BadgeValue, Mode=OneWay}" 
+                                BadgePlacementMode="TopRight" Margin="0,16,16,0"
+                                FontSize="16" FontFamily="Consolas" 
+                                Visibility="{Binding BadgeVisibility, Mode=OneWay}"
+                                BadgeBackground="{DynamicResource AccentColorBrush}" />
+                    <TextBlock Grid.Row="1" 
+                               Text="{Binding Subject, Mode=OneWay}" 
+                               Foreground="{DynamicResource LabelTextBrush}" 
+                               Visibility="{Binding TitleVisibility, Mode=OneWay}"/>
                 </Grid>
             </StackPanel>
         </DataTemplate>
@@ -72,7 +78,9 @@
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.CacheLength ="500"
                   HorizontalAlignment="Center" VerticalAlignment="Top"
-                  mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
+                  mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
+                      MouseDoubleClick="ListImageTiles_MouseDoubleClick"
+                      MouseWheel="ListImageTiles_MouseWheel" KeyUp="ListImageTiles_KeyUp">
                 <ListView.CacheMode>
                     <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
                 </ListView.CacheMode>

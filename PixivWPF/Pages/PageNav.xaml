@@ -31,6 +31,11 @@
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Latest" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoTrendingTags" x:Uid="btnGotoTrendingTags" Margin="0,1,0,0"
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="Trending Tags" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,2"/>
 

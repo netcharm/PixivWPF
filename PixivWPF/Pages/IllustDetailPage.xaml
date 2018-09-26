@@ -36,8 +36,14 @@
                     <Image x:Name="Preview" x:Uid="Preview" 
                    Stretch="None"
                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image.InputBindings>
+                            <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding x:MouseDoubleClickCommand}"/>
+                            <!--<MouseBinding MouseAction="LeftDoubleClick" 
+                                          Command="{Binding DataContext.MouseDoubleClickCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>-->
+                        </Image.InputBindings>
                         <Image.ContextMenu>
                             <ContextMenu>
+                                <MenuItem x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click"/>
                                 <MenuItem x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
                             </ContextMenu>
                         </Image.ContextMenu>
@@ -158,10 +164,12 @@
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Stretch" Visibility="Hidden"/>-->
                         <wpf:HtmlPanel Grid.Column="1" x:Name="IllustTags" x:Uid="IllustTags" 
-                                   Margin="8,0,0,0" MinHeight="48"
-                                   Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
-                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                                   HorizontalContentAlignment="Left" VerticalContentAlignment="Top"/>
+                                       Margin="8,0,0,0" MinHeight="48"
+                                       AvoidImagesLateLoading="True"
+                                       Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
+                                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                                       HorizontalContentAlignment="Left" VerticalContentAlignment="Top" 
+                                       LinkClicked="IllustTags_LinkClicked" />
                     </Grid>
                 </Expander>
 
@@ -180,10 +188,13 @@
                           Visibility="Collapsed" Header="Illust Sets Gallery"
                           Expanded="SubIllustsExpander_Expanded">
                     <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
-                                      Columns="5" TileWidth="128" TileHeight="128" 
-                                      SelectionMode="Extended" 
-                                      BadgeVisibility="Visible" TitleVisibility="Collapsed"
-                                      SelectionChanged="SubIllusts_SelectionChanged" MouseDoubleClick="SubIllusts_MouseDoubleClick">
+                                          Columns="5" TileWidth="128" TileHeight="128" 
+                                          SelectionMode="Extended" 
+                                          BadgeVisibility="Visible" TitleVisibility="Collapsed"
+                                          SelectionChanged="SubIllusts_SelectionChanged" 
+                                          MouseDoubleClick="SubIllusts_MouseDoubleClick" 
+                                          MouseWheel="SubIllusts_MouseWheel" 
+                                          KeyUp="SubIllusts_KeyUp">
                         <Common:ImageListGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem x:Uid="ActionOpenIllust" 
@@ -220,9 +231,12 @@
                           Visibility="Collapsed" Header="Relative Illust Gallery"
                           Expanded="RelativeIllustsExpander_Expanded">
                     <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="RelativeIllusts"
-                                      Columns="5" TileWidth="128" TileHeight="128"
-                                      SelectionMode="Extended"
-                                      SelectionChanged="RelativeIllusts_SelectionChanged" MouseDoubleClick="RelativeIllusts_MouseDoubleClick">
+                                          Columns="5" TileWidth="128" TileHeight="128"
+                                          SelectionMode="Extended"
+                                          SelectionChanged="RelativeIllusts_SelectionChanged" 
+                                          MouseDoubleClick="RelativeIllusts_MouseDoubleClick" 
+                                          MouseWheel="RelativeIllusts_MouseWheel" 
+                                          KeyUp="RelativeIllusts_KeyUp">
                         <Common:ImageListGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem x:Uid="ActionOpenRelative" Header="Open Selected Illust(s)" Click="ActionOpenRelative_Click"/>

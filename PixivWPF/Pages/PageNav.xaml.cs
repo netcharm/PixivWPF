@@ -34,7 +34,7 @@ namespace PixivWPF.Pages
         internal void CheckPage()
         {
             ToggleButton[] btns = new ToggleButton[] {
-                btnGotoRecommended, btnGotoLatest,
+                btnGotoRecommended, btnGotoLatest, btnGotoTrendingTags,
                 btnGotoFollowing, btnGotoFollowingPrivate,
                 btnGotoFavorite, btnGotoFavoritePrivate,
                 btnGotoRankingDay, btnGotoRankingDayMale, btnGotoRankingDayFemale, btnGotoRankingDayR18, btnGotoRankingDayMaleR18, btnGotoRankingDayFemaleR18,
@@ -43,9 +43,14 @@ namespace PixivWPF.Pages
             };
 
             var sender = btnGotoRecommended;
+
             if (page == PixivPage.Latest)
             {
                 sender = btnGotoLatest;
+            }
+            else if (page == PixivPage.TrendingTags)
+            {
+                sender = btnGotoTrendingTags;
             }
             else if (page == PixivPage.Follow)
             {
@@ -176,6 +181,10 @@ namespace PixivWPF.Pages
             {
                 page = PixivPage.Latest;
             }
+            else if (sender == btnGotoTrendingTags)
+            {
+                page = PixivPage.TrendingTags;
+            }
             else if (sender == btnGotoFollowing)
             {
                 page = PixivPage.Follow;
@@ -260,11 +269,7 @@ namespace PixivWPF.Pages
             if (this.Tag is PageTiles) targetPage = this.Tag as PageTiles;
             else return;
 
-            if (sender == btnGotoPrevPage)
-            {
-                targetPage.ShowImages(page, "prev");
-            }
-            else if(sender == btnGotoNextPage)
+            if(sender == btnGotoNextPage)
             {
                 //targetPage.ShowImages(page, "next");
                 targetPage.ShowImages(page, true);

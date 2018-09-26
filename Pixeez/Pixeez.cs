@@ -580,7 +580,12 @@ namespace Pixeez
 
         public async Task AddFavouriteUser(long user_id, string publicity = "public")
         {
-            await SendRequestAsync(MethodType.POST, "https://public-api.secure.pixiv.net/v1/me/favorite-users.json", new Dictionary<string, string> { { "target_user_id", user_id.ToString() }, { "publicity", publicity } });
+            using (var res = await SendRequestAsync(MethodType.POST, "https://public-api.secure.pixiv.net/v1/me/favorite-users.json", new Dictionary<string, string> { { "target_user_id", user_id.ToString() }, { "publicity", publicity } }))
+            {
+                var code = res.Source.EnsureSuccessStatusCode();
+                var result = await res.GetResponseStringAsync();
+
+            }
         }
 
         /// <summary>
@@ -591,7 +596,11 @@ namespace Pixeez
         /// <returns></returns>
         public async Task DeleteFavouriteUser(string user_id, string publicity = "public")
         {
-            await SendRequestAsync(MethodType.DELETE, "https://public-api.secure.pixiv.net/v1/me/favorite-users.json", new Dictionary<string, string> { { "delete_ids", user_id.ToString() }, { "publicity", publicity } });
+            using (var res = await SendRequestAsync(MethodType.DELETE, "https://public-api.secure.pixiv.net/v1/me/favorite-users.json", new Dictionary<string, string> { { "delete_ids", user_id.ToString() }, { "publicity", publicity } }))
+            {
+                var code = res.Source.EnsureSuccessStatusCode();
+                var result = await res.GetResponseStringAsync();
+            }
         }
 
         /// <summary>
@@ -654,7 +663,8 @@ namespace Pixeez
             var param = new Dictionary<string, string>
             {
                 { "profile_image_sizes", "px_170x170,px_50x50" },
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" },
+                //{ "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" },
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
                 { "include_stats", "true" },
             };
 
@@ -754,7 +764,7 @@ namespace Pixeez
 
             using (var res = await this.SendRequestWithoutAuthAsync(MethodType.POST, url, param: param, needauth: true))
             {
-                res.Source.EnsureSuccessStatusCode();
+                var code = res.Source.EnsureSuccessStatusCode();
             }
         }
 
@@ -1092,5 +1102,21 @@ namespace Pixeez
             //return await this.AccessApiAsync<Paginated<IllustWork>>(MethodType.GET, url, param);
         }
 
+        /// <summary>
+        /// Search Trending Tags Illust
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <param name="req_auth"></param>
+        /// <returns></returns>
+        public async Task<TrendingTags> GetTrendingTagsIllustAsync(string filter = "for_ios", bool req_auth = true)
+        {
+            var url = "https://app-api.pixiv.net/v1/trending-tags/illust";
+
+            var param = new Dictionary<string, string>
+            {
+                {"filter",filter }
+            };
+            return await this.AccessNewApiAsync<TrendingTags>(url, req_auth, param);
+        }
     }
 }

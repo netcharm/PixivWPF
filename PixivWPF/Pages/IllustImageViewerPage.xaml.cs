@@ -22,6 +22,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class IllustImageViewerPage : Page
     {
+        internal object DataType = null;
 
         public async void UpdateDetail(ImageItem item)
         {
@@ -29,20 +30,46 @@ namespace PixivWPF.Pages
             {
                 PreviewWait.Visibility = Visibility.Visible;
 
-                Preview.Tag = item;
-                if(item.Illust is Pixeez.Objects.IllustWork)
+                DataType = item;
+                if (item.Illust is Pixeez.Objects.Work)
                 {
-                    var illust = item.Illust as Pixeez.Objects.IllustWork;
-                    var url = illust.GetPreviewUrl(item.Count-1);
+                    var illust = item.Illust as Pixeez.Objects.Work;
+                    var url = illust.GetPreviewUrl(item.Index);
 
                     var tokens = await CommonHelper.ShowLogin();
                     Preview.Source = await url.LoadImage(tokens);
                     if (Preview.Source != null && Preview.Source.Width < 450)
                     {
-                        url = illust.GetOriginalUrl();
+                        url = illust.GetOriginalUrl(item.Index);
                         Preview.Source = await url.LoadImage(tokens);
                     }
                 }
+                //if (item.Illust is Pixeez.Objects.IllustWork)
+                //{
+                //    var illust = item.Illust as Pixeez.Objects.IllustWork;
+                //    var url = illust.GetPreviewUrl(item.Index);
+
+                //    var tokens = await CommonHelper.ShowLogin();
+                //    Preview.Source = await url.LoadImage(tokens);
+                //    if (Preview.Source != null && Preview.Source.Width < 450)
+                //    {
+                //        url = illust.GetOriginalUrl(item.Index);
+                //        Preview.Source = await url.LoadImage(tokens);
+                //    }
+                //}
+                //else if (item.Illust is Pixeez.Objects.NormalWork)
+                //{
+                //    var illust = item.Illust as Pixeez.Objects.NormalWork;
+                //    var url = illust.GetPreviewUrl(item.Index);
+
+                //    var tokens = await CommonHelper.ShowLogin();
+                //    Preview.Source = await url.LoadImage(tokens);
+                //    if (Preview.Source != null && Preview.Source.Width < 450)
+                //    {
+                //        url = illust.GetOriginalUrl(item.Index);
+                //        Preview.Source = await url.LoadImage(tokens);
+                //    }
+                //}
                 PreviewWait.Visibility = Visibility.Hidden;
             }
             catch (Exception ex)
@@ -65,33 +92,16 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (Preview.Tag is ImageItem)
+            if (DataType is ImageItem)
             {
-                var item = Preview.Tag as ImageItem;
+                var item = DataType as ImageItem;
                 if (item.Illust is Pixeez.Objects.Work)
                 {
 
                     var Illust = item.Illust;
                     var idx = item.Count-1;
-                    var url = Illust.GetOriginalUrl();
-
-                    var dt = DateTime.Now;
-
-                    if (Illust is Pixeez.Objects.IllustWork)
-                    {
-                        var illust = Illust as Pixeez.Objects.IllustWork;
-                        url = illust.GetOriginalUrl(idx);
-                        dt = illust.CreatedTime;
-                    }
-                    else if (Illust is Pixeez.Objects.NormalWork)
-                    {
-                        var illust = Illust as Pixeez.Objects.NormalWork;
-                        dt = illust.CreatedTime.UtcDateTime;
-                    }
-                    else if (!string.IsNullOrEmpty(Illust.ReuploadedTime))
-                    {
-                        dt = DateTime.Parse(Illust.ReuploadedTime);
-                    }
+                    var url = Illust.GetOriginalUrl(idx);
+                    var dt = Illust.GetDateTime();
 
                     if (!string.IsNullOrEmpty(url))
                     {
