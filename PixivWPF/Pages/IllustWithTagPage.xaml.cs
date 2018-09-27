@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,7 +35,10 @@ namespace PixivWPF.Pages
                     {
                         var page = new IllustDetailPage();
                         viewer.Content = page;
-                        page.UpdateDetail(illust);
+                        if(illust.Tag is Pixeez.Objects.User)
+                            page.UpdateDetail(illust.Tag as Pixeez.Objects.User);
+                        else
+                            page.UpdateDetail(illust);
                     }
                     else
                     {
@@ -71,25 +75,84 @@ namespace PixivWPF.Pages
         }
 
         #region Relative Panel related routines
-        internal async void ShowRelativeInline(Pixeez.Tokens tokens, string tag, string next_url = "")
+        internal async void ShowRelativeInline(Pixeez.Tokens tokens, string content, string next_url = "")
         {
             try
             {
                 PreviewWait.Visibility = Visibility.Visible;
 
-                var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(tag) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                next_url = relatives.next_url ?? string.Empty;
-
                 RelativeIllusts.Items.Clear();
-                if (relatives.illusts is Array)
+                if (content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    RelativeIllustsExpander.Tag = next_url;
-                    foreach (var illust in relatives.illusts)
+                    var query = Regex.Replace(content, @"^UserId: .*?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
+                    var relatives = await tokens.GetUsersAsync(Convert.ToInt64(query));
+
+                    if (relatives is List<Pixeez.Objects.User>)
                     {
-                        illust.AddTo(RelativeIllusts.Items, relatives.next_url);
+                        foreach (var user in relatives)
+                        {
+                            user.AddTo(RelativeIllusts.Items);
+                        }
                     }
-                    RelativeIllusts.UpdateImageTile(tokens);
                 }
+                else if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var query = Regex.Replace(content, @"^IllustID: *?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
+                    var relatives = await tokens.GetWorksAsync(Convert.ToInt64(query));
+                    next_url = string.Empty;
+
+                    if (relatives is List<Pixeez.Objects.NormalWork>)
+                    {
+                        foreach(var illust in relatives)
+                        {
+                            illust.AddTo(RelativeIllusts.Items, next_url);
+                        }
+                    }
+                }
+                else if (content.StartsWith("Illust:", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var query = Regex.Replace(content, @"^Illust:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
+                    var relatives = await tokens.SearchWorksAsync(query);
+
+                    if (relatives is Pixeez.Objects.Paginated<Pixeez.Objects.NormalWork>)
+                    {
+                        foreach (var illust in relatives)
+                        {
+                            illust.AddTo(RelativeIllusts.Items, next_url);
+                        }
+                    }
+                }
+                else if (content.StartsWith("Tag:", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var query = Regex.Replace(content, @"^Tag:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
+                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                    next_url = relatives.next_url ?? string.Empty;
+
+                    if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
+                    {
+                        RelativeIllustsExpander.Tag = next_url;
+                        foreach (var illust in relatives.illusts)
+                        {
+                            illust.AddTo(RelativeIllusts.Items, relatives.next_url);
+                        }
+                    }
+                }
+                else if (content.StartsWith("Caption:", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var query = Regex.Replace(content, @"^Caption:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
+                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "title_and_caption") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                    next_url = relatives.next_url ?? string.Empty;
+
+                    if (relatives is Pixeez.Objects.Illusts &&  relatives.illusts is Array)
+                    {
+                        RelativeIllustsExpander.Tag = next_url;
+                        foreach (var illust in relatives.illusts)
+                        {
+                            illust.AddTo(RelativeIllusts.Items, relatives.next_url);
+                        }
+                    }
+                }
+                RelativeIllusts.UpdateImageTile(tokens);
             }
             catch (Exception ex)
             {

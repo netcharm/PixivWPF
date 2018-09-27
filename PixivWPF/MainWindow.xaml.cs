@@ -3,8 +3,10 @@ using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -35,24 +37,29 @@ namespace PixivWPF
             {
                 return this.searchBoxCmd ?? (this.searchBoxCmd = new SimpleCommand
                 {
-                    CanExecuteDelegate = x => true, ExecuteDelegate = async x =>
+                    CanExecuteDelegate = x => true, ExecuteDelegate = x =>
                     {
-                        if (x is string)
-                        {
-                            await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("Wow, you typed Return and got", (string)x);
-                        }
-                        else if (x is TextBox)
-                        {
-                            await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("TextBox Button was clicked!", string.Format("Text: {0}", ((TextBox)x).Text));
-                        }
-                        else if (x is PasswordBox)
-                        {
-                            await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("PasswordBox Button was clicked!", string.Format("Password: {0}", ((PasswordBox)x).Password));
-                        }
+                        var content = (string)x;
+
+                        var viewer = new ContentWindow();
+                        var page = new Pages.IllustWithTagPage();
+                        page.UpdateDetail(content);
+                        viewer.Title = $"Search Keyword \"{content}\" Results";
+                        viewer.Width = 720;
+                        viewer.Height = 800;
+                        viewer.Content = page;
+                        viewer.Show();
                     }
                 });
             }
         }
+
+        private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {"a", "b" };
+        public ObservableCollection<string> AutoSuggestList
+        {
+            get { return (auto_suggest_list); }
+        }
+
 
         public void UpdateTheme()
         {
@@ -63,6 +70,8 @@ namespace PixivWPF
         public MainWindow()
         {
             InitializeComponent();
+
+            SearchBox.ItemsSource = AutoSuggestList;
 
             MainContent = ContentFrame;
 
@@ -108,7 +117,11 @@ namespace PixivWPF
 #else
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win == this) continue;
+                win.Close();
+            }
         }
 #endif
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
@@ -168,6 +181,15 @@ namespace PixivWPF
         {
             if (e.Text.Length > 0)
             {
+                auto_suggest_list.Clear();
+                if (Regex.IsMatch(e.Text, @"\d+", RegexOptions.IgnoreCase))
+                {
+                    auto_suggest_list.Add($"UserID: {e.Text}");
+                    auto_suggest_list.Add($"IllustID: {e.Text}");
+                }
+                auto_suggest_list.Add($"Tag: {e.Text}");
+                auto_suggest_list.Add($"Caption: {e.Text}");
+                SearchBox.Items.Refresh();
             }
         }
 
@@ -182,6 +204,40 @@ namespace PixivWPF
         private void CommandSeqrch_Click(object sender, RoutedEventArgs e)
         {
             SearchBoxCmd.Execute(SearchBox.Text);
+        }
+
+        private void SearchBox_TextChanged(object sender, RoutedEventArgs e)
+        {
+            if (SearchBox.Text.Length > 0)
+            {
+                var content = SearchBox.Text;
+                auto_suggest_list.Clear();
+                if (Regex.IsMatch(content, @"^\d+$", RegexOptions.IgnoreCase))
+                {
+                    auto_suggest_list.Add($"UserID: {content}");
+                    auto_suggest_list.Add($"IllustID: {content}");
+                }
+                auto_suggest_list.Add($"Illust: {content}");
+                auto_suggest_list.Add($"Tag: {content}");
+                auto_suggest_list.Add($"Caption: {content}");
+                SearchBox.Items.Refresh();
+                SearchBox.IsDropDownOpen = true;
+                e.Handled = true;
+            }
+        }
+
+        private void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var items = e.AddedItems;
+            if (items.Count > 0)
+            {
+                var item = items[0];
+                if (item is string)
+                {
+                    var content = (string)item;
+                    SearchBoxCmd.Execute(content);
+                }
+            }
         }
     }
 

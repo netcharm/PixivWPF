@@ -74,6 +74,7 @@ namespace PixivWPF.Common
             foreach(var illust in illusts)
             {
                 Illust = illust;
+                break;
             }
         }
     }
@@ -182,6 +183,36 @@ namespace PixivWPF.Common
                             DisplayTitle = false,
                             Illust = illust,
                             Tag = page
+                        };
+                        Colloection.Add(i);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+        }
+
+        public static void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Colloection)
+        {
+            try
+            {
+                if (user is Pixeez.Objects.User && Colloection is IList<ImageItem>)
+                {
+                    var url = user.GetAvatarUrl();
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        var i = new ImageItem()
+                        {
+                            Thumb = url,
+                            BadgeValue = user.Stats.Works.Value.ToString(),
+                            ID = user.Id.ToString(),
+                            UserID = user.Id.ToString(),
+                            Subject = $"{user.Name} - {user.Profile.Contacts.Twitter}",
+                            DisplayTitle = true,
+                            Illust = null,
+                            Tag = user
                         };
                         Colloection.Add(i);
                     }

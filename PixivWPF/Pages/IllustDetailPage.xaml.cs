@@ -175,7 +175,8 @@ namespace PixivWPF.Pages
                     System.Threading.Thread.Sleep(250);
                     SubIllustsExpander.IsExpanded = true;
                 }
-                else if (item.Illust is Pixeez.Objects.NormalWork && item.Illust.Metadata != null && item.Illust.PageCount > 1)
+                //else if (item.Illust is Pixeez.Objects.NormalWork && item.Illust.Metadata != null && item.Illust.PageCount > 1)
+                else if (item.Illust is Pixeez.Objects.NormalWork && item.Illust.PageCount > 1)
                 {
                     PreviewBadge.Visibility = Visibility.Visible;
                     SubIllustsExpander.Visibility = Visibility.Visible;
@@ -316,7 +317,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal void ShowIllustPages(Pixeez.Tokens tokens, ImageItem item, int start = 0, int count = 30)
+        internal async void ShowIllustPages(Pixeez.Tokens tokens, ImageItem item, int start = 0, int count = 30)
         {
             try
             {
@@ -367,6 +368,17 @@ namespace PixivWPF.Pages
                 {
                     System.Threading.Thread.Sleep(250);
                     var subset = item.Illust as Pixeez.Objects.NormalWork;
+                    if(subset.Metadata == null)
+                    {
+                        var illusts = await tokens.GetWorksAsync(item.Illust.Id.Value);
+                        foreach (var illust in illusts)
+                        {
+                            item.Illust = illust;
+                            subset = illust;
+                            break;
+                        }
+                    }
+
                     if (subset.Metadata != null && subset.Metadata.Pages != null && subset.Metadata.Pages.Count() > 1)
                     {
                         btnSubIllustPrevPages.Tag = start - count;
@@ -893,6 +905,41 @@ namespace PixivWPF.Pages
                     }
                 }
                 item.RefreshIllust(tokens);
+            }
+            else if (DataType is Pixeez.Objects.User)
+            {
+                var user = DataType as Pixeez.Objects.User;
+
+                if (sender == ActionFollowAuthorPublic)
+                {
+                    await tokens.AddFavouriteUser((long)user.Id);
+                    FollowAuthor.Tag = PackIconModernKind.Check;
+                    ActionFollowAuthorRemove.IsEnabled = true;
+                }
+                else if (sender == ActionFollowAuthorPrivate)
+                {
+                    await tokens.AddFavouriteUser((long)user.Id, "private");
+                    FollowAuthor.Tag = PackIconModernKind.Check;
+                    ActionFollowAuthorRemove.IsEnabled = true;
+                }
+                else if (sender == ActionFollowAuthorRemove)
+                {
+                    await tokens.DeleteFavouriteUser(user.Id.ToString());
+                    await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
+                    FollowAuthor.Tag = PackIconModernKind.Add;
+                    ActionFollowAuthorRemove.IsEnabled = false;
+                }
+
+                var users = await tokens.GetUsersAsync(Convert.ToInt64(user.Id));
+                if (users is List<Pixeez.Objects.User>)
+                {
+                    foreach (var u in users)
+                    {
+                        u.AddTo(RelativeIllusts.Items);
+                        DataType = u;
+                        break;
+                    }
+                }
             }
         }
         #endregion

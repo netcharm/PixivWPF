@@ -1014,7 +1014,8 @@ namespace Pixeez
 
                 { "include_stats", "1" } ,
                 { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
+                //{ "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 

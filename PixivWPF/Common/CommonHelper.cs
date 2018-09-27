@@ -2,6 +2,7 @@
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -94,11 +95,19 @@ namespace PixivWPF.Common
                 {
                     if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass))
                     {
-                        var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
-                        setting.AccessToken = authResult.Authorize.AccessToken;
-                        setting.RefreshToken = authResult.Authorize.RefreshToken;
-                        setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
-                        setting.Save();
+                        try
+                        {
+                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
+                            setting.AccessToken = authResult.Authorize.AccessToken;
+                            setting.RefreshToken = authResult.Authorize.RefreshToken;
+                            setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
+                            setting.Save();
+                        }
+                        catch(Exception exx)
+                        {
+                            var ret = exx.Message;
+                            var tokens = await ShowLogin();
+                        }
                     }
                     var rt = ex.Message;
                 }
@@ -510,7 +519,7 @@ namespace PixivWPF.Common
             {
                 await window.ShowMessageAsync("Cupcakes!", "Your cupcakes are finished! Enjoy!");
             }
-        }
+        }        
     }
 
     public static class ExtensionMethods
@@ -523,6 +532,14 @@ namespace PixivWPF.Common
             newPath.RemoveAt(0);
             return VisualTreeHelper.GetChild(dpo, path[0]).GetVisualChildFromTreePath(newPath.ToArray());
         }
+
+        //public static Task<T> GetSearchAsync(this string keyword)
+        //{
+        //    object result = null;
+
+
+        //    return ((T)t);
+        //}
     }
 
 

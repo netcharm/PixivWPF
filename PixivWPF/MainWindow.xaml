@@ -65,18 +65,19 @@
 
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands ShowLastSeparator="False">
-            <TextBox x:Name="SearchBox" x:Uid="SearchBox" 
-                     Width="144" Height="16"
-                     Style="{DynamicResource MetroTextBox}"
-                     mah:TextBoxHelper.ClearTextButton="True"
-                     mah:TextBoxHelper.Watermark="Searching ..." 
-                     TextInput="SearchBox_TextInput" 
-                     KeyDown="SearchBox_KeyDown">
-                <TextBox.InputBindings>
-                    <KeyBinding Key="Return"
-                                Command="{Binding SearchBoxCmd, Mode=OneWay}"/>
-                </TextBox.InputBindings>
-            </TextBox>
+            <ComboBox x:Name="SearchBox" x:Uid="SearchBox" 
+                      Width="144" Height="16"
+                      IsEditable="True" 
+                      ItemsSource="{Binding Path=AutoSuggestList}"
+                      Style="{DynamicResource MetroComboBox}"
+                      mah:TextBoxHelper.ClearTextButton="True"
+                      mah:TextBoxHelper.HasText="True"
+                      mah:TextBoxHelper.Watermark="Searching ..." 
+                      SelectionChanged="SearchBox_SelectionChanged"
+                      TextBoxBase.TextChanged="SearchBox_TextChanged"
+                      TextInput="SearchBox_TextInput" 
+                      KeyDown="SearchBox_KeyDown" >
+            </ComboBox>
             <Button Click="CommandSeqrch_Click" 
                     ToolTip="Searching Illust/User">
                 <iconPacks:PackIconModern Kind="Magnify" />
