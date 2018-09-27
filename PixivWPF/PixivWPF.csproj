@@ -146,7 +146,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\IllustWithTagPage.xaml">
+    <Page Include="Pages\SearchResultPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -174,8 +174,8 @@
     <Compile Include="Pages\IllustImageViewerPage.xaml.cs">
       <DependentUpon>IllustImageViewerPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\IllustWithTagPage.xaml.cs">
-      <DependentUpon>IllustWithTagPage.xaml</DependentUpon>
+    <Compile Include="Pages\SearchResultPage.xaml.cs">
+      <DependentUpon>SearchResultPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\PageLogin.xaml.cs">
       <DependentUpon>PageLogin.xaml</DependentUpon>

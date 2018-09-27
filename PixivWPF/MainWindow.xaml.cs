@@ -41,8 +41,13 @@ namespace PixivWPF
                     {
                         var content = (string)x;
 
+                        if (!Regex.IsMatch(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
+                        {
+                            content = $"Caption: {content}";
+                        }
+
                         var viewer = new ContentWindow();
-                        var page = new Pages.IllustWithTagPage();
+                        var page = new Pages.SearchResultPage();
                         page.UpdateDetail(content);
                         viewer.Title = $"Search Keyword \"{content}\" Results";
                         viewer.Width = 720;
@@ -177,30 +182,6 @@ namespace PixivWPF
             }
         }
 
-        private void SearchBox_TextInput(object sender, TextCompositionEventArgs e)
-        {
-            if (e.Text.Length > 0)
-            {
-                auto_suggest_list.Clear();
-                if (Regex.IsMatch(e.Text, @"\d+", RegexOptions.IgnoreCase))
-                {
-                    auto_suggest_list.Add($"UserID: {e.Text}");
-                    auto_suggest_list.Add($"IllustID: {e.Text}");
-                }
-                auto_suggest_list.Add($"Tag: {e.Text}");
-                auto_suggest_list.Add($"Caption: {e.Text}");
-                SearchBox.Items.Refresh();
-            }
-        }
-
-        private void SearchBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if(e.Key== Key.Return)
-            {
-                SearchBoxCmd.Execute(SearchBox.Text);
-            }
-        }
-
         private void CommandSeqrch_Click(object sender, RoutedEventArgs e)
         {
             SearchBoxCmd.Execute(SearchBox.Text);
@@ -212,17 +193,29 @@ namespace PixivWPF
             {
                 var content = SearchBox.Text;
                 auto_suggest_list.Clear();
+                content = Regex.Replace(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", "", RegexOptions.IgnoreCase).Trim();
                 if (Regex.IsMatch(content, @"^\d+$", RegexOptions.IgnoreCase))
                 {
                     auto_suggest_list.Add($"UserID: {content}");
                     auto_suggest_list.Add($"IllustID: {content}");
                 }
-                auto_suggest_list.Add($"Illust: {content}");
+                auto_suggest_list.Add($"Fuzzy: {content}");
                 auto_suggest_list.Add($"Tag: {content}");
+                auto_suggest_list.Add($"Fuzzy Tag: {content}");
                 auto_suggest_list.Add($"Caption: {content}");
                 SearchBox.Items.Refresh();
                 SearchBox.IsDropDownOpen = true;
                 e.Handled = true;
+            }
+        }
+
+        private void SearchBox_DropDownOpened(object sender, EventArgs e)
+        {
+            var textBox = Keyboard.FocusedElement as TextBox;
+            if (textBox != null && textBox.Text.Length == 1 && textBox.SelectionLength == 1)
+            {
+                textBox.SelectionLength = 0;
+                textBox.SelectionStart = 1;
             }
         }
 
@@ -239,6 +232,15 @@ namespace PixivWPF
                 }
             }
         }
+
+        private void SearchBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Return)
+            {
+                SearchBoxCmd.Execute(SearchBox.Text);
+            }
+        }
+
     }
 
 

@@ -139,6 +139,12 @@
                                 Foreground="{DynamicResource LabelTextBrush}">
                             <Button.ContextMenu>
                                 <ContextMenu>
+                                    <MenuItem x:Name="ActionIllustWebPage" x:Uid="ActionIllustWebPage" 
+                                          Header="Open Illust in Browser" Visibility="Visible" Click="ActionCopyIllustInfo_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="BrowserWire" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <MenuItem x:Name="ActionCopyIllustTitle" x:Uid="ActionCopyIllustTitle"
                                           Header="Copy Illust Title" Visibility="Visible" Click="ActionCopyIllustInfo_Click">
                                         <MenuItem.Icon>
@@ -151,10 +157,17 @@
                                             <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
+                                    <Separator />
                                     <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" 
                                           Header="Author Info" Visibility="Visible" Click="ActionIllustAuthourInfo_Click">
                                         <MenuItem.Icon>
                                             <iconPacks:PackIconModern Kind="PeopleProfile" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem x:Name="ActionCopyIllustDate" x:Uid="ActionCopyIllustDate"
+                                          Header="Illust Date" Visibility="Visible" Click="ActionCopyIllustInfo_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="CalendarDay" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator />

@@ -21,7 +21,7 @@ namespace PixivWPF.Pages
     /// <summary>
     /// IllustWithTagPage.xaml 的交互逻辑
     /// </summary>
-    public partial class IllustWithTagPage : Page
+    public partial class SearchResultPage : Page
     {
         public ICommand Cmd_OpenIllust { get; } = new DelegateCommand<object>(obj => {
             //MessageBox.Show($"{obj}");
@@ -69,7 +69,7 @@ namespace PixivWPF.Pages
 
         internal object DataType = null;
 
-        public IllustWithTagPage()
+        public SearchResultPage()
         {
             InitializeComponent();
         }
@@ -109,9 +109,9 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
-                else if (content.StartsWith("Illust:", StringComparison.CurrentCultureIgnoreCase))
+                else if (content.StartsWith("Fuzzy:", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var query = Regex.Replace(content, @"^Illust:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
+                    var query = Regex.Replace(content, @"^Fuzzy:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
                     var relatives = await tokens.SearchWorksAsync(query);
 
                     if (relatives is Pixeez.Objects.Paginated<Pixeez.Objects.NormalWork>)
@@ -125,7 +125,22 @@ namespace PixivWPF.Pages
                 else if (content.StartsWith("Tag:", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var query = Regex.Replace(content, @"^Tag:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
-                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "exact_match_for_tags") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                    next_url = relatives.next_url ?? string.Empty;
+
+                    if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
+                    {
+                        RelativeIllustsExpander.Tag = next_url;
+                        foreach (var illust in relatives.illusts)
+                        {
+                            illust.AddTo(RelativeIllusts.Items, relatives.next_url);
+                        }
+                    }
+                }
+                else if (content.StartsWith("Fuzzy Tag:", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var query = Regex.Replace(content, @"^Fuzzy Tag:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
+                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "partial_match_for_tags") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = relatives.next_url ?? string.Empty;
 
                     if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
@@ -236,9 +251,9 @@ namespace PixivWPF.Pages
             RelativeNextPage.Visibility = Visibility.Visible;
         }
 
-        internal void UpdateDetail(string tag)
+        internal void UpdateDetail(string content)
         {
-            DataType = tag;
+            DataType = content;
             RelativeIllustsExpander.Visibility = Visibility.Visible;
             RelativeIllustsExpander.IsExpanded = false;
             RelativeIllustsExpander.IsExpanded = true;

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Media;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -111,6 +112,7 @@ namespace PixivWPF.Pages
                 IllustAuthor.Text = item.Illust.User.Name;
                 IllustAuthorIcon.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
                 IllustTitle.Text = item.Illust.Title;
+                ActionCopyIllustDate.Header = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:sszzz");
 
                 FollowAuthor.Visibility = Visibility.Visible;
                 if (item.Illust.User.is_followed == true)
@@ -220,18 +222,6 @@ namespace PixivWPF.Pages
                 var nprof = UserInfo.profile;
                 var nworks = UserInfo.workspace;
 
-                //var Users = await tokens.GetUsersAsync(user.Id.Value);
-                //var User = Users[0];
-
-                //var url = User.ProfileImageUrls.Px170x170;
-                //if (string.IsNullOrEmpty(url))
-                //{
-                //    if(!string.IsNullOrEmpty(User.ProfileImageUrls.Px50x50))
-                //        url = User.ProfileImageUrls.Px50x50;
-                //    else if (!string.IsNullOrEmpty(User.ProfileImageUrls.Px16x16))
-                //        url = User.ProfileImageUrls.Px16x16;
-                //}
-
                 DataType = user;
 
                 if (nprof.background_image_url is string)
@@ -279,6 +269,7 @@ namespace PixivWPF.Pages
                     IllustTags.Text = string.Join(";", desc);
                     IllustTagExpander.Header = "User Infomation";
                     IllustTagExpander.Visibility = Visibility.Visible;
+                    IllustTagExpander.IsExpanded = false;
                 }
                 else IllustTagExpander.Visibility = Visibility.Collapsed;
 
@@ -520,6 +511,30 @@ namespace PixivWPF.Pages
             else if(sender == ActionCopyIllustAuthor)
             {
                 Clipboard.SetText(IllustAuthor.Text);
+            }
+            else if (sender == ActionCopyIllustDate)
+            {
+                Clipboard.SetText(ActionCopyIllustDate.Header.ToString());
+            }
+            else if(sender == ActionIllustWebPage)
+            {
+                if(DataType is ImageItem)
+                {
+                    var item = DataType as ImageItem;
+                    if(item.Illust is Pixeez.Objects.Work)
+                    {
+                        var href = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={item.ID}";
+                        Clipboard.SetText(href);
+                        try
+                        {
+                            System.Diagnostics.Process.Start(href);
+                        }
+                        catch (Exception ex)
+                        {
+                            ex.Message.ShowMessageBox("ERROR");
+                        }
+                    }
+                }
             }
         }
 
@@ -959,9 +974,9 @@ namespace PixivWPF.Pages
                     var tag  = link.Attributes["data-tag"];
 
                     var viewer = new ContentWindow();
-                    var page = new IllustWithTagPage();
+                    var page = new SearchResultPage();
 
-                    page.UpdateDetail(tag);
+                    page.UpdateDetail($"Tag:{tag}");
 
                     viewer.Title = $"Illusts Has Tag: {tag}";
                     viewer.Width = 720;

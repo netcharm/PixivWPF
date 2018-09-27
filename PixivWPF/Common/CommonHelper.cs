@@ -343,6 +343,21 @@ namespace PixivWPF.Common
                 File.SetCreationTime(file, dt);
                 File.SetLastWriteTime(file, dt);
                 File.SetLastAccessTime(file, dt);
+
+                if (Regex.IsMatch(file, @"_ugoira\d+\.", RegexOptions.IgnoreCase))
+                {
+                    var ugoira_url = url.Replace("img-original", "img-zip-ugoira");
+                    //ugoira_url = Regex.Replace(ugoira_url, @"(_ugoira)(\d+)(\..*?)", "_ugoira1920x1080.zip", RegexOptions.IgnoreCase);
+                    ugoira_url = Regex.Replace(ugoira_url, @"_ugoira\d+\..*?$", "_ugoira1920x1080.zip", RegexOptions.IgnoreCase);
+                    var ugoira_file = await ugoira_url.ToImageFile(tokens, dt, true);
+                    if (!string.IsNullOrEmpty(ugoira_file))
+                    {
+                        File.SetCreationTime(ugoira_file, dt);
+                        File.SetLastWriteTime(ugoira_file, dt);
+                        File.SetLastAccessTime(ugoira_file, dt);
+                    }
+                }
+
             }
             return (file);
         }

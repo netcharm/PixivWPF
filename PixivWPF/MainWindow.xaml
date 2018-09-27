@@ -73,10 +73,10 @@
                       mah:TextBoxHelper.ClearTextButton="True"
                       mah:TextBoxHelper.HasText="True"
                       mah:TextBoxHelper.Watermark="Searching ..." 
+                      IsTextSearchEnabled="False"
                       SelectionChanged="SearchBox_SelectionChanged"
                       TextBoxBase.TextChanged="SearchBox_TextChanged"
-                      TextInput="SearchBox_TextInput" 
-                      KeyDown="SearchBox_KeyDown" >
+                      KeyDown="SearchBox_KeyDown" DropDownOpened="SearchBox_DropDownOpened" >
             </ComboBox>
             <Button Click="CommandSeqrch_Click" 
                     ToolTip="Searching Illust/User">
