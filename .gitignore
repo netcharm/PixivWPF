@@ -240,3 +240,10 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/PixivWPF/pixiv-normalwork.json
+/PixivWPF/pixiv-ranking.json
+/PixivWPF/pixiv-trending-tags.json
+/PixivWPF/pixiv-logo_256.ico
+/PixivWPF/pixiv-logo_1024.ico
+/PixivWPF/pixiv-logo_512.png
+/PixivWPF/pixiv-logo.svg
