@@ -46,14 +46,20 @@ namespace PixivWPF
                             content = $"Caption: {content}";
                         }
 
-                        var viewer = new ContentWindow();
-                        var page = new Pages.SearchResultPage();
-                        page.UpdateDetail(content);
-                        viewer.Title = $"Search Keyword \"{content}\" Results";
-                        viewer.Width = 720;
-                        viewer.Height = 800;
-                        viewer.Content = page;
-                        viewer.Show();
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            var viewer = new ContentWindow();
+                            viewer.Title = $"Search Keyword \"{content}\" Results";
+                            viewer.Width = 720;
+                            viewer.Height = 850;
+
+                            var page = new Pages.SearchResultPage();
+                            page.CurrentWindow = viewer;
+                            page.UpdateDetail(content);
+
+                            viewer.Content = page;
+                            viewer.Show();
+                        }
                     }
                 });
             }
@@ -182,7 +188,7 @@ namespace PixivWPF
             }
         }
 
-        private void CommandSeqrch_Click(object sender, RoutedEventArgs e)
+        private void CommandSearch_Click(object sender, RoutedEventArgs e)
         {
             SearchBoxCmd.Execute(SearchBox.Text);
         }
@@ -221,14 +227,15 @@ namespace PixivWPF
 
         private void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            e.Handled = true;
             var items = e.AddedItems;
             if (items.Count > 0)
             {
                 var item = items[0];
                 if (item is string)
                 {
-                    var content = (string)item;
-                    SearchBoxCmd.Execute(content);
+                    var query = (string)item;
+                    SearchBoxCmd.Execute(query);
                 }
             }
         }
@@ -237,6 +244,7 @@ namespace PixivWPF
         {
             if (e.Key == Key.Return)
             {
+                e.Handled = true;
                 SearchBoxCmd.Execute(SearchBox.Text);
             }
         }

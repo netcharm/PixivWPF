@@ -12,7 +12,7 @@
         BorderBrush="{DynamicResource AccentColorBrush}"
         GlowBrush="{DynamicResource AccentColorBrush}"
         BorderThickness="1"
-        WindowStartupLocation="CenterScreen" MinWidth="1200" MinHeight="600"
+        WindowStartupLocation="CenterScreen" MinWidth="1280" MinHeight="720" Width="1400"
         Closing="MainWindow_Closing">
 
 
@@ -71,14 +71,13 @@
                       ItemsSource="{Binding Path=AutoSuggestList}"
                       Style="{DynamicResource MetroComboBox}"
                       mah:TextBoxHelper.ClearTextButton="True"
-                      mah:TextBoxHelper.HasText="True"
                       mah:TextBoxHelper.Watermark="Searching ..." 
                       IsTextSearchEnabled="False"
                       SelectionChanged="SearchBox_SelectionChanged"
                       TextBoxBase.TextChanged="SearchBox_TextChanged"
                       KeyDown="SearchBox_KeyDown" DropDownOpened="SearchBox_DropDownOpened" >
             </ComboBox>
-            <Button Click="CommandSeqrch_Click" 
+            <Button Click="CommandSearch_Click" 
                     ToolTip="Searching Illust/User">
                 <iconPacks:PackIconModern Kind="Magnify" />
             </Button>

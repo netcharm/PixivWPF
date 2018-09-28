@@ -1,6 +1,7 @@
 ﻿using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
+using Notifications.Wpf;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,6 +16,10 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WPFNotification.Core.Configuration;
+using WPFNotification.Model;
+using WPFNotification.Services;
+
 
 namespace PixivWPF.Common
 {
@@ -117,6 +122,10 @@ namespace PixivWPF.Common
         public static async Task<Pixeez.Tokens> ShowLogin()
         {
             Pixeez.Tokens result = null;
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win is PixivLoginDialog) return(result);
+            }
             try
             {
                 if (Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 3600)
@@ -131,11 +140,6 @@ namespace PixivWPF.Common
                         try
                         {
                             RefreshToken();
-                            //var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
-                            //setting.AccessToken = authResult.Authorize.AccessToken;
-                            //setting.RefreshToken = authResult.Authorize.RefreshToken;
-                            //setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
-                            //result = authResult.Tokens;
                         }
                         catch (Exception)
                         {
@@ -343,6 +347,8 @@ namespace PixivWPF.Common
                 File.SetCreationTime(file, dt);
                 File.SetLastWriteTime(file, dt);
                 File.SetLastAccessTime(file, dt);
+                $"{Path.GetFileName(file)} is saved!".ShowNotification("Successed", file);
+                //$"{Path.GetFileName(file)} is saved!".ShowNotificationAsync("Successed");
 
                 if (Regex.IsMatch(file, @"_ugoira\d+\.", RegexOptions.IgnoreCase))
                 {
@@ -355,6 +361,8 @@ namespace PixivWPF.Common
                         File.SetCreationTime(ugoira_file, dt);
                         File.SetLastWriteTime(ugoira_file, dt);
                         File.SetLastAccessTime(ugoira_file, dt);
+                        $"{Path.GetFileName(ugoira_file)} is saved!".ShowNotification("Successed", file);
+                        //$"{Path.GetFileName(ugoira_file)} is saved!".ShowNotificationAsync("Successed");
                     }
                 }
 
@@ -534,7 +542,38 @@ namespace PixivWPF.Common
             {
                 await window.ShowMessageAsync("Cupcakes!", "Your cupcakes are finished! Enjoy!");
             }
-        }        
+        }
+
+        public static void ShowNotification(this string content, string title="Pixiv", string imgsrc = "")
+        {
+            INotificationDialogService _dailogService = new NotificationDialogService();
+            NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+            NotificationConfiguration cfg = new NotificationConfiguration(new TimeSpan(0, 0, 20), 
+                cfgDefault.Width, cfgDefault.Height, 
+                cfgDefault.TemplateName, 
+                cfgDefault.NotificationFlowDirection);
+
+            var newNotification = new Notification()
+            {
+                Title = title,
+                ImgURL = imgsrc,
+                Message = content
+            };
+            _dailogService.ShowNotificationWindow(newNotification, cfg);
+        }
+
+        public static void ShowNotificationAsync(this string content, string title = "Pixiv")
+        {
+            var notificationManager = new NotificationManager();
+
+            notificationManager.Show(new NotificationContent
+            {
+                Title = title,
+                Message = content,
+                Type = NotificationType.Success
+            }, "", new TimeSpan(0,0,15));
+        }
+
     }
 
     public static class ExtensionMethods

@@ -287,10 +287,10 @@ namespace PixivWPF.Pages
                     ShowTrendingTags(NextURL);
                     break;
                 case PixivPage.Favorite:
-                    ShowFavorite(NextURL, 0);
+                    ShowFavorite(NextURL, false);
                     break;
                 case PixivPage.FavoritePrivate:
-                    ShowFavorite(NextURL, 0, true);
+                    ShowFavorite(NextURL, true);
                     break;
                 case PixivPage.Follow:
                     ShowFollowing(NextURL);
@@ -299,8 +299,10 @@ namespace PixivWPF.Pages
                     ShowFollowing(NextURL, true);
                     break;
                 case PixivPage.My:
+                    ShowUser(0, true);
                     break;
                 case PixivPage.MyWork:
+                    //ShowFavorite(NextURL, true);
                     break;
                 case PixivPage.User:
                     break;
@@ -467,7 +469,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowFavorite(string nexturl = null, long uid = 0, bool IsPrivate = false)
+        public async void ShowFavorite(string nexturl = null, bool IsPrivate = false)
         {
             ImageTilesWait.Visibility = Visibility.Visible;
             var tokens = await CommonHelper.ShowLogin();
@@ -476,10 +478,11 @@ namespace PixivWPF.Pages
 
             try
             {
+                long uid = 0;
+
                 ImageTilesWait.Visibility = Visibility.Visible;
-                //var works = await tokens.GetMyFollowingWorksAsync("private");
                 var condition = IsPrivate ? "private" : "public";
-                if (setting.MyInfo != null && uid == 0) uid = (long)setting.MyInfo.Id;
+                if (setting.MyInfo != null && uid == 0) uid = setting.MyInfo.Id.Value;
                 else if (uid <= 0) return;
 
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetUserFavoriteWorksAsync(uid, condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
@@ -631,6 +634,53 @@ namespace PixivWPF.Pages
             finally
             {
                 ImageTilesWait.Visibility = Visibility.Hidden;
+            }
+        }
+
+        public async void ShowUser(long uid, bool IsPrivate=false)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if(IsPrivate && setting.MyInfo is Pixeez.Objects.User)
+            {
+                var viewer = new ContentWindow();
+                var page = new IllustDetailPage();
+
+                var user = setting.MyInfo;
+                page.UpdateDetail(user);
+                viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
+
+                viewer.Width = 720;
+                viewer.Height = 800;
+                viewer.Content = page;
+                viewer.Show();
+            }
+            else
+            {
+                var users = await tokens.GetUsersAsync(uid);
+                Pixeez.Objects.User user = null;
+                if (users is List<Pixeez.Objects.User>)
+                {
+                    foreach (var u in users)
+                    {
+                        user = u;
+                        break;
+                    }
+                }
+                if (user is Pixeez.Objects.User && uid == user.Id.Value)
+                {
+                    var viewer = new ContentWindow();
+                    var page = new IllustDetailPage();
+
+                    page.UpdateDetail(user);
+                    viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
+
+                    viewer.Width = 720;
+                    viewer.Height = 800;
+                    viewer.Content = page;
+                    viewer.Show();
+                }
             }
         }
 

@@ -38,7 +38,7 @@ namespace PixivWPF.Common
         public string NextURL { get; set; }
 
         public string BadgeValue { get; set; }
-        public Visibility BadgeVisibility = Visibility.Visible;
+        public Visibility BadgeVisibility { get; set; }
         public bool DisplayBadge
         {
             get
@@ -53,7 +53,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public Visibility TitleVisibility = Visibility.Visible;
+        public Visibility TitleVisibility { get; set; }
         public bool DisplayTitle
         {
             get

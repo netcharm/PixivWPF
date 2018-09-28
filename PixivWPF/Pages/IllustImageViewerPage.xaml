@@ -4,12 +4,13 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:PixivWPF.Pages"
+      xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       mc:Ignorable="d" 
       d:DesignHeight="300" d:DesignWidth="300"
-      Title="IllustImageViewerPage">
+      Title="IllustImageViewerPage" PreviewKeyUp="Page_PreviewKeyUp">
 
-    <Grid MouseWheel="Preview_MouseWheel">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -18,15 +19,23 @@
         <!-- Illust Preview -->
         <Viewbox Grid.Row="0" StretchDirection="DownOnly" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Image x:Name="Preview" x:Uid="Preview" 
-                   Stretch="None"
-                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Image.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
-                    </ContextMenu>
-                </Image.ContextMenu>
-            </Image>
+                   Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Viewbox>
+        <Rectangle Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" MouseWheel="Preview_MouseWheel">
+            <Rectangle.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
+                </ContextMenu>
+            </Rectangle.ContextMenu>
+        </Rectangle>
+        <Button Grid.Row="0" x:Name="btnSavePages" x:Uid="btnSavePages"
+                Width="64" Height="64" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
+                Foreground="{DynamicResource AccentColorBrush}" BorderThickness="0"               
+                Click="ActionSaveIllust_Click">
+            <iconPacks:PackIconModern Kind="Save" Width="32" Height="32" />
+        </Button>
+
         <!-- Illust Open Progress Prompt -->
         <mah:ProgressRing Grid.Row="0" Grid.RowSpan="3"
                           x:Name="PreviewWait"

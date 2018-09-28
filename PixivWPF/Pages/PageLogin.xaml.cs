@@ -62,14 +62,14 @@ namespace PixivWPF.Pages
             //headerProxy.Foreground = headerUser.Foreground;
             //chkUseProxy.Foreground = headerUser.Foreground;
 
-
+#if DEBUG
             var logo = System.IO.Path.Combine(AppPath, "Assets", "pixiv-logo.png");
             var uri = new Uri(logo);
             if (uri.IsAbsoluteUri && System.IO.File.Exists(uri.AbsolutePath))
             {
                 Logo.Source = new BitmapImage(uri);
             }
-
+#endif
             edUser.Focus();
 
             edUser.Text = setting.User;

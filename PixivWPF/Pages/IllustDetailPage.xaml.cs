@@ -39,7 +39,8 @@ namespace PixivWPF.Pages
                 foreach (var illust in list.SelectedItems)
                 {
                     var viewer = new ContentWindow();
-                    if(list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    if(list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                       list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var page = new IllustDetailPage();
                         viewer.Content = page;
@@ -197,6 +198,12 @@ namespace PixivWPF.Pages
                 RelativeIllustsExpander.Visibility = Visibility.Visible;
                 RelativeNextPage.Visibility = Visibility.Collapsed;
                 RelativeIllustsExpander.IsExpanded = false;
+
+                FavoriteIllustsExpander.Header = "Author Favorite";
+                FavoriteIllustsExpander.Visibility = Visibility.Visible;
+                FavoriteNextPage.Visibility = Visibility.Collapsed;
+                FavoriteIllustsExpander.IsExpanded = false;
+
                 PreviewWait.Visibility = Visibility.Hidden;
             }
             catch (Exception ex)
@@ -296,6 +303,12 @@ namespace PixivWPF.Pages
                 RelativeIllustsExpander.Visibility = Visibility.Visible;
                 RelativeNextPage.Visibility = Visibility.Collapsed;
                 RelativeIllustsExpander.IsExpanded = false;
+
+                FavoriteIllustsExpander.Header = "Favorite";
+                FavoriteIllustsExpander.Visibility = Visibility.Visible;
+                FavoriteNextPage.Visibility = Visibility.Collapsed;
+                FavoriteIllustsExpander.IsExpanded = false;
+
                 PreviewWait.Visibility = Visibility.Hidden;
             }
             catch (Exception ex)
@@ -482,6 +495,41 @@ namespace PixivWPF.Pages
             }
         }
 
+        internal async void ShowFavoriteInline(Pixeez.Tokens tokens, Pixeez.Objects.UserBase user, string next_url = "")
+        {
+            try
+            {
+                PreviewWait.Visibility = Visibility.Visible;
+
+                var lastUrl = next_url;
+                var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetUserFavoriteWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                next_url = relatives.next_url ?? string.Empty;
+
+                FavoriteIllusts.Items.Clear();
+                if (relatives.illusts is Array)
+                {
+                    FavoriteIllustsExpander.Tag = next_url;
+                    foreach (var illust in relatives.illusts)
+                    {
+                        illust.AddTo(FavoriteIllusts.Items, relatives.next_url);
+                    }
+                    if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
+                        RelativeNextPage.Visibility = Visibility.Collapsed;
+                    else RelativeNextPage.Visibility = Visibility.Visible;
+
+                    FavoriteIllusts.UpdateImageTile(tokens);
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            finally
+            {
+                PreviewWait.Visibility = Visibility.Collapsed;
+            }
+        }
+
         public IllustDetailPage()
         {
             InitializeComponent();
@@ -491,17 +539,55 @@ namespace PixivWPF.Pages
             PreviewWait.Visibility = Visibility.Collapsed;
         }
 
-        #region Illust Actions
-        private void Actions_Click(object sender, RoutedEventArgs e)
+        private async void IllustTags_LinkClicked(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs> args)
         {
-            if (sender == BookmarkIllust)
-                BookmarkIllust.ContextMenu.IsOpen = true;
-            else if (sender == FollowAuthor)
-                FollowAuthor.ContextMenu.IsOpen = true;
-            else if(sender == IllustActions)
-                IllustActions.ContextMenu.IsOpen = true;
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (args.Data is TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs)
+            {
+                var link = args.Data as TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs;
+
+                if (link.Attributes.ContainsKey("data-tag"))
+                {
+                    args.Handled = true;
+                    link.Handled = true;
+
+                    var tag  = link.Attributes["data-tag"];
+
+                    var viewer = new ContentWindow();
+                    viewer.Title = $"Illusts Has Tag: {tag}";
+                    viewer.Width = 720;
+                    viewer.Height = 800;
+
+                    var page = new SearchResultPage();
+                    page.CurrentWindow = viewer;
+                    page.UpdateDetail($"Tag:{tag}");
+
+                    viewer.Content = page;
+                    viewer.Show();
+
+                }
+            }
         }
 
+        private void Preview_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount >= 2)
+            {
+                if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
+                {
+                    Cmd_OpenIllust.Execute(DataType);
+                }
+                else
+                {
+                    Cmd_OpenIllust.Execute(SubIllusts);
+                }
+                e.Handled = true;
+            }
+        }
+
+        #region Illust Actions
         private void ActionCopyIllustInfo_Click(object sender, RoutedEventArgs e)
         {
             if(sender == ActionCopyIllustTitle)
@@ -511,6 +597,22 @@ namespace PixivWPF.Pages
             else if(sender == ActionCopyIllustAuthor)
             {
                 Clipboard.SetText(IllustAuthor.Text);
+            }
+            else if (sender == ActionCopyAuthorID)
+            {
+                if (DataType is ImageItem)
+                {
+                    var item = DataType as ImageItem;
+                    Clipboard.SetText(item.UserID);
+                }
+            }
+            else if (sender == ActionCopyIllustID)
+            {
+                if (DataType is ImageItem)
+                {
+                    var item = DataType as ImageItem;
+                    Clipboard.SetText(item.ID);
+                }
             }
             else if (sender == ActionCopyIllustDate)
             {
@@ -543,21 +645,39 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (DataType is ImageItem)
+            if(sender == ActionIllustAuthorInfo || sender == btnAuthorInto)
             {
-                var viewer = new ContentWindow();
-                var page = new IllustDetailPage();
+                if (DataType is ImageItem)
+                {
+                    var viewer = new ContentWindow();
+                    var page = new IllustDetailPage();
 
-                var item = DataType as ImageItem;
-                var user = item.Illust.User;
-                page.UpdateDetail(user);
-                viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
+                    var item = DataType as ImageItem;
+                    var user = item.Illust.User;
+                    page.UpdateDetail(user);
+                    viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
 
-                viewer.Width = 720;
-                viewer.Height = 800;
-                viewer.Content = page;
-                viewer.Show();
+                    viewer.Width = 720;
+                    viewer.Height = 800;
+                    viewer.Content = page;
+                    viewer.Show();
+                }
             }
+            else if(sender == ActionIllustAuthorFollowing)
+            {
+                if (DataType is Pixeez.Objects.UserBase)
+                {
+                }
+            }
+            else if (sender == ActionIllustAuthorFollowed)
+            {
+
+            }
+            else if (sender == ActionIllustAuthorFavorite)
+            {
+
+            }
+
         }
 
         private void ActionShowIllustPages_Click(object sender, RoutedEventArgs e)
@@ -568,6 +688,143 @@ namespace PixivWPF.Pages
         private void ActionShowRelative_Click(object sender, RoutedEventArgs e)
         {
             if (!RelativeIllustsExpander.IsExpanded) RelativeIllustsExpander.IsExpanded = true;
+        }
+
+        private void ActionShowFavorite_Click(object sender, RoutedEventArgs e)
+        {
+            if (!FavoriteIllustsExpander.IsExpanded) FavoriteIllustsExpander.IsExpanded = true;
+        }
+        #endregion
+
+        #region Following User / Bookmark Illust routines
+        private void ActionIllust_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            if (sender == BookmarkIllust)
+                BookmarkIllust.ContextMenu.IsOpen = true;
+            else if (sender == FollowAuthor)
+                FollowAuthor.ContextMenu.IsOpen = true;
+            else if (sender == IllustActions)
+                IllustActions.ContextMenu.IsOpen = true;
+        }
+
+        private async void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (DataType is ImageItem)
+            {
+                var item = DataType as ImageItem;
+                var illust = item.Illust;
+
+                if (sender == ActionBookmarkIllustPublic)
+                {
+                    //if (!illust.IsBookMarked())
+                    {
+                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id);
+                        BookmarkIllust.Tag = PackIconModernKind.Heart;
+                        ActionBookmarkIllustRemove.IsEnabled = true;
+                    }
+                }
+                else if (sender == ActionBookmarkIllustPrivate)
+                {
+                    //if (!illust.IsBookMarked())
+                    {
+                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, null, "private");
+                        BookmarkIllust.Tag = PackIconModernKind.Heart;
+                        ActionBookmarkIllustRemove.IsEnabled = true;
+                    }
+                }
+                else if (sender == ActionBookmarkIllustRemove)
+                {
+                    //if (illust.IsBookMarked())
+                    {
+                        await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
+                        await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
+                        BookmarkIllust.Tag = PackIconModernKind.HeartOutline;
+                        ActionBookmarkIllustRemove.IsEnabled = false;
+                    }
+                }
+                item.RefreshIllust(tokens);
+            }
+        }
+
+        private async void ActionFollowAuthor_Click(object sender, RoutedEventArgs e)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (DataType is ImageItem)
+            {
+                var item = DataType as ImageItem;
+                var illust = item.Illust;
+
+                if (sender == ActionFollowAuthorPublic)
+                {
+                    //if (illust.User.is_followed == false)
+                    {
+                        await tokens.AddFavouriteUser((long)illust.User.Id);
+                        FollowAuthor.Tag = PackIconModernKind.Check;
+                        ActionFollowAuthorRemove.IsEnabled = true;
+                    }
+                }
+                else if (sender == ActionFollowAuthorPrivate)
+                {
+                    //if (illust.User.is_followed == false)
+                    {
+                        await tokens.AddFavouriteUser((long)illust.User.Id, "private");
+                        FollowAuthor.Tag = PackIconModernKind.Check;
+                        ActionFollowAuthorRemove.IsEnabled = true;
+                    }
+                }
+                else if (sender == ActionFollowAuthorRemove)
+                {
+                    //if (illust.User.is_followed == true)
+                    {
+                        await tokens.DeleteFavouriteUser(illust.User.Id.ToString());
+                        await tokens.DeleteFavouriteUser(illust.User.Id.ToString(), "private");
+                        FollowAuthor.Tag = PackIconModernKind.Add;
+                        ActionFollowAuthorRemove.IsEnabled = false;
+                    }
+                }
+                item.RefreshIllust(tokens);
+            }
+            else if (DataType is Pixeez.Objects.User)
+            {
+                var user = DataType as Pixeez.Objects.User;
+
+                if (sender == ActionFollowAuthorPublic)
+                {
+                    await tokens.AddFavouriteUser((long)user.Id);
+                    FollowAuthor.Tag = PackIconModernKind.Check;
+                    ActionFollowAuthorRemove.IsEnabled = true;
+                }
+                else if (sender == ActionFollowAuthorPrivate)
+                {
+                    await tokens.AddFavouriteUser((long)user.Id, "private");
+                    FollowAuthor.Tag = PackIconModernKind.Check;
+                    ActionFollowAuthorRemove.IsEnabled = true;
+                }
+                else if (sender == ActionFollowAuthorRemove)
+                {
+                    await tokens.DeleteFavouriteUser(user.Id.ToString());
+                    await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
+                    FollowAuthor.Tag = PackIconModernKind.Add;
+                    ActionFollowAuthorRemove.IsEnabled = false;
+                }
+
+                var users = await tokens.GetUsersAsync(Convert.ToInt64(user.Id));
+                if (users is List<Pixeez.Objects.User>)
+                {
+                    foreach (var u in users)
+                    {
+                        u.AddTo(RelativeIllusts.Items);
+                        DataType = u;
+                        break;
+                    }
+                }
+            }
         }
         #endregion
 
@@ -838,8 +1095,8 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        #region Following User / Bookmark Illust routines
-        private async void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
+        #region Autoor Favorite routines
+        private async void FavoriteIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
@@ -847,41 +1104,51 @@ namespace PixivWPF.Pages
             if (DataType is ImageItem)
             {
                 var item = DataType as ImageItem;
-                var illust = item.Illust;
+                var user = item.Illust.User;
+                ShowFavoriteInline(tokens, user);
+            }
+            else if (DataType is Pixeez.Objects.UserBase)
+            {
+                var user = DataType as Pixeez.Objects.UserBase;
+                ShowFavoriteInline(tokens, user);
+            }
+            FavoriteNextPage.Visibility = Visibility.Visible;
+        }
 
-                if (sender == ActionBookmarkIllustPublic)
-                {
-                    //if (!illust.IsBookMarked())
-                    {
-                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id);
-                        BookmarkIllust.Tag = PackIconModernKind.Heart;
-                        ActionBookmarkIllustRemove.IsEnabled = true;
-                    }
-                }
-                else if (sender == ActionBookmarkIllustPrivate)
-                {
-                    //if (!illust.IsBookMarked())
-                    {
-                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, null, "private");
-                        BookmarkIllust.Tag = PackIconModernKind.Heart;
-                        ActionBookmarkIllustRemove.IsEnabled = true;
-                    }
-                }
-                else if (sender == ActionBookmarkIllustRemove)
-                {
-                    //if (illust.IsBookMarked())
-                    {
-                        await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
-                        await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
-                        BookmarkIllust.Tag = PackIconModernKind.HeartOutline;
-                        ActionBookmarkIllustRemove.IsEnabled = false;
-                    }
-                }
-                item.RefreshIllust(tokens);
+        private void ActionOpenFavorite_Click(object sender, RoutedEventArgs e)
+        {
+            Cmd_OpenIllust.Execute(FavoriteIllusts);
+        }
+
+        private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void FavriteIllusts_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+
+        }
+
+        private void FavriteIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            Cmd_OpenIllust.Execute(FavoriteIllusts);
+        }
+
+        private void FavriteIllusts_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                Cmd_OpenIllust.Execute(FavoriteIllusts);
             }
         }
 
-        private async void ActionFollowAuthor_Click(object sender, RoutedEventArgs e)
+        private void FavoritePrevPage_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private async void FavoriteNextPage_Click(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
@@ -889,104 +1156,24 @@ namespace PixivWPF.Pages
             if (DataType is ImageItem)
             {
                 var item = DataType as ImageItem;
-                var illust = item.Illust;
-
-                if (sender == ActionFollowAuthorPublic)
-                {
-                    //if (illust.User.is_followed == false)
-                    {
-                        await tokens.AddFavouriteUser((long)illust.User.Id);
-                        FollowAuthor.Tag = PackIconModernKind.Check;
-                        ActionFollowAuthorRemove.IsEnabled = true;
-                    }
-                }
-                else if (sender == ActionFollowAuthorPrivate)
-                {
-                    //if (illust.User.is_followed == false)
-                    {
-                        await tokens.AddFavouriteUser((long)illust.User.Id, "private");
-                        FollowAuthor.Tag = PackIconModernKind.Check;
-                        ActionFollowAuthorRemove.IsEnabled = true;
-                    }
-                }
-                else if (sender == ActionFollowAuthorRemove)
-                {
-                    //if (illust.User.is_followed == true)
-                    {
-                        await tokens.DeleteFavouriteUser(illust.User.Id.ToString());
-                        await tokens.DeleteFavouriteUser(illust.User.Id.ToString(), "private");
-                        FollowAuthor.Tag = PackIconModernKind.Add;
-                        ActionFollowAuthorRemove.IsEnabled = false;
-                    }
-                }
-                item.RefreshIllust(tokens);
+                var user = item.Illust.User;
+                var next_url = string.Empty;
+                if (FavoriteIllustsExpander.Tag is string)
+                    next_url = FavoriteIllustsExpander.Tag as string;
+                ShowFavoriteInline(tokens, user, next_url);
             }
-            else if (DataType is Pixeez.Objects.User)
+            else if (DataType is Pixeez.Objects.UserBase)
             {
-                var user = DataType as Pixeez.Objects.User;
-
-                if (sender == ActionFollowAuthorPublic)
-                {
-                    await tokens.AddFavouriteUser((long)user.Id);
-                    FollowAuthor.Tag = PackIconModernKind.Check;
-                    ActionFollowAuthorRemove.IsEnabled = true;
-                }
-                else if (sender == ActionFollowAuthorPrivate)
-                {
-                    await tokens.AddFavouriteUser((long)user.Id, "private");
-                    FollowAuthor.Tag = PackIconModernKind.Check;
-                    ActionFollowAuthorRemove.IsEnabled = true;
-                }
-                else if (sender == ActionFollowAuthorRemove)
-                {
-                    await tokens.DeleteFavouriteUser(user.Id.ToString());
-                    await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
-                    FollowAuthor.Tag = PackIconModernKind.Add;
-                    ActionFollowAuthorRemove.IsEnabled = false;
-                }
-
-                var users = await tokens.GetUsersAsync(Convert.ToInt64(user.Id));
-                if (users is List<Pixeez.Objects.User>)
-                {
-                    foreach (var u in users)
-                    {
-                        u.AddTo(RelativeIllusts.Items);
-                        DataType = u;
-                        break;
-                    }
-                }
+                var user = DataType as Pixeez.Objects.UserBase;
+                var next_url = string.Empty;
+                if (FavoriteIllustsExpander.Tag is string)
+                    next_url = FavoriteIllustsExpander.Tag as string;
+                ShowFavoriteInline(tokens, user, next_url);
             }
+            FavoriteNextPage.Visibility = Visibility.Visible;
         }
+
         #endregion
-
-        private async void IllustTags_LinkClicked(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs> args)
-        {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
-
-            if (args.Data is TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs)
-            {
-                var link = args.Data as TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs;
-                if (link.Attributes.ContainsKey("data-tag"))
-                {
-                    link.Handled = true;
-
-                    var tag  = link.Attributes["data-tag"];
-
-                    var viewer = new ContentWindow();
-                    var page = new SearchResultPage();
-
-                    page.UpdateDetail($"Tag:{tag}");
-
-                    viewer.Title = $"Illusts Has Tag: {tag}";
-                    viewer.Width = 720;
-                    viewer.Height = 800;
-                    viewer.Content = page;
-                    viewer.Show();
-
-                }
-            }
-        }
 
     }
 

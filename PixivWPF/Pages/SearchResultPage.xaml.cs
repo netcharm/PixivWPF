@@ -23,6 +23,13 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class SearchResultPage : Page
     {
+        private Window window = null;
+        public Window CurrentWindow
+        {
+            get { return (window); }
+            set { window = value; }
+        }
+
         public ICommand Cmd_OpenIllust { get; } = new DelegateCommand<object>(obj => {
             //MessageBox.Show($"{obj}");
             if (obj is ImageListGrid)
@@ -176,6 +183,12 @@ namespace PixivWPF.Pages
             finally
             {
                 PreviewWait.Visibility = Visibility.Collapsed;
+                if (window is ContentWindow)
+                {
+                    window.Topmost = true;
+                    if (!window.IsActive) window.Activate();
+                    window.Topmost = false;
+                }
             }
         }
 

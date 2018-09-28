@@ -44,7 +44,15 @@ namespace PixivWPF.Pages
                         url = illust.GetOriginalUrl(item.Index);
                         Preview.Source = await url.LoadImage(tokens);
                     }
-                    if (window == null) window = this.GetActiveWindow();
+                    if (window == null)
+                    {
+                        window = this.GetActiveWindow();
+                        if (window is Window)
+                        {
+                            //window.KeyUp += Preview_KeyUp;
+                            window.PreviewKeyUp += Page_PreviewKeyUp;
+                        }
+                    }
                     window.Title = $"ID: {item.Subject}";
                 }
 
@@ -60,10 +68,46 @@ namespace PixivWPF.Pages
             }
         }
 
+        internal void ChangeIllustPage(int offset)
+        {
+            if (DataType is ImageItem)
+            {
+                var item = DataType as ImageItem;
+                var illust = item.Illust;
+                int index_p = item.Index;
+                if (index_p < 0) index_p = 0;
+                var index_n = item.Index+offset;
+                if (index_n < 0) index_n = 0;
+                if (index_n >= item.Count - 1) index_n = item.Count - 1;
+                if (index_n == index_p) return;
+
+                var i = new ImageItem()
+                {
+                    NextURL = item.NextURL,
+                    Thumb = illust.GetThumbnailUrl(index_n),
+                    Index = index_n,
+                    Count = illust.PageCount.Value,
+                    BadgeValue = (index_n + 1).ToString(),
+                    ID = illust.Id.ToString(),
+                    UserID = illust.User.Id.ToString(),
+                    Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}",
+                    DisplayTitle = false,
+                    Illust = illust,
+                    Tag = item.Tag
+                };
+                UpdateDetail(i);
+            }
+        }
+
         public IllustImageViewerPage()
         {
             InitializeComponent();
             window = Window.GetWindow(this);
+            if(window is Window)
+            {
+                //window.KeyUp += Preview_KeyUp;
+                window.PreviewKeyUp += Page_PreviewKeyUp;
+            }
         }
 
         private async void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
@@ -107,34 +151,27 @@ namespace PixivWPF.Pages
                 offset = 1;
             else if (e.Delta > 0)
                 offset = -1;
+            ChangeIllustPage(offset);
+        }
 
-            if (DataType is ImageItem)
-            {
-                var item = DataType as ImageItem;
-                var illust = item.Illust;
-                int index_p = item.Index;
-                if (index_p < 0) index_p = 0;
-                var index_n = item.Index+offset;
-                if (index_n < 0) index_n = 0;
-                if (index_n >= item.Count - 1) index_n = item.Count - 1;
-                if (index_n == index_p) return;
+        private void Preview_KeyUp(object sender, KeyEventArgs e)
+        {
+            int offset = 0;
+            if (e.Key == Key.Right || e.Key == Key.Down || e.Key == Key.PageDown)
+                offset = 1;
+            else if (e.Key == Key.Left || e.Key == Key.Up || e.Key == Key.PageUp)
+                offset = -1;
+            ChangeIllustPage(offset);
+        }
 
-                var i = new ImageItem()
-                {
-                    NextURL = item.NextURL,
-                    Thumb = illust.GetThumbnailUrl(index_n),
-                    Index = index_n,
-                    Count = illust.PageCount.Value,
-                    BadgeValue = (index_n + 1).ToString(),
-                    ID = illust.Id.ToString(),
-                    UserID = illust.User.Id.ToString(),
-                    Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}",
-                    DisplayTitle = false,
-                    Illust = illust,
-                    Tag = item.Tag
-                };
-                UpdateDetail(i);
-            }
+        private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            int offset = 0;
+            if (e.Key == Key.Right || e.Key == Key.Down || e.Key == Key.PageDown)
+                offset = 1;
+            else if (e.Key == Key.Left || e.Key == Key.Up || e.Key == Key.PageUp)
+                offset = -1;
+            ChangeIllustPage(offset);
         }
     }
 }
