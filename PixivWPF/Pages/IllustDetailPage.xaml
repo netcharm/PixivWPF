@@ -138,32 +138,32 @@
                             <Button.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem x:Name="ActionIllustWebPage" x:Uid="ActionIllustWebPage" 
-                                          Header="Open Illust in Browser" Visibility="Visible" Click="ActionCopyIllustInfo_Click">
+                                          Header="Open Illust in Browser" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
                                             <iconPacks:PackIconModern Kind="BrowserWire" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator />
                                     <MenuItem x:Name="ActionCopyIllustTitle" x:Uid="ActionCopyIllustTitle"
-                                          Header="Copy Illust Title" Visibility="Visible" Click="ActionCopyIllustInfo_Click">
+                                          Header="Copy Illust Title" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
                                             <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionCopyIllustAuthor" x:Uid="ActionCopyIllustAuthor" 
-                                          Header="Copy Author Name" Visibility="Visible" Click="ActionCopyIllustInfo_Click">
+                                          Header="Copy Author Name" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
                                             <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" 
-                                          Header="Copy Illust ID" Visibility="Visible" Click="ActionCopyIllustInfo_Click">
+                                          Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
                                             <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionCopyAuthorID" x:Uid="ActionCopyIllustID" 
-                                          Header="Copy Author ID" Visibility="Visible" Click="ActionCopyIllustInfo_Click">
+                                          Header="Copy Author ID" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
                                             <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
@@ -194,7 +194,7 @@
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionCopyIllustDate" x:Uid="ActionCopyIllustDate"
-                                          Header="Illust Date" Visibility="Visible" Click="ActionCopyIllustInfo_Click" ToolTip="Click to copy illust date">
+                                          Header="Illust Date" Visibility="Visible" Click="ActionIllustInfo_Click" ToolTip="Click to copy illust date">
                                         <MenuItem.Icon>
                                             <iconPacks:PackIconModern Kind="CalendarDay" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>

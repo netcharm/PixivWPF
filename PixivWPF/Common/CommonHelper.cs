@@ -248,6 +248,30 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        internal static bool IsFileReady(string filename)
+        {
+            // If the file can be opened for exclusive access it means that the file
+            // is no longer locked by another process.
+            try
+            {
+                if (!File.Exists(filename)) return true;
+
+                using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
+                    return inputStream.Length > 0;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        internal static void WaitForFile(string filename)
+        {
+            //This will lock the execution until the file is ready
+            //TODO: Add some logic to make it async and cancelable
+            while (!IsFileReady(filename)) { }
+        }
+
         public static async Task<ImageSource> LoadImage(this string file)
         {
             ImageSource result = null;
@@ -274,98 +298,154 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> ToImageFile(this string url, Pixeez.Tokens tokens, string file)
+        public static async Task<bool> ToImageFile(this string url, Pixeez.Tokens tokens, string file, bool overwrite=true)
         {
             bool result = false;
             if (!string.IsNullOrEmpty(file))
             {
-                using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                try
                 {
-                    if (response.Source.StatusCode == HttpStatusCode.OK)
+                    if (!overwrite && File.Exists(file) && new FileInfo(file).Length > 0)
                     {
-                        using (var ms = await response.ToMemoryStream())
+                        return (true);
+                    }
+                    using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                    {
+                        if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
                         {
-                            var dir = Path.GetDirectoryName(file);
-                            if (!Directory.Exists(dir))
+                            using (var ms = await response.ToMemoryStream())
                             {
-                                Directory.CreateDirectory(dir);
+                                var dir = Path.GetDirectoryName(file);
+                                if (!Directory.Exists(dir))
+                                {
+                                    Directory.CreateDirectory(dir);
+                                }
+                                //using (var sms = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.Read))
+                                //{
+                                //    ms.Seek(0, SeekOrigin.Begin);
+                                //    await sms.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
+                                //    result = true;
+                                //}
+                                //WaitForFile(file);
+                                File.WriteAllBytes(file, ms.ToArray());
+                                result = true;
                             }
-                            File.WriteAllBytes($"{file}", ms.ToArray());
-                            result = true;
                         }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if(ex is IOException)
+                    {
+
+                    }
+                    else
+                    {
+                        ex.Message.ShowMessageBox("ERROR");
                     }
                 }
             }
             return (result);
         }
 
-        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens, bool is_meta_single_page=false)
+        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens, bool is_meta_single_page=false, bool overwrite = true)
         {
             string result = string.Empty;
             //url = Regex.Replace(url, @"//.*?\.pixiv.net/", "//i.pximg.net/", RegexOptions.IgnoreCase);
-            var fn = Path.GetFileName(url).Replace("_p", "_");
+            var file = Path.GetFileName(url).Replace("_p", "_");
             if (is_meta_single_page)
-                fn = fn.Replace("_0.", ".");
+                file = file.Replace("_0.", ".");
 
             //var fn = Path.GetFileName(url).Replace("_p0.", ".").Replace("_p", "_");
             if (string.IsNullOrEmpty(setting.LastFolder))
             {
                 SaveFileDialog dlgSave = new SaveFileDialog();
-                dlgSave.FileName = fn;
+                dlgSave.FileName = file;
                 if (dlgSave.ShowDialog() == true)
                 {
-                    fn = dlgSave.FileName;
-                    setting.LastFolder = Path.GetDirectoryName(fn);
+                    file = dlgSave.FileName;
+                    setting.LastFolder = Path.GetDirectoryName(file);
                 }
-                else fn = string.Empty;
+                else file = string.Empty;
             }
 
-            if (!string.IsNullOrEmpty(fn))
+            try
             {
-                using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                if (!string.IsNullOrEmpty(file))
                 {
-                    if (response.Source.StatusCode == HttpStatusCode.OK)
+                    if (!overwrite && File.Exists(file) && new FileInfo(file).Length > 0)
                     {
-                        using (var ms = await response.ToMemoryStream())
-                        {
-                            fn = Path.Combine(setting.LastFolder, Path.GetFileName(fn));
-                            File.WriteAllBytes($"{fn}", ms.ToArray());
-                            result = fn;
-                        }
+                        return (file);
                     }
-                    else result = null;
+
+                    using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                    {
+                        if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
+                        {
+                            using (var ms = await response.ToMemoryStream())
+                            {
+                                file = Path.Combine(setting.LastFolder, Path.GetFileName(file));
+                                //using(var sms = new FileStream(fn, FileMode.Create, FileAccess.Write, FileShare.Read))
+                                //{
+                                //    ms.Seek(0, SeekOrigin.Begin);
+                                //    await sms.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
+                                //    result = fn;
+                                //}
+                                //WaitForFile(file);
+                                File.WriteAllBytes(file, ms.ToArray());
+                                result = file;
+                            }
+                        }
+                        else result = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is IOException)
+                {
+
+                }
+                else
+                {
+                    ex.Message.ShowMessageBox("ERROR");
                 }
             }
             return (result);
         }
 
-        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false)
+        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
-            var file = await url.ToImageFile(tokens, is_meta_single_page);
+            var file = await url.ToImageFile(tokens, is_meta_single_page, overwrite);
             if (!string.IsNullOrEmpty(file))
             {
                 File.SetCreationTime(file, dt);
                 File.SetLastWriteTime(file, dt);
                 File.SetLastAccessTime(file, dt);
-                $"{Path.GetFileName(file)} is saved!".ShowNotification("Successed", file);
-                //$"{Path.GetFileName(file)} is saved!".ShowNotificationAsync("Successed");
+                $"{Path.GetFileName(file)} is saved!".ShowToast("Successed", file);
 
                 if (Regex.IsMatch(file, @"_ugoira\d+\.", RegexOptions.IgnoreCase))
                 {
                     var ugoira_url = url.Replace("img-original", "img-zip-ugoira");
                     //ugoira_url = Regex.Replace(ugoira_url, @"(_ugoira)(\d+)(\..*?)", "_ugoira1920x1080.zip", RegexOptions.IgnoreCase);
                     ugoira_url = Regex.Replace(ugoira_url, @"_ugoira\d+\..*?$", "_ugoira1920x1080.zip", RegexOptions.IgnoreCase);
-                    var ugoira_file = await ugoira_url.ToImageFile(tokens, dt, true);
+                    var ugoira_file = await ugoira_url.ToImageFile(tokens, dt, true, overwrite);
                     if (!string.IsNullOrEmpty(ugoira_file))
                     {
                         File.SetCreationTime(ugoira_file, dt);
                         File.SetLastWriteTime(ugoira_file, dt);
                         File.SetLastAccessTime(ugoira_file, dt);
-                        $"{Path.GetFileName(ugoira_file)} is saved!".ShowNotification("Successed", file);
-                        //$"{Path.GetFileName(ugoira_file)} is saved!".ShowNotificationAsync("Successed");
+                        $"{Path.GetFileName(ugoira_file)} is saved!".ShowToast("Successed", ugoira_file);
+                    }
+                    else
+                    {
+                        $"Save {Path.GetFileName(ugoira_url)} failed!".ShowToast("Failed", "");
                     }
                 }
-
+            }
+            else
+            {
+                $"Save {Path.GetFileName(url)} failed!".ShowToast("Failed", "");
             }
             return (file);
         }
@@ -544,13 +624,16 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ShowNotification(this string content, string title="Pixiv", string imgsrc = "")
+        public static void ShowToast(this string content, string title="Pixiv", string imgsrc = "")
         {
             INotificationDialogService _dailogService = new NotificationDialogService();
             NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-            NotificationConfiguration cfg = new NotificationConfiguration(new TimeSpan(0, 0, 20), 
-                cfgDefault.Width, cfgDefault.Height, 
-                cfgDefault.TemplateName, 
+            NotificationConfiguration cfg = new NotificationConfiguration(
+                //new TimeSpan(0, 0, 30), 
+                TimeSpan.FromSeconds(10),
+                cfgDefault.Width, cfgDefault.Height,
+                "ToastTemplate",
+                //cfgDefault.TemplateName, 
                 cfgDefault.NotificationFlowDirection);
 
             var newNotification = new Notification()
@@ -559,19 +642,36 @@ namespace PixivWPF.Common
                 ImgURL = imgsrc,
                 Message = content
             };
+            _dailogService.ClearNotifications();
             _dailogService.ShowNotificationWindow(newNotification, cfg);
         }
 
-        public static void ShowNotificationAsync(this string content, string title = "Pixiv")
+        public static void ShowToastAsync(this string content, string title = "Pixiv", string imgsrc = "")
         {
-            var notificationManager = new NotificationManager();
+            new Task(() =>
+            {
+                ShowToast(content, title, imgsrc);
+            });
+        }
 
-            notificationManager.Show(new NotificationContent
+        public static void ShowToasts(this string content, string title = "Pixiv", string file="")
+        {
+            var toastManager = new NotificationManager();
+
+            var toastContent = new NotificationContent
             {
                 Title = title,
                 Message = content,
                 Type = NotificationType.Success
-            }, "", new TimeSpan(0,0,15));
+            };
+
+            toastManager.Show(toastContent, "", 
+                TimeSpan.FromSeconds(30), 
+                onClick:() =>
+                {
+                    System.Diagnostics.Process.Start(file);
+                }
+            );
         }
 
     }
@@ -596,5 +696,13 @@ namespace PixivWPF.Common
         //}
     }
 
+    //public class Toast:Notification
+    //{
+    //    public Notification();
+    //
+    //    public string ImgURL { get; set; }
+    //    public string Message { get; set; }
+    //    public string Title { get; set; }
+    //}
 
 }

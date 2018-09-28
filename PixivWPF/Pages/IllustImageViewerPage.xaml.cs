@@ -53,7 +53,7 @@ namespace PixivWPF.Pages
                             window.PreviewKeyUp += Page_PreviewKeyUp;
                         }
                     }
-                    window.Title = $"ID: {item.Subject}";
+                    window.Title = $"ID: {item.ID}, {item.Subject}";
                 }
 
                 PreviewWait.Visibility = Visibility.Hidden;

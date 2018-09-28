@@ -21,6 +21,7 @@
         </Grid.RowDefinitions>
         
         <StackPanel Grid.Row="0" VerticalAlignment="Top">
+            <!-- Recommended/Latest/TrendingTag -->
             <ToggleButton x:Name="btnGotoRecommended" x:Uid="btnGotoRecommended" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
@@ -37,8 +38,8 @@
                     Content="Trending Tags" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
+            <!-- User Following -->
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,2"/>
-
             <ToggleButton x:Name="btnGotoFollowing" x:Uid="btnGotoFollowing" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
@@ -50,8 +51,8 @@
                     Content="Following Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             
+            <!-- User Bookmarked -->
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,2"/>
-
             <ToggleButton x:Name="btnGotoFavorite" x:Uid="btnGotoFavorite" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
@@ -63,8 +64,8 @@
                     Content="Favorite Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
+            <!-- Ranking Day -->
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
-
             <ToggleButton x:Name="btnGotoRankingDay" x:Uid="btnGotoRankingDay" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
@@ -96,8 +97,8 @@
                     Content="Ranking By Day Female R18" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
+            <!-- Ranking Week -->
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
-
             <ToggleButton x:Name="btnGotoRankingWeek" x:Uid="btnGotoRankingWeek" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
@@ -124,16 +125,16 @@
                     Content="Ranking By Week R18G" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
+            <!-- Ranking Month -->
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
-
             <ToggleButton x:Name="btnGotoRankingMonth" x:Uid="btnGotoRankingMonth" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="Ranking By Month" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
-
+            <!-- Ranking Year -->
+            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8" Visibility="Collapsed"/>
             <ToggleButton x:Name="btnGotoRankingYear" x:Uid="btnGotoRankingYear" Visibility="Collapsed"
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
@@ -161,7 +162,7 @@
             </Grid>
         </StackPanel>
 
-        <StackPanel Grid.Row="3"  VerticalAlignment="Bottom">
+        <StackPanel Grid.Row="3"  VerticalAlignment="Bottom" Visibility="Collapsed">
             <Button x:Name="btnGotoLogin" x:Uid="btnGotoLogin" Visibility="Collapsed"
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 

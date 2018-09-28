@@ -77,6 +77,17 @@ namespace PixivWPF.Common
                 break;
             }
         }
+
+        public async void RefreshUserInfo(Pixeez.Tokens tokens)
+        {
+            var users = await tokens.GetUsersAsync(Illust.User.Id.Value);
+            foreach (var user in users)
+            {
+                Illust.User.is_followed = user.is_followed;
+                break;
+            }
+        }
+
     }
 
     public static class ImageTileHelper

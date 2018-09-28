@@ -116,6 +116,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Common\ToastItem.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Common\ToastUI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -137,6 +145,9 @@
     </Compile>
     <Compile Include="Common\LoginDialog.xaml.cs">
       <DependentUpon>LoginDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Common\ToastItem.xaml.cs">
+      <DependentUpon>ToastItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\SettingClass.cs" />
     <Compile Include="Common\ThemeClass.cs" />

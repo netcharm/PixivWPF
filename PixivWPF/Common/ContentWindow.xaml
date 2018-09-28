@@ -6,6 +6,9 @@
         xmlns:local="clr-namespace:PixivWPF.Common"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         Icon="pack://application:,,,/PixivWPF;component/Resources/pixiv-icon.ico"
+        BorderBrush="{DynamicResource AccentColorBrush}"
+        GlowBrush="{DynamicResource AccentColorBrush}"
+        BorderThickness="1"
         mc:Ignorable="d"
         Title="ImageViewerWindow" Height="300" Width="300" KeyUp="Window_KeyUp">
     <Grid>

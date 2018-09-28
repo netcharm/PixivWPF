@@ -369,10 +369,12 @@ namespace Pixeez
 
             HttpClientHandler handler = new HttpClientHandler()
             {
+                AllowAutoRedirect = true,
+                UseCookies = true,
                 Proxy = string.IsNullOrEmpty(Proxy) ? null : new WebProxy(Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
                 UseProxy = string.IsNullOrEmpty(Proxy) || !UsingProxy ? false : true
             };
-            var httpClient = new HttpClient(handler);
+            var httpClient = new HttpClient(handler) { Timeout=TimeSpan.FromSeconds(120) };
             httpClient.DefaultRequestHeaders.Add("Referer", "http://spapi.pixiv.net/");
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.7");
             httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
