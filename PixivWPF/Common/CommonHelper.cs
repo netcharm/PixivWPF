@@ -84,6 +84,8 @@ namespace PixivWPF.Common
         private static Setting setting = Setting.Load();
         private static CacheImage cache = new CacheImage();
 
+        internal static Pages.DownloadManagerPage _downManager = new Pages.DownloadManagerPage();
+
         private static async void RefreshToken()
         {
             if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
@@ -448,6 +450,27 @@ namespace PixivWPF.Common
                 $"Save {Path.GetFileName(url)} failed!".ShowToast("Failed", "");
             }
             return (file);
+        }
+
+        public static void ToImageFileAsync(this string url, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        {
+            var dl = new DownloadItem()
+            {
+                Url = url,
+                SingleFile = is_meta_single_page,
+                Overwrite = true,
+                FileTime = dt
+            };
+            dl.Start();
+        }
+
+        public static void ToImageFile(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        {
+            if(_downManager is Pages.DownloadManagerPage)
+            {
+                _downManager.Add(url, thumb, dt, is_meta_single_page, overwrite);
+                _downManager.Refresh();
+            }
         }
 
         public static async Task<List<string>> ToImageFiles(Dictionary<string, DateTime> files, Pixeez.Tokens tokens, bool is_meta_single_page = false)

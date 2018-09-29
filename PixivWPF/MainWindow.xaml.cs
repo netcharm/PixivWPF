@@ -249,6 +249,42 @@ namespace PixivWPF
             }
         }
 
+        private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
+        {
+            if (CommonHelper._downManager is Pages.DownloadManagerPage)
+            {
+
+            }
+            else
+                CommonHelper._downManager = new Pages.DownloadManagerPage();
+
+            Window _dm = null;
+            foreach(Window win in Application.Current.Windows)
+            {
+                if(win.Content is Pages.DownloadManagerPage)
+                {
+                    _dm = win;
+                    break;
+                }
+            }
+
+            if(_dm is Window)
+            {
+                _dm.Show();
+            }
+            else
+            {
+                var viewer = new ContentWindow();
+                viewer.Title = $"Download Manager";
+                viewer.Width = 600;
+                viewer.Height = 480;
+                viewer.Content = CommonHelper._downManager;
+                viewer.Tag = CommonHelper._downManager;
+                CommonHelper._downManager.window = viewer;
+                viewer.Show();
+            }
+
+        }
     }
 
 

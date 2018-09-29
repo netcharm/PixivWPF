@@ -104,6 +104,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Common\DownloadItemControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Common\ImageListGrid.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -134,7 +138,9 @@
     </Compile>
     <Compile Include="Common\CacheClass.cs" />
     <Compile Include="Common\CommonHelper.cs" />
-    <Compile Include="Common\DownloadItems.cs" />
+    <Compile Include="Common\DownloadItemControl.xaml.cs">
+      <DependentUpon>DownloadItemControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Common\HistoryClass.cs" />
     <Compile Include="Common\ImageListGrid.xaml.cs">
       <DependentUpon>ImageListGrid.xaml</DependentUpon>
@@ -157,6 +163,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Pages\DownloadManagerPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\IllustDetailPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -187,6 +197,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Pages\DownloadManagerPage.xaml.cs">
+      <DependentUpon>DownloadManagerPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\IllustDetailPage.xaml.cs">
       <DependentUpon>IllustDetailPage.xaml</DependentUpon>
     </Compile>

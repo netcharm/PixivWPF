@@ -1,0 +1,90 @@
+﻿<UserControl x:Class="PixivWPF.Common.DownloadItem"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"            
+             xmlns:local="clr-namespace:PixivWPF.Common"
+             mc:Ignorable="d" 
+             d:DesignHeight="140" d:DesignWidth="200">
+    <Grid Margin="2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_Preview" x:Uid="Preview"
+               Source="{Binding Thumbnail, Mode=OneWay}"
+               Width="128" Height="128" Margin="2"
+               Stretch="Uniform"/>
+        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="PART_FileURL" 
+                   HorizontalAlignment="Stretch"
+                   Foreground="{DynamicResource LabelTextBrush}" 
+                   Text="{Binding Url, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
+        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_FileName" 
+                   HorizontalAlignment="Stretch"
+                   Foreground="{DynamicResource LabelTextBrush}" 
+                   Text="{Binding FileName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
+        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="PART_FileFolder" 
+                   HorizontalAlignment="Stretch"
+                   Foreground="{DynamicResource LabelTextBrush}" 
+                   Text="{Binding FolderName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
+        <mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
+                              Foreground="{DynamicResource AccentColorBrush}"                              
+                              Height="16" IsIndeterminate="False" Minimum="0" Maximum="100"
+                              Value="{Binding Progress, Mode=OneWay, IsAsync=True,UpdateSourceTrigger=PropertyChanged}"
+                              VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="4" Grid.Column="1" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,4,4"
+                    Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <Button x:Name="PART_Download" x:Uid="Reload" Margin="2,0,2,0" Click="Download_Click"
+                    ToolTip="Download File" Tag="{Binding Url, Mode=OneWay}"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                    BorderBrush="{DynamicResource AccentColorBrush}"
+                    Foreground="{DynamicResource LabelTextBrush}" 
+                    Background="Transparent"
+                    mah:ButtonHelper.PreserveTextCase="True">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                    <TextBlock Text="Download" Margin="8,0,0,0" FontSize="10"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="PART_OpenFile" x:Uid="OpenFile" Margin="2,0,2,0" Click="OpenFile_Click"
+                    ToolTip="Open File With Default Application" Tag="{Binding FileName, Mode=OneWay}"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                    BorderBrush="{DynamicResource AccentColorBrush}"
+                    Foreground="{DynamicResource LabelTextBrush}" 
+                    Background="Transparent"
+                    mah:ButtonHelper.PreserveTextCase="True">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                    <TextBlock Text="View File" Margin="8,0,0,0" FontSize="10"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="PART_OpenFolder" x:Uid="OpenFolder" Margin="2,0,2,0" Click="OpenFolder_Click"
+                    ToolTip="Open File Folder" Tag="{Binding FileName, Mode=OneWay}"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource SquareButtonStyle}"  BorderThickness="1"
+                    BorderBrush="{DynamicResource AccentColorBrush}"
+                    Foreground="{DynamicResource LabelTextBrush}"
+                    Background="Transparent"
+                    mah:ButtonHelper.PreserveTextCase="True">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                    <TextBlock Text="Open Folder" Margin="2,0,0,0" FontSize="10"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

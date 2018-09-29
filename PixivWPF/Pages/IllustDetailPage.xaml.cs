@@ -7,6 +7,7 @@ using System.Linq;
 using System.Media;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -738,6 +739,7 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
+                        Thread.Sleep(250);
                         tokens = await CommonHelper.ShowLogin();
                         item.RefreshIllust(tokens);
                         if (item.Illust.IsBookMarked())
@@ -787,6 +789,7 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
+                        Thread.Sleep(250);
                         tokens = await CommonHelper.ShowLogin();
                         item.RefreshUserInfo(tokens);
                         if (item.Illust.User.is_followed.Value)
@@ -823,6 +826,7 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
+                        Thread.Sleep(250);
                         tokens = await CommonHelper.ShowLogin();
                         var users = await tokens.GetUsersAsync(user.Id.Value);
                         foreach (var u in users)
@@ -895,10 +899,13 @@ namespace PixivWPF.Pages
                         if (!string.IsNullOrEmpty(url))
                         {
                             tokens = await CommonHelper.ShowLogin();
-                            await url.ToImageFile(tokens, dt, is_meta_single_page);
+                            //await url.ToImageFile(tokens, dt, is_meta_single_page);
+                            //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
+                            //SystemSounds.Beep.Play();
+                            //url.ToImageFileAsync(dt, IllustsSaveProgress, is_meta_single_page);
+                            url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
                         }
                     }
-                    SystemSounds.Beep.Play();
                 }
             }
             else if (SubIllusts.SelectedItem is ImageItem)
@@ -914,8 +921,10 @@ namespace PixivWPF.Pages
                     if (!string.IsNullOrEmpty(url))
                     {
                         tokens = await CommonHelper.ShowLogin();
-                        await url.ToImageFile(tokens, dt, is_meta_single_page);
-                        SystemSounds.Beep.Play();
+                        //await url.ToImageFile(tokens, dt, is_meta_single_page);
+                        //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
+                        //SystemSounds.Beep.Play();
+                        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
                     }
                 }
             }
@@ -931,8 +940,10 @@ namespace PixivWPF.Pages
                     if (!string.IsNullOrEmpty(url))
                     {
                         tokens = await CommonHelper.ShowLogin();
-                        await url.ToImageFile(tokens, dt, is_meta_single_page);
-                        SystemSounds.Beep.Play();
+                        //await url.ToImageFile(tokens, dt, is_meta_single_page);
+                        //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
+                        //SystemSounds.Beep.Play();
+                        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
                     }
                 }
             }
@@ -968,7 +979,8 @@ namespace PixivWPF.Pages
                     {
                         var url = pages.GetOriginalUrl();
                         tokens = await CommonHelper.ShowLogin();
-                        await url.ToImageFile(tokens, dt, is_meta_single_page);
+                        //await url.ToImageFile(tokens, dt, is_meta_single_page);
+                        url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
 
                         idx++;
                         progress.Report((int)((double)idx / total * 100));
@@ -980,7 +992,29 @@ namespace PixivWPF.Pages
                     var illustset = illust as Pixeez.Objects.NormalWork;
                     var is_meta_single_page = illust.PageCount==1 ? true : false;
                     tokens = await CommonHelper.ShowLogin();
-                    await url.ToImageFile(tokens, dt, is_meta_single_page);
+                    //await url.ToImageFile(tokens, dt, is_meta_single_page);
+                    if (is_meta_single_page)
+                    {
+                        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                    }
+                    else
+                    {
+                        tokens = await CommonHelper.ShowLogin();
+                        var illusts = await tokens.GetWorksAsync(illust.Id.Value);
+                        foreach(var w in illusts)
+                        {
+                            if(w.Metadata != null && w.Metadata.Pages != null)
+                            {
+                                foreach (var p in w.Metadata.Pages)
+                                {
+                                    var u = p.GetOriginalUrl();
+                                    u.ToImageFile(p.GetThumbnailUrl(), dt, is_meta_single_page);
+                                }
+                            }
+                            
+                        }
+                    }
+                    
                 }
                 IllustsSaveProgress.Value = 100;
                 IllustsSaveProgress.Visibility = Visibility.Collapsed;

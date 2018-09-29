@@ -81,6 +81,10 @@
                     ToolTip="Searching Illust/User">
                 <iconPacks:PackIconModern Kind="Magnify" />
             </Button>
+            <Button Click="CommandDownloadManager_Click" 
+                    ToolTip="Open Download Manager">
+                <iconPacks:PackIconModern Kind="Download" />
+            </Button>
             <Button Click="CommandLogin_Click"
                     ToolTip="Open Login Dialog">
                 <iconPacks:PackIconModern Kind="User" />

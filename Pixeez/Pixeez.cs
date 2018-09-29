@@ -503,7 +503,7 @@ namespace Pixeez
 
                 try
                 {
-                    var response = await httpClient.GetAsync(uri);
+                    var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
                     string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                     if (vl != null && vl == "gzip")
                     {
