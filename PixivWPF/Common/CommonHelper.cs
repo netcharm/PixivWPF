@@ -94,6 +94,7 @@ namespace PixivWPF.Common
             }
             else
                 _downManager = new Pages.DownloadManagerPage();
+            _downManager.AutoStart = true;
 
             Window _dm = null;
             foreach (Window win in Application.Current.Windows)

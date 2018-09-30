@@ -217,7 +217,6 @@ namespace PixivWPF.Common
         public Tuple<double, double> Progress
         {
             get { return Info.Progress; }
-            set { Info.Progress = value; }            
         }
 
         public long Received
@@ -388,7 +387,7 @@ namespace PixivWPF.Common
                         //await ProcessContentStream(totalBytes, contentStream);
                         using (var ms = new MemoryStream())
                         {
-                            progress.Report(new Tuple<double, double>(0, 0));
+                            progress.Report(Info.Progress);
                             do
                             {
                                 byte[] bytes = new byte[65536];
@@ -397,10 +396,11 @@ namespace PixivWPF.Common
                                 {
                                     Info.Received += bytesread;
                                     await ms.WriteAsync(bytes, 0, bytesread);
-                                    progress.Report(Progress);
+                                    progress.Report(Info.Progress);
                                 }
                             } while (Info.Received < Info.Length);
-                            if (ms.Length == Info.Received && Info.Received == Info.Length)
+                            //if (ms.Length == Info.Received && Info.Received == Info.Length)
+                            if (Info.Received == Info.Length)
                             {
                                 try
                                 {
@@ -410,7 +410,7 @@ namespace PixivWPF.Common
                                     File.SetCreationTime(FileName, FileTime);
                                     File.SetLastWriteTime(FileName, FileTime);
                                     File.SetLastAccessTime(FileName, FileTime);
-                                    progress.Report(Progress);
+                                    progress.Report(Info.Progress);
                                     PART_OpenFile.IsEnabled = true;
                                     PART_OpenFolder.IsEnabled = true;
                                     $"{Path.GetFileName(Info.FileName)} is saved!".ShowToast("Successed", Info.FileName);

@@ -37,21 +37,16 @@ namespace PixivWPF.Pages
             get { return items; }
         }
 
-        internal Thread CheckState = null;
-
         public DownloadManagerPage()
         {
             InitializeComponent();
             DataContext = this;
 
             DownloadItems.ItemsSource = items;
-            //DownloadItems.Items.Refresh();
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            //DownloadItems.ItemsSource = items;
-            DownloadItems.Items.Refresh();
             window = Window.GetWindow(this);
         }
 
@@ -60,6 +55,7 @@ namespace PixivWPF.Pages
             if(item is DownloadInfo)
             {
                 items.Add(item);
+                //items.Insert(0, item);
             }
         }
 
@@ -100,12 +96,12 @@ namespace PixivWPF.Pages
 
         private void DownloadAll_Click(object sender, RoutedEventArgs e)
         {
-            CheckState = new Thread(() =>
+            new Thread(() =>
             {
                 var needUpdate = items.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished );
                 if (needUpdate.Count() > 0)
                 {
-                    //using (DownloadItems.Items.DeferRefresh())
+                    using (DownloadItems.Items.DeferRefresh())
                     {
                         var opt = new ParallelOptions();
                         opt.MaxDegreeOfParallelism = 5;
@@ -115,8 +111,7 @@ namespace PixivWPF.Pages
                         });
                     }
                 }
-            });
-            CheckState.Start();
+            }).Start();
         }
     }
 }

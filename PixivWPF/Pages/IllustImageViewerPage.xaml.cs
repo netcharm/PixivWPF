@@ -99,6 +99,41 @@ namespace PixivWPF.Pages
             }
         }
 
+        internal async void SaveIllust()
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (DataType is ImageItem)
+            {
+                var item = DataType as ImageItem;
+                if (item.Illust is Pixeez.Objects.Work)
+                {
+
+                    var illust = item.Illust;
+                    var idx = item.Count-1;
+                    var url = illust.GetOriginalUrl(idx);
+                    var dt = illust.GetDateTime();
+
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        //await url.ToImageFile(tokens);
+                        try
+                        {
+                            var is_meta_single_page = illust.PageCount==1 ? true : false;
+                            //await url.ToImageFile(tokens, dt, is_meta_single_page);
+                            //SystemSounds.Beep.Play();
+                            url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                        }
+                        catch (Exception ex)
+                        {
+                            ex.Message.ShowMessageBox("ERROR");
+                        }
+                    }
+                }
+            }
+        }
+
         public IllustImageViewerPage()
         {
             InitializeComponent();
@@ -110,38 +145,9 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
+        private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
         {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
-
-            if (DataType is ImageItem)
-            {
-                var item = DataType as ImageItem;
-                if (item.Illust is Pixeez.Objects.Work)
-                {
-
-                    var Illust = item.Illust;
-                    var idx = item.Count-1;
-                    var url = Illust.GetOriginalUrl(idx);
-                    var dt = Illust.GetDateTime();
-
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        //await url.ToImageFile(tokens);
-                        try
-                        {
-                            var is_meta_single_page = Illust.PageCount==1 ? true : false;
-                            await url.ToImageFile(tokens, dt, is_meta_single_page);
-                            SystemSounds.Beep.Play();
-                        }
-                        catch(Exception ex)
-                        {
-                            ex.Message.ShowMessageBox("ERROR");
-                        }
-                    }
-                }
-            }
+            SaveIllust();
         }
 
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -161,6 +167,9 @@ namespace PixivWPF.Pages
                 offset = 1;
             else if (e.Key == Key.Left || e.Key == Key.Up || e.Key == Key.PageUp)
                 offset = -1;
+            else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+                SaveIllust();
+
             ChangeIllustPage(offset);
         }
 
@@ -171,6 +180,9 @@ namespace PixivWPF.Pages
                 offset = 1;
             else if (e.Key == Key.Left || e.Key == Key.Up || e.Key == Key.PageUp)
                 offset = -1;
+            else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+                SaveIllust();
+
             ChangeIllustPage(offset);
         }
     }
