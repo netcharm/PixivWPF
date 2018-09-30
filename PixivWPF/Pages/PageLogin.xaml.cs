@@ -69,6 +69,13 @@ namespace PixivWPF.Pages
             {
                 Logo.Source = new BitmapImage(uri);
             }
+#else
+            var uri = new Uri(@"pack://application:,,,/PixivWPF;component/Resources/pixiv-logo.png");
+            if (uri.IsAbsoluteUri && System.IO.File.Exists(uri.AbsolutePath))
+            {
+                if(Logo.Source == null) Logo.Source = new BitmapImage(uri);
+            }
+
 #endif
             edUser.Focus();
 

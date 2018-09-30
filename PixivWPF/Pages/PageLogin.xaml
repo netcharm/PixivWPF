@@ -15,7 +15,7 @@
 
     <Grid>
         <StackPanel Margin="12">
-            <Image x:Name="Logo"  Stretch="Uniform" Margin="12,12,12,12" MinHeight="64" Source="pack://application:,,,/PixivWPF;component/Resources/pixiv-logo.png"/>
+            <Image x:Name="Logo" Stretch="Uniform" Margin="12,12,12,12" MinHeight="64" Source="pack://application:,,,/PixivWPF;component/Resources/pixiv-logo.png"/>
             <TextBlock x:Name="headerUser" x:Uid="headerUser" Text="Usermame" Margin="12, 12, 12, 4" Foreground="{DynamicResource AccentColorBrush}"/>
             <TextBox x:Name="edUser" x:Uid="edUser" Margin="12, 12, 12, 12" 
                      AcceptsReturn="False"
