@@ -86,6 +86,42 @@ namespace PixivWPF.Common
 
         internal static Pages.DownloadManagerPage _downManager = new Pages.DownloadManagerPage();
 
+        public static void ShowDownloadManager()
+        {
+            if (_downManager is Pages.DownloadManagerPage)
+            {
+
+            }
+            else
+                _downManager = new Pages.DownloadManagerPage();
+
+            Window _dm = null;
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win.Content is Pages.DownloadManagerPage)
+                {
+                    _dm = win;
+                    break;
+                }
+            }
+
+            if (_dm is Window)
+            {
+                _dm.Show();
+            }
+            else
+            {
+                var viewer = new ContentWindow();
+                viewer.Title = $"Download Manager";
+                viewer.Width = 720;
+                viewer.Height = 480;
+                viewer.Content = _downManager;
+                viewer.Tag = _downManager;
+                _downManager.window = viewer;
+                viewer.Show();
+            }
+        }
+
         private static async void RefreshToken()
         {
             if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
@@ -461,15 +497,15 @@ namespace PixivWPF.Common
                 Overwrite = true,
                 FileTime = dt
             };
-            dl.Start();
+            dl.IsForceStart = true;
         }
 
         public static void ToImageFile(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
+            ShowDownloadManager();
             if(_downManager is Pages.DownloadManagerPage)
             {
                 _downManager.Add(url, thumb, dt, is_meta_single_page, overwrite);
-                _downManager.Refresh();
             }
         }
 

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Media;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,139 @@ using System.Windows.Navigation;
 
 namespace PixivWPF.Common
 {
-    public enum DownloadState { Idle, Downloading, Pause, Finished, Failed, Unkonown }
+    public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Unknown }
+
+    public class DownloadInfo: INotifyPropertyChanged
+    {
+        private Setting setting = Setting.Load();
+
+        [DefaultValue(false)]
+        public bool UsingProxy { get; set; }
+        public string Proxy { get; set; }
+        [DefaultValue(true)]
+        public bool AutoStart { get; set; }
+        [DefaultValue(false)]
+        public bool Canceled { get; set; }
+        [DefaultValue(DownloadState.Idle)]
+        public DownloadState State { get; set; }
+        private string url = string.Empty;
+        public string Url
+        {
+            get { return (url); }
+            set
+            {
+                if (string.IsNullOrEmpty(value)) return;
+
+                url = value;
+
+                if (!string.IsNullOrEmpty(url))
+                {
+                    var file = Path.GetFileName(url).Replace("_p", "_");
+                    if (SingleFile)
+                        file = file.Replace("_0.", ".");
+                    FileName = file;
+                }
+
+                if (string.IsNullOrEmpty(setting.LastFolder))
+                {
+                    SaveFileDialog dlgSave = new SaveFileDialog();
+                    dlgSave.FileName = FileName;
+                    if (dlgSave.ShowDialog() == true)
+                    {
+                        FileName = dlgSave.FileName;
+                        setting.LastFolder = Path.GetDirectoryName(FileName);
+                    }
+                    else
+                    {
+                        Canceled = true;
+                        //else FileName = string.Empty;
+                        return;
+                    }
+                }
+                FileName = Path.Combine(setting.LastFolder, Path.GetFileName(FileName));
+                NotifyPropertyChanged();
+            }
+
+        }
+        public string FileName { get; set; }
+        public string FolderName { get { return string.IsNullOrEmpty(FileName) ? string.Empty : Path.GetDirectoryName(FileName); } }
+        public DateTime FileTime { get; set; }
+        public double ProgressPercent { get { return Length>0 ? Received/Length*100 : 0; } }
+        public Tuple<double, double> Progress
+        {
+            get { return Tuple.Create<double, double>(Received, Length); }
+            set
+            {
+                Received = (long)value.Item1;
+                Length = (long)value.Item2;
+                NotifyPropertyChanged();
+            }
+        }
+        [DefaultValue(0)]
+        public long Received { get; set; }
+        [DefaultValue(0)]
+        public long Length { get; set; }
+        [DefaultValue(true)]
+        public bool Overwrite { get; set; }
+        [DefaultValue(true)]
+        public bool SingleFile { get; set; }
+        public ImageSource Thumbnail { get; set; }
+
+        private bool forcestart = false;
+        [DefaultValue(false)]
+        public bool IsForceStart
+        {
+            get { return (forcestart); }
+            set
+            {
+                if (value)
+                {
+                    State = DownloadState.Idle;
+                    IsStart = value;
+                }
+                forcestart = value;
+            }
+        }
+
+        private bool start = false;
+        [DefaultValue(false)]
+        public bool IsStart
+        {
+            get
+            {
+                return start;
+            }
+            set
+            {
+                start = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void RaisePropertyChanged(string propertyName)
+        {
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        //event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
+        //{
+        //    add
+        //    {
+        //        this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        //    }
+
+        //    remove
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //}
+    }
 
     /// <summary>
     /// DownloadItemControl.xaml 的交互逻辑
@@ -30,139 +163,359 @@ namespace PixivWPF.Common
     {
         private Setting setting = Setting.Load();
 
-        public bool UsingProxy { get; set; }
-        public string Proxy { get; set; }
+        private DownloadInfo Info { get; set; }
 
-        private bool canceled = false;
         public bool Canceled
         {
-            get { return canceled; }
-            set { canceled = value; }
+            get { return Info.Canceled; }
+            set { Info.Canceled = value; }
         }
 
-        private string url = string.Empty;
         public string Url
         {
-            get { return url; }
-            set
-            {
-                url = value;
-
-                if (!string.IsNullOrEmpty(url))
-                {
-                    var file = Path.GetFileName(url).Replace("_p", "_");
-                    if (SingleFile)
-                        file = file.Replace("_0.", ".");
-                    filename = file;
-                }
-
-                if (string.IsNullOrEmpty(setting.LastFolder))
-                {
-                    SaveFileDialog dlgSave = new SaveFileDialog();
-                    dlgSave.FileName = filename;
-                    if (dlgSave.ShowDialog() == true)
-                    {
-                        filename = dlgSave.FileName;
-                        setting.LastFolder = Path.GetDirectoryName(filename);
-                    }
-                    else
-                    {
-                        canceled = true;
-                        //else FileName = string.Empty;
-                        return;
-                    }
-                }
-                filename = Path.Combine(setting.LastFolder, Path.GetFileName(FileName));
-
-                //PART_FileURL.Text = url;
-                //PART_FileName.Text = Path.GetFileName(filename);
-                //PART_FileFolder.Text = Path.GetDirectoryName(filename);
-
-                //Task.Run(async () => {
-                //    Thumbnail = await url.LoadImage();
-                //    //PART_Preview.Source = await url.LoadImage();
-                //});
-                //UpdateLayout();
-            }
+            get { return Info.Url; }
+            set { Info.Url = value; }
         }
 
-        public ImageSource Thumbnail { get; set; }
+        public ImageSource Thumbnail
+        {
+            get { return Info.Thumbnail; }
+            set { Info.Thumbnail = value; }
+        }
 
-        private string filename = string.Empty;
         public string FileName
         {
-            get { return filename; }
+            get { return Info.FileName; }
             set
             {
-                filename = value;
+                Info.FileName = value;
 
-                PART_FileURL.Text = url;
-                PART_FileName.Text = Path.GetFileName(filename);
-                PART_FileFolder.Text = Path.GetDirectoryName(filename);
+                PART_FileName.Text = Info.FileName;
+                PART_FileFolder.Text = FolderName;
             }
         }
 
         public string FolderName
         {
-            get { return Path.GetDirectoryName(filename); }
+            get { return string.IsNullOrEmpty(Info.FileName) ? string.Empty : Path.GetDirectoryName(Info.FileName); }
         }
 
-        public bool AutoStart { get; set; }
+        [DefaultValue(true)]
+        public bool AutoStart
+        {            
+            get { return Info.AutoStart; }
+            set { Info.AutoStart = value; }
+        }
 
-        private DownloadState state = DownloadState.Unkonown;
+        [DefaultValue(DownloadState.Idle)]
         public DownloadState State
         {
-            get { return state; }
+            get { return Info.State; }
+            set { Info.State = value; }
         }
 
-        private double _progress;
-        public double Progress
+        public Tuple<double, double> Progress
         {
-            get { return _progress; }
+            get { return Info.Progress; }
+            set { Info.Progress = value; }            
+        }
+
+        public long Received
+        {
+            get { return Info.Received >= 0 ? Info.Received : 0; }
+            set { Info.Received = value; }
+        }
+
+        public long Length
+        {
+            get { return Info.Length; }
+            set { Info.Length = value; }
+        }
+
+        [DefaultValue(true)]
+        public bool Overwrite
+        {
+            get { return Info.Overwrite; }
+            set { Info.Overwrite = value; }
+        }
+
+        [DefaultValue(true)]
+        public bool SingleFile
+        {
+            get { return Info.SingleFile; }
+            set { Info.SingleFile = value; }
+        }
+        public DateTime FileTime
+        {
+            get { return Info.FileTime; }
+            set { Info.FileTime = value; }
+        }
+
+        [DefaultValue(false)]
+        public bool IsIdle
+        {
+            get
+            {
+                if (State == DownloadState.Idle) return true;
+                else return false;
+            }
             set
             {
-                if (_progress != value)
-                {
-                    _progress = value;
-                    RaisePropertyChanged("Progress");
-                }
+
             }
         }
 
-        private long received = 0;
-        public long Received
+        [DefaultValue(false)]
+        public bool IsForceStart
         {
-            get { return received >= 0 ? received : 0; }
+            get { return Info.IsForceStart; }
+            set
+            {
+                Info.IsForceStart = value;
+                //Start();
+            }
         }
 
-        private long length = 0;
-        public long Length
+        [DefaultValue(false)]
+        public bool IsStart
         {
-            get { return length; }
+            get
+            {
+                return Info.IsStart;
+            }
+            set
+            {
+                Info.IsStart = true;
+            }
         }
 
-        [DefaultValue(true)]
-        public bool Overwrite { get; set; }
-        [DefaultValue(true)]
-        public bool SingleFile { get; set; }
-        //[DefaultValue(DateTime.Now)]
-        public DateTime FileTime { get; set; }
+        [DefaultValue(false)]
+        public bool IsPaused
+        {
+            get
+            {
+                if (State == DownloadState.Paused) return true;
+                else return false;
+            }
+            set
+            {
+                
+            }
+        }
+
+        [DefaultValue(false)]
+        public bool IsFailed
+        {
+            get
+            {
+                if (State == DownloadState.Failed) return true;
+                else return false;
+            }
+            set
+            {
+
+            }
+        }
+
+        [DefaultValue(false)]
+        public bool IsFinished
+        {
+            get
+            {
+                if (State == DownloadState.Finished) return true;
+                else return false;
+            }
+            set
+            {
+
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void RaisePropertyChanged(string propertyName)
         {
-            if (this.PropertyChanged != null)
-                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        internal IProgress<double> progress = null;
+        internal IProgress<Tuple<double, double>> progress = null;
+
+        private void CheckProperties()
+        {
+            if(Tag is DownloadInfo)
+            {
+                Info = Tag as DownloadInfo;
+                progress.Report(Info.Progress);
+                if (IsForceStart) State = DownloadState.Idle;
+                if(Info.State == DownloadState.Finished)
+                {
+                    PART_OpenFile.IsEnabled = true;
+                    PART_OpenFolder.IsEnabled = true;
+                }
+                else
+                {
+                    PART_OpenFile.IsEnabled = false;
+                    PART_OpenFolder.IsEnabled = false;
+                }
+            }
+        }
+
+        public void Refresh()
+        {
+            CheckProperties();
+        }
+
+        private async Task<string> StartAsync()
+        {
+            string result = string.Empty;
+            if (string.IsNullOrEmpty(Info.Url)) return (result);
+
+            PART_OpenFile.IsEnabled = false;
+            PART_OpenFolder.IsEnabled = false;
+
+            Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
+            using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, Info.Url))
+            {
+                if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
+                {
+                    PART_DownloadProgress.IsIndeterminate = false;
+                    Info.Received = 0;
+                    Info.Length = (long)response.Source.Content.Headers.ContentLength;
+                    progress.Report(Progress);
+
+                    State = DownloadState.Downloading;
+                    using (var cs = await response.Source.Content.ReadAsStreamAsync())
+                    {
+                        //await ProcessContentStream(totalBytes, contentStream);
+                        using (var ms = new MemoryStream())
+                        {
+                            progress.Report(new Tuple<double, double>(0, 0));
+                            do
+                            {
+                                byte[] bytes = new byte[65536];
+                                var bytesread = await cs.ReadAsync(bytes, 0, 65536);
+                                if (bytesread >= 0)
+                                {
+                                    Info.Received += bytesread;
+                                    await ms.WriteAsync(bytes, 0, bytesread);
+                                    progress.Report(Progress);
+                                }
+                            } while (Info.Received < Info.Length);
+                            if (ms.Length == Info.Received && Info.Received == Info.Length)
+                            {
+                                try
+                                {
+                                    File.WriteAllBytes(Info.FileName, ms.ToArray());
+                                    State = DownloadState.Finished;
+                                    result = Info.FileName;
+                                    File.SetCreationTime(FileName, FileTime);
+                                    File.SetLastWriteTime(FileName, FileTime);
+                                    File.SetLastAccessTime(FileName, FileTime);
+                                    progress.Report(Progress);
+                                    PART_OpenFile.IsEnabled = true;
+                                    PART_OpenFolder.IsEnabled = true;
+                                    $"{Path.GetFileName(Info.FileName)} is saved!".ShowToast("Successed", Info.FileName);
+                                    SystemSounds.Beep.Play();
+                                }
+                                catch (Exception)
+                                {
+                                    State = DownloadState.Failed;
+                                    PART_DownloadProgress.IsIndeterminate = true;
+                                }
+                                finally
+                                {
+                                }
+                            }
+                            else
+                            {
+                                State = DownloadState.Failed;
+                                PART_DownloadProgress.IsIndeterminate = true;
+                            }
+                        }
+                    }
+                }
+                else result = null;
+            }
+            return (result);
+        }
+
+        private void Start()
+        {
+            CheckProperties();
+
+            if (State != DownloadState.Idle && State != DownloadState.Failed) return;
+
+            this.Dispatcher.BeginInvoke((Action)(async () =>
+            {
+                var ret = await StartAsync();
+
+                if (!string.IsNullOrEmpty(ret))
+                {
+                    PART_OpenFile.IsEnabled = true;
+                    PART_OpenFolder.IsEnabled = true;
+                }
+            }));
+
+        }
+
         public DownloadItem()
         {
             InitializeComponent();
-            FileTime = DateTime.Now;
+            Info = new DownloadInfo();
 
-            progress = new Progress<double>(i => { PART_DownloadProgress.Value = i; });
-            progress.Report(50);
+            progress = new Progress<Tuple<double, double>>(i => {
+                PART_DownloadProgress.Value = i.Item2 > 0 ? i.Item1 / i.Item2 * 100 : 0;
+                PART_DownInfo.Text = $"Downloading : {i.Item1 / 1024.0:0.} KB / {i.Item2 / 1024.0:0.} KB";
+            });
+
+            CheckProperties();
+        }
+
+        public DownloadItem(string url, bool autostart=true)
+        {
+            InitializeComponent();
+
+            Info = new DownloadInfo();
+
+            progress = new Progress<Tuple<double, double>>(i => {
+                PART_DownloadProgress.Value = i.Item2 > 0 ? i.Item1 / i.Item2 * 100 : 0;
+                PART_DownInfo.Text = $"Downloading : {i.Item1 / 1024.0:0.} KB / {i.Item2 / 1024.0:0.} KB";
+            });
+
+            AutoStart = autostart;
+            Info.Url = url;
+
+            CheckProperties();
+        }
+
+        public DownloadItem(DownloadInfo info)
+        {
+            InitializeComponent();
+
+            if (info is DownloadInfo)
+                Info = info;
+            else
+                Info = new DownloadInfo();
+
+            progress = new Progress<Tuple<double, double>>(i => {
+                PART_DownloadProgress.Value = i.Item2 > 0 ? i.Item1 / i.Item2 * 100 : 0;
+                PART_DownInfo.Text = $"Downloading : {i.Item1 / 1024.0:0.} KB / {i.Item2 / 1024.0:0.} KB";
+            });
+
+            CheckProperties();
+        }
+
+        private void Download_Loaded(object sender, RoutedEventArgs e)
+        {
+            CheckProperties();
+            if (AutoStart)
+            {
+                if (State == DownloadState.Finished || State == DownloadState.Downloading) return;
+                else if(State == DownloadState.Idle || State == DownloadState.Failed)
+                {
+                    if (string.IsNullOrEmpty(Info.Url) && !string.IsNullOrEmpty(PART_FileURL.Text)) Url = (string)PART_FileURL.Text;
+                    Start();
+                }
+            }
         }
 
         private void OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -191,112 +544,21 @@ namespace PixivWPF.Common
             }
         }
 
-        public async Task<string> StartAsync()
-        {
-            string result = string.Empty;
-
-            PART_OpenFile.IsEnabled = false;
-            PART_OpenFolder.IsEnabled = false;
-
-            progress.Report(.0);
-
-            Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
-            using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
-            {
-                if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
-                {
-                    received = 0;
-                    length = (long)response.Source.Content.Headers.ContentLength;
-                    state = DownloadState.Downloading;
-
-                    using (var cs = await response.Source.Content.ReadAsStreamAsync())
-                    {
-                        //await ProcessContentStream(totalBytes, contentStream);
-                        using (var ms = new MemoryStream())
-                        {
-                            progress.Report(0);
-                            do
-                            {
-                                byte[] bytes = new byte[65536];
-                                var bytesread = await cs.ReadAsync(bytes, 0, 65536);
-                                if (bytesread >= 0)
-                                {
-                                    received += bytesread;
-                                    await ms.WriteAsync(bytes, 0, bytesread);
-
-                                    progress.Report((double)received / length * 100);
-                                    //Progress = (double)received / length * 100;
-                                }
-                            } while (received < length);
-                            if (ms.Length == length)
-                            {
-                                File.WriteAllBytes(filename, ms.ToArray());
-                                result = filename;
-                            }
-                        }
-                        if (!string.IsNullOrEmpty(result))
-                        {
-                            progress.Report(100.0);
-                            state = DownloadState.Finished;
-                            File.SetCreationTime(FileName, FileTime);
-                            File.SetLastWriteTime(FileName, FileTime);
-                            File.SetLastAccessTime(FileName, FileTime);
-                            $"{Path.GetFileName(filename)} is saved!".ShowToast("Successed", filename);
-                            SystemSounds.Beep.Play();
-                            PART_OpenFile.IsEnabled = true;
-                            PART_OpenFolder.IsEnabled = true;
-                        }
-                    }
-
-                    //using (var ms = new MemoryStream())
-                    //{
-                    //    while (received >= length)
-                    //    {
-                    //        var from = received;
-                    //        var to = received + 1024 >= length ? received + length - received - 1 : received + 1024 - 1;
-                    //        response.Source.Content.Headers.ContentRange = new System.Net.Http.Headers.ContentRangeHeaderValue(from, to);
-                    //        var bytes = await response.Source.Content.ReadAsByteArrayAsync();
-                    //        await ms.WriteAsync(bytes, 0, bytes.Length);
-                    //    }
-                    //    File.WriteAllBytes(FileName, ms.ToArray());
-                    //    result = FileName;
-                    //}
-                }
-                else result = null;
-            }
-            return (result);
-        }
-
-        public void Start()
-        {
-            this.Dispatcher.BeginInvoke((Action)(async () =>
-            {
-                var ret = await StartAsync();
-
-                if (!string.IsNullOrEmpty(ret))
-                {
-                    PART_OpenFile.IsEnabled = true;
-                    PART_OpenFolder.IsEnabled = true;
-                }
-
-            }));
-
-        }
-
         private void Download_Click(object sender, RoutedEventArgs e)
         {
-            if(sender == PART_Download)
+            CheckProperties();
+
+            if (sender == PART_Download)
             {
-                var btn = (sender as Button);
-                if(btn.Tag is string)
-                {
-                    if (string.IsNullOrEmpty(url))
-                    {
-                        Url = (string)btn.Tag;
-                    }
-                    Start();
-                }
+                State = DownloadState.Idle;
+                Start();
             }
+        }
+
+        private void PART_Download_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            CheckProperties();
+            if (Info.IsStart) Start();
         }
     }
 }

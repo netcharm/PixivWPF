@@ -2,10 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -24,15 +28,22 @@ namespace PixivWPF.Pages
     {
         internal Window window = null;
 
-        private ObservableCollection<DownloadItem> items = new ObservableCollection<DownloadItem>();
-        public ObservableCollection<DownloadItem> Items
+        [DefaultValue(true)]
+        public bool AutoStart { get; set; }
+
+        private ObservableCollection<DownloadInfo> items = new ObservableCollection<DownloadInfo>();
+        public ObservableCollection<DownloadInfo> Items
         {
             get { return items; }
         }
 
+        internal Thread CheckState = null;
+
         public DownloadManagerPage()
         {
             InitializeComponent();
+            DataContext = this;
+
             DownloadItems.ItemsSource = items;
             //DownloadItems.Items.Refresh();
         }
@@ -44,13 +55,11 @@ namespace PixivWPF.Pages
             window = Window.GetWindow(this);
         }
 
-        public void Add(DownloadItem item)
+        public void Add(DownloadInfo item)
         {
-            if(item is DownloadItem)
+            if(item is DownloadInfo)
             {
                 items.Add(item);
-                //item.Start();
-                //DownloadItems.Items.Refresh();
             }
         }
 
@@ -60,12 +69,13 @@ namespace PixivWPF.Pages
             {
                 Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return;
-                var item = new DownloadItem()
+                var item = new DownloadInfo()
                 {
+                    AutoStart = AutoStart,
                     Url = url,
                     Thumbnail = await thumb.LoadImage(tokens),
                     SingleFile = is_meta_single_page,
-                    Overwrite = true,
+                    Overwrite = overwrite,
                     FileTime = dt
                 };
                 Add(item);
@@ -74,9 +84,39 @@ namespace PixivWPF.Pages
 
         public void Refresh()
         {
-            //DownloadItems.ItemsSource = items;
             DownloadItems.Items.Refresh();
         }
 
+        public void Start()
+        {
+            foreach(var item in items)
+            {
+                //this.button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                //item.PART_Download.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                //item.Start();
+                //item.IsDownloading = true;
+            }
+        }
+
+        private void DownloadAll_Click(object sender, RoutedEventArgs e)
+        {
+            CheckState = new Thread(() =>
+            {
+                var needUpdate = items.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished );
+                if (needUpdate.Count() > 0)
+                {
+                    //using (DownloadItems.Items.DeferRefresh())
+                    {
+                        var opt = new ParallelOptions();
+                        opt.MaxDegreeOfParallelism = 5;
+                        var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                        {
+                            item.IsStart = true;
+                        });
+                    }
+                }
+            });
+            CheckState.Start();
+        }
     }
 }

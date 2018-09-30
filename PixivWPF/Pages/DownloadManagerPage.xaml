@@ -13,9 +13,9 @@
       Title="Download Manager">
 
     <Page.Resources>
-        <DataTemplate x:Key="DownloadItemTemplate"
+        <DataTemplate x:Key="DownloadItemTemplate" DataType="{x:Type Common:DownloadInfo}"
                       x:Name="DownloadItem" x:Uid="DownloadItem">
-            <Common:DownloadItem 
+            <Common:DownloadItem Tag="{Binding}"
                 Background="Transparent"
                 BorderBrush="{DynamicResource AccentColorBrush}"                
                 BorderThickness="1"/>
@@ -25,16 +25,39 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ListView Grid.Row="1" x:Name="DownloadItems" x:Uid="DownloadItems"
-                  ItemsSource="{Binding Items, Mode=OneWay, IsAsync=True}"
+        <StackPanel Grid.Row="0" Margin="2,4,2,4">
+            <Button x:Name="PART_DownloadAll" x:Uid="DownloadAll" Margin="2,0,2,0" Click="DownloadAll_Click"
+                    ToolTip="Download All File"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                    BorderBrush="{DynamicResource AccentColorBrush}"
+                    Foreground="{DynamicResource LabelTextBrush}" 
+                    Background="Transparent"
+                    mah:ButtonHelper.PreserveTextCase="True">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                    <TextBlock Text="Download All" Margin="8,0,0,0" FontSize="10"/>
+                </StackPanel>
+            </Button>
+
+        </StackPanel>
+        <ListView Grid.Row="1"  x:Name="DownloadItems" x:Uid="DownloadItems"
+                  IsSynchronizedWithCurrentItem="true"
+                  Style="{DynamicResource VirtualisedMetroListView}"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.CacheLength ="500"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  SelectionMode="Single"
+                  ItemsSource="{Binding Items, Mode=OneWay, NotifyOnSourceUpdated=True}"
                   ItemTemplate="{DynamicResource DownloadItemTemplate}">
-            <ListView.ItemsPanel>
+            <!--<ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <VirtualizingStackPanel/>
+                    <VirtualizingStackPanel ScrollViewer.CanContentScroll="True" UseLayoutRounding="True"/>
                 </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
+            </ListView.ItemsPanel>-->
         </ListView>
     </Grid>
 </Page>
