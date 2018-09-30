@@ -123,9 +123,11 @@ namespace PixivWPF.Common
             }
         }
 
-        private static async void RefreshToken()
+        private static async Task<Pixeez.Tokens> RefreshToken()
         {
-            if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
+            Pixeez.Tokens result = null;
+            //if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
+            if (!string.IsNullOrEmpty(setting.RefreshToken))
             {
                 try
                 {
@@ -134,6 +136,7 @@ namespace PixivWPF.Common
                     setting.RefreshToken = authResult.Authorize.RefreshToken;
                     setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
                     setting.Save();
+                    result = authResult.Tokens;
                 }
                 catch (Exception ex)
                 {
@@ -146,8 +149,9 @@ namespace PixivWPF.Common
                             setting.RefreshToken = authResult.Authorize.RefreshToken;
                             setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
                             setting.Save();
+                            result = authResult.Tokens;
                         }
-                        catch(Exception exx)
+                        catch (Exception exx)
                         {
                             var ret = exx.Message;
                             var tokens = await ShowLogin();
@@ -156,6 +160,7 @@ namespace PixivWPF.Common
                     var rt = ex.Message;
                 }
             }
+            return (result);
         }
 
         public static async Task<Pixeez.Tokens> ShowLogin(bool force=false)
@@ -170,7 +175,8 @@ namespace PixivWPF.Common
                 if (!force && Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 3600)
                 {
                     result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
-                    RefreshToken();
+                    var auth = await RefreshToken();
+                    if (auth is Pixeez.Tokens) result = auth;
                 }
                 else
                 {
@@ -178,7 +184,7 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            RefreshToken();
+                            result = await RefreshToken();
                         }
                         catch (Exception)
                         {
