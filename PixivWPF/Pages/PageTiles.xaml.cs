@@ -444,7 +444,7 @@ namespace PixivWPF.Pages
         public async void ShowFavorite(string nexturl = null, bool IsPrivate = false)
         {
             ImageTilesWait.Visibility = Visibility.Visible;
-            var tokens = await CommonHelper.ShowLogin(IsPrivate);
+            var tokens = await CommonHelper.ShowLogin();
             ImageTilesWait.Visibility = Visibility.Hidden;
             if (tokens == null) return;
 
@@ -488,7 +488,7 @@ namespace PixivWPF.Pages
         public async void ShowFollowing(string nexturl = null, bool IsPrivate = false)
         {
             ImageTilesWait.Visibility = Visibility.Visible;
-            var tokens = await CommonHelper.ShowLogin(IsPrivate);
+            var tokens = await CommonHelper.ShowLogin();
             ImageTilesWait.Visibility = Visibility.Hidden;
             if (tokens == null) return;
 
