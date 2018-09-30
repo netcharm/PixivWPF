@@ -57,7 +57,10 @@ namespace PixivWPF.Common
                 if (btn.Tag is string)
                 {
                     var image = System.IO.Path.GetDirectoryName((string)btn.Tag);
-                    System.Diagnostics.Process.Start(image);
+                    if (System.IO.Directory.Exists(image))
+                    {
+                        System.Diagnostics.Process.Start(image);
+                    }
                 }
             }
         }
@@ -70,10 +73,31 @@ namespace PixivWPF.Common
                 if(btn.Tag is string)
                 {
                     var image = (string)btn.Tag;
-                    System.Diagnostics.Process.Start(image);
+                    if (System.IO.File.Exists(image))
+                    {
+                        System.Diagnostics.Process.Start(image);
+                    }
                 }
             }            
         }
 
+        private async void Preview_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            if(sender == Preview)
+            {
+                if(e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var image = Preview as Image;
+                    if(image.Tag is string)
+                    {
+                        var file = (string)image.Tag;
+                        if (System.IO.File.Exists(file))
+                        {
+                            Preview.Source = await file.LoadImage();
+                        }
+                    }                    
+                }
+            }
+        }
     }
 }

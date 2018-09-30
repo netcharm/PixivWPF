@@ -19,31 +19,33 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*" MinWidth="468"/>
         </Grid.ColumnDefinitions>
         <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_Preview" x:Uid="Preview"
                Source="{Binding Path=Thumbnail, Mode=OneWay}"
                Width="128" Height="128" Margin="2,2,4,2"
                Stretch="Uniform"/>
         <TextBlock Grid.Row="0" Grid.Column="1" x:Name="PART_FileURL" 
-                   HorizontalAlignment="Stretch" Tag="{Binding FileTime, Mode=OneWay}"
+                   HorizontalAlignment="Stretch" Margin="2"
+                   Tag="{Binding FileTime, Mode=OneWay}"
                    Foreground="{DynamicResource LabelTextBrush}" 
                    Text="{Binding Url, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_FileName" 
-                   HorizontalAlignment="Stretch" Tag="{Binding Url, Mode=OneWay}"
+                   HorizontalAlignment="Stretch" Margin="2"
+                   Tag="{Binding Url, Mode=OneWay}"
                    Foreground="{DynamicResource LabelTextBrush}" 
                    Text="{Binding FileName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <TextBlock Grid.Row="2" Grid.Column="1" x:Name="PART_FileFolder" 
-                   HorizontalAlignment="Stretch"
+                   HorizontalAlignment="Stretch" Margin="2"
                    Foreground="{DynamicResource LabelTextBrush}" 
                    Text="{Binding FolderName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
                               Foreground="{DynamicResource AccentColorBrush}"
                               Tag="{Binding Progress, Mode=OneWay}"
-                              Height="16" IsIndeterminate="False" Minimum="0" Maximum="100"
+                              Height="16" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
                               Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
-                              VerticalAlignment="Center"/>
-        <Grid Grid.Row="4" Grid.Column="1">
+                              HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+        <Grid Grid.Row="4" Grid.Column="1" Margin="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -51,7 +53,7 @@
             <TextBlock Grid.Column="0" x:Name="PART_DownInfo" x:Uid="PART_DownInfo"
                        Tag="{Binding State, Mode=OneWay}"
                        HorizontalAlignment="Left" VerticalAlignment="Center" />
-            <StackPanel Grid.Column="1" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,4,4"
+            <StackPanel Grid.Column="1" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,0,2"
                     Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Button x:Name="PART_Download" x:Uid="Download" Margin="2,0,2,0" Click="Download_Click"
                         ToolTip="Download File" Tag="{Binding IsStart, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"

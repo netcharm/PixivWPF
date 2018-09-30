@@ -68,10 +68,10 @@ namespace PixivWPF.Pages
                 var item = new DownloadInfo()
                 {
                     AutoStart = AutoStart,
-                    Url = url,
-                    Thumbnail = await thumb.LoadImage(tokens),
                     SingleFile = is_meta_single_page,
                     Overwrite = overwrite,
+                    Thumbnail = await thumb.LoadImage(tokens),
+                    Url = url,
                     FileTime = dt
                 };
                 Add(item);

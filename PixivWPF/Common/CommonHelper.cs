@@ -158,7 +158,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async Task<Pixeez.Tokens> ShowLogin()
+        public static async Task<Pixeez.Tokens> ShowLogin(bool force=false)
         {
             Pixeez.Tokens result = null;
             foreach (Window win in Application.Current.Windows)
@@ -167,7 +167,7 @@ namespace PixivWPF.Common
             }
             try
             {
-                if (Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 3600)
+                if (!force && Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 3600)
                 {
                     result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
                     RefreshToken();
@@ -489,27 +489,6 @@ namespace PixivWPF.Common
             return (file);
         }
 
-        public static void ToImageFileAsync(this string url, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
-        {
-            var dl = new DownloadItem()
-            {
-                Url = url,
-                SingleFile = is_meta_single_page,
-                Overwrite = true,
-                FileTime = dt
-            };
-            dl.IsForceStart = true;
-        }
-
-        public static void ToImageFile(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
-        {
-            ShowDownloadManager();
-            if(_downManager is Pages.DownloadManagerPage)
-            {
-                _downManager.Add(url, thumb, dt, is_meta_single_page, overwrite);
-            }
-        }
-
         public static async Task<List<string>> ToImageFiles(Dictionary<string, DateTime> files, Pixeez.Tokens tokens, bool is_meta_single_page = false)
         {
             List<string> result = new List<string>();
@@ -522,6 +501,28 @@ namespace PixivWPF.Common
             SystemSounds.Beep.Play();
 
             return (result);
+        }
+
+        public static void ToImageFile(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        {
+            ShowDownloadManager();
+            if(_downManager is Pages.DownloadManagerPage)
+            {
+                _downManager.Add(url, thumb, dt, is_meta_single_page, overwrite);
+            }
+        }
+
+        public static void ToImageFiles(Dictionary<Tuple<string, bool>, Tuple<string, DateTime>> files, bool overwrite = true)
+        {
+            foreach (var file in files)
+            {
+                var url = file.Key.Item1;
+                var is_meta_single_page =  file.Key.Item2;
+                var thumb = file.Value.Item1;
+                var dt = file.Value.Item2;
+                url.ToImageFile(thumb, dt, is_meta_single_page, overwrite);
+            }
+            SystemSounds.Beep.Play();
         }
 
         public static async Task<ImageSource> GetImageFromURL(this string url)
@@ -684,17 +685,18 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ShowToast(this string content, string title="Pixiv", string imgsrc = "")
+        public static void ShowToast(this string content, string title = "Pixiv", string imgsrc = "")
         {
             INotificationDialogService _dailogService = new NotificationDialogService();
             NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
             NotificationConfiguration cfg = new NotificationConfiguration(
                 //new TimeSpan(0, 0, 30), 
-                TimeSpan.FromSeconds(10),
-                cfgDefault.Width, cfgDefault.Height,
+                TimeSpan.FromSeconds(5),
+                cfgDefault.Width+32, cfgDefault.Height,
                 "ToastTemplate",
                 //cfgDefault.TemplateName, 
-                cfgDefault.NotificationFlowDirection);
+                cfgDefault.NotificationFlowDirection
+            );
 
             var newNotification = new Notification()
             {
@@ -702,6 +704,7 @@ namespace PixivWPF.Common
                 ImgURL = imgsrc,
                 Message = content
             };
+
             _dailogService.ClearNotifications();
             _dailogService.ShowNotificationWindow(newNotification, cfg);
         }

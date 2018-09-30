@@ -172,7 +172,7 @@ namespace PixivWPF.Pages
                                             //item.Source = await item.Thumb.ToImageSource(tokens);
                                             if(item.Illust.PageCount<=1) item.BadgeValue = null;
                                             item.Source = await item.Thumb.LoadImage(tokens);
-                                            ListImageTiles.Items.Refresh();
+                                            //ListImageTiles.Items.Refresh();
                                         }
                                     }
                                     catch (Exception ex)
@@ -194,34 +194,6 @@ namespace PixivWPF.Pages
                     UpdateThread.Start();
                 }
             }
-
-            //if (needUpdate.Count() > 0)
-            //{
-            //    new Thread(delegate ()
-            //    {
-            //        var opt = new ParallelOptions();
-            //        opt.MaxDegreeOfParallelism = 10;
-            //        Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
-            //        {
-            //            item.Dispatcher.BeginInvoke(new Action(async () =>
-            //            {
-            //                try
-            //                {
-            //                    if (item.Source == null)
-            //                    {
-            //                        item.Source = await item.Thumb.ToImageSource(tokens);
-            //                        //ListImageTiles.Items.Refresh();
-            //                    }
-            //                }
-            //                catch (Exception ex)
-            //                {
-            //                    $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-            //                }
-            //            }));
-            //        });
-            //        UPDATING = false;
-            //    }).Start();
-            //}
         }
 
         public PageTiles()
@@ -252,7 +224,7 @@ namespace PixivWPF.Pages
             if (TargetPage != target)
             {
                 NextURL = null;
-                ListImageTiles.Items.Refresh();
+                //ListImageTiles.Items.Refresh();
                 TargetPage = target;
             }
             if (!IsAppend)
@@ -262,15 +234,15 @@ namespace PixivWPF.Pages
             }
             else if(ImageList.Count >= 90)
             {
-                ListImageTiles.SelectedIndex = -1;
-                var items = new ObservableCollection<ImageItem>();
-                foreach (var item in ImageList.Skip(30))
-                {
-                    items.Add(item);
-                }
-                ImageList = items;
-                ListImageTiles.ItemsSource = items;
-                ListImageTiles.Items.Refresh();
+                //ListImageTiles.SelectedIndex = -1;
+                //var items = new ObservableCollection<ImageItem>();
+                //foreach (var item in ImageList.Skip(30))
+                //{
+                //    items.Add(item);
+                //}
+                //ImageList = items;
+                //ListImageTiles.ItemsSource = items;
+                //ListImageTiles.Items.Refresh();
             }
 
             switch (target)
@@ -472,7 +444,7 @@ namespace PixivWPF.Pages
         public async void ShowFavorite(string nexturl = null, bool IsPrivate = false)
         {
             ImageTilesWait.Visibility = Visibility.Visible;
-            var tokens = await CommonHelper.ShowLogin();
+            var tokens = await CommonHelper.ShowLogin(IsPrivate);
             ImageTilesWait.Visibility = Visibility.Hidden;
             if (tokens == null) return;
 
@@ -516,7 +488,7 @@ namespace PixivWPF.Pages
         public async void ShowFollowing(string nexturl = null, bool IsPrivate = false)
         {
             ImageTilesWait.Visibility = Visibility.Visible;
-            var tokens = await CommonHelper.ShowLogin();
+            var tokens = await CommonHelper.ShowLogin(IsPrivate);
             ImageTilesWait.Visibility = Visibility.Hidden;
             if (tokens == null) return;
 
@@ -740,6 +712,15 @@ namespace PixivWPF.Pages
             //{
             //    ShowImages(TargetPage, true);
             //}
+        }
+
+        private void Preview_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            if (sender is Image)
+            {
+                var image = sender as Image;
+                image.InvalidateVisual();
+            }
         }
     }
 

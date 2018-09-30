@@ -168,7 +168,7 @@ namespace PixivWPF.Pages
                 }
 
                 SubIllusts.Items.Clear();
-                SubIllusts.Refresh();
+                //SubIllusts.Refresh();
                 SubIllustsExpander.IsExpanded = false;
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.Illust is Pixeez.Objects.IllustWork && item.Illust.PageCount > 1)
@@ -294,7 +294,7 @@ namespace PixivWPF.Pages
                 }
 
                 SubIllusts.Items.Clear();
-                SubIllusts.Refresh();
+                //SubIllusts.Refresh();
                 SubIllustsExpander.IsExpanded = false;
                 SubIllustsExpander.Visibility = Visibility.Collapsed;
                 SubIllustsNavPanel.Visibility = Visibility.Collapsed;
@@ -733,6 +733,7 @@ namespace PixivWPF.Pages
                         await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
                         await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
                     }
+                    //await item.RefreshIllust(tokens);
                 }
                 catch (Exception) { }
                 finally
@@ -741,7 +742,7 @@ namespace PixivWPF.Pages
                     {
                         Thread.Sleep(250);
                         tokens = await CommonHelper.ShowLogin();
-                        item.RefreshIllust(tokens);
+                        await item.RefreshIllustAsync(tokens);
                         if (item.Illust.IsBookMarked())
                         {
                             BookmarkIllust.Tag = PackIconModernKind.Heart;
@@ -783,6 +784,7 @@ namespace PixivWPF.Pages
                         await tokens.DeleteFavouriteUser(illust.User.Id.ToString());
                         await tokens.DeleteFavouriteUser(illust.User.Id.ToString(), "private");
                     }
+                    //await item.RefreshUserInfo(tokens);
                 }
                 catch (Exception) { }
                 finally
@@ -791,8 +793,8 @@ namespace PixivWPF.Pages
                     {
                         Thread.Sleep(250);
                         tokens = await CommonHelper.ShowLogin();
-                        item.RefreshUserInfo(tokens);
-                        if (item.Illust.User.is_followed.Value)
+                        await item.RefreshUserInfoAsync(tokens);
+                        if (item.Illust.User != null && item.Illust.User.is_followed != null && item.Illust.User.is_followed.Value)
                         {
                             FollowAuthor.Tag = PackIconModernKind.Check;
                             ActionFollowAuthorRemove.IsEnabled = true;
@@ -903,7 +905,7 @@ namespace PixivWPF.Pages
                             //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
                             //SystemSounds.Beep.Play();
                             //url.ToImageFileAsync(dt, IllustsSaveProgress, is_meta_single_page);
-                            url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                            url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
                         }
                     }
                 }
@@ -924,7 +926,7 @@ namespace PixivWPF.Pages
                         //await url.ToImageFile(tokens, dt, is_meta_single_page);
                         //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
                         //SystemSounds.Beep.Play();
-                        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                        url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
                     }
                 }
             }

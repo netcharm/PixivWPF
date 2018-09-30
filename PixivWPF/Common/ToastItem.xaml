@@ -55,8 +55,8 @@
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                     <ColumnDefinition Width="*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <Image Grid.RowSpan="3" Margin="4" Width="128" x:Name="Preview"
-                       Source="{Binding ImgURL, Converter={converters:EmptyStringConverter}, ConverterParameter='pack://application:,,,/WPFNotification;component/Resources/Images/notification-icon.png'}"/>
+                <Image Grid.RowSpan="3" Margin="4" Width="128" x:Name="Preview" Tag="{Binding ImgURL, Mode=OneWay}"
+                       Source="{Binding ImgURL, Mode=OneWay, NotifyOnTargetUpdated=True, Converter={converters:EmptyStringConverter}, ConverterParameter='pack://application:,,,/WPFNotification;component/Resources/Images/notification-icon.png'}" TargetUpdated="Preview_TargetUpdated"/>
                 <TextBlock Grid.Column="1" Margin="2,4,4,2"
                            Text="{Binding Path=Title}"  TextOptions.TextRenderingMode="ClearType" TextOptions.TextFormattingMode="Display" 
                            TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
@@ -86,7 +86,7 @@
                 <StackPanel Grid.Row="2" Grid.Column="1" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,4,4"
                             Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                     <Button x:Name="OpenFile" x:Uid="OpenFile" Margin="0,0,2,0" Click="OpenFile_Click"
-                            ToolTip="Open File With Default Application" Tag="{Binding ImgURL}"
+                            ToolTip="Open File With Default Application" Tag="{Binding ImgURL, Mode=OneWay}"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
@@ -100,7 +100,7 @@
                         </StackPanel>
                     </Button>
                     <Button x:Name="OpenFolder" x:Uid="OpenFolder" Margin="4,0,0,0" Click="OpenFolder_Click"
-                            ToolTip="Open File Folder" Tag="{Binding ImgURL}"
+                            ToolTip="Open File Folder" Tag="{Binding ImgURL, Mode=OneWay}"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Style="{DynamicResource SquareButtonStyle}"  BorderThickness="1"

@@ -195,7 +195,7 @@ namespace PixivWPF.Common
                                     if (item.Count <= 1) item.BadgeValue = string.Empty;
                                     //item.Source = await item.Thumb.ToImageSource(tokens);
                                     item.Source = await item.Thumb.LoadImage(tokens);
-                                    PART_ImageTiles.Items.Refresh();
+                                    //PART_ImageTiles.Items.Refresh();
                                 }
                             }
                             catch (Exception ex)
@@ -215,6 +215,30 @@ namespace PixivWPF.Common
             PART_ImageTiles.Items.Refresh();
         }
 
+        private void Preview_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            if(sender is Image)
+            {
+                var image = sender as Image;
+                image.InvalidateVisual();
+            }
+        }
+
+        private void Badge_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            if (sender is Badged)
+            {
+                var badge = sender as Badged;
+                //if(e.Property.Name.Equals("Visibility", StringComparison.CurrentCultureIgnoreCase))
+                if (e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase) ||
+                    e.Property.Name.Equals("Visibility", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var badged = true;
+                    if (badge.Tag is bool) badged = (bool)badge.Tag;
+                    badge.Visibility = badged ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
+        }
     }
 
 }

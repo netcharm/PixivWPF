@@ -256,9 +256,8 @@
   <ItemGroup>
     <Content Include="Assets\pixiv-logo.png" />
     <Content Include="Assets\pixiv-logo.svg" />
-    <Resource Include="Resources\pixiv-logo.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
+    <Resource Include="Resources\CheckboardPattern_32.png" />
+    <Content Include="Resources\pixiv-logo.png" />
     <Resource Include="Resources\pixiv-icon.ico" />
     <Resource Include="Resources\Entypo-license.txt" />
   </ItemGroup>

@@ -122,8 +122,8 @@ namespace PixivWPF.Pages
                         {
                             var is_meta_single_page = illust.PageCount==1 ? true : false;
                             //await url.ToImageFile(tokens, dt, is_meta_single_page);
-                            //SystemSounds.Beep.Play();
-                            url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                            //SystemSounds.Beep.Play();                            
+                            url.ToImageFile(illust.GetThumbnailUrl(idx), dt, is_meta_single_page);
                         }
                         catch (Exception ex)
                         {

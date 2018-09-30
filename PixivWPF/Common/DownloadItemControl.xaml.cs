@@ -9,6 +9,7 @@ using System.Media;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -31,12 +32,15 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool UsingProxy { get; set; }
         public string Proxy { get; set; }
+
         [DefaultValue(true)]
         public bool AutoStart { get; set; }
         [DefaultValue(false)]
         public bool Canceled { get; set; }
+
         [DefaultValue(DownloadState.Idle)]
         public DownloadState State { get; set; }
+
         private string url = string.Empty;
         public string Url
         {
@@ -50,8 +54,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(url))
                 {
                     var file = Path.GetFileName(url).Replace("_p", "_");
-                    if (SingleFile)
-                        file = file.Replace("_0.", ".");
+                    if (singlefile) file = file.Replace("_0.", ".");
                     FileName = file;
                 }
 
@@ -74,8 +77,8 @@ namespace PixivWPF.Common
                 FileName = Path.Combine(setting.LastFolder, Path.GetFileName(FileName));
                 NotifyPropertyChanged();
             }
-
         }
+
         public string FileName { get; set; }
         public string FolderName { get { return string.IsNullOrEmpty(FileName) ? string.Empty : Path.GetDirectoryName(FileName); } }
         public DateTime FileTime { get; set; }
@@ -96,8 +99,22 @@ namespace PixivWPF.Common
         public long Length { get; set; }
         [DefaultValue(true)]
         public bool Overwrite { get; set; }
+
+        private bool singlefile = false;
         [DefaultValue(true)]
-        public bool SingleFile { get; set; }
+        public bool SingleFile
+        {
+            get { return singlefile; }
+            set {
+                singlefile = value;
+                if (!string.IsNullOrEmpty(FileName))
+                {
+                    if (value) FileName = FileName.Replace("_0.", ".");
+                    else FileName = Regex.Replace(FileName, @"^(\d+)\.", "$1_0.");
+                }
+            }
+        }
+
         public ImageSource Thumbnail { get; set; }
 
         private bool forcestart = false;
@@ -387,10 +404,10 @@ namespace PixivWPF.Common
                         //await ProcessContentStream(totalBytes, contentStream);
                         using (var ms = new MemoryStream())
                         {
+                            byte[] bytes = new byte[65536];
                             progress.Report(Info.Progress);
                             do
                             {
-                                byte[] bytes = new byte[65536];
                                 var bytesread = await cs.ReadAsync(bytes, 0, 65536);
                                 if (bytesread >= 0)
                                 {
@@ -416,8 +433,9 @@ namespace PixivWPF.Common
                                     $"{Path.GetFileName(Info.FileName)} is saved!".ShowToast("Successed", Info.FileName);
                                     SystemSounds.Beep.Play();
                                 }
-                                catch (Exception)
+                                catch (Exception ex)
                                 {
+                                    var ret = ex.Message;
                                     State = DownloadState.Failed;
                                     PART_DownloadProgress.IsIndeterminate = true;
                                 }

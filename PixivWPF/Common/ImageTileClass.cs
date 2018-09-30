@@ -2,7 +2,9 @@
 using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,7 +12,7 @@ using System.Windows.Media;
 
 namespace PixivWPF.Common
 {
-    public class ImageItem : FrameworkElement
+    public class ImageItem : FrameworkElement, INotifyPropertyChanged
     {
         //public static readonly DependencyProperty SourceProperty =
         //    DependencyProperty.Register("Source", typeof(ImageSource), typeof(ImageItem), new UIPropertyMetadata(null));
@@ -22,6 +24,7 @@ namespace PixivWPF.Common
             set
             {
                 source = value;
+                NotifyPropertyChanged();
             }
         }
         public string Thumb { get; set; }
@@ -50,6 +53,7 @@ namespace PixivWPF.Common
             {
                 if (value) BadgeVisibility = Visibility.Visible;
                 else BadgeVisibility = Visibility.Collapsed;
+                NotifyPropertyChanged();
             }
         }
 
@@ -65,13 +69,49 @@ namespace PixivWPF.Common
             {
                 if (value) TitleVisibility = Visibility.Visible;
                 else TitleVisibility = Visibility.Collapsed;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public async Task RefreshIllustAsync(Pixeez.Tokens tokens)
+        {
+            var illusts = await tokens.GetWorksAsync(Illust.Id.Value);
+            foreach(var illust in illusts)
+            {
+                if (Illust.Id == illust.Id)
+                {
+                    Illust = illust;
+                    break;
+                }
+            }
+        }
+
+        public async Task RefreshUserInfoAsync(Pixeez.Tokens tokens)
+        {
+            var users = await tokens.GetUsersAsync(Illust.User.Id.Value);
+            foreach (var user in users)
+            {
+                if (user.Id == Illust.User.Id)
+                {
+                    if (user is Pixeez.Objects.User)
+                    {
+                        var u = user as Pixeez.Objects.User;
+                        Illust.User.is_followed = u.IsFollowing;
+                    }
+                    else if (user is Pixeez.Objects.UserBase)
+                    {
+                        var u = user as Pixeez.Objects.UserBase;
+                        Illust.User.is_followed = u.is_followed;
+                    }
+                    break;
+                }
             }
         }
 
         public async void RefreshIllust(Pixeez.Tokens tokens)
         {
             var illusts = await tokens.GetWorksAsync(Illust.Id.Value);
-            foreach(var illust in illusts)
+            foreach (var illust in illusts)
             {
                 Illust = illust;
                 break;
@@ -88,10 +128,17 @@ namespace PixivWPF.Common
             }
         }
 
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 
     public static class ImageTileHelper
     {
+        #region Image Tile Add Helper
         public static void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Colloection, string nexturl = "")
         {
             foreach (var illust in works)
@@ -119,7 +166,7 @@ namespace PixivWPF.Common
                             Count = (int)illust.PageCount,
                             BadgeValue = illust.PageCount.Value.ToString(),
                             BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
-                            //DisplayBadge = illust.PageCount > 1 ? true : false,
+                            DisplayBadge = illust.PageCount > 1 ? true : false,
                             ID = illust.Id.ToString(),
                             UserID = illust.User.Id.ToString(),
                             Subject = illust.Title,
@@ -234,6 +281,7 @@ namespace PixivWPF.Common
                 ex.Message.ShowMessageBox("ERROR");
             }
         }
+        #endregion
 
         #region MetaPage Helper
         public static string GetThumbnailUrl(this Pixeez.Objects.Page page)
