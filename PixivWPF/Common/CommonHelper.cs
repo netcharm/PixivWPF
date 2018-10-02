@@ -308,11 +308,19 @@ namespace PixivWPF.Common
                     result = bmp;
                 //result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                result = BitmapFrame.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-                if(result.DpiX > 96 || result.DpiY > 96)
-                    result = ConvertBitmapDPI(result, 96);
+                var ret = ex.Message;
+                try
+                {
+                    result = BitmapFrame.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                    if (result.DpiX > 96 || result.DpiY > 96)
+                        result = ConvertBitmapDPI(result, 96);
+                }
+                catch(Exception exx)
+                {
+                    var retx = exx.Message;
+                }
             }
             return (result);
         }

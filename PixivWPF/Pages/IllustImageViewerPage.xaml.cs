@@ -153,20 +153,33 @@ namespace PixivWPF.Pages
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             int offset = 0;
+            int factor = 1;
+            if(Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)){
+                factor = 10;
+            }
             if (e.Delta < 0)
-                offset = 1;
+                offset = 1 * factor;
             else if (e.Delta > 0)
-                offset = -1;
+                offset = -1 * factor;
             ChangeIllustPage(offset);
         }
 
         private void Preview_KeyUp(object sender, KeyEventArgs e)
         {
             int offset = 0;
+            int factor = 1;
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                factor = 10;
+            }
             if (e.Key == Key.Right || e.Key == Key.Down || e.Key == Key.PageDown)
-                offset = 1;
+                offset = 1 * factor;
             else if (e.Key == Key.Left || e.Key == Key.Up || e.Key == Key.PageUp)
-                offset = -1;
+                offset = -1 * factor;
+            else if (e.Key == Key.Home)
+                offset = -10000;
+            else if (e.Key == Key.End)
+                offset = 10000;
             else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
                 SaveIllust();
 
@@ -176,10 +189,19 @@ namespace PixivWPF.Pages
         private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             int offset = 0;
+            int factor = 1;
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                factor = 10;
+            }
             if (e.Key == Key.Right || e.Key == Key.Down || e.Key == Key.PageDown)
-                offset = 1;
+                offset = 1 * factor;
             else if (e.Key == Key.Left || e.Key == Key.Up || e.Key == Key.PageUp)
-                offset = -1;
+                offset = -1 * factor;
+            else if (e.Key == Key.Home)
+                offset = -10000;
+            else if (e.Key == Key.End)
+                offset = 10000;
             else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
                 SaveIllust();
 
