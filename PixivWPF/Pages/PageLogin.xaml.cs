@@ -123,6 +123,8 @@ namespace PixivWPF.Pages
                         setting.Pass = pass;
                         setting.AccessToken = tokens.AccessToken;
                         setting.RefreshToken = tokens.RefreshToken;
+                        setting.ExpTime = result.Key.KeyExpTime.ToLocalTime();
+                        setting.ExpiresIn = result.Authorize.ExpiresIn.Value;
                         setting.Proxy = proxy;
                         setting.UsingProxy = useproxy;
                         setting.MyInfo = result.Authorize.User;

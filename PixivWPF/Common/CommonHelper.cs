@@ -126,39 +126,39 @@ namespace PixivWPF.Common
         private static async Task<Pixeez.Tokens> RefreshToken()
         {
             Pixeez.Tokens result = null;
-            //if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
-            if (!string.IsNullOrEmpty(setting.RefreshToken))
+            try
             {
-                try
+                var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
+                setting.AccessToken = authResult.Authorize.AccessToken;
+                setting.RefreshToken = authResult.Authorize.RefreshToken;
+                setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
+                setting.ExpiresIn = authResult.Authorize.ExpiresIn.Value;
+                setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
+                setting.Save();
+                result = authResult.Tokens;
+            }
+            catch (Exception ex)
+            {
+                if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass))
                 {
-                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
-                    setting.AccessToken = authResult.Authorize.AccessToken;
-                    setting.RefreshToken = authResult.Authorize.RefreshToken;
-                    setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
-                    setting.Save();
-                    result = authResult.Tokens;
-                }
-                catch (Exception ex)
-                {
-                    if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass))
+                    try
                     {
-                        try
-                        {
-                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
-                            setting.AccessToken = authResult.Authorize.AccessToken;
-                            setting.RefreshToken = authResult.Authorize.RefreshToken;
-                            setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
-                            setting.Save();
-                            result = authResult.Tokens;
-                        }
-                        catch (Exception exx)
-                        {
-                            var ret = exx.Message;
-                            var tokens = await ShowLogin();
-                        }
+                        var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
+                        setting.AccessToken = authResult.Authorize.AccessToken;
+                        setting.RefreshToken = authResult.Authorize.RefreshToken;
+                        setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
+                        setting.ExpiresIn = authResult.Authorize.ExpiresIn.Value;
+                        setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
+                        setting.Save();
+                        result = authResult.Tokens;
                     }
-                    var rt = ex.Message;
+                    catch (Exception exx)
+                    {
+                        var ret = exx.Message;
+                        var tokens = await ShowLogin();
+                    }
                 }
+                var rt = ex.Message;
             }
             return (result);
         }
@@ -172,11 +172,9 @@ namespace PixivWPF.Common
             }
             try
             {
-                if (!force && Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 3600)
+                if(!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
                 {
                     result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
-                    var auth = await RefreshToken();
-                    if (auth is Pixeez.Tokens) result = auth;
                 }
                 else
                 {
@@ -198,6 +196,32 @@ namespace PixivWPF.Common
                         result = dlgLogin.Tokens;
                     }
                 }
+                //if (!force && Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 3600)
+                //{
+                //    result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
+                //    var auth = await RefreshToken();
+                //    if (auth is Pixeez.Tokens) result = auth;
+                //}
+                //else
+                //{
+                //    if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
+                //    {
+                //        try
+                //        {
+                //            result = await RefreshToken();
+                //        }
+                //        catch (Exception)
+                //        {
+                //            result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
+                //        var ret = dlgLogin.ShowDialog();
+                //        result = dlgLogin.Tokens;
+                //    }
+                //}
             }
             catch(Exception ex)
             {

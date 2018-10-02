@@ -64,6 +64,20 @@ namespace PixivWPF.Common
             set { update = value; }
         }
 
+        private DateTime exptime=DateTime.Now;
+        public DateTime ExpTime
+        {
+            get { return exptime; }
+            set { exptime = value; }
+        }
+
+        private int expdurtime=3600;
+        public int ExpiresIn
+        {
+            get { return expdurtime; }
+            set { expdurtime = value; }
+        }
+
         [JsonIgnore]
         private string lastfolder = string.Empty;
         [JsonIgnore]
