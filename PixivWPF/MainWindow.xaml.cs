@@ -76,6 +76,15 @@ namespace PixivWPF
         {
             if (pagenav is Pages.NavPage) pagenav.CheckPage();
             if (pagetiles is Pages.TilesPage) pagetiles.UpdateTheme();
+            foreach(Window win in Application.Current.Windows)
+            {
+                if(win.Content is Pages.IllustDetailPage)
+                {
+                    var page = win.Content as Pages.IllustDetailPage;
+                    page.UpdateTheme();
+                }
+            }
+            
         }
 
         public MainWindow()

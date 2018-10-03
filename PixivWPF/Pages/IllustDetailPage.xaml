@@ -253,7 +253,7 @@
                                        Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                        HorizontalContentAlignment="Left" VerticalContentAlignment="Top" 
-                                       LinkClicked="IllustTags_LinkClicked" />
+                                       LinkClicked="IllustTags_LinkClicked" ImageLoad="IllustTags_ImageLoad" />
                     </Grid>
                 </Expander>
 
@@ -363,7 +363,7 @@
                             Click="RelativePrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
-                    <Button x:Name="RelativeNextPage"
+                    <Button x:Name="RelativeNextPage" Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"
@@ -403,7 +403,7 @@
                             Click="FavoritePrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
-                    <Button x:Name="FavoriteNextPage"
+                    <Button x:Name="FavoriteNextPage" Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"

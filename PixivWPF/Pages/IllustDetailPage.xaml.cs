@@ -77,11 +77,10 @@ namespace PixivWPF.Pages
         public void UpdateTheme()
         {
             var style = new StringBuilder();
-            //style.AppendLine($"body{{color:{Common.Theme.TextColor.ToHtml(false)};background-color:#333;}}");
-            //style.AppendLine($"a{{background-color:{Common.Theme.AccentColor.ToHtml(false)} |important;color:{Common.Theme.TextColor.ToHtml(false)} |important;margin:4px;text-decoration:none;}}");
-            style.AppendLine($".tag{{background-color:{Common.Theme.AccentColor.ToHtml(false)} |important;color:{Common.Theme.TextColor.ToHtml(false)} |important;margin:4px;text-decoration:none;}}");
-            style.AppendLine($".desc{{color:{Common.Theme.TextColor.ToHtml(false)} !important;text-decoration:none !important;}}");
-            style.AppendLine($"a{{color:{Common.Theme.TextColor.ToHtml(false)} |important;text-decoration:none !important;}}");
+            style.AppendLine($".tag{{background-color:{Common.Theme.AccentColor.ToHtml(false)}|important;color:{Common.Theme.TextColor.ToHtml(false)}|important;margin:4px;text-decoration:none;}}");
+            style.AppendLine($".desc{{color:{Common.Theme.TextColor.ToHtml(false)}!important;text-decoration:none !important;}}");
+            style.AppendLine($"a{{color:{Common.Theme.TextColor.ToHtml(false)}|important;text-decoration:none !important;}}");
+            style.AppendLine($"img{{width:auto!important;;height:auto!important;;max-width:100%!important;;max-height:100%!important;}}");
 
             var BaseStyleSheet = string.Join("\n", style);
             IllustTags.BaseStylesheet = BaseStyleSheet;
@@ -269,9 +268,12 @@ namespace PixivWPF.Pages
 
                     desc.AppendLine($"<br/>Workspace Device_:<br/> {nworks.pc} / {nworks.monitor} / {nworks.tablet} / {nworks.mouse} / {nworks.printer} / {nworks.scanner} / {nworks.tool}");
                     desc.AppendLine($"<br/>Workspace Environment:<br/> {nworks.desk} / {nworks.chair} / {nworks.desktop} / {nworks.music} / {nworks.comment}");
-                    desc.AppendLine($"<hr/>");
 
-                    desc.AppendLine($"<br/>Workspace Images:<br/> <img src=\"{nworks.workspace_image_url}\"/>");
+                    if (!string.IsNullOrEmpty(nworks.workspace_image_url))
+                    {
+                        desc.AppendLine($"<hr/>");
+                        desc.AppendLine($"<br/>Workspace Images:<br/> <img src=\"{nworks.workspace_image_url}\"/>");
+                    }
 
                     IllustTags.Foreground = Common.Theme.TextBrush;
                     IllustTags.Text = string.Join(";", desc);
@@ -437,12 +439,19 @@ namespace PixivWPF.Pages
             {
                 PreviewWait.Visibility = Visibility.Visible;
 
+                var lastUrl = next_url;
                 var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetRelatedWorks(item.Illust.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                 next_url = relatives.next_url ?? string.Empty;
 
                 RelativeIllusts.Items.Clear();
                 if (relatives.illusts is Array)
                 {
+                    //if (relatives.illusts.Length < 30) RelativeNextPage.Visibility = Visibility.Collapsed;
+                    //else 
+                    if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
+                        RelativeNextPage.Visibility = Visibility.Collapsed;
+                    else RelativeNextPage.Visibility = Visibility.Visible;
+
                     RelativeIllustsExpander.Tag = next_url;
                     foreach (var illust in relatives.illusts)
                     {
@@ -474,15 +483,17 @@ namespace PixivWPF.Pages
                 RelativeIllusts.Items.Clear();
                 if (relatives.illusts is Array)
                 {
+                    //if (relatives.illusts.Length < 30) RelativeNextPage.Visibility = Visibility.Collapsed;
+                    //else 
+                    if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
+                        RelativeNextPage.Visibility = Visibility.Collapsed;
+                    else RelativeNextPage.Visibility = Visibility.Visible;
+
                     RelativeIllustsExpander.Tag = next_url;
                     foreach (var illust in relatives.illusts)
                     {
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
                     }
-                    if(next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
-                        RelativeNextPage.Visibility = Visibility.Collapsed;
-                    else RelativeNextPage.Visibility = Visibility.Visible;
-
                     RelativeIllusts.UpdateImageTile(tokens);
                 }
             }
@@ -509,15 +520,17 @@ namespace PixivWPF.Pages
                 FavoriteIllusts.Items.Clear();
                 if (relatives.illusts is Array)
                 {
+                    //if (relatives.illusts.Length < 30) FavoriteNextPage.Visibility = Visibility.Collapsed;
+                    //else 
+                    if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
+                        FavoriteNextPage.Visibility = Visibility.Collapsed;
+                    else FavoriteNextPage.Visibility = Visibility.Visible;
+
                     FavoriteIllustsExpander.Tag = next_url;
                     foreach (var illust in relatives.illusts)
                     {
                         illust.AddTo(FavoriteIllusts.Items, relatives.next_url);
                     }
-                    if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
-                        RelativeNextPage.Visibility = Visibility.Collapsed;
-                    else RelativeNextPage.Visibility = Visibility.Visible;
-
                     FavoriteIllusts.UpdateImageTile(tokens);
                 }
             }
@@ -569,6 +582,24 @@ namespace PixivWPF.Pages
                     viewer.Show();
 
                 }
+            }
+        }
+
+        private async void IllustTags_ImageLoad(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs> args)
+        {
+            if (args.Data is TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs)
+            {
+                var img = args.Data as TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs;
+
+                if (string.IsNullOrEmpty(img.Src)) return;
+
+                var tokens = await CommonHelper.ShowLogin();
+                if (tokens == null) return;
+
+                var src = await img.Src.LoadImagePath(tokens);
+                img.Callback(src);
+                img.Handled = true;
+                args.Handled = true;
             }
         }
 
@@ -740,7 +771,7 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        Thread.Sleep(250);
+                        //Thread.Sleep(250);
                         tokens = await CommonHelper.ShowLogin();
                         await item.RefreshIllustAsync(tokens);
                         if (item.Illust.IsBookMarked())
@@ -791,8 +822,8 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        Thread.Sleep(250);
-                        tokens = await CommonHelper.ShowLogin();
+                        //Thread.Sleep(250);
+                        //tokens = await CommonHelper.ShowLogin();
                         await item.RefreshUserInfoAsync(tokens);
                         if (item.Illust.User != null && item.Illust.User.is_followed != null && item.Illust.User.is_followed.Value)
                         {
@@ -828,12 +859,12 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        Thread.Sleep(250);
+                        //Thread.Sleep(250);
                         tokens = await CommonHelper.ShowLogin();
                         var users = await tokens.GetUsersAsync(user.Id.Value);
                         foreach (var u in users)
                         {                            
-                            user.is_followed = u.is_followed;
+                            user.is_followed = u.IsFollowing;
                             DataType = u;
                             break;
                         }

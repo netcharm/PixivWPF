@@ -104,5 +104,58 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public async Task<string> GetImagePath(string url, Pixeez.Tokens tokens)
+        {
+            string result = null;
+            var trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+            var file = Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
+            file = file.Replace("/", "\\").TrimStart(trimchars);
+            file = Path.Combine(_CacheFolder, file);
+
+            if (_caches.ContainsKey(url))
+            {
+                var fcache = _caches[url].TrimStart(trimchars);
+                file = Path.Combine(_CacheFolder, fcache);
+                if (File.Exists(file))
+                {
+                    result = file;
+                }
+                else
+                {
+                    tokens = await CommonHelper.ShowLogin();
+                    if (tokens == null) return null;
+
+                    var success = await url.ToImageFile(tokens, file, false);
+                    if (success)
+                    {
+                        result = file;
+                    }
+                }
+            }
+            else if (File.Exists(file))
+            {
+                result = file;
+                if (!string.IsNullOrEmpty(result))
+                {
+                    _caches[url] = file.Replace(_CacheFolder, "");
+                    Save();
+                }
+            }
+            else
+            {
+                tokens = await CommonHelper.ShowLogin();
+                if (tokens == null) return null;
+
+                var success = await url.ToImageFile(tokens, file, false);
+                if (success)
+                {
+                    result = file;
+                    _caches[url] = file.Replace(_CacheFolder, "");
+                    Save();
+                }
+            }
+            return (result);
+        }
+
     }
 }

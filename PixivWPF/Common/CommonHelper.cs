@@ -349,6 +349,16 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static async Task<string> LoadImagePath(this string url, Pixeez.Tokens tokens)
+        {
+            string result = null;
+            if (!string.IsNullOrEmpty(url) && cache is CacheImage)
+            {
+                result = await cache.GetImagePath(url, tokens);
+            }
+            return (result);
+        }
+
         public static async Task<bool> ToImageFile(this string url, Pixeez.Tokens tokens, string file, bool overwrite=true)
         {
             bool result = false;
