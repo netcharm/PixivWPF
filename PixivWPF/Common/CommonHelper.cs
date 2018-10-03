@@ -196,32 +196,6 @@ namespace PixivWPF.Common
                         result = dlgLogin.Tokens;
                     }
                 }
-                //if (!force && Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000) - setting.Update < 3600)
-                //{
-                //    result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
-                //    var auth = await RefreshToken();
-                //    if (auth is Pixeez.Tokens) result = auth;
-                //}
-                //else
-                //{
-                //    if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
-                //    {
-                //        try
-                //        {
-                //            result = await RefreshToken();
-                //        }
-                //        catch (Exception)
-                //        {
-                //            result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
-                //        var ret = dlgLogin.ShowDialog();
-                //        result = dlgLogin.Tokens;
-                //    }
-                //}
             }
             catch(Exception ex)
             {
@@ -265,7 +239,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static BitmapSource ConvertBitmapDPI(BitmapSource source, double dpi=96)
+        public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpi=96)
         {
             if (dpi == source.DpiX || dpi == source.DpiY) return (source);
 
@@ -325,7 +299,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        internal static bool IsFileReady(string filename)
+        internal static bool IsFileReady(this string filename)
         {
             // If the file can be opened for exclusive access it means that the file
             // is no longer locked by another process.
@@ -342,7 +316,7 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static void WaitForFile(string filename)
+        internal static void WaitForFile(this string filename)
         {
             //This will lock the execution until the file is ready
             //TODO: Add some logic to make it async and cancelable
@@ -429,11 +403,7 @@ namespace PixivWPF.Common
         {
             string result = string.Empty;
             //url = Regex.Replace(url, @"//.*?\.pixiv.net/", "//i.pximg.net/", RegexOptions.IgnoreCase);
-            var file = Path.GetFileName(url).Replace("_p", "_");
-            if (is_meta_single_page)
-                file = file.Replace("_0.", ".");
-
-            //var fn = Path.GetFileName(url).Replace("_p0.", ".").Replace("_p", "_");
+            var file = url.GetImageName(is_meta_single_page);
             if (string.IsNullOrEmpty(setting.LastFolder))
             {
                 SaveFileDialog dlgSave = new SaveFileDialog();
@@ -779,6 +749,18 @@ namespace PixivWPF.Common
 
     public static class ExtensionMethods
     {
+
+        public static string GetImageName(this string url, bool is_meta_single_page)
+        {
+            string result = string.Empty;
+            if (!string.IsNullOrEmpty(url))
+            {
+                result = Path.GetFileName(url).Replace("_p", "_");
+                if (is_meta_single_page) result = result.Replace("_0.", ".");
+            }
+            return (result);
+        }
+
         public static DependencyObject GetVisualChildFromTreePath(this DependencyObject dpo, int[] path)
         {
             if (path.Length == 0) return dpo;
@@ -788,13 +770,63 @@ namespace PixivWPF.Common
             return VisualTreeHelper.GetChild(dpo, path[0]).GetVisualChildFromTreePath(newPath.ToArray());
         }
 
-        //public static Task<T> GetSearchAsync(this string keyword)
-        //{
-        //    object result = null;
+        public static childItem FindVisualChild<childItem>(DependencyObject obj) where childItem : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is childItem)
+                    return (childItem)child;
+                else
+                {
+                    childItem childOfChild = FindVisualChild<childItem>(child);
+                    if (childOfChild != null)
+                        return childOfChild;
+                }
+            }
+            return null;
+        }
+
+        public static childItem FindVisualChild<childItem>(this DependencyObject parent, DependencyObject obj) where childItem : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+                if (child != null && child is childItem && child == obj)
+                    return (childItem)child;
+                else
+                {
+                    childItem childOfChild = child.FindVisualChild<childItem>(obj);
+                    if (childOfChild != null)
+                        return childOfChild;
+                }
+            }
+            return null;
+        }
+
+        public static List<T> GetVisualChildren<T>(this DependencyObject obj) where T : DependencyObject
+        {
+            List<T> childList = new List<T>();
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is T)
+                    childList.Add(child as T);
+
+                var childOfChilds = child.GetVisualChildren<T>();
+                if (childOfChilds != null)
+                {
+                    childList.AddRange(childOfChilds);
+                }
+            }
+
+            if (childList.Count > 0)
+                return childList;
+
+            return null;
+        }
 
 
-        //    return ((T)t);
-        //}
     }
 
     //public class Toast:Notification

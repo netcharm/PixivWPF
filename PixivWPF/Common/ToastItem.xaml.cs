@@ -26,10 +26,8 @@ namespace PixivWPF.Common
             InitializeComponent();
         }
 
-        private void Toast_Loaded(object sender, RoutedEventArgs e)
+        internal void CheckImageSource()
         {
-            parentWindow = Window.GetWindow(this);
-
             if (Preview.Source == null)
             {
                 Preview.Visibility = Visibility.Collapsed;
@@ -40,6 +38,12 @@ namespace PixivWPF.Common
                 Preview.Visibility = Visibility.Visible;
                 OpenPanel.Visibility = Visibility.Visible;
             }
+        }
+
+        private void Toast_Loaded(object sender, RoutedEventArgs e)
+        {
+            parentWindow = Window.GetWindow(this);
+            CheckImageSource();
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -94,6 +98,7 @@ namespace PixivWPF.Common
                         if (System.IO.File.Exists(file))
                         {
                             Preview.Source = await file.LoadImage();
+                            CheckImageSource();
                         }
                     }                    
                 }

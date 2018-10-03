@@ -111,7 +111,7 @@ namespace PixivWPF.Pages
                 {
 
                     var illust = item.Illust;
-                    var idx = item.Count-1;
+                    var idx = item.Index;
                     var url = illust.GetOriginalUrl(idx);
                     var dt = illust.GetDateTime();
 

@@ -1,4 +1,4 @@
-﻿<Page x:Class="PixivWPF.Pages.PageTiles"
+﻿<Page x:Class="PixivWPF.Pages.TilesPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -15,7 +15,7 @@
         
         <DataTemplate x:Key="ImageTileTemplate" x:Name="ImageTile" x:Uid="ImageTile">
             <StackPanel>
-                <Grid Background="{DynamicResource AccentColorBrush}" Width="128" Tag="{Binding Illust, Mode=OneWay}" Margin="0,4,0,4">
+                <Grid Background="{DynamicResource AccentColorBrush}" Width="128" Tag="{Binding Path='', Mode=OneWay}" Margin="0,4,0,4">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="128"/>
                         <RowDefinition Height="Auto"/>
@@ -81,8 +81,9 @@
                       HorizontalAlignment="Center" VerticalAlignment="Top"
                       ScrollViewer.IsDeferredScrollingEnabled="False"
                       mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
+                      KeyUp="ListImageTiles_KeyUp" 
                       MouseDoubleClick="ListImageTiles_MouseDoubleClick"
-                      MouseWheel="ListImageTiles_MouseWheel" KeyUp="ListImageTiles_KeyUp">
+                      PreviewMouseWheel="ListImageTiles_PreviewMouseWheel">
                 <ListView.CacheMode>
                     <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
                 </ListView.CacheMode>

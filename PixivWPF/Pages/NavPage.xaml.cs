@@ -21,7 +21,7 @@ namespace PixivWPF.Pages
     /// <summary>
     /// PageNav.xaml 的交互逻辑
     /// </summary>
-    public partial class PageNav : Page
+    public partial class NavPage : Page
     {
         private Setting setting = Setting.Load();
         private PixivPage page = PixivPage.Recommanded;
@@ -151,7 +151,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public PageNav()
+        public NavPage()
         {
             InitializeComponent();
 
@@ -166,10 +166,10 @@ namespace PixivWPF.Pages
 
         private void NavItem_Click(object sender, RoutedEventArgs e)
         {
-            PageTiles targetPage = null;
+            TilesPage targetPage = null;
             bool IsAppend = false;
-            if (this.Tag is PageTiles)
-                targetPage = this.Tag as PageTiles;
+            if (this.Tag is TilesPage)
+                targetPage = this.Tag as TilesPage;
             else
                 return;
 
@@ -265,8 +265,8 @@ namespace PixivWPF.Pages
 
         private void NavPage_Click(object sender, RoutedEventArgs e)
         {
-            PageTiles targetPage = null;
-            if (this.Tag is PageTiles) targetPage = this.Tag as PageTiles;
+            TilesPage targetPage = null;
+            if (this.Tag is TilesPage) targetPage = this.Tag as TilesPage;
             else return;
 
             if(sender == btnGotoNextPage)

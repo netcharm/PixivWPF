@@ -1,5 +1,5 @@
 ﻿<Page
-      x:Class="PixivWPF.Pages.PageNav"
+      x:Class="PixivWPF.Pages.NavPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -7,7 +7,7 @@
       xmlns:local="clr-namespace:PixivWPF.Pages"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
       mc:Ignorable="d"       
-      x:Name="NavPage"
+      x:Name="NavUI"
       Title="Navigation"
       d:DesignHeight="600" 
       d:DesignWidth="160">

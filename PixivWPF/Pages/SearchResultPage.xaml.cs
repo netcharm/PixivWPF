@@ -178,7 +178,14 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR");
+                if(ex is NullReferenceException)
+                {
+                    "No Result".ShowMessageBox("INFO");
+                }
+                else
+                {
+                    ex.Message.ShowMessageBox("ERROR");
+                }
             }
             finally
             {

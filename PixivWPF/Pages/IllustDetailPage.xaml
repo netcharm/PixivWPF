@@ -39,12 +39,12 @@
                     <Rectangle  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" MouseLeftButtonDown="Preview_MouseDoubleClick">
                         <Rectangle.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
+                                <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
-                                <MenuItem x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
+                                <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>

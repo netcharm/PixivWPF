@@ -1,4 +1,5 @@
-﻿using PixivWPF.Common;
+﻿using Microsoft.Win32;
+using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,7 +18,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace PixivWPF.Pages
 {
@@ -27,6 +27,7 @@ namespace PixivWPF.Pages
     public partial class DownloadManagerPage : Page
     {
         internal Window window = null;
+        internal Setting setting = Setting.Load();
 
         [DefaultValue(true)]
         public bool AutoStart { get; set; }
@@ -63,6 +64,28 @@ namespace PixivWPF.Pages
         {
             if (!string.IsNullOrEmpty(url))
             {
+                var Canceled = false;
+                if (string.IsNullOrEmpty(setting.LastFolder))
+                {
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        SaveFileDialog dlgSave = new SaveFileDialog();
+                        var file = url.GetImageName(is_meta_single_page);
+                        dlgSave.FileName = file;
+                        if (dlgSave.ShowDialog() == true)
+                        {
+                            file = dlgSave.FileName;
+                            setting.LastFolder = System.IO.Path.GetDirectoryName(file);
+                        }
+                        else
+                        {
+                            Canceled = true;
+                            return;
+                        }
+                    }
+                }
+                if (Canceled) return;
+
                 Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return;
                 var item = new DownloadInfo()

@@ -180,15 +180,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\PageLogin.xaml">
+    <Page Include="Pages\LoginPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\PageNav.xaml">
+    <Page Include="Pages\NavPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\PageTiles.xaml">
+    <Page Include="Pages\TilesPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -210,14 +210,14 @@
     <Compile Include="Pages\SearchResultPage.xaml.cs">
       <DependentUpon>SearchResultPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageLogin.xaml.cs">
-      <DependentUpon>PageLogin.xaml</DependentUpon>
+    <Compile Include="Pages\LoginPage.xaml.cs">
+      <DependentUpon>LoginPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageNav.xaml.cs">
-      <DependentUpon>PageNav.xaml</DependentUpon>
+    <Compile Include="Pages\NavPage.xaml.cs">
+      <DependentUpon>NavPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageTiles.xaml.cs">
-      <DependentUpon>PageTiles.xaml</DependentUpon>
+    <Compile Include="Pages\TilesPage.xaml.cs">
+      <DependentUpon>TilesPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

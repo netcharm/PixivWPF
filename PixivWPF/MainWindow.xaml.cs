@@ -27,8 +27,8 @@ namespace PixivWPF
     {
         public Frame MainContent = null;
 
-        private Pages.PageTiles pagetiles = null;
-        private Pages.PageNav pagenav = null;
+        private Pages.TilesPage pagetiles = null;
+        private Pages.NavPage pagenav = null;
 
         private ICommand searchBoxCmd;
         public ICommand SearchBoxCmd
@@ -74,8 +74,8 @@ namespace PixivWPF
 
         public void UpdateTheme()
         {
-            if (pagenav is Pages.PageNav) pagenav.CheckPage();
-            if (pagetiles is Pages.PageTiles) pagetiles.UpdateTheme();
+            if (pagenav is Pages.NavPage) pagenav.CheckPage();
+            if (pagetiles is Pages.TilesPage) pagetiles.UpdateTheme();
         }
 
         public MainWindow()
@@ -87,8 +87,8 @@ namespace PixivWPF
             MainContent = ContentFrame;
 
             //ContentFrame.Content = new Pages.PageLogin() { Tag = ContentFrame };
-            pagetiles = new Pages.PageTiles() { Tag = ContentFrame };
-            pagenav = new Pages.PageNav() { Tag = pagetiles, NavFlyout = NavFlyout };
+            pagetiles = new Pages.TilesPage() { Tag = ContentFrame };
+            pagenav = new Pages.NavPage() { Tag = pagetiles, NavFlyout = NavFlyout };
 
             ContentFrame.Content = pagetiles;
             NavFrame.Content = pagenav;
@@ -146,7 +146,7 @@ namespace PixivWPF
             if(CommandToggleTheme.SelectedIndex>=0 && CommandToggleTheme.SelectedIndex< CommandToggleTheme.Items.Count)
             {
                 Common.Theme.CurrentAccent = Common.Theme.Accents[CommandToggleTheme.SelectedIndex];
-                if (pagenav is Pages.PageNav) pagenav.CheckPage();
+                if (pagenav is Pages.NavPage) pagenav.CheckPage();
             }
         }
 

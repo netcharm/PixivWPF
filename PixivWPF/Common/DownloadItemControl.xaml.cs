@@ -51,12 +51,7 @@ namespace PixivWPF.Common
 
                 url = value;
 
-                if (!string.IsNullOrEmpty(url))
-                {
-                    var file = Path.GetFileName(url).Replace("_p", "_");
-                    if (singlefile) file = file.Replace("_0.", ".");
-                    FileName = file;
-                }
+                FileName = url.GetImageName(singlefile);
 
                 if (string.IsNullOrEmpty(setting.LastFolder))
                 {

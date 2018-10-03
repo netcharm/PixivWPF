@@ -887,7 +887,22 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
+            if(sender == PreviewSave)
+            {
+                var item = DataType as ImageItem;
+                if (item.Illust is Pixeez.Objects.Work)
+                {
+                    var illust = item.Illust;
+                    var url = illust.GetOriginalUrl();
+                    var dt = illust.GetDateTime();
+                    var is_meta_single_page = illust.PageCount==1 ? true : false;
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                    }
+                }
+            }
+            else if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
             {
                 foreach (var item in SubIllusts.SelectedItems)
                 {
@@ -900,7 +915,7 @@ namespace PixivWPF.Pages
                         var is_meta_single_page = illust.PageCount==1 ? true : false;
                         if (!string.IsNullOrEmpty(url))
                         {
-                            tokens = await CommonHelper.ShowLogin();
+                            //tokens = await CommonHelper.ShowLogin();
                             //await url.ToImageFile(tokens, dt, is_meta_single_page);
                             //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
                             //SystemSounds.Beep.Play();
@@ -922,7 +937,7 @@ namespace PixivWPF.Pages
                     var is_meta_single_page = illust.PageCount==1 ? true : false;
                     if (!string.IsNullOrEmpty(url))
                     {
-                        tokens = await CommonHelper.ShowLogin();
+                        //tokens = await CommonHelper.ShowLogin();
                         //await url.ToImageFile(tokens, dt, is_meta_single_page);
                         //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
                         //SystemSounds.Beep.Play();
@@ -941,7 +956,7 @@ namespace PixivWPF.Pages
                     var is_meta_single_page = illust.PageCount==1 ? true : false;
                     if (!string.IsNullOrEmpty(url))
                     {
-                        tokens = await CommonHelper.ShowLogin();
+                        //tokens = await CommonHelper.ShowLogin();
                         //await url.ToImageFile(tokens, dt, is_meta_single_page);
                         //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
                         //SystemSounds.Beep.Play();

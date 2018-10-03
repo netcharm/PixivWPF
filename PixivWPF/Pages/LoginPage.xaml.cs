@@ -22,7 +22,7 @@ namespace PixivWPF.Pages
     /// <summary>
     /// PageLogin.xaml 的交互逻辑
     /// </summary>
-    public partial class PageLogin : Page
+    public partial class LoginPage : Page
     {
         private Window window = null;
         private string AppPath = System.IO.Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString());
@@ -47,7 +47,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public PageLogin()
+        public LoginPage()
         {
             InitializeComponent();
 
