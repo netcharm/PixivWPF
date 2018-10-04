@@ -171,12 +171,12 @@ namespace PixivWPF.Pages
             if (TargetPage != target)
             {
                 NextURL = null;
-                //ListImageTiles.Items.Refresh();
                 TargetPage = target;
+                ImageList.Clear();
             }
             if (!IsAppend)
             {
-                ListImageTiles.SelectedIndex = -1;
+                NextURL = null;
                 ImageList.Clear();
             }
             else if(ImageList.Count >= 90)

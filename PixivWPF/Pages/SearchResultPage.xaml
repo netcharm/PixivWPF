@@ -33,9 +33,9 @@
                         <Common:ImageListGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem x:Uid="ActionOpenRelative" Header="Open Selected Illust(s)" Click="ActionOpenRelative_Click"/>
-                                <Separator/>
+                                <!--<Separator/>
                                 <MenuItem x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click"/>
-                                <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>
+                                <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>-->
                             </ContextMenu>
                         </Common:ImageListGrid.ContextMenu>
                     </Common:ImageListGrid>

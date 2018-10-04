@@ -110,9 +110,32 @@ namespace PixivWPF.Pages
                     Preview.Source = await item.Illust.GetOriginalUrl().LoadImage(tokens);
                 }
 
+                var stat = new StringBuilder();
+                if(item.Illust is Pixeez.Objects.IllustWork)
+                {
+                    var illust = item.Illust as Pixeez.Objects.IllustWork;
+                    stat.AppendLine($"Viewed    : {illust.total_view}");
+                    stat.AppendLine($"Favorited : {illust.total_bookmarks}");
+                }
+                else if (item.Illust is Pixeez.Objects.NormalWork)
+                {
+                    var illust = item.Illust as Pixeez.Objects.NormalWork;
+                    stat.AppendLine($"FavoriteId: {illust.FavoriteId}");
+                }
+                if (item.Illust.Stats != null)
+                {
+                    stat.AppendLine($"Scores    : {item.Illust.Stats.Score}");
+                    stat.AppendLine($"Viewed    : {item.Illust.Stats.ViewsCount}");
+                    stat.AppendLine($"Scored    : {item.Illust.Stats.ScoredCount}");
+                    stat.AppendLine($"Comments  : {item.Illust.Stats.CommentedCount}");
+                    stat.AppendLine($"Favorited : {item.Illust.Stats.FavoritedCount.Public}/{item.Illust.Stats.FavoritedCount.Private}");
+                }
+                stat.AppendLine($"Size      : {item.Illust.Width}x{item.Illust.Height}");
+                Preview.ToolTip = string.Join("\n", stat).Trim();
+
                 IllustAuthor.Text = item.Illust.User.Name;
                 IllustAuthorIcon.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
-                IllustTitle.Text = item.Illust.Title;
+                IllustTitle.Text = $"{item.Illust.Title}";
                 ActionCopyIllustDate.Header = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:sszzz");
 
                 FollowAuthor.Visibility = Visibility.Visible;
