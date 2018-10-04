@@ -159,6 +159,13 @@ namespace PixivWPF.Common
             MouseWheel?.Invoke(sender, e);
         }
 
+        public new event PreviewMouseWheelEventHandler PreviewMouseWheel;
+        public delegate void PreviewMouseWheelEventHandler(object sender, MouseWheelEventArgs e);
+        private void PART_ImageTiles_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            PreviewMouseWheel?.Invoke(sender, e);
+        }
+
         public ImageListGrid()
         {
             InitializeComponent();

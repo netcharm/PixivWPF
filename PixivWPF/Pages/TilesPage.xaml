@@ -72,7 +72,7 @@
                       IsSynchronizedWithCurrentItem="true"
                       SelectionMode="Single"
                       SelectionChanged="ImageTiles_SelectionChanged"
-                      ItemsSource="{Binding Source={StaticResource ActiveImageTiles}, NotifyOnTargetUpdated=True}" 
+                      ItemsSource="{Binding Source={StaticResource ActiveImageTiles}, IsAsync=True, NotifyOnTargetUpdated=True}" 
                       ItemTemplate="{DynamicResource ImageTileTemplate}"
                       BorderBrush="Transparent"
                       Style="{DynamicResource VirtualisedMetroListView}"

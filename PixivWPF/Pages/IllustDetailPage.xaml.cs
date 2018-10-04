@@ -55,7 +55,7 @@ namespace PixivWPF.Pages
                     }
                     viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
                     viewer.Width = 720;
-                    viewer.Height = 800;
+                    viewer.Height = 900;
                     viewer.Show();
                 }
             }
@@ -68,7 +68,7 @@ namespace PixivWPF.Pages
 
                 viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
                 viewer.Width = 720;
-                viewer.Height = 800;
+                viewer.Height = 900;
                 viewer.Content = page;
                 viewer.Show();
             }

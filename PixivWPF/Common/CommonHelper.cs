@@ -115,7 +115,7 @@ namespace PixivWPF.Common
                 var viewer = new ContentWindow();
                 viewer.Title = $"Download Manager";
                 viewer.Width = 720;
-                viewer.Height = 480;
+                viewer.Height = 520;
                 viewer.Content = _downManager;
                 viewer.Tag = _downManager;
                 _downManager.window = viewer;

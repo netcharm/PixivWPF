@@ -320,7 +320,7 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(url))
                 {
                     if (!string.IsNullOrEmpty(images.Original))
-                        url = images.Medium;
+                        url = images.Original;
                     else if (!string.IsNullOrEmpty(images.Medium))
                         url = images.Medium;
                     else if (!string.IsNullOrEmpty(images.Px480mw))
@@ -346,7 +346,7 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(url))
                 {
                     if (!string.IsNullOrEmpty(images.Large))
-                        url = images.Medium;
+                        url = images.Large;
                     else if (!string.IsNullOrEmpty(images.Medium))
                         url = images.Medium;
                     else if (!string.IsNullOrEmpty(images.Px480mw))

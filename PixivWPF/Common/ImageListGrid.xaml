@@ -28,7 +28,7 @@
                                   HorizontalAlignment="Center" VerticalAlignment="Center" 
                                   Foreground="{DynamicResource AccentColorBrush}"/>
                 <Image Grid.Row="0" x:Name="PART_Preview"
-                       Source="{Binding Source, Mode=OneWay}" 
+                       Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
                        ToolTip="{Binding ToolTip, Mode=OneWay}"
                        Tag="{Binding Illust, Mode=OneWay}"
                        Stretch="Uniform" 
@@ -37,10 +37,11 @@
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <mah:Badged Grid.Row="0"
-                            Badge="{Binding BadgeValue, Mode=OneWay}" BadgePlacementMode="TopRight" Margin="0,16,16,0" 
+                            Badge="{Binding BadgeValue, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
+                            BadgePlacementMode="TopRight" Margin="0,16,16,0" 
                             FontSize="16" FontFamily="Consolas" 
                             TargetUpdated="Badge_TargetUpdated"
-                            Tag="{Binding DisplayBadge, Mode=OneWay, NotifyOnTargetUpdated=True}"
+                            Tag="{Binding DisplayBadge, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
                             Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
                             BadgeBackground="{DynamicResource AccentColorBrush}" />
                 <TextBlock Grid.Row="1" Text="{Binding Subject, Mode=OneWay}" 
@@ -57,7 +58,7 @@
         <ListView Grid.Row="0" x:Name="PART_ImageTiles" x:Uid="ImageTiles"
                   IsSynchronizedWithCurrentItem="true"
                   SelectionMode="{Binding SelectionMode, Mode=OneWay}"
-                  ItemsSource="{Binding Items, Mode=OneWay, NotifyOnSourceUpdated=True}" 
+                  ItemsSource="{Binding Items, Mode=OneWay, IsAsync=True, NotifyOnSourceUpdated=True}" 
                   ItemTemplate="{DynamicResource PART_ImageTileTemplate}"
                   BorderBrush="Transparent"
                   HorizontalAlignment="Center" VerticalAlignment="Top"
@@ -66,7 +67,10 @@
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.CacheLength ="500"                 
                   mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
-                  SelectionChanged="PART_ImageTiles_SelectionChanged" KeyUp="PART_ImageTiles_KeyUp" MouseWheel="PART_ImageTiles_MouseWheel">
+                  SelectionChanged="PART_ImageTiles_SelectionChanged" 
+                  KeyUp="PART_ImageTiles_KeyUp" 
+                  MouseWheel="PART_ImageTiles_MouseWheel"
+                  PreviewMouseWheel="PART_ImageTiles_PreviewMouseWheel">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
