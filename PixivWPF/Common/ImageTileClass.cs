@@ -725,6 +725,8 @@ namespace PixivWPF.Common
         #endregion
 
         #region Get Illust Work DateTime
+        private static TimeZoneInfo TokoyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+        private static TimeZoneInfo LocalTimeZone = TimeZoneInfo.Local;
         public static DateTime GetDateTime(this Pixeez.Objects.Work Illust)
         {
             var dt = DateTime.Now;
@@ -736,13 +738,14 @@ namespace PixivWPF.Common
             else if (Illust is Pixeez.Objects.NormalWork)
             {
                 var illustset = Illust as Pixeez.Objects.NormalWork;
-                dt = illustset.CreatedTime.UtcDateTime;
+                dt = illustset.CreatedTime.LocalDateTime;//.UtcDateTime;
             }
             else if (!string.IsNullOrEmpty(Illust.ReuploadedTime))
             {
                 dt = DateTime.Parse(Illust.ReuploadedTime);
             }
-            return (dt);
+            dt = new DateTime(dt.Ticks, DateTimeKind.Unspecified);
+            return (TimeZoneInfo.ConvertTimeBySystemTimeZoneId(dt, TokoyTimeZone.Id, LocalTimeZone.Id));
         }
         #endregion
 

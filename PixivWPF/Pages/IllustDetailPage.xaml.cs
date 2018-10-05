@@ -205,7 +205,7 @@ namespace PixivWPF.Pages
                     PreviewBadge.Visibility = Visibility.Visible;
                     SubIllustsExpander.Visibility = Visibility.Visible;
                     SubIllustsNavPanel.Visibility = Visibility.Visible;
-                    System.Threading.Thread.Sleep(250);
+                    //System.Threading.Thread.Sleep(250);
                     SubIllustsExpander.IsExpanded = true;
                 }
                 //else if (item.Illust is Pixeez.Objects.NormalWork && item.Illust.Metadata != null && item.Illust.PageCount > 1)
@@ -214,7 +214,7 @@ namespace PixivWPF.Pages
                     PreviewBadge.Visibility = Visibility.Visible;
                     SubIllustsExpander.Visibility = Visibility.Visible;
                     SubIllustsNavPanel.Visibility = Visibility.Visible;
-                    System.Threading.Thread.Sleep(250);
+                    //System.Threading.Thread.Sleep(250);
                     SubIllustsExpander.IsExpanded = true;
                 }
                 else
