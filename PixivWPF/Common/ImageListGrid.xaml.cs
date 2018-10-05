@@ -226,8 +226,8 @@ namespace PixivWPF.Common
         {
             if(sender is Image)
             {
-                var image = sender as Image;
-                image.InvalidateVisual();
+                //var image = sender as Image;
+                //image.InvalidateVisual();
             }
         }
 

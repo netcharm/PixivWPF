@@ -110,28 +110,35 @@ namespace PixivWPF.Pages
                     Preview.Source = await item.Illust.GetOriginalUrl().LoadImage(tokens);
                 }
 
-                var stat = new StringBuilder();
-                if(item.Illust is Pixeez.Objects.IllustWork)
+                string stat_viewed = "????";
+                string stat_favorited = "????";
+                var stat_tip = new List<string>();
+                if (item.Illust is Pixeez.Objects.IllustWork)
                 {
                     var illust = item.Illust as Pixeez.Objects.IllustWork;
-                    stat.AppendLine($"Viewed    : {illust.total_view}");
-                    stat.AppendLine($"Favorited : {illust.total_bookmarks}");
-                }
-                else if (item.Illust is Pixeez.Objects.NormalWork)
-                {
-                    var illust = item.Illust as Pixeez.Objects.NormalWork;
-                    stat.AppendLine($"FavoriteId: {illust.FavoriteId}");
+                    stat_viewed = $"{illust.total_view}";
+                    stat_favorited = $"{illust.total_bookmarks}";
+                    stat_tip.Add($"Viewed    : {illust.total_view}");
+                    stat_tip.Add($"Favorited : {illust.total_bookmarks}");
                 }
                 if (item.Illust.Stats != null)
                 {
-                    stat.AppendLine($"Scores    : {item.Illust.Stats.Score}");
-                    stat.AppendLine($"Viewed    : {item.Illust.Stats.ViewsCount}");
-                    stat.AppendLine($"Scored    : {item.Illust.Stats.ScoredCount}");
-                    stat.AppendLine($"Comments  : {item.Illust.Stats.CommentedCount}");
-                    stat.AppendLine($"Favorited : {item.Illust.Stats.FavoritedCount.Public}/{item.Illust.Stats.FavoritedCount.Private}");
+                    stat_viewed = $"{item.Illust.Stats.ViewsCount}";
+                    stat_favorited = $"{item.Illust.Stats.FavoritedCount.Public} / {item.Illust.Stats.FavoritedCount.Private}";
+                    stat_tip.Add($"Scores    : {item.Illust.Stats.Score}");
+                    stat_tip.Add($"Viewed    : {item.Illust.Stats.ViewsCount}");
+                    stat_tip.Add($"Scored    : {item.Illust.Stats.ScoredCount}");
+                    stat_tip.Add($"Comments  : {item.Illust.Stats.CommentedCount}");
+                    stat_tip.Add($"Favorited : {item.Illust.Stats.FavoritedCount.Public} / {item.Illust.Stats.FavoritedCount.Private}");
                 }
-                stat.AppendLine($"Size      : {item.Illust.Width}x{item.Illust.Height}");
-                Preview.ToolTip = string.Join("\n", stat).Trim();
+                stat_tip.Add($"Size      : {item.Illust.Width}x{item.Illust.Height}");
+
+                IllustSize.Text = $"{item.Illust.Width}x{item.Illust.Height}";
+                IllustViewed.Text = stat_viewed;
+                IllustFavorited.Text = stat_favorited;
+                
+                IllustStatInfo.Visibility = Visibility.Visible;
+                IllustStatInfo.ToolTip = string.Join("\r", stat_tip).Trim();
 
                 IllustAuthor.Text = item.Illust.User.Name;
                 IllustAuthorIcon.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
@@ -259,6 +266,14 @@ namespace PixivWPF.Pages
                 else
                     Preview.Source = await nuser.GetPreviewUrl().LoadImage(tokens);
 
+                IllustSizeIcon.Kind = PackIconModernKind.Image;
+                IllustSize.Text = $"{nprof.total_illusts}";
+                IllustViewedIcon.Kind = PackIconModernKind.Check;
+                IllustViewed.Text = $"{nprof.total_follow_users}";
+                IllustFavorited.Text = $"{nprof.total_illust_bookmarks_public}";
+
+                IllustStatInfo.Visibility = Visibility.Visible;
+
                 IllustAuthor.Text = nuser.Name;
                 IllustAuthorIcon.Source = await nuser.GetAvatarUrl().LoadImage(tokens);
                 IllustTitle.Text = string.Empty;
@@ -282,7 +297,7 @@ namespace PixivWPF.Pages
                 {
                     StringBuilder desc = new StringBuilder();
                     desc.AppendLine($"Account:<br/> {nuser.Account} / [{nuser.Id}] / {nuser.Name} / {nuser.Email}");
-                    desc.AppendLine($"<br/>Stat:<br/> {nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follow_users} Following / {nprof.total_follower} Follower /<br/> {nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels /<br/> {nprof.total_mypixiv_users} MyPixiv User");
+                    desc.AppendLine($"<br/>Stat:<br/> {nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follower} Following / {nprof.total_follow_users} Follower /<br/> {nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels /<br/> {nprof.total_mypixiv_users} MyPixiv User");
                     desc.AppendLine($"<hr/>");
 
                     desc.AppendLine($"<br/>Profile:<br/> {nprof.gender} / {nprof.birth} / {nprof.region} / {nprof.job}");
