@@ -209,7 +209,7 @@ namespace PixivWPF
                 var content = SearchBox.Text;
                 auto_suggest_list.Clear();
 
-                content = Regex.Replace(content, @"^.*?&illust_id=(\d+)$", "IllustID: $1", RegexOptions.IgnoreCase).Trim();
+                content = Regex.Replace(content, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
                 content = Regex.Replace(content, @"^.*?\?id=(\d+)$", "UserID: $1", RegexOptions.IgnoreCase).Trim();
                 content = Regex.Replace(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", "", RegexOptions.IgnoreCase).Trim();
 
