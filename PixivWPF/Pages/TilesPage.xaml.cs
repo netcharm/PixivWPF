@@ -33,44 +33,6 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class TilesPage : Page
     {
-        class AutoNextStatusChecker
-        {
-            private int invokeCount;
-            private int  maxCount;
-            private ScrollViewer target = null;
-
-            public AutoNextStatusChecker(int count)
-            {
-                invokeCount = 0;
-                maxCount = count;
-                target = null;
-            }
-
-            public AutoNextStatusChecker(int count, ScrollViewer scroll)
-            {
-                invokeCount = 0;
-                maxCount = count;
-                target = scroll;
-            }
-
-            // This method is called by the timer delegate.
-            public void CheckStatus(object stateInfo)
-            {
-                AutoResetEvent autoEvent = (AutoResetEvent)stateInfo;
-                invokeCount++;
-                if (target is ScrollViewer && target.VerticalOffset == target.ScrollableHeight)
-                {
-                    if (invokeCount >= maxCount)
-                    {
-                        // Reset the counter and signal Main.
-                        //ShowImage();
-                        invokeCount = 0;
-                        autoEvent.Set();
-                    }
-                }
-            }
-        }
-
         private Window window = null;
         private IllustDetailPage detail_page = new IllustDetailPage();
 
@@ -121,10 +83,8 @@ namespace PixivWPF.Pages
                                     {
                                         if (item.Source == null)
                                         {
-                                            //item.Source = await item.Thumb.ToImageSource(tokens);
                                             if(item.Illust.PageCount<=1) item.BadgeValue = null;
                                             item.Source = await item.Thumb.LoadImage(tokens);
-                                            //ListImageTiles.Items.Refresh();
                                         }
                                     }
                                     catch (Exception ex)

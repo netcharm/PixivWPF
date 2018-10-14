@@ -38,8 +38,17 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool Canceled { get; set; }
 
+        private DownloadState state = DownloadState.Idle;
         [DefaultValue(DownloadState.Idle)]
-        public DownloadState State { get; set; }
+        public DownloadState State
+        {
+            get { return state; }
+            set
+            {
+                state = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         private string url = string.Empty;
         public string Url
@@ -160,7 +169,7 @@ namespace PixivWPF.Common
         //    {
         //        this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         //    }
-
+        //
         //    remove
         //    {
         //        throw new NotImplementedException();
@@ -223,7 +232,11 @@ namespace PixivWPF.Common
         public DownloadState State
         {
             get { return Info.State; }
-            set { Info.State = value; }
+            set
+            {
+                Info.State = value;
+                NotifyPropertyChanged();
+            }
         }
 
         public Tuple<double, double> Progress
@@ -270,10 +283,6 @@ namespace PixivWPF.Common
                 if (State == DownloadState.Idle) return true;
                 else return false;
             }
-            set
-            {
-
-            }
         }
 
         [DefaultValue(false)]
@@ -308,10 +317,6 @@ namespace PixivWPF.Common
                 if (State == DownloadState.Paused) return true;
                 else return false;
             }
-            set
-            {
-                
-            }
         }
 
         [DefaultValue(false)]
@@ -321,10 +326,6 @@ namespace PixivWPF.Common
             {
                 if (State == DownloadState.Failed) return true;
                 else return false;
-            }
-            set
-            {
-
             }
         }
 
@@ -336,13 +337,14 @@ namespace PixivWPF.Common
                 if (State == DownloadState.Finished) return true;
                 else return false;
             }
-            set
-            {
-
-            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         private void RaisePropertyChanged(string propertyName)
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

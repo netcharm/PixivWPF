@@ -200,9 +200,7 @@ namespace PixivWPF.Common
                                 if (item.Source == null)
                                 {
                                     if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                    //item.Source = await item.Thumb.ToImageSource(tokens);
                                     item.Source = await item.Thumb.LoadImage(tokens);
-                                    //PART_ImageTiles.Items.Refresh();
                                 }
                             }
                             catch (Exception ex)
@@ -233,7 +231,7 @@ namespace PixivWPF.Common
 
         private void Badge_TargetUpdated(object sender, DataTransferEventArgs e)
         {
-            if (sender is Badged)
+            if (sender is Badged && e.Property != null)
             {
                 var badge = sender as Badged;
                 //if(e.Property.Name.Equals("Visibility", StringComparison.CurrentCultureIgnoreCase))

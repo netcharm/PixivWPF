@@ -9,13 +9,14 @@
       xmlns:local="clr-namespace:PixivWPF.Pages"
       Loaded="Page_Loaded"
       mc:Ignorable="d" 
-      d:DesignHeight="300" d:DesignWidth="300"
+      d:DesignHeight="300" d:DesignWidth="350"
       Title="Download Manager">
 
     <Page.Resources>
         <DataTemplate x:Key="DownloadItemTemplate" DataType="{x:Type Common:DownloadInfo}"
                       x:Name="DownloadItem" x:Uid="DownloadItem">
-            <Common:DownloadItem Tag="{Binding}"
+            <Common:DownloadItem Tag="{Binding Path=., Mode=OneWay, NotifyOnTargetUpdated=True, NotifyOnSourceUpdated=True}"
+                                 TargetUpdated="DownloadItem_TargetUpdated"
                 Background="Transparent"
                 BorderBrush="{DynamicResource AccentColorBrush}"                
                 BorderThickness="1"/>
@@ -30,7 +31,8 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Row="0" Margin="2,4,2,4">
+        <TextBlock Grid.Row="0" x:Name="PART_DownloadState" Margin="2,4,2,4" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="0" Margin="2,4,2,4" HorizontalAlignment="Right" VerticalAlignment="Center">
             <Button x:Name="PART_DownloadAll" x:Uid="DownloadAll" Margin="2,0,2,0" Click="DownloadAll_Click"
                     ToolTip="Download All File"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -49,13 +51,14 @@
         <ListView Grid.Row="1"  x:Name="DownloadItems" x:Uid="DownloadItems"
                   IsSynchronizedWithCurrentItem="true"
                   Style="{DynamicResource VirtualisedMetroListView}"
+                  BorderThickness="0"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.CacheLength ="500"
                   ScrollViewer.VerticalScrollBarVisibility="Auto"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ScrollViewer.IsDeferredScrollingEnabled="False"
                   SelectionMode="Single"
-                  ItemsSource="{Binding Items, Mode=OneWay, NotifyOnSourceUpdated=True}"
+                  ItemsSource="{Binding Items, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                   ItemTemplate="{DynamicResource DownloadItemTemplate}">
             <!--<ListView.ItemsPanel>
                 <ItemsPanelTemplate>

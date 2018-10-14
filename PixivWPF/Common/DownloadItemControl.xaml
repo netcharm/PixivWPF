@@ -51,7 +51,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" x:Name="PART_DownInfo" x:Uid="PART_DownInfo"
-                       Tag="{Binding State, Mode=OneWay}"
+                       Tag="{Binding State, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                        HorizontalAlignment="Left" VerticalAlignment="Center" />
             <StackPanel Grid.Column="1" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,0,2"
                     Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">

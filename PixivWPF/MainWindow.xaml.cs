@@ -71,7 +71,6 @@ namespace PixivWPF
             get { return (auto_suggest_list); }
         }
 
-
         public void UpdateTheme()
         {
             if (pagenav is Pages.NavPage) pagenav.CheckPage();
