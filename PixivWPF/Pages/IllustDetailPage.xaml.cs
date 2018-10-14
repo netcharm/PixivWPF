@@ -372,7 +372,7 @@ namespace PixivWPF.Pages
                 SubIllusts.Items.Clear();
                 if (item.Illust is Pixeez.Objects.IllustWork)
                 {
-                    System.Threading.Thread.Sleep(250);
+                    //System.Threading.Thread.Sleep(250);
                     var subset = item.Illust as Pixeez.Objects.IllustWork;
                     if (subset.meta_pages.Count() > 1)
                     {
@@ -404,14 +404,14 @@ namespace PixivWPF.Pages
                         var nullimages = SubIllusts.Items.Where(img => img.Source == null);
                         if (nullimages.Count() > 0)
                         {
-                            System.Threading.Thread.Sleep(250);
+                            //System.Threading.Thread.Sleep(250);
                             SubIllusts.UpdateImageTile(tokens);
                         }
                     }
                 }
                 else if (item.Illust is Pixeez.Objects.NormalWork)
                 {
-                    System.Threading.Thread.Sleep(250);
+                    //System.Threading.Thread.Sleep(250);
                     var subset = item.Illust as Pixeez.Objects.NormalWork;
                     if(subset.Metadata == null)
                     {
@@ -454,7 +454,7 @@ namespace PixivWPF.Pages
                         var nullimages = SubIllusts.Items.Where(img => img.Source == null);
                         if (nullimages.Count() > 0)
                         {
-                            System.Threading.Thread.Sleep(250);
+                            //System.Threading.Thread.Sleep(250);
                             SubIllusts.UpdateImageTile(tokens);
                         }
                     }
