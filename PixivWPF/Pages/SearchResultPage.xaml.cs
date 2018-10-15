@@ -30,50 +30,6 @@ namespace PixivWPF.Pages
             set { window = value; }
         }
 
-        public ICommand Cmd_OpenIllust { get; } = new DelegateCommand<object>(obj => {
-            //MessageBox.Show($"{obj}");
-            if (obj is ImageListGrid)
-            {
-                var list = obj as ImageListGrid;
-                foreach (var illust in list.SelectedItems)
-                {
-                    var viewer = new ContentWindow();
-                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var page = new IllustDetailPage();
-                        viewer.Content = page;
-                        if(illust.Tag is Pixeez.Objects.User)
-                            page.UpdateDetail(illust.Tag as Pixeez.Objects.User);
-                        else
-                            page.UpdateDetail(illust);
-                    }
-                    else
-                    {
-                        var page = new IllustImageViewerPage();
-                        viewer.Content = page;
-                        page.UpdateDetail(illust);
-                    }
-                    viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
-                    viewer.Width = 720;
-                    viewer.Height = 800;
-                    viewer.Show();
-                }
-            }
-            else if (obj is ImageItem)
-            {
-                var viewer = new ContentWindow();
-                var page = new IllustImageViewerPage();
-                var illust = obj as ImageItem;
-                page.UpdateDetail(illust);
-
-                viewer.Title = illust.Subject;
-                viewer.Width = 720;
-                viewer.Height = 800;
-                viewer.Content = page;
-                viewer.Show();
-            }
-        });
-
         internal object DataType = null;
 
         public SearchResultPage()
@@ -175,6 +131,13 @@ namespace PixivWPF.Pages
                     }
                 }
                 RelativeIllusts.UpdateImageTile(tokens);
+                if (RelativeIllusts.Items.Count() == 1)
+                {
+                    RelativeIllusts.SelectedIndex = 0;
+                    CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+                    if(window != null)
+                        window.Close();
+                }
             }
             catch (Exception ex)
             {
@@ -214,7 +177,7 @@ namespace PixivWPF.Pages
 
         private void ActionOpenRelative_Click(object sender, RoutedEventArgs e)
         {
-            Cmd_OpenIllust.Execute(RelativeIllusts);
+            CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
         }
 
         private void ActionSaveRelative_Click(object sender, RoutedEventArgs e)
@@ -239,14 +202,14 @@ namespace PixivWPF.Pages
 
         private void RelativeIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Cmd_OpenIllust.Execute(RelativeIllusts);
+            CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
         }
 
         private void RelativeIllusts_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                Cmd_OpenIllust.Execute(RelativeIllusts);
+                CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
             }
         }
 
@@ -277,6 +240,9 @@ namespace PixivWPF.Pages
             RelativeIllustsExpander.Visibility = Visibility.Visible;
             RelativeIllustsExpander.IsExpanded = false;
             RelativeIllustsExpander.IsExpanded = true;
+
+            if (CurrentWindow != null)
+                CurrentWindow.SizeToContent = SizeToContent.WidthAndHeight;
         }
         #endregion
 
