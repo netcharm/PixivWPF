@@ -288,8 +288,9 @@
                           x:Name="IllustDescExpander" x:Uid="IllustDescExpander"
                           Header="Description" Visibility="Collapsed">
                     <wpf:HtmlPanel x:Name="IllustDesc" 
-                               Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
-                               HorizontalAlignment="Stretch"/>
+                                   Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
+                                   HorizontalAlignment="Stretch"
+                                   LinkClicked="IllustDesc_LinkClicked" ImageLoad="IllustDesc_ImageLoad"/>
                 </Expander>
 
                 <!-- Illust Subsets -->

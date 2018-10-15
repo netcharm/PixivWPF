@@ -32,48 +32,6 @@ namespace PixivWPF.Pages
             MessageBox.Show("");
         });
 
-        public ICommand Cmd_OpenIllust { get; } = new DelegateCommand<object>(obj => {
-            //MessageBox.Show($"{obj}");
-            if(obj is ImageListGrid)
-            {
-                var list = obj as ImageListGrid;
-                foreach (var illust in list.SelectedItems)
-                {
-                    var viewer = new ContentWindow();
-                    if(list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                       list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var page = new IllustDetailPage();
-                        viewer.Content = page;
-                        page.UpdateDetail(illust);
-                    }
-                    else
-                    {
-                        var page = new IllustImageViewerPage();
-                        viewer.Content = page;
-                        page.UpdateDetail(illust);
-                    }
-                    viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
-                    viewer.Width = 720;
-                    viewer.Height = 900;
-                    viewer.Show();
-                }
-            }
-            else if(obj is ImageItem)
-            {
-                var viewer = new ContentWindow();
-                var page = new IllustImageViewerPage();
-                var illust = obj as ImageItem;
-                page.UpdateDetail(illust);
-
-                viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
-                viewer.Width = 720;
-                viewer.Height = 900;
-                viewer.Content = page;
-                viewer.Show();
-            }
-        });
-
         public void UpdateTheme()
         {
             var style = new StringBuilder();
@@ -643,17 +601,92 @@ namespace PixivWPF.Pages
             }
         }
 
+        private async void IllustDesc_LinkClicked(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs> args)
+        {
+            if (args.Data is TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs)
+            {
+                var link = args.Data as TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs;
+
+                if (link.Attributes.ContainsKey("href"))
+                {
+                    args.Handled = true;
+                    link.Handled = true;
+
+                    var href = link.Attributes["href"];
+                    if (href.StartsWith("pixiv://illusts/"))
+                    {
+                        var illust_id = Regex.Replace(href, @"pixiv://illusts/(\d+)", "$1", RegexOptions.IgnoreCase);
+                        if (!string.IsNullOrEmpty(illust_id))
+                        {
+                            var tokens = await CommonHelper.ShowLogin();
+                            if (tokens == null) return;
+
+                            var illusts = await tokens.GetWorksAsync(Convert.ToInt32(illust_id));
+                            foreach(var illust in illusts)
+                            {
+                                if (illust is Pixeez.Objects.Work)
+                                {
+                                    CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                }
+                            }
+                        }
+                    }
+                    else if (href.StartsWith("pixiv://users/"))
+                    {
+                        var user_id = Regex.Replace(href, @"pixiv://users/(\d+)", "$1", RegexOptions.IgnoreCase);
+                        if (!string.IsNullOrEmpty(user_id))
+                        {
+                            var tokens = await CommonHelper.ShowLogin();
+                            if (tokens == null) return;
+
+                            var users = await tokens.GetUsersAsync(Convert.ToInt32(user_id));
+                            foreach (var user in users)
+                            {
+                                if (user is Pixeez.Objects.User)
+                                {
+                                    CommonHelper.Cmd_OpenIllust.Execute(user);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        args.Handled = false;
+                        link.Handled = false;
+                    }
+                }
+            }
+        }
+
+        private async void IllustDesc_ImageLoad(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs> args)
+        {
+            if (args.Data is TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs)
+            {
+                var img = args.Data as TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs;
+
+                if (string.IsNullOrEmpty(img.Src)) return;
+
+                var tokens = await CommonHelper.ShowLogin();
+                if (tokens == null) return;
+
+                var src = await img.Src.LoadImagePath(tokens);
+                img.Callback(src);
+                img.Handled = true;
+                args.Handled = true;
+            }
+        }
+
         private void Preview_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount >= 2)
             {
                 if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
                 {
-                    Cmd_OpenIllust.Execute(DataType);
+                    CommonHelper.Cmd_OpenIllust.Execute(DataType);
                 }
                 else
                 {
-                    Cmd_OpenIllust.Execute(SubIllusts);
+                    CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
                 }
                 e.Handled = true;
             }
@@ -945,11 +978,11 @@ namespace PixivWPF.Pages
         {
             if(SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count<=0)
             {
-                Cmd_OpenIllust.Execute(DataType);
+                CommonHelper.Cmd_OpenIllust.Execute(DataType);
             }
             else
             {
-                Cmd_OpenIllust.Execute(SubIllusts);
+                CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
             }
         }
 
@@ -1122,14 +1155,14 @@ namespace PixivWPF.Pages
 
         private void SubIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Cmd_OpenIllust.Execute(SubIllusts);
+            CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
         }
 
         private void SubIllusts_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                Cmd_OpenIllust.Execute(SubIllusts);
+                CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
             }
         }
 
@@ -1176,7 +1209,7 @@ namespace PixivWPF.Pages
 
         private void ActionOpenRelative_Click(object sender, RoutedEventArgs e)
         {
-            Cmd_OpenIllust.Execute(RelativeIllusts);
+            CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
         }
 
         private void ActionSaveRelative_Click(object sender, RoutedEventArgs e)
@@ -1201,14 +1234,14 @@ namespace PixivWPF.Pages
 
         private void RelativeIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Cmd_OpenIllust.Execute(RelativeIllusts);
+            CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
         }
 
         private void RelativeIllusts_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                Cmd_OpenIllust.Execute(RelativeIllusts);
+                CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
             }
         }
 
@@ -1264,7 +1297,7 @@ namespace PixivWPF.Pages
 
         private void ActionOpenFavorite_Click(object sender, RoutedEventArgs e)
         {
-            Cmd_OpenIllust.Execute(FavoriteIllusts);
+            CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
         }
 
         private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1279,14 +1312,14 @@ namespace PixivWPF.Pages
 
         private void FavriteIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Cmd_OpenIllust.Execute(FavoriteIllusts);
+            CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
         }
 
         private void FavriteIllusts_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                Cmd_OpenIllust.Execute(FavoriteIllusts);
+                CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
             }
         }
 
@@ -1321,6 +1354,7 @@ namespace PixivWPF.Pages
         }
 
         #endregion
+
 
     }
 

@@ -2,6 +2,8 @@
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
 using Notifications.Wpf;
+using PixivWPF.Pages;
+using Prism.Commands;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -84,7 +86,95 @@ namespace PixivWPF.Common
         private static Setting setting = Setting.Load();
         private static CacheImage cache = new CacheImage();
 
-        internal static Pages.DownloadManagerPage _downManager = new Pages.DownloadManagerPage();
+        public static ICommand Cmd_OpenIllust { get; } = new DelegateCommand<object>(obj => {
+            if (obj is ImageListGrid)
+            {
+                var list = obj as ImageListGrid;
+                foreach (var illust in list.SelectedItems)
+                {
+                    var viewer = new ContentWindow();
+                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                       list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var page = new IllustDetailPage();
+                        viewer.Content = page;
+                        page.UpdateDetail(illust);
+                    }
+                    else
+                    {
+                        var page = new IllustImageViewerPage();
+                        viewer.Content = page;
+                        page.UpdateDetail(illust);
+                    }
+                    viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
+                    viewer.Width = 720;
+                    viewer.Height = 900;
+                    viewer.Show();
+                }
+            }
+            else if (obj is ImageItem)
+            {
+                var viewer = new ContentWindow();
+                var page = new IllustImageViewerPage();
+                var illust = obj as ImageItem;
+                page.UpdateDetail(illust);
+
+                viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
+                viewer.Width = 720;
+                viewer.Height = 900;
+                viewer.Content = page;
+                viewer.Show();
+            }
+            else if (obj is Pixeez.Objects.Work)
+            {
+                var viewer = new ContentWindow();
+                var page = new IllustDetailPage();
+                var illust = obj as Pixeez.Objects.Work;
+
+                var url = illust.GetThumbnailUrl();
+                var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
+                var item = new ImageItem()
+                {
+                    Thumb = url,
+                    Index = -1,
+                    Count = (int)illust.PageCount,
+                    BadgeValue = illust.PageCount.Value.ToString(),
+                    BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
+                    DisplayBadge = illust.PageCount > 1 ? true : false,
+                    ID = illust.Id.ToString(),
+                    UserID = illust.User.Id.ToString(),
+                    Subject = illust.Title,
+                    DisplayTitle = true,
+                    Caption = illust.Caption,
+                    ToolTip = tooltip,
+                    Illust = illust,
+                    Tag = illust
+                };
+                page.UpdateDetail(item);
+
+                viewer.Title = $"ID: {illust.Id}, {illust.Title}";
+                viewer.Width = 720;
+                viewer.Height = 900;
+                viewer.Content = page;
+                viewer.Show();
+            }
+            else if (obj is Pixeez.Objects.User)
+            {
+                var viewer = new ContentWindow();
+                var page = new IllustDetailPage();
+
+                var user = obj as Pixeez.Objects.User;
+                page.UpdateDetail(user);
+                viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
+
+                viewer.Width = 720;
+                viewer.Height = 800;
+                viewer.Content = page;
+                viewer.Show();
+            }
+        });
+
+        internal static DownloadManagerPage _downManager = new Pages.DownloadManagerPage();
 
         public static void ShowDownloadManager()
         {
