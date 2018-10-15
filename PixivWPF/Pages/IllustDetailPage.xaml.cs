@@ -261,10 +261,12 @@ namespace PixivWPF.Pages
 
                 DataType = user;
 
-                if (nprof.background_image_url is string)
-                    Preview.Source = await ((string)nprof.background_image_url).LoadImage(tokens);
-                else
-                    Preview.Source = await nuser.GetPreviewUrl().LoadImage(tokens);
+                Preview.Visibility = Visibility.Collapsed;
+                Preview.Source = null;
+                //if (nprof.background_image_url is string)
+                //    Preview.Source = await ((string)nprof.background_image_url).LoadImage(tokens);
+                //else
+                //    Preview.Source = await nuser.GetPreviewUrl().LoadImage(tokens);
 
                 IllustSizeIcon.Kind = PackIconModernKind.Image;
                 IllustSize.Text = $"{nprof.total_illusts}";

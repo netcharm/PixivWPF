@@ -44,7 +44,7 @@
                                 BadgeBackground="{DynamicResource AccentColorBrush}" />
                     <TextBlock Grid.Row="1" 
                                Text="{Binding Subject, Mode=OneWay}" 
-                               Foreground="{DynamicResource LabelTextBrush}" 
+                               Foreground="{DynamicResource IdealForegroundColorBrush}" 
                                Visibility="{Binding TitleVisibility, Mode=OneWay}"/>
                 </Grid>
             </StackPanel>

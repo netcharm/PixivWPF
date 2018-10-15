@@ -45,7 +45,7 @@
                             Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
                             BadgeBackground="{DynamicResource AccentColorBrush}" />
                 <TextBlock Grid.Row="1" Text="{Binding Subject, Mode=OneWay}" 
-                           Foreground="{DynamicResource LabelTextBrush}" 
+                           Foreground="{DynamicResource IdealForegroundColorBrush}" 
                            Visibility="{Binding Path=TitleVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"/>
             </Grid>
         </DataTemplate>
