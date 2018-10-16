@@ -826,11 +826,11 @@ namespace PixivWPF.Pages
                 {
                     if (sender == ActionBookmarkIllustPublic)
                     {
-                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id);
+                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags);
                     }
                     else if (sender == ActionBookmarkIllustPrivate)
                     {
-                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, null, "private");
+                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, "private");
                     }
                     else if (sender == ActionBookmarkIllustRemove)
                     {

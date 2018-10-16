@@ -380,7 +380,7 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
             return await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
         }
-        
+
         /// <summary>
         /// Fetch Image, Added by NetCharm
         /// </summary>
@@ -403,7 +403,7 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
             return await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -433,7 +433,7 @@ namespace Pixeez
             if (needauth) httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
             return await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -522,7 +522,7 @@ namespace Pixeez
 
             return asyncResponse;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -535,7 +535,7 @@ namespace Pixeez
         {
             return await SendRequestWithAuthAsync(type, url, param, headers);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -552,7 +552,7 @@ namespace Pixeez
             //return (ret);
             return await AccessApiAsync<T>(await this.SendRequestAsync(type, url, param, headers));
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -572,7 +572,7 @@ namespace Pixeez
                 return obj;
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -953,7 +953,7 @@ namespace Pixeez
 
             return await this.AccessApiAsync<List<Feed>>(MethodType.GET, url, param);
         }
-        
+
         /// <summary>
         /// 获取用户作品列表 (无需登录)
         /// </summary>
@@ -1022,7 +1022,7 @@ namespace Pixeez
 
             return await this.AccessApiAsync<Paginated<NormalWork>>(MethodType.GET, url, param);
         }
-        
+
         //# 搜索 (Search) (无需登录)
         //# search_target - 搜索类型
         //# partial_match_for_tags  - 标签部分一致
@@ -1082,7 +1082,7 @@ namespace Pixeez
         /// <returns></returns>
         public async Task<RecommendedRootobject> GetRecommendedWorks(string content_type = "illust", bool include_ranking_label = true, string filter = "for_ios",
             string max_bookmark_id_for_recommend = null, string min_bookmark_id_for_recent_illust = null,
-            string offset = null, bool? include_ranking_illusts = null, string bookmark_illust_ids = null, bool req_auth = true)
+            string offset = null, bool? include_ranking_illusts = null, string bookmark_illust_ids = null, bool include_privacy_policy = true, bool req_auth = true)
         {
             string url;
             if (req_auth)
@@ -1090,22 +1090,27 @@ namespace Pixeez
             else
                 url = "https://app-api.pixiv.net/v1/illust/recommended-nologin";
             var dic = new Dictionary<string, string>() {
-                { "content_type",content_type},
-                { "include_ranking_label", format_bool( include_ranking_label)},
+                { "content_type", content_type},
+                { "include_ranking", format_bool(true)},
+                { "include_ranking_label", format_bool(include_ranking_label)},
                 { "filter", filter }
             };
-            if (max_bookmark_id_for_recommend != null)
+            if (!string.IsNullOrEmpty(max_bookmark_id_for_recommend))
                 dic["max_bookmark_id_for_recommend"] = max_bookmark_id_for_recommend;
-            if (min_bookmark_id_for_recent_illust != null)
+            else
+                dic["max_bookmark_id_for_recommend"] = "20";
+            if (!string.IsNullOrEmpty(min_bookmark_id_for_recent_illust))
                 dic["min_bookmark_id_for_recent_illust"] = min_bookmark_id_for_recent_illust;
-            if (offset != null)
+            else
+                dic["min_bookmark_id_for_recent_illust"] = "1";
+            if (!string.IsNullOrEmpty(offset))
                 dic["offset"] = offset;
             if (include_ranking_illusts.HasValue)
                 dic["include_ranking_illusts"] = format_bool(include_ranking_illusts.Value);
-            if (!req_auth)
-            {
+            if (!req_auth && !string.IsNullOrEmpty(bookmark_illust_ids))
                 dic["bookmark_illust_ids"] = bookmark_illust_ids;
-            }
+            if (include_privacy_policy)
+                dic["include_privacy_policy"] = format_bool(include_privacy_policy);
 
             return await AccessNewApiAsync<RecommendedRootobject>(url, req_auth, dic);
         }
@@ -1162,6 +1167,7 @@ namespace Pixeez
 
         /// <summary>
         /// New ranking illusts, added by netcharm
+        /// mode: [day, week, month, day_male, day_female, week_original, week_rookie, day_r18, day_male_r18, day_female_r18, week_r18, week_r18g, day_manga]
         /// </summary>
         /// <param name="mode"></param>
         /// <param name="page"></param>

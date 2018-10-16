@@ -48,6 +48,7 @@ namespace PixivWPF.Common
         RankingDayR18,
         RankingDayMaleR18,
         RankingDayFemaleR18,
+        RankingDayManga,
         RankingWeek,
         RankingWeekOriginal,
         RankingWeekRookie,

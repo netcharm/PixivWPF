@@ -207,6 +207,9 @@ namespace PixivWPF.Pages
                 case PixivPage.RankingDayFemaleR18:
                     ShowRanking(NextURL, "day_female_r18");
                     break;
+                case PixivPage.RankingDayManga:
+                    ShowRanking(NextURL, "day_manga");
+                    break;
                 case PixivPage.RankingWeek:
                     ShowRanking(NextURL, "week");
                     break;
@@ -241,6 +244,9 @@ namespace PixivWPF.Pages
             {
                 ImageTilesWait.Visibility = Visibility.Visible;
                 //var works = await tokens.GetMyFollowingWorksAsync("private");
+                //var bookmarks_private = await tokens.GetBookMarkedTagsAsync("private");
+                //var bookmarks_public = await tokens.GetBookMarkedTagsAsync("public");
+
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
@@ -286,11 +292,11 @@ namespace PixivWPF.Pages
 
             try
             {
-                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
+                var page_no = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
 
                 ImageTilesWait.Visibility = Visibility.Visible;
-                var root = await tokens.GetLatestWorksAsync(page);
-                //var root = await tokens.GetLatestWorksNewAsync(page);
+                var root = await tokens.GetLatestWorksAsync(page_no);
+                //var root = await tokens.GetLatestWorksNewAsync(page_no);
                 nexturl = root.Pagination.Next.ToString() ?? string.Empty;
                 NextURL = nexturl;
                 ImageTilesWait.Visibility = Visibility.Hidden;
@@ -635,7 +641,7 @@ namespace PixivWPF.Pages
         {
             if (sender is Image)
             {
-                var image = sender as Image;
+                //var image = sender as Image;
                 //image.InvalidateVisual();
             }
         }
