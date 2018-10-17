@@ -1,0 +1,1571 @@
+swagger: '2.0'
+
+info:
+  title: "Pixiv App API"
+  description: "Unofficial API specification extracted from Pixiv Android App v5.0.17"
+  version: "1.0"
+
+host: app-api.pixiv.net
+schemes:
+  - https
+produces:
+  - application/json
+consumes:
+  - application/x-www-form-urlencoded;charset=UTF-8
+
+definitions:
+  GenericError:
+    type: object
+    description: "Error message"
+    properties:
+      error:
+        type: string
+
+  ValidationError:
+    type: object
+    description: "Various field errors"
+    properties:
+      error:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
+
+  NextUrl:
+    type: string
+    description: "Url to the next page"
+    format: uri
+    x-nullable: true
+
+  ImageUrls:
+    type: object
+    description: "Urls for the different sizes of picture"
+    properties:
+      original:
+        type: string
+        format: uri
+      large:
+        type: string
+        format: uri
+      medium:
+        type: string
+        format: uri
+      small: # noqa
+        type: string
+      square_medium:
+        type: string
+        format: uri
+      max_240x240: # noqa
+        type: string
+      px_120x: # noqa
+        type: string
+      px_128x128:
+        type: string
+        format: uri
+      px_16x16: # noqa
+        type: string
+      px_170x170: # noqa
+        type: string
+      px_480mw: # noqa
+        type: string
+      px_48x48: # noqa
+        type: string
+      px_50x50: # noqa
+        type: string
+      px_56x56:
+        type: string
+        format: uri
+      px_64x64: # noqa
+        type: string
+      ugoira600x600: # noqa
+        type: string
+      ugoira1920x1080: # noqa
+        type: string
+
+  ApplicationInfo:
+    type: object
+    properties:
+      notice_exists:
+        type: boolean
+      notice_id:
+        type: string
+      notice_important:
+        type: boolean
+      notice_message:
+        type: string
+      store_url:
+        type: string
+      update_available:
+        type: boolean
+      update_message:
+        type: string
+      update_required:
+        type: boolean
+
+  ApplicationInfoWrapper:
+    type: object
+    required: ["application_info"]
+    properties:
+      application_info:
+        $ref: "#/definitions/ApplicationInfo"
+
+  Emoji:
+    type: object
+    properties:
+      image_url_medium:
+        type: string
+        format: uri
+      image_urls:
+        $ref: "#/definitions/ImageUrls"
+      slug:
+        type: string
+
+  EmojisWrapper:
+    type: object
+    properties:
+      emoji_definitions:
+        type: array
+        items:
+          $ref: "#/definitions/Emoji"
+
+  RenewalDescription:
+    type: object
+    description: "Changelog"
+    properties:
+      change_points:
+        type: array
+        items:
+          type: string
+      description:
+        type: string
+
+  RenewalDescriptionWrapper:
+    type: object
+    properties:
+      renewal_description:
+        $ref: "#/definitions/RenewalDescription"
+
+  UserState:
+    type: object
+    description: "User state"
+    properties:
+      is_mail_authorized:
+        type: boolean
+
+  UserStateWrapper:
+    type: object
+    properties:
+      user_state:
+        $ref: "#/definitions/UserState"
+
+  Workspace:
+    type: object
+    description: "Workspace"
+    properties:
+      chair:
+        description: "Chair"
+        type: string
+      comment:
+        description: "Others"
+        type: string
+      desk:
+        description: "Table"
+        type: string
+      desktop:
+        description: "On top of your desk"
+        type: string
+      monitor:
+        description: "Monitor"
+        type: string
+      mouse:
+        description: "Mouse"
+        type: string
+      music:
+        description: "Drawing tunes"
+        type: string
+      pc:
+        description: "Computer"
+        type: string
+      printer:
+        description: "Printer"
+        type: string
+      scanner:
+        description: "Scanner"
+        type: string
+      tablet:
+        description: "Graphic tablet"
+        type: string
+      tool:
+        description: "Software used"
+        type: string
+      workspace_image_url:
+        description: "Full sized workspace photo"
+        type: string
+        format: uri
+        x-nullable: true
+
+  User:
+    type: object
+    description: "Pixiv user"
+    required:
+      - account
+      - id
+      - is_followed
+      - name
+      - profile_image_urls
+    properties:
+      account:
+        description: "User login"
+        type: string
+      comment:
+        description: "Self introduction"
+        type: string
+      id:
+        description: "User ID"
+        type: integer
+      is_followed:
+        type: boolean
+      name:
+        description: "Nickname"
+        type: string
+      profile_image_urls:
+          $ref: "#/definitions/ImageUrls"
+
+  Profile:
+    type: object
+    description: "Pixiv user profile"
+    properties:
+      background_image_url:
+        description: "Full sized workspace photo"
+        type: string
+        format: uri
+        x-nullable: true
+      birth:
+        description: "Birthday"
+        type: string
+        pattern: "yyyy-MM-dd"
+      gender:
+        description: "Gender"
+        type: string
+        enum: ["male", "female"]
+      job:
+        description: "Occupation"
+        type: string
+      region:
+        description: "Location"
+        type: string
+      total_follow_users:
+        type: integer
+      total_follower:
+        type: integer
+      total_illusts:
+        type: integer
+      total_manga:
+        type: integer
+      total_mypixiv_users:
+        type: integer
+      total_novels:
+        type: integer
+      twitter_account:
+        type: string
+      twitter_url:
+        description: "Twitter"
+        type: string
+        format: uri
+        x-nullable: true
+      webpage:
+        description: "Website"
+        type: string
+        format: uri
+        x-nullable: true
+
+  UserDetailWrapper:
+    type: object
+    properties:
+      profile:
+        $ref: "#/definitions/Profile"
+      user:
+        $ref: "#/definitions/User"
+      workspace:
+        $ref: "#/definitions/Workspace"
+
+  UserFollowDetailWrapper:
+    type: object
+    properties:
+      follow_detail:
+        type: object
+        properties:
+          is_followed:
+            type: boolean
+          restrict:
+            type: string
+            enum: ["public", "private"]
+
+  UserPreview:
+    type: object
+    properties:
+      illusts:
+        type: array
+        items:
+          $ref: "#/definitions/Illust"
+      novels:
+        type: array
+        items:
+          $ref: "#/definitions/Novel"
+      user:
+        $ref: "#/definitions/User"
+
+  UserPreviewsWrapper:
+    type: object
+    properties:
+      next_url:
+        $ref: "#/definitions/NextUrl"
+      user_previews:
+        type: array
+        items:
+          $ref: "#/definitions/UserPreview"
+
+  Tag:
+    type: object
+    required:
+      - name
+    properties:
+      count:
+        type: integer
+      is_registered:
+        type: boolean
+      name:
+        type: string
+
+  Restrict:
+    type: integer
+    description: |
+      Content rating.
+      0 => All;
+      1 => R18;
+      2 => R18G;
+    enum: [0, 1, 2]
+
+  SanityLevel: # SEO-related, maybe?
+    type: integer
+    description: |
+      0 => Unchecked;
+      1 => Gray;
+      2 => White;
+      4 => Semi black;
+      6 => Black;
+    enum: [0, 1, 2, 4, 6]
+
+  Illust:
+    type: object
+    properties:
+      id:
+        type: integer
+      user:
+        $ref: "#/definitions/User"
+      visible:
+        type: boolean
+      is_bookmarked:
+        type: boolean
+      title:
+        description: "Title"
+        type: string
+      caption:
+        description: "Description"
+        type: string
+      create_date:
+        description: "Date created"
+        type: string
+        format: date-time
+      width:
+        type: integer
+      height:
+        type: integer
+      tools:
+        type: array
+        description: "Software used"
+        items:
+          type: string
+      total_bookmarks:
+        type: integer
+      total_comments:
+        type: integer
+      total_view:
+        type: integer
+      type:
+        type: string
+        enum: ["illust", "manga", "ugoira"]
+      tags:
+        type: array
+        items:
+          $ref: "#/definitions/Tag"
+      image_urls:
+        $ref: "#/definitions/ImageUrls"
+      meta_pages: 
+        type: array
+        items:
+          type: object
+          properties:
+            image_urls:
+              $ref: "#/definitions/ImageUrls"
+      meta_single_page:
+        type: object
+        properties:
+          original_image_url:
+            type: string
+            format: uri
+      page_count:
+        type: integer
+      restrict:
+        $ref: "#/definitions/Restrict"
+      sanity_level:
+        $ref: "#/definitions/SanityLevel"
+
+  IllustWrapper:
+    type: object
+    properties:
+      illust:
+        $ref: "#/definitions/Illust"
+
+  IllustsWrapper:
+    type: object
+    properties:
+      illusts:
+        type: array
+        items:
+          $ref: "#/definitions/Illust"
+      next_url:
+        $ref: "#/definitions/NextUrl"
+
+  IllustLabel:
+    type: object
+    properties:
+      title:
+        type: string
+      width:
+        type: integer
+      height:
+        type: integer
+      user_name:
+        type: string
+      image_urls:
+        $ref: "#/definitions/ImageUrls"
+
+  IllustsRecomendedWrapper:
+    type: object
+    required:
+      - next_url
+      - illusts
+    properties:
+      home_ranking_illusts:
+        type: array
+        items:
+          $ref: "#/definitions/Illust"
+      illusts:
+        type: array
+        items:
+          $ref: "#/definitions/Illust"
+      next_url:
+        $ref: "#/definitions/NextUrl"
+      ranking_label_illust:
+        $ref: "#/definitions/IllustLabel"
+
+  Series:
+    type: object
+    description: "Series description"
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+
+  Novel:
+    type: object
+    properties:
+      id:
+        type: integer
+      user:
+        $ref: "#/definitions/User"
+      visible:
+        type: boolean
+      is_bookmarked:
+        type: boolean
+      title:
+        description: "Title"
+        type: string
+      caption:
+        description: "Description"
+        type: string
+      create_date:
+        description: "Date created"
+        type: string
+        format: date-time
+      text_length:
+        type: integer
+      total_bookmarks:
+        type: integer
+      total_comments:
+        type: integer
+      total_view:
+        type: integer
+      tags:
+        type: array
+        items:
+          $ref: "#/definitions/Tag"
+      image_urls:
+        $ref: "#/definitions/ImageUrls"
+      series:
+        $ref: "#/definitions/Series"
+      page_count:
+        type: integer
+      restrict:
+        $ref: "#/definitions/Restrict"
+
+  NovelWrapper:
+    type: object
+    properties:
+      novel:
+        $ref: "#/definitions/Novel"
+
+  NovelsWrapper:
+    type: object
+    properties:
+      next_url:
+        $ref: "#/definitions/NextUrl"
+      novels:
+        type: array
+        items:
+          $ref: "#/definitions/Novel"
+
+  NovelTextWrapper:
+    type: object
+    properties:
+      novel_marker:
+        type: object
+        properties:
+          page:
+            type: integer
+      novel_text:
+        type: string
+      series_next:
+        $ref: "#/definitions/Novel"
+      series_prev:
+        $ref: "#/definitions/Novel"
+
+  NovelLabel:
+    type: object
+    properties:
+      image_urls:
+        $ref: "#/definitions/ImageUrls"
+      title:
+        type: string
+      user_name:
+        type: string
+
+  NovelsRecomendedWrapper:
+    type: object
+    properties:
+      home_ranking_novels:
+        type: array
+        items:
+          $ref: "#/definitions/Novel"
+      next_url:
+        $ref: "#/definitions/NextUrl"
+      novels:
+        type: array
+        items:
+          $ref: "#/definitions/Novel"
+      ranking_label_novel:
+        $ref: "#/definitions/NovelLabel"
+
+  UgoiraFrame:
+    type: object
+    properties:
+      delay:
+        description: "Delay (in msec) before switching to the next frame"
+        type: integer
+      file:
+        description: "Frame filename"
+        type: string
+
+  Ugoira:
+    type: object
+    properties:
+      frames:
+        type: array
+        items:
+          $ref: "#/definitions/UgoiraFrame"
+      zip_urls:
+        $ref: "#/definitions/ImageUrls"
+
+  UgoiraWrapper:
+    type: object
+    properties:
+      ugoira_metadata:
+        $ref: "#/definitions/Ugoira"
+
+  BookmarkDetail:
+    type: object
+    properties:
+      is_bookmarked:
+        type: boolean
+      restrict:
+        type: string
+        enum: ["all", "public", "private"]
+      tags:
+        type: array
+        items:
+          $ref: "#/definitions/Tag"
+
+  BookmarkDetailWrapper:
+    type: object
+    properties:
+      bookmark_detail:
+        $ref: "#/definitions/BookmarkDetail"
+
+  BookmarkTagsWrapper:
+    type: object
+    properties:
+      bookmark_tags:
+        type: array
+        items:
+          $ref: "#/definitions/Tag"
+      next_url:
+        $ref: "#/definitions/NextUrl"
+
+  Comment:
+    type: object
+    properties:
+      comment:
+        type: string
+      date:
+        type: string
+        format: date-time
+      id:
+        type: integer
+      user:
+        $ref: "#/definitions/User"
+
+  CommentsWrapper:
+    type: object
+    properties:
+      comments:
+        type: array
+        items:
+          $ref: "#/definitions/Comment"
+      next_url:
+        $ref: "#/definitions/NextUrl"
+      total_comments:
+        type: integer
+
+  SpotlightArticle:
+    type: object
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      publish_date:
+        type: string
+        format: date-time
+      thumbnail:
+        type: string
+        format: uri
+      article_url:
+        type: string
+        format: uri
+
+  SpotlightArticlesWrapper:
+    type: object
+    properties:
+      spotlight_articles:
+        type: array
+        items:
+          $ref: "#/definitions/SpotlightArticle"
+      next_url:
+        $ref: "#/definitions/NextUrl"
+
+  SearchAutocompleteWrapper:
+    type: object
+    properties:
+      search_auto_complete_keywords:
+        type: array
+        items:
+          type: string
+
+responses:
+  NotDocumented:
+    description: "TBD"
+    schema:
+      type: string
+
+  GenericError:
+    description: "Generic error"
+    schema:
+      $ref: "#/definitions/GenericError"
+
+  ValidationError:
+    description: "Validation error"
+    schema:
+      $ref: "#/definitions/ValidationError"
+
+  ApplicationInfoOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/ApplicationInfoWrapper"
+
+  EmojisOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/EmojisWrapper"
+
+  RenewalDescriptionOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/RenewalDescriptionWrapper"
+
+  UserStateOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/UserStateWrapper"
+
+  UserDetailOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/UserDetailWrapper"
+
+  UserFollowDetailOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/UserFollowDetailWrapper"
+
+  UserPreviewsOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/UserPreviewsWrapper"
+
+  UgoiraMetadataOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/UgoiraWrapper"
+
+  IllustOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/IllustWrapper"
+
+  IllustsOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/IllustsWrapper"
+
+  IllustsRecomendedOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/IllustsRecomendedWrapper"
+
+  NovelOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/NovelWrapper"
+
+  NovelsOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/NovelsWrapper"
+
+  NovelTextOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/NovelTextWrapper"
+
+  NovelsRecomendedOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/NovelsRecomendedWrapper"
+
+  BookmarkDetailOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/BookmarkDetailWrapper"
+
+  BookmarkTagsOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/BookmarkTagsWrapper"
+
+  CommentsOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/CommentsWrapper"
+
+  SpotlightArticlesOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/SpotlightArticlesWrapper"
+
+  SearchAutocompleteOK:
+    description: OK
+    schema:
+      $ref: "#/definitions/SearchAutocompleteWrapper"
+
+parameters:
+  Authorization:
+    name: Authorization
+    description: "OAuth2 Bearer"
+    type: string
+    in: header
+    required: true
+
+  Offset:
+    name: offset
+    description: "Offset for pagination"
+    type: integer
+    in: query
+    required: false
+
+  Restrict:
+    name: restrict
+    description: "Visibility type (e.g. in bookmarks)"
+    type: string
+    in: query
+    enum: ["public", "private", "all"]
+
+  UserID:
+    name: user_id
+    description: "User ID"
+    type: integer
+    in: query
+
+  SeedUserID:
+    name: seed_user_id
+    description: "User ID seed"
+    type: integer
+    in: query
+
+  IllustID:
+    name: illust_id
+    description: "Illustration ID"
+    type: integer
+    in: query
+
+  NovelID:
+    name: novel_id
+    description: "Novel ID"
+    type: integer
+    in: query
+
+  NovelSeriesId:
+    name: series_id
+    description: "Novel series ID"
+    type: integer
+    in: query
+
+  RankingMode:
+    name: mode
+    description: "Ranking mode"
+    type: string
+    in: query
+    enum: ["day", "day_male", "day_female", "week_original", "week_rookie", "week", "month", "day_r18", "week_r18", "day_male_r18", "day_female_r18", "week_r18g", "week_rookie_manga", "week_manga", "month_manga", "day_r18_manga", "week_r18_manga", "week_r18g_manga"]
+
+  RankingModeNovel:
+    name: mode
+    description: "Ranking mode"
+    type: string
+    in: query
+    enum: ["day", "day_male", "day_female", "week_rookie", "week day_r18", "week_r18"]
+
+  RankingDate: # noqa
+    name: date
+    description: "Ranking for a specific day"
+    type: string
+    in: query
+    pattern: "yyyy-MM-dd"
+
+  Tag: # noqa
+    name: tag
+    description: "Tag"
+    type: string
+    in: query
+
+  ContentType:
+    name: content_type
+    description: "Content Type"
+    type: string
+    in: query
+    enum: ["illust", "manga", "novel", "user"]
+
+  IncludeRanking:
+    name: include_ranking
+    description: "Include ranking"
+    type: boolean
+    in: query
+    default: false
+
+  IncludeRankingLabel:
+    name: include_ranking_label
+    description: "Include ranking label"
+    type: boolean
+    in: query
+    default: false
+
+  MinBookmarkIdForRecentIllust:
+    name: min_bookmark_id_for_recent_illust
+    description: "N/A"
+    type: integer
+    in: query
+
+  MaxBookmarkIdForRecommend:
+    name: max_bookmark_id_for_recommend
+    description: "N/A"
+    type: integer
+    in: query
+
+  MaxBookmarkId:
+    name: max_bookmark_id
+    description: "N/A"
+    type: integer
+    in: query
+
+  MinSeriesItemId:
+    name: min_series_item_id
+    description: "N/A"
+    type: integer
+    in: query
+
+  BookmarkIllustIDs:
+    name: bookmark_illust_ids
+    description: "Comma separated list of work ids"
+    type: array
+    in: query
+    allowEmptyValue: true
+    items:
+      type: integer
+      collectionFormat: csv
+
+  BookmarkNovelIDs:
+    name: bookmark_novel_ids
+    description: "Comma separated list of novel ids"
+    type: array
+    in: query
+    allowEmptyValue: true
+    items:
+      type: integer
+      collectionFormat: csv
+
+  SearchWord:
+    name: word
+    description: "Search keyword"
+    type: string
+    in: query
+    required: true
+
+  SearchSort:
+    name: sort
+    description: "Search result order"
+    type: string
+    in: query
+    enum: ["date_desc", "date_asc", "popular_desc"]
+
+  SearchTarget:
+    name: search_target
+    description: "Where to search"
+    type: string
+    in: query
+    enum: ["partial_match_for_tags", "exact_match_for_tags", "title_and_caption", "text", "keyword"]
+
+  SearchBookmarkNum:
+    name: bookmark_num
+    description: |
+      0 => 0;
+      1 => 10;
+      2 => 30;
+      3 => 50;
+      4 => 100;
+      5 => 300;
+      6 => 500;
+      7 => 1000;
+      8 => 5000;
+    type: integer
+    in: query
+    enum: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+  SearchDuration:
+    name: duration
+    description: "Search for certain period of time"
+    type: string
+    in: query
+    allowEmptyValue: true
+    enum: ["within_last_day", "within_last_week", "within_last_month"]
+
+  SpotlightCategory:
+    name: category
+    description: "Filter spotlight articles by category"
+    type: string
+    in: query
+    enum: ["all", "manga"]
+
+  WorkType:
+    name: type
+    description: "N/A"
+    type: string
+    in: query
+    enum: ["illust", "manga", "illust_manga", "novel"]
+
+paths:
+  /v1/application-info/android:
+    get:
+      description: "Get application info for Android device (no auth needed)"
+      responses:
+        200:
+          $ref: "#/responses/ApplicationInfoOK"
+
+  /v1/emoji:
+    get:
+      description: "List available emojis"
+      responses:
+        200:
+          $ref: "#/responses/EmojisOK"
+
+  /v1/illust/recommended-nologin:
+    get:
+      description: "Get list of the recomended images (no auth needed)"
+      parameters:
+        - $ref: "#/parameters/ContentType"
+        - $ref: "#/parameters/IncludeRanking"
+        - $ref: "#/parameters/IncludeRankingLabel"
+        - $ref: "#/parameters/BookmarkIllustIDs"
+        - $ref: "#/parameters/Offset"
+      responses:
+        200:
+          $ref: "#/responses/IllustsRecomendedOK"
+
+  /v1/novel/recommended-nologin:
+    get:
+      description: "Get list of the recomended novels (no auth needed)"
+      parameters:
+        - $ref: "#/parameters/IncludeRanking"
+        - $ref: "#/parameters/IncludeRankingLabel"
+        - $ref: "#/parameters/BookmarkNovelIDs"
+        - $ref: "#/parameters/Offset"
+      responses:
+        200:
+          $ref: "#/responses/NovelsRecomendedOK"
+
+  /v1/walkthrough/renewal-description:
+    get:
+      description: "Get changelog (no auth needed)"
+      responses:
+        200:
+          $ref: "#/responses/RenewalDescriptionOK"
+
+# ==== AUTH REQUIRED ====
+
+  /v2/illust/follow:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/Restrict"
+      responses:
+        200:
+          $ref: "#/responses/IllustsOK"
+
+  /v1/novel/follow:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/Restrict"
+      responses:
+        200:
+          $ref: "#/responses/NovelsOK"
+
+  /v1/user/follow/detail:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+      responses:
+        200:
+          $ref: "#/responses/UserFollowDetailOK"
+
+  /v1/illust/detail:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/IllustID"
+      responses:
+        200:
+          $ref: "#/responses/IllustOK"
+
+  /v1/user/bookmark-tags/illust:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+        - $ref: "#/parameters/Restrict"
+      responses:
+        200:
+          $ref: "#/responses/BookmarkTagsOK"
+
+  /v1/user/browsing-history/illusts:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/IllustsOK"
+
+  /v1/illust/comments:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/IllustID"
+      responses:
+        200:
+          $ref: "#/responses/CommentsOK"
+
+  /v1/illust/ranking:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/RankingMode"
+        - $ref: "#/parameters/RankingDate"
+      responses:
+        200:
+          $ref: "#/responses/IllustsOK"
+
+  /v1/illust/related:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/IllustID"
+      responses:
+        200:
+          $ref: "#/responses/IllustsOK"
+
+  /v1/trending-tags/illust:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/NotDocumented"
+
+  /v1/user/bookmarks/illust:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+        - $ref: "#/parameters/Restrict"
+        - $ref: "#/parameters/Tag"
+      responses:
+        200:
+          $ref: "#/responses/IllustsOK"
+
+  /v2/illust/bookmark/detail:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/IllustID"
+      responses:
+        200:
+          $ref: "#/responses/BookmarkDetailOK"
+
+  /v1/user/bookmarks/novel:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+        - $ref: "#/parameters/Restrict"
+        - $ref: "#/parameters/Tag"
+      responses:
+        200:
+          $ref: "#/responses/NovelsOK"
+
+  /v2/novel/bookmark/detail:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/NovelID"
+      responses:
+        200:
+          $ref: "#/responses/BookmarkDetailOK"
+
+  /v1/trending-tags/manga:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/NotDocumented"
+
+  /v2/illust/mypixiv:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/IllustsOK"
+
+  /v1/novel/mypixiv:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/NovelsOK"
+
+  /v1/illust/new:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/ContentType"
+      responses:
+        200:
+          $ref: "#/responses/IllustsOK"
+
+  /v1/novel/new:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/NovelsOK"
+
+  /v2/novel/detail:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/NovelID"
+      responses:
+        200:
+          $ref: "#/responses/NovelOK"
+
+  /v1/user/bookmark-tags/novel:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+        - $ref: "#/parameters/Restrict"
+      responses:
+        200:
+          $ref: "#/responses/BookmarkTagsOK"
+
+  /v1/user/browsing-history/novels:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/NovelsOK"
+
+  /v1/novel/comments:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/NovelID"
+      responses:
+        200:
+          $ref: "#/responses/CommentsOK"
+
+  /v1/novel/markers:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/NovelsOK"
+
+  /v1/novel/ranking:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/RankingModeNovel"
+        - $ref: "#/parameters/RankingDate"
+      responses:
+        200:
+          $ref: "#/responses/NovelsOK"
+
+  /v1/novel/series:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/NovelSeriesId"
+        - $ref: "#/parameters/MinSeriesItemId"
+      responses:
+        200:
+          $ref: "#/responses/NovelsOK"
+
+  /v1/novel/text:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/NovelID"
+      responses:
+        200:
+          $ref: "#/responses/NovelTextOK"
+
+  /v1/trending-tags/novel:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/NotDocumented"
+
+  /v1/illust/popular:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/ContentType"
+      responses:
+        200:
+          $ref: "#/responses/IllustsOK"
+
+  /v1/novel/popular:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/NovelsOK"
+
+  /v1/illust/recommended:
+    get:
+      description: "Get list of the recomended images"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/ContentType"
+        - $ref: "#/parameters/IncludeRanking"
+        - $ref: "#/parameters/IncludeRankingLabel"
+        - $ref: "#/parameters/MinBookmarkIdForRecentIllust"
+        - $ref: "#/parameters/MaxBookmarkIdForRecommend"
+        - $ref: "#/parameters/Offset"
+      responses:
+        200:
+          $ref: "#/responses/IllustsRecomendedOK"
+
+  /v1/manga/recommended:
+    get:
+      description: "Get list of the recomended manga"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/IncludeRanking"
+        - $ref: "#/parameters/IncludeRankingLabel"
+        - $ref: "#/parameters/MaxBookmarkId"
+        - $ref: "#/parameters/BookmarkIllustIDs"
+        - $ref: "#/parameters/Offset"
+      responses:
+        200:
+          $ref: "#/responses/IllustsRecomendedOK"
+
+  /v1/novel/recommended:
+    get:
+      description: "Get list of the recomended manga"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/IncludeRanking"
+        - $ref: "#/parameters/IncludeRankingLabel"
+        - $ref: "#/parameters/MaxBookmarkIdForRecommend"
+        - $ref: "#/parameters/Offset"
+      responses:
+        200:
+          $ref: "#/responses/NovelsRecomendedOK"
+
+  /v1/search/autocomplete:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/SearchWord"
+      responses:
+        200:
+          $ref: "#/responses/SearchAutocompleteOK"
+
+  /v1/search/illust:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/SearchWord"
+        - $ref: "#/parameters/SearchSort"
+        - $ref: "#/parameters/SearchTarget"
+        - $ref: "#/parameters/SearchBookmarkNum"
+        - $ref: "#/parameters/SearchDuration"
+      responses:
+        200:
+          $ref: "#/responses/NotDocumented"
+
+  /v1/search/novel:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/SearchWord"
+        - $ref: "#/parameters/SearchSort"
+        - $ref: "#/parameters/SearchTarget"
+        - $ref: "#/parameters/SearchBookmarkNum"
+        - $ref: "#/parameters/SearchDuration"
+      responses:
+        200:
+          $ref: "#/responses/NotDocumented"
+
+  /v1/search/user:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/SearchWord"
+      responses:
+        200:
+          $ref: "#/responses/NotDocumented"
+
+  /v1/spotlight/articles:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/SpotlightCategory"
+      responses:
+        200:
+          $ref: "#/responses/SpotlightArticlesOK"
+
+  /v1/ugoira/metadata:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/IllustID"
+      responses:
+        200:
+          $ref: "#/responses/UgoiraMetadataOK"
+
+  /v1/user/detail:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+      responses:
+        200:
+          $ref: "#/responses/UserDetailOK"
+
+  /v1/user/follower:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+      responses:
+        200:
+          $ref: "#/responses/UserPreviewsOK"
+
+  /v1/user/following:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+        - $ref: "#/parameters/Restrict"
+      responses:
+        200:
+          $ref: "#/responses/UserPreviewsOK"
+
+  /v1/user/illusts:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+        - $ref: "#/parameters/WorkType"
+      responses:
+        200:
+          $ref: "#/responses/IllustsOK"
+          
+  /v1/user/me/state:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/UserStateOK"
+
+  /v1/user/mypixiv:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+      responses:
+        200:
+          $ref: "#/responses/UserPreviewsOK"
+
+  /v1/user/novels:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/UserID"
+      responses:
+        200:
+          $ref: "#/responses/NovelsOK"
+
+  /v1/user/recommended:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/UserPreviewsOK"
+
+  /v1/user/related:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+        - $ref: "#/parameters/SeedUserID"
+      responses:
+        200:
+          $ref: "#/responses/UserPreviewsOK"
+
+  /v1/walkthrough/illusts:
+    get:
+      description: "N/A"
+      parameters:
+        - $ref: "#/parameters/Authorization"
+      responses:
+        200:
+          $ref: "#/responses/IllustsOK"
