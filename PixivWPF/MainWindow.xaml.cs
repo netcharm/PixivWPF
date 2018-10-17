@@ -164,8 +164,15 @@ namespace PixivWPF
                 var content = SearchBox.Text;
                 auto_suggest_list.Clear();
 
-                content = Regex.Replace(content, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
-                content = Regex.Replace(content, @"^.*?\?id=(\d+)$", "UserID: $1", RegexOptions.IgnoreCase).Trim();
+                if (Regex.IsMatch(content, @"(.*?illust_id=)(\d+)(.*)", RegexOptions.IgnoreCase))
+                    content = Regex.Replace(content, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
+                else if (Regex.IsMatch(content, @"^(.*?\?id=)(\d+)(.*)$", RegexOptions.IgnoreCase))
+                    content = Regex.Replace(content, @"^(.*?\?id=)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase).Trim();
+                else if (Regex.IsMatch(content, @"^(.*?tag_full&word=)(.*)$", RegexOptions.IgnoreCase))
+                {
+                    content = Regex.Replace(content, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase).Trim();
+                    content = Uri.UnescapeDataString(content);
+                }
                 content = Regex.Replace(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", "", RegexOptions.IgnoreCase).Trim();
 
                 if (Regex.IsMatch(content, @"^\d+$", RegexOptions.IgnoreCase))

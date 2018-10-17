@@ -62,11 +62,6 @@ namespace PixivWPF.Pages
 
                 var tokens = await CommonHelper.ShowLogin();
                 DataObject = item;
-                Preview.Source = await item.Illust.GetPreviewUrl().LoadImage(tokens);
-                if (Preview.Source != null && Preview.Source.Width < 450)
-                {
-                    Preview.Source = await item.Illust.GetOriginalUrl().LoadImage(tokens);
-                }
 
                 string stat_viewed = "????";
                 string stat_favorited = "????";
@@ -191,6 +186,14 @@ namespace PixivWPF.Pages
                 FavoriteIllustsExpander.Visibility = Visibility.Visible;
                 FavoriteNextPage.Visibility = Visibility.Collapsed;
                 FavoriteIllustsExpander.IsExpanded = false;
+
+                Preview.Source = await item.Illust.GetPreviewUrl().LoadImage(tokens);
+                if (Preview.Source != null && Preview.Source.Width < 450)
+                {
+                    var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
+                    if (large != null) Preview.Source = large;
+                }
+                if (Preview.Source != null) Preview.Visibility = Visibility.Visible;
 
                 PreviewWait.Visibility = Visibility.Hidden;
             }
