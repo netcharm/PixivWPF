@@ -119,7 +119,7 @@ namespace PixivWPF.Pages
 
         private void DownloadAll_Click(object sender, RoutedEventArgs e)
         {
-            new Thread(() =>
+            new Task(() =>
             {
                 var needUpdate = items.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished );
                 if (needUpdate.Count() > 0)

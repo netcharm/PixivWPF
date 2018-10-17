@@ -176,6 +176,8 @@ namespace PixivWPF.Common
         }
 
         private bool UPDATING = false;
+        private Task<bool> UpdateTask = null;
+
         public void UpdateImageTile(Pixeez.Tokens tokens, int parallel=15)
         {
             if (UPDATING) return;
@@ -183,35 +185,86 @@ namespace PixivWPF.Common
             var needUpdate = ImageList.Where(item => item.Source == null);
             if (needUpdate.Count() > 0)
             {
-                new Thread(delegate ()
+                UpdateTask = new Task<bool>(delegate ()
                 {
-                    var opt = new ParallelOptions();
-
-                    if (parallel <= 0) parallel = 1;
-                    else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
-                    opt.MaxDegreeOfParallelism = parallel;
-
-                    Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                    bool result = true;
+                    UPDATING = result;
+                    try
                     {
-                        item.Dispatcher.BeginInvoke(new Action(async () =>
+                        var opt = new ParallelOptions();
+
+                        if (parallel <= 0) parallel = 1;
+                        else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
+                        opt.MaxDegreeOfParallelism = parallel;
+
+                        var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                         {
-                            try
+                            item.Dispatcher.BeginInvoke(new Action(async () =>
                             {
-                                if (item.Source == null)
+                                try
                                 {
-                                    if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                    item.Source = await item.Thumb.LoadImage(tokens);
+                                    if (item.Source == null)
+                                    {
+                                        if (item.Count <= 1) item.BadgeValue = string.Empty;
+                                        item.Source = await item.Thumb.LoadImage(tokens);
+                                    }
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                var ret = ex.Message;
-                                //$"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                            }
-                        }));
-                    });
-                    UPDATING = false;
-                }).Start();
+                                catch (Exception ex)
+                                {
+                                    var ert = ex.Message;
+                                    //$"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                }
+                            }));
+                        });
+                        if (ret.IsCompleted)
+                        {
+                            result = !ret.IsCompleted;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        var ert = ex.Message;
+                        result = false;
+                    }
+                    finally
+                    {
+                        result = false;
+                    }
+                    UPDATING = result;
+                    return (result);
+                });
+                UpdateTask.Start();
+                //UPDATING = UpdateTask.Result;
+
+                //new Thread(delegate ()
+                //{
+                //    var opt = new ParallelOptions();
+                //
+                //    if (parallel <= 0) parallel = 1;
+                //    else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
+                //    opt.MaxDegreeOfParallelism = parallel;
+                //
+                //    Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                //    {
+                //        item.Dispatcher.BeginInvoke(new Action(async () =>
+                //        {
+                //            try
+                //            {
+                //                if (item.Source == null)
+                //                {
+                //                    if (item.Count <= 1) item.BadgeValue = string.Empty;
+                //                    item.Source = await item.Thumb.LoadImage(tokens);
+                //                }
+                //            }
+                //            catch (Exception ex)
+                //            {
+                //                var ret = ex.Message;
+                //                //$"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                //            }
+                //        }));
+                //    });
+                //    UPDATING = false;
+                //}).Start();
             }
         }
 

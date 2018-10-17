@@ -1,30 +1,13 @@
-﻿using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
-using PixivWPF.Common;
+﻿using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Media;
-using System.Net.Cache;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Threading;
-using TheArtOfDev.HtmlRenderer.WPF;
 
 namespace PixivWPF.Pages
 {
@@ -41,7 +24,7 @@ namespace PixivWPF.Pages
         public PixivPage TargetPage = PixivPage.Recommanded;
         private string NextURL = null;
         private bool UPDATING = false;
-        private Thread UpdateThread = null;
+        private Task<bool> UpdateTask = null;
 
         public void UpdateTheme()
         {
@@ -63,13 +46,14 @@ namespace PixivWPF.Pages
             if (UPDATING) return;
 
             var needUpdate = ImageList.Where(item => item.Source == null);
-
             if (needUpdate.Count() > 0)
             {
-                using (ListImageTiles.Items.DeferRefresh())
+                //using (ListImageTiles.Items.DeferRefresh())
                 {
-                    UpdateThread = new Thread(() =>
+                    UpdateTask = new Task<bool>(() =>
                     {
+                        bool result = true;
+                        UPDATING = result;
                         try
                         {
                             var opt = new ParallelOptions();
@@ -95,15 +79,17 @@ namespace PixivWPF.Pages
                             });
                             if (ret.IsCompleted)
                             {
-                                UPDATING = !ret.IsCompleted;
+                                result = !ret.IsCompleted;
                             }
                         }
                         finally
                         {
-                            UPDATING = false;
+                            result = false;
                         }
+                        UPDATING = result;
+                        return (result);
                     });
-                    UpdateThread.Start();
+                    UpdateTask.Start();
                 }
             }
         }
