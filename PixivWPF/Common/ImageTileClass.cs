@@ -12,10 +12,11 @@ using System.Windows.Media;
 
 namespace PixivWPF.Common
 {
+    public enum ImageItemType { User, Works, Work, Pages, Page, Manga }
+
     public class ImageItem : FrameworkElement, INotifyPropertyChanged
     {
-        //public static readonly DependencyProperty SourceProperty =
-        //    DependencyProperty.Register("Source", typeof(ImageSource), typeof(ImageItem), new UIPropertyMetadata(null));
+        public ImageItemType ItemType { get; set; }
 
         private ImageSource source = null;
         public ImageSource Source
@@ -160,6 +161,7 @@ namespace PixivWPF.Common
                         var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
                         var i = new ImageItem()
                         {
+                            ItemType = ImageItemType.Work,
                             NextURL = nexturl,
                             Thumb = url,
                             Index = -1,
@@ -197,6 +199,7 @@ namespace PixivWPF.Common
                     {
                         var i = new ImageItem()
                         {
+                            ItemType = ImageItemType.Pages,
                             NextURL = nexturl,
                             Thumb = url,
                             Index = index,
@@ -230,6 +233,7 @@ namespace PixivWPF.Common
                     {
                         var i = new ImageItem()
                         {
+                            ItemType = ImageItemType.Page,
                             NextURL = nexturl,
                             Thumb = url,
                             Index = index,
@@ -263,6 +267,7 @@ namespace PixivWPF.Common
                     {
                         var i = new ImageItem()
                         {
+                            ItemType = ImageItemType.User,
                             Thumb = url,
                             BadgeValue = user.Stats.Works.Value.ToString(),
                             ID = user.Id.ToString(),

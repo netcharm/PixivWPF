@@ -135,7 +135,7 @@ namespace PixivWPF.Pages
                 {
                     RelativeIllusts.SelectedIndex = 0;
                     CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
-                    if(window != null)
+                    if (window != null)
                         window.Close();
                 }
             }

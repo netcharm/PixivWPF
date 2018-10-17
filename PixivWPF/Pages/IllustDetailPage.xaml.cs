@@ -26,7 +26,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class IllustDetailPage : Page
     {
-        internal object DataType = null;
+        internal object DataObject = null;
 
         public ICommand MouseDoubleClickCommand { get; } = new DelegateCommand<object>(obj => {
             MessageBox.Show("");
@@ -61,7 +61,7 @@ namespace PixivWPF.Pages
                 PreviewWait.Visibility = Visibility.Visible;
 
                 var tokens = await CommonHelper.ShowLogin();
-                DataType = item;
+                DataObject = item;
                 Preview.Source = await item.Illust.GetPreviewUrl().LoadImage(tokens);
                 if (Preview.Source != null && Preview.Source.Width < 450)
                 {
@@ -217,7 +217,7 @@ namespace PixivWPF.Pages
                 var nprof = UserInfo.profile;
                 var nworks = UserInfo.workspace;
 
-                DataType = user;
+                DataObject = user;
 
                 Preview.Visibility = Visibility.Collapsed;
                 Preview.Source = null;
@@ -680,12 +680,19 @@ namespace PixivWPF.Pages
         {
             if (e.ClickCount >= 2)
             {
-                if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
+                if (SubIllusts.Items.Count() <= 0)
                 {
-                    CommonHelper.Cmd_OpenIllust.Execute(DataType);
+                    if (DataObject is ImageItem)
+                    {
+                        var item = DataObject as ImageItem;
+                        item.ItemType = ImageItemType.Pages;
+                        CommonHelper.Cmd_OpenIllust.Execute(item);
+                    }
                 }
                 else
                 {
+                    if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
+                        SubIllusts.SelectedIndex = 0;
                     CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
                 }
                 e.Handled = true;
@@ -705,17 +712,17 @@ namespace PixivWPF.Pages
             }
             else if (sender == ActionCopyAuthorID)
             {
-                if (DataType is ImageItem)
+                if (DataObject is ImageItem)
                 {
-                    var item = DataType as ImageItem;
+                    var item = DataObject as ImageItem;
                     Clipboard.SetText(item.UserID);
                 }
             }
             else if (sender == ActionCopyIllustID)
             {
-                if (DataType is ImageItem)
+                if (DataObject is ImageItem)
                 {
-                    var item = DataType as ImageItem;
+                    var item = DataObject as ImageItem;
                     Clipboard.SetText(item.ID);
                 }
             }
@@ -725,9 +732,9 @@ namespace PixivWPF.Pages
             }
             else if(sender == ActionIllustWebPage)
             {
-                if(DataType is ImageItem)
+                if(DataObject is ImageItem)
                 {
-                    var item = DataType as ImageItem;
+                    var item = DataObject as ImageItem;
                     if(item.Illust is Pixeez.Objects.Work)
                     {
                         var href = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={item.ID}";
@@ -752,12 +759,12 @@ namespace PixivWPF.Pages
 
             if(sender == ActionIllustAuthorInfo || sender == btnAuthorInto)
             {
-                if (DataType is ImageItem)
+                if (DataObject is ImageItem)
                 {
                     var viewer = new ContentWindow();
                     var page = new IllustDetailPage();
 
-                    var item = DataType as ImageItem;
+                    var item = DataObject as ImageItem;
                     var user = item.Illust.User;
                     page.UpdateDetail(user);
                     viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
@@ -770,7 +777,7 @@ namespace PixivWPF.Pages
             }
             else if(sender == ActionIllustAuthorFollowing)
             {
-                if (DataType is Pixeez.Objects.UserBase)
+                if (DataObject is Pixeez.Objects.UserBase)
                 {
                 }
             }
@@ -818,9 +825,9 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (DataType is ImageItem)
+            if (DataObject is ImageItem)
             {
-                var item = DataType as ImageItem;
+                var item = DataObject as ImageItem;
                 var illust = item.Illust;
                 try
                 {
@@ -868,9 +875,9 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (DataType is ImageItem)
+            if (DataObject is ImageItem)
             {
-                var item = DataType as ImageItem;
+                var item = DataObject as ImageItem;
                 var illust = item.Illust;
 
                 try
@@ -912,9 +919,9 @@ namespace PixivWPF.Pages
                     catch (Exception) { }
                 }
             }
-            else if (DataType is Pixeez.Objects.UserBase)
+            else if (DataObject is Pixeez.Objects.UserBase)
             {
-                var user = DataType as Pixeez.Objects.UserBase;
+                var user = DataObject as Pixeez.Objects.UserBase;
                 try
                 {
                     if (sender == ActionFollowAuthorPublic)
@@ -938,7 +945,7 @@ namespace PixivWPF.Pages
                         foreach (var u in users)
                         {                            
                             user.is_followed = u.IsFollowing;
-                            DataType = u;
+                            DataObject = u;
                             break;
                         }
                         if (user.is_followed.Value)
@@ -966,9 +973,9 @@ namespace PixivWPF.Pages
                 var tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return;
 
-                if (DataType is ImageItem)
+                if (DataObject is ImageItem)
                 {
-                    var item = DataType as ImageItem;
+                    var item = DataObject as ImageItem;
                     ShowIllustPages(tokens, item);
                 }
             }
@@ -976,12 +983,19 @@ namespace PixivWPF.Pages
 
         private void ActionOpenIllust_Click(object sender, RoutedEventArgs e)
         {
-            if(SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count<=0)
+            if (SubIllusts.Items.Count() <= 0)
             {
-                CommonHelper.Cmd_OpenIllust.Execute(DataType);
+                if (DataObject is ImageItem)
+                {
+                    var item = DataObject as ImageItem;
+                    item.ItemType = ImageItemType.Pages;
+                    CommonHelper.Cmd_OpenIllust.Execute(item);
+                }
             }
             else
             {
+                if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
+                    SubIllusts.SelectedIndex = 0;
                 CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
             }
         }
@@ -993,7 +1007,7 @@ namespace PixivWPF.Pages
 
             if(sender == PreviewSave)
             {
-                var item = DataType as ImageItem;
+                var item = DataObject as ImageItem;
                 if (item.Illust is Pixeez.Objects.Work)
                 {
                     var illust = item.Illust;
@@ -1049,9 +1063,9 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            else if (DataType is ImageItem)
+            else if (DataObject is ImageItem)
             {
-                var item = DataType as ImageItem;
+                var item = DataObject as ImageItem;
                 if (item.Illust is Pixeez.Objects.Work)
                 {
                     var illust = item.Illust;
@@ -1081,10 +1095,10 @@ namespace PixivWPF.Pages
             IProgress<int> progress = new Progress<int>(i => { IllustsSaveProgress.Value = i; });
 
             Pixeez.Objects.Work illust = null;
-            if (DataType is Pixeez.Objects.Work)
-                illust = DataType as Pixeez.Objects.Work;
-            else if (DataType is ImageItem)
-                illust = (DataType as ImageItem).Illust;
+            if (DataObject is Pixeez.Objects.Work)
+                illust = DataObject as Pixeez.Objects.Work;
+            else if (DataObject is ImageItem)
+                illust = (DataObject as ImageItem).Illust;
 
             if (illust != null)
             {
@@ -1178,9 +1192,9 @@ namespace PixivWPF.Pages
                     var tokens = await CommonHelper.ShowLogin();
                     if (tokens == null) return;
 
-                    if (DataType is ImageItem)
+                    if (DataObject is ImageItem)
                     {
-                        var item = DataType as ImageItem;
+                        var item = DataObject as ImageItem;
                         ShowIllustPages(tokens, item, start);
                     }
                 }
@@ -1194,14 +1208,14 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (DataType is ImageItem)
+            if (DataObject is ImageItem)
             {
-                var item = DataType as ImageItem;
+                var item = DataObject as ImageItem;
                 ShowRelativeInline(tokens, item);
             }
-            else if(DataType is Pixeez.Objects.UserBase)
+            else if(DataObject is Pixeez.Objects.UserBase)
             {
-                var user = DataType as Pixeez.Objects.UserBase;
+                var user = DataObject as Pixeez.Objects.UserBase;
                 ShowUserWorksInline(tokens, user);
             }
             RelativeNextPage.Visibility = Visibility.Visible;
@@ -1255,17 +1269,17 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (DataType is ImageItem)
+            if (DataObject is ImageItem)
             {
-                var item = DataType as ImageItem;
+                var item = DataObject as ImageItem;
                 var next_url = string.Empty;
                 if (RelativeIllustsExpander.Tag is string)
                     next_url = RelativeIllustsExpander.Tag as string;
                 ShowRelativeInline(tokens, item, next_url);
             }
-            else if (DataType is Pixeez.Objects.UserBase)
+            else if (DataObject is Pixeez.Objects.UserBase)
             {
-                var user = DataType as Pixeez.Objects.UserBase;
+                var user = DataObject as Pixeez.Objects.UserBase;
                 var next_url = string.Empty;
                 if (RelativeIllustsExpander.Tag is string)
                     next_url = RelativeIllustsExpander.Tag as string;
@@ -1281,15 +1295,15 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (DataType is ImageItem)
+            if (DataObject is ImageItem)
             {
-                var item = DataType as ImageItem;
+                var item = DataObject as ImageItem;
                 var user = item.Illust.User;
                 ShowFavoriteInline(tokens, user);
             }
-            else if (DataType is Pixeez.Objects.UserBase)
+            else if (DataObject is Pixeez.Objects.UserBase)
             {
-                var user = DataType as Pixeez.Objects.UserBase;
+                var user = DataObject as Pixeez.Objects.UserBase;
                 ShowFavoriteInline(tokens, user);
             }
             FavoriteNextPage.Visibility = Visibility.Visible;
@@ -1333,18 +1347,18 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (DataType is ImageItem)
+            if (DataObject is ImageItem)
             {
-                var item = DataType as ImageItem;
+                var item = DataObject as ImageItem;
                 var user = item.Illust.User;
                 var next_url = string.Empty;
                 if (FavoriteIllustsExpander.Tag is string)
                     next_url = FavoriteIllustsExpander.Tag as string;
                 ShowFavoriteInline(tokens, user, next_url);
             }
-            else if (DataType is Pixeez.Objects.UserBase)
+            else if (DataObject is Pixeez.Objects.UserBase)
             {
-                var user = DataType as Pixeez.Objects.UserBase;
+                var user = DataObject as Pixeez.Objects.UserBase;
                 var next_url = string.Empty;
                 if (FavoriteIllustsExpander.Tag is string)
                     next_url = FavoriteIllustsExpander.Tag as string;

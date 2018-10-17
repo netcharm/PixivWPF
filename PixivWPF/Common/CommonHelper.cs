@@ -91,40 +91,55 @@ namespace PixivWPF.Common
             if (obj is ImageListGrid)
             {
                 var list = obj as ImageListGrid;
-                foreach (var illust in list.SelectedItems)
+                foreach (var item in list.SelectedItems)
                 {
-                    var viewer = new ContentWindow();
                     if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                        list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var page = new IllustDetailPage();
-                        viewer.Content = page;
-                        page.UpdateDetail(illust);
+                        if (item.Illust == null && item.Tag is Pixeez.Objects.User)
+                            Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.User);
+                        else
+                            Cmd_OpenIllust.Execute(item);
                     }
                     else
                     {
                         var page = new IllustImageViewerPage();
+                        page.UpdateDetail(item);
+                        var viewer = new ContentWindow();
                         viewer.Content = page;
-                        page.UpdateDetail(illust);
+                        viewer.Title = $"ID: {item.ID}, {item.Subject}";
+                        viewer.Width = 720;
+                        viewer.Height = 900;
+                        viewer.Show();
                     }
-                    viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
-                    viewer.Width = 720;
-                    viewer.Height = 900;
-                    viewer.Show();
                 }
             }
             else if (obj is ImageItem)
             {
-                var viewer = new ContentWindow();
-                var page = new IllustImageViewerPage();
-                var illust = obj as ImageItem;
-                page.UpdateDetail(illust);
-
-                viewer.Title = $"ID: {illust.ID}, {illust.Subject}";
-                viewer.Width = 720;
-                viewer.Height = 900;
-                viewer.Content = page;
-                viewer.Show();
+                var item = obj as ImageItem;
+                switch (item.ItemType)
+                {
+                    case ImageItemType.Work:
+                        Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.Work);
+                        break;
+                    case ImageItemType.Page:
+                    case ImageItemType.Pages:
+                        var page = new IllustImageViewerPage();
+                        page.UpdateDetail(item);
+                        var viewer = new ContentWindow();
+                        viewer.Content = page;
+                        viewer.Title = $"ID: {item.ID}, {item.Subject}";
+                        viewer.Width = 720;
+                        viewer.Height = 900;
+                        viewer.Show();
+                        break;
+                    case ImageItemType.User:
+                        Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.User);
+                        break;
+                    default:
+                        Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.Work);
+                        break;
+                }
             }
             else if (obj is Pixeez.Objects.Work)
             {
@@ -957,14 +972,5 @@ namespace PixivWPF.Common
 
 
     }
-
-    //public class Toast:Notification
-    //{
-    //    public Notification();
-    //
-    //    public string ImgURL { get; set; }
-    //    public string Message { get; set; }
-    //    public string Title { get; set; }
-    //}
 
 }
