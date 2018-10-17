@@ -175,7 +175,34 @@ namespace PixivWPF.Common
             }
         });
 
-        internal static DownloadManagerPage _downManager = new Pages.DownloadManagerPage();
+        public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(obj => {
+            if (obj is string)
+            {
+                var content = (string)obj;
+
+                if (!Regex.IsMatch(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
+                {
+                    content = $"Caption: {content}";
+                }
+
+                if (!string.IsNullOrEmpty(content))
+                {
+                    var viewer = new ContentWindow();
+                    viewer.Title = $"Search Keyword \"{content}\" Results";
+                    viewer.Width = 720;
+                    viewer.Height = 850;
+
+                    var page = new Pages.SearchResultPage();
+                    page.CurrentWindow = viewer;
+                    page.UpdateDetail(content);
+
+                    viewer.Content = page;
+                    viewer.Show();
+                }
+            }
+        });
+
+        internal static DownloadManagerPage _downManager = new DownloadManagerPage();
 
         public static void ShowDownloadManager()
         {
@@ -337,6 +364,7 @@ namespace PixivWPF.Common
             int width = source.PixelWidth;
             int height = source.PixelHeight;
 
+            var palette = source.Palette;
             int stride = width * source.Format.BitsPerPixel;
             byte[] pixelData = new byte[stride * height];
             source.CopyPixels(pixelData, stride, 0);
@@ -344,7 +372,7 @@ namespace PixivWPF.Common
             BitmapSource result = null;
             using (var ms = new MemoryStream())
             {
-                var nbmp = BitmapSource.Create(width, height, dpi, dpi, source.Format, null, pixelData, stride);
+                var nbmp = BitmapSource.Create(width, height, dpi, dpi, source.Format, palette, pixelData, stride);
                 PngBitmapEncoder pngEnc = new PngBitmapEncoder();
                 pngEnc.Frames.Add(BitmapFrame.Create(nbmp));
                 pngEnc.Save(ms);
@@ -800,7 +828,7 @@ namespace PixivWPF.Common
             NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
             NotificationConfiguration cfg = new NotificationConfiguration(
                 //new TimeSpan(0, 0, 30), 
-                TimeSpan.FromSeconds(5),
+                TimeSpan.FromSeconds(3),
                 cfgDefault.Width+32, cfgDefault.Height,
                 "ToastTemplate",
                 //cfgDefault.TemplateName, 
@@ -814,7 +842,7 @@ namespace PixivWPF.Common
                 Message = content
             };
 
-            _dailogService.ClearNotifications();
+            //_dailogService.ClearNotifications();
             _dailogService.ShowNotificationWindow(newNotification, cfg);
         }
 

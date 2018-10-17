@@ -2,21 +2,12 @@
 using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Common;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace PixivWPF
 {
@@ -29,41 +20,6 @@ namespace PixivWPF
 
         private Pages.TilesPage pagetiles = null;
         private Pages.NavPage pagenav = null;
-
-        private ICommand searchBoxCmd;
-        public ICommand SearchBoxCmd
-        {
-            get
-            {
-                return this.searchBoxCmd ?? (this.searchBoxCmd = new SimpleCommand
-                {
-                    CanExecuteDelegate = x => true, ExecuteDelegate = x =>
-                    {
-                        var content = (string)x;
-
-                        if (!Regex.IsMatch(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
-                        {
-                            content = $"Caption: {content}";
-                        }
-
-                        if (!string.IsNullOrEmpty(content))
-                        {
-                            var viewer = new ContentWindow();
-                            viewer.Title = $"Search Keyword \"{content}\" Results";
-                            viewer.Width = 720;
-                            viewer.Height = 850;
-
-                            var page = new Pages.SearchResultPage();
-                            page.CurrentWindow = viewer;
-                            page.UpdateDetail(content);
-
-                            viewer.Content = page;
-                            viewer.Show();
-                        }
-                    }
-                });
-            }
-        }
 
         private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {"a", "b" };
         public ObservableCollection<string> AutoSuggestList
@@ -89,7 +45,7 @@ namespace PixivWPF
         public MainWindow()
         {
             InitializeComponent();
-
+            
             SearchBox.ItemsSource = AutoSuggestList;
 
             MainContent = ContentFrame;
@@ -115,7 +71,16 @@ namespace PixivWPF
             CommandToggleTheme.SelectedIndex = Common.Theme.Accents.IndexOf(Common.Theme.CurrentAccent);
         }
 
-#if !DEBUG
+#if DEBUG
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win == this) continue;
+                win.Close();
+            }
+        }
+#else
         private async void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = true;
@@ -128,18 +93,9 @@ namespace PixivWPF
             opt.DialogResultOnCancel = MessageDialogResult.Canceled;
 
             var ret = await this.ShowMessageAsync("Confirm", "Continue Exit?", MessageDialogStyle.AffirmativeAndNegative, opt);
-            if(ret == MessageDialogResult.Affirmative)
+            if (ret == MessageDialogResult.Affirmative)
             {
                 Application.Current.Shutdown();
-            }
-        }
-#else
-        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            foreach (Window win in Application.Current.Windows)
-            {
-                if (win == this) continue;
-                win.Close();
             }
         }
 #endif
@@ -198,7 +154,7 @@ namespace PixivWPF
 
         private void CommandSearch_Click(object sender, RoutedEventArgs e)
         {
-            SearchBoxCmd.Execute(SearchBox.Text);
+            CommonHelper.Cmd_Search.Execute(SearchBox.Text);
         }
 
         private void SearchBox_TextChanged(object sender, RoutedEventArgs e)
@@ -247,7 +203,7 @@ namespace PixivWPF
                 if (item is string)
                 {
                     var query = (string)item;
-                    SearchBoxCmd.Execute(query);
+                    CommonHelper.Cmd_Search.Execute(query);
                 }
             }
         }
@@ -257,7 +213,7 @@ namespace PixivWPF
             if (e.Key == Key.Return)
             {
                 e.Handled = true;
-                SearchBoxCmd.Execute(SearchBox.Text);
+                CommonHelper.Cmd_Search.Execute(SearchBox.Text);
             }
         }
 
