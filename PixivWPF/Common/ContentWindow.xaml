@@ -11,6 +11,12 @@
                  BorderThickness="1"
                  mc:Ignorable="d"
                  Title="ImageViewerWindow" Height="300" Width="300" 
+                 VisualTextRenderingMode="Auto"
+                 RenderOptions.BitmapScalingMode="HighQuality"
+                 RenderOptions.CachingHint="Cache"
+                 RenderOptions.ClearTypeHint="Enabled"
+                 RenderOptions.EdgeMode="Aliased"
+                 TextOptions.TextFormattingMode="Display"                 
                  Closing="Window_Closing"
                  KeyUp="Window_KeyUp">
     <Grid>

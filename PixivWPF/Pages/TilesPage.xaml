@@ -6,7 +6,13 @@
       xmlns:local="clr-namespace:PixivWPF.Pages"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       xmlns:Common="clr-namespace:PixivWPF.Common"
-      mc:Ignorable="d" 
+      mc:Ignorable="d"
+      VisualTextRenderingMode="Auto"
+      RenderOptions.BitmapScalingMode="HighQuality"
+      RenderOptions.CachingHint="Cache"
+      RenderOptions.ClearTypeHint="Enabled"
+      RenderOptions.EdgeMode="Aliased"
+      TextOptions.TextFormattingMode="Display"
       d:DesignHeight="700" d:DesignWidth="1420"
       Title="Image Master Detail Viewer">
 

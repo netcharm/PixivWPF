@@ -7,6 +7,12 @@
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"            
              xmlns:local="clr-namespace:PixivWPF.Common"
              mc:Ignorable="d" 
+             VisualTextRenderingMode="Auto"
+             RenderOptions.BitmapScalingMode="HighQuality"
+             RenderOptions.CachingHint="Cache"
+             RenderOptions.ClearTypeHint="Enabled"
+             RenderOptions.EdgeMode="Aliased"
+             TextOptions.TextFormattingMode="Display"            
              Loaded="Download_Loaded"
              d:DesignHeight="140" d:DesignWidth="600">
     <Grid Margin="2">

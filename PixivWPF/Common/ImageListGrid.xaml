@@ -6,6 +6,12 @@
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:local="clr-namespace:PixivWPF.Common"
              mc:Ignorable="d" 
+             VisualTextRenderingMode="Auto"
+             RenderOptions.BitmapScalingMode="HighQuality"
+             RenderOptions.CachingHint="Cache"
+             RenderOptions.ClearTypeHint="Enabled"
+             RenderOptions.EdgeMode="Aliased"
+             TextOptions.TextFormattingMode="Display"
              d:DesignHeight="300" d:DesignWidth="300">
 
     <UserControl.Resources>

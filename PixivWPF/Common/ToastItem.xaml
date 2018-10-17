@@ -15,6 +15,12 @@
              BorderThickness="1"
              mc:Ignorable="d"
              Background="{DynamicResource AccentColorBrush}"
+             VisualTextRenderingMode="Auto"
+             RenderOptions.BitmapScalingMode="HighQuality"
+             RenderOptions.CachingHint="Cache"
+             RenderOptions.ClearTypeHint="Enabled"
+             RenderOptions.EdgeMode="Aliased"
+             TextOptions.TextFormattingMode="Display"       
              d:DesignHeight="150" d:DesignWidth="300">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -60,7 +66,8 @@
                 <Image Grid.RowSpan="3" Margin="4" Width="128" x:Name="Preview" Tag="{Binding ImgURL, Mode=OneWay}"
                        Source="{Binding '', Mode=OneWay, NotifyOnTargetUpdated=True}" TargetUpdated="Preview_TargetUpdated"/>
                 <TextBlock Grid.Column="1" Margin="2,4,4,2"
-                           Text="{Binding Path=Title}"  TextOptions.TextRenderingMode="ClearType" TextOptions.TextFormattingMode="Display" 
+                           Text="{Binding Path=Title}" 
+                           TextOptions.TextFormattingMode="Display" 
                            TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
                            Foreground="White" 
                            FontSize="14" FontWeight="Bold" 
@@ -81,7 +88,6 @@
                 <TextBlock Grid.Row="1" Grid.Column="1" Margin="5"
                            Text="{Binding Path=Message}"
                            Foreground="{DynamicResource IdealForegroundColorBrush}"
-                           TextOptions.TextRenderingMode="ClearType"
                            TextOptions.TextFormattingMode="Display"
                            VerticalAlignment="Stretch"                             
                            TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
