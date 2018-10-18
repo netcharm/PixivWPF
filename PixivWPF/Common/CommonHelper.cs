@@ -195,7 +195,16 @@ namespace PixivWPF.Common
             {
                 var content = (string)obj;
 
-                if (!Regex.IsMatch(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
+                if (Regex.IsMatch(content, @"(.*?illust_id=)(\d+)(.*)", RegexOptions.IgnoreCase))
+                    content = Regex.Replace(content, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
+                else if (Regex.IsMatch(content, @"^(.*?\?id=)(\d+)(.*)$", RegexOptions.IgnoreCase))
+                    content = Regex.Replace(content, @"^(.*?\?id=)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase).Trim();
+                else if (Regex.IsMatch(content, @"^(.*?tag_full&word=)(.*)$", RegexOptions.IgnoreCase))
+                {
+                    content = Regex.Replace(content, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase).Trim();
+                    content = Uri.UnescapeDataString(content);
+                }
+                else if (!Regex.IsMatch(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
                 {
                     content = $"Caption: {content}";
                 }
@@ -207,7 +216,7 @@ namespace PixivWPF.Common
                     viewer.Width = 720;
                     viewer.Height = 850;
 
-                    var page = new Pages.SearchResultPage();
+                    var page = new SearchResultPage();
                     page.CurrentWindow = viewer;
                     page.UpdateDetail(content);
 

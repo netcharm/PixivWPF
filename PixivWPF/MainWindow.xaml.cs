@@ -2,6 +2,7 @@
 using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Common;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -227,6 +228,25 @@ namespace PixivWPF
         private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
         {
             CommonHelper.ShowDownloadManager();
+        }
+
+        private void MainWindow_DragOver(object sender, DragEventArgs e)
+        {
+            var fmts = e.Data.GetFormats(true);
+            if ( new List<string>(fmts).Contains("Text"))
+            {
+                e.Effects = DragDropEffects.Link;
+            }               
+        }
+
+        private void MainWindow_Drop(object sender, DragEventArgs e)
+        {
+            var fmts = e.Data.GetFormats(true);
+            if (new List<string>(fmts).Contains("Text"))
+            {
+                var link = e.Data.GetData("Text");
+                CommonHelper.Cmd_Search.Execute(link);
+            }
         }
     }
 

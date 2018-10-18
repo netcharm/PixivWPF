@@ -17,6 +17,8 @@
                  RenderOptions.ClearTypeHint="Enabled"
                  RenderOptions.EdgeMode="Aliased"
                  TextOptions.TextFormattingMode="Display"                 
+                 AllowDrop="True"
+                 PreviewDragOver="Window_DragOver" PreviewDrop="Window_Drop"
                  Closing="Window_Closing"
                  KeyUp="Window_KeyUp">
     <Grid>

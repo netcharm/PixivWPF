@@ -19,7 +19,9 @@
                  RenderOptions.ClearTypeHint="Enabled"
                  RenderOptions.EdgeMode="Aliased"
                  TextOptions.TextFormattingMode="Display"
-        Closing="MainWindow_Closing">
+                 AllowDrop="True"
+                 PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
+                 Closing="MainWindow_Closing" >
 
 
     <mah:MetroWindow.Resources>

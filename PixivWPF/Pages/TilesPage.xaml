@@ -13,6 +13,7 @@
       RenderOptions.ClearTypeHint="Enabled"
       RenderOptions.EdgeMode="Aliased"
       TextOptions.TextFormattingMode="Display"
+      AllowDrop="True"
       d:DesignHeight="700" d:DesignWidth="1420"
       Title="Image Master Detail Viewer">
 

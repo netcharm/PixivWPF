@@ -14,7 +14,8 @@
       RenderOptions.CachingHint="Cache"
       RenderOptions.ClearTypeHint="Enabled"
       RenderOptions.EdgeMode="Aliased"
-      TextOptions.TextFormattingMode="Display"     
+      TextOptions.TextFormattingMode="Display"
+      AllowDrop="True"
       d:DesignHeight="300" d:DesignWidth="300"
       Title="IllustDetailPage">
 

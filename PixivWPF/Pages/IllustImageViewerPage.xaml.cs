@@ -39,10 +39,11 @@ namespace PixivWPF.Pages
 
                     var tokens = await CommonHelper.ShowLogin();
                     Preview.Source = await url.LoadImage(tokens);
-                    if (Preview.Source != null && Preview.Source.Width < 450)
+                    if (Preview.Source == null || Preview.Source.Width < 450)
                     {
-                        url = illust.GetOriginalUrl(item.Index);
-                        Preview.Source = await url.LoadImage(tokens);
+                        //var large = await item.Illust.GetOriginalUrl(item.Index).LoadImage(tokens);
+                        var large = await illust.GetOriginalUrl(item.Index).LoadImage(tokens);
+                        if (large != null) Preview.Source = large;
                     }
                     if (window == null)
                     {

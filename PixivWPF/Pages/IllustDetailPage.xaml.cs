@@ -188,7 +188,7 @@ namespace PixivWPF.Pages
                 FavoriteIllustsExpander.IsExpanded = false;
 
                 Preview.Source = await item.Illust.GetPreviewUrl().LoadImage(tokens);
-                if (Preview.Source != null && Preview.Source.Width < 450)
+                if (Preview.Source == null || Preview.Source.Width < 450)
                 {
                     var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
                     if (large != null) Preview.Source = large;

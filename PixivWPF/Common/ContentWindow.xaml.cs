@@ -48,5 +48,24 @@ namespace PixivWPF.Common
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
         }
+
+        private void Window_DragOver(object sender, DragEventArgs e)
+        {
+            var fmts = e.Data.GetFormats(true);
+            if (new List<string>(fmts).Contains("Text"))
+            {
+                e.Effects = DragDropEffects.Link;
+            }
+        }
+
+        private void Window_Drop(object sender, DragEventArgs e)
+        {
+            var fmts = e.Data.GetFormats(true);
+            if (new List<string>(fmts).Contains("Text"))
+            {
+                var link = e.Data.GetData("Text");
+                CommonHelper.Cmd_Search.Execute(link);
+            }
+        }
     }
 }
