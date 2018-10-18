@@ -569,19 +569,7 @@ namespace PixivWPF.Pages
                     link.Handled = true;
 
                     var tag  = link.Attributes["data-tag"];
-
-                    var viewer = new ContentWindow();
-                    viewer.Title = $"Illusts Has Tag: {tag}";
-                    viewer.Width = 720;
-                    viewer.Height = 800;
-
-                    var page = new SearchResultPage();
-                    page.CurrentWindow = viewer;
-                    page.UpdateDetail($"Tag:{tag}");
-
-                    viewer.Content = page;
-                    viewer.Show();
-
+                    CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
                 }
             }
         }

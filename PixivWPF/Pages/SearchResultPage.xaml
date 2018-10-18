@@ -22,7 +22,7 @@
                 <!-- Illust Relatives -->
                 <Expander Grid.Row="0" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" Margin="0, 4, 0, 0" 
                           IsExpanded="False" ExpandDirection="Down" 
-                          Visibility="Visible" Header="Illust With Tag Gallery"
+                          Visibility="Visible" Header="Search Results"
                           Expanded="RelativeIllustsExpander_Expanded">
                     <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="IllustsWithTag"
                                           Columns="5" TileWidth="128" TileHeight="128"

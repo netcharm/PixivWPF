@@ -212,7 +212,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(content))
                 {
                     var viewer = new ContentWindow();
-                    viewer.Title = $"Search Keyword \"{content}\" Results";
+                    viewer.Title = $"Searching {content} ...";
                     viewer.Width = 720;
                     viewer.Height = 850;
 

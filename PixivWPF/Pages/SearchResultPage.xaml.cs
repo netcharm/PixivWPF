@@ -47,7 +47,7 @@ namespace PixivWPF.Pages
                 RelativeIllusts.Items.Clear();
                 if (content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var query = Regex.Replace(content, @"^UserId: .*?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
+                    var query = Regex.Replace(content, @"^UserId: *?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
                     var relatives = await tokens.GetUsersAsync(Convert.ToInt64(query));
 
                     if (relatives is List<Pixeez.Objects.User>)
