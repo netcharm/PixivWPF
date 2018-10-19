@@ -39,12 +39,18 @@ namespace PixivWPF.Pages
 
                     var tokens = await CommonHelper.ShowLogin();
                     Preview.Source = await url.LoadImage(tokens);
-                    if (Preview.Source == null || Preview.Source.Width < 450)
+                    if (Preview.Source == null || Preview.Source.Width < 450 || Preview.Source.Height < 450)
                     {
                         //var large = await item.Illust.GetOriginalUrl(item.Index).LoadImage(tokens);
                         var large = await illust.GetOriginalUrl(item.Index).LoadImage(tokens);
                         if (large != null) Preview.Source = large;
                     }
+                    if (Preview.Source != null)
+                    {
+                        var aspect = Preview.Source.AspectRatio();
+                        PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
+                    }
+                        
                     if (window == null)
                     {
                         window = this.GetActiveWindow();

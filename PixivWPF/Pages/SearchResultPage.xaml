@@ -12,7 +12,7 @@
       Title="IllustWithTagPage">
 
     <Grid>
-        <ScrollViewer Grid.Column="0" Margin="4,4,8,4"
+        <ScrollViewer Grid.Column="0" Margin="4,4,4,4"
                       HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
             <Grid>
                 <Grid.RowDefinitions>
@@ -20,7 +20,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- Illust Relatives -->
-                <Expander Grid.Row="0" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" Margin="0, 4, 0, 0" 
+                <Expander Grid.Row="0" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander"
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Visible" Header="Search Results"
                           Expanded="RelativeIllustsExpander_Expanded">
@@ -40,7 +40,7 @@
                         </Common:ImageListGrid.ContextMenu>
                     </Common:ImageListGrid>
                 </Expander>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,0,0">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0">
                     <Button x:Name="RelativePrevPage" Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"

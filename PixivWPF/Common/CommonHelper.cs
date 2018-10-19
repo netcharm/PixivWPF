@@ -12,6 +12,7 @@ using System.Linq;
 using System.Media;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -79,6 +80,21 @@ namespace PixivWPF.Common
         public void Execute(object parameter)
         {
             ExecuteDelegate?.Invoke(parameter);
+        }
+    }
+
+    public class DPI
+    {
+        public int X { get; }
+        public int Y { get; }
+
+        public DPI()
+        {
+            var dpiXProperty = typeof(SystemParameters).GetProperty("DpiX", BindingFlags.NonPublic | BindingFlags.Static);
+            var dpiYProperty = typeof(SystemParameters).GetProperty("Dpi", BindingFlags.NonPublic | BindingFlags.Static);
+
+            X = (int)dpiXProperty.GetValue(null, null);
+            Y = (int)dpiYProperty.GetValue(null, null);
         }
     }
 
@@ -381,9 +397,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpi=96)
+        public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX=96, double dpiY = 96)
         {
-            if (dpi == source.DpiX || dpi == source.DpiY) return (source);
+            if (dpiX == source.DpiX || dpiY == source.DpiY) return (source);
 
             int width = source.PixelWidth;
             int height = source.PixelHeight;
@@ -396,7 +412,7 @@ namespace PixivWPF.Common
             BitmapSource result = null;
             using (var ms = new MemoryStream())
             {
-                var nbmp = BitmapSource.Create(width, height, dpi, dpi, source.Format, palette, pixelData, stride);
+                var nbmp = BitmapSource.Create(width, height, dpiX, dpiY, source.Format, palette, pixelData, stride);
                 PngBitmapEncoder pngEnc = new PngBitmapEncoder();
                 pngEnc.Frames.Add(BitmapFrame.Create(nbmp));
                 pngEnc.Save(ms);
@@ -419,10 +435,7 @@ namespace PixivWPF.Common
                 bmp.EndInit();
                 bmp.Freeze();
 
-                if (bmp.DpiX > 96 || bmp.DpiY > 96)
-                    result = ConvertBitmapDPI(bmp, 96);
-                else
-                    result = bmp;
+                result = bmp;
                 //result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
             }
             catch (Exception ex)
@@ -431,13 +444,17 @@ namespace PixivWPF.Common
                 try
                 {
                     result = BitmapFrame.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-                    if (result.DpiX > 96 || result.DpiY > 96)
-                        result = ConvertBitmapDPI(result, 96);
                 }
                 catch(Exception exx)
                 {
                     var retx = exx.Message;
                 }
+            }
+            if(result is ImageSource)
+            {
+                var dpi = new DPI();
+                if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
+                    result = ConvertBitmapDPI(result, dpi.X, dpi.Y);
             }
             return (result);
         }
@@ -902,7 +919,6 @@ namespace PixivWPF.Common
 
     public static class ExtensionMethods
     {
-
         public static string GetImageName(this string url, bool is_meta_single_page)
         {
             string result = string.Empty;
@@ -979,7 +995,34 @@ namespace PixivWPF.Common
             return null;
         }
 
+        public static Tuple<double, double> AspectRatio(this ImageSource image)
+        {
+            double bestDelta = double.MaxValue;
+            int i = 1;
+            int j = 1;
+            int bestI = 0;
+            int bestJ = 0;
 
+            var ratio = image.Width / image.Height;
+
+            for (int iterations = 0; iterations < 100; iterations++)
+            {
+                double delta = (double) i / (double) j - ratio;
+
+                // Optionally, quit here if delta is "close enough" to zero
+                if (delta < 0) i++;
+                else j++;
+
+                double newDelta = Math.Abs((double) i / (double) j - ratio);
+                if (newDelta < bestDelta)
+                {
+                    bestDelta = newDelta;
+                    bestI = i;
+                    bestJ = j;
+                }
+            }
+            return (new Tuple<double, double>(bestI, bestJ));
+        }
     }
 
 }

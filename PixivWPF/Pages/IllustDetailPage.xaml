@@ -25,7 +25,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Illust Preview Viewport -->
-        <ScrollViewer Grid.Column="1" Margin="4,4,8,4"
+        <ScrollViewer Grid.Column="1" Margin="4,4,4,4"
                       HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
             <Grid>
                 <Grid.RowDefinitions>

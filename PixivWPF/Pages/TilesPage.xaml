@@ -90,7 +90,7 @@
                       mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
                       KeyUp="ListImageTiles_KeyUp" 
                       MouseDoubleClick="ListImageTiles_MouseDoubleClick"
-                      PreviewMouseWheel="ListImageTiles_PreviewMouseWheel">
+                      PreviewMouseWheel="ListImageTiles_PreviewMouseWheel" Margin="4">
                 <ListView.CacheMode>
                     <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
                 </ListView.CacheMode>
@@ -125,7 +125,7 @@
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
         <!-- Illust Preview Viewport -->
-        <Frame Grid.Column="1" Margin="4,4,8,4" x:Name="IllustDetail" x:Uid="IllustDetail"/>
+        <Frame Grid.Column="1" Margin="4" x:Name="IllustDetail" x:Uid="IllustDetail"/>
         
     </Grid>
 
