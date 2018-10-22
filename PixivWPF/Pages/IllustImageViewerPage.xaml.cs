@@ -39,6 +39,11 @@ namespace PixivWPF.Pages
 
                     var tokens = await CommonHelper.ShowLogin();
                     Preview.Source = await url.LoadImage(tokens);
+                    if (Preview.Source != null)
+                    {
+                        var aspect = Preview.Source.AspectRatio();
+                        PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
+                    }
                     if (Preview.Source == null || Preview.Source.Width < 450 || Preview.Source.Height < 450)
                     {
                         //var large = await item.Illust.GetOriginalUrl(item.Index).LoadImage(tokens);
@@ -213,6 +218,16 @@ namespace PixivWPF.Pages
                 SaveIllust();
 
             ChangeIllustPage(offset);
+        }
+
+        private void btnSavePages_MouseEnter(object sender, MouseEventArgs e)
+        {
+            btnSavePages.BorderThickness = new Thickness(2);
+        }
+
+        private void btnSavePages_MouseLeave(object sender, MouseEventArgs e)
+        {
+            btnSavePages.BorderThickness = new Thickness(0);
         }
     }
 }

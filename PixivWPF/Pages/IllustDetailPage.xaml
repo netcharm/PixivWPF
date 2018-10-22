@@ -65,6 +65,12 @@
                             FontSize="16" FontFamily="Consolas" 
                             Visibility="{Binding Badge}" 
                             BadgeBackground="{DynamicResource AccentColorBrush}" />
+                <mah:ProgressRing Grid.Row="0" x:Name="PreviewWait"
+                          Width="64" Height="64" Opacity="0.38" 
+                          Foreground="{DynamicResource AccentColorBrush}"
+                          Visibility="Hidden"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
 
                 <!-- Illust Author Info -->
                 <Grid Grid.Row="1" Margin="0,8,0,0">
@@ -77,13 +83,19 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorIcon" 
+                    <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvator" 
                        Width="64" Height="64" Stretch="Uniform"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInto" x:Uid="btnAuthorInto"
                             Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
                             Background="Transparent" Foreground="Transparent"
                             Click="ActionIllustAuthourInfo_Click"/>
+                    <mah:ProgressRing Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvatorWait"
+                          Width="48" Height="48" Opacity="0.38" 
+                          Foreground="{DynamicResource AccentColorBrush}"
+                          Visibility="Hidden"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
                     <TextBlock Grid.Row="0" Grid.Column="1" x:Name="IllustTitle" Margin="4,0,0,0"
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center"/>
@@ -124,6 +136,7 @@
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Tag="{x:Static iconPacks:PackIconModernKind.HeartOutline}"
                                 Style="{DynamicResource MetroCircleButtonStyle}"
+                                BorderBrush="{DynamicResource AccentColorBrush}"
                                 Foreground="{DynamicResource LabelTextBrush}">
                             <Button.ContextMenu>
                                 <ContextMenu>
@@ -146,6 +159,7 @@
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Tag="{x:Static iconPacks:PackIconModernKind.Add}"
                                 Style="{DynamicResource MetroCircleButtonStyle}"
+                                BorderBrush="{DynamicResource AccentColorBrush}"
                                 Foreground="{DynamicResource LabelTextBrush}">
                             <Button.ContextMenu>
                                 <ContextMenu>
@@ -167,6 +181,7 @@
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Style="{DynamicResource MetroCircleButtonStyle}"
+                                BorderBrush="{DynamicResource AccentColorBrush}"
                                 Foreground="{DynamicResource LabelTextBrush}">
                             <Button.ContextMenu>
                                 <ContextMenu>
@@ -451,7 +466,7 @@
         </ScrollViewer>
         
         <!-- Illust Open Progress Prompt -->
-        <mah:ProgressRing Grid.Column="1" x:Name="PreviewWait"
+        <mah:ProgressRing Grid.Column="1" x:Name="IllustDetailWait"
                           Width="128" Height="128" Opacity="0.62" 
                           Foreground="{DynamicResource AccentColorBrush}"
                           Visibility="Hidden"

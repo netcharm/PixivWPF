@@ -58,10 +58,14 @@ namespace PixivWPF.Pages
         {
             try
             {
-                PreviewWait.Visibility = Visibility.Visible;
+                IllustDetailWait.Visibility = Visibility.Visible;
 
                 var tokens = await CommonHelper.ShowLogin();
                 DataObject = item;
+
+                var dpi = new DPI();
+                Preview.Source = new WriteableBitmap(300, 300, dpi.X, dpi.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
+                PreviewWait.Visibility = Visibility.Visible;
 
                 string stat_viewed = "????";
                 string stat_favorited = "????";
@@ -94,7 +98,9 @@ namespace PixivWPF.Pages
                 IllustStatInfo.ToolTip = string.Join("\r", stat_tip).Trim();
 
                 IllustAuthor.Text = item.Illust.User.Name;
-                IllustAuthorIcon.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
+                IllustAuthorAvator.Source = new WriteableBitmap(64, 64, dpi.X, dpi.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
+                IllustAuthorAvatorWait.Visibility = Visibility.Visible;
+
                 IllustTitle.Text = $"{item.Illust.Title}";
                 ActionCopyIllustDate.Header = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:sszzz");
 
@@ -187,6 +193,8 @@ namespace PixivWPF.Pages
                 FavoriteNextPage.Visibility = Visibility.Collapsed;
                 FavoriteIllustsExpander.IsExpanded = false;
 
+                IllustAuthorAvator.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
+                IllustAuthorAvatorWait.Visibility = Visibility.Collapsed;
                 Preview.Source = await item.Illust.GetPreviewUrl().LoadImage(tokens);
                 if (Preview.Source == null || Preview.Source.Width < 450)
                 {
@@ -194,8 +202,9 @@ namespace PixivWPF.Pages
                     if (large != null) Preview.Source = large;
                 }
                 if (Preview.Source != null) Preview.Visibility = Visibility.Visible;
+                PreviewWait.Visibility = Visibility.Collapsed;
 
-                PreviewWait.Visibility = Visibility.Hidden;
+                IllustDetailWait.Visibility = Visibility.Hidden;
             }
             catch (Exception ex)
             {
@@ -203,7 +212,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                PreviewWait.Visibility = Visibility.Hidden;
+                IllustDetailWait.Visibility = Visibility.Hidden;
             }
         }
 
@@ -211,7 +220,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                PreviewWait.Visibility = Visibility.Visible;
+                IllustDetailWait.Visibility = Visibility.Visible;
 
                 var tokens = await CommonHelper.ShowLogin();
 
@@ -238,7 +247,7 @@ namespace PixivWPF.Pages
                 IllustStatInfo.Visibility = Visibility.Visible;
 
                 IllustAuthor.Text = nuser.Name;
-                IllustAuthorIcon.Source = await nuser.GetAvatarUrl().LoadImage(tokens);
+                IllustAuthorAvator.Source = await nuser.GetAvatarUrl().LoadImage(tokens);
                 IllustTitle.Text = string.Empty;
 
                 FollowAuthor.Visibility = Visibility.Visible;
@@ -313,7 +322,7 @@ namespace PixivWPF.Pages
                 FavoriteNextPage.Visibility = Visibility.Collapsed;
                 FavoriteIllustsExpander.IsExpanded = false;
 
-                PreviewWait.Visibility = Visibility.Hidden;
+                IllustDetailWait.Visibility = Visibility.Hidden;
             }
             catch (Exception ex)
             {
@@ -321,7 +330,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                PreviewWait.Visibility = Visibility.Hidden;
+                IllustDetailWait.Visibility = Visibility.Hidden;
             }
         }
 
@@ -329,7 +338,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                PreviewWait.Visibility = Visibility.Visible;
+                IllustDetailWait.Visibility = Visibility.Visible;
 
                 //SubIllustsPanel.Visibility = Visibility.Collapsed;
                 SubIllusts.Items.Clear();
@@ -429,7 +438,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                PreviewWait.Visibility = Visibility.Collapsed;
+                IllustDetailWait.Visibility = Visibility.Collapsed;
             }
 
         }
@@ -438,7 +447,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                PreviewWait.Visibility = Visibility.Visible;
+                IllustDetailWait.Visibility = Visibility.Visible;
 
                 var lastUrl = next_url;
                 var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetRelatedWorks(item.Illust.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
@@ -467,7 +476,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                PreviewWait.Visibility = Visibility.Collapsed;
+                IllustDetailWait.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -475,7 +484,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                PreviewWait.Visibility = Visibility.Visible;
+                IllustDetailWait.Visibility = Visibility.Visible;
 
                 var lastUrl = next_url;
                 var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
@@ -504,7 +513,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                PreviewWait.Visibility = Visibility.Collapsed;
+                IllustDetailWait.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -512,7 +521,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                PreviewWait.Visibility = Visibility.Visible;
+                IllustDetailWait.Visibility = Visibility.Visible;
 
                 var lastUrl = next_url;
                 var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetUserFavoriteWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
@@ -541,7 +550,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                PreviewWait.Visibility = Visibility.Collapsed;
+                IllustDetailWait.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -551,7 +560,7 @@ namespace PixivWPF.Pages
 
             RelativeIllusts.Columns = 5;
 
-            PreviewWait.Visibility = Visibility.Collapsed;
+            IllustDetailWait.Visibility = Visibility.Collapsed;
         }
 
         private async void IllustTags_LinkClicked(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs> args)
