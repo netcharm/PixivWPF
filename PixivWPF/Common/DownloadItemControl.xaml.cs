@@ -162,19 +162,6 @@ namespace PixivWPF.Common
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        //event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
-        //{
-        //    add
-        //    {
-        //        this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        //    }
-        //
-        //    remove
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-        //}
     }
 
     /// <summary>
@@ -345,11 +332,8 @@ namespace PixivWPF.Common
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void RaisePropertyChanged(string propertyName)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
+        private DateTime lastTick = DateTime.Now;
+        private long lastReceived = 0;
         internal IProgress<Tuple<double, double>> progress = null;
 
         private void CheckProperties()
@@ -461,6 +445,7 @@ namespace PixivWPF.Common
 
             this.Dispatcher.BeginInvoke((Action)(async () =>
             {
+                lastTick = DateTime.Now;
                 var ret = await StartAsync();
 
                 if (!string.IsNullOrEmpty(ret))
@@ -478,8 +463,17 @@ namespace PixivWPF.Common
             Info = new DownloadInfo();
 
             progress = new Progress<Tuple<double, double>>(i => {
-                PART_DownloadProgress.Value = i.Item2 > 0 ? i.Item1 / i.Item2 * 100 : 0;
-                PART_DownInfo.Text = $"Downloading : {i.Item1 / 1024.0:0.} KB / {i.Item2 / 1024.0:0.} KB";
+                var received = i.Item1 >= 0 ? i.Item1 : 0;
+                var total = i.Item2 >= 0 ? i.Item2 : 0;
+                var delta = (DateTime.Now.Ticks - lastTick.Ticks) / 10000000.0;
+                var rate = delta>0 ? (received - lastReceived) / delta / 1024.0 : 0;
+                //lastTick = DateTime.Now;
+                //lastReceived = Convert.ToInt64(received);
+                PART_DownloadProgress.Value = total > 0 ? received / total * 100 : 0;
+                PART_DownInfo.Text = $"Downloading : {received / 1024.0:0.} KB / {total / 1024.0:0.} KB, {rate:0.00} KB/s";
+                PART_DownloadProgressPercent.Text = $"{PART_DownloadProgress.Value:0.0}%";
+                //PART_DownloadProgressPercent.Effect = new 
+                //PART_DownloadProgressPercent.TextEffects = TextEffect.
             });
 
             CheckProperties();

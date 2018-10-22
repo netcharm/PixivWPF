@@ -51,6 +51,10 @@
                               Height="16" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
                               Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                               HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgressPercent" 
+                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2"
+                   Foreground="{DynamicResource LabelTextBrush}" 
+                   TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <Grid Grid.Row="4" Grid.Column="1" Margin="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
