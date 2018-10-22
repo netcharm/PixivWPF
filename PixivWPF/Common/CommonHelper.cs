@@ -397,7 +397,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX=96, double dpiY = 96)
+        public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
         {
             if (dpiX == source.DpiX || dpiY == source.DpiY) return (source);
 
@@ -405,7 +405,7 @@ namespace PixivWPF.Common
             int height = source.PixelHeight;
 
             var palette = source.Palette;
-            int stride = width * source.Format.BitsPerPixel;
+            int stride = width * ((source.Format.BitsPerPixel + 31) / 32 * 4);
             byte[] pixelData = new byte[stride * height];
             source.CopyPixels(pixelData, stride, 0);
 
