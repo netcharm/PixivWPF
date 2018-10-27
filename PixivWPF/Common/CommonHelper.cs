@@ -1,7 +1,6 @@
 ﻿using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
-using Notifications.Wpf;
 using PixivWPF.Pages;
 using Prism.Commands;
 using System;
@@ -241,8 +240,6 @@ namespace PixivWPF.Common
                 viewer.Show();
             }
         });
-
-
 
         public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(obj => {
             if (obj is string)
@@ -528,6 +525,16 @@ namespace PixivWPF.Common
             while (!IsFileReady(filename)) { }
         }
 
+        public static string GetLocalFile(this string url)
+        {
+            string result = url;
+            if (!string.IsNullOrEmpty(url) && cache is CacheImage)
+            {
+                result = cache.GetCacheFile(url);
+            }
+            return (result);
+        }
+
         public static async Task<ImageSource> LoadImage(this string file)
         {
             ImageSource result = null;
@@ -729,7 +736,7 @@ namespace PixivWPF.Common
         public static void ToImageFile(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
             ShowDownloadManager();
-            if(_downManager is Pages.DownloadManagerPage)
+            if(_downManager is DownloadManagerPage)
             {
                 _downManager.Add(url, thumb, dt, is_meta_single_page, overwrite);
             }
@@ -930,34 +937,6 @@ namespace PixivWPF.Common
 
             _dailogService.ClearNotifications();
             _dailogService.ShowNotificationWindow(newNotification, cfg);
-        }
-
-        public static void ShowToastAsync(this string content, string title = "Pixiv", string imgsrc = "")
-        {
-            new Task(() =>
-            {
-                ShowToast(content, title, imgsrc);
-            });
-        }
-
-        public static void ShowToasts(this string content, string title = "Pixiv", string file="")
-        {
-            var toastManager = new NotificationManager();
-
-            var toastContent = new NotificationContent
-            {
-                Title = title,
-                Message = content,
-                Type = NotificationType.Success
-            };
-
-            toastManager.Show(toastContent, "", 
-                TimeSpan.FromSeconds(30), 
-                onClick:() =>
-                {
-                    System.Diagnostics.Process.Start(file);
-                }
-            );
         }
 
     }

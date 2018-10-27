@@ -93,6 +93,7 @@ namespace PixivWPF.Pages
                     AutoStart = AutoStart,
                     SingleFile = is_meta_single_page,
                     Overwrite = overwrite,
+                    ThumbnailUrl = thumb,
                     Thumbnail = await thumb.LoadImage(tokens),
                     Url = url,
                     FileTime = dt

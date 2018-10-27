@@ -14,6 +14,7 @@ namespace PixivWPF.Common
     class CacheImage
     {
         private Setting setting = Setting.Load();
+        private char[] trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
         private Dictionary<string, string> _caches = new Dictionary<string, string>();
         private string _CacheFolder = string.Empty;
@@ -51,13 +52,18 @@ namespace PixivWPF.Common
             return (await GetImage(url));
         }
 
-        public async Task<ImageSource> GetImage(string url, Pixeez.Tokens tokens)
+        public string GetCacheFile(string url)
         {
-            ImageSource result = null;
-            var trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
             var file = Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
             file = file.Replace("/", "\\").TrimStart(trimchars);
             file = Path.Combine(_CacheFolder, file);
+            return (file);
+        }
+
+        public async Task<ImageSource> GetImage(string url, Pixeez.Tokens tokens)
+        {
+            ImageSource result = null;
+            var file = GetCacheFile(url);
 
             if (_caches.ContainsKey(url))
             {

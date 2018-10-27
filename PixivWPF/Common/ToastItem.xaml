@@ -63,8 +63,10 @@
                 </Grid.ColumnDefinitions>
                 <!--<Image Grid.RowSpan="3" Margin="4" Width="128" x:Name="Preview" Tag="{Binding ImgURL, Mode=OneWay}"
                        Source="{Binding ImgURL, Mode=OneWay, NotifyOnTargetUpdated=True, Converter={converters:EmptyStringConverter}, ConverterParameter='pack://application:,,,/WPFNotification;component/Resources/Images/notification-icon.png'}" TargetUpdated="Preview_TargetUpdated"/>-->
-                <Image Grid.RowSpan="3" Margin="4" Width="128" x:Name="Preview" Tag="{Binding ImgURL, Mode=OneWay}"
-                       Source="{Binding '', Mode=OneWay, NotifyOnTargetUpdated=True}" TargetUpdated="Preview_TargetUpdated"/>
+                <!--<Image Grid.RowSpan="3" Margin="4" Width="128" x:Name="Preview" Tag="{Binding ImgURL, Mode=OneWay}"
+                       Source="{Binding '', Mode=OneWay, NotifyOnTargetUpdated=True}" TargetUpdated="Preview_TargetUpdated"/>-->
+                <Image Grid.RowSpan="3" Margin="4" Width="128" x:Name="Preview" Tag="{Binding ImgURL, Mode=OneWay, NotifyOnTargetUpdated=True}"
+                       TargetUpdated="Preview_TargetUpdated"/>
                 <TextBlock Grid.Column="1" Margin="2,4,4,2"
                            Text="{Binding Path=Title}" 
                            TextOptions.TextFormattingMode="Display" 

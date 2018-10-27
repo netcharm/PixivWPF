@@ -120,6 +120,7 @@ namespace PixivWPF.Common
         }
 
         public ImageSource Thumbnail { get; set; }
+        public string ThumbnailUrl { get; set; }
 
         private bool forcestart = false;
         [DefaultValue(false)]
@@ -189,6 +190,11 @@ namespace PixivWPF.Common
         {
             get { return Info.Thumbnail; }
             set { Info.Thumbnail = value; }
+        }
+        public string ThumbnailUrl
+        {
+            get { return Info.ThumbnailUrl; }
+            set { Info.ThumbnailUrl = value; }
         }
 
         public string FileName
@@ -411,7 +417,7 @@ namespace PixivWPF.Common
                                     progress.Report(Info.Progress);
                                     PART_OpenFile.IsEnabled = true;
                                     PART_OpenFolder.IsEnabled = true;
-                                    $"{Path.GetFileName(Info.FileName)} is saved!".ShowToast("Successed", Info.FileName);
+                                    $"{Path.GetFileName(Info.FileName)} is saved!".ShowToast("Successed", Info.ThumbnailUrl);
                                     SystemSounds.Beep.Play();
                                 }
                                 else

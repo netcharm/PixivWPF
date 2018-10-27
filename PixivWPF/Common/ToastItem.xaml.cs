@@ -92,18 +92,30 @@ namespace PixivWPF.Common
         {
             if(sender == Preview)
             {
-                if(e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
+                if(e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase) ||
+                   e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var image = Preview as Image;
                     if(image.Tag is string)
                     {
                         var file = (string)image.Tag;
-                        if (System.IO.File.Exists(file))
+                        //if (!string.IsNullOrEmpty(file) && System.IO.File.Exists(file))
+                        //{
+                        //    Preview.Source = await file.LoadImage();
+                        //    CheckImageSource();
+                        //}
+                        if(!string.IsNullOrEmpty(file))
                         {
-                            Preview.Source = await file.LoadImage();
+                            Preview.Source = await file.GetLocalFile().LoadImage();
+                            if(Preview.Source == null)
+                            {
+                                Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
+                                Preview.Source = await file.LoadImage(tokens);
+                            }
                             CheckImageSource();
                         }
-                    }                    
+                    }
+                    //else Preview.Source = 
                 }
             }
         }
