@@ -37,19 +37,25 @@ namespace PixivWPF.Pages
                     var illust = item.Illust as Pixeez.Objects.Work;
                     var url = illust.GetPreviewUrl(item.Index);
 
+                    if(illust.PageCount > 1)
+                    {
+                        btnViewNextPage.Visibility = Visibility.Visible;
+                        btnViewPrevPage.Visibility = Visibility.Visible;
+                        ActionViewPrevPage.Visibility = Visibility.Visible;
+                        ActionViewNextPage.Visibility = Visibility.Visible;
+                        ActionViewPageSep.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        btnViewNextPage.Visibility = Visibility.Collapsed;
+                        btnViewPrevPage.Visibility = Visibility.Collapsed;
+                        ActionViewPrevPage.Visibility = Visibility.Collapsed;
+                        ActionViewNextPage.Visibility = Visibility.Collapsed;
+                        ActionViewPageSep.Visibility = Visibility.Collapsed;
+                    }
+
                     var tokens = await CommonHelper.ShowLogin();
                     Preview.Source = await url.LoadImage(tokens);
-                    if (Preview.Source != null)
-                    {
-                        var aspect = Preview.Source.AspectRatio();
-                        PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
-                    }
-                    if (Preview.Source == null || Preview.Source.Width < 450 || Preview.Source.Height < 450)
-                    {
-                        //var large = await item.Illust.GetOriginalUrl(item.Index).LoadImage(tokens);
-                        var large = await illust.GetOriginalUrl(item.Index).LoadImage(tokens);
-                        if (large != null) Preview.Source = large;
-                    }
                     if (Preview.Source != null)
                     {
                         var aspect = Preview.Source.AspectRatio();
@@ -157,11 +163,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
-        {
-            SaveIllust();
-        }
-
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             int offset = 0;
@@ -193,8 +194,10 @@ namespace PixivWPF.Pages
             else if (e.Key == Key.End)
                 offset = 10000;
             else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+            {
                 SaveIllust();
-
+                return;
+            }              
             ChangeIllustPage(offset);
         }
 
@@ -215,19 +218,83 @@ namespace PixivWPF.Pages
             else if (e.Key == Key.End)
                 offset = 10000;
             else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+            {
                 SaveIllust();
-
+                return;
+            }
             ChangeIllustPage(offset);
         }
 
-        private void btnSavePages_MouseEnter(object sender, MouseEventArgs e)
+        private void btnAction_MouseEnter(object sender, MouseEventArgs e)
         {
-            btnSavePages.BorderThickness = new Thickness(2);
+            if(sender is Button)
+            {
+                var btn = sender as Button;
+                btn.BorderThickness = new Thickness(2);
+            }
         }
 
-        private void btnSavePages_MouseLeave(object sender, MouseEventArgs e)
+        private void btnAction_MouseLeave(object sender, MouseEventArgs e)
         {
-            btnSavePages.BorderThickness = new Thickness(0);
+            if (sender is Button)
+            {
+                var btn = sender as Button;
+                btn.BorderThickness = new Thickness(0);
+            }
         }
+
+        private void ActionViewPrevPage_Click(object sender, RoutedEventArgs e)
+        {
+            int offset = 0;
+            int factor = 1;
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                factor = 10;
+            }
+            offset = -1 * factor;
+            ChangeIllustPage(offset);
+        }
+
+        private void ActionViewNextPage_Click(object sender, RoutedEventArgs e)
+        {
+            int offset = 0;
+            int factor = 1;
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                factor = 10;
+            }
+            offset = 1 * factor;
+            ChangeIllustPage(offset);
+        }
+
+        private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
+        {
+            SaveIllust();
+        }
+
+        private async void ActionViewOriginalPage_Click(object sender, RoutedEventArgs e)
+        {
+            if(DataType is ImageItem)
+            {
+                PreviewWait.Visibility = Visibility.Visible;
+
+                var item = DataType as ImageItem;
+                if (item.Illust is Pixeez.Objects.Work)
+                {
+                    var illust = item.Illust as Pixeez.Objects.Work;
+                    var tokens = await CommonHelper.ShowLogin();
+                    var large = await illust.GetOriginalUrl(item.Index).LoadImage(tokens);
+                    if (large != null) Preview.Source = large;
+                    if (Preview.Source != null)
+                    {
+                        var aspect = Preview.Source.AspectRatio();
+                        PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
+                    }
+                }
+
+                PreviewWait.Visibility = Visibility.Hidden;
+            }
+        }
+
     }
 }

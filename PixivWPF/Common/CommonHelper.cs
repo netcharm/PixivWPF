@@ -397,7 +397,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
+        public async static Task<BitmapSource> ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
         {
             if (dpiX == source.DpiX || dpiY == source.DpiY) return (source);
 
@@ -409,20 +409,27 @@ namespace PixivWPF.Common
             byte[] pixelData = new byte[stride * height];
             source.CopyPixels(pixelData, stride, 0);
 
-            BitmapSource result = null;
-            using (var ms = new MemoryStream())
+            BitmapSource result = source;
+            try
             {
-                var nbmp = BitmapSource.Create(width, height, dpiX, dpiY, source.Format, palette, pixelData, stride);
-                PngBitmapEncoder pngEnc = new PngBitmapEncoder();
-                pngEnc.Frames.Add(BitmapFrame.Create(nbmp));
-                pngEnc.Save(ms);
-                var pngDec = new PngBitmapDecoder(ms, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-                result = pngDec.Frames[0];
+                using (var ms = new MemoryStream())
+                {
+                    var nbmp = BitmapSource.Create(width, height, dpiX, dpiY, source.Format, palette, pixelData, stride);
+                    PngBitmapEncoder pngEnc = new PngBitmapEncoder();
+                    pngEnc.Frames.Add(BitmapFrame.Create(nbmp));
+                    pngEnc.Save(ms);
+                    var pngDec = new PngBitmapDecoder(ms, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                    result = pngDec.Frames[0];
+                }
+            }
+            catch(Exception ex)
+            {
+                await ex.Message.ShowMessageBoxAsync("ERROR");
             }
             return result;
         }
 
-        public static ImageSource ToImageSource(this Stream stream)
+        public async static Task<ImageSource> ToImageSource(this Stream stream)
         {
             //await imgStream.GetResponseStreamAsync();
             BitmapSource result = null;
@@ -454,7 +461,7 @@ namespace PixivWPF.Common
             {
                 var dpi = new DPI();
                 if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
-                    result = ConvertBitmapDPI(result, dpi.X, dpi.Y);
+                    result = await ConvertBitmapDPI(result, dpi.X, dpi.Y);
             }
             return (result);
         }
@@ -490,9 +497,9 @@ namespace PixivWPF.Common
             {
                 using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    await Task.Run(() =>
+                    await Task.Run(async () =>
                     {
-                        result = stream.ToImageSource();
+                        result = await stream.ToImageSource();
                     });
                 }
             }
@@ -764,7 +771,7 @@ namespace PixivWPF.Common
             using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
             {
                 if (response.Source.StatusCode == HttpStatusCode.OK)
-                    result = (ImageSource)await response.ToImageSource();
+                    result = await response.ToImageSource();
                 else
                     result = null;
             }
@@ -776,7 +783,7 @@ namespace PixivWPF.Common
             ImageSource result = null;
             using (var stream = await response.GetResponseStreamAsync())
             {
-                result = (ImageSource)stream.ToImageSource();
+                result = await stream.ToImageSource();
             }
             return (result);
         }
@@ -883,7 +890,7 @@ namespace PixivWPF.Common
                 Message = content
             };
 
-            //_dailogService.ClearNotifications();
+            _dailogService.ClearNotifications();
             _dailogService.ShowNotificationWindow(newNotification, cfg);
         }
 
@@ -998,22 +1005,27 @@ namespace PixivWPF.Common
         public static Tuple<double, double> AspectRatio(this ImageSource image)
         {
             double bestDelta = double.MaxValue;
-            int i = 1;
+            double i = 1;
             int j = 1;
-            int bestI = 0;
+            double bestI = 0;
             int bestJ = 0;
 
             var ratio = image.Width / image.Height;
 
             for (int iterations = 0; iterations < 100; iterations++)
             {
-                double delta = (double) i / (double) j - ratio;
+                double delta = i / j - ratio;
 
                 // Optionally, quit here if delta is "close enough" to zero
-                if (delta < 0) i++;
+                if (delta < 0) i += 0.1;
+                else if (delta == 0)
+                {
+                    i = 1;
+                    j = 1;
+                }
                 else j++;
 
-                double newDelta = Math.Abs((double) i / (double) j - ratio);
+                double newDelta = Math.Abs( i / j - ratio);
                 if (newDelta < bestDelta)
                 {
                     bestDelta = newDelta;

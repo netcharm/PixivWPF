@@ -12,7 +12,7 @@
                  BorderBrush="{DynamicResource AccentColorBrush}"
                  GlowBrush="{DynamicResource AccentColorBrush}"
                  BorderThickness="1"
-                 WindowStartupLocation="CenterScreen" MinWidth="1280" MinHeight="720" Width="1400"
+                 WindowStartupLocation="CenterScreen" MinWidth="1280" MinHeight="720" Width="1400" Height="972"
                  VisualTextRenderingMode="Auto"
                  RenderOptions.BitmapScalingMode="HighQuality"
                  RenderOptions.CachingHint="Cache"

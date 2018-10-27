@@ -146,7 +146,7 @@ namespace PixivWPF.Pages
                 var failed = items.Where(o => o.State == DownloadState.Failed );
                 var finished = items.Where(o => o.State == DownloadState.Finished );
 
-                PART_DownloadState.Text = $"Total: {items.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}";
+                PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}";
             }
         }
     }

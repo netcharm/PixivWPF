@@ -43,6 +43,8 @@ namespace PixivWPF.Common
         private void Toast_Loaded(object sender, RoutedEventArgs e)
         {
             parentWindow = Window.GetWindow(this);
+            if (parentWindow is Window)
+                parentWindow.Closing += Window_Closing;
             CheckImageSource();
         }
 
@@ -50,6 +52,7 @@ namespace PixivWPF.Common
         {
             if(parentWindow == null) parentWindow = Window.GetWindow(this);
             this.Visibility = Visibility.Hidden;
+            Preview.Source = null;
             parentWindow.Close();
         }
 
@@ -103,6 +106,12 @@ namespace PixivWPF.Common
                     }                    
                 }
             }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Preview.Source = null;
+//            e.Cancel = 
         }
     }
 }

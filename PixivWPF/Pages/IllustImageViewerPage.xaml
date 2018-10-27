@@ -30,7 +30,33 @@
         <Rectangle Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" MouseWheel="Preview_MouseWheel">
             <Rectangle.ContextMenu>
                 <ContextMenu>
-                    <MenuItem x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
+                    <!--<ContextMenu.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ContextMenu.ItemsPanel>-->
+                    <MenuItem x:Name="ActionViewPrevPage" x:Uid="ActionViewPrevPage" Header="Previous Page" Click="ActionViewPrevPage_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ActionViewNextPage" x:Uid="ActionViewNextPage" Header="Next Page" Click="ActionViewNextPage_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator x:Name="ActionViewPageSep" Width="1" />
+                    <MenuItem x:Name="ActionViewOriginaPage" x:Uid="ActionViewOriginaPage" Header="View Original" Click="ActionViewOriginalPage_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="ArrowExpand" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Image" Click="ActionSaveIllust_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </ContextMenu>
             </Rectangle.ContextMenu>
         </Rectangle>
@@ -41,13 +67,36 @@
                                       Width="16" Height="16"/>
             <TextBlock x:Name="PreviewSize" x:Uid="PreviewSize" Margin="2,0,4,0" Foreground="{DynamicResource LabelTextBrush}"/>
         </StackPanel>
-        <Button Grid.Row="0" x:Name="btnSavePages" x:Uid="btnSavePages"
-                Width="64" Height="64" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+        <StackPanel Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Button x:Name="btnViewPrevPage" x:Uid="ViewPrevPage"
+                Width="64" Height="64"
                 Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                 Foreground="{DynamicResource AccentColorBrush}" BorderThickness="0" BorderBrush="{DynamicResource AccentColorBrush}"
-                Click="ActionSaveIllust_Click" MouseEnter="btnSavePages_MouseEnter" MouseLeave="btnSavePages_MouseLeave">
-            <iconPacks:PackIconModern Kind="Save" Width="32" Height="32" />
-        </Button>
+                Click="ActionViewPrevPage_Click" MouseEnter="btnAction_MouseEnter" MouseLeave="btnAction_MouseLeave">
+                <iconPacks:PackIconModern Kind="NavigatePrevious" Width="32" Height="32" />
+            </Button>
+            <Button x:Name="btnViewNextPage" x:Uid="ViewNextPage"
+                Width="64" Height="64"
+                Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
+                Foreground="{DynamicResource AccentColorBrush}" BorderThickness="0" BorderBrush="{DynamicResource AccentColorBrush}"
+                Click="ActionViewNextPage_Click" MouseEnter="btnAction_MouseEnter" MouseLeave="btnAction_MouseLeave">
+                <iconPacks:PackIconModern Kind="NavigateNext" Width="32" Height="32" />
+            </Button>
+            <Button x:Name="btnViewOriginalPage" x:Uid="ViewOriginalPage"
+                Width="64" Height="64"
+                Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
+                Foreground="{DynamicResource AccentColorBrush}" BorderThickness="0" BorderBrush="{DynamicResource AccentColorBrush}"
+                Click="ActionViewOriginalPage_Click" MouseEnter="btnAction_MouseEnter" MouseLeave="btnAction_MouseLeave">
+                <iconPacks:PackIconModern Kind="ArrowExpand" Width="32" Height="32" />
+            </Button>
+            <Button x:Name="btnSavePage" x:Uid="SavePage"
+                Width="64" Height="64" 
+                Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
+                Foreground="{DynamicResource AccentColorBrush}" BorderThickness="0" BorderBrush="{DynamicResource AccentColorBrush}"
+                Click="ActionSaveIllust_Click" MouseEnter="btnAction_MouseEnter" MouseLeave="btnAction_MouseLeave">
+                <iconPacks:PackIconModern Kind="Save" Width="32" Height="32" />
+            </Button>
+        </StackPanel>
 
         <!-- Illust Open Progress Prompt -->
         <mah:ProgressRing Grid.Row="0" Grid.RowSpan="3"

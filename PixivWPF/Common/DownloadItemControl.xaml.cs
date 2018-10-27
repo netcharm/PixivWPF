@@ -385,22 +385,22 @@ namespace PixivWPF.Common
                         //await ProcessContentStream(totalBytes, contentStream);
                         using (var ms = new MemoryStream())
                         {
-                            byte[] bytes = new byte[65536];
+                            byte[] bytes = new byte[32768];
                             progress.Report(Info.Progress);
-                            do
+                            try
                             {
-                                var bytesread = await cs.ReadAsync(bytes, 0, 65536);
-                                if (bytesread >= 0)
+                                do
                                 {
-                                    Info.Received += bytesread;
-                                    await ms.WriteAsync(bytes, 0, bytesread);
-                                    progress.Report(Info.Progress);
-                                }
-                            } while (Info.Received < Info.Length);
-                            //if (ms.Length == Info.Received && Info.Received == Info.Length)
-                            if (Info.Received == Info.Length)
-                            {
-                                try
+                                    var bytesread = await cs.ReadAsync(bytes, 0, 32768);
+                                    if (bytesread >= 0)
+                                    {
+                                        Info.Received += bytesread;
+                                        await ms.WriteAsync(bytes, 0, bytesread);
+                                        progress.Report(Info.Progress);
+                                    }
+                                } while (Info.Received < Info.Length);
+                                //if (ms.Length == Info.Received && Info.Received == Info.Length)
+                                if (Info.Received == Info.Length)
                                 {
                                     File.WriteAllBytes(Info.FileName, ms.ToArray());
                                     State = DownloadState.Finished;
@@ -414,20 +414,20 @@ namespace PixivWPF.Common
                                     $"{Path.GetFileName(Info.FileName)} is saved!".ShowToast("Successed", Info.FileName);
                                     SystemSounds.Beep.Play();
                                 }
-                                catch (Exception ex)
+                                else
                                 {
-                                    var ret = ex.Message;
                                     State = DownloadState.Failed;
                                     PART_DownloadProgress.IsIndeterminate = true;
                                 }
-                                finally
-                                {
-                                }
                             }
-                            else
+                            catch (Exception ex)
                             {
+                                var ret = ex.Message;
                                 State = DownloadState.Failed;
                                 PART_DownloadProgress.IsIndeterminate = true;
+                            }
+                            finally
+                            {
                             }
                         }
                     }

@@ -341,6 +341,7 @@ namespace PixivWPF.Pages
                         tag.illust.AddTo(ImageList, nexturl);
                     }
                     ImageTilesWait.Visibility = Visibility.Hidden;
+                    if (root.tags.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles(tokens);
                 }
             }

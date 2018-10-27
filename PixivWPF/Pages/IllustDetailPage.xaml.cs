@@ -448,12 +448,12 @@ namespace PixivWPF.Pages
             try
             {
                 IllustDetailWait.Visibility = Visibility.Visible;
+                RelativeIllusts.Items.Clear();
 
                 var lastUrl = next_url;
                 var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetRelatedWorks(item.Illust.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                 next_url = relatives.next_url ?? string.Empty;
 
-                RelativeIllusts.Items.Clear();
                 if (relatives.illusts is Array)
                 {
                     //if (relatives.illusts.Length < 30) RelativeNextPage.Visibility = Visibility.Collapsed;
@@ -485,12 +485,12 @@ namespace PixivWPF.Pages
             try
             {
                 IllustDetailWait.Visibility = Visibility.Visible;
+                RelativeIllusts.Items.Clear();
 
                 var lastUrl = next_url;
                 var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetUserWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                 next_url = relatives.next_url ?? string.Empty;
 
-                RelativeIllusts.Items.Clear();
                 if (relatives.illusts is Array)
                 {
                     //if (relatives.illusts.Length < 30) RelativeNextPage.Visibility = Visibility.Collapsed;
@@ -522,12 +522,12 @@ namespace PixivWPF.Pages
             try
             {
                 IllustDetailWait.Visibility = Visibility.Visible;
+                FavoriteIllusts.Items.Clear();
 
                 var lastUrl = next_url;
                 var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetUserFavoriteWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                 next_url = relatives.next_url ?? string.Empty;
 
-                FavoriteIllusts.Items.Clear();
                 if (relatives.illusts is Array)
                 {
                     //if (relatives.illusts.Length < 30) FavoriteNextPage.Visibility = Visibility.Collapsed;
