@@ -1005,82 +1005,91 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if(sender == PreviewSave)
+            if (sender == PreviewSave)
             {
                 var item = DataObject as ImageItem;
-                if (item.Illust is Pixeez.Objects.Work)
-                {
-                    var illust = item.Illust;
-                    var url = illust.GetOriginalUrl();
-                    var dt = illust.GetDateTime();
-                    var is_meta_single_page = illust.PageCount==1 ? true : false;
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
-                    }
-                }
+                CommonHelper.Cmd_SaveIllust.Execute(item);
+                //if (item.Illust is Pixeez.Objects.Work)
+                //{
+                //    var illust = item.Illust;
+                //    var url = illust.GetOriginalUrl();
+                //    var dt = illust.GetDateTime();
+                //    var is_meta_single_page = illust.PageCount==1 ? true : false;
+                //    if (!string.IsNullOrEmpty(url))
+                //    {
+                //        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                //    }
+                //}
             }
             else if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
             {
                 foreach (var item in SubIllusts.SelectedItems)
                 {
-                    if (item.Tag is Pixeez.Objects.MetaPages)
-                    {
-                        var illust = item.Illust;
-                        var pages = item.Tag as Pixeez.Objects.MetaPages;
-                        var url = pages.GetOriginalUrl();
-                        var dt = illust.GetDateTime();
-                        var is_meta_single_page = illust.PageCount==1 ? true : false;
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            //tokens = await CommonHelper.ShowLogin();
-                            //await url.ToImageFile(tokens, dt, is_meta_single_page);
-                            //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
-                            //SystemSounds.Beep.Play();
-                            //url.ToImageFileAsync(dt, IllustsSaveProgress, is_meta_single_page);
-                            url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
-                        }
-                    }
+                    CommonHelper.Cmd_SaveIllust.Execute(item);
+                    //var illust = item.Illust;
+                    //var dt = illust.GetDateTime();
+                    //var is_meta_single_page = illust.PageCount==1 ? true : false;
+                    //if (item.Tag is Pixeez.Objects.MetaPages)
+                    //{
+                    //    var pages = item.Tag as Pixeez.Objects.MetaPages;
+                    //    var url = pages.GetOriginalUrl();
+                    //    if (!string.IsNullOrEmpty(url))
+                    //    {
+                    //        url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
+                    //    }
+                    //}
+                    //else if (item.Tag is Pixeez.Objects.Page)
+                    //{
+                    //    var pages = item.Tag as Pixeez.Objects.Page;
+                    //    var url = pages.GetOriginalUrl();
+                    //    if (!string.IsNullOrEmpty(url))
+                    //    {
+                    //        url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
+                    //    }
+                    //}
                 }
             }
             else if (SubIllusts.SelectedItem is ImageItem)
             {
                 var item = SubIllusts.SelectedItem;
-                if (item.Tag is Pixeez.Objects.MetaPages)
-                {
-                    var illust = item.Illust;
-                    var pages = item.Tag as Pixeez.Objects.MetaPages;
-                    var url = pages.GetOriginalUrl();
-                    var dt = illust.GetDateTime();
-                    var is_meta_single_page = illust.PageCount==1 ? true : false;
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        //tokens = await CommonHelper.ShowLogin();
-                        //await url.ToImageFile(tokens, dt, is_meta_single_page);
-                        //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
-                        //SystemSounds.Beep.Play();
-                        url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
-                    }
-                }
+                CommonHelper.Cmd_SaveIllust.Execute(item);
+                //var illust = item.Illust;
+                //var dt = illust.GetDateTime();
+                //var is_meta_single_page = illust.PageCount==1 ? true : false;
+                //if (item.Tag is Pixeez.Objects.MetaPages)
+                //{
+                //    var pages = item.Tag as Pixeez.Objects.MetaPages;
+                //    var url = pages.GetOriginalUrl();
+                //    if (!string.IsNullOrEmpty(url))
+                //    {
+                //        url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
+                //    }
+                //}
+                //else if (item.Tag is Pixeez.Objects.Page)
+                //{
+                //    var pages = item.Tag as Pixeez.Objects.Page;
+                //    var url = pages.GetOriginalUrl();
+                //    if (!string.IsNullOrEmpty(url))
+                //    {
+                //        url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
+                //    }
+                //}
             }
             else if (DataObject is ImageItem)
             {
                 var item = DataObject as ImageItem;
-                if (item.Illust is Pixeez.Objects.Work)
-                {
-                    var illust = item.Illust;
-                    var url = illust.GetOriginalUrl();
-                    var dt = illust.GetDateTime();
-                    var is_meta_single_page = illust.PageCount==1 ? true : false;
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        //tokens = await CommonHelper.ShowLogin();
-                        //await url.ToImageFile(tokens, dt, is_meta_single_page);
-                        //await url.ToImageFile(dt, IllustsSaveProgress, is_meta_single_page);
-                        //SystemSounds.Beep.Play();
-                        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
-                    }
-                }
+                CommonHelper.Cmd_SaveIllust.Execute(item);
+                //if (item.Illust is Pixeez.Objects.Work)
+                //{
+                //    var illust = item.Illust;
+                //    var url = illust.GetOriginalUrl();
+                //    var dt = illust.GetDateTime();
+                //    var is_meta_single_page = illust.PageCount==1 ? true : false;
+                //    if (!string.IsNullOrEmpty(url))
+                //    {
+                //        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                //    }
+                //}
             }
 
         }
