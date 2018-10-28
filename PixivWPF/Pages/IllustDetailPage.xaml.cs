@@ -105,7 +105,8 @@ namespace PixivWPF.Pages
                 ActionCopyIllustDate.Header = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:sszzz");
 
                 FollowAuthor.Visibility = Visibility.Visible;
-                if (item.Illust.User.is_followed == true)
+                if (item.Illust.User.is_followed == true || 
+                    (item.Illust.User is Pixeez.Objects.User && (item.Illust.User as Pixeez.Objects.User).IsFollowing == true))
                 {
                     FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
                     ActionFollowAuthorRemove.IsEnabled = true;
@@ -196,7 +197,8 @@ namespace PixivWPF.Pages
                 IllustAuthorAvator.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
                 IllustAuthorAvatorWait.Visibility = Visibility.Collapsed;
                 Preview.Source = await item.Illust.GetPreviewUrl().LoadImage(tokens);
-                if (Preview.Source == null || Preview.Source.Width < 450)
+                //if (Preview.Source == null || Preview.Source.Width < 450)
+                if (Preview.Source == null || Preview.Source.Width < 350)
                 {
                     var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
                     if (large != null) Preview.Source = large;
