@@ -169,6 +169,10 @@ namespace PixivWPF.Common
         public ImageListGrid()
         {
             InitializeComponent();
+
+            cancelTokenSource = new CancellationTokenSource();
+            cancelToken = cancelTokenSource.Token;
+
             PART_ImageTiles.ItemsSource = ImageList;
             //Columns = 5;
             //TileWidth = 128;
@@ -178,7 +182,11 @@ namespace PixivWPF.Common
         private bool UPDATING = false;
         private Task<bool> UpdateTask = null;
 
-        public void UpdateImageTile(Pixeez.Tokens tokens, int parallel=15)
+        internal Task lastTask = null;
+        internal CancellationTokenSource cancelTokenSource;
+        internal CancellationToken cancelToken;
+
+        internal void UpdateImageTilesTask(Pixeez.Tokens tokens, int parallel=15)
         {
             if (UPDATING) return;
 
@@ -199,6 +207,12 @@ namespace PixivWPF.Common
 
                         var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                         {
+                            if (cancelToken.IsCancellationRequested)
+                            {
+                                cancelToken.ThrowIfCancellationRequested();
+                                return;
+                            }
+
                             item.Dispatcher.BeginInvoke(new Action(async () =>
                             {
                                 try
@@ -265,6 +279,34 @@ namespace PixivWPF.Common
                 //    });
                 //    UPDATING = false;
                 //}).Start();
+            }
+        }
+
+        public async void UpdateImageTiles(Pixeez.Tokens tokens, int parallel = 15)
+        {
+            try
+            {
+                if (lastTask is Task)
+                {
+                    cancelToken.ThrowIfCancellationRequested();
+                    lastTask.Wait();
+                }
+
+                if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
+                {
+                    lastTask = new Task(() => {
+                        UpdateImageTilesTask(tokens, parallel);
+                    }, cancelTokenSource.Token, TaskCreationOptions.None);
+                    lastTask.RunSynchronously();
+                    await lastTask;
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            finally
+            {
             }
         }
 

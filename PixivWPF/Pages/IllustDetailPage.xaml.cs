@@ -27,6 +27,9 @@ namespace PixivWPF.Pages
     public partial class IllustDetailPage : Page
     {
         internal object DataObject = null;
+        internal Task lastTask = null;
+        internal CancellationTokenSource cancelTokenSource;
+        internal CancellationToken cancelToken;
 
         public ICommand MouseDoubleClickCommand { get; } = new DelegateCommand<object>(obj => {
             MessageBox.Show("");
@@ -54,7 +57,7 @@ namespace PixivWPF.Pages
             IllustDesc.Text = desc;
         }
 
-        public async void UpdateDetail(ImageItem item)
+        public async void UpdateDetailTask(ImageItem item)
         {
             try
             {
@@ -93,7 +96,7 @@ namespace PixivWPF.Pages
                 IllustSize.Text = $"{item.Illust.Width}x{item.Illust.Height}";
                 IllustViewed.Text = stat_viewed;
                 IllustFavorited.Text = stat_favorited;
-                
+
                 IllustStatInfo.Visibility = Visibility.Visible;
                 IllustStatInfo.ToolTip = string.Join("\r", stat_tip).Trim();
 
@@ -105,7 +108,7 @@ namespace PixivWPF.Pages
                 ActionCopyIllustDate.Header = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:sszzz");
 
                 FollowAuthor.Visibility = Visibility.Visible;
-                if (item.Illust.User.is_followed == true || 
+                if (item.Illust.User.is_followed == true ||
                     (item.Illust.User is Pixeez.Objects.User && (item.Illust.User as Pixeez.Objects.User).IsFollowing == true))
                 {
                     FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
@@ -194,19 +197,70 @@ namespace PixivWPF.Pages
                 FavoriteNextPage.Visibility = Visibility.Collapsed;
                 FavoriteIllustsExpander.IsExpanded = false;
 
+                if (cancelToken.IsCancellationRequested)
+                {
+                    cancelToken.ThrowIfCancellationRequested();
+                    return;
+                }
                 IllustAuthorAvator.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
                 IllustAuthorAvatorWait.Visibility = Visibility.Collapsed;
-                Preview.Source = await item.Illust.GetPreviewUrl().LoadImage(tokens);
+                var img = await item.Illust.GetPreviewUrl().LoadImage(tokens);
+                if (cancelToken.IsCancellationRequested)
+                {
+                    cancelToken.ThrowIfCancellationRequested();
+                    return;
+                }
+                Preview.Source = img;
                 //if (Preview.Source == null || Preview.Source.Width < 450)
                 if (Preview.Source == null || Preview.Source.Width < 350)
                 {
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        cancelToken.ThrowIfCancellationRequested();
+                        return;
+                    }
                     var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        cancelToken.ThrowIfCancellationRequested();
+                        return;
+                    }
                     if (large != null) Preview.Source = large;
                 }
                 if (Preview.Source != null) Preview.Visibility = Visibility.Visible;
                 PreviewWait.Visibility = Visibility.Collapsed;
 
                 IllustDetailWait.Visibility = Visibility.Hidden;
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            finally
+            {
+                IllustDetailWait.Visibility = Visibility.Hidden;
+            }
+        }
+
+        public async void UpdateDetail(ImageItem item)
+        {
+            try
+            {
+                if (lastTask is Task)
+                {
+                    cancelToken.ThrowIfCancellationRequested();
+                    lastTask.Wait();
+                }
+
+                if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
+                {
+                    lastTask = new Task(() =>
+                    {
+                        UpdateDetailTask(item);
+                    }, cancelTokenSource.Token, TaskCreationOptions.None);
+                    lastTask.RunSynchronously();
+                    await lastTask;
+                }
             }
             catch (Exception ex)
             {
@@ -374,12 +428,12 @@ namespace PixivWPF.Pages
                             btnSubIllustNextPages.Visibility = Visibility.Visible;
 
                         //SubIllustsPanel.InvalidateVisual();
-                        SubIllusts.UpdateImageTile(tokens);
+                        SubIllusts.UpdateImageTiles(tokens);
                         var nullimages = SubIllusts.Items.Where(img => img.Source == null);
                         if (nullimages.Count() > 0)
                         {
                             //System.Threading.Thread.Sleep(250);
-                            SubIllusts.UpdateImageTile(tokens);
+                            SubIllusts.UpdateImageTiles(tokens);
                         }
                     }
                 }
@@ -424,12 +478,12 @@ namespace PixivWPF.Pages
                             btnSubIllustNextPages.Visibility = Visibility.Visible;
 
                         //SubIllustsPanel.InvalidateVisual();
-                        SubIllusts.UpdateImageTile(tokens);
+                        SubIllusts.UpdateImageTiles(tokens);
                         var nullimages = SubIllusts.Items.Where(img => img.Source == null);
                         if (nullimages.Count() > 0)
                         {
                             //System.Threading.Thread.Sleep(250);
-                            SubIllusts.UpdateImageTile(tokens);
+                            SubIllusts.UpdateImageTiles(tokens);
                         }
                     }
                 }
@@ -469,7 +523,7 @@ namespace PixivWPF.Pages
                     {
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
                     }
-                    RelativeIllusts.UpdateImageTile(tokens);
+                    RelativeIllusts.UpdateImageTiles(tokens);
                 }
             }
             catch (Exception ex)
@@ -506,7 +560,7 @@ namespace PixivWPF.Pages
                     {
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
                     }
-                    RelativeIllusts.UpdateImageTile(tokens);
+                    RelativeIllusts.UpdateImageTiles(tokens);
                 }
             }
             catch (Exception ex)
@@ -543,7 +597,7 @@ namespace PixivWPF.Pages
                     {
                         illust.AddTo(FavoriteIllusts.Items, relatives.next_url);
                     }
-                    FavoriteIllusts.UpdateImageTile(tokens);
+                    FavoriteIllusts.UpdateImageTiles(tokens);
                 }
             }
             catch (Exception ex)
@@ -563,7 +617,10 @@ namespace PixivWPF.Pages
             RelativeIllusts.Columns = 5;
 
             IllustDetailWait.Visibility = Visibility.Collapsed;
-        }
+
+            cancelTokenSource = new CancellationTokenSource();
+            cancelToken = cancelTokenSource.Token;
+    }
 
         private async void IllustTags_LinkClicked(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs> args)
         {

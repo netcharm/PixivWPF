@@ -130,7 +130,7 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
-                RelativeIllusts.UpdateImageTile(tokens);
+                RelativeIllusts.UpdateImageTiles(tokens);
                 if (RelativeIllusts.Items.Count() == 1)
                 {
                     RelativeIllusts.SelectedIndex = 0;

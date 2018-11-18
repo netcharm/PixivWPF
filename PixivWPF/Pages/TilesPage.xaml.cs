@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,6 +27,10 @@ namespace PixivWPF.Pages
         private bool UPDATING = false;
         private Task<bool> UpdateTask = null;
 
+        internal Task lastTask = null;
+        internal CancellationTokenSource cancelTokenSource;
+        internal CancellationToken cancelToken;
+
         public void UpdateTheme()
         {
             detail_page.UpdateTheme();
@@ -41,7 +46,7 @@ namespace PixivWPF.Pages
             e.Accepted = true;
         }
 
-        internal void UpdateImageTiles(Pixeez.Tokens tokens)
+        internal void UpdateImageTilesTask(Pixeez.Tokens tokens)
         {
             if (UPDATING) return;
 
@@ -61,6 +66,12 @@ namespace PixivWPF.Pages
                             opt.TaskScheduler = TaskScheduler.Current;
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
+                                if (cancelToken.IsCancellationRequested)
+                                {
+                                    cancelToken.ThrowIfCancellationRequested();
+                                    return;
+                                }
+
                                 item.Dispatcher.BeginInvoke(new Action(async () =>
                                 {
                                     try
@@ -94,11 +105,43 @@ namespace PixivWPF.Pages
             }
         }
 
+        internal async void UpdateImageTiles(Pixeez.Tokens tokens)
+        {
+            try
+            {
+                if (lastTask is Task)
+                {
+                    cancelToken.ThrowIfCancellationRequested();
+                    lastTask.Wait();
+                }
+
+                if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
+                {
+                    lastTask = new Task(() =>
+                    {
+                        UpdateImageTilesTask(tokens);
+                    }, cancelTokenSource.Token, TaskCreationOptions.None);
+                    lastTask.RunSynchronously();
+                    await lastTask;
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            finally
+            {
+            }
+        }
+
         public TilesPage()
         {
             InitializeComponent();
 
             window = this.GetActiveWindow();
+
+            cancelTokenSource = new CancellationTokenSource();
+            cancelToken = cancelTokenSource.Token;
 
             IllustDetail.Content = detail_page;
 
@@ -365,7 +408,7 @@ namespace PixivWPF.Pages
         public async void ShowFavorite(string nexturl = null, bool IsPrivate = false)
         {
             ImageTilesWait.Visibility = Visibility.Visible;
-            var tokens = await CommonHelper.ShowLogin();
+            var tokens = await CommonHelper.ShowLogin(setting.MyInfo == null && IsPrivate);
             ImageTilesWait.Visibility = Visibility.Hidden;
             if (tokens == null) return;
 
@@ -375,6 +418,7 @@ namespace PixivWPF.Pages
 
                 ImageTilesWait.Visibility = Visibility.Visible;
                 var condition = IsPrivate ? "private" : "public";
+
                 if (setting.MyInfo != null && uid == 0) uid = setting.MyInfo.Id.Value;
                 else if (uid <= 0) return;
 
