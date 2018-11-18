@@ -38,7 +38,6 @@
                        ToolTip="{Binding ToolTip, Mode=OneWay}"
                        Tag="{Binding Illust, Mode=OneWay}"
                        Stretch="Uniform" 
-                       TargetUpdated="Preview_TargetUpdated"
                        Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>

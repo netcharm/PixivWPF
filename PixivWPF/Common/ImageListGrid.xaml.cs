@@ -248,37 +248,6 @@ namespace PixivWPF.Common
                     return (result);
                 });
                 UpdateTask.Start();
-                //UPDATING = UpdateTask.Result;
-
-                //new Thread(delegate ()
-                //{
-                //    var opt = new ParallelOptions();
-                //
-                //    if (parallel <= 0) parallel = 1;
-                //    else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
-                //    opt.MaxDegreeOfParallelism = parallel;
-                //
-                //    Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
-                //    {
-                //        item.Dispatcher.BeginInvoke(new Action(async () =>
-                //        {
-                //            try
-                //            {
-                //                if (item.Source == null)
-                //                {
-                //                    if (item.Count <= 1) item.BadgeValue = string.Empty;
-                //                    item.Source = await item.Thumb.LoadImage(tokens);
-                //                }
-                //            }
-                //            catch (Exception ex)
-                //            {
-                //                var ret = ex.Message;
-                //                //$"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                //            }
-                //        }));
-                //    });
-                //    UPDATING = false;
-                //}).Start();
             }
         }
 
@@ -315,21 +284,11 @@ namespace PixivWPF.Common
             PART_ImageTiles.Items.Refresh();
         }
 
-        private void Preview_TargetUpdated(object sender, DataTransferEventArgs e)
-        {
-            if(sender is Image)
-            {
-                //var image = sender as Image;
-                //image.InvalidateVisual();
-            }
-        }
-
         private void Badge_TargetUpdated(object sender, DataTransferEventArgs e)
         {
             if (sender is Badged && e.Property != null)
             {
                 var badge = sender as Badged;
-                //if(e.Property.Name.Equals("Visibility", StringComparison.CurrentCultureIgnoreCase))
                 if (e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase) ||
                     e.Property.Name.Equals("Visibility", StringComparison.CurrentCultureIgnoreCase))
                 {

@@ -668,15 +668,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void Preview_TargetUpdated(object sender, DataTransferEventArgs e)
-        {
-            if (sender is Image)
-            {
-                //var image = sender as Image;
-                //image.InvalidateVisual();
-            }
-        }
-
         private void ListImageTiles_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
