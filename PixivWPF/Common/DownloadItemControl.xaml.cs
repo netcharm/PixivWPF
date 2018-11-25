@@ -417,7 +417,7 @@ namespace PixivWPF.Common
                                     progress.Report(Info.Progress);
                                     PART_OpenFile.IsEnabled = true;
                                     PART_OpenFolder.IsEnabled = true;
-                                    $"{Path.GetFileName(Info.FileName)} is saved!".ShowToast("Successed", Info.ThumbnailUrl);
+                                    $"{Path.GetFileName(Info.FileName)} is saved!".ShowToast("Successed", Info.ThumbnailUrl, Info.FileName);
                                     SystemSounds.Beep.Play();
                                 }
                                 else

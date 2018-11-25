@@ -915,7 +915,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ShowToast(this string content, string title = "Pixiv", string imgsrc = "")
+        public static void ShowToast(this string content, string title = "Pixiv", string imgsrc = "", object tag = null)
         {
             INotificationDialogService _dailogService = new NotificationDialogService();
             NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
@@ -928,17 +928,26 @@ namespace PixivWPF.Common
                 cfgDefault.NotificationFlowDirection
             );
 
-            var newNotification = new Notification()
+            var newNotification = new MyNotification()
             {
                 Title = title,
                 ImgURL = imgsrc,
-                Message = content
+                Message = content,
+                Tag = tag
             };
 
             _dailogService.ClearNotifications();
             _dailogService.ShowNotificationWindow(newNotification, cfg);
         }
 
+    }
+
+    public class MyNotification : Notification
+    {
+        //public string ImgURL { get; set; }
+        //public string Message { get; set; }
+        //public string Title { get; set; }
+        public object Tag { get; set; }
     }
 
     public static class ExtensionMethods
