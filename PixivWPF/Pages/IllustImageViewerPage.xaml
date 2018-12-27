@@ -8,7 +8,8 @@
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       mc:Ignorable="d" 
       d:DesignHeight="300" d:DesignWidth="300"
-      Title="IllustImageViewerPage" PreviewKeyUp="Page_PreviewKeyUp">
+      Title="IllustImageViewerPage" 
+      PreviewKeyUp="Page_PreviewKeyUp">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -27,7 +28,7 @@
             <Image x:Name="Preview" x:Uid="Preview"
                    Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Viewbox>
-        <Rectangle Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" MouseWheel="Preview_MouseWheel">
+        <Rectangle Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown">
             <Rectangle.ContextMenu>
                 <ContextMenu>
                     <!--<ContextMenu.ItemsPanel>

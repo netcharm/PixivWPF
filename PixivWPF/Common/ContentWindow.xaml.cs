@@ -120,10 +120,15 @@ namespace PixivWPF.Common
                 {
                     //Hide();
                 }
+                else if (Title.Equals("Download Manager", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Hide();
+                }
                 else
                 {
                     Close();
                 }
+                e.Handled = true;
             }
         }
     }

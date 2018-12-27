@@ -913,13 +913,13 @@ namespace PixivWPF.Pages
                     {
                         var currentItem = DataObject as ImageItem;
                         var currentIllust = currentItem.Illust;
-                        if (lastID != currentIllust.Id)
+                        if (lastID == currentIllust.Id)
                         {
                             tokens = await CommonHelper.ShowLogin();
                             await item.RefreshIllustAsync(tokens);
                             currentItem = DataObject as ImageItem;
                             currentIllust = currentItem.Illust;
-                            if (lastID != currentIllust.Id)
+                            if (lastID == currentIllust.Id)
                             {
                                 if (item.Illust.IsBookMarked())
                                 {
@@ -973,13 +973,13 @@ namespace PixivWPF.Pages
                     {
                         var currentItem = DataObject as ImageItem;
                         var currentIllust = currentItem.Illust;
-                        if (lastID != currentIllust.Id)
+                        if (lastID == currentIllust.Id)
                         {
                             tokens = await CommonHelper.ShowLogin();
                             await item.RefreshUserInfoAsync(tokens);
                             currentItem = DataObject as ImageItem;
                             currentIllust = currentItem.Illust;
-                            if (lastID != currentIllust.Id)
+                            if (lastID == currentIllust.Id)
                             {
                                 if (item.Illust.User != null && item.Illust.User.is_followed != null && item.Illust.User.is_followed.Value)
                                 {

@@ -281,18 +281,18 @@ namespace PixivWPF.Common
 
         public static void ShowDownloadManager()
         {
-            if (_downManager is Pages.DownloadManagerPage)
+            if (_downManager is DownloadManagerPage)
             {
 
             }
             else
-                _downManager = new Pages.DownloadManagerPage();
+                _downManager = new DownloadManagerPage();
             _downManager.AutoStart = true;
 
             Window _dm = null;
             foreach (Window win in Application.Current.Windows)
             {
-                if (win.Content is Pages.DownloadManagerPage)
+                if (win.Content is DownloadManagerPage)
                 {
                     _dm = win;
                     break;
