@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -60,11 +61,69 @@ namespace PixivWPF.Common
 
         private void Window_Drop(object sender, DragEventArgs e)
         {
-            var fmts = e.Data.GetFormats(true);
-            if (new List<string>(fmts).Contains("Text"))
+            var fmts = new List<string>(e.Data.GetFormats(true));
+
+            if (fmts.Contains("text/html"))
             {
-                var link = e.Data.GetData("Text");
-                CommonHelper.Cmd_Search.Execute(link);
+                using (var ms = (System.IO.MemoryStream)e.Data.GetData("text/html"))
+                {
+                    List<string> links = new List<string>();
+
+                    var html = Encoding.Unicode.GetString(ms.ToArray());
+                    if(Regex.IsMatch(html, @"href=.*?illust_id=\d+"))
+                    {
+                        foreach (Match m in Regex.Matches(html, @"href=""(https:\/\/www.pixiv.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)"""))
+                        {
+                            var link = m.Groups[1].Value;
+                            if (!string.IsNullOrEmpty(link))
+                            {
+                                if (!links.Contains(link))
+                                {
+                                    links.Add(link);
+                                    CommonHelper.Cmd_Search.Execute(link);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (Match m in Regex.Matches(html, @"href=""(https:\/\/www.pixiv.net\/member\.php\?id=\d+)"""))
+                        {
+                            var link = m.Groups[1].Value;
+                            if (!string.IsNullOrEmpty(link))
+                            {
+                                if (!links.Contains(link))
+                                {
+                                    links.Add(link);
+                                    CommonHelper.Cmd_Search.Execute(link);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (fmts.Contains("Text"))
+            {
+                var link = (string)e.Data.GetData("Text");
+                if(new Uri(link) != null)
+                {
+                    CommonHelper.Cmd_Search.Execute(link);
+                }
+            }
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if(e.ChangedButton == MouseButton.XButton1)
+            {
+                if (Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    //Hide();
+                }
+                else
+                {
+                    Close();
+                }
             }
         }
     }

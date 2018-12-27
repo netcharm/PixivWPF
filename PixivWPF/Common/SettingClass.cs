@@ -171,6 +171,8 @@ namespace PixivWPF.Common
             }
         }
 
+        public Point DropBoxPosition { get; set; } = new Point(0, 0);
+
         public static Setting Load(string configfile = "")
         {
             Setting result = new Setting();

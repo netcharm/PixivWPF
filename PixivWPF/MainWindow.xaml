@@ -105,6 +105,9 @@
             <Button Click="CommandToggleTheme_Click" >
                 <iconPacks:PackIconModern Kind="Contrast" />
             </Button>
+            <ToggleButton Click="CommandToggleDropbox_Click">
+                <iconPacks:PackIconModern Kind="Link" />
+            </ToggleButton>
             <mah:SplitButton x:Name="CommandToggleTheme"
                              ToolTip="Toggle Application Theme"
                              Background="Transparent"

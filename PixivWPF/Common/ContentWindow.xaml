@@ -20,6 +20,7 @@
                  AllowDrop="True"
                  PreviewDragOver="Window_DragOver" PreviewDrop="Window_Drop"
                  Closing="Window_Closing"
+                 MouseDown="Window_MouseDown"
                  KeyUp="Window_KeyUp">
     <Grid>
 

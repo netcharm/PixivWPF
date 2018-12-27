@@ -230,6 +230,32 @@ namespace PixivWPF
             CommonHelper.ShowDownloadManager();
         }
 
+        private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
+        {
+            if(sender is System.Windows.Controls.Primitives.ToggleButton)
+            {
+                ContentWindow box = null;
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win.Title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (win is ContentWindow)
+                        {
+                            box = win as ContentWindow;
+                            break;
+                        }
+                    }
+                }
+
+                var btn = sender as System.Windows.Controls.Primitives.ToggleButton;
+                if (box == null && !btn.IsChecked.Value )
+                {
+                    btn.IsChecked = true;
+                }                    
+                CommonHelper.ShowDropBox(btn.IsChecked.Value);
+            }            
+        }
+
         private void MainWindow_DragOver(object sender, DragEventArgs e)
         {
             var fmts = e.Data.GetFormats(true);
@@ -248,6 +274,7 @@ namespace PixivWPF
                 CommonHelper.Cmd_Search.Execute(link);
             }
         }
+
     }
 
 

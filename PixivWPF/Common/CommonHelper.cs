@@ -940,6 +940,122 @@ namespace PixivWPF.Common
             _dailogService.ShowNotificationWindow(newNotification, cfg);
         }
 
+        #region Drop Box routines
+        private static void DropBox_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left )
+            {
+                if(sender is ContentWindow)
+                {
+                    var window = sender as ContentWindow;
+                    window.DragMove();
+                    setting.DropBoxPosition = new Point(window.Left, window.Top);
+                    setting.Save();
+                }
+            }
+            else if(e.ChangedButton == MouseButton.XButton1)
+            {
+                if (sender is ContentWindow)
+                {
+                    //var window = sender as ContentWindow;
+                    //window.Hide();
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private static void DropBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed )
+            {
+                if (sender is ContentWindow)
+                {
+                    var window = sender as ContentWindow;
+                    // In maximum window state case, window will return normal state and continue moving follow cursor
+                    if (window.WindowState == WindowState.Maximized)
+                    {
+                        window.WindowState = WindowState.Normal;
+                        // 3 or any where you want to set window location affter return from maximum state
+                        //Application.Current.MainWindow.Top = 3;
+                    }
+                    window.DragMove();
+                }
+            }
+        }
+
+        public static void ShowDropBox(bool show = true)
+        {
+            ContentWindow box = null;
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win.Title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (win is ContentWindow)
+                    {
+                        box = win as ContentWindow;
+                        break;
+                    }
+                }
+            }
+
+            if (box is ContentWindow)
+            {
+                box.Activate();
+            }
+            else
+            {
+                //var box = new Window();
+                box = new ContentWindow();
+                box.MouseDown += DropBox_MouseDown;
+                ///box.MouseMove += DropBox_MouseMove;
+                box.Width = 48;
+                box.Height = 48;
+                box.Background = new SolidColorBrush(Color.FromArgb(160, 255, 255, 255));
+                //box.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
+                box.Opacity = 0.9;
+                box.AllowsTransparency = true;
+                //box.SaveWindowPosition = true;
+                //box.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                box.AllowDrop = true;
+                box.Topmost = true;
+                box.ResizeMode = ResizeMode.NoResize;
+                box.ShowInTaskbar = false;
+                box.ShowIconOnTitleBar = false;
+                box.ShowCloseButton = false;
+                box.ShowMinButton = false;
+                box.ShowMaxRestoreButton = false;
+                box.ShowSystemMenuOnRightClick = false;
+                box.ShowTitleBar = false;
+                //box.WindowStyle = WindowStyle.None;
+                box.Title = "DropBox";
+                //using (var ico = System.Drawing.Icon.ExtractAssociatedIcon(Application.Process.MainModule.FileName))
+                //{
+                //    var img = new System.Windows.Controls.Image() {
+                //        Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(ico.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions())
+                //    };
+                //}
+                //var img = new System.Windows.Controls.Image() { Source = box.Icon };
+                //img.Opacity = 0.5;
+                box.Content = new System.Windows.Controls.Image() { Source = box.Icon };
+                if (setting.DropBoxPosition != null)
+                {
+                    double x= setting.DropBoxPosition.X;
+                    double y =setting.DropBoxPosition.Y;
+                    if (x == 0 && y == 0)
+                        box.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                    else
+                    {
+                        box.Left = x;
+                        box.Top = y;
+                    }                        
+                }
+            }
+            if (show)
+                box.Show();
+            else
+                box.Hide();
+        }        
+        #endregion
     }
 
     public class MyNotification : Notification

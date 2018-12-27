@@ -888,6 +888,7 @@ namespace PixivWPF.Pages
             {
                 var item = DataObject as ImageItem;
                 var illust = item.Illust;
+                var lastID = illust.Id;
                 try
                 {
                     if (sender == ActionBookmarkIllustPublic)
@@ -910,18 +911,27 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        //Thread.Sleep(250);
-                        tokens = await CommonHelper.ShowLogin();
-                        await item.RefreshIllustAsync(tokens);
-                        if (item.Illust.IsBookMarked())
+                        var currentItem = DataObject as ImageItem;
+                        var currentIllust = currentItem.Illust;
+                        if (lastID != currentIllust.Id)
                         {
-                            BookmarkIllust.Tag = PackIconModernKind.Heart;
-                            ActionBookmarkIllustRemove.IsEnabled = true;
-                        }
-                        else
-                        {
-                            BookmarkIllust.Tag = PackIconModernKind.HeartOutline;
-                            ActionBookmarkIllustRemove.IsEnabled = false;
+                            tokens = await CommonHelper.ShowLogin();
+                            await item.RefreshIllustAsync(tokens);
+                            currentItem = DataObject as ImageItem;
+                            currentIllust = currentItem.Illust;
+                            if (lastID != currentIllust.Id)
+                            {
+                                if (item.Illust.IsBookMarked())
+                                {
+                                    BookmarkIllust.Tag = PackIconModernKind.Heart;
+                                    ActionBookmarkIllustRemove.IsEnabled = true;
+                                }
+                                else
+                                {
+                                    BookmarkIllust.Tag = PackIconModernKind.HeartOutline;
+                                    ActionBookmarkIllustRemove.IsEnabled = false;
+                                }
+                            }
                         }
                     }
                     catch (Exception) { }
@@ -938,7 +948,7 @@ namespace PixivWPF.Pages
             {
                 var item = DataObject as ImageItem;
                 var illust = item.Illust;
-
+                var lastID = illust.Id;
                 try
                 {
                     if (sender == ActionFollowAuthorPublic)
@@ -961,18 +971,27 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        //Thread.Sleep(250);
-                        //tokens = await CommonHelper.ShowLogin();
-                        await item.RefreshUserInfoAsync(tokens);
-                        if (item.Illust.User != null && item.Illust.User.is_followed != null && item.Illust.User.is_followed.Value)
+                        var currentItem = DataObject as ImageItem;
+                        var currentIllust = currentItem.Illust;
+                        if (lastID != currentIllust.Id)
                         {
-                            FollowAuthor.Tag = PackIconModernKind.Check;
-                            ActionFollowAuthorRemove.IsEnabled = true;
-                        }
-                        else
-                        {
-                            FollowAuthor.Tag = PackIconModernKind.Add;
-                            ActionFollowAuthorRemove.IsEnabled = false;
+                            tokens = await CommonHelper.ShowLogin();
+                            await item.RefreshUserInfoAsync(tokens);
+                            currentItem = DataObject as ImageItem;
+                            currentIllust = currentItem.Illust;
+                            if (lastID != currentIllust.Id)
+                            {
+                                if (item.Illust.User != null && item.Illust.User.is_followed != null && item.Illust.User.is_followed.Value)
+                                {
+                                    FollowAuthor.Tag = PackIconModernKind.Check;
+                                    ActionFollowAuthorRemove.IsEnabled = true;
+                                }
+                                else
+                                {
+                                    FollowAuthor.Tag = PackIconModernKind.Add;
+                                    ActionFollowAuthorRemove.IsEnabled = false;
+                                }
+                            }
                         }
                     }
                     catch (Exception) { }
