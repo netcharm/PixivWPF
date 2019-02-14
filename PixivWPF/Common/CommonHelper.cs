@@ -302,6 +302,7 @@ namespace PixivWPF.Common
             if (_dm is Window)
             {
                 _dm.Show();
+                _dm.Activate();
             }
             else
             {

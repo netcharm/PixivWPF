@@ -1,6 +1,7 @@
 ﻿using MahApps.Metro.Controls;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,6 +22,24 @@ namespace PixivWPF.Common
     /// </summary>
     public partial class ContentWindow : MetroWindow
     {
+        public void UpdateTheme()
+        {
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win.Content is Pages.IllustDetailPage)
+                {
+                    var page = win.Content as Pages.IllustDetailPage;
+                    page.UpdateTheme();
+                }
+            }
+
+        }
+
+        private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {"a", "b" };
+        public ObservableCollection<string> AutoSuggestList
+        {
+            get { return (auto_suggest_list); }
+        }
 
         //public object Content
         //{
@@ -32,9 +51,140 @@ namespace PixivWPF.Common
         {
             InitializeComponent();
 
+            SearchBox.ItemsSource = AutoSuggestList;
+
+            CommandToggleTheme.ItemsSource = Common.Theme.Accents;
+            CommandToggleTheme.SelectedIndex = Common.Theme.Accents.IndexOf(Common.Theme.CurrentAccent);
+
             //Topmost = true;
             ShowActivated = true;
             //Activate();
+        }
+
+        private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
+        {
+            Common.Theme.Toggle();
+            this.UpdateTheme();
+        }
+
+        private void CommandToggleTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CommandToggleTheme.SelectedIndex >= 0 && CommandToggleTheme.SelectedIndex < CommandToggleTheme.Items.Count)
+            {
+                Common.Theme.CurrentAccent = Common.Theme.Accents[CommandToggleTheme.SelectedIndex];
+            }
+        }
+
+        private void CommandLogin_Click(object sender, RoutedEventArgs e)
+        {
+            var accesstoken = Setting.Token();
+            var dlgLogin = new PixivLoginDialog() { AccessToken = accesstoken };
+            var ret = dlgLogin.ShowDialog();
+            accesstoken = dlgLogin.AccessToken;
+            Setting.Token(accesstoken);
+        }
+
+        private void CommandSearch_Click(object sender, RoutedEventArgs e)
+        {
+            CommonHelper.Cmd_Search.Execute(SearchBox.Text);
+        }
+
+        private void SearchBox_TextChanged(object sender, RoutedEventArgs e)
+        {
+            if (SearchBox.Text.Length > 0)
+            {
+                var content = SearchBox.Text;
+                auto_suggest_list.Clear();
+
+                if (Regex.IsMatch(content, @"(.*?illust_id=)(\d+)(.*)", RegexOptions.IgnoreCase))
+                    content = Regex.Replace(content, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
+                else if (Regex.IsMatch(content, @"^(.*?\?id=)(\d+)(.*)$", RegexOptions.IgnoreCase))
+                    content = Regex.Replace(content, @"^(.*?\?id=)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase).Trim();
+                else if (Regex.IsMatch(content, @"^(.*?tag_full&word=)(.*)$", RegexOptions.IgnoreCase))
+                {
+                    content = Regex.Replace(content, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase).Trim();
+                    content = Uri.UnescapeDataString(content);
+                }
+                content = Regex.Replace(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", "", RegexOptions.IgnoreCase).Trim();
+
+                if (Regex.IsMatch(content, @"^\d+$", RegexOptions.IgnoreCase))
+                {
+                    auto_suggest_list.Add($"UserID: {content}");
+                    auto_suggest_list.Add($"IllustID: {content}");
+                }
+                auto_suggest_list.Add($"Fuzzy: {content}");
+                auto_suggest_list.Add($"Tag: {content}");
+                auto_suggest_list.Add($"Fuzzy Tag: {content}");
+                auto_suggest_list.Add($"Caption: {content}");
+                SearchBox.Items.Refresh();
+                SearchBox.IsDropDownOpen = true;
+                e.Handled = true;
+            }
+        }
+
+        private void SearchBox_DropDownOpened(object sender, EventArgs e)
+        {
+            var textBox = Keyboard.FocusedElement as TextBox;
+            if (textBox != null && textBox.Text.Length == 1 && textBox.SelectionLength == 1)
+            {
+                textBox.SelectionLength = 0;
+                textBox.SelectionStart = 1;
+            }
+        }
+
+        private void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            e.Handled = true;
+            var items = e.AddedItems;
+            if (items.Count > 0)
+            {
+                var item = items[0];
+                if (item is string)
+                {
+                    var query = (string)item;
+                    CommonHelper.Cmd_Search.Execute(query);
+                }
+            }
+        }
+
+        private void SearchBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Return)
+            {
+                e.Handled = true;
+                CommonHelper.Cmd_Search.Execute(SearchBox.Text);
+            }
+        }
+
+        private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
+        {
+            CommonHelper.ShowDownloadManager();
+        }
+
+        private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Primitives.ToggleButton)
+            {
+                ContentWindow box = null;
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win.Title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (win is ContentWindow)
+                        {
+                            box = win as ContentWindow;
+                            break;
+                        }
+                    }
+                }
+
+                var btn = sender as System.Windows.Controls.Primitives.ToggleButton;
+                if (box == null && !btn.IsChecked.Value)
+                {
+                    btn.IsChecked = true;
+                }
+                CommonHelper.ShowDropBox(btn.IsChecked.Value);
+            }
         }
 
         private void Window_KeyUp(object sender, KeyEventArgs e)

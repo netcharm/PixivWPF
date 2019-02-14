@@ -49,27 +49,27 @@ namespace PixivWPF
             
             SearchBox.ItemsSource = AutoSuggestList;
 
+            CommandToggleTheme.ItemsSource = Common.Theme.Accents;
+            CommandToggleTheme.SelectedIndex = Common.Theme.Accents.IndexOf(Common.Theme.CurrentAccent);
+
             MainContent = ContentFrame;
 
             //ContentFrame.Content = new Pages.PageLogin() { Tag = ContentFrame };
             pagetiles = new Pages.TilesPage() { Tag = ContentFrame };
             pagenav = new Pages.NavPage() { Tag = pagetiles, NavFlyout = NavFlyout };
 
-            ContentFrame.Content = pagetiles;
-            NavFrame.Content = pagenav;
-
             NavFlyout.Content = pagenav;
             NavFlyout.Theme = FlyoutTheme.Adapt;
             NavFlyout.Theme = FlyoutTheme.Accent;
             NavFlyout.Opacity = 0.95;
 
+            ContentFrame.Content = pagetiles;
+            NavFrame.Content = pagenav;
+
             ContentFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
             NavFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
 
             NavPageTitle.Text = pagetiles.TargetPage.ToString();
-
-            CommandToggleTheme.ItemsSource = Common.Theme.Accents;
-            CommandToggleTheme.SelectedIndex = Common.Theme.Accents.IndexOf(Common.Theme.CurrentAccent);
         }
 
 #if DEBUG
