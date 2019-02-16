@@ -279,7 +279,7 @@ namespace PixivWPF.Common
 
         internal static DownloadManagerPage _downManager = new DownloadManagerPage();
 
-        public static void ShowDownloadManager()
+        public static void ShowDownloadManager(bool active = false)
         {
             if (_downManager is DownloadManagerPage)
             {
@@ -302,7 +302,8 @@ namespace PixivWPF.Common
             if (_dm is Window)
             {
                 _dm.Show();
-                _dm.Activate();
+                if (active)
+                    _dm.Activate();
             }
             else
             {

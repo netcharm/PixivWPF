@@ -158,7 +158,7 @@ namespace PixivWPF.Common
 
         private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.ShowDownloadManager();
+            CommonHelper.ShowDownloadManager(true);
         }
 
         private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
