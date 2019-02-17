@@ -985,7 +985,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ShowDropBox(bool show = true)
+        public static bool ShowDropBox(bool show = true)
         {
             ContentWindow box = null;
             foreach (Window win in Application.Current.Windows)
@@ -1002,7 +1002,7 @@ namespace PixivWPF.Common
 
             if (box is ContentWindow)
             {
-                box.Activate();
+                //box.Activate();
             }
             else
             {
@@ -1052,10 +1052,17 @@ namespace PixivWPF.Common
                     }                        
                 }
             }
-            if (show)
-                box.Show();
-            else
+            if (box.IsVisible)
+            {
                 box.Hide();
+            }
+            else
+            {
+                box.Show();
+                box.Activate();
+            }
+
+            return (box.IsVisible);
         }        
         #endregion
     }

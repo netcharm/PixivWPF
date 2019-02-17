@@ -251,8 +251,8 @@ namespace PixivWPF
                 if (box == null && !btn.IsChecked.Value )
                 {
                     btn.IsChecked = true;
-                }                    
-                CommonHelper.ShowDropBox(btn.IsChecked.Value);
+                }
+                btn.IsChecked = CommonHelper.ShowDropBox(btn.IsChecked.Value);
             }            
         }
 
