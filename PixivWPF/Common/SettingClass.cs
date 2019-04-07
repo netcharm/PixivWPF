@@ -88,7 +88,7 @@ namespace PixivWPF.Common
         }
 
         [JsonIgnore]
-        public string APPPATH
+        public string APP_PATH
         {
             get { return AppPath; }
         }

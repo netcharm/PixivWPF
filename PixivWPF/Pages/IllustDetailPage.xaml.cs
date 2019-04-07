@@ -37,15 +37,21 @@ namespace PixivWPF.Pages
 
         public void UpdateTheme()
         {
+            //var fonts = string.Join(",", IllustTitle.FontFamily.FamilyNames.Values);
+
             var style = new StringBuilder();
+            //style.AppendLine($"*{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", Monaco, Consolas, \"Courier New\", \"Segoe UI\", monospace, 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, \"WenQuanYi Microhei\", \"WenQuanYi Microhei Mono\", \"Microsoft YaHei\", Tahoma, Arial, Helvetica, sans-serif;}}");
+            style.AppendLine($"*{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", Consolas, \"Courier New\", \"Segoe UI\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Tahoma, Arial, Helvetica, sans-serif |important;}}");
+            style.AppendLine($"body{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", Consolas, \"Courier New\", \"Segoe UI\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Tahoma, Arial, Helvetica, sans-serif |important;}}");
             style.AppendLine($".tag{{background-color:{Common.Theme.AccentColor.ToHtml(false)}|important;color:{Common.Theme.TextColor.ToHtml(false)}|important;margin:4px;text-decoration:none;}}");
-            style.AppendLine($".desc{{color:{Common.Theme.TextColor.ToHtml(false)}!important;text-decoration:none !important;}}");
+            style.AppendLine($".desc{{color:{Common.Theme.TextColor.ToHtml(false)} !important;text-decoration:none !important;}}");
             style.AppendLine($"a{{color:{Common.Theme.TextColor.ToHtml(false)}|important;text-decoration:none !important;}}");
-            style.AppendLine($"img{{width:auto!important;;height:auto!important;;max-width:100%!important;;max-height:100%!important;}}");
+            style.AppendLine($"img{{width:auto!important;;height:auto!important;;max-width:100%!important;;max-height:100% !important;}}");
 
             var BaseStyleSheet = string.Join("\n", style);
             IllustTags.BaseStylesheet = BaseStyleSheet;
             IllustDesc.BaseStylesheet = BaseStyleSheet;
+            //IllustDesc.FontFamily = IllustTitle.FontFamily;
 
             var tags = IllustTags.Text;
             var desc = IllustDesc.Text;
@@ -55,6 +61,8 @@ namespace PixivWPF.Pages
 
             IllustTags.Text = tags;
             IllustDesc.Text = desc;
+
+            IllustDesc.AvoidImagesLateLoading = true;
         }
 
         public async void UpdateDetailTask(ImageItem item)
@@ -151,7 +159,7 @@ namespace PixivWPF.Pages
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
-                    IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption}</div>";
+                    IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption}</div>".Replace("\r\n", "<br/>");
                     IllustDescExpander.Visibility = Visibility.Visible;
                 }
                 else
@@ -259,6 +267,7 @@ namespace PixivWPF.Pages
                         UpdateDetailTask(item);
                     }, cancelTokenSource.Token, TaskCreationOptions.None);
                     lastTask.RunSynchronously();
+                    //lastTask.Start();
                     await lastTask;
                 }
             }
@@ -620,6 +629,8 @@ namespace PixivWPF.Pages
 
             cancelTokenSource = new CancellationTokenSource();
             cancelToken = cancelTokenSource.Token;
+
+            UpdateTheme();
     }
 
         private async void IllustTags_LinkClicked(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs> args)
@@ -761,11 +772,11 @@ namespace PixivWPF.Pages
         #region Illust Actions
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
-            if(sender == ActionCopyIllustTitle)
+            if (sender == ActionCopyIllustTitle)
             {
                 Clipboard.SetText(IllustTitle.Text);
             }
-            else if(sender == ActionCopyIllustAuthor)
+            else if (sender == ActionCopyIllustAuthor)
             {
                 Clipboard.SetText(IllustAuthor.Text);
             }
@@ -777,7 +788,7 @@ namespace PixivWPF.Pages
                     Clipboard.SetText(item.UserID);
                 }
             }
-            else if (sender == ActionCopyIllustID)
+            else if (sender == ActionCopyIllustID || sender == PreviewCopyIllustID)
             {
                 if (DataObject is ImageItem)
                 {
@@ -789,12 +800,12 @@ namespace PixivWPF.Pages
             {
                 Clipboard.SetText(ActionCopyIllustDate.Header.ToString());
             }
-            else if(sender == ActionIllustWebPage)
+            else if (sender == ActionIllustWebPage)
             {
-                if(DataObject is ImageItem)
+                if (DataObject is ImageItem)
                 {
                     var item = DataObject as ImageItem;
-                    if(item.Illust is Pixeez.Objects.Work)
+                    if (item.Illust is Pixeez.Objects.Work)
                     {
                         var href = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={item.ID}";
                         Clipboard.SetText(href);

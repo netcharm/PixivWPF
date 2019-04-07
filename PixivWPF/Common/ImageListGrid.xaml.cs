@@ -266,7 +266,8 @@ namespace PixivWPF.Common
                     lastTask = new Task(() => {
                         UpdateImageTilesTask(tokens, parallel);
                     }, cancelTokenSource.Token, TaskCreationOptions.None);
-                    lastTask.RunSynchronously();
+                    //lastTask.RunSynchronously();
+                    lastTask.Start();
                     await lastTask;
                 }
             }

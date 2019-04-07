@@ -46,6 +46,12 @@
                     <Rectangle  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" MouseLeftButtonDown="Preview_MouseDoubleClick">
                         <Rectangle.ContextMenu>
                             <ContextMenu>
+                                <MenuItem x:Name="PreviewCopyIllustID" x:Uid="ActionCopyIllustID" 
+                                          Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>

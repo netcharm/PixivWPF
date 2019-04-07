@@ -22,8 +22,8 @@ namespace PixivWPF.Common
 
         public CacheImage()
         {
-            _CacheFolder = Path.Combine(setting.APPPATH, "cache");
-            _CacheDB = Path.Combine(setting.APPPATH, "cache.json");
+            _CacheFolder = Path.Combine(setting.APP_PATH, "cache");
+            _CacheDB = Path.Combine(setting.APP_PATH, "cache.json");
 
             Load();
         }
@@ -40,8 +40,10 @@ namespace PixivWPF.Common
         
         public void Save()
         {
+#if DEBUG
             var text = JsonConvert.SerializeObject(_caches, Formatting.Indented);
             File.WriteAllText(_CacheDB, text, new UTF8Encoding(true));
+#endif
         }
 
         public async Task<ImageSource> GetImage(string url)

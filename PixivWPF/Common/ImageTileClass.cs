@@ -158,7 +158,7 @@ namespace PixivWPF.Common
 
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
+                        var tooltip = string.IsNullOrEmpty(illust.Caption.Trim()) ? string.Empty : "\r\n"+string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
                         var i = new ImageItem()
                         {
                             ItemType = ImageItemType.Work,
@@ -174,7 +174,7 @@ namespace PixivWPF.Common
                             Subject = illust.Title,
                             DisplayTitle = true,
                             Caption = illust.Caption,
-                            ToolTip = tooltip,
+                            ToolTip = $"{illust.GetDateTime()}{tooltip}",
                             Illust = illust,
                             Tag = illust
                         };
@@ -197,6 +197,7 @@ namespace PixivWPF.Common
                     var url = pages.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
+                        var tooltip = string.IsNullOrEmpty(illust.Caption.Trim()) ? string.Empty : "\r\n"+string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
                         var i = new ImageItem()
                         {
                             ItemType = ImageItemType.Pages,
@@ -209,6 +210,7 @@ namespace PixivWPF.Common
                             UserID = illust.User.Id.ToString(),
                             Subject = $"{illust.Title} - {index+1}/{illust.PageCount}",
                             DisplayTitle = false,
+                            ToolTip = $"{illust.GetDateTime()}{tooltip}",
                             Illust = illust,
                             Tag = pages
                         };
@@ -231,6 +233,7 @@ namespace PixivWPF.Common
                     var url = page.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
+                        var tooltip = string.IsNullOrEmpty(illust.Caption.Trim()) ? string.Empty : "\r\n"+string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
                         var i = new ImageItem()
                         {
                             ItemType = ImageItemType.Page,
@@ -243,6 +246,7 @@ namespace PixivWPF.Common
                             UserID = illust.User.Id.ToString(),
                             Subject = $"{illust.Title} - {index+1}/{illust.PageCount}",
                             DisplayTitle = false,
+                            ToolTip = $"{illust.GetDateTime()}{tooltip}",
                             Illust = illust,
                             Tag = page
                         };
