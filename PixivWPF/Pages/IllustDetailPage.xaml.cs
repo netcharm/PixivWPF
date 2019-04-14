@@ -35,6 +35,24 @@ namespace PixivWPF.Pages
             MessageBox.Show("");
         });
 
+        private ICommand Cmd_CopyIllustIDs { get; } = new DelegateCommand<object>(obj =>
+        {
+            if (obj is ImageListGrid)
+            {
+                var list = obj as ImageListGrid;
+                var ids = new  List<string>();
+                foreach (var item in list.SelectedItems)
+                {
+                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                       list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        ids.Add($"{item.ID}");
+                    }
+                }
+                Clipboard.SetText(string.Join("\n", ids));
+            }
+        });
+
         public void UpdateTheme()
         {
             //var fonts = string.Join(",", IllustTitle.FontFamily.FamilyNames.Values);
@@ -631,7 +649,7 @@ namespace PixivWPF.Pages
             cancelToken = cancelTokenSource.Token;
 
             UpdateTheme();
-    }
+        }
 
         private async void IllustTags_LinkClicked(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs> args)
         {
@@ -1260,6 +1278,11 @@ namespace PixivWPF.Pages
             CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
         }
 
+        private void ActionCopyRelativeIllustID_Click(object sender, RoutedEventArgs e)
+        {
+            Cmd_CopyIllustIDs.Execute(RelativeIllusts);
+        }
+
         private void ActionSaveRelative_Click(object sender, RoutedEventArgs e)
         {
 
@@ -1348,6 +1371,11 @@ namespace PixivWPF.Pages
             CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
         }
 
+        private void ActionCopyFavoriteIllustID_Click(object sender, RoutedEventArgs e)
+        {
+            Cmd_CopyIllustIDs.Execute(FavoriteIllusts);
+        }
+
         private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
@@ -1401,8 +1429,8 @@ namespace PixivWPF.Pages
             FavoriteNextPage.Visibility = Visibility.Visible;
         }
 
-        #endregion
 
+        #endregion
 
     }
 

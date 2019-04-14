@@ -390,6 +390,11 @@
                                           KeyUp="RelativeIllusts_KeyUp">
                         <Common:ImageListGrid.ContextMenu>
                             <ContextMenu>
+                                <MenuItem x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionCopyRelativeIllustID_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem x:Uid="ActionOpenRelative" Header="Open Selected Illusts" Click="ActionOpenRelative_Click">
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
@@ -441,6 +446,11 @@
                                           KeyUp="FavriteIllusts_KeyUp">
                         <Common:ImageListGrid.ContextMenu>
                             <ContextMenu>
+                                <MenuItem x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionCopyFavoriteIllustID_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem x:Uid="ActionOpenFavorite" Header="Open Selected Illusts" Click="ActionOpenFavorite_Click">
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
