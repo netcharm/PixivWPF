@@ -158,7 +158,7 @@ namespace PixivWPF.Common
 
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var tooltip = string.IsNullOrEmpty(illust.Caption.Trim()) ? string.Empty : "\r\n"+string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
+                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().InsertLineBreak(48).Take(256));
                         var i = new ImageItem()
                         {
                             ItemType = ImageItemType.Work,
@@ -197,7 +197,7 @@ namespace PixivWPF.Common
                     var url = pages.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var tooltip = string.IsNullOrEmpty(illust.Caption.Trim()) ? string.Empty : "\r\n"+string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
+                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().InsertLineBreak(48).Take(256));
                         var i = new ImageItem()
                         {
                             ItemType = ImageItemType.Pages,
@@ -233,7 +233,7 @@ namespace PixivWPF.Common
                     var url = page.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var tooltip = string.IsNullOrEmpty(illust.Caption.Trim()) ? string.Empty : "\r\n"+string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
+                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().InsertLineBreak(48).Take(256));
                         var i = new ImageItem()
                         {
                             ItemType = ImageItemType.Page,
