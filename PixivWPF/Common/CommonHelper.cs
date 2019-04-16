@@ -277,6 +277,18 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_Drop { get; } = new DelegateCommand<object>(async obj => {
+            if (obj is IEnumerable)
+            {
+                foreach (var link in (obj as List<string>))
+                {
+                    await Task.Run(new Action(() => {
+                        Cmd_Search.Execute(link);
+                    }));
+                }
+            }
+        });
+
         internal static DownloadManagerPage _downManager = new DownloadManagerPage();
 
         public static void ShowDownloadManager(bool active = false)

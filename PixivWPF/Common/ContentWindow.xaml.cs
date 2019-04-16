@@ -222,43 +222,83 @@ namespace PixivWPF.Common
                     var html = Encoding.Unicode.GetString(ms.ToArray());
                     if(Regex.IsMatch(html, @"href=.*?illust_id=\d+"))
                     {
-                        foreach (Match m in Regex.Matches(html, @"href=""(https:\/\/www.pixiv.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)"""))
+                        var mr = Regex.Matches(html, @"href=""(https:\/\/www.pixiv.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)""");
+                        if (mr.Count > 50)
+                            CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                        else
                         {
-                            var link = m.Groups[1].Value;
-                            if (!string.IsNullOrEmpty(link))
+                            foreach (Match m in mr)
                             {
-                                if (!links.Contains(link))
+                                var link = m.Groups[1].Value;
+                                if (!string.IsNullOrEmpty(link))
                                 {
-                                    links.Add(link);
-                                    CommonHelper.Cmd_Search.Execute(link);
+                                    if (!links.Contains(link))
+                                    {
+                                        links.Add(link);
+                                        CommonHelper.Cmd_Search.Execute(link);
+                                    }
                                 }
                             }
                         }
+                        //CommonHelper.Cmd_Drop.Execute(links);
                     }
                     else
                     {
-                        foreach (Match m in Regex.Matches(html, @"href=""(https:\/\/www.pixiv.net\/member\.php\?id=\d+)"""))
+                        var mr = Regex.Matches(html, @"href=""(https:\/\/www.pixiv.net\/member\.php\?id=\d+)""");
+                        if (mr.Count > 50)
+                            CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                        else
                         {
-                            var link = m.Groups[1].Value;
-                            if (!string.IsNullOrEmpty(link))
+                            foreach (Match m in mr)
                             {
-                                if (!links.Contains(link))
+                                var link = m.Groups[1].Value;
+                                if (!string.IsNullOrEmpty(link))
                                 {
-                                    links.Add(link);
-                                    CommonHelper.Cmd_Search.Execute(link);
+                                    if (!links.Contains(link))
+                                    {
+                                        links.Add(link);
+                                        CommonHelper.Cmd_Search.Execute(link);
+                                    }
                                 }
                             }
                         }
+                        //CommonHelper.Cmd_Drop.Execute(links);
                     }
                 }
             }
             else if (fmts.Contains("Text"))
             {
-                var link = (string)e.Data.GetData("Text");
-                if(new Uri(link) != null)
+                using (var ms = (System.IO.MemoryStream)e.Data.GetData("Text"))
                 {
-                    CommonHelper.Cmd_Search.Execute(link);
+                    List<string> links = new List<string>();
+
+                    var html = Encoding.Unicode.GetString(ms.ToArray());
+                    var mr = Regex.Matches(html, @"(https:\/\/www.pixiv.net\/member\.php\?id=\d+)$");
+                    if (mr.Count > 50)
+                        CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                    else
+                    {
+                        foreach (Match m in mr)
+                        {
+                            var link = m.Groups[1].Value;
+                            if (!string.IsNullOrEmpty(link))
+                            {
+                                if (!links.Contains(link))
+                                {
+                                    links.Add(link);
+                                    CommonHelper.Cmd_Search.Execute(link);
+                                }
+                            }
+                        }
+                    }
+                    //CommonHelper.Cmd_Drop.Execute(links);
                 }
+
+                //var link = (string)e.Data.GetData("Text");
+                //if(new Uri(link) != null)
+                //{
+                //    CommonHelper.Cmd_Search.Execute(link);
+                //}
             }
         }
 
