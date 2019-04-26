@@ -242,6 +242,25 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_CopyIllustIDs { get; } = new DelegateCommand<object>(obj =>
+        {
+            if (obj is ImageListGrid)
+            {
+                var list = obj as ImageListGrid;
+                var ids = new  List<string>();
+                foreach (var item in list.SelectedItems)
+                {
+                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                        list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                        list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        ids.Add($"{item.ID}");
+                    }
+                }
+                Clipboard.SetText(string.Join("\n", ids));
+            }
+        });
+
         public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(obj => {
             if (obj is string)
             {

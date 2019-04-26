@@ -35,23 +35,24 @@ namespace PixivWPF.Pages
             MessageBox.Show("");
         });
 
-        private ICommand Cmd_CopyIllustIDs { get; } = new DelegateCommand<object>(obj =>
-        {
-            if (obj is ImageListGrid)
-            {
-                var list = obj as ImageListGrid;
-                var ids = new  List<string>();
-                foreach (var item in list.SelectedItems)
-                {
-                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                       list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        ids.Add($"{item.ID}");
-                    }
-                }
-                Clipboard.SetText(string.Join("\n", ids));
-            }
-        });
+        //private ICommand Cmd_CopyIllustIDs { get; } = new DelegateCommand<object>(obj =>
+        //{
+        //    if (obj is ImageListGrid)
+        //    {
+        //        var list = obj as ImageListGrid;
+        //        var ids = new  List<string>();
+        //        foreach (var item in list.SelectedItems)
+        //        {
+        //            if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+        //                list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+        //                list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+        //            {
+        //                ids.Add($"{item.ID}");
+        //            }
+        //        }
+        //        Clipboard.SetText(string.Join("\n", ids));
+        //    }
+        //});
 
         public void UpdateTheme()
         {
@@ -1289,7 +1290,7 @@ namespace PixivWPF.Pages
 
         private void ActionCopyRelativeIllustID_Click(object sender, RoutedEventArgs e)
         {
-            Cmd_CopyIllustIDs.Execute(RelativeIllusts);
+            CommonHelper.Cmd_CopyIllustIDs.Execute(RelativeIllusts);
         }
 
         private void ActionSaveRelative_Click(object sender, RoutedEventArgs e)
@@ -1382,7 +1383,7 @@ namespace PixivWPF.Pages
 
         private void ActionCopyFavoriteIllustID_Click(object sender, RoutedEventArgs e)
         {
-            Cmd_CopyIllustIDs.Execute(FavoriteIllusts);
+            CommonHelper.Cmd_CopyIllustIDs.Execute(FavoriteIllusts);
         }
 
         private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)

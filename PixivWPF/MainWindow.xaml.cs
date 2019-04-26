@@ -178,12 +178,12 @@ namespace PixivWPF
 
                 if (Regex.IsMatch(content, @"^\d+$", RegexOptions.IgnoreCase))
                 {
-                    auto_suggest_list.Add($"UserID: {content}");
                     auto_suggest_list.Add($"IllustID: {content}");
+                    auto_suggest_list.Add($"UserID: {content}");
                 }
+                auto_suggest_list.Add($"Fuzzy Tag: {content}");
                 auto_suggest_list.Add($"Fuzzy: {content}");
                 auto_suggest_list.Add($"Tag: {content}");
-                auto_suggest_list.Add($"Fuzzy Tag: {content}");
                 auto_suggest_list.Add($"Caption: {content}");
                 SearchBox.Items.Refresh();
                 SearchBox.IsDropDownOpen = true;

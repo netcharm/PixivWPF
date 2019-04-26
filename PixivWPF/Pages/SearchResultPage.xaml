@@ -11,6 +11,56 @@
       d:DesignHeight="300" d:DesignWidth="300"
       Title="IllustWithTagPage">
 
+    <Page.Resources>
+        <ContextMenu x:Name="MenuSearchFilter" x:Key="MenuSearchFilter">
+            <MenuItem x:Name="SearchFilter_00000users" x:Uid="SearchFilter_00000users" Header="No Filter" Click="SearchFilter_Click"/>
+            <MenuItem x:Name="SearchFilter_00100users" x:Uid="SearchFilter_00100users" Header="100~500 Favs" Click="SearchFilter_Click"/>
+            <MenuItem x:Name="SearchFilter_00500users" x:Uid="SearchFilter_00500users" Header="500~1000 Favs" Click="SearchFilter_Click"/>
+            <MenuItem x:Name="SearchFilter_01000users" x:Uid="SearchFilter_01000users" Header="1000~3000 Favs" Click="SearchFilter_Click"/>
+            <MenuItem x:Name="SearchFilter_03000users" x:Uid="SearchFilter_03000users" Header="3000~5000 Favs" Click="SearchFilter_Click"/>
+            <MenuItem x:Name="SearchFilter_05000users" x:Uid="SearchFilter_05000users" Header="5000~10000 Favs" Click="SearchFilter_Click"/>
+            <MenuItem x:Name="SearchFilter_10000users" x:Uid="SearchFilter_10000users" Header="10000~20000 Favs" Click="SearchFilter_Click"/>
+            <MenuItem x:Name="SearchFilter_20000users" x:Uid="SearchFilter_20000users" Header="20000~30000 Favs" Click="SearchFilter_Click"/>
+            <MenuItem x:Name="SearchFilter_30000users" x:Uid="SearchFilter_30000users" Header="30000~50000 Favs" Click="SearchFilter_Click"/>
+            <MenuItem x:Name="SearchFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000+ Favs" Click="SearchFilter_Click"/>
+        </ContextMenu>
+        <ContextMenu x:Key="MenuSearchResult">
+            <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionCopyResultIllustID_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="ActionOpenResult" x:Uid="ActionOpenResult" Header="Open Selected Illust(s)" Click="ActionOpenResult_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <!--<Separator/>
+            <MenuItem x:Name="ActionSaveRelative" x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click"/>
+            <MenuItem x:Name="ActionSaveAllRelative" x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>-->
+            <MenuItem x:Name="ActionNextResultPage" x:Uid="ActionNextResultPage" Header="Open Next Page" Click="ResultNextPage_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="ActionResultFilter" x:Uid="ActionResultFilter" Header="Result Filter" Click="SearchFilter_Click" ContextMenu="{StaticResource MenuSearchFilter}">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Filter" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+                <MenuItem x:Name="ActionFilter_00000users" x:Uid="SearchFilter_00000users" Header="No Filter" Click="SearchFilter_Click"/>
+                <MenuItem x:Name="ActionFilter_00100users" x:Uid="SearchFilter_00100users" Header="100~500 Favs" Click="SearchFilter_Click"/>
+                <MenuItem x:Name="ActionFilter_00500users" x:Uid="SearchFilter_00500users" Header="500~1000 Favs" Click="SearchFilter_Click"/>
+                <MenuItem x:Name="ActionFilter_01000users" x:Uid="SearchFilter_01000users" Header="1000~3000 Favs" Click="SearchFilter_Click"/>
+                <MenuItem x:Name="ActionFilter_03000users" x:Uid="SearchFilter_03000users" Header="3000~5000 Favs" Click="SearchFilter_Click"/>
+                <MenuItem x:Name="ActionFilter_05000users" x:Uid="SearchFilter_05000users" Header="5000~10000 Favs" Click="SearchFilter_Click"/>
+                <MenuItem x:Name="ActionFilter_10000users" x:Uid="SearchFilter_10000users" Header="10000~20000 Favs" Click="SearchFilter_Click"/>
+                <MenuItem x:Name="ActionFilter_20000users" x:Uid="SearchFilter_20000users" Header="20000~30000 Favs" Click="SearchFilter_Click"/>
+                <MenuItem x:Name="ActionFilter_30000users" x:Uid="SearchFilter_30000users" Header="30000~50000 Favs" Click="SearchFilter_Click"/>
+                <MenuItem x:Name="ActionFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000+ Favs" Click="SearchFilter_Click"/>
+            </MenuItem>
+        </ContextMenu>
+    </Page.Resources>
+    
     <Grid>
         <ScrollViewer Grid.Column="0" Margin="4,4,4,4"
                       HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
@@ -20,8 +70,8 @@
                 </Grid.RowDefinitions>
 
                 <!-- Illust Relatives -->
-                <Expander Grid.Row="0" x:Name="ResultIllustsExpander" x:Uid="ResultIllustsExpander"
-                          IsExpanded="False" ExpandDirection="Down" 
+                <Expander Grid.Row="0" x:Name="ResultExpander" x:Uid="ResultIllustsExpander"
+                          IsExpanded="true" ExpandDirection="Down"
                           Visibility="Visible" Header="Search Results"
                           Expanded="ResultExpander_Expanded">
                     <Common:ImageListGrid x:Name="ResultIllusts" x:Uid="IllustsWithTag"
@@ -29,15 +79,8 @@
                                           SelectionMode="Extended"
                                           SelectionChanged="ResultIllusts_SelectionChanged" 
                                           MouseDoubleClick="ResultIllusts_MouseDoubleClick" 
-                                          KeyUp="ResultIllusts_KeyUp">
-                        <Common:ImageListGrid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem x:Uid="ActionOpenResult" Header="Open Selected Illust(s)" Click="ActionOpenResult_Click"/>
-                                <!--<Separator/>
-                                <MenuItem x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click"/>
-                                <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>-->
-                            </ContextMenu>
-                        </Common:ImageListGrid.ContextMenu>
+                                          ContextMenu="{StaticResource MenuSearchResult}"
+                                          KeyUp="ResultIllusts_KeyUp" >
                     </Common:ImageListGrid>
                 </Expander>
                 <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0">
@@ -53,22 +96,9 @@
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="24" Height="24" HorizontalAlignment="Right"
                             Margin="0,0,4,0"
+                            ContextMenu="{StaticResource MenuSearchFilter}"
                             Click="SearchFilter_Click">
                         <iconPacks:PackIconModern Kind="Filter" />
-                        <Button.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem x:Name="SearchFilter_00000users" x:Uid="SearchFilter_00000users" Header="No Filter" Click="SearchFilter_Click"/>
-                                <MenuItem x:Name="SearchFilter_00100users" x:Uid="SearchFilter_00100users" Header="100users入り" Click="SearchFilter_Click"/>
-                                <MenuItem x:Name="SearchFilter_00500users" x:Uid="SearchFilter_00500users" Header="500users入り" Click="SearchFilter_Click"/>
-                                <MenuItem x:Name="SearchFilter_01000users" x:Uid="SearchFilter_01000users" Header="1000users入り" Click="SearchFilter_Click"/>
-                                <MenuItem x:Name="SearchFilter_03000users" x:Uid="SearchFilter_03000users" Header="3000users入り" Click="SearchFilter_Click"/>
-                                <MenuItem x:Name="SearchFilter_05000users" x:Uid="SearchFilter_05000users" Header="5000users入り" Click="SearchFilter_Click"/>
-                                <MenuItem x:Name="SearchFilter_10000users" x:Uid="SearchFilter_10000users" Header="10000users入り" Click="SearchFilter_Click"/>
-                                <MenuItem x:Name="SearchFilter_20000users" x:Uid="SearchFilter_20000users" Header="20000users入り" Click="SearchFilter_Click"/>
-                                <MenuItem x:Name="SearchFilter_30000users" x:Uid="SearchFilter_30000users" Header="30000users入り" Click="SearchFilter_Click"/>
-                                <MenuItem x:Name="SearchFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000users入り" Click="SearchFilter_Click"/>
-                            </ContextMenu>
-                        </Button.ContextMenu>
                     </Button>
                     <Button x:Name="ResultNextPage"
                             Style="{DynamicResource MetroCircleButtonStyle}"

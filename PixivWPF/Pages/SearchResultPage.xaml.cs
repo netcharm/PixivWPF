@@ -34,10 +34,44 @@ namespace PixivWPF.Pages
 
         internal string result_filter = string.Empty;
 
+        internal MenuItem ActionResultFilter = null;
+        internal ContextMenu ContextMenuResultFilter = null;
+        private Dictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new Dictionary<string, Tuple<MenuItem, MenuItem>>();
+
         public SearchResultPage()
         {
             InitializeComponent();
-            SearchFilter_00000users.IsChecked = true;
+
+            var cmr = Resources["MenuSearchResult"] as ContextMenu;
+            if (cmr is ContextMenu)
+            {
+                foreach (MenuItem item in cmr.Items)
+                {
+                    if (item.Name.Equals("ActionResultFilter", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        ActionResultFilter = item;
+                        break;
+                    }
+                }
+            }
+
+            var cmf = Resources["MenuSearchFilter"] as ContextMenu;
+            if (cmf is ContextMenu)
+            {
+                ContextMenuResultFilter = cmf;
+                foreach (var item in cmf.Items)
+                { 
+                    if(item is MenuItem)
+                    {
+                        var mi = item as MenuItem;
+                        if (mi.Name.Equals("SearchFilter_00000users", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            mi.IsChecked = true;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         #region Search Result Panel related routines
@@ -100,7 +134,7 @@ namespace PixivWPF.Pages
 
                     if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
                     {
-                        ResultIllustsExpander.Tag = next_url;
+                        ResultExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
@@ -116,7 +150,7 @@ namespace PixivWPF.Pages
 
                     if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
                     {
-                        ResultIllustsExpander.Tag = next_url;
+                        ResultExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
@@ -132,7 +166,7 @@ namespace PixivWPF.Pages
 
                     if (relatives is Pixeez.Objects.Illusts &&  relatives.illusts is Array)
                     {
-                        ResultIllustsExpander.Tag = next_url;
+                        ResultExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
@@ -140,7 +174,10 @@ namespace PixivWPF.Pages
                     }
                 }
                 ResultIllusts.UpdateImageTiles(tokens);
-                if (ResultIllusts.Items.Count() == 1)
+                var no_filter = string.IsNullOrEmpty(filter);
+                var filter_string = no_filter ? string.Empty : $" ({filter.Replace("users入り", "+ Favs")})";
+                ResultExpander.Header = $"Search Results{filter_string}";
+                if (ResultIllusts.Items.Count() == 1 && no_filter)
                 {
                     ResultIllusts.SelectedIndex = 0;
                     CommonHelper.Cmd_OpenIllust.Execute(ResultIllusts);
@@ -181,7 +218,9 @@ namespace PixivWPF.Pages
                 var tag = (string)DataType;
                 ShowResultInline(tokens, tag, result_filter);
             }
-            ResultNextPage.Visibility = Visibility.Visible;
+            if(ResultNextPage is Button)
+                ResultNextPage.Visibility = Visibility.Visible;
+            //ResultExpander.IsHitTestVisible = false;
         }
 
         private void ActionOpenResult_Click(object sender, RoutedEventArgs e)
@@ -236,8 +275,8 @@ namespace PixivWPF.Pages
             {
                 var item = (string)DataType;
                 var next_url = string.Empty;
-                if (ResultIllustsExpander.Tag is string)
-                    next_url = ResultIllustsExpander.Tag as string;
+                if (ResultExpander.Tag is string)
+                    next_url = ResultExpander.Tag as string;
 
                 ShowResultInline(tokens, item, result_filter, next_url);
             }
@@ -247,9 +286,9 @@ namespace PixivWPF.Pages
         internal void UpdateDetail(string content)
         {
             DataType = content;
-            ResultIllustsExpander.Visibility = Visibility.Visible;
-            ResultIllustsExpander.IsExpanded = false;
-            ResultIllustsExpander.IsExpanded = true;
+            ResultExpander.Visibility = Visibility.Visible;
+            ResultExpander.IsExpanded = false;
+            ResultExpander.IsExpanded = true;
 
             if (CurrentWindow != null)
                 CurrentWindow.SizeToContent = SizeToContent.WidthAndHeight;
@@ -261,29 +300,59 @@ namespace PixivWPF.Pages
             if (sender == SearchFilter && SearchFilter.ContextMenu is ContextMenu)
             {
                 SearchFilter.ContextMenu.IsOpen = true;
-                return;
             }
             else
             {
-                MenuItem[] items = new MenuItem[]
+                if (sender is MenuItem)
                 {
-                    SearchFilter_00000users,
-                    SearchFilter_00100users, SearchFilter_00500users,
-                    SearchFilter_01000users, SearchFilter_03000users, SearchFilter_05000users,
-                    SearchFilter_10000users, SearchFilter_20000users, SearchFilter_30000users, SearchFilter_50000users
-                };
-                foreach (var item in items)
-                {
-                    if (item == sender)
+                    var mi = sender as MenuItem;
+                    if (mi.Name.StartsWith("ActionFilter_"))
                     {
-                        item.IsChecked = true;
-                        var filter = Regex.Replace(item.Name, @"SearchFilter_0*", "", RegexOptions.IgnoreCase);
-                        result_filter = filter.Equals("users", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"{filter}入り";
+                        foreach (MenuItem item in ActionResultFilter.Items)
+                        {
+                            if (item == sender)
+                            {
+                                item.IsChecked = true;
+                                var filter = Regex.Replace(item.Uid, @"SearchFilter_0*", "", RegexOptions.IgnoreCase);
+                                result_filter = filter.Equals("users", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"{filter}入り";
+                            }
+                            else item.IsChecked = false;
+
+                            var cmi = ContextMenuResultFilter.Items.Cast<MenuItem>().Where(o=>string.Equals(o.Uid, item.Uid, StringComparison.CurrentCultureIgnoreCase));
+                            if (cmi.Count() > 0)
+                            {
+                                if (cmi.First() is MenuItem) cmi.First().IsChecked = item.IsChecked;
+                            }
+                        }
                     }
-                    else item.IsChecked = false;
+                    else if (mi.Name.StartsWith("SearchFilter_"))
+                    {
+                        foreach (MenuItem item in ContextMenuResultFilter.Items)
+                        {
+                            if (item == sender)
+                            {
+                                item.IsChecked = true;
+                                var filter = Regex.Replace(item.Uid, @"SearchFilter_0*", "", RegexOptions.IgnoreCase);
+                                result_filter = filter.Equals("users", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"{filter}入り";
+                            }
+                            else item.IsChecked = false;
+
+                            var cmi = ActionResultFilter.Items.Cast<MenuItem>().Where(o=>string.Equals(o.Uid, item.Uid, StringComparison.CurrentCultureIgnoreCase));
+                            if (cmi.Count() > 0)
+                            {
+                                if (cmi.First() is MenuItem) cmi.First().IsChecked = item.IsChecked;
+                            }
+                        }
+                    }
+
+                    ResultExpander_Expanded(ResultExpander, new RoutedEventArgs());
                 }
-                ResultExpander_Expanded(ResultIllustsExpander, new RoutedEventArgs());
             }
+        }
+
+        private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)
+        {
+            CommonHelper.Cmd_CopyIllustIDs.Execute(ResultIllusts);
         }
     }
 }

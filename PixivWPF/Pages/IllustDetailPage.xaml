@@ -411,6 +411,11 @@
                                         <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>-->
+                                <MenuItem x:Uid="ActionNextRelativePage" Header="Open Next Page" Click="RelativeNextPage_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </ContextMenu>
                         </Common:ImageListGrid.ContextMenu>
                     </Common:ImageListGrid>
@@ -456,6 +461,11 @@
                                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <MenuItem x:Uid="ActionNextFavoritePage" Header="Open Next Page" Click="FavoriteNextPage_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>                                
                             </ContextMenu>
                         </Common:ImageListGrid.ContextMenu>
                     </Common:ImageListGrid>
