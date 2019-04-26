@@ -145,7 +145,8 @@ namespace PixivWPF.Common
                 foreach (var item in list.SelectedItems)
                 {
                     if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                       list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                        list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                        list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (item.Illust == null && item.Tag is Pixeez.Objects.User)
                             Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.User);

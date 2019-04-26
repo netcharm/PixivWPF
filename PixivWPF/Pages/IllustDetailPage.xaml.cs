@@ -165,7 +165,8 @@ namespace PixivWPF.Pages
                     var html = new StringBuilder();
                     foreach (var tag in item.Illust.Tags)
                     {
-                        html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag_full&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">{tag}</a>");
+                        //html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag_full&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">{tag}</a>");
+                        html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">{tag}</a>");
                         //html.AppendLine($"<button class=\"tag\" data-tag=\"{tag}\">{tag}</button>");
                     }
                     IllustTags.Foreground = Common.Theme.TextBrush;
@@ -666,7 +667,7 @@ namespace PixivWPF.Pages
                     link.Handled = true;
 
                     var tag  = link.Attributes["data-tag"];
-                    CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
+                    CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
                 }
             }
         }

@@ -32,21 +32,26 @@ namespace PixivWPF.Pages
 
         internal object DataType = null;
 
+        internal string result_filter = string.Empty;
+
         public SearchResultPage()
         {
             InitializeComponent();
+            SearchFilter_00000users.IsChecked = true;
         }
 
-        #region Relative Panel related routines
-        internal async void ShowRelativeInline(Pixeez.Tokens tokens, string content, string next_url = "")
+        #region Search Result Panel related routines
+        internal async void ShowResultInline(Pixeez.Tokens tokens, string content, string filter="", string next_url = "")
         {
             try
             {
                 PreviewWait.Visibility = Visibility.Visible;
 
-                RelativeIllusts.Items.Clear();
+                ResultIllusts.Items.Clear();
                 if (content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
                 {
+                    SearchFilter.Visibility = Visibility.Collapsed;
+
                     var query = Regex.Replace(content, @"^UserId: *?(\d+).*?$", "$1", RegexOptions.IgnoreCase).Trim();
                     var relatives = await tokens.GetUsersAsync(Convert.ToInt64(query));
 
@@ -54,7 +59,7 @@ namespace PixivWPF.Pages
                     {
                         foreach (var user in relatives)
                         {
-                            user.AddTo(RelativeIllusts.Items);
+                            user.AddTo(ResultIllusts.Items);
                         }
                     }
                 }
@@ -68,73 +73,77 @@ namespace PixivWPF.Pages
                     {
                         foreach(var illust in relatives)
                         {
-                            illust.AddTo(RelativeIllusts.Items, next_url);
+                            illust.AddTo(ResultIllusts.Items, next_url);
                         }
                     }
                 }
                 else if (content.StartsWith("Fuzzy:", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var query = Regex.Replace(content, @"^Fuzzy:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
+                    query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
                     var relatives = await tokens.SearchWorksAsync(query);
 
                     if (relatives is Pixeez.Objects.Paginated<Pixeez.Objects.NormalWork>)
                     {
                         foreach (var illust in relatives)
                         {
-                            illust.AddTo(RelativeIllusts.Items, next_url);
+                            illust.AddTo(ResultIllusts.Items, next_url);
                         }
                     }
                 }
                 else if (content.StartsWith("Tag:", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var query = Regex.Replace(content, @"^Tag:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
+                    query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
                     var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "exact_match_for_tags") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = relatives.next_url ?? string.Empty;
 
                     if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
                     {
-                        RelativeIllustsExpander.Tag = next_url;
+                        ResultIllustsExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
-                            illust.AddTo(RelativeIllusts.Items, relatives.next_url);
+                            illust.AddTo(ResultIllusts.Items, relatives.next_url);
                         }
                     }
                 }
                 else if (content.StartsWith("Fuzzy Tag:", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var query = Regex.Replace(content, @"^Fuzzy Tag:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
+                    query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
                     var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "partial_match_for_tags") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = relatives.next_url ?? string.Empty;
 
                     if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
                     {
-                        RelativeIllustsExpander.Tag = next_url;
+                        ResultIllustsExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
-                            illust.AddTo(RelativeIllusts.Items, relatives.next_url);
+                            illust.AddTo(ResultIllusts.Items, relatives.next_url);
                         }
                     }
                 }
                 else if (content.StartsWith("Caption:", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var query = Regex.Replace(content, @"^Caption:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
+                    query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
                     var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "title_and_caption") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = relatives.next_url ?? string.Empty;
 
                     if (relatives is Pixeez.Objects.Illusts &&  relatives.illusts is Array)
                     {
-                        RelativeIllustsExpander.Tag = next_url;
+                        ResultIllustsExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
-                            illust.AddTo(RelativeIllusts.Items, relatives.next_url);
+                            illust.AddTo(ResultIllusts.Items, relatives.next_url);
                         }
                     }
                 }
-                RelativeIllusts.UpdateImageTiles(tokens);
-                if (RelativeIllusts.Items.Count() == 1)
+                ResultIllusts.UpdateImageTiles(tokens);
+                if (ResultIllusts.Items.Count() == 1)
                 {
-                    RelativeIllusts.SelectedIndex = 0;
-                    CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+                    ResultIllusts.SelectedIndex = 0;
+                    CommonHelper.Cmd_OpenIllust.Execute(ResultIllusts);
                     if (window != null)
                         window.Close();
                 }
@@ -162,7 +171,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void RelativeIllustsExpander_Expanded(object sender, RoutedEventArgs e)
+        private async void ResultExpander_Expanded(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
@@ -170,55 +179,55 @@ namespace PixivWPF.Pages
             if (DataType is string)
             {
                 var tag = (string)DataType;
-                ShowRelativeInline(tokens, tag);
+                ShowResultInline(tokens, tag, result_filter);
             }
-            RelativeNextPage.Visibility = Visibility.Visible;
+            ResultNextPage.Visibility = Visibility.Visible;
         }
 
-        private void ActionOpenRelative_Click(object sender, RoutedEventArgs e)
+        private void ActionOpenResult_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+            CommonHelper.Cmd_OpenIllust.Execute(ResultIllusts);
         }
 
-        private void ActionSaveRelative_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void ActionSaveAllRelative_Click(object sender, RoutedEventArgs e)
+        private void ActionSaveResult_Click(object sender, RoutedEventArgs e)
         {
 
         }
 
-        private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ActionSaveAllResult_Click(object sender, RoutedEventArgs e)
         {
 
         }
 
-        private void RelativeIllusts_MouseWheel(object sender, MouseWheelEventArgs e)
+        private void ResultIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
         }
 
-        private void RelativeIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void ResultIllusts_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+
         }
 
-        private void RelativeIllusts_KeyUp(object sender, KeyEventArgs e)
+        private void ResultIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            CommonHelper.Cmd_OpenIllust.Execute(ResultIllusts);
+        }
+
+        private void ResultIllusts_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+                CommonHelper.Cmd_OpenIllust.Execute(ResultIllusts);
             }
         }
 
-        private void RelativePrevPage_Click(object sender, RoutedEventArgs e)
+        private void SearchResultPrevPage_Click(object sender, RoutedEventArgs e)
         {
 
         }
 
-        private async void RelativeNextPage_Click(object sender, RoutedEventArgs e)
+        private async void ResultNextPage_Click(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
@@ -227,24 +236,54 @@ namespace PixivWPF.Pages
             {
                 var item = (string)DataType;
                 var next_url = string.Empty;
-                if (RelativeIllustsExpander.Tag is string)
-                    next_url = RelativeIllustsExpander.Tag as string;
-                ShowRelativeInline(tokens, item, next_url);
+                if (ResultIllustsExpander.Tag is string)
+                    next_url = ResultIllustsExpander.Tag as string;
+
+                ShowResultInline(tokens, item, result_filter, next_url);
             }
-            RelativeNextPage.Visibility = Visibility.Visible;
+            ResultNextPage.Visibility = Visibility.Visible;
         }
 
         internal void UpdateDetail(string content)
         {
             DataType = content;
-            RelativeIllustsExpander.Visibility = Visibility.Visible;
-            RelativeIllustsExpander.IsExpanded = false;
-            RelativeIllustsExpander.IsExpanded = true;
+            ResultIllustsExpander.Visibility = Visibility.Visible;
+            ResultIllustsExpander.IsExpanded = false;
+            ResultIllustsExpander.IsExpanded = true;
 
             if (CurrentWindow != null)
                 CurrentWindow.SizeToContent = SizeToContent.WidthAndHeight;
         }
         #endregion
 
+        private void SearchFilter_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender == SearchFilter && SearchFilter.ContextMenu is ContextMenu)
+            {
+                SearchFilter.ContextMenu.IsOpen = true;
+                return;
+            }
+            else
+            {
+                MenuItem[] items = new MenuItem[]
+                {
+                    SearchFilter_00000users,
+                    SearchFilter_00100users, SearchFilter_00500users,
+                    SearchFilter_01000users, SearchFilter_03000users, SearchFilter_05000users,
+                    SearchFilter_10000users, SearchFilter_20000users, SearchFilter_30000users, SearchFilter_50000users
+                };
+                foreach (var item in items)
+                {
+                    if (item == sender)
+                    {
+                        item.IsChecked = true;
+                        var filter = Regex.Replace(item.Name, @"SearchFilter_0*", "", RegexOptions.IgnoreCase);
+                        result_filter = filter.Equals("users", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"{filter}入り";
+                    }
+                    else item.IsChecked = false;
+                }
+                ResultExpander_Expanded(ResultIllustsExpander, new RoutedEventArgs());
+            }
+        }
     }
 }

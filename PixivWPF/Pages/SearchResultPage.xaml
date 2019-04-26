@@ -20,19 +20,19 @@
                 </Grid.RowDefinitions>
 
                 <!-- Illust Relatives -->
-                <Expander Grid.Row="0" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander"
+                <Expander Grid.Row="0" x:Name="ResultIllustsExpander" x:Uid="ResultIllustsExpander"
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Visible" Header="Search Results"
-                          Expanded="RelativeIllustsExpander_Expanded">
-                    <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="IllustsWithTag"
+                          Expanded="ResultExpander_Expanded">
+                    <Common:ImageListGrid x:Name="ResultIllusts" x:Uid="IllustsWithTag"
                                           Columns="5" TileWidth="128" TileHeight="128"
                                           SelectionMode="Extended"
-                                          SelectionChanged="RelativeIllusts_SelectionChanged" 
-                                          MouseDoubleClick="RelativeIllusts_MouseDoubleClick" 
-                                          KeyUp="RelativeIllusts_KeyUp">
+                                          SelectionChanged="ResultIllusts_SelectionChanged" 
+                                          MouseDoubleClick="ResultIllusts_MouseDoubleClick" 
+                                          KeyUp="ResultIllusts_KeyUp">
                         <Common:ImageListGrid.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Uid="ActionOpenRelative" Header="Open Selected Illust(s)" Click="ActionOpenRelative_Click"/>
+                                <MenuItem x:Uid="ActionOpenResult" Header="Open Selected Illust(s)" Click="ActionOpenResult_Click"/>
                                 <!--<Separator/>
                                 <MenuItem x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click"/>
                                 <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>-->
@@ -45,14 +45,36 @@
                             Style="{DynamicResource MetroCircleButtonStyle}"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="24" Height="24" HorizontalAlignment="Right"
-                            Click="RelativePrevPage_Click">
+                            Click="SearchResultPrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
-                    <Button x:Name="RelativeNextPage"
+                    <Button x:Name="SearchFilter"
                             Style="{DynamicResource MetroCircleButtonStyle}"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="24" Height="24" HorizontalAlignment="Right"
-                            Click="RelativeNextPage_Click">
+                            Margin="0,0,4,0"
+                            Click="SearchFilter_Click">
+                        <iconPacks:PackIconModern Kind="Filter" />
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="SearchFilter_00000users" x:Uid="SearchFilter_00000users" Header="No Filter" Click="SearchFilter_Click"/>
+                                <MenuItem x:Name="SearchFilter_00100users" x:Uid="SearchFilter_00100users" Header="100users入り" Click="SearchFilter_Click"/>
+                                <MenuItem x:Name="SearchFilter_00500users" x:Uid="SearchFilter_00500users" Header="500users入り" Click="SearchFilter_Click"/>
+                                <MenuItem x:Name="SearchFilter_01000users" x:Uid="SearchFilter_01000users" Header="1000users入り" Click="SearchFilter_Click"/>
+                                <MenuItem x:Name="SearchFilter_03000users" x:Uid="SearchFilter_03000users" Header="3000users入り" Click="SearchFilter_Click"/>
+                                <MenuItem x:Name="SearchFilter_05000users" x:Uid="SearchFilter_05000users" Header="5000users入り" Click="SearchFilter_Click"/>
+                                <MenuItem x:Name="SearchFilter_10000users" x:Uid="SearchFilter_10000users" Header="10000users入り" Click="SearchFilter_Click"/>
+                                <MenuItem x:Name="SearchFilter_20000users" x:Uid="SearchFilter_20000users" Header="20000users入り" Click="SearchFilter_Click"/>
+                                <MenuItem x:Name="SearchFilter_30000users" x:Uid="SearchFilter_30000users" Header="30000users入り" Click="SearchFilter_Click"/>
+                                <MenuItem x:Name="SearchFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000users入り" Click="SearchFilter_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                    <Button x:Name="ResultNextPage"
+                            Style="{DynamicResource MetroCircleButtonStyle}"
+                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Width="24" Height="24" HorizontalAlignment="Right"
+                            Click="ResultNextPage_Click">
                         <iconPacks:PackIconModern Kind="NavigateNext" />
                     </Button>
                 </StackPanel>
