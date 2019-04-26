@@ -82,6 +82,11 @@ namespace PixivWPF.Pages
                 PreviewWait.Visibility = Visibility.Visible;
 
                 ResultIllusts.Items.Clear();
+
+                var no_filter = string.IsNullOrEmpty(filter);
+                var filter_string = no_filter ? string.Empty : $" ({filter.Replace("users入り", "+ Favs")})";
+                ResultExpander.Header = $"Search Results{filter_string}";
+
                 if (content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
                 {
                     SearchFilter.Visibility = Visibility.Collapsed;
@@ -174,9 +179,7 @@ namespace PixivWPF.Pages
                     }
                 }
                 ResultIllusts.UpdateImageTiles(tokens);
-                var no_filter = string.IsNullOrEmpty(filter);
-                var filter_string = no_filter ? string.Empty : $" ({filter.Replace("users入り", "+ Favs")})";
-                ResultExpander.Header = $"Search Results{filter_string}";
+
                 if (ResultIllusts.Items.Count() == 1 && no_filter)
                 {
                     ResultIllusts.SelectedIndex = 0;
@@ -221,6 +224,11 @@ namespace PixivWPF.Pages
             if(ResultNextPage is Button)
                 ResultNextPage.Visibility = Visibility.Visible;
             //ResultExpander.IsHitTestVisible = false;
+        }
+
+        private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)
+        {
+            CommonHelper.Cmd_CopyIllustIDs.Execute(ResultIllusts);
         }
 
         private void ActionOpenResult_Click(object sender, RoutedEventArgs e)
@@ -297,6 +305,8 @@ namespace PixivWPF.Pages
 
         private void SearchFilter_Click(object sender, RoutedEventArgs e)
         {
+            e.Handled = true;
+
             if (sender == SearchFilter && SearchFilter.ContextMenu is ContextMenu)
             {
                 SearchFilter.ContextMenu.IsOpen = true;
@@ -350,9 +360,5 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)
-        {
-            CommonHelper.Cmd_CopyIllustIDs.Execute(ResultIllusts);
-        }
     }
 }
