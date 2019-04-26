@@ -667,7 +667,15 @@ namespace PixivWPF.Pages
                     link.Handled = true;
 
                     var tag  = link.Attributes["data-tag"];
-                    CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
+                    if(Keyboard.Modifiers == ModifierKeys.Control)
+                        CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
+                    else
+                        CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
+
+                    //if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                    //    CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
+                    //else
+                    //    CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
                 }
             }
         }
