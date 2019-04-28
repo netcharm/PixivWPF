@@ -39,10 +39,10 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <!-- Illust Preview -->
-                <Viewbox Grid.Row="0" StretchDirection="DownOnly">
-                    <Image x:Name="Preview" x:Uid="Preview" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Viewbox Grid.Row="0" x:Name="PreviewViewer" StretchDirection="DownOnly">
+                    <Image x:Name="Preview" x:Uid="Preview" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"/>
                 </Viewbox>
-                <ContentControl Grid.Row="0">
+                <ContentControl Grid.Row="0" x:Name="PreviewBox" >
                     <Rectangle  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" MouseLeftButtonDown="Preview_MouseDoubleClick">
                         <Rectangle.ContextMenu>
                             <ContextMenu>
@@ -109,6 +109,17 @@
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center"/>
 
+                    <StackPanel Grid.Row="0" Grid.Column="1" x:Name="IllustDateInfo" Visibility="Collapsed"
+                                HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
+                        <iconPacks:PackIconModern Kind="CalendarDay" x:Name="IllustDateIcon"
+                                              HorizontalAlignment="Right" VerticalAlignment="Center"
+                                              Foreground="{DynamicResource AccentColorBrush}" 
+                                              Width="16" Height="16"/>
+                        <TextBlock x:Name="IllustDate" Margin="2,0,4,0" 
+                               Foreground="{DynamicResource LabelTextBrush}"
+                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    
                     <StackPanel Grid.Row="1" Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
                         <iconPacks:PackIconModern Kind="ImageAnts" x:Name="IllustSizeIcon"

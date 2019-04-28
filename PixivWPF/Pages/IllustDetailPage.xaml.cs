@@ -97,6 +97,8 @@ namespace PixivWPF.Pages
                 Preview.Source = new WriteableBitmap(300, 300, dpi.X, dpi.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
                 PreviewWait.Visibility = Visibility.Visible;
 
+                PreviewBox.ToolTip = item.ToolTip;
+
                 string stat_viewed = "????";
                 string stat_favorited = "????";
                 var stat_tip = new List<string>();
@@ -132,6 +134,10 @@ namespace PixivWPF.Pages
                 IllustAuthorAvatorWait.Visibility = Visibility.Visible;
 
                 IllustTitle.Text = $"{item.Illust.Title}";
+
+                IllustDate.Text = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:ss");
+                IllustDateInfo.Visibility = Visibility.Visible;
+
                 ActionCopyIllustDate.Header = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:sszzz");
 
                 FollowAuthor.Visibility = Visibility.Visible;
