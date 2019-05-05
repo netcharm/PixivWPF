@@ -260,6 +260,14 @@ namespace PixivWPF.Common
                 }
                 Clipboard.SetText(string.Join("\n", ids));
             }
+            else if (obj is ImageItem)
+            {
+                var item = obj as ImageItem;
+                if (item.Illust is Pixeez.Objects.Work)
+                {
+                    Clipboard.SetText(item.ID);
+                }
+            }
         });
 
         public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(obj => {

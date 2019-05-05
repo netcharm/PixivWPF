@@ -36,6 +36,11 @@
                             <VirtualizingStackPanel Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
                     </ContextMenu.ItemsPanel>-->
+                    <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionIllustInfo_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <MenuItem x:Name="ActionViewPrevPage" x:Uid="ActionViewPrevPage" Header="Previous Page" Click="ActionViewPrevPage_Click">
                         <MenuItem.Icon>
                             <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0" />

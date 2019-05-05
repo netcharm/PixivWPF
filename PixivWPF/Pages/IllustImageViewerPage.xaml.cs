@@ -1,4 +1,5 @@
-﻿using PixivWPF.Common;
+﻿using MahApps.Metro.Controls;
+using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -155,14 +156,6 @@ namespace PixivWPF.Pages
         public IllustImageViewerPage()
         {
             InitializeComponent();
-            window = Window.GetWindow(this);
-            if(window is Window)
-            {
-                //window.KeyUp += Preview_KeyUp;
-                window.PreviewKeyUp += Page_PreviewKeyUp;
-                window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
-                window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom;
-            }
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
@@ -170,10 +163,10 @@ namespace PixivWPF.Pages
             window = Window.GetWindow(this);
             if (window is Window)
             {
-                //window.KeyUp += Preview_KeyUp;
-                window.PreviewKeyUp += Page_PreviewKeyUp;
+                btnViewPrevPage.Focus();
+                var titleheight = window is MetroWindow ? (window as MetroWindow).TitlebarHeight : 0;
                 window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
-                window.Height -= 2 * (window.BorderThickness.Top + window.BorderThickness.Bottom);
+                window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom + (32 - titleheight % 32);
             }
         }
 
@@ -271,6 +264,11 @@ namespace PixivWPF.Pages
                 var btn = sender as Button;
                 btn.BorderThickness = new Thickness(0);
             }
+        }
+
+        private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
+        {
+            CommonHelper.Cmd_CopyIllustIDs.Execute(DataType);
         }
 
         private void ActionViewPrevPage_Click(object sender, RoutedEventArgs e)
