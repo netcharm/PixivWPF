@@ -160,6 +160,20 @@ namespace PixivWPF.Pages
             {
                 //window.KeyUp += Preview_KeyUp;
                 window.PreviewKeyUp += Page_PreviewKeyUp;
+                window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
+                window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom;
+            }
+        }
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            window = Window.GetWindow(this);
+            if (window is Window)
+            {
+                //window.KeyUp += Preview_KeyUp;
+                window.PreviewKeyUp += Page_PreviewKeyUp;
+                window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
+                window.Height -= 2 * (window.BorderThickness.Top + window.BorderThickness.Bottom);
             }
         }
 
@@ -311,6 +325,5 @@ namespace PixivWPF.Pages
                 PreviewWait.Visibility = Visibility.Hidden;
             }
         }
-
     }
 }

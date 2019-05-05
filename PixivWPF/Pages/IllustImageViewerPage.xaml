@@ -9,7 +9,7 @@
       mc:Ignorable="d" 
       d:DesignHeight="320" d:DesignWidth="320"
       Title="IllustImageViewerPage" 
-      PreviewKeyUp="Page_PreviewKeyUp">
+      PreviewKeyUp="Page_PreviewKeyUp" Loaded="Page_Loaded">
 
     <Grid>
         <Grid.RowDefinitions>
