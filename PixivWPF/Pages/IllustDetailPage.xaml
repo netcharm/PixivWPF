@@ -18,7 +18,7 @@
       AllowDrop="True"
       d:DesignHeight="300" d:DesignWidth="300"
       Title="IllustDetailPage">
-
+   
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition MinWidth="692"/>
@@ -353,6 +353,20 @@
                                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <MenuItem x:Uid="ActionPrevSubIllustPage" Header="Open Prev Page" 
+                                          Visibility="{Binding Path=Visibility, Source={x:Reference btnSubIllustPrevPages}, Mode=OneWay, IsAsync=True}" 
+                                          Click="ActionPrevSubIllustPage_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Uid="ActionNextSubIllustPage" Header="Open Next Page"
+                                          Visibility="{Binding Path=Visibility, Source={x:Reference btnSubIllustNextPages}, Mode=OneWay, IsAsync=True}" 
+                                          Click="ActionNextSubIllustPage_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <Separator/>
                                 <MenuItem x:Uid="ActionSaveIllust" 
                                           Header="Save Selected Illusts" Click="ActionSaveIllust_Click">
@@ -371,14 +385,14 @@
                     </Common:ImageListGrid>
                 </Expander>
                 <StackPanel Grid.Row="4" Orientation="Horizontal" x:Name="SubIllustsNavPanel" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
-                    <Button x:Name="btnSubIllustPrevPages" Visibility="Collapsed"
+                    <Button Name="btnSubIllustPrevPages" Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"
                             Click="SubIllustPagesNav_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
-                    <Button x:Name="btnSubIllustNextPages" Visibility="Collapsed"
+                    <Button Name="btnSubIllustNextPages" Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"

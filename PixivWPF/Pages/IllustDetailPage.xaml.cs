@@ -457,7 +457,7 @@ namespace PixivWPF.Pages
                         else
                             btnSubIllustPrevPages.Visibility = Visibility.Visible;
 
-                        if ((int)btnSubIllustNextPages.Tag >= total - 1)
+                        if ((int)btnSubIllustNextPages.Tag > total - 1)
                             btnSubIllustNextPages.Visibility = Visibility.Collapsed;
                         else
                             btnSubIllustNextPages.Visibility = Visibility.Visible;
@@ -531,7 +531,6 @@ namespace PixivWPF.Pages
             {
                 IllustDetailWait.Visibility = Visibility.Collapsed;
             }
-
         }
 
         internal async void ShowRelativeInline(Pixeez.Tokens tokens, ImageItem item, string next_url="")
@@ -1256,6 +1255,7 @@ namespace PixivWPF.Pages
                 if (btn.Tag is int)
                 {
                     var start = (int)btn.Tag;
+                    if (start < 0) return;
 
                     var tokens = await CommonHelper.ShowLogin();
                     if (tokens == null) return;
@@ -1263,8 +1263,49 @@ namespace PixivWPF.Pages
                     if (DataObject is ImageItem)
                     {
                         var item = DataObject as ImageItem;
-                        ShowIllustPages(tokens, item, start);
+                        if (start < item.Count)
+                            ShowIllustPages(tokens, item, start);
                     }
+                }
+            }
+        }
+
+        private async void ActionPrevSubIllustPage_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = btnSubIllustPrevPages;
+            if (btn.Tag is int)
+            {
+                var start = (int)btn.Tag;
+                if (start < 0) return;
+
+                var tokens = await CommonHelper.ShowLogin();
+                if (tokens == null) return;
+
+                if (DataObject is ImageItem)
+                {
+                    var item = DataObject as ImageItem;
+                    if (start < item.Count)
+                        ShowIllustPages(tokens, item, start);
+                }
+            }
+        }
+
+        private async void ActionNextSubIllustPage_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = btnSubIllustNextPages;
+            if (btn.Tag is int)
+            {
+                var start = (int)btn.Tag;
+                if (start < 0) return;
+
+                var tokens = await CommonHelper.ShowLogin();
+                if (tokens == null) return;
+
+                if (DataObject is ImageItem)
+                {
+                    var item = DataObject as ImageItem;
+                    if (start < item.Count)
+                        ShowIllustPages(tokens, item, start);
                 }
             }
         }

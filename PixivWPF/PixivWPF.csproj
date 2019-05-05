@@ -243,6 +243,7 @@
   <ItemGroup>
     <Content Include="Assets\pixiv-logo.png" />
     <Content Include="Assets\pixiv-logo.svg" />
+    <Resource Include="pixiv-logo.ico" />
     <Resource Include="Resources\CheckboardPattern_32.png" />
     <Resource Include="Resources\pixiv-logo.png" />
     <Resource Include="Resources\pixiv-icon.ico" />

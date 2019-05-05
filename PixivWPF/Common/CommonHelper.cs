@@ -200,7 +200,8 @@ namespace PixivWPF.Common
                 var illust = obj as Pixeez.Objects.Work;
 
                 var url = illust.GetThumbnailUrl();
-                var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
+                var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
+                tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{tooltip}";
                 var item = new ImageItem()
                 {
                     Thumb = url,
@@ -214,7 +215,7 @@ namespace PixivWPF.Common
                     Subject = illust.Title,
                     DisplayTitle = true,
                     Caption = illust.Caption,
-                    ToolTip = tooltip,
+                    ToolTip = $"{illust.GetDateTime()}{tooltip}",
                     Illust = illust,
                     Tag = illust
                 };
