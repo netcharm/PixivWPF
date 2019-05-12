@@ -466,6 +466,7 @@
                 <Expander Grid.Row="6" x:Name="FavoriteIllustsExpander" x:Uid="RelativeIllustsExpander" Margin="0, 4, 0, 0" 
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Collapsed" Header="Author Favorites Gallery"
+                          Collapsed="FavoriteIllustsExpander_Collapsed"
                           Expanded="FavoriteIllustsExpander_Expanded">
                     <Common:ImageListGrid x:Name="FavoriteIllusts" x:Uid="RelativeIllusts"
                                           Columns="5" TileWidth="128" TileHeight="128"

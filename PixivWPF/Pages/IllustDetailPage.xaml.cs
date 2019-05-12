@@ -607,6 +607,7 @@ namespace PixivWPF.Pages
             }
         }
 
+        private string last_restrict = string.Empty;
         internal async void ShowFavoriteInline(Pixeez.Tokens tokens, Pixeez.Objects.UserBase user, string next_url = "")
         {
             try
@@ -614,11 +615,19 @@ namespace PixivWPF.Pages
                 IllustDetailWait.Visibility = Visibility.Visible;
                 FavoriteIllusts.Items.Clear();
 
-                var lastUrl = next_url;
-                var relatives = string.IsNullOrEmpty(next_url) ? await tokens.GetUserFavoriteWorksAsync(user.Id.Value) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
-                next_url = relatives.next_url ?? string.Empty;
+                Setting setting = Setting.Load();
 
-                if (relatives.illusts is Array)
+                var lastUrl = next_url;
+                //var restrict = setting.MyInfo is Pixeez.Objects.UserBase &&  setting.MyInfo.Id.Value == user.Id.Value ? "public" : "private";
+                var restrict = Keyboard.Modifiers == ModifierKeys.Alt ? "private" : "public";
+                if (!last_restrict.Equals(restrict, StringComparison.CurrentCultureIgnoreCase)) next_url = string.Empty;
+                FavoriteIllustsExpander.Header = $"Favorite ({System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(restrict)})";
+
+                var favorites = string.IsNullOrEmpty(next_url) ? await tokens.GetUserFavoriteWorksAsync(user.Id.Value, restrict) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                next_url = favorites.next_url ?? string.Empty;
+                last_restrict = restrict;
+
+                if (favorites.illusts is Array)
                 {
                     //if (relatives.illusts.Length < 30) FavoriteNextPage.Visibility = Visibility.Collapsed;
                     //else 
@@ -627,9 +636,9 @@ namespace PixivWPF.Pages
                     else FavoriteNextPage.Visibility = Visibility.Visible;
 
                     FavoriteIllustsExpander.Tag = next_url;
-                    foreach (var illust in relatives.illusts)
+                    foreach (var illust in favorites.illusts)
                     {
-                        illust.AddTo(FavoriteIllusts.Items, relatives.next_url);
+                        illust.AddTo(FavoriteIllusts.Items, favorites.next_url);
                     }
                     FavoriteIllusts.UpdateImageTiles(tokens);
                 }
@@ -869,6 +878,7 @@ namespace PixivWPF.Pages
 
                     var item = DataObject as ImageItem;
                     var user = item.Illust.User;
+
                     page.UpdateDetail(user);
                     viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
 
@@ -1423,6 +1433,11 @@ namespace PixivWPF.Pages
             FavoriteNextPage.Visibility = Visibility.Visible;
         }
 
+        private void FavoriteIllustsExpander_Collapsed(object sender, RoutedEventArgs e)
+        {
+            FavoriteIllustsExpander.Header = "Favorite";
+        }
+
         private void ActionOpenFavorite_Click(object sender, RoutedEventArgs e)
         {
             CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
@@ -1485,10 +1500,7 @@ namespace PixivWPF.Pages
             }
             FavoriteNextPage.Visibility = Visibility.Visible;
         }
-
-
         #endregion
-
     }
 
 }

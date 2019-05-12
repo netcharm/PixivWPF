@@ -157,28 +157,16 @@ namespace PixivWPF.Pages
         {
             if (window == null) window = this.GetActiveWindow();
 
-            if (TargetPage != target)
+            if (target != PixivPage.My && TargetPage != target)
             {
                 NextURL = null;
                 TargetPage = target;
                 ImageList.Clear();
             }
-            if (!IsAppend)
+            if (target != PixivPage.My && !IsAppend)
             {
                 NextURL = null;
                 ImageList.Clear();
-            }
-            else if(ImageList.Count >= 90)
-            {
-                //ListImageTiles.SelectedIndex = -1;
-                //var items = new ObservableCollection<ImageItem>();
-                //foreach (var item in ImageList.Skip(30))
-                //{
-                //    items.Add(item);
-                //}
-                //ImageList = items;
-                //ListImageTiles.ItemsSource = items;
-                //ListImageTiles.Items.Refresh();
             }
 
             switch (target)
@@ -193,6 +181,11 @@ namespace PixivWPF.Pages
                     break;
                 case PixivPage.TrendingTags:
                     ShowTrendingTags(NextURL);
+                    break;
+                case PixivPage.Feeds:
+#if DEBUG
+                    ShowFeeds(NextURL);
+#endif
                     break;
                 case PixivPage.Favorite:
                     ShowFavorite(NextURL, false);
@@ -385,6 +378,102 @@ namespace PixivWPF.Pages
                     }
                     ImageTilesWait.Visibility = Visibility.Hidden;
                     if (root.tags.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                    UpdateImageTiles(tokens);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowMessageBox("INFO");
+                }
+                else
+                {
+                    ex.Message.ShowMessageBox("ERROR");
+                }
+            }
+            finally
+            {
+                ImageTilesWait.Visibility = Visibility.Hidden;
+            }
+        }
+
+        public async void ShowFeeds(long uid, string nexturl = null)
+        {
+            ImageTilesWait.Visibility = Visibility.Visible;
+            var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Visibility = Visibility.Hidden;
+            if (tokens == null) return;
+
+            try
+            {
+                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
+
+                ImageTilesWait.Visibility = Visibility.Visible;
+                var root = await tokens.GetMyFeedsAsync(uid);
+                nexturl = string.Empty;
+                NextURL = nexturl;
+                ImageTilesWait.Visibility = Visibility.Hidden;
+
+                if (root != null)
+                {
+                    ImageTilesWait.Visibility = Visibility.Visible;
+                    foreach (var feed in root)
+                    {
+                        feed.User.AddTo(ImageList);
+                        //tag.illust.AddTo(ImageList, nexturl);
+                    }
+                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                    UpdateImageTiles(tokens);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowMessageBox("INFO");
+                }
+                else
+                {
+                    ex.Message.ShowMessageBox("ERROR");
+                }
+            }
+            finally
+            {
+                ImageTilesWait.Visibility = Visibility.Hidden;
+            }
+        }
+
+        public async void ShowFeeds(string nexturl = null)
+        {
+            ImageTilesWait.Visibility = Visibility.Visible;
+            var force = setting.MyInfo is Pixeez.Objects.User ? false : true;
+            var tokens = await CommonHelper.ShowLogin(force);
+            ImageTilesWait.Visibility = Visibility.Hidden;
+            if (tokens == null) return;
+
+            try
+            {
+                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
+                var uid = setting.MyInfo is Pixeez.Objects.User ? setting.MyInfo.Id.Value : 0;
+
+                ImageTilesWait.Visibility = Visibility.Visible;
+                var root = await tokens.GetMyFeedsAsync(uid);
+                nexturl = string.Empty;
+                NextURL = nexturl;
+                ImageTilesWait.Visibility = Visibility.Hidden;
+
+                if (root != null)
+                {
+                    ImageTilesWait.Visibility = Visibility.Visible;
+                    foreach (var feed in root)
+                    {
+                        feed.User.AddTo(ImageList);
+                        //tag.illust.AddTo(ImageList, nexturl);
+                    }
+                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles(tokens);
                 }
             }
@@ -604,11 +693,14 @@ namespace PixivWPF.Pages
 
         public async void ShowUser(long uid, bool IsPrivate=false)
         {
-            var tokens = await CommonHelper.ShowLogin();
+            var force = uid == 0 && setting.MyInfo is Pixeez.Objects.User ? false : true;
+            var tokens = await CommonHelper.ShowLogin(force);
             if (tokens == null) return;
 
-            if(IsPrivate && setting.MyInfo is Pixeez.Objects.User)
+            if ((IsPrivate || uid == 0) && setting.MyInfo is Pixeez.Objects.User)
             {
+                uid = setting.MyInfo.Id.Value;
+
                 var viewer = new ContentWindow();
                 var page = new IllustDetailPage();
 

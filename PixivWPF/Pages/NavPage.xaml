@@ -18,6 +18,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
         <StackPanel Grid.Row="0" VerticalAlignment="Top">
@@ -40,6 +42,11 @@
 
             <!-- User Following -->
             <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,2"/>
+            <ToggleButton x:Name="btnGotoFeeds" x:Uid="btnGotoFeeds" Margin="0,1,0,0"
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="My Feeds" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoFollowing" x:Uid="btnGotoFollowing" 
                     Foreground="{DynamicResource IdealForegroundColorBrush}"
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
@@ -183,6 +190,14 @@
                     Click="ToggleTheme_Click" 
                     mah:ControlsHelper.ContentCharacterCasing="Normal"
                     mah:ButtonHelper.PreserveTextCase="True"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="5" >
+            <ToggleButton x:Name="btnGotoMy" x:Uid="btnGotoMy" Margin="0,1,0,0"
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="My Infomation" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
         </StackPanel>
     </Grid>
 </Page>

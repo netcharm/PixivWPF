@@ -36,6 +36,7 @@ namespace PixivWPF.Common
         MyWork,
         User,
         UserWork,
+        Feeds,
         Favorite,
         FavoritePrivate,
         Follow,
@@ -370,6 +371,7 @@ namespace PixivWPF.Common
                 setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
                 setting.ExpiresIn = authResult.Authorize.ExpiresIn.Value;
                 setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
+                setting.MyInfo = authResult.Authorize.User;
                 setting.Save();
                 result = authResult.Tokens;
             }
@@ -385,6 +387,7 @@ namespace PixivWPF.Common
                         setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
                         setting.ExpiresIn = authResult.Authorize.ExpiresIn.Value;
                         setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
+                        setting.MyInfo = authResult.Authorize.User;
                         setting.Save();
                         result = authResult.Tokens;
                     }

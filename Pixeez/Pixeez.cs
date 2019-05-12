@@ -666,7 +666,6 @@ namespace Pixeez
         public async Task<List<Feed>> GetMyFeedsAsync(long maxId = 0, bool showR18 = true)
         {
             var url = "https://public-api.secure.pixiv.net/v1/me/feeds.json";
-
             var param = new Dictionary<string, string>
             {
                 { "relation", "all" } ,
@@ -678,6 +677,17 @@ namespace Pixeez
                 param.Add("max_id", maxId.ToString());
 
             return await this.AccessApiAsync<List<Feed>>(MethodType.GET, url, param);
+        }
+
+        public async Task<List<Feed>> GetMyFeedsAsync(long user_id = 0)
+        {
+            var url = "https://public-api.secure.pixiv.net/v1/user/related";
+            var param = new Dictionary<string, string>
+            {
+                { "seed_user_id", user_id.ToString() } ,
+                { "filter", "for_ios" } ,
+            };
+            return await AccessNewApiAsync<List<Feed>>(url, true, param);
         }
 
         /// <summary>
@@ -844,7 +854,7 @@ namespace Pixeez
         //    await SendRequestWithoutAuthAsync(MethodType.GET, "https://app-api.pixiv.net/v2/illust/follow", param: dic, needauth: true);
         //}
 
-        //public async Task GetMyFollowingUsers(string authorid,int page= 1,int per_page= 30)
+        //public async Task GetMyFollowingUsers(string authorid, int page = 1, int per_page = 30)
         //{
         //    string url = "https://public-api.secure.pixiv.net/v1/users/"+ authorid +"/following.json";
         //    await SendRequestWithAuthAsync(MethodType.GET, url, new Dictionary<string, string> { { "page", page.ToString() }, { "per_page", per_page.ToString() } });
@@ -859,6 +869,7 @@ namespace Pixeez
         /// <para>- <c>bool</c> includeSanityLevel (optional)</para>
         /// </summary>
         /// <returns>UsersWorks. (Pagenated)</returns>
+        /// 
         public async Task<RecommendedRootobject> GetMyFollowingWorksAsync(string restrict = "public", int? offset = null)
         {
             var url = "https://app-api.pixiv.net/v2/illust/follow";
@@ -871,6 +882,21 @@ namespace Pixeez
                 param.Add("offset", offset.Value.ToString());
 
             return await this.AccessNewApiAsync<RecommendedRootobject>(url, dic: param);
+        }
+
+        public async Task<List<User>> GetMyFollowingUsers(long authorid, string restrict = "public", int? offset = null)
+        {
+            //var url = "https://app-api.pixiv.net/v2/illust/follow";
+            var url = "https://public-api.secure.pixiv.net/v1/users/"+ authorid +"/following.json";
+
+            var param = new Dictionary<string, string>
+            {
+                { "restrict", restrict } ,
+            };
+            if (offset.HasValue)
+                param.Add("offset", offset.Value.ToString());
+
+            return await this.AccessNewApiAsync<List<User>>(url, dic: param);
         }
         #endregion
 

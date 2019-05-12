@@ -35,7 +35,7 @@ namespace PixivWPF.Pages
         {
             ToggleButton[] btns = new ToggleButton[] {
                 btnGotoRecommended, btnGotoLatest, btnGotoTrendingTags,
-                btnGotoFollowing, btnGotoFollowingPrivate,
+                btnGotoMy, btnGotoFeeds, btnGotoFollowing, btnGotoFollowingPrivate,
                 btnGotoFavorite, btnGotoFavoritePrivate,
                 btnGotoRankingDay, btnGotoRankingDayMale, btnGotoRankingDayFemale, btnGotoRankingDayR18, btnGotoRankingDayMaleR18, btnGotoRankingDayFemaleR18,
                 btnGotoRankingWeek, btnGotoRankingWeekOriginal, btnGotoRankingWeekRookie, btnGotoRankingWeekR18, btnGotoRankingWeekR18G,
@@ -51,6 +51,14 @@ namespace PixivWPF.Pages
             else if (page == PixivPage.TrendingTags)
             {
                 sender = btnGotoTrendingTags;
+            }
+            else if (page == PixivPage.My)
+            {
+                sender = btnGotoMy;
+            }
+            else if (page == PixivPage.Feeds)
+            {
+                sender = btnGotoFeeds;
             }
             else if (page == PixivPage.Follow)
             {
@@ -161,6 +169,11 @@ namespace PixivWPF.Pages
 
             ToggleOnBG = Theme.AccentBrush;
 
+#if DEBUG
+            btnGotoFeeds.Visibility = Visibility.Visible;
+#else
+            btnGotoFeeds.Visibility = Visibility.Collapsed;
+#endif
             CheckPage();
         }
 
@@ -184,6 +197,14 @@ namespace PixivWPF.Pages
             else if (sender == btnGotoTrendingTags)
             {
                 page = PixivPage.TrendingTags;
+            }
+            else if (sender == btnGotoMy)
+            {
+                page = PixivPage.My;
+            }
+            else if (sender == btnGotoFeeds)
+            {
+                page = PixivPage.Feeds;
             }
             else if (sender == btnGotoFollowing)
             {

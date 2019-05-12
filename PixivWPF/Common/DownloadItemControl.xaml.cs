@@ -541,7 +541,10 @@ namespace PixivWPF.Common
                 if (btn.Tag is string)
                 {
                     var image = Path.GetDirectoryName((string)btn.Tag);
-                    System.Diagnostics.Process.Start(image);
+                    if (Directory.Exists(image))
+                    {
+                        System.Diagnostics.Process.Start(image);
+                    }
                 }
             }
         }
@@ -554,7 +557,10 @@ namespace PixivWPF.Common
                 if (btn.Tag is string)
                 {
                     var image = (string)btn.Tag;
-                    System.Diagnostics.Process.Start(image);
+                    if (File.Exists(image))
+                    {
+                        System.Diagnostics.Process.Start(image);
+                    }
                 }
             }
         }
