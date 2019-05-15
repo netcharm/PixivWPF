@@ -222,7 +222,7 @@ namespace PixivWPF.Common
                     var html = Encoding.Unicode.GetString(ms.ToArray());
                     if (Regex.IsMatch(html, @"href=.*?illust_id=\d+"))
                     {
-                        var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www.pixiv.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)""");
+                        var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)""");
                         if (mr.Count > 50)
                             CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
                         else
@@ -244,7 +244,7 @@ namespace PixivWPF.Common
                     }
                     else if (Regex.IsMatch(html, @"src=.*?/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp))"))
                     {
-                        var mr = Regex.Matches(html, @"src=""(.*?.pximg.net\/img-.*?\/(\d+)_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))""");
+                        var mr = Regex.Matches(html, @"src=""(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))""");
                         if (mr.Count > 50)
                             CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
                         else
@@ -265,7 +265,7 @@ namespace PixivWPF.Common
                     }
                     else
                     {
-                        var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www.pixiv.net\/member\.php\?id=\d+)""");
+                        var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member_.*?\.php\?id=\d+)""");
                         if (mr.Count > 50)
                             CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
                         else
@@ -292,8 +292,8 @@ namespace PixivWPF.Common
                 List<string> links = new List<string>();
 
                 var html = (string)e.Data.GetData("Text");
-                var mr0 = Regex.Matches(html, @"(http(s{0,1}):\/\/www.pixiv.net\/member\.php\?id=\d+)$");
-                var mr1 = Regex.Matches(html, @"(.*?.pximg.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$");
+                var mr0 = Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member_.*?\.php\?id=\d+)$");
+                var mr1 = Regex.Matches(html, @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$");
                 if (mr0.Count > 50 || mr1.Count > 50)
                     CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
                 else
