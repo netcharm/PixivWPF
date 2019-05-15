@@ -220,9 +220,9 @@ namespace PixivWPF.Common
                     List<string> links = new List<string>();
 
                     var html = Encoding.Unicode.GetString(ms.ToArray());
-                    if(Regex.IsMatch(html, @"href=.*?illust_id=\d+"))
+                    if (Regex.IsMatch(html, @"href=.*?illust_id=\d+"))
                     {
-                        var mr = Regex.Matches(html, @"href=""(https:\/\/www.pixiv.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)""");
+                        var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www.pixiv.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)""");
                         if (mr.Count > 50)
                             CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
                         else
@@ -242,9 +242,30 @@ namespace PixivWPF.Common
                         }
                         //CommonHelper.Cmd_Drop.Execute(links);
                     }
+                    else if (Regex.IsMatch(html, @"src=.*?/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp))"))
+                    {
+                        var mr = Regex.Matches(html, @"src=""(.*?.pximg.net\/img-.*?\/(\d+)_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))""");
+                        if (mr.Count > 50)
+                            CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                        else
+                        {
+                            foreach (Match m in mr)
+                            {
+                                var link = m.Groups[1].Value;
+                                if (!string.IsNullOrEmpty(link))
+                                {
+                                    if (!links.Contains(link))
+                                    {
+                                        links.Add(link);
+                                        CommonHelper.Cmd_Search.Execute(link);
+                                    }
+                                }
+                            }
+                        }
+                    }
                     else
                     {
-                        var mr = Regex.Matches(html, @"href=""(https:\/\/www.pixiv.net\/member\.php\?id=\d+)""");
+                        var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www.pixiv.net\/member\.php\?id=\d+)""");
                         if (mr.Count > 50)
                             CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
                         else
@@ -268,37 +289,40 @@ namespace PixivWPF.Common
             }
             else if (fmts.Contains("Text"))
             {
-                using (var ms = (System.IO.MemoryStream)e.Data.GetData("Text"))
-                {
-                    List<string> links = new List<string>();
+                List<string> links = new List<string>();
 
-                    var html = Encoding.Unicode.GetString(ms.ToArray());
-                    var mr = Regex.Matches(html, @"(https:\/\/www.pixiv.net\/member\.php\?id=\d+)$");
-                    if (mr.Count > 50)
-                        CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
-                    else
+                var html = (string)e.Data.GetData("Text");
+                var mr0 = Regex.Matches(html, @"(http(s{0,1}):\/\/www.pixiv.net\/member\.php\?id=\d+)$");
+                var mr1 = Regex.Matches(html, @"(.*?.pximg.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$");
+                if (mr0.Count > 50 || mr1.Count > 50)
+                    CommonHelper.ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                else
+                {
+                    foreach (Match m in mr0)
                     {
-                        foreach (Match m in mr)
+                        var link = m.Groups[1].Value;
+                        if (!string.IsNullOrEmpty(link))
                         {
-                            var link = m.Groups[1].Value;
-                            if (!string.IsNullOrEmpty(link))
+                            if (!links.Contains(link))
                             {
-                                if (!links.Contains(link))
-                                {
-                                    links.Add(link);
-                                    CommonHelper.Cmd_Search.Execute(link);
-                                }
+                                links.Add(link);
+                                CommonHelper.Cmd_Search.Execute(link);
                             }
                         }
                     }
-                    //CommonHelper.Cmd_Drop.Execute(links);
+                    foreach (Match m in mr1)
+                    {
+                        var link = m.Groups[1].Value;
+                        if (!string.IsNullOrEmpty(link))
+                        {
+                            if (!links.Contains(link))
+                            {
+                                links.Add(link);
+                                CommonHelper.Cmd_Search.Execute(link);
+                            }
+                        }
+                    }
                 }
-
-                //var link = (string)e.Data.GetData("Text");
-                //if(new Uri(link) != null)
-                //{
-                //    CommonHelper.Cmd_Search.Execute(link);
-                //}
             }
         }
 
@@ -321,5 +345,6 @@ namespace PixivWPF.Common
                 e.Handled = true;
             }
         }
+
     }
 }

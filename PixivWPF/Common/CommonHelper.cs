@@ -285,6 +285,8 @@ namespace PixivWPF.Common
                     content = Regex.Replace(content, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase).Trim();
                     content = Uri.UnescapeDataString(content);
                 }
+                else if (Regex.IsMatch(content, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", RegexOptions.IgnoreCase))
+                    content = Regex.Replace(content, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
                 else if (!Regex.IsMatch(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
                 {
                     content = $"Caption: {content}";
@@ -1029,6 +1031,27 @@ namespace PixivWPF.Common
             }
         }
 
+        private static void DropBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount >= 3)
+            {
+                if (sender is ContentWindow)
+                {
+                    var window = sender as ContentWindow;
+                    window.Hide();
+                }
+            }
+        }
+
+        private static void DropBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is ContentWindow)
+            {
+                var window = sender as ContentWindow;
+                window.Hide();
+            }
+        }
+
         public static bool ShowDropBox(bool show = true)
         {
             ContentWindow box = null;
@@ -1054,6 +1077,8 @@ namespace PixivWPF.Common
                 box = new ContentWindow();
                 box.MouseDown += DropBox_MouseDown;
                 ///box.MouseMove += DropBox_MouseMove;
+                //box.MouseDoubleClick += DropBox_MouseDoubleClick;
+                box.MouseLeftButtonDown += DropBox_MouseLeftButtonDown;
                 box.Width = 48;
                 box.Height = 48;
                 box.Background = new SolidColorBrush(Color.FromArgb(160, 255, 255, 255));

@@ -386,9 +386,15 @@ namespace PixivWPF.Pages
 
                 if (!string.IsNullOrEmpty(nuser.comment) && nuser.comment.Length > 0)
                 {
-                    StringBuilder desc = new StringBuilder();
-                    desc.AppendLine($"{nuser.comment}");
-                    IllustDesc.Text = $"<div class=\"desc\">{string.Join("<br></br>\n", desc)}</div>";
+                    //List<string> desc = new List<string>();
+                    //foreach (var l in System.Net.WebUtility.HtmlEncode(nuser.comment).Split(new char[] {'\r', '\n' }))
+                    //{
+                    //    if (string.IsNullOrEmpty(l)) continue;
+                    //    desc.Add(l);
+                    //}
+                    //IllustDesc.Text = desc.Count > 0 ? $"<div class=\"desc\">{string.Join("<br/>\n", desc)}</div>" : string.Empty;
+
+                    IllustDesc.Text = $"<div class=\"desc\">{System.Net.WebUtility.HtmlEncode(nuser.comment)}</div>".Replace("\r\n", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>");
                     IllustDescExpander.Visibility = Visibility.Visible;
                 }
                 else
