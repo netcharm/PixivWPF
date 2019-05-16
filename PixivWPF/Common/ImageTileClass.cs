@@ -41,8 +41,10 @@ namespace PixivWPF.Common
         public string AccessToken { get; set; }
         public string NextURL { get; set; }
 
+        public Visibility FavMarkVisibility { get; set; } = Visibility.Collapsed;
+
         public string BadgeValue { get; set; }
-        public Visibility BadgeVisibility { get; set; }
+        public Visibility BadgeVisibility { get; set; } = Visibility.Collapsed;
         public bool DisplayBadge
         {
             get
@@ -169,6 +171,7 @@ namespace PixivWPF.Common
                             Count = (int)illust.PageCount,
                             BadgeValue = illust.PageCount.Value.ToString(),
                             BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
+                            FavMarkVisibility = illust.IsBookMarked() || (illust.IsLiked != null && illust.IsLiked.Value) ? Visibility.Visible : Visibility.Collapsed,
                             DisplayBadge = illust.PageCount > 1 ? true : false,
                             ID = illust.Id.ToString(),
                             UserID = illust.User.Id.ToString(),
@@ -277,6 +280,7 @@ namespace PixivWPF.Common
                             ItemType = ImageItemType.User,
                             Thumb = url,
                             BadgeValue = user.Stats.Works.Value.ToString(),
+                            FavMarkVisibility = (user.IsFollowing != null && user.IsFollowing.Value) || (user.is_followed != null && user.is_followed.Value) ? Visibility.Visible : Visibility.Collapsed,
                             ID = user.Id.ToString(),
                             UserID = user.Id.ToString(),
                             Subject = $"{user.Name} - {user.Profile.Contacts.Twitter}",

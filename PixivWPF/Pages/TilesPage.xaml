@@ -5,6 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:PixivWPF.Pages"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+      xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
       xmlns:Common="clr-namespace:PixivWPF.Common"
       mc:Ignorable="d"
       VisualTextRenderingMode="Auto"
@@ -36,12 +37,13 @@
                        Tag="{Binding Illust, Mode=OneWay}"
                        Stretch="Uniform" Width="128" Height="128"
                        HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <!--<Image.Source>
-                            <PriorityBinding>
-                                <Binding Path="Source" IsAsync="True" Mode="OneWay"></Binding>
-                            </PriorityBinding>
-                        </Image.Source>-->
                     </Image>
+                    <iconPacks:PackIconModern Grid.Row="0" x:Name="PART_Favorite" 
+                                              Kind="Heart"
+                                              Foreground="{DynamicResource AccentColorBrush}" 
+                                              Width="24" Height="24" 
+                                              HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8" 
+                                              Visibility="{Binding FavMarkVisibility, Mode=OneWay}" />
                     <mah:Badged Grid.Row="0" 
                                 Badge="{Binding BadgeValue, Mode=OneWay}" 
                                 BadgePlacementMode="TopRight" Margin="0,16,16,0"
