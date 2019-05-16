@@ -104,7 +104,7 @@ namespace PixivWPF.Common
         private static CacheImage cache = new CacheImage();
 
         public static ICommand Cmd_SaveIllust { get; } = new DelegateCommand<object>(obj => {
-            if(obj is ImageItem)
+            if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
                 var illust = item.Illust;
@@ -156,6 +156,15 @@ namespace PixivWPF.Common
                     }
                     else
                     {
+                        foreach (Window win in Application.Current.Windows)
+                        {
+                            if (win.Title.Contains($"ID: {item.ID}, {item.Subject}"))
+                            {
+                                win.Activate();
+                                return;
+                            }
+                        }
+
                         var page = new IllustImageViewerPage();
                         page.UpdateDetail(item);
                         var viewer = new ContentWindow();
@@ -177,6 +186,14 @@ namespace PixivWPF.Common
                         break;
                     case ImageItemType.Page:
                     case ImageItemType.Pages:
+                        foreach (Window win in Application.Current.Windows)
+                        {
+                            if (win.Title.Contains($"ID: {item.ID}, {item.Subject}"))
+                            {
+                                win.Activate();
+                                return;
+                            }
+                        }
                         var page = new IllustImageViewerPage();
                         page.UpdateDetail(item);
                         var viewer = new ContentWindow();
@@ -196,9 +213,18 @@ namespace PixivWPF.Common
             }
             else if (obj is Pixeez.Objects.Work)
             {
+                var illust = obj as Pixeez.Objects.Work;
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win.Title.Contains($"ID: {illust.Id}, {illust.Title}"))
+                    {
+                        win.Activate();
+                        return;
+                    }
+                }
+
                 var viewer = new ContentWindow();
                 var page = new IllustDetailPage();
-                var illust = obj as Pixeez.Objects.Work;
 
                 var url = illust.GetThumbnailUrl();
                 var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
@@ -230,10 +256,19 @@ namespace PixivWPF.Common
             }
             else if (obj is Pixeez.Objects.User)
             {
+                var user = obj as Pixeez.Objects.User;
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win.Title.Contains($"User: {user.Name} / {user.Id} / {user.Account}"))
+                    {
+                        win.Activate();
+                        return;
+                    }
+                }
+
                 var viewer = new ContentWindow();
                 var page = new IllustDetailPage();
 
-                var user = obj as Pixeez.Objects.User;
                 page.UpdateDetail(user);
                 viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
 
@@ -271,29 +306,145 @@ namespace PixivWPF.Common
             }
         });
 
+        public static string ParseID(this string searchContent)
+        {
+            string result = searchContent;
+            if (!string.IsNullOrEmpty(result))
+            {
+                result = Regex.Replace(result, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", "", RegexOptions.IgnoreCase).Trim();
+            }
+            return (result);
+        }
+
+        public static string ParseLink(this string link)
+        {
+            string result = link;
+
+            if (!string.IsNullOrEmpty(link))
+            {
+                if (Regex.IsMatch(result, @"(.*?illust_id=)(\d+)(.*)", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
+                else if (Regex.IsMatch(result, @"^(.*?\?id=)(\d+)(.*)$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?\?id=)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase).Trim();
+                else if (Regex.IsMatch(result, @"^(.*?tag_full&word=)(.*)$", RegexOptions.IgnoreCase))
+                {
+                    result = Regex.Replace(result, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase).Trim();
+                    result = Uri.UnescapeDataString(result);
+                }
+                else if (Regex.IsMatch(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
+                else if (!Regex.IsMatch(result, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
+                {
+                    result = $"Caption: {result}";
+                }
+            }
+
+            return (result);
+        }
+
+        public static IEnumerable<string> ParseDragContent(this DragEventArgs e)
+        {
+            List<string> links = new List<string>();
+
+            var fmts = new List<string>(e.Data.GetFormats(true));
+
+            if (fmts.Contains("text/html"))
+            {
+                using (var ms = (MemoryStream)e.Data.GetData("text/html"))
+                {
+
+                    var html = System.Text.Encoding.Unicode.GetString(ms.ToArray());
+                    if (Regex.IsMatch(html, @"href=.*?illust_id=\d+"))
+                    {
+                        var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)""");
+                        if (mr.Count > 50)
+                            ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                        else
+                        {
+                            foreach (Match m in mr)
+                            {
+                                var link = m.Groups[1].Value;
+                                if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                            }
+                        }
+                    }
+                    else if (Regex.IsMatch(html, @"((src)|(href))=.*?/\d+_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp))"))
+                    {
+                        var mr = Regex.Matches(html, @"((src)|(href))=""(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))""");
+                        if (mr.Count > 50)
+                            ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                        else
+                        {
+                            foreach (Match m in mr)
+                            {
+                                var link = m.Groups[4].Value;
+                                if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+)""");
+                        if (mr.Count > 50)
+                            ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                        else
+                        {
+                            foreach (Match m in mr)
+                            {
+                                var link = m.Groups[1].Value;
+                                if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (fmts.Contains("Text"))
+            {
+                var html = (string)e.Data.GetData("Text");
+                var mr0 = Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+)$");
+                var mr1 = Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+)$");
+                var mr2 = Regex.Matches(html, @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$");
+                if (mr0.Count > 50 || mr1.Count>50 || mr2.Count > 50)
+                    ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                else
+                {
+                    foreach (Match m in mr0)
+                    {
+                        var link = m.Groups[1].Value;
+                        if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                    }
+                    foreach (Match m in mr1)
+                    {
+                        var link = m.Groups[1].Value;
+                        if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                    }
+                    foreach (Match m in mr2)
+                    {
+                        var link = m.Groups[1].Value;
+                        if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                    }
+                }
+            }
+            return (links);
+        }
+
         public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(obj => {
             if (obj is string)
             {
-                var content = (string)obj;
-
-                if (Regex.IsMatch(content, @"(.*?illust_id=)(\d+)(.*)", RegexOptions.IgnoreCase))
-                    content = Regex.Replace(content, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
-                else if (Regex.IsMatch(content, @"^(.*?\?id=)(\d+)(.*)$", RegexOptions.IgnoreCase))
-                    content = Regex.Replace(content, @"^(.*?\?id=)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase).Trim();
-                else if (Regex.IsMatch(content, @"^(.*?tag_full&word=)(.*)$", RegexOptions.IgnoreCase))
-                {
-                    content = Regex.Replace(content, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase).Trim();
-                    content = Uri.UnescapeDataString(content);
-                }
-                else if (Regex.IsMatch(content, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", RegexOptions.IgnoreCase))
-                    content = Regex.Replace(content, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
-                else if (!Regex.IsMatch(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
-                {
-                    content = $"Caption: {content}";
-                }
+                var content = ParseLink((string)obj);
+                var id = ParseID(content);
 
                 if (!string.IsNullOrEmpty(content))
                 {
+                    foreach(Window win in Application.Current.Windows)
+                    {
+                        if (win.Title.Contains(content) || win.Title.Contains($": {id},") || win.Title.Contains($"/ {id} /"))
+                        {
+                            win.Activate();
+                            return;
+                        }
+                    }
+
                     var viewer = new ContentWindow();
                     viewer.Title = $"Searching {content} ...";
                     viewer.Width = 720;
@@ -1081,9 +1232,13 @@ namespace PixivWPF.Common
                 box.MouseLeftButtonDown += DropBox_MouseLeftButtonDown;
                 box.Width = 48;
                 box.Height = 48;
-                box.Background = new SolidColorBrush(Color.FromArgb(160, 255, 255, 255));
+                //box.Background = new SolidColorBrush(Color.FromArgb(160, 255, 255, 255));
+                box.Background = new SolidColorBrush(Theme.AccentColor);
                 //box.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
-                box.Opacity = 0.9;
+                //box.OverlayBrush = Theme.AccentBrush;
+                //box.OverlayOpacity = 0.8;
+
+                box.Opacity = 0.85;
                 box.AllowsTransparency = true;
                 //box.SaveWindowPosition = true;
                 //box.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -1099,14 +1254,7 @@ namespace PixivWPF.Common
                 box.ShowTitleBar = false;
                 //box.WindowStyle = WindowStyle.None;
                 box.Title = "DropBox";
-                //using (var ico = System.Drawing.Icon.ExtractAssociatedIcon(Application.Process.MainModule.FileName))
-                //{
-                //    var img = new System.Windows.Controls.Image() {
-                //        Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(ico.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions())
-                //    };
-                //}
-                //var img = new System.Windows.Controls.Image() { Source = box.Icon };
-                //img.Opacity = 0.5;
+
                 box.Content = new System.Windows.Controls.Image() { Source = box.Icon };
                 if (setting.DropBoxPosition != null)
                 {

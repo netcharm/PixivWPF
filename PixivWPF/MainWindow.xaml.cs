@@ -162,31 +162,24 @@ namespace PixivWPF
         {
             if (SearchBox.Text.Length > 0)
             {
-                var content = SearchBox.Text;
                 auto_suggest_list.Clear();
 
-                if (Regex.IsMatch(content, @"(.*?illust_id=)(\d+)(.*)", RegexOptions.IgnoreCase))
-                    content = Regex.Replace(content, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
-                else if (Regex.IsMatch(content, @"^(.*?\?id=)(\d+)(.*)$", RegexOptions.IgnoreCase))
-                    content = Regex.Replace(content, @"^(.*?\?id=)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase).Trim();
-                else if (Regex.IsMatch(content, @"^(.*?tag_full&word=)(.*)$", RegexOptions.IgnoreCase))
+                var content = SearchBox.Text.ParseLink().ParseID();
+                if (!string.IsNullOrEmpty(content))
                 {
-                    content = Regex.Replace(content, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase).Trim();
-                    content = Uri.UnescapeDataString(content);
+                    if (Regex.IsMatch(content, @"^\d+$", RegexOptions.IgnoreCase))
+                    {
+                        auto_suggest_list.Add($"IllustID: {content}");
+                        auto_suggest_list.Add($"UserID: {content}");
+                    }
+                    auto_suggest_list.Add($"Fuzzy Tag: {content}");
+                    auto_suggest_list.Add($"Fuzzy: {content}");
+                    auto_suggest_list.Add($"Tag: {content}");
+                    auto_suggest_list.Add($"Caption: {content}");
+                    SearchBox.Items.Refresh();
+                    SearchBox.IsDropDownOpen = true;
                 }
-                content = Regex.Replace(content, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", "", RegexOptions.IgnoreCase).Trim();
 
-                if (Regex.IsMatch(content, @"^\d+$", RegexOptions.IgnoreCase))
-                {
-                    auto_suggest_list.Add($"IllustID: {content}");
-                    auto_suggest_list.Add($"UserID: {content}");
-                }
-                auto_suggest_list.Add($"Fuzzy Tag: {content}");
-                auto_suggest_list.Add($"Fuzzy: {content}");
-                auto_suggest_list.Add($"Tag: {content}");
-                auto_suggest_list.Add($"Caption: {content}");
-                SearchBox.Items.Refresh();
-                SearchBox.IsDropDownOpen = true;
                 e.Handled = true;
             }
         }
@@ -267,10 +260,9 @@ namespace PixivWPF
 
         private void MainWindow_Drop(object sender, DragEventArgs e)
         {
-            var fmts = e.Data.GetFormats(true);
-            if (new List<string>(fmts).Contains("Text"))
+            var links = e.ParseDragContent();
+            foreach (var link in links)
             {
-                var link = e.Data.GetData("Text");
                 CommonHelper.Cmd_Search.Execute(link);
             }
         }
