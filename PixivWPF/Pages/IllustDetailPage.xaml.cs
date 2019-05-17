@@ -856,7 +856,6 @@ namespace PixivWPF.Pages
                     if (item.Illust is Pixeez.Objects.Work)
                     {
                         var href = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={item.ID}";
-                        Clipboard.SetText(href);
                         try
                         {
                             System.Diagnostics.Process.Start(href);
@@ -865,6 +864,18 @@ namespace PixivWPF.Pages
                         {
                             ex.Message.ShowMessageBox("ERROR");
                         }
+                    }
+                }
+            }
+            else if (sender == ActionIllustWebLink)
+            {
+                if (DataObject is ImageItem)
+                {
+                    var item = DataObject as ImageItem;
+                    if (item.Illust is Pixeez.Objects.Work)
+                    {
+                        var href = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={item.ID}";
+                        Clipboard.SetText(href);
                     }
                 }
             }

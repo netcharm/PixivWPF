@@ -38,12 +38,28 @@
                        Stretch="Uniform" Width="128" Height="128"
                        HorizontalAlignment="Center" VerticalAlignment="Center">
                     </Image>
-                    <iconPacks:PackIconModern Grid.Row="0" x:Name="PART_Favorite" 
-                                              Kind="Heart"
-                                              Foreground="{DynamicResource AccentColorBrush}" 
-                                              Width="24" Height="24" 
-                                              HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8" 
-                                              Visibility="{Binding FavMarkVisibility, Mode=OneWay}" />
+                    <iconPacks:PackIconModern 
+                        Grid.Row="0"
+                        Kind="Heart" 
+                        Width="28" Height="24" Margin="0,0,6,8" 
+                        Foreground="White" 
+                        HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                        Visibility="{Binding FavMarkVisibility, Mode=OneWay}" >
+                        <iconPacks:PackIconModern.Effect>
+                            <DropShadowEffect ShadowDepth="0" Color="White" Opacity="1" BlurRadius="9"/>
+                        </iconPacks:PackIconModern.Effect>
+                    </iconPacks:PackIconModern>
+                    <iconPacks:PackIconModern 
+                        Grid.Row="0" x:Name="PART_Favorite" 
+                        Kind="Heart" 
+                        Width="24" Height="24" Margin="0,0,8,8" 
+                        Foreground="{DynamicResource AccentColorBrush}" 
+                        HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                        Visibility="{Binding FavMarkVisibility, Mode=OneWay}" >
+                        <iconPacks:PackIconModern.Effect>
+                            <DropShadowEffect ShadowDepth="0" Color="White" Opacity="1" BlurRadius="5"/>
+                        </iconPacks:PackIconModern.Effect>
+                    </iconPacks:PackIconModern>
                     <mah:Badged Grid.Row="0" 
                                 Badge="{Binding BadgeValue, Mode=OneWay}" 
                                 BadgePlacementMode="TopRight" Margin="0,16,16,0"

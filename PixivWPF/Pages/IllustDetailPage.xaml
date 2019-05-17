@@ -166,8 +166,16 @@
                                           Header="Remove" Click="ActionBookmarkIllust_Click"/>
                                 </ContextMenu>
                             </Button.ContextMenu>
-                            <iconPacks:PackIconModern Kind="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}" 
-                                                      Foreground="{DynamicResource AccentColorBrush}" Width="32" Height="32"/>
+                            <Grid>
+                                <iconPacks:PackIconModern x:Name="IsBookmarked" Width="32" Height="32" 
+                                    Kind="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}"
+                                    Foreground="{DynamicResource AccentColorBrush}"/>
+                                <iconPacks:PackIconModern x:Name="IsPrivateBookmarked" Width="16" Height="16"
+                                    Visibility="Collapsed"
+                                    Kind="Lock" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                    Foreground="{DynamicResource AccentColorBrush}" 
+                                    Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" />
+                            </Grid>
                         </Button>
                         <Button x:Name="FollowAuthor" x:Uid="FollowAuthor" Margin="4,0,0,0" Click="ActionIllust_Click"
                                 ToolTip="Follow Author"
@@ -208,6 +216,12 @@
                                             <iconPacks:PackIconModern Kind="BrowserWire" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
+                                    <MenuItem x:Name="ActionIllustWebLink" x:Uid="ActionIllustWebLink" 
+                                          Header="Copy Illust Weblink" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="BrowserWire" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>                                    
                                     <Separator />
                                     <MenuItem x:Name="ActionCopyIllustTitle" x:Uid="ActionCopyIllustTitle"
                                           Header="Copy Illust Title" Visibility="Visible" Click="ActionIllustInfo_Click">
