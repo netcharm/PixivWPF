@@ -472,6 +472,35 @@ namespace PixivWPF.Common
             }
         });
 
+        public static void Show(this ProgressRing progress, bool show)
+        {
+            if(progress is ProgressRing)
+            {
+                if (show)
+                {
+                    progress.Visibility = Visibility.Visible;
+                    progress.IsEnabled = true;
+                    progress.IsActive = true;
+                }
+                else
+                {
+                    progress.Visibility = Visibility.Hidden;
+                    progress.IsEnabled = false;
+                    progress.IsActive = false;
+                }
+            }
+        }
+
+        public static void Show(this ProgressRing progress)
+        {
+            progress.Show(true);
+        }
+
+        public static void Hide(this ProgressRing progress)
+        {
+            progress.Show(false);
+        }
+
         internal static DownloadManagerPage _downManager = new DownloadManagerPage();
 
         public static void ShowDownloadManager(bool active = false)

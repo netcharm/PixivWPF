@@ -28,15 +28,17 @@
                         <RowDefinition Height="128"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <mah:ProgressRing Grid.Row="0" Width="72" Height="72" Opacity="0.62" 
-                                  HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                  Foreground="{DynamicResource AccentColorBrush}"/>
-                    <Image Grid.Row="0" 
-                       Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
-                       ToolTip="{Binding ToolTip, Mode=OneWay}"
-                       Tag="{Binding Illust, Mode=OneWay}"
-                       Stretch="Uniform" Width="128" Height="128"
-                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <mah:ProgressRing Grid.Row="0" x:Name="PART_Progress"
+                                      Width="72" Height="72" Opacity="0.62" 
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"                         
+                                      Foreground="{DynamicResource AccentColorBrush}"/>
+                    <Image Grid.Row="0" x:Name="PART_Thumbnail"
+                           Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
+                           TargetUpdated="TileImage_TargetUpdated"
+                           ToolTip="{Binding ToolTip, Mode=OneWay}"
+                           Tag="{Binding Illust, Mode=OneWay}"
+                           Stretch="Uniform" Width="128" Height="128"
+                           HorizontalAlignment="Center" VerticalAlignment="Center">
                     </Image>
                     <iconPacks:PackIconModern 
                         Grid.Row="0"

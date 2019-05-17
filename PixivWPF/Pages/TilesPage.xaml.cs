@@ -1,4 +1,5 @@
-﻿using PixivWPF.Common;
+﻿using MahApps.Metro.Controls;
+using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -257,31 +258,27 @@ namespace PixivWPF.Pages
 
         public async void ShowRecommanded(string nexturl = null)
         {
-            ImageTilesWait.Visibility = Visibility.Visible;
+            ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Visibility = Visibility.Hidden;
+            ImageTilesWait.Hide();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Visibility = Visibility.Visible;
-                //var works = await tokens.GetMyFollowingWorksAsync("private");
-                //var bookmarks_private = await tokens.GetBookMarkedTagsAsync("private");
-                //var bookmarks_public = await tokens.GetBookMarkedTagsAsync("public");
-
+                ImageTilesWait.Show();
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
 
                 if (root.illusts != null)
                 {
-                    ImageTilesWait.Visibility = Visibility.Visible;
+                    ImageTilesWait.Show();
                     foreach (var illust in root.illusts)
                     {
                         illust.AddTo(ImageList, nexturl);
                     }
-                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    ImageTilesWait.Hide();
                     if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles(tokens);
                 }
@@ -301,36 +298,36 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
             }
         }
 
         public async void ShowLatest(string nexturl = null)
         {
-            ImageTilesWait.Visibility = Visibility.Visible;
+            ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Visibility = Visibility.Hidden;
+            ImageTilesWait.Hide();
             if (tokens == null) return;
 
             try
             {
                 var page_no = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
 
-                ImageTilesWait.Visibility = Visibility.Visible;
+                ImageTilesWait.Show();
                 var root = await tokens.GetLatestWorksAsync(page_no);
                 //var root = await tokens.GetLatestWorksNewAsync(page_no);
                 nexturl = root.Pagination.Next.ToString() ?? string.Empty;
                 NextURL = nexturl;
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
 
                 if (root != null)
                 {
-                    ImageTilesWait.Visibility = Visibility.Visible;
+                    ImageTilesWait.Show();
                     foreach (var illust in root)
                     {
                         illust.AddTo(ImageList, nexturl);
                     }
-                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    ImageTilesWait.Hide();
                     if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles(tokens);
                 }
@@ -348,35 +345,35 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
             }
         }
 
         public async void ShowTrendingTags(string nexturl = null)
         {
-            ImageTilesWait.Visibility = Visibility.Visible;
+            ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Visibility = Visibility.Hidden;
+            ImageTilesWait.Hide();
             if (tokens == null) return;
 
             try
             {
                 var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
 
-                ImageTilesWait.Visibility = Visibility.Visible;
+                ImageTilesWait.Show();
                 var root = await tokens.GetTrendingTagsIllustAsync();
                 nexturl = string.Empty;
                 NextURL = nexturl;
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
 
                 if (root != null)
                 {
-                    ImageTilesWait.Visibility = Visibility.Visible;
+                    ImageTilesWait.Show();
                     foreach (var tag in root.tags)
                     {
                         tag.illust.AddTo(ImageList, nexturl);
                     }
-                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    ImageTilesWait.Hide();
                     if (root.tags.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles(tokens);
                 }
@@ -394,36 +391,36 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
             }
         }
 
         public async void ShowFeeds(long uid, string nexturl = null)
         {
-            ImageTilesWait.Visibility = Visibility.Visible;
+            ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Visibility = Visibility.Hidden;
+            ImageTilesWait.Hide();
             if (tokens == null) return;
 
             try
             {
                 var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
 
-                ImageTilesWait.Visibility = Visibility.Visible;
+                ImageTilesWait.Show();
                 var root = await tokens.GetMyFeedsAsync(uid);
                 nexturl = string.Empty;
                 NextURL = nexturl;
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
 
                 if (root != null)
                 {
-                    ImageTilesWait.Visibility = Visibility.Visible;
+                    ImageTilesWait.Show();
                     foreach (var feed in root)
                     {
                         feed.User.AddTo(ImageList);
                         //tag.illust.AddTo(ImageList, nexturl);
                     }
-                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    ImageTilesWait.Hide();
                     if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles(tokens);
                 }
@@ -441,16 +438,16 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
             }
         }
 
         public async void ShowFeeds(string nexturl = null)
         {
-            ImageTilesWait.Visibility = Visibility.Visible;
+            ImageTilesWait.Show();
             var force = setting.MyInfo is Pixeez.Objects.User ? false : true;
             var tokens = await CommonHelper.ShowLogin(force);
-            ImageTilesWait.Visibility = Visibility.Hidden;
+            ImageTilesWait.Hide();
             if (tokens == null) return;
 
             try
@@ -458,21 +455,21 @@ namespace PixivWPF.Pages
                 var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
                 var uid = setting.MyInfo is Pixeez.Objects.User ? setting.MyInfo.Id.Value : 0;
 
-                ImageTilesWait.Visibility = Visibility.Visible;
+                ImageTilesWait.Show();
                 var root = await tokens.GetMyFeedsAsync(uid);
                 nexturl = string.Empty;
                 NextURL = nexturl;
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
 
                 if (root != null)
                 {
-                    ImageTilesWait.Visibility = Visibility.Visible;
+                    ImageTilesWait.Show();
                     foreach (var feed in root)
                     {
                         feed.User.AddTo(ImageList);
                         //tag.illust.AddTo(ImageList, nexturl);
                     }
-                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    ImageTilesWait.Hide();
                     if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles(tokens);
                 }
@@ -490,22 +487,22 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
             }
         }
 
         public async void ShowFavorite(string nexturl = null, bool IsPrivate = false)
         {
-            ImageTilesWait.Visibility = Visibility.Visible;
+            ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin(setting.MyInfo == null && IsPrivate);
-            ImageTilesWait.Visibility = Visibility.Hidden;
+            ImageTilesWait.Hide();
             if (tokens == null) return;
 
             try
             {
                 long uid = 0;
 
-                ImageTilesWait.Visibility = Visibility.Visible;
+                ImageTilesWait.Show();
                 var condition = IsPrivate ? "private" : "public";
 
                 if (setting.MyInfo != null && uid == 0) uid = setting.MyInfo.Id.Value;
@@ -514,18 +511,17 @@ namespace PixivWPF.Pages
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetUserFavoriteWorksAsync(uid, condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
 
                 if (root.illusts != null)
                 {
-                    ImageTilesWait.Visibility = Visibility.Visible;
+                    ImageTilesWait.Show();
                     foreach (var illust in root.illusts)
                     {
                         illust.AddTo(ImageList, nexturl);
                     }
-                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    ImageTilesWait.Hide();
                     if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
-
                     UpdateImageTiles(tokens);
                 }
             }
@@ -542,34 +538,34 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
             }
         }
 
         public async void ShowFollowing(string nexturl = null, bool IsPrivate = false)
         {
-            ImageTilesWait.Visibility = Visibility.Visible;
+            ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Visibility = Visibility.Hidden;
+            ImageTilesWait.Hide();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Visibility = Visibility.Visible;
+                ImageTilesWait.Show();
                 var condition = IsPrivate ? "private" : "public";
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetMyFollowingWorksAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
 
                 if (root.illusts != null)
                 {
-                    ImageTilesWait.Visibility = Visibility.Visible;
+                    ImageTilesWait.Show();
                     foreach (var illust in root.illusts)
                     {
                         illust.AddTo(ImageList, nexturl);
                     }
-                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    ImageTilesWait.Hide();
                     if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles(tokens);
                 }
@@ -587,29 +583,29 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
             }
         }
 
         public async void ShowRankingAll(string nexturl = null, string condition = "daily")
         {
-            ImageTilesWait.Visibility = Visibility.Visible;
+            ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Visibility = Visibility.Hidden;
+            ImageTilesWait.Hide();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Visibility = Visibility.Visible;
+                ImageTilesWait.Show();
                 var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
                 var root = await tokens.GetRankingAllAsync(condition, page);
                 nexturl = root.Pagination.Next.ToString() ?? string.Empty;
                 NextURL = nexturl;
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
 
                 if (root != null)
                 {
-                    ImageTilesWait.Visibility = Visibility.Visible;
+                    ImageTilesWait.Show();
                     foreach (var works in root)
                     {
                         try
@@ -625,7 +621,7 @@ namespace PixivWPF.Pages
                             ex.Message.ShowMessageBox("ERROR");
                         }
                     }
-                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    ImageTilesWait.Hide();
                     if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles(tokens);
                 }
@@ -643,33 +639,33 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
             }
         }
 
         public async void ShowRanking(string nexturl = null, string condition = "day")
         {
-            ImageTilesWait.Visibility = Visibility.Visible;
+            ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Visibility = Visibility.Hidden;
+            ImageTilesWait.Hide();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Visibility = Visibility.Visible;
+                ImageTilesWait.Show();
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
 
                 if (root.illusts != null)
                 {
-                    ImageTilesWait.Visibility = Visibility.Visible;
+                    ImageTilesWait.Show();
                     foreach (var illust in root.illusts)
                     {
                         illust.AddTo(ImageList, nexturl);
                     }
-                    ImageTilesWait.Visibility = Visibility.Hidden;
+                    ImageTilesWait.Hide();
                     if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles(tokens);
                 }
@@ -687,7 +683,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Visibility = Visibility.Hidden;
+                ImageTilesWait.Hide();
             }
         }
 
@@ -875,8 +871,22 @@ namespace PixivWPF.Pages
                 //}
             }
         }
+
+        private void TileImage_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            if (sender is Image && e.Property != null)
+            {
+                var image = sender as Image;
+                if (e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var progressObj = image.FindName("PART_Progress");
+                    if (progressObj is ProgressRing)
+                    {
+                        var progress = progressObj as ProgressRing;
+                        progress.Hide();
+                    }
+                }
+            }
+        }
     }
-
-
-
 }

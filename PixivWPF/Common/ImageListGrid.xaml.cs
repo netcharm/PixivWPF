@@ -285,7 +285,7 @@ namespace PixivWPF.Common
             PART_ImageTiles.Items.Refresh();
         }
 
-        private void Badge_TargetUpdated(object sender, DataTransferEventArgs e)
+        private void TileBadge_TargetUpdated(object sender, DataTransferEventArgs e)
         {
             if (sender is Badged && e.Property != null)
             {
@@ -296,6 +296,23 @@ namespace PixivWPF.Common
                     var badged = true;
                     if (badge.Tag is bool) badged = (bool)badge.Tag;
                     badge.Visibility = badged ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
+        }
+
+        private void TileImage_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            if (sender is Image && e.Property != null)
+            {
+                var image = sender as Image;
+                if (e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var progressObj = image.FindName("PART_Progress");
+                    if(progressObj is ProgressRing)
+                    {
+                        var progress = progressObj as ProgressRing;
+                        progress.Hide();
+                    }
                 }
             }
         }

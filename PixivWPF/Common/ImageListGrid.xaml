@@ -30,12 +30,13 @@
                     <RowDefinition Height="128"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <mah:ProgressRing Grid.Row="0" 
+                <mah:ProgressRing Grid.Row="0" x:Name="PART_Progress"
                                   Width="72" Height="72" Opacity="0.62" 
                                   HorizontalAlignment="Center" VerticalAlignment="Center" 
                                   Foreground="{DynamicResource AccentColorBrush}"/>
-                <Image Grid.Row="0" x:Name="PART_Preview"
+                <Image Grid.Row="0" x:Name="PART_Thumbnail"
                        Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
+                       TargetUpdated="TileImage_TargetUpdated"
                        ToolTip="{Binding ToolTip, Mode=OneWay}"
                        Tag="{Binding Illust, Mode=OneWay}"
                        Stretch="Uniform" 
@@ -68,7 +69,7 @@
                             Badge="{Binding BadgeValue, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
                             BadgePlacementMode="TopRight" Margin="0,16,16,0" 
                             FontSize="16" FontFamily="Consolas" 
-                            TargetUpdated="Badge_TargetUpdated"
+                            TargetUpdated="TileBadge_TargetUpdated"
                             Tag="{Binding DisplayBadge, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
                             Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
                             BadgeBackground="{DynamicResource AccentColorBrush}" />
