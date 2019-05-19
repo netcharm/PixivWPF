@@ -311,7 +311,10 @@ namespace PixivWPF.Common
                     if(progressObj is ProgressRing)
                     {
                         var progress = progressObj as ProgressRing;
-                        progress.Hide();
+                        if (image.Source == null)
+                            progress.Show();
+                        else
+                            progress.Hide();
                     }
                 }
             }

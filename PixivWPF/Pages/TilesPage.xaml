@@ -29,7 +29,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <mah:ProgressRing Grid.Row="0" x:Name="PART_Progress"
-                                      Width="72" Height="72" Opacity="0.62" 
+                                      Width="72" Height="72" Opacity="0.67" 
                                       HorizontalAlignment="Center" VerticalAlignment="Center"                         
                                       Foreground="{DynamicResource AccentColorBrush}"/>
                     <Image Grid.Row="0" x:Name="PART_Thumbnail"

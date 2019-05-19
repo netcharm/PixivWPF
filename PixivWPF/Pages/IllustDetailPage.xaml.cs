@@ -370,7 +370,7 @@ namespace PixivWPF.Pages
                 if (nuser != null && nprof != null && nworks != null)
                 {
                     StringBuilder desc = new StringBuilder();
-                    desc.AppendLine($"Account:<br/> {nuser.Account} / [{nuser.Id}] / {nuser.Name} / {nuser.Email}");
+                    desc.AppendLine($"Account:<br/> {nuser.Account} / {nuser.Id} / {nuser.Name} / {nuser.Email}");
                     desc.AppendLine($"<br/>Stat:<br/> {nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follower} Following / {nprof.total_follow_users} Follower /<br/> {nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels /<br/> {nprof.total_mypixiv_users} MyPixiv User");
                     desc.AppendLine($"<hr/>");
 
