@@ -637,6 +637,27 @@ namespace PixivWPF.Common
             return Regex.Replace(t, @"(.{" + lineLength + @"})", "$1" + Environment.NewLine, RegexOptions.IgnoreCase | RegexOptions.Multiline);
         }
 
+        public static string HtmlEncode(this string text)
+        {
+            return (WebUtility.HtmlEncode(text));
+        }
+
+        public static string HtmlDecodeFix(this string text)
+        {
+            string result = text;
+
+            var patten = new Regex(@"&(amp;){0,1}#(([0-9]{1,6})|(x([a-fA-F0-9]{1,5})));", RegexOptions.IgnoreCase);
+            result = WebUtility.HtmlEncode(result);
+            foreach (Match match in patten.Matches(result))
+            {
+                var v = Convert.ToInt32(match.Groups[2].Value);
+                if (v > 0xFFFF)
+                    result = result.Replace(match.Value, char.ConvertFromUtf32(v));
+            }
+
+            return (result);
+        }
+
         // To return an array of strings instead:
         public static string[] Slice(this string text, int lineLength)
         {

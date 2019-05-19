@@ -40,7 +40,7 @@
                 </Grid.RowDefinitions>
                 <!-- Illust Preview -->
                 <Viewbox Grid.Row="0" x:Name="PreviewViewer" StretchDirection="DownOnly">
-                    <Image x:Name="Preview" x:Uid="Preview" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"/>
+                    <Image x:Name="Preview" x:Uid="Preview" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True" />
                 </Viewbox>
                 <ContentControl Grid.Row="0" x:Name="PreviewBox" >
                     <Rectangle  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" MouseLeftButtonDown="Preview_MouseDoubleClick">
@@ -91,7 +91,7 @@
                     </Grid.ColumnDefinitions>
                     <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvator" 
                        Width="64" Height="64" Stretch="Uniform"
-                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInto" x:Uid="btnAuthorInto"
                             Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
                             Background="Transparent" Foreground="Transparent"
