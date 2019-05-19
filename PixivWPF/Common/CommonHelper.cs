@@ -254,9 +254,10 @@ namespace PixivWPF.Common
                 viewer.Content = page;
                 viewer.Show();
             }
-            else if (obj is Pixeez.Objects.User)
+            else if (obj is Pixeez.Objects.UserBase)
             {
-                var user = obj as Pixeez.Objects.User;
+                dynamic user = obj;
+
                 foreach (Window win in Application.Current.Windows)
                 {
                     if (win.Title.Contains($"User: {user.Name} / {user.Id} / {user.Account}"))

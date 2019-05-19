@@ -895,19 +895,7 @@ namespace PixivWPF.Pages
             {
                 if (DataObject is ImageItem)
                 {
-                    var viewer = new ContentWindow();
-                    var page = new IllustDetailPage();
-
-                    var item = DataObject as ImageItem;
-                    var user = item.Illust.User;
-
-                    page.UpdateDetail(user);
-                    viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
-
-                    viewer.Width = 720;
-                    viewer.Height = 800;
-                    viewer.Content = page;
-                    viewer.Show();
+                    CommonHelper.Cmd_OpenIllust.Execute((DataObject as ImageItem).Illust.User);
                 }
             }
             else if(sender == ActionIllustAuthorFollowing)

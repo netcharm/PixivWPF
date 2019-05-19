@@ -695,19 +695,7 @@ namespace PixivWPF.Pages
 
             if ((IsPrivate || uid == 0) && setting.MyInfo is Pixeez.Objects.User)
             {
-                uid = setting.MyInfo.Id.Value;
-
-                var viewer = new ContentWindow();
-                var page = new IllustDetailPage();
-
-                var user = setting.MyInfo;
-                page.UpdateDetail(user);
-                viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
-
-                viewer.Width = 720;
-                viewer.Height = 800;
-                viewer.Content = page;
-                viewer.Show();
+                CommonHelper.Cmd_OpenIllust.Execute(setting.MyInfo);
             }
             else
             {
@@ -723,16 +711,7 @@ namespace PixivWPF.Pages
                 }
                 if (user is Pixeez.Objects.User && uid == user.Id.Value)
                 {
-                    var viewer = new ContentWindow();
-                    var page = new IllustDetailPage();
-
-                    page.UpdateDetail(user);
-                    viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
-
-                    viewer.Width = 720;
-                    viewer.Height = 800;
-                    viewer.Content = page;
-                    viewer.Show();
+                    CommonHelper.Cmd_OpenIllust.Execute(user);
                 }
             }
         }
