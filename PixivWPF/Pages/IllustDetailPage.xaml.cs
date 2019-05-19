@@ -237,7 +237,11 @@ namespace PixivWPF.Pages
                     return;
                 }
                 IllustAuthorAvator.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
-                
+                if (IllustAuthorAvator.Source != null)
+                {
+                    IllustAuthorAvatorWait.Hide();
+                }
+
                 var img = await item.Illust.GetPreviewUrl().LoadImage(tokens);
                 if (cancelToken.IsCancellationRequested)
                 {
@@ -265,11 +269,6 @@ namespace PixivWPF.Pages
                 {
                     Preview.Visibility = Visibility.Visible;
                     PreviewWait.Hide();
-                }
-
-                if (IllustAuthorAvator.Source != null)
-                {
-                    IllustAuthorAvatorWait.Hide();
                 }
 
                 IllustDetailWait.Hide();
@@ -345,9 +344,13 @@ namespace PixivWPF.Pages
 
                 IllustStatInfo.Visibility = Visibility.Visible;
 
+                IllustTitle.Text = string.Empty;
                 IllustAuthor.Text = nuser.Name;
                 IllustAuthorAvator.Source = await nuser.GetAvatarUrl().LoadImage(tokens);
-                IllustTitle.Text = string.Empty;
+                if (IllustAuthorAvator.Source != null)
+                {
+                    IllustAuthorAvatorWait.Hide();
+                }
 
                 FollowAuthor.Visibility = Visibility.Visible;
                 if (nuser.is_followed.Value)
@@ -420,10 +423,6 @@ namespace PixivWPF.Pages
                 FavoriteNextPage.Visibility = Visibility.Collapsed;
                 FavoriteIllustsExpander.IsExpanded = false;
 
-                if (IllustAuthorAvator.Source != null)
-                {
-                    IllustAuthorAvatorWait.Hide();
-                }
 
                 IllustDetailWait.Hide();
             }
