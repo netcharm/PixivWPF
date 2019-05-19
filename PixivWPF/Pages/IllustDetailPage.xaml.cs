@@ -423,7 +423,6 @@ namespace PixivWPF.Pages
                 FavoriteNextPage.Visibility = Visibility.Collapsed;
                 FavoriteIllustsExpander.IsExpanded = false;
 
-
                 IllustDetailWait.Hide();
             }
             catch (Exception ex)
@@ -1244,9 +1243,22 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            if (SubIllusts.SelectedItem is ImageItem && SubIllusts.SelectedItems.Count == 1)
+            {
+                PreviewWait.Show();
+                var item = SubIllusts.SelectedItem as ImageItem;
+                var tokens = await CommonHelper.ShowLogin();
+                var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
+                if (img == null || img.Width < 350)
+                {
+                    var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
+                    if (large != null) img = large;
+                }
+                if (img != null) Preview.Source = img;
+                PreviewWait.Hide();
+            }
         }
 
         private void SubIllusts_MouseWheel(object sender, MouseWheelEventArgs e)
