@@ -581,5 +581,37 @@ namespace PixivWPF.Common
             CheckProperties();
             if (Info.IsStart) Start();
         }
+
+        private void miActions_Click(object sender, RoutedEventArgs e)
+        {
+            if(sender == miCopyIllustID && !string.IsNullOrEmpty(Url))
+            {
+                CommonHelper.Cmd_CopyIllustIDs.Execute(Url);
+            }
+            else if(sender == miOpenIllust && !string.IsNullOrEmpty(Url))
+            {
+                CommonHelper.Cmd_OpenIllust.Execute(Url);
+            }
+            else if (sender == miDownload)
+            {
+                CheckProperties();
+                State = DownloadState.Idle;
+                Start();
+            }
+            else if (sender == miOpenImage)
+            {
+                if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
+                {
+                    System.Diagnostics.Process.Start(FileName);
+                }
+            }
+            else if (sender == miOpenFolder)
+            {
+                if (!string.IsNullOrEmpty(FolderName) && Directory.Exists(FolderName))
+                {
+                    System.Diagnostics.Process.Start(FolderName);
+                }
+            }
+        }
     }
 }

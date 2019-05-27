@@ -16,6 +16,36 @@
              Loaded="Download_Loaded"
              d:DesignHeight="140" d:DesignWidth="600">
     <Grid Margin="2">
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem x:Name="miCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="miOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconModern Kind="PageImage" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem x:Name="miDownload" x:Uid="Download" Header="Download" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="miOpenImage" x:Uid="OpenFile" Header="View File" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="miOpenFolder" x:Uid="OpenFolder" Header="Open Folder" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+        </Grid.ContextMenu>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -27,6 +57,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*" MinWidth="468"/>
         </Grid.ColumnDefinitions>
+
         <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_Preview" x:Uid="Preview"
                Source="{Binding Path=Thumbnail, Mode=OneWay}"
                Width="128" Height="128" Margin="2,2,4,2"

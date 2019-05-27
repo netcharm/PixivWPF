@@ -278,6 +278,10 @@ namespace PixivWPF.Common
                 viewer.Content = page;
                 viewer.Show();
             }
+            else if (obj is string)
+            {
+                Cmd_Search.Execute(obj as string);
+            }
         });
 
         public static ICommand Cmd_CopyIllustIDs { get; } = new DelegateCommand<object>(obj =>
@@ -304,6 +308,11 @@ namespace PixivWPF.Common
                 {
                     Clipboard.SetText(item.ID);
                 }
+            }
+            else if(obj is string)
+            {
+                var id = (obj as string).ParseLink().ParseID();
+                if(!string.IsNullOrEmpty(id)) Clipboard.SetText(id);
             }
         });
 
