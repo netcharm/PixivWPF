@@ -858,14 +858,21 @@ namespace PixivWPF.Pages
                 var image = sender as Image;
                 if (e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
                 {
+                    //var mask = image.FindName("PART_Mask") as Border;
                     var progressObj = image.FindName("PART_Progress");
                     if (progressObj is ProgressRing)
                     {
                         var progress = progressObj as ProgressRing;
                         if (image.Source == null)
+                        {
                             progress.Show();
+                            //if (mask != null) mask.Opacity = 0.67;
+                        }
                         else
+                        {
+                            //if (mask != null) mask.Opacity = 0.13;
                             progress.Hide();
+                        }
                     }
                 }
             }

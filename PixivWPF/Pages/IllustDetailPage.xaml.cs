@@ -1,7 +1,4 @@
-﻿using MahApps.Metro.IconPacks;
-using PixivWPF.Common;
-using Prism.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Media;
@@ -19,6 +16,12 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using PixivWPF.Common;
+using MahApps.Metro.IconPacks;
+using TheArtOfDev.HtmlRenderer.Core.Entities;
+using TheArtOfDev.HtmlRenderer.WPF;
+using Prism.Commands;
+
 namespace PixivWPF.Pages
 {
     /// <summary>
@@ -30,6 +33,10 @@ namespace PixivWPF.Pages
         internal Task lastTask = null;
         internal CancellationTokenSource cancelTokenSource;
         internal CancellationToken cancelToken;
+
+        internal Task update_preview_task = null;
+        internal CancellationTokenSource cancelUpdatePreviewTokenSource;
+        internal CancellationToken cancelUpdatePreviewToken;
 
         public ICommand MouseDoubleClickCommand { get; } = new DelegateCommand<object>(obj => {
             MessageBox.Show("");
@@ -674,10 +681,13 @@ namespace PixivWPF.Pages
             cancelTokenSource = new CancellationTokenSource();
             cancelToken = cancelTokenSource.Token;
 
+            cancelUpdatePreviewTokenSource = new CancellationTokenSource();
+            cancelUpdatePreviewToken = cancelUpdatePreviewTokenSource.Token;
+
             UpdateTheme();
         }
 
-        private async void IllustTags_LinkClicked(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs> args)
+        private async void IllustTags_LinkClicked(object sender, RoutedEvenArgs<HtmlLinkClickedEventArgs> args)
         {
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
@@ -705,11 +715,11 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void IllustTags_ImageLoad(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs> args)
+        private async void IllustTags_ImageLoad(object sender, RoutedEvenArgs<HtmlImageLoadEventArgs> args)
         {
-            if (args.Data is TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs)
+            if (args.Data is HtmlImageLoadEventArgs)
             {
-                var img = args.Data as TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs;
+                var img = args.Data as HtmlImageLoadEventArgs;
 
                 if (string.IsNullOrEmpty(img.Src)) return;
 
@@ -723,11 +733,11 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void IllustDesc_LinkClicked(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs> args)
+        private async void IllustDesc_LinkClicked(object sender, RoutedEvenArgs<HtmlLinkClickedEventArgs> args)
         {
-            if (args.Data is TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs)
+            if (args.Data is HtmlLinkClickedEventArgs)
             {
-                var link = args.Data as TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs;
+                var link = args.Data as HtmlLinkClickedEventArgs;
 
                 if (link.Attributes.ContainsKey("href"))
                 {
@@ -780,11 +790,11 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void IllustDesc_ImageLoad(object sender, TheArtOfDev.HtmlRenderer.WPF.RoutedEvenArgs<TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs> args)
+        private async void IllustDesc_ImageLoad(object sender, RoutedEvenArgs<HtmlImageLoadEventArgs> args)
         {
-            if (args.Data is TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs)
+            if (args.Data is HtmlImageLoadEventArgs)
             {
-                var img = args.Data as TheArtOfDev.HtmlRenderer.Core.Entities.HtmlImageLoadEventArgs;
+                var img = args.Data as HtmlImageLoadEventArgs;
 
                 if (string.IsNullOrEmpty(img.Src)) return;
 
@@ -1243,21 +1253,48 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        long lastSelectionChanged = 0;
+        private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+#if DEBUG
+            Console.WriteLine($"{DateTime.Now.ToFileTime() - lastSelectionChanged}, {sender}, {e.Handled}, {e.RoutedEvent}, {e.OriginalSource}, {e.Source}");
+#endif
             if (SubIllusts.SelectedItem is ImageItem && SubIllusts.SelectedItems.Count == 1)
             {
-                PreviewWait.Show();
-                var item = SubIllusts.SelectedItem as ImageItem;
-                var tokens = await CommonHelper.ShowLogin();
-                var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
-                if (img == null || img.Width < 350)
+                if (DateTime.Now.ToFileTime() - lastSelectionChanged < 2000000) return;
+                //IllustDetailViewer
+                e.Handled = true;
+
+                if (update_preview_task is Task)
                 {
-                    var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
-                    if (large != null) img = large;
+                    cancelUpdatePreviewToken.ThrowIfCancellationRequested();
+                    update_preview_task.Wait();
                 }
-                if (img != null) Preview.Source = img;
-                PreviewWait.Hide();
+
+                update_preview_task = new Task(async () =>
+                {
+                    PreviewWait.Show();
+                    var item = SubIllusts.SelectedItem as ImageItem;
+                    var tokens = await CommonHelper.ShowLogin();
+                    var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
+                    if (img == null || img.Width < 350)
+                    {
+                        var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
+                        if (large != null) img = large;
+                    }
+                    if (img != null)
+                    {
+                        using (var d = Dispatcher.DisableProcessing())
+                        {
+                            Preview.Source = img;
+                        }
+                        lastSelectionChanged = DateTime.Now.ToFileTime();
+                    }
+                    PreviewWait.Hide();
+                }, cancelUpdatePreviewTokenSource.Token, TaskCreationOptions.None);
+                update_preview_task.RunSynchronously();
+                //await update_preview_task;
+                //Thread.Sleep(100);
             }
         }
 
@@ -1359,7 +1396,7 @@ namespace PixivWPF.Pages
                 var user = DataObject as Pixeez.Objects.UserBase;
                 ShowUserWorksInline(tokens, user);
             }
-            RelativeNextPage.Visibility = Visibility.Visible;
+            //RelativeNextPage.Visibility = Visibility.Visible;
         }
 
         private void ActionOpenRelative_Click(object sender, RoutedEventArgs e)
@@ -1452,7 +1489,7 @@ namespace PixivWPF.Pages
                 var user = DataObject as Pixeez.Objects.UserBase;
                 ShowFavoriteInline(tokens, user);
             }
-            FavoriteNextPage.Visibility = Visibility.Visible;
+            //FavoriteNextPage.Visibility = Visibility.Visible;
         }
 
         private void FavoriteIllustsExpander_Collapsed(object sender, RoutedEventArgs e)
