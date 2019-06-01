@@ -53,6 +53,7 @@ namespace PixivWPF.Common
         public ImageItem SelectedItem
         {
             get { return PART_ImageTiles.SelectedItem is ImageItem ? PART_ImageTiles.SelectedItem as ImageItem : null; }
+            set { PART_ImageTiles.SelectedItem = value; }
         }
 
         [Description("Get or Set Image Tiles Select Items")]

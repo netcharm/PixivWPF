@@ -1254,6 +1254,7 @@ namespace PixivWPF.Pages
         }
 
         long lastSelectionChanged = 0;
+        ImageItem lastSelectionItem = null;
         private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 #if DEBUG
@@ -1261,7 +1262,11 @@ namespace PixivWPF.Pages
 #endif
             if (SubIllusts.SelectedItem is ImageItem && SubIllusts.SelectedItems.Count == 1)
             {
-                if (DateTime.Now.ToFileTime() - lastSelectionChanged < 2000000) return;
+                if (DateTime.Now.ToFileTime() - lastSelectionChanged < 500000)
+                {
+                    SubIllusts.SelectedItem = lastSelectionItem;
+                    return;
+                }
                 //IllustDetailViewer
                 e.Handled = true;
 
@@ -1274,7 +1279,11 @@ namespace PixivWPF.Pages
                 update_preview_task = new Task(async () =>
                 {
                     PreviewWait.Show();
+
                     var item = SubIllusts.SelectedItem as ImageItem;
+                    lastSelectionItem = item;
+                    lastSelectionChanged = DateTime.Now.ToFileTime();
+
                     var tokens = await CommonHelper.ShowLogin();
                     var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
                     if (img == null || img.Width < 350)
@@ -1282,14 +1291,8 @@ namespace PixivWPF.Pages
                         var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
                         if (large != null) img = large;
                     }
-                    if (img != null)
-                    {
-                        using (var d = Dispatcher.DisableProcessing())
-                        {
-                            Preview.Source = img;
-                        }
-                        lastSelectionChanged = DateTime.Now.ToFileTime();
-                    }
+                    if (img != null) Preview.Source = img;
+
                     PreviewWait.Hide();
                 }, cancelUpdatePreviewTokenSource.Token, TaskCreationOptions.None);
                 update_preview_task.RunSynchronously();
