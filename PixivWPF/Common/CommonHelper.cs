@@ -158,7 +158,8 @@ namespace PixivWPF.Common
                     {
                         foreach (Window win in Application.Current.Windows)
                         {
-                            if (win.Title.Contains($"ID: {item.ID}, {item.Subject}"))
+                            //if (win.Title.Contains($"ID: {item.ID}, {item.Subject}"))
+                            if (win.Title.Equals($"ID: {item.ID}, {item.Subject}"))
                             {
                                 win.Activate();
                                 return;
@@ -188,7 +189,7 @@ namespace PixivWPF.Common
                     case ImageItemType.Pages:
                         foreach (Window win in Application.Current.Windows)
                         {
-                            if (win.Title.Contains($"ID: {item.ID}, {item.Subject}"))
+                            if (win.Title.Equals($"ID: {item.ID}, {item.Subject}"))
                             {
                                 win.Activate();
                                 return;
