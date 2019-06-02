@@ -158,8 +158,7 @@ namespace PixivWPF.Common
                     {
                         foreach (Window win in Application.Current.Windows)
                         {
-                            //if (win.Title.Contains($"ID: {item.ID}, {item.Subject}"))
-                            if (win.Title.Equals($"ID: {item.ID}, {item.Subject}"))
+                            if (win.Title.Contains($"ID: {item.ID}, {item.Subject}"))
                             {
                                 win.Activate();
                                 return;
@@ -189,7 +188,7 @@ namespace PixivWPF.Common
                     case ImageItemType.Pages:
                         foreach (Window win in Application.Current.Windows)
                         {
-                            if (win.Title.Equals($"ID: {item.ID}, {item.Subject}"))
+                            if (win.Title.StartsWith($"ID: {item.ID}, {item.Subject} - "))
                             {
                                 win.Activate();
                                 return;
@@ -199,7 +198,7 @@ namespace PixivWPF.Common
                         page.UpdateDetail(item);
                         var viewer = new ContentWindow();
                         viewer.Content = page;
-                        viewer.Title = $"ID: {item.ID}, {item.Subject}";
+                        viewer.Title = $"ID: {item.ID}, {item.Subject} - {item.BadgeValue}/{item.Count}";
                         viewer.Width = 720;
                         viewer.Height = 900;
                         viewer.Show();

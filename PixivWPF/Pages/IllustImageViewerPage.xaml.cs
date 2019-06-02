@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Media;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,7 +31,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                PreviewWait.Visibility = Visibility.Visible;
+                PreviewWait.Show();
 
                 DataType = item;
                 if (item.Illust is Pixeez.Objects.Work)
@@ -72,10 +73,14 @@ namespace PixivWPF.Pages
                             window.PreviewKeyUp += Page_PreviewKeyUp;
                         }
                     }
-                    window.Title = $"ID: {item.ID}, {item.Subject}";
+                    else
+                    {
+                        if (Regex.IsMatch(item.Subject, @" - \d+\/\d+$", RegexOptions.IgnoreCase))
+                            window.Title = $"ID: {item.ID}, {item.Subject}";
+                        else
+                            window.Title = $"ID: {item.ID}, {item.Subject} - 1/1";
+                    }
                 }
-
-                PreviewWait.Visibility = Visibility.Hidden;
             }
             catch (Exception ex)
             {
@@ -83,7 +88,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                PreviewWait.Visibility = Visibility.Hidden;
+                PreviewWait.Hide();
             }
         }
 
@@ -163,7 +168,6 @@ namespace PixivWPF.Pages
             window = Window.GetWindow(this);
             if (window is Window)
             {
-                btnViewPrevPage.Focus();
                 var titleheight = window is MetroWindow ? (window as MetroWindow).TitlebarHeight : 0;
                 window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
                 window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom + (32 - titleheight % 32);
