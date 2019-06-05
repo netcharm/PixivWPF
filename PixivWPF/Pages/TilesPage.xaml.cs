@@ -271,7 +271,27 @@ namespace PixivWPF.Pages
             try
             {
                 ImageTilesWait.Show();
-                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                Pixeez.Objects.RecommendedRootobject root = null;
+                if (Keyboard.Modifiers == ModifierKeys.Shift)
+                {
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "20", "1", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                {
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "200", "200", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "2000", "1000", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Windows)
+                {
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "2000", "2000", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
+                else
+                {
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
                 ImageTilesWait.Hide();
