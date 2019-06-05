@@ -1117,18 +1117,18 @@ namespace Pixeez
                 url = "https://app-api.pixiv.net/v1/illust/recommended-nologin";
             var dic = new Dictionary<string, string>() {
                 { "content_type", content_type},
-                { "include_ranking", format_bool(true)},
+                //{ "include_ranking", format_bool(true)},
                 { "include_ranking_label", format_bool(include_ranking_label)},
                 { "filter", filter }
             };
             if (!string.IsNullOrEmpty(max_bookmark_id_for_recommend))
                 dic["max_bookmark_id_for_recommend"] = max_bookmark_id_for_recommend;
-            else
-                dic["max_bookmark_id_for_recommend"] = "20";
+            //else
+            //    dic["max_bookmark_id_for_recommend"] = "2000";
             if (!string.IsNullOrEmpty(min_bookmark_id_for_recent_illust))
                 dic["min_bookmark_id_for_recent_illust"] = min_bookmark_id_for_recent_illust;
-            else
-                dic["min_bookmark_id_for_recent_illust"] = "1";
+            //else
+            //    dic["min_bookmark_id_for_recent_illust"] = "20";
             if (!string.IsNullOrEmpty(offset))
                 dic["offset"] = offset;
             if (include_ranking_illusts.HasValue)
@@ -1247,6 +1247,7 @@ namespace Pixeez
 
             return await this.AccessApiAsync<Paginated<NormalWork>>(MethodType.GET, url, param);
         }
+
 
         /// <summary>
         /// try using new API, but... added by netcharm

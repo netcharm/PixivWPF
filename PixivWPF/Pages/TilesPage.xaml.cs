@@ -916,5 +916,10 @@ namespace PixivWPF.Pages
                 }
             }
         }
+
+        private void ImageTilesViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+
+        }
     }
 }

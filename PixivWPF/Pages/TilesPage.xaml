@@ -94,7 +94,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <!-- Illust List Viewport -->
-        <!--<ScrollViewer Grid.Column="0" x:Name="ImageTilesViewer" ScrollChanged="ImageTilesViewer_ScrollChanged">-->
+        <!--<ScrollViewer Grid.Column="0" x:Name="ImageTilesViewer" ScrollChanged="ImageTilesViewer_ScrollChanged" >-->
         <!--<Expander Grid.Column="0" ExpandDirection="Right" IsExpanded="True" HorizontalAlignment="Left">-->
             <ListView Grid.Column="0"
                       x:Name="ListImageTiles" x:Uid="ImageTiles"
@@ -137,7 +137,7 @@
                     </ItemsPanelTemplate>
                 </ListView.ItemsPanel>
             </ListView>
-            <!--</ScrollViewer>-->
+        <!--</ScrollViewer>-->
         <!--</Expander>-->
         <mah:ProgressRing Grid.Column="0" 
                           x:Name="ImageTilesWait" 
