@@ -9,7 +9,7 @@
       xmlns:Common="clr-namespace:PixivWPF.Common"
       mc:Ignorable="d" 
       d:DesignHeight="300" d:DesignWidth="300"
-      Title="IllustWithTagPage">
+      Title="IllustWithTagPage" Loaded="Page_Loaded">
 
     <Page.Resources>
         <ContextMenu x:Name="MenuSearchFilter" x:Key="MenuSearchFilter">
@@ -73,7 +73,7 @@
                 <Expander Grid.Row="0" x:Name="ResultExpander" x:Uid="ResultIllustsExpander"
                           IsExpanded="true" ExpandDirection="Down"
                           Visibility="Visible" Header="Search Results"
-                          Expanded="ResultExpander_Expanded">
+                          Expanded="ResultExpander_Expanded" Collapsed="ResultExpander_Collapsed">
                     <Common:ImageListGrid x:Name="ResultIllusts" x:Uid="IllustsWithTag"
                                           Columns="5" TileWidth="128" TileHeight="128"
                                           SelectionMode="Extended"

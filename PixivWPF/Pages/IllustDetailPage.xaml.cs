@@ -42,25 +42,6 @@ namespace PixivWPF.Pages
             MessageBox.Show("");
         });
 
-        //private ICommand Cmd_CopyIllustIDs { get; } = new DelegateCommand<object>(obj =>
-        //{
-        //    if (obj is ImageListGrid)
-        //    {
-        //        var list = obj as ImageListGrid;
-        //        var ids = new  List<string>();
-        //        foreach (var item in list.SelectedItems)
-        //        {
-        //            if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-        //                list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-        //                list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
-        //            {
-        //                ids.Add($"{item.ID}");
-        //            }
-        //        }
-        //        Clipboard.SetText(string.Join("\n", ids));
-        //    }
-        //});
-
         public void UpdateTheme()
         {
             //var fonts = string.Join(",", IllustTitle.FontFamily.FamilyNames.Values);
@@ -446,7 +427,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                IllustDetailWait.Visibility = Visibility.Visible;
+                IllustDetailWait.Show();
 
                 //SubIllustsPanel.Visibility = Visibility.Collapsed;
                 SubIllusts.Items.Clear();
@@ -546,7 +527,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                IllustDetailWait.Visibility = Visibility.Collapsed;
+                IllustDetailWait.Hide();
             }
         }
 
@@ -554,7 +535,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                IllustDetailWait.Visibility = Visibility.Visible;
+                IllustDetailWait.Show();
                 RelativeIllusts.Items.Clear();
 
                 var lastUrl = next_url;
@@ -583,7 +564,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                IllustDetailWait.Visibility = Visibility.Collapsed;
+                IllustDetailWait.Hide();
             }
         }
 
@@ -591,7 +572,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                IllustDetailWait.Visibility = Visibility.Visible;
+                IllustDetailWait.Show();
                 RelativeIllusts.Items.Clear();
 
                 var lastUrl = next_url;
@@ -620,7 +601,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                IllustDetailWait.Visibility = Visibility.Collapsed;
+                IllustDetailWait.Hide();
             }
         }
 
@@ -629,14 +610,16 @@ namespace PixivWPF.Pages
         {
             try
             {
-                IllustDetailWait.Visibility = Visibility.Visible;
+                IllustDetailWait.Show();
                 FavoriteIllusts.Items.Clear();
 
                 Setting setting = Setting.Load();
 
                 var lastUrl = next_url;
                 //var restrict = setting.MyInfo is Pixeez.Objects.UserBase &&  setting.MyInfo.Id.Value == user.Id.Value ? "public" : "private";
-                var restrict = Keyboard.Modifiers == ModifierKeys.Alt ? "private" : "public";
+                //var restrict = Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control || Keyboard.Modifiers == ModifierKeys.Shift ? "private" : "public";
+                var restrict = Keyboard.Modifiers != ModifierKeys.None ? "private" : "public";
+
                 if (!last_restrict.Equals(restrict, StringComparison.CurrentCultureIgnoreCase)) next_url = string.Empty;
                 FavoriteIllustsExpander.Header = $"Favorite ({System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(restrict)})";
 
@@ -666,7 +649,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                IllustDetailWait.Visibility = Visibility.Collapsed;
+                IllustDetailWait.Hide();
             }
         }
 
@@ -881,6 +864,17 @@ namespace PixivWPF.Pages
                     }
                 }
             }
+            else if (sender == ActionIllustNewWindow)
+            {
+                if (DataObject is ImageItem)
+                {
+                    var item = DataObject as ImageItem;
+                    if (item.Illust is Pixeez.Objects.Work)
+                    {
+                        CommonHelper.Cmd_OpenIllust.Execute(item.Illust);
+                    }
+                }
+            }
             else if (sender == ActionIllustWebLink)
             {
                 if (DataObject is ImageItem)
@@ -944,12 +938,19 @@ namespace PixivWPF.Pages
         private void ActionIllust_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
+
             if (sender == BookmarkIllust)
                 BookmarkIllust.ContextMenu.IsOpen = true;
             else if (sender == FollowAuthor)
                 FollowAuthor.ContextMenu.IsOpen = true;
             else if (sender == IllustActions)
+            {
+                if (Window.GetWindow(this) is ContentWindow)
+                    ActionIllustNewWindow.Visibility = Visibility.Collapsed;
+                else
+                    ActionIllustNewWindow.Visibility = Visibility.Visible;
                 IllustActions.ContextMenu.IsOpen = true;
+            }
         }
 
         private async void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
@@ -1130,6 +1131,11 @@ namespace PixivWPF.Pages
                     ShowIllustPages(tokens, item);
                 }
             }
+        }
+
+        private void SubIllustsExpander_Collapsed(object sender, RoutedEventArgs e)
+        {
+            //IllustDetailWait.Hide();
         }
 
         private void ActionOpenIllust_Click(object sender, RoutedEventArgs e)
@@ -1402,6 +1408,11 @@ namespace PixivWPF.Pages
             //RelativeNextPage.Visibility = Visibility.Visible;
         }
 
+        private void RelativeIllustsExpander_Collapsed(object sender, RoutedEventArgs e)
+        {
+            IllustDetailWait.Hide();
+        }
+
         private void ActionOpenRelative_Click(object sender, RoutedEventArgs e)
         {
             CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
@@ -1498,6 +1509,7 @@ namespace PixivWPF.Pages
         private void FavoriteIllustsExpander_Collapsed(object sender, RoutedEventArgs e)
         {
             FavoriteIllustsExpander.Header = "Favorite";
+            IllustDetailWait.Hide();
         }
 
         private void ActionOpenFavorite_Click(object sender, RoutedEventArgs e)

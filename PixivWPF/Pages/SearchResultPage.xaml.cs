@@ -41,7 +41,10 @@ namespace PixivWPF.Pages
         public SearchResultPage()
         {
             InitializeComponent();
+        }
 
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
             var cmr = Resources["MenuSearchResult"] as ContextMenu;
             if (cmr is ContextMenu)
             {
@@ -60,8 +63,8 @@ namespace PixivWPF.Pages
             {
                 ContextMenuResultFilter = cmf;
                 foreach (var item in cmf.Items)
-                { 
-                    if(item is MenuItem)
+                {
+                    if (item is MenuItem)
                     {
                         var mi = item as MenuItem;
                         if (mi.Name.Equals("SearchFilter_00000users", StringComparison.CurrentCultureIgnoreCase))
@@ -72,14 +75,16 @@ namespace PixivWPF.Pages
                     }
                 }
             }
+
+            window = Window.GetWindow(this);
         }
 
         #region Search Result Panel related routines
-        internal async void ShowResultInline(Pixeez.Tokens tokens, string content, string filter="", string next_url = "")
+        internal async void ShowResultInline(Pixeez.Tokens tokens, string content, string filter = "", string next_url = "")
         {
             try
             {
-                PreviewWait.Visibility = Visibility.Visible;
+                PreviewWait.Show();
 
                 ResultIllusts.Items.Clear();
 
@@ -110,7 +115,7 @@ namespace PixivWPF.Pages
 
                     if (relatives is List<Pixeez.Objects.NormalWork>)
                     {
-                        foreach(var illust in relatives)
+                        foreach (var illust in relatives)
                         {
                             illust.AddTo(ResultIllusts.Items, next_url);
                         }
@@ -169,7 +174,7 @@ namespace PixivWPF.Pages
                     var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "title_and_caption") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = relatives.next_url ?? string.Empty;
 
-                    if (relatives is Pixeez.Objects.Illusts &&  relatives.illusts is Array)
+                    if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)
                     {
                         ResultExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
@@ -184,13 +189,12 @@ namespace PixivWPF.Pages
                 {
                     ResultIllusts.SelectedIndex = 0;
                     CommonHelper.Cmd_OpenIllust.Execute(ResultIllusts);
-                    if (window != null)
-                        window.Close();
+                    if (window != null) window.Close();
                 }
             }
             catch (Exception ex)
             {
-                if(ex is NullReferenceException)
+                if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
                 }
@@ -201,7 +205,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                PreviewWait.Visibility = Visibility.Collapsed;
+                PreviewWait.Hide();
                 if (window is ContentWindow)
                 {
                     window.Topmost = true;
@@ -224,6 +228,13 @@ namespace PixivWPF.Pages
             if(ResultNextPage is Button)
                 ResultNextPage.Visibility = Visibility.Visible;
             //ResultExpander.IsHitTestVisible = false;
+        }
+
+        private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)
+        {
+            PreviewWait.Hide();
+            if (ResultNextPage is Button)
+                ResultNextPage.Visibility = Visibility.Collapsed;
         }
 
         private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)

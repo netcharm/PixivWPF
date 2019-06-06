@@ -211,6 +211,12 @@
                                 Foreground="{DynamicResource LabelTextBrush}">
                             <Button.ContextMenu>
                                 <ContextMenu>
+                                    <MenuItem x:Name="ActionIllustNewWindow" x:Uid="ActionIllustNewWindow" 
+                                          Header="Open Illust in New Window" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="NewWindow" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <MenuItem x:Name="ActionIllustWebPage" x:Uid="ActionIllustWebPage" 
                                           Header="Open Illust in Browser" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
@@ -220,7 +226,7 @@
                                     <MenuItem x:Name="ActionIllustWebLink" x:Uid="ActionIllustWebLink" 
                                           Header="Copy Illust Weblink" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="BrowserWire" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>                                    
                                     <Separator />
@@ -351,7 +357,7 @@
                 <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander" Margin="0, 4, 0, 0"
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Collapsed" Header="Illust Sets Gallery"
-                          Expanded="SubIllustsExpander_Expanded">
+                          Expanded="SubIllustsExpander_Expanded" Collapsed="SubIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
                                           Columns="5" TileWidth="128" TileHeight="128" 
                                           SelectionMode="Extended" 
@@ -420,7 +426,7 @@
                 <Expander Grid.Row="5" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" Margin="0, 4, 0, 0" 
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Collapsed" Header="Relative Illust Gallery"
-                          Expanded="RelativeIllustsExpander_Expanded">
+                          Expanded="RelativeIllustsExpander_Expanded" Collapsed="RelativeIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="RelativeIllusts"
                                           Columns="5" TileWidth="128" TileHeight="128"
                                           SelectionMode="Extended"
