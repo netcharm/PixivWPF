@@ -52,5 +52,9 @@
                 <Button Grid.Column="1" x:Name="btnCancel" x:Uid="btnCancel" Content="Cancel" Margin="12, 12, 12, 12" Click="Cancel_Click" Foreground="{DynamicResource AccentColorBrush}"/>
             </Grid>
         </StackPanel>
+        <mah:ProgressRing x:Name="LoginWait" 
+                          Width="96" Height="96" 
+                          IsEnabled="False" IsActive="False" Visibility="Collapsed"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" />
     </Grid>
 </Page>

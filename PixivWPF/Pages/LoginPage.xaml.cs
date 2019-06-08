@@ -89,13 +89,6 @@ namespace PixivWPF.Pages
         {
             if(window == null) window = this.GetActiveWindow();
 
-            btnLogin.IsEnabled = false;
-            btnCancel.IsEnabled = false;
-            edUser.IsEnabled = false;
-            edPass.IsEnabled = false;
-            edProxy.IsEnabled = false;
-            chkUseProxy.IsEnabled = false;
-
             var user = edUser.Text.Trim();
             var pass = edPass.Password.Trim();
             var proxy = edProxy.Text.Trim();
@@ -105,6 +98,15 @@ namespace PixivWPF.Pages
             {
                 try
                 {
+                    LoginWait.Show();
+
+                    btnLogin.IsEnabled = false;
+                    btnCancel.IsEnabled = false;
+                    edUser.IsEnabled = false;
+                    edPass.IsEnabled = false;
+                    edProxy.IsEnabled = false;
+                    chkUseProxy.IsEnabled = false;
+
                     // Create Tokens
                     var proxyserver = proxy;
                     if (!useproxy) proxyserver = string.Empty;
@@ -152,13 +154,17 @@ namespace PixivWPF.Pages
                     await ex.Message.ShowMessageBoxAsync("ERROR");
                     CloseWindow();
                 }
+                finally
+                {
+                    btnLogin.IsEnabled = true;
+                    btnCancel.IsEnabled = true;
+                    edUser.IsEnabled = true;
+                    edPass.IsEnabled = true;
+                    edProxy.IsEnabled = true;
+                    chkUseProxy.IsEnabled = true;
+                    LoginWait.Hide();
+                }
             }
-            btnLogin.IsEnabled = true;
-            btnCancel.IsEnabled = true;
-            edUser.IsEnabled = true;
-            edPass.IsEnabled = true;
-            edProxy.IsEnabled = true;
-            chkUseProxy.IsEnabled = true;
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
