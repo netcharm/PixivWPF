@@ -544,8 +544,6 @@ namespace PixivWPF.Pages
 
                 if (relatives.illusts is Array)
                 {
-                    //if (relatives.illusts.Length < 30) RelativeNextPage.Visibility = Visibility.Collapsed;
-                    //else 
                     if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
                         RelativeNextPage.Visibility = Visibility.Collapsed;
                     else RelativeNextPage.Visibility = Visibility.Visible;
@@ -581,8 +579,6 @@ namespace PixivWPF.Pages
 
                 if (relatives.illusts is Array)
                 {
-                    //if (relatives.illusts.Length < 30) RelativeNextPage.Visibility = Visibility.Collapsed;
-                    //else 
                     if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
                         RelativeNextPage.Visibility = Visibility.Collapsed;
                     else RelativeNextPage.Visibility = Visibility.Visible;
@@ -629,8 +625,6 @@ namespace PixivWPF.Pages
 
                 if (favorites.illusts is Array)
                 {
-                    //if (relatives.illusts.Length < 30) FavoriteNextPage.Visibility = Visibility.Collapsed;
-                    //else 
                     if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
                         FavoriteNextPage.Visibility = Visibility.Collapsed;
                     else FavoriteNextPage.Visibility = Visibility.Visible;
