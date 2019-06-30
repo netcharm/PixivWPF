@@ -53,9 +53,15 @@
                     ToolTip="Open Navigation Flyout">
                 <iconPacks:PackIconModern Kind="PageSearch" />
             </Button>
-            <Button Click="CommandNavRefresh_Click"
+            <Button x:Name="CommandNavRefresh"
+                    Click="CommandNavRefresh_Click"
                     ToolTip="Refresh Current Page">
                 <iconPacks:PackIconModern Kind="Refresh" />
+            </Button>
+            <Button x:Name="CommandNavDate"
+                    Click="CommandNavDate_Click"                                
+                    ToolTip="Date Selector">
+                <iconPacks:PackIconModern Kind="Calendar" />
             </Button>
             <Button Click="CommandNavPrev_Click"
                     ToolTip="Goto Prev Page" Visibility="Collapsed">
@@ -112,7 +118,7 @@
                              ToolTip="Toggle Application Theme"
                              Background="Transparent"
                              AlternationCount="2"
-                             BorderBrush="{DynamicResource AccentColorBrush}"
+                             BorderBrush="{DynamicResource WindowTitleColorBrush}"
                              Click="CommandToggleTheme_Click" 
                              SelectionChanged="CommandToggleTheme_SelectionChanged">
 

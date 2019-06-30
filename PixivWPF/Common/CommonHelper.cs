@@ -102,6 +102,28 @@ namespace PixivWPF.Common
     {
         private static Setting setting = Setting.Load();
         private static CacheImage cache = new CacheImage();
+        public static DateTime SelectedDate { get; set; } = DateTime.Now;
+
+        public static ICommand Cmd_DatePicker { get; } = new DelegateCommand<Point?>(obj => {
+            if (obj.HasValue)
+            {              
+                var page = new DateTimePicker();
+                var viewer = new MetroWindow();
+                viewer.Icon = BitmapFrame.Create(new Uri("pack://application:,,,/PixivWPF;component/Resources/pixiv-icon.ico"));
+                viewer.ShowMinButton = false;
+                viewer.ShowMaxRestoreButton = false;
+                viewer.ResizeMode = ResizeMode.NoResize;
+                viewer.Width = 320;
+                viewer.Height = 240;
+                viewer.Top = obj.Value.Y + 4;
+                viewer.Left = obj.Value.X - 64;
+                viewer.Content = page;
+                viewer.Title = $"Pick Date";
+                viewer.KeyUp += page.Page_KeyUp;
+                viewer.MouseDown += page.Page_MouseDown;
+                viewer.ShowDialog();
+            }
+        });
 
         public static ICommand Cmd_SaveIllust { get; } = new DelegateCommand<object>(obj => {
             if (obj is ImageItem)

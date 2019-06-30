@@ -28,6 +28,8 @@ namespace PixivWPF
             get { return (auto_suggest_list); }
         }
 
+        private DateTime LastSelectedDate = DateTime.Now;
+
         public void UpdateTheme()
         {
             if (pagenav is Pages.NavPage) pagenav.CheckPage();
@@ -46,7 +48,7 @@ namespace PixivWPF
         public MainWindow()
         {
             InitializeComponent();
-            
+
             SearchBox.ItemsSource = AutoSuggestList;
 
             CommandToggleTheme.ItemsSource = Common.Theme.Accents;
@@ -131,8 +133,39 @@ namespace PixivWPF
 
         private void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
         {
-            NavPageTitle.Text = pagetiles.TargetPage.ToString();
+            var title = pagetiles.TargetPage.ToString();
+            if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
+            {
+                NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
+                CommandNavDate.IsEnabled = true;
+            }
+            else
+            {
+                NavPageTitle.Text = title;
+                CommandNavDate.IsEnabled = false;
+            }
             pagetiles.ShowImages(pagetiles.TargetPage, false);
+        }
+
+        private void CommandNavDate_Click(object sender, RoutedEventArgs e)
+        {
+            var title = pagetiles.TargetPage.ToString();
+            if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
+            {
+                //var point = CommandNavDate.PointToScreen(Mouse.GetPosition(CommandNavDate));
+                var point = CommandNavDate.PointToScreen(new Point(0, CommandNavDate.ActualHeight));
+                //var point = CommandNavDate.TransformToAncestor(Application.Current.MainWindow).Transform(new Point(0,0));
+                CommonHelper.Cmd_DatePicker.Execute(point);
+
+                if (LastSelectedDate.Year != CommonHelper.SelectedDate.Year ||
+                    LastSelectedDate.Month != CommonHelper.SelectedDate.Month ||
+                    LastSelectedDate.Day != CommonHelper.SelectedDate.Day)
+                {
+                    LastSelectedDate = CommonHelper.SelectedDate;
+                    NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
+                    pagetiles.ShowImages(pagetiles.TargetPage, false);
+                }
+            }
         }
 
         private void CommandNavPrev_Click(object sender, RoutedEventArgs e)
@@ -141,7 +174,12 @@ namespace PixivWPF
 
         private void CommandNavNext_Click(object sender, RoutedEventArgs e)
         {
-            NavPageTitle.Text = pagetiles.TargetPage.ToString();
+            //var title = pagetiles.TargetPage.ToString();
+            //if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
+            //    NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
+            //else
+            //    NavPageTitle.Text = title;
+
             pagetiles.ShowImages(pagetiles.TargetPage, true);
         }
 
@@ -149,7 +187,17 @@ namespace PixivWPF
         {
             if(e.NewValue is PixivPage)
             {
-                NavPageTitle.Text = e.NewValue.ToString();
+                var title = e.NewValue.ToString();
+                if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
+                    CommandNavDate.IsEnabled = true;
+                }
+                else
+                {
+                    NavPageTitle.Text = title;
+                    CommandNavDate.IsEnabled = false;
+                }
             }
         }
 

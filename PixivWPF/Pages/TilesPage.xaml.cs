@@ -30,6 +30,8 @@ namespace PixivWPF.Pages
         private bool UPDATING = false;
         private Task<bool> UpdateTask = null;
 
+        public DateTime SelectedDate { get; set; } = DateTime.Now;
+
         internal Task lastTask = null;
         internal CancellationTokenSource cancelTokenSource;
         internal CancellationToken cancelToken;
@@ -708,7 +710,8 @@ namespace PixivWPF.Pages
             try
             {
                 ImageTilesWait.Show();
-                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                var date = (CommonHelper.SelectedDate - TimeSpan.FromDays(1)).ToString("yyyy-MM-dd");
+                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
                 ImageTilesWait.Hide();
