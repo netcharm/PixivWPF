@@ -385,7 +385,7 @@ namespace PixivWPF.Common
                 using (var ms = (MemoryStream)e.Data.GetData("text/html"))
                 {
 
-                    var html = System.Text.Encoding.Unicode.GetString(ms.ToArray());
+                    var html = System.Text.Encoding.Unicode.GetString(ms.ToArray()).Trim();
                     if (Regex.IsMatch(html, @"href=.*?illust_id=\d+"))
                     {
                         var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)""");
@@ -414,9 +414,23 @@ namespace PixivWPF.Common
                             }
                         }
                     }
-                    else
+                    else if(Regex.IsMatch(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?"""))
                     {
                         var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?""");
+                        if (mr.Count > 50)
+                            ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                        else
+                        {
+                            foreach (Match m in mr)
+                            {
+                                var link = m.Groups[1].Value;
+                                if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var mr = Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?");
                         if (mr.Count > 50)
                             ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
                         else
@@ -432,7 +446,7 @@ namespace PixivWPF.Common
             }
             else if (fmts.Contains("Text"))
             {
-                var html = (string)e.Data.GetData("Text");
+                var html = ((string)e.Data.GetData("Text")).Trim();
                 var mr0 = Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?$");
                 var mr1 = Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?$");
                 var mr2 = Regex.Matches(html, @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$");
