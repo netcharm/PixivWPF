@@ -710,8 +710,15 @@ namespace PixivWPF.Pages
             try
             {
                 ImageTilesWait.Show();
-                var date = (CommonHelper.SelectedDate - TimeSpan.FromDays(1)).ToString("yyyy-MM-dd");
+                var date = CommonHelper.SelectedDate.Date == DateTime.Now.Date ? string.Empty : (CommonHelper.SelectedDate - TimeSpan.FromDays(1)).ToString("yyyy-MM-dd");
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                int count = 2;
+                while (count <= 7 && (root.illusts == null || root.illusts.Length <= 0))
+                {
+                    date = (CommonHelper.SelectedDate - TimeSpan.FromDays(count)).ToString("yyyy-MM-dd");
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                    count++;
+                }
                 nexturl = root.next_url ?? string.Empty;
                 NextURL = nexturl;
                 ImageTilesWait.Hide();
