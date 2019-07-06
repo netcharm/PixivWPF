@@ -51,6 +51,31 @@ namespace PixivWPF.Pages
             window = Window.GetWindow(this);
         }
 
+        public bool IsExists(string url)
+        {
+            bool result = false;
+
+            if (string.IsNullOrEmpty(url))
+                result = true;
+            else
+            {
+                foreach (var item in items)
+                {
+                    if (item.Url.Equals(url, StringComparison.Ordinal))
+                    {
+                        result = true;
+                        if (item.State == DownloadState.Failed ||
+                            item.State == DownloadState.Idle ||
+                            item.State == DownloadState.Paused)
+                            item.IsStart = true;
+                        break;
+                    }
+                }
+            }
+
+            return (result);
+        }
+
         public void Add(DownloadInfo item)
         {
             if(item is DownloadInfo)
@@ -62,7 +87,7 @@ namespace PixivWPF.Pages
 
         public async void Add(string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
-            if (!string.IsNullOrEmpty(url))
+            if (!IsExists(url))
             {
                 var Canceled = false;
                 if (string.IsNullOrEmpty(setting.LastFolder))
