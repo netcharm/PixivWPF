@@ -325,7 +325,7 @@ namespace PixivWPF.Pages
                 //    Preview.Source = await nuser.GetPreviewUrl().LoadImage(tokens);
 
                 IllustSizeIcon.Kind = PackIconModernKind.Image;
-                IllustSize.Text = $"{nprof.total_illusts}";
+                IllustSize.Text = $"{nprof.total_illusts + nprof.total_manga}";
                 IllustViewedIcon.Kind = PackIconModernKind.Check;
                 IllustViewed.Text = $"{nprof.total_follow_users}";
                 IllustFavorited.Text = $"{nprof.total_illust_bookmarks_public}";

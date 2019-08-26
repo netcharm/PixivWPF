@@ -984,26 +984,22 @@ namespace Pixeez
         /// 获取用户作品列表 (无需登录)
         /// </summary>
         /// <param name="user_id"></param>
-        /// <param name="type"></param>
+        /// <param name="type">allowed: illust, manga, or none</param>
         /// <param name="filter"></param>
         /// <param name="offset"></param>
         /// <param name="req_auth"></param>
         /// <returns></returns>
-        public async Task<Illusts> GetUserWorksAsync(long user_id, string type = "illust", string filter = "for_ios", int? offset = null, bool req_auth = true)
+        public async Task<Illusts> GetUserWorksAsync(long user_id, string type = "", string filter = "for_ios", int? offset = null, bool req_auth = true)
         {
             var url = "https://app-api.pixiv.net/v1/user/illusts";
 
             var param = new Dictionary<string, string>
             {
-                {"user_id",user_id.ToString() },
-                {
-                    "type",type
-                },
-                {
-                    "filter",
-                    filter
-                }
+                { "user_id",user_id.ToString() },
+                { "type", type },
+                { "filter", filter }
             };
+            if (string.IsNullOrEmpty(type)) param.Remove("type");
             if (offset != null)
             {
                 param["offset"] = offset.Value.ToString();

@@ -381,6 +381,7 @@ namespace PixivWPF.Common
                 if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
                 {
                     PART_DownloadProgress.IsIndeterminate = false;
+                    PART_DownloadProgress.IsEnabled = true;
                     Info.Received = 0;
                     Info.Length = (long)response.Source.Content.Headers.ContentLength;
                     progress.Report(Progress);
@@ -422,8 +423,7 @@ namespace PixivWPF.Common
                                 }
                                 else
                                 {
-                                    State = DownloadState.Failed;
-                                    PART_DownloadProgress.IsIndeterminate = true;
+                                    throw new Exception($"Download {Path.GetFileName(Info.FileName)} Failed!");
                                 }
                             }
                             catch (Exception ex)
@@ -431,6 +431,7 @@ namespace PixivWPF.Common
                                 var ret = ex.Message;
                                 State = DownloadState.Failed;
                                 PART_DownloadProgress.IsIndeterminate = true;
+                                PART_DownloadProgress.IsEnabled = false;
                             }
                             finally
                             {
