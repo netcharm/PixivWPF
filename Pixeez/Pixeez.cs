@@ -18,11 +18,18 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
+using System.Net.Sockets;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using Pixeez.Objects;
 using System.Linq;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
+
+using Newtonsoft.Json.Linq;
+using Pixeez.Objects;
+using System.Security.Authentication;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Pixeez
 {
@@ -92,6 +99,7 @@ namespace Pixeez
             this.Stream?.Dispose();
         }
     }
+
     public class AuthKey
     {
         public string Password;
@@ -104,6 +112,73 @@ namespace Pixeez
         public Tokens Tokens;
         public Authorize Authorize;
         public AuthKey Key;
+    }
+
+    public static class PIXIV
+    {
+        public static string ClientID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
+        public static string ClientSecret = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
+        public static string HashSecret = "28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c";
+
+        public static Dictionary<string, string> TargetIPs { get; set; } = new Dictionary<string, string>()
+        {
+            {"oauth.secure.pixiv.net","210.140.131.224" },
+            {"i.pximg.net","210.140.92.142" },
+            {"www.pixiv.net","210.140.131.224" },
+            {"app-api.pixiv.net","210.140.131.224" }
+        };
+
+        public static Dictionary<string, string> TargetSubjects { get; set; } = new Dictionary<string, string>()
+        {
+            {"210.140.131.224","CN=*.pixiv.net, O=pixiv Inc., OU=Development department, L=Shibuya-ku, S=Tokyo, C=JP" },
+            {"210.140.92.142","CN=*.pximg.net, OU=Domain Control Validated" }
+        };
+
+        public static Dictionary<string, string> TargetSNs { get; set; } = new Dictionary<string, string>()
+        {
+            {"210.140.131.224","281941D074A6D4B07B72D729" },
+            {"210.140.92.142","2387DB20E84EFCF82492545C" }
+        };
+
+        public static Dictionary<string, string> TargetTPs { get; set; } = new Dictionary<string, string>()
+        {
+            {"210.140.131.224","352FCC13B920E12CD15F3875E52AEDB95B62972B" },
+            {"210.140.92.142","F4A431620F42E4D10EB42621C6948E3CD5014FB0" }
+        };
+
+        public static string MD5Hash(this string text)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+            using (var md5 = MD5.Create())
+            {
+                var bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(text.Trim()));
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                    builder.Append(bytes[i].ToString("x2"));
+                return builder.ToString();
+            }
+        }
+
+        public static HttpClient Client(string proxy, bool useproxy)
+        {
+            var Proxy = proxy;
+            var UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
+            //ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+            string time = DateTime.UtcNow.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+            HttpClientHandler handler = new HttpClientHandler()
+            {
+                //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
+                Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
+                UseProxy = string.IsNullOrEmpty(proxy) || !UsingProxy ? false : true
+            };
+            var httpClient = new HttpClient(handler, true){ Timeout=TimeSpan.FromSeconds(120) };
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+            httpClient.DefaultRequestHeaders.Add("X-Client-Time", time);
+            httpClient.DefaultRequestHeaders.Add("X-Client-Hash", $"{time}{PIXIV.HashSecret}".MD5Hash());
+
+            return (httpClient);
+        }
     }
 
     public class Auth
@@ -120,47 +195,35 @@ namespace Pixeez
         /// <returns>Tokens.</returns>
         public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string devicetoken, string proxy, bool useproxy = false)
         {
-            Proxy = proxy;
-            UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
+            //return await (AuthorizeAsync(username, password, refreshtoken, proxy, useproxy));
 
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
-                UseProxy = string.IsNullOrEmpty(proxy) || !UsingProxy ? false : true
-            };
-            var httpClient = new HttpClient(handler);
-            //httpClient.DefaultRequestHeaders.Add("Referer", "http://www.pixiv.net/");
-            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
-            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "10.2.1");
-            httpClient.DefaultRequestHeaders.Add("App-Version", "6.4.0");
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)");
+            var httpClient = PIXIV.Client(proxy, useproxy);
 
             FormUrlEncodedContent param;
             if (string.IsNullOrEmpty(refreshtoken))
             {
                 param = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
+                    { "get_secure_url", "1" },
+                    { "client_id", PIXIV.ClientID },
+                    { "client_secret", PIXIV.ClientSecret },
+                    { "grant_type", "password" },
                     { "username", username },
                     { "password", password },
-                    { "grant_type", "password" },
-                    { "get_secure_url","1" },
-                    //{ "device_token",  devicetoken },
-                    { "client_id", "bYGKuGVw91e0NMfPGp44euvGt59s" },
-                    { "client_secret", "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK" },
                 });
             }
             else
             {
                 param = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
-                    { "refresh_token", refreshtoken },
+                    { "get_secure_url", "1" },
+                    { "client_id", PIXIV.ClientID },
+                    { "client_secret", PIXIV.ClientSecret },
                     { "grant_type", "refresh_token" },
-                    //{ "device_token",  devicetoken },
-                    { "get_secure_url","1" },
-                    { "client_id", "bYGKuGVw91e0NMfPGp44euvGt59s" },
-                    { "client_secret", "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK" },
+                    { "refresh_token", refreshtoken },
                 });
             }
+
             var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
             response.EnsureSuccessStatusCode();
 
@@ -189,43 +252,30 @@ namespace Pixeez
         /// <returns></returns>
         public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, bool useproxy = false)
         {
-            Proxy = proxy;
-            UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
-
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
-                UseProxy = string.IsNullOrEmpty(proxy) || !UsingProxy ? false : true
-            };
-            var httpClient = new HttpClient(handler);
-
-            //httpClient.DefaultRequestHeaders.Add("Referer", "http://www.pixiv.net/");
-            //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.0");
-            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
-            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "10.2.1");
-            httpClient.DefaultRequestHeaders.Add("App-Version", "6.4.0");
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)");
+            var httpClient = PIXIV.Client(proxy, useproxy);
 
             FormUrlEncodedContent param;
             if (string.IsNullOrEmpty(refreshtoken))
             {
                 param = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
+                    { "get_secure_url", "1" },
+                    { "client_id", PIXIV.ClientID },
+                    { "client_secret", PIXIV.ClientSecret },
+                    { "grant_type", "password" },
                     { "username", username },
                     { "password", password },
-                    { "grant_type", "password" },
-                    { "client_id", "bYGKuGVw91e0NMfPGp44euvGt59s" },
-                    { "client_secret", "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK" },
                 });
             }
             else
             {
                 param = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
-                    { "refresh_token", refreshtoken },
+                    { "get_secure_url", "1" },
+                    { "client_id", PIXIV.ClientID },
+                    { "client_secret", PIXIV.ClientSecret },
                     { "grant_type", "refresh_token" },
-                    { "client_id", "bYGKuGVw91e0NMfPGp44euvGt59s" },
-                    { "client_secret", "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK" },
+                    { "refresh_token", refreshtoken },
                 });
             }
 
@@ -238,13 +288,7 @@ namespace Pixeez
 
             var tokens = new Tokens(authorize.AccessToken);
 
-            //var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
-            //response.EnsureSuccessStatusCode();
-
-            //var json = await response.Content.ReadAsStringAsync();
-            //var authorize = JToken.Parse(json).SelectToken("response").ToObject<Authorize>();
-
-            var result = new Pixeez.AuthResult();
+            var result = new AuthResult();
             result.Authorize = authorize;
             result.Key = new AuthKey()
             {
@@ -266,31 +310,17 @@ namespace Pixeez
         /// <returns></returns>
         public static async Task<AuthResult> AuthorizeAsync(string username, string password, string proxy, bool useproxy = false)
         {
-            Proxy = proxy;
-            UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
-
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
-                UseProxy = string.IsNullOrEmpty(proxy) || !UsingProxy ? false : true
-            };
-            var httpClient = new HttpClient(handler);
-
-            //httpClient.DefaultRequestHeaders.Add("Referer", "http://www.pixiv.net/");
-            //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.0");
-            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
-            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "10.2.1");
-            httpClient.DefaultRequestHeaders.Add("App-Version", "6.4.0");
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)");
+            var httpClient = PIXIV.Client(proxy, useproxy);
 
             FormUrlEncodedContent param;
             param = new FormUrlEncodedContent(new Dictionary<string, string>
             {
+                { "get_secure_url", "1" },
+                { "client_id", PIXIV.ClientID },
+                { "client_secret", PIXIV.ClientSecret },
+                { "grant_type", "password" },
                 { "username", username },
                 { "password", password },
-                { "grant_type", "password" },
-                { "client_id", "bYGKuGVw91e0NMfPGp44euvGt59s" },
-                { "client_secret", "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK" },
             });
 
             var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
@@ -301,12 +331,6 @@ namespace Pixeez
             var authorize = JToken.Parse(json).SelectToken("response").ToObject<Authorize>();
 
             var tokens = new Tokens(authorize.AccessToken);
-
-            //var response = await httpClient.PostAsync("https://oauth.secure.pixiv.net/auth/token", param);
-            //response.EnsureSuccessStatusCode();
-
-            //var json = await response.Content.ReadAsStringAsync();
-            //var authorize = JToken.Parse(json).SelectToken("response").ToObject<Authorize>();
 
             var result = new Pixeez.AuthResult();
             result.Authorize = authorize;
@@ -364,19 +388,8 @@ namespace Pixeez
         /// <returns></returns>
         public async Task<AsyncResponse> SendRequestWithAuthAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
-            Proxy = Auth.Proxy;
-            UsingProxy = Auth.UsingProxy;
-
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                AllowAutoRedirect = true,
-                UseCookies = true,
-                Proxy = string.IsNullOrEmpty(Proxy) ? null : new WebProxy(Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
-                UseProxy = string.IsNullOrEmpty(Proxy) || !UsingProxy ? false : true
-            };
-            var httpClient = new HttpClient(handler) { Timeout=TimeSpan.FromSeconds(120) };
+            var httpClient = PIXIV.Client(Auth.Proxy, Auth.UsingProxy);
             httpClient.DefaultRequestHeaders.Add("Referer", "http://spapi.pixiv.net/");
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/5.8.7");
             httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
             return await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
         }
@@ -391,15 +404,7 @@ namespace Pixeez
         /// <returns></returns>
         public async Task<AsyncResponse> SendRequestToGetImageAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
-            Proxy = Auth.Proxy;
-            UsingProxy = Auth.UsingProxy;
-
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                Proxy = string.IsNullOrEmpty(Proxy) ? null : new WebProxy(Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
-                UseProxy = string.IsNullOrEmpty(Proxy) || !UsingProxy ? false : true
-            };
-            var httpClient = new HttpClient(handler);
+            var httpClient = PIXIV.Client(Auth.Proxy, Auth.UsingProxy);
             httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
             return await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
         }
@@ -415,19 +420,7 @@ namespace Pixeez
         /// <returns></returns>
         public async Task<AsyncResponse> SendRequestWithoutAuthAsync(MethodType type, string url, bool needauth = false, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
-            Proxy = Auth.Proxy;
-            UsingProxy = Auth.UsingProxy;
-
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                Proxy = string.IsNullOrEmpty(Proxy) ? null : new WebProxy(Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
-                UseProxy = string.IsNullOrEmpty(Proxy) || !UsingProxy ? false : true
-            };
-            var httpClient = new HttpClient(handler);
-            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
-            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "10.2.1");
-            httpClient.DefaultRequestHeaders.Add("App-Version", "6.4.0");
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)");
+            var httpClient = PIXIV.Client(Auth.Proxy, Auth.UsingProxy);
             httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
             httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
             if (needauth) httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
@@ -634,7 +627,7 @@ namespace Pixeez
                 { "include_contacts", "1" } ,
             };
 
-            return await this.AccessApiAsync<List<User>>(MethodType.GET, url, param);
+            return await AccessApiAsync<List<User>>(MethodType.GET, url, param);
         }
 
         /// <summary>
