@@ -76,10 +76,24 @@
                             Tag="{Binding DisplayBadge, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
                             Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
                             BadgeBackground="{DynamicResource AccentColorBrush}" />
-                <TextBlock Grid.Row="1" Text="{Binding Subject, Mode=OneWay}" 
-                           Background="{DynamicResource AccentColorBrush}"
-                           Foreground="{DynamicResource IdealForegroundColorBrush}" 
-                           Visibility="{Binding Path=TitleVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"/>
+                <Grid Grid.Row="1"
+                      Visibility="{Binding Path=TitleVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" 
+                               Text="{Binding Subject, Mode=OneWay}" 
+                               Background="{DynamicResource AccentColorBrush}"
+                               Foreground="{DynamicResource IdealForegroundColorBrush}"/>
+                    <iconPacks:PackIconModern Grid.Column="1" 
+                                              Kind="Download" x:Name="PART_IllustDownloaded" 
+                                              Width="16" Height="16"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Background="{DynamicResource AccentColorBrush}"
+                                              Foreground="{DynamicResource IdealForegroundColorBrush}"
+                                              Visibility="{Binding IsDownloadedVisibility, Mode=OneWay}"/>
+                </Grid>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>

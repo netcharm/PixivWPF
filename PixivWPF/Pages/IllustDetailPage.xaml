@@ -21,7 +21,7 @@
    
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition MinWidth="692"/>
+            <ColumnDefinition MinWidth="710"/>
         </Grid.ColumnDefinitions>
 
         <!-- Illust Preview Viewport -->

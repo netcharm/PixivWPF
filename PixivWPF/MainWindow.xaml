@@ -20,7 +20,7 @@
                  TextOptions.TextFormattingMode="Display"
                  AllowDrop="True"
                  PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
-                 WindowStartupLocation="CenterScreen" MinWidth="1280" MinHeight="720" Width="1400" Height="972"
+                 WindowStartupLocation="CenterScreen" MinWidth="1280" MinHeight="720" Width="1440" Height="972"
                  Closing="MainWindow_Closing" >
 
 

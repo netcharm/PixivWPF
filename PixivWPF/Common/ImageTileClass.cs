@@ -76,6 +76,24 @@ namespace PixivWPF.Common
             }
         }
 
+        public Visibility IsDownloadedVisibility { get; set; } = Visibility.Collapsed;
+        [Description("Get or Set Illust IsDownloaded State")]
+        [Category("Common Properties")]
+        [DefaultValue(false)]
+        public bool IsDownloaded
+        {
+            get
+            {
+                if (IsDownloadedVisibility == Visibility.Visible) return true;
+                else return false;
+            }
+            set
+            {
+                if (value) IsDownloadedVisibility = Visibility.Visible;
+                else IsDownloadedVisibility = Visibility.Collapsed;
+            }
+        }
+
         public async Task RefreshIllustAsync(Pixeez.Tokens tokens)
         {
             var illusts = await tokens.GetWorksAsync(Illust.Id.Value);
@@ -177,6 +195,7 @@ namespace PixivWPF.Common
                             UserID = illust.User.Id.ToString(),
                             Subject = illust.Title,
                             DisplayTitle = true,
+                            IsDownloaded = illust.GetOriginalUrl().IsPartDownloaded(),
                             Caption = illust.Caption,
                             ToolTip = $"{illust.GetDateTime()}{tooltip}",
                             Illust = illust,

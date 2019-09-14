@@ -125,6 +125,9 @@ namespace PixivWPF.Common
             get { return titlevisibility; }
             set { titlevisibility = value; }
         }
+        [Description("Get or Set Item Title Visibility")]
+        [Category("Common Properties")]
+        [DefaultValue(true)]
         public bool DisplayTitle
         {
             get
@@ -328,5 +331,6 @@ namespace PixivWPF.Common
                 }
             }
         }
+
     }
 }

@@ -71,10 +71,23 @@
                                 FontSize="16" FontFamily="Consolas" 
                                 Visibility="{Binding BadgeVisibility, Mode=OneWay}"
                                 BadgeBackground="{DynamicResource AccentColorBrush}" />
-                    <TextBlock Grid.Row="1" 
-                               Text="{Binding Subject, Mode=OneWay}" 
-                               Foreground="{DynamicResource IdealForegroundColorBrush}" 
-                               Visibility="{Binding TitleVisibility, Mode=OneWay}"/>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" 
+                                   Text="{Binding Subject, Mode=OneWay}" 
+                                   Background="{DynamicResource AccentColorBrush}"
+                                   Foreground="{DynamicResource IdealForegroundColorBrush}"/>
+                        <iconPacks:PackIconModern Grid.Column="1" 
+                                                  Kind="Download" x:Name="PART_IllustDownloaded" 
+                                                  Width="16" Height="16"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Background="{DynamicResource AccentColorBrush}"
+                                                  Foreground="{DynamicResource IdealForegroundColorBrush}"
+                                                  Visibility="{Binding IsDownloadedVisibility, Mode=OneWay}"/>
+                    </Grid>
                 </Grid>
             </StackPanel>
         </DataTemplate>
