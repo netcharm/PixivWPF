@@ -796,6 +796,46 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        internal static bool IsDownloaded(this string url, bool is_meta_single_page = false)
+        {
+            bool result = false;
+            var file = url.GetImageName(is_meta_single_page);
+            foreach (var local in setting.LocalStorage)
+            {
+                if (string.IsNullOrEmpty(local)) continue;
+
+                var f = Path.Combine(local, file);
+                if (File.Exists(f))
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return (result);
+        }
+
+        internal static bool IsDownloaded(this string url, out string filepath, bool is_meta_single_page = false)
+        {
+            bool result = false;
+            filepath = string.Empty;
+
+            var file = url.GetImageName(is_meta_single_page);
+            foreach (var local in setting.LocalStorage)
+            {
+                if (string.IsNullOrEmpty(local)) continue;
+
+                var f = Path.Combine(local, file);
+                if (File.Exists(f))
+                {
+                    filepath = f;
+                    result = true;
+                    break;
+                }
+            }
+
+            return (result);
+        }
+
         internal static bool IsFileReady(this string filename)
         {
             // If the file can be opened for exclusive access it means that the file

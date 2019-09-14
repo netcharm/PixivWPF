@@ -21,6 +21,7 @@ using MahApps.Metro.IconPacks;
 using TheArtOfDev.HtmlRenderer.Core.Entities;
 using TheArtOfDev.HtmlRenderer.WPF;
 using Prism.Commands;
+using System.IO;
 
 namespace PixivWPF.Pages
 {
@@ -109,6 +110,20 @@ namespace PixivWPF.Pages
                     stat_tip.Add($"Favorited : {item.Illust.Stats.FavoritedCount.Public} / {item.Illust.Stats.FavoritedCount.Private}");
                 }
                 stat_tip.Add($"Size      : {item.Illust.Width}x{item.Illust.Height}");
+
+                string fp = string.Empty;
+                if (item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp, item.Illust.PageCount <= 1))
+                {
+                    IllustDownloaded.Visibility = Visibility.Visible;
+                    IllustDownloaded.Tag = fp;
+                    ToolTipService.SetToolTip(IllustDownloaded, fp);
+                }
+                else
+                {
+                    IllustDownloaded.Visibility = Visibility.Collapsed;
+                    IllustDownloaded.Tag = null;
+                    ToolTipService.SetToolTip(IllustDownloaded, null);
+                }
 
                 IllustSize.Text = $"{item.Illust.Width}x{item.Illust.Height}";
                 IllustViewed.Text = stat_viewed;
@@ -1284,6 +1299,20 @@ namespace PixivWPF.Pages
                     lastSelectionItem = item;
                     lastSelectionChanged = DateTime.Now.ToFileTime();
 
+                    string fp = string.Empty;
+                    if (item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp))
+                    {
+                        IllustDownloaded.Visibility = Visibility.Visible;
+                        IllustDownloaded.Tag = fp;
+                        ToolTipService.SetToolTip(IllustDownloaded, fp);
+                    }
+                    else
+                    {
+                        IllustDownloaded.Visibility = Visibility.Collapsed;
+                        IllustDownloaded.Tag = null;
+                        ToolTipService.SetToolTip(IllustDownloaded, null);
+                    }
+
                     var tokens = await CommonHelper.ShowLogin();
                     var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
                     if (img == null || img.Width < 350)
@@ -1570,6 +1599,17 @@ namespace PixivWPF.Pages
         }
         #endregion
 
+        private void IllustDownloaded_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if(IllustDownloaded.Tag is string)
+            {
+                var fp = IllustDownloaded.Tag as string;
+                if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
+                {
+                    System.Diagnostics.Process.Start(fp);
+                }
+            }
+        }
     }
 
 }

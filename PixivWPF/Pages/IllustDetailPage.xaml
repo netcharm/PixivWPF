@@ -123,6 +123,12 @@
                     
                     <StackPanel Grid.Row="1" Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
+                        <iconPacks:PackIconModern Kind="Download" x:Name="IllustDownloaded" Visibility="Collapsed"
+                                                  MouseDoubleClick="IllustDownloaded_MouseDoubleClick"
+                                              HorizontalAlignment="Right" VerticalAlignment="Center"
+                                              Foreground="{DynamicResource AccentColorBrush}" 
+                                              Width="16" Height="16"/>
+
                         <iconPacks:PackIconModern Kind="ImageAnts" x:Name="IllustSizeIcon"
                                               HorizontalAlignment="Right" VerticalAlignment="Center"
                                               Foreground="{DynamicResource AccentColorBrush}" 

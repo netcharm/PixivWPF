@@ -84,7 +84,12 @@ namespace PixivWPF.Common
         public string LastFolder
         {
             get { return lastfolder; }
-            set { lastfolder = value; }
+            set
+            {
+                lastfolder = value;
+                if (LocalStorage.IndexOf(lastfolder) < 0)
+                    LocalStorage.Add(lastfolder);
+            }
         }
 
         [JsonIgnore]
@@ -157,11 +162,21 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public string SaveFolder { get; set; }
 
+        public List<string> LocalStorage { get; set; } = new List<string>();
+
+        public Point DropBoxPosition { get; set; } = new Point(0, 0);
+
         public void Save(string configfile = "")
         {
             try
             {
                 if (string.IsNullOrEmpty(configfile)) configfile = config;
+
+                if(Cache.LocalStorage.IndexOf(Cache.SaveFolder) < 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
+                {
+                    Cache.LocalStorage.Add(Cache.SaveFolder);
+                }
+
                 var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
                 File.WriteAllText(configfile, text, new UTF8Encoding(true));
             }
@@ -170,8 +185,6 @@ namespace PixivWPF.Common
                 CommonHelper.ShowMessageDialog("ERROR", ex.Message);
             }
         }
-
-        public Point DropBoxPosition { get; set; } = new Point(0, 0);
 
         public static Setting Load(string configfile = "")
         {
@@ -189,6 +202,10 @@ namespace PixivWPF.Common
                             Cache = new Setting();
                         else
                             Cache = JsonConvert.DeserializeObject<Setting>(text);
+
+                        if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
+                            Cache.LocalStorage.Add(Cache.SaveFolder);
+
                         result = Cache;
                     }
                 }

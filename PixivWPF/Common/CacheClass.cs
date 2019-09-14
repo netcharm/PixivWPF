@@ -32,9 +32,11 @@ namespace PixivWPF.Common
         {
             if (File.Exists(_CacheDB))
             {
+#if DEBUG
                 var text = File.ReadAllText(_CacheDB);
                 if (text.Length > 20)
                     _caches = JsonConvert.DeserializeObject<Dictionary<string, string>>(text);
+#endif
             }
         }
         
