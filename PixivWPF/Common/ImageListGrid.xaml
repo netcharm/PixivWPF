@@ -62,8 +62,30 @@
                     Kind="Heart"
                     Width="24" Height="24" Margin="0,0,8,8" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                    Foreground="{DynamicResource AccentColorBrush}"                                           
+                    Foreground="{DynamicResource AccentColorBrush}"
                     Visibility="{Binding FavMarkVisibility, Mode=OneWay}" >
+                    <iconPacks:PackIconModern.Effect>
+                        <DropShadowEffect ShadowDepth="0" Color="White" Opacity="1" BlurRadius="5"/>
+                    </iconPacks:PackIconModern.Effect>
+                </iconPacks:PackIconModern>
+                <iconPacks:PackIconModern 
+                    Grid.Row="0"
+                    Kind="Download" 
+                    Width="28" Height="24" Margin="0,0,6,8" 
+                    Foreground="White" 
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                    Visibility="{Binding IsDownloadedVisibilityAlt, Mode=OneWay}" >
+                    <iconPacks:PackIconModern.Effect>
+                        <DropShadowEffect ShadowDepth="0" Color="White" Opacity="1" BlurRadius="9"/>
+                    </iconPacks:PackIconModern.Effect>
+                </iconPacks:PackIconModern>                
+                <iconPacks:PackIconModern 
+                    Grid.Row="0" x:Name="PART_IllustDownloadedAlt" 
+                    Kind="Download" 
+                    Width="24" Height="24" Margin="0,0,8,8" 
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                    Foreground="{DynamicResource AccentColorBrush}"
+                    Visibility="{Binding IsDownloadedVisibilityAlt, Mode=OneWay}">
                     <iconPacks:PackIconModern.Effect>
                         <DropShadowEffect ShadowDepth="0" Color="White" Opacity="1" BlurRadius="5"/>
                     </iconPacks:PackIconModern.Effect>

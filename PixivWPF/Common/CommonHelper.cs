@@ -6,6 +6,7 @@ using Prism.Commands;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Media;
@@ -15,6 +16,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -167,6 +169,8 @@ namespace PixivWPF.Common
                 var list = obj as ImageListGrid;
                 foreach (var item in list.SelectedItems)
                 {
+                    item.IsDownloaded = item.Illust == null ? false : item.Illust.GetOriginalUrl().IsPartDownloaded();
+
                     if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
@@ -201,6 +205,8 @@ namespace PixivWPF.Common
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
+                item.IsDownloaded = item.Illust == null ? false : item.Illust.GetOriginalUrl().IsPartDownloaded();
+
                 switch (item.ItemType)
                 {
                     case ImageItemType.Work:
@@ -265,6 +271,7 @@ namespace PixivWPF.Common
                     DisplayTitle = true,
                     Caption = illust.Caption,
                     ToolTip = $"{illust.GetDateTime()}{tooltip}",
+                    IsDownloaded = illust == null ? false : illust.GetOriginalUrl().IsPartDownloaded(),
                     Illust = illust,
                     Tag = illust
                 };
@@ -1307,6 +1314,53 @@ namespace PixivWPF.Common
             _dailogService.ClearNotifications();
             _dailogService.ShowNotificationWindow(newNotification, cfg);
         }
+
+        #region Illust Tile ListView routines
+        public static void UpdateTiles(this ObservableCollection<ImageItem> items, ImageItem item = null)
+        {
+            if (items is ObservableCollection<ImageItem>)
+            {
+                if (item is ImageItem)
+                {
+                    int idx = items.IndexOf(item);
+                    if (idx >= 0 && idx < items.Count())
+                    {
+                        items.Remove(item);
+                        items.Insert(idx, item);
+                    }
+                }
+                else
+                {
+                    CollectionViewSource.GetDefaultView(items).Refresh();                    
+                }
+            }
+        }
+
+        public static void UpdateTiles(this ObservableCollection<ImageItem> items, IEnumerable<ImageItem> subitems)
+        {
+            if (items is ObservableCollection<ImageItem>)
+            {
+
+                if (subitems is IEnumerable<ImageItem>)
+                {
+                    foreach (ImageItem sub in subitems)
+                    {
+                        int idx = items.IndexOf(sub);
+                        if (idx >= 0 && idx < items.Count())
+                        {
+                            items.Remove(sub);
+                            items.Insert(idx, sub);
+                        }
+                    }
+                }
+                else
+                {
+                    CollectionViewSource.GetDefaultView(items).Refresh();
+                }
+            }
+        }
+
+        #endregion
 
         #region Drop Box routines
         private static void DropBox_MouseDown(object sender, MouseButtonEventArgs e)

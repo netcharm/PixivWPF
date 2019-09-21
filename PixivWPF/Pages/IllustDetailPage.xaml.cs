@@ -111,10 +111,11 @@ namespace PixivWPF.Pages
                 }
                 stat_tip.Add($"Size      : {item.Illust.Width}x{item.Illust.Height}");
 
-                string fp = string.Empty;
-                if (item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp, item.Illust.PageCount <= 1))
+                if (item.IsDownloaded)
                 {
                     IllustDownloaded.Visibility = Visibility.Visible;
+                    string fp = string.Empty;
+                    item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp, item.Illust.PageCount <= 1);
                     IllustDownloaded.Tag = fp;
                     ToolTipService.SetToolTip(IllustDownloaded, fp);
                 }
@@ -123,7 +124,7 @@ namespace PixivWPF.Pages
                     IllustDownloaded.Visibility = Visibility.Collapsed;
                     IllustDownloaded.Tag = null;
                     ToolTipService.SetToolTip(IllustDownloaded, null);
-                }
+                }                
 
                 IllustSize.Text = $"{item.Illust.Width}x{item.Illust.Height}";
                 IllustViewed.Text = stat_viewed;
@@ -1458,7 +1459,17 @@ namespace PixivWPF.Pages
 
         private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            foreach (var item in RelativeIllusts.SelectedItems)
+            {
+                bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
+                if (item.IsDownloaded != download)
+                {
+                    item.IsDownloaded = download;
+                }
+            }
+            var items = RelativeIllusts.SelectedItems;
+            RelativeIllusts.Items.UpdateTiles(RelativeIllusts.SelectedItems);
+            foreach (var item in items) RelativeIllusts.SelectedItems.Add(item);
         }
 
         private void RelativeIllusts_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -1547,6 +1558,17 @@ namespace PixivWPF.Pages
 
         private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            foreach(var item in FavoriteIllusts.SelectedItems)
+            {
+                bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
+                if (item.IsDownloaded != download)
+                {
+                    item.IsDownloaded = download;
+                }
+            }
+            var items = FavoriteIllusts.SelectedItems;
+            FavoriteIllusts.Items.UpdateTiles(FavoriteIllusts.SelectedItems);
+            foreach (var item in items) FavoriteIllusts.SelectedItems.Add(item);
 
         }
 

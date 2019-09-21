@@ -56,7 +56,7 @@ namespace PixivWPF.Common
             {
                 if (value) BadgeVisibility = Visibility.Visible;
                 else BadgeVisibility = Visibility.Collapsed;
-                NotifyPropertyChanged();
+                NotifyPropertyChanged("DisplayBadge");
             }
         }
 
@@ -72,10 +72,11 @@ namespace PixivWPF.Common
             {
                 if (value) TitleVisibility = Visibility.Visible;
                 else TitleVisibility = Visibility.Collapsed;
-                NotifyPropertyChanged();
+                NotifyPropertyChanged("DisplayTitle");
             }
         }
 
+        public Visibility IsDownloadedVisibilityAlt { get; set; } = Visibility.Collapsed;
         public Visibility IsDownloadedVisibility { get; set; } = Visibility.Collapsed;
         [Description("Get or Set Illust IsDownloaded State")]
         [Category("Common Properties")]
@@ -91,6 +92,9 @@ namespace PixivWPF.Common
             {
                 if (value) IsDownloadedVisibility = Visibility.Visible;
                 else IsDownloadedVisibility = Visibility.Collapsed;
+                if (DisplayTitle) IsDownloadedVisibilityAlt = Visibility.Collapsed;
+                else IsDownloadedVisibilityAlt = IsDownloadedVisibility;
+                NotifyPropertyChanged("IsDownloaded");
             }
         }
 
@@ -159,6 +163,11 @@ namespace PixivWPF.Common
 
     public static class ImageTileHelper
     {
+        private static void ImageTile_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
         #region Image Tile Add Helper
         public static void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Colloection, string nexturl = "")
         {
@@ -195,12 +204,13 @@ namespace PixivWPF.Common
                             UserID = illust.User.Id.ToString(),
                             Subject = illust.Title,
                             DisplayTitle = true,
-                            IsDownloaded = illust.GetOriginalUrl().IsPartDownloaded(),
                             Caption = illust.Caption,
                             ToolTip = $"{illust.GetDateTime()}{tooltip}",
+                            IsDownloaded = illust == null ? false : illust.GetOriginalUrl().IsPartDownloaded(),
                             Illust = illust,
                             Tag = illust
                         };
+                        //i.PropertyChanged += ImageTile_PropertyChanged;
                         Colloection.Add(i);
                     }
                 }
@@ -235,6 +245,7 @@ namespace PixivWPF.Common
                             Subject = $"{illust.Title} - {index+1}/{illust.PageCount}",
                             DisplayTitle = false,
                             ToolTip = $"{illust.GetDateTime()}{tooltip}",
+                            IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloaded(false),
                             Illust = illust,
                             Tag = pages
                         };
@@ -272,6 +283,7 @@ namespace PixivWPF.Common
                             Subject = $"{illust.Title} - {index+1}/{illust.PageCount}",
                             DisplayTitle = false,
                             ToolTip = $"{illust.GetDateTime()}{tooltip}",
+                            IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloaded(false),
                             Illust = illust,
                             Tag = page
                         };

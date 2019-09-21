@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.Controls;
+using MahApps.Metro.IconPacks;
 using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
@@ -794,6 +795,14 @@ namespace PixivWPF.Pages
 
                 var item = ImageList[idx];
 
+                bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
+                if (item.IsDownloaded != download)
+                {
+                    item.IsDownloaded = download;
+                    ImageList.UpdateTiles(item);
+                    ListImageTiles.SelectedIndex = idx;
+                }
+
                 detail_page.UpdateDetail(item);
 
                 //UpdateDetail(item);
@@ -942,6 +951,18 @@ namespace PixivWPF.Pages
                             //if (mask != null) mask.Opacity = 0.13;
                             progress.Hide();
                         }
+                    }
+                }
+            }
+            else if (sender is PackIconModern && e.Property != null)
+            {
+                var image = sender as PackIconModern;
+                if (e.Property.Name.Equals("IsDownloaded", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var download = image.FindName("PART_IllustDownloaded");
+                    if (download is PackIconModern)
+                    {
+
                     }
                 }
             }
