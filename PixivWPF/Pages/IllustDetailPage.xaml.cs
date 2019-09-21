@@ -1459,17 +1459,22 @@ namespace PixivWPF.Pages
 
         private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            var targets = new List<ImageItem>();
             foreach (var item in RelativeIllusts.SelectedItems)
             {
                 bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
                 if (item.IsDownloaded != download)
                 {
                     item.IsDownloaded = download;
+                    targets.Add(item);
                 }
             }
             var items = RelativeIllusts.SelectedItems;
-            RelativeIllusts.Items.UpdateTiles(RelativeIllusts.SelectedItems);
-            foreach (var item in items) RelativeIllusts.SelectedItems.Add(item);
+            RelativeIllusts.Items.UpdateTiles(targets);
+            RelativeIllusts.SelectedItems.Clear();
+            foreach (var item in items)
+                RelativeIllusts.SelectedItems.Add(item);
+            e.Handled = false;
         }
 
         private void RelativeIllusts_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -1558,18 +1563,22 @@ namespace PixivWPF.Pages
 
         private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            foreach(var item in FavoriteIllusts.SelectedItems)
+            var targets = new List<ImageItem>();
+            foreach (var item in FavoriteIllusts.SelectedItems)
             {
                 bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
                 if (item.IsDownloaded != download)
                 {
                     item.IsDownloaded = download;
+                    targets.Add(item);
                 }
             }
             var items = FavoriteIllusts.SelectedItems;
-            FavoriteIllusts.Items.UpdateTiles(FavoriteIllusts.SelectedItems);
-            foreach (var item in items) FavoriteIllusts.SelectedItems.Add(item);
-
+            FavoriteIllusts.Items.UpdateTiles(targets);
+            FavoriteIllusts.SelectedItems.Clear();
+            foreach (var item in items)
+                FavoriteIllusts.SelectedItems.Add(item);
+            e.Handled = false;
         }
 
         private void FavriteIllusts_MouseWheel(object sender, MouseWheelEventArgs e)
