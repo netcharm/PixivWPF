@@ -198,6 +198,8 @@ namespace PixivWPF.Common
                         viewer.Title = $"ID: {item.ID}, {item.Subject}";
                         viewer.Width = 720;
                         viewer.Height = 900;
+                        viewer.MinWidth = 720;
+                        viewer.MinHeight = 500;
                         viewer.Show();
                     }
                 }
@@ -229,6 +231,8 @@ namespace PixivWPF.Common
                         viewer.Title = $"ID: {item.ID}, {item.Subject} - {item.BadgeValue}/{item.Count}";
                         viewer.Width = 720;
                         viewer.Height = 900;
+                        viewer.MinWidth = 500;
+                        viewer.MinHeight = 500;
                         viewer.Show();
                         break;
                     case ImageItemType.User:
@@ -280,6 +284,8 @@ namespace PixivWPF.Common
                 viewer.Title = $"ID: {illust.Id}, {illust.Title}";
                 viewer.Width = 720;
                 viewer.Height = 900;
+                viewer.MinWidth = 720;
+                viewer.MinHeight = 500;
                 viewer.Content = page;
                 viewer.Show();
             }
@@ -304,6 +310,8 @@ namespace PixivWPF.Common
 
                 viewer.Width = 720;
                 viewer.Height = 800;
+                viewer.MinWidth = 720;
+                viewer.MinHeight = 500;
                 viewer.Content = page;
                 viewer.Show();
             }
@@ -1343,10 +1351,11 @@ namespace PixivWPF.Common
 
                 if (subitems is IEnumerable<ImageItem>)
                 {
+                    var count = items.Count();
                     foreach (ImageItem sub in subitems)
                     {
                         int idx = items.IndexOf(sub);
-                        if (idx >= 0 && idx < items.Count())
+                        if (idx >= 0 && idx < count)
                         {
                             items.Remove(sub);
                             items.Insert(idx, sub);

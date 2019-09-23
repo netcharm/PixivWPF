@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -62,6 +63,7 @@ namespace PixivWPF.Pages
                     {
                         var aspect = Preview.Source.AspectRatio();
                         PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
+                        Page_SizeChanged(null, null);
                     }
                         
                     if (window == null)
@@ -254,18 +256,18 @@ namespace PixivWPF.Pages
 
         private void btnAction_MouseEnter(object sender, MouseEventArgs e)
         {
-            if(sender is Button)
+            if(sender is ButtonBase)
             {
-                var btn = sender as Button;
+                var btn = sender as ButtonBase;
                 btn.BorderThickness = new Thickness(2);
             }
         }
 
         private void btnAction_MouseLeave(object sender, MouseEventArgs e)
         {
-            if (sender is Button)
+            if (sender is ButtonBase)
             {
-                var btn = sender as Button;
+                var btn = sender as ButtonBase;
                 btn.BorderThickness = new Thickness(0);
             }
         }
@@ -304,6 +306,31 @@ namespace PixivWPF.Pages
             SaveIllust();
         }
 
+        private void ActionViewFullSize_Click(object sender, RoutedEventArgs e)
+        {
+            if (btnViewFullSize.IsChecked.Value)
+            {
+                PreviewBox.HorizontalAlignment = HorizontalAlignment.Center;
+                PreviewBox.VerticalAlignment = VerticalAlignment.Center;
+                PreviewBox.Stretch = Stretch.None;
+                PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+                PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+                InfoBar.Margin = new Thickness(16, 16, 16, 32);
+                ActionBar.Margin = new Thickness(0, 0, 16, 16);
+            }
+            else
+            {
+                PreviewBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+                PreviewBox.VerticalAlignment = VerticalAlignment.Stretch;
+                PreviewBox.Stretch = Stretch.Uniform;
+                PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
+                PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+                InfoBar.Margin = new Thickness(16);
+                ActionBar.Margin = new Thickness(0);
+            }
+            Page_SizeChanged(null, null);
+        }
+
         private async void ActionViewOriginalPage_Click(object sender, RoutedEventArgs e)
         {
             if(DataType is ImageItem)
@@ -321,10 +348,37 @@ namespace PixivWPF.Pages
                     {
                         var aspect = Preview.Source.AspectRatio();
                         PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
+
+                        Page_SizeChanged(null, null);
+
+                        //if (btnViewFullSize.IsChecked.Value)
+                        //{
+                        //    PreviewBox.Width = Preview.Source.Width;
+                        //    PreviewBox.Height = Preview.Source.Height;
+                        //}
+                        //else
+                        //{
+                        //    PreviewBox.Width = PreviewScroll.ActualWidth;
+                        //    PreviewBox.Height = PreviewScroll.ActualHeight;
+                        //}
                     }
                 }
 
                 PreviewWait.Visibility = Visibility.Hidden;
+            }
+        }
+
+        private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (btnViewFullSize.IsChecked.Value)
+            {
+                PreviewBox.Width = Preview.Source.Width;
+                PreviewBox.Height = Preview.Source.Height;
+            }
+            else
+            {
+                PreviewBox.Width = PreviewScroll.ActualWidth;
+                PreviewBox.Height = PreviewScroll.ActualHeight;
             }
         }
     }

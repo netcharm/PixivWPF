@@ -252,9 +252,7 @@ namespace PixivWPF.Pages
                     cancelToken.ThrowIfCancellationRequested();
                     return;
                 }
-                Preview.Source = img;
-                //if (Preview.Source == null || Preview.Source.Width < 450)
-                if (Preview.Source == null || Preview.Source.Width < 350)
+                if (img == null || img.Width < 350)
                 {
                     if (cancelToken.IsCancellationRequested)
                     {
@@ -269,6 +267,25 @@ namespace PixivWPF.Pages
                     }
                     if (large != null) Preview.Source = large;
                 }
+                else
+                    Preview.Source = img;
+
+                //Preview.Source = img;
+                //if (Preview.Source == null || Preview.Source.Width < 350)
+                //{
+                //    if (cancelToken.IsCancellationRequested)
+                //    {
+                //        cancelToken.ThrowIfCancellationRequested();
+                //        return;
+                //    }
+                //    var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
+                //    if (cancelToken.IsCancellationRequested)
+                //    {
+                //        cancelToken.ThrowIfCancellationRequested();
+                //        return;
+                //    }
+                //    if (large != null) Preview.Source = large;
+                //}
                 if (Preview.Source != null) 
                 {
                     Preview.Visibility = Visibility.Visible;
@@ -1276,6 +1293,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             Console.WriteLine($"{DateTime.Now.ToFileTime() - lastSelectionChanged}, {sender}, {e.Handled}, {e.RoutedEvent}, {e.OriginalSource}, {e.Source}");
 #endif
+            var idx = SubIllusts.SelectedIndex;
             if (SubIllusts.SelectedItem is ImageItem && SubIllusts.SelectedItems.Count == 1)
             {
                 if (DateTime.Now.ToFileTime() - lastSelectionChanged < 500000)
@@ -1326,6 +1344,7 @@ namespace PixivWPF.Pages
                     PreviewWait.Hide();
                 }, cancelUpdatePreviewTokenSource.Token, TaskCreationOptions.None);
                 update_preview_task.RunSynchronously();
+                SubIllusts.SelectedIndex = idx;
                 //await update_preview_task;
                 //Thread.Sleep(100);
             }
@@ -1459,6 +1478,7 @@ namespace PixivWPF.Pages
 
         private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (RelativeIllusts.SelectedItems.Count <= 0 || RelativeIllusts.SelectedIndex < 0) return;
             var targets = new List<ImageItem>();
             foreach (var item in RelativeIllusts.SelectedItems)
             {
@@ -1469,11 +1489,13 @@ namespace PixivWPF.Pages
                     targets.Add(item);
                 }
             }
+            var idx = RelativeIllusts.SelectedIndex;
             var items = RelativeIllusts.SelectedItems;
             RelativeIllusts.Items.UpdateTiles(targets);
             RelativeIllusts.SelectedItems.Clear();
             foreach (var item in items)
                 RelativeIllusts.SelectedItems.Add(item);
+            RelativeIllusts.SelectedIndex = idx;
             e.Handled = false;
         }
 
@@ -1563,6 +1585,7 @@ namespace PixivWPF.Pages
 
         private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (FavoriteIllusts.SelectedItems.Count <= 0 || FavoriteIllusts.SelectedIndex < 0) return;
             var targets = new List<ImageItem>();
             foreach (var item in FavoriteIllusts.SelectedItems)
             {
@@ -1573,11 +1596,13 @@ namespace PixivWPF.Pages
                     targets.Add(item);
                 }
             }
+            var idx = FavoriteIllusts.SelectedIndex;
             var items = FavoriteIllusts.SelectedItems;
             FavoriteIllusts.Items.UpdateTiles(targets);
             FavoriteIllusts.SelectedItems.Clear();
             foreach (var item in items)
                 FavoriteIllusts.SelectedItems.Add(item);
+            FavoriteIllusts.SelectedIndex = idx;
             e.Handled = false;
         }
 
