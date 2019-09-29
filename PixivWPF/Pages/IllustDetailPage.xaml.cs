@@ -350,7 +350,8 @@ namespace PixivWPF.Pages
 
                 DataObject = user;
 
-                Preview.Visibility = Visibility.Collapsed;
+                PreviewViewer.Hide();
+                Preview.Hide();
                 Preview.Source = null;
                 //if (nprof.background_image_url is string)
                 //    Preview.Source = await ((string)nprof.background_image_url).LoadImage(tokens);

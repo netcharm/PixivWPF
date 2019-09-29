@@ -562,6 +562,24 @@ namespace PixivWPF.Common
             progress.Show(false);
         }
 
+        public static void Show(this UIElement element, bool show)
+        {
+            if (show)
+                element.Visibility = Visibility.Visible;
+            else
+                element.Visibility = Visibility.Collapsed;
+        }
+
+        public static void Show(this UIElement element)
+        {
+            element.Show(true);
+        }
+
+        public static void Hide(this UIElement element)
+        {
+            element.Show(false);
+        }
+
         internal static DownloadManagerPage _downManager = new DownloadManagerPage();
 
         public static void ShowDownloadManager(bool active = false)
