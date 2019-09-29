@@ -860,7 +860,7 @@ namespace PixivWPF.Pages
                         var is_meta_single_page = illust.PageCount==1 ? true : false;
                         if (!string.IsNullOrEmpty(url))
                         {
-                            url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                            url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
                         }
                     }
                 }

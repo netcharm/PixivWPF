@@ -68,6 +68,7 @@ namespace PixivWPF.Common
         {
             ImageSource result = null;
             var file = GetCacheFile(url);
+            var fp = string.Empty;
 
             if (_caches.ContainsKey(url))
             {
@@ -82,7 +83,7 @@ namespace PixivWPF.Common
                     tokens = await CommonHelper.ShowLogin();
                     if (tokens == null) return null;
 
-                    var success = await url.ToImageFile(tokens, file, false);
+                    var success = await url.SaveImage(tokens, file, false);
                     if (success)
                     {
                         result = await file.LoadImage();
@@ -98,12 +99,20 @@ namespace PixivWPF.Common
                     Save();
                 }
             }
+            else if (url.IsDownloaded(out fp, true) || url.IsDownloaded(out fp))
+            {
+                result = await fp.LoadImage();
+                if (result is ImageSource)
+                {
+                    _caches[url] = fp;
+                }
+            }
             else
             {
                 tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return null;
 
-                var success = await url.ToImageFile(tokens, file, false);
+                var success = await url.SaveImage(tokens, file, false);
                 if (success)
                 {
                     result = await file.LoadImage();
@@ -135,7 +144,7 @@ namespace PixivWPF.Common
                     tokens = await CommonHelper.ShowLogin();
                     if (tokens == null) return null;
 
-                    var success = await url.ToImageFile(tokens, file, false);
+                    var success = await url.SaveImage(tokens, file, false);
                     if (success)
                     {
                         result = file;
@@ -156,7 +165,7 @@ namespace PixivWPF.Common
                 tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return null;
 
-                var success = await url.ToImageFile(tokens, file, false);
+                var success = await url.SaveImage(tokens, file, false);
                 if (success)
                 {
                     result = file;

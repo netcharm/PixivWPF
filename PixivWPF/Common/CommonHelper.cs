@@ -140,7 +140,7 @@ namespace PixivWPF.Common
                     var url = pages.GetOriginalUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
+                        url.SaveImage(pages.GetThumbnailUrl(), dt, is_meta_single_page);
                     }
                 }
                 else if (item.Tag is Pixeez.Objects.Page)
@@ -149,7 +149,7 @@ namespace PixivWPF.Common
                     var url = pages.GetOriginalUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
+                        url.SaveImage(pages.GetThumbnailUrl(), dt, is_meta_single_page);
                     }
                 }
                 else if (item.Illust is Pixeez.Objects.Work)
@@ -157,7 +157,7 @@ namespace PixivWPF.Common
                     var url = illust.GetOriginalUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                        url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
                     }
                 }
             }
@@ -562,22 +562,25 @@ namespace PixivWPF.Common
             progress.Show(false);
         }
 
-        public static void Show(this UIElement element, bool show)
+        public static void Show(this UIElement element, bool show, bool parent = false)
         {
             if (show)
                 element.Visibility = Visibility.Visible;
             else
                 element.Visibility = Visibility.Collapsed;
+
+            if (parent && element.GetParentObject() is UIElement)
+                (element.GetParentObject() as UIElement).Visibility = element.Visibility;
         }
 
-        public static void Show(this UIElement element)
+        public static void Show(this UIElement element, bool parent = false)
         {
-            element.Show(true);
+            element.Show(true, parent);
         }
 
-        public static void Hide(this UIElement element)
+        public static void Hide(this UIElement element, bool parent = false)
         {
-            element.Show(false);
+            element.Show(false, parent);
         }
 
         internal static DownloadManagerPage _downManager = new DownloadManagerPage();
@@ -902,6 +905,42 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        internal static bool IsPartDownloaded(this string url, out string filepath)
+        {
+            bool result = false;
+            var file = url.GetImageName(true);
+            int[] range = Enumerable.Range(0, 250).ToArray();
+
+            filepath = string.Empty;
+            foreach (var local in setting.LocalStorage)
+            {
+                if (string.IsNullOrEmpty(local)) continue;
+
+                var f = Path.Combine(local, file);
+                if (File.Exists(f))
+                {
+                    filepath = f;
+                    result = true;
+                    break;
+                }
+
+                var fn = Path.GetFileNameWithoutExtension(file);
+                var fe = Path.GetExtension(file);
+                foreach (var fc in range)
+                {
+                    var fp = Path.Combine(local, $"{fn}_{fc}{fe}");
+                    if (File.Exists(fp))
+                    {
+                        filepath = fp;
+                        result = true;
+                        break;
+                    }
+                }
+                if (result) break;
+            }
+            return (result);
+        }
+
         internal static bool IsFileReady(this string filename)
         {
             // If the file can be opened for exclusive access it means that the file
@@ -972,7 +1011,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> ToImageFile(this string url, Pixeez.Tokens tokens, string file, bool overwrite=true)
+        public static async Task<bool> SaveImage(this string url, Pixeez.Tokens tokens, string file, bool overwrite=true)
         {
             bool result = false;
             if (!string.IsNullOrEmpty(file))
@@ -1022,7 +1061,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens, bool is_meta_single_page=false, bool overwrite = true)
+        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, bool is_meta_single_page=false, bool overwrite = true)
         {
             string result = string.Empty;
             //url = Regex.Replace(url, @"//.*?\.pixiv.net/", "//i.pximg.net/", RegexOptions.IgnoreCase);
@@ -1084,9 +1123,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> ToImageFile(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
-            var file = await url.ToImageFile(tokens, is_meta_single_page, overwrite);
+            var file = await url.SaveImage(tokens, is_meta_single_page, overwrite);
             if (!string.IsNullOrEmpty(file))
             {
                 File.SetCreationTime(file, dt);
@@ -1099,7 +1138,7 @@ namespace PixivWPF.Common
                     var ugoira_url = url.Replace("img-original", "img-zip-ugoira");
                     //ugoira_url = Regex.Replace(ugoira_url, @"(_ugoira)(\d+)(\..*?)", "_ugoira1920x1080.zip", RegexOptions.IgnoreCase);
                     ugoira_url = Regex.Replace(ugoira_url, @"_ugoira\d+\..*?$", "_ugoira1920x1080.zip", RegexOptions.IgnoreCase);
-                    var ugoira_file = await ugoira_url.ToImageFile(tokens, dt, true, overwrite);
+                    var ugoira_file = await ugoira_url.SaveImage(tokens, dt, true, overwrite);
                     if (!string.IsNullOrEmpty(ugoira_file))
                     {
                         File.SetCreationTime(ugoira_file, dt);
@@ -1120,13 +1159,13 @@ namespace PixivWPF.Common
             return (file);
         }
 
-        public static async Task<List<string>> ToImageFiles(Dictionary<string, DateTime> files, Pixeez.Tokens tokens, bool is_meta_single_page = false)
+        public static async Task<List<string>> SaveImage(Dictionary<string, DateTime> files, Pixeez.Tokens tokens, bool is_meta_single_page = false)
         {
             List<string> result = new List<string>();
 
             foreach (var file in files)
             {
-                var f = await file.Key.ToImageFile(tokens, file.Value, is_meta_single_page);
+                var f = await file.Key.SaveImage(tokens, file.Value, is_meta_single_page);
                 result.Add(f);
             }
             SystemSounds.Beep.Play();
@@ -1134,7 +1173,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ToImageFile(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        public static void SaveImage(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
             ShowDownloadManager();
             if(_downManager is DownloadManagerPage)
@@ -1143,7 +1182,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ToImageFiles(Dictionary<Tuple<string, bool>, Tuple<string, DateTime>> files, bool overwrite = true)
+        public static void SaveImages(Dictionary<Tuple<string, bool>, Tuple<string, DateTime>> files, bool overwrite = true)
         {
             foreach (var file in files)
             {
@@ -1151,7 +1190,7 @@ namespace PixivWPF.Common
                 var is_meta_single_page =  file.Key.Item2;
                 var thumb = file.Value.Item1;
                 var dt = file.Value.Item2;
-                url.ToImageFile(thumb, dt, is_meta_single_page, overwrite);
+                url.SaveImage(thumb, dt, is_meta_single_page, overwrite);
             }
             SystemSounds.Beep.Play();
         }

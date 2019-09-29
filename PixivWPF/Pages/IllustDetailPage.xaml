@@ -40,7 +40,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <!-- Illust Preview -->
-                <Grid Grid.Row="0" Width="Auto" Height="Auto">
+                <Grid Grid.Row="0" Width="Auto" Height="Auto" Visibility="Collapsed">
                     <Grid.Background>
                         <ImageBrush ImageSource="pack://application:,,,/PixivWPF;component/Resources/CheckboardPattern_32.png" 
                         TileMode="Tile"  Opacity="0.10" 

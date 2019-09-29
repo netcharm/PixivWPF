@@ -82,11 +82,13 @@ namespace PixivWPF.Pages
                 var tokens = await CommonHelper.ShowLogin();
                 DataObject = item;
 
+                PreviewViewer.Show(true);
+                PreviewBox.Show();
+                PreviewBox.ToolTip = item.ToolTip;
+
                 var dpi = new DPI();
                 Preview.Source = new WriteableBitmap(300, 300, dpi.X, dpi.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
                 PreviewWait.Show();
-
-                PreviewBox.ToolTip = item.ToolTip;
 
                 string stat_viewed = "????";
                 string stat_favorited = "????";
@@ -115,7 +117,8 @@ namespace PixivWPF.Pages
                 {
                     IllustDownloaded.Visibility = Visibility.Visible;
                     string fp = string.Empty;
-                    item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp, item.Illust.PageCount <= 1);
+                    //item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp, item.Illust.PageCount <= 1);
+                    item.Illust.GetOriginalUrl().IsPartDownloaded(out fp);
                     IllustDownloaded.Tag = fp;
                     ToolTipService.SetToolTip(IllustDownloaded, fp);
                 }
@@ -270,22 +273,6 @@ namespace PixivWPF.Pages
                 else
                     Preview.Source = img;
 
-                //Preview.Source = img;
-                //if (Preview.Source == null || Preview.Source.Width < 350)
-                //{
-                //    if (cancelToken.IsCancellationRequested)
-                //    {
-                //        cancelToken.ThrowIfCancellationRequested();
-                //        return;
-                //    }
-                //    var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
-                //    if (cancelToken.IsCancellationRequested)
-                //    {
-                //        cancelToken.ThrowIfCancellationRequested();
-                //        return;
-                //    }
-                //    if (large != null) Preview.Source = large;
-                //}
                 if (Preview.Source != null) 
                 {
                     Preview.Visibility = Visibility.Visible;
@@ -350,8 +337,8 @@ namespace PixivWPF.Pages
 
                 DataObject = user;
 
-                PreviewViewer.Hide();
-                Preview.Hide();
+                PreviewViewer.Hide(true);
+                PreviewBox.Hide();
                 Preview.Source = null;
                 //if (nprof.background_image_url is string)
                 //    Preview.Source = await ((string)nprof.background_image_url).LoadImage(tokens);
@@ -1245,7 +1232,7 @@ namespace PixivWPF.Pages
                         var url = pages.GetOriginalUrl();
                         tokens = await CommonHelper.ShowLogin();
                         //await url.ToImageFile(tokens, dt, is_meta_single_page);
-                        url.ToImageFile(pages.GetThumbnailUrl(), dt, is_meta_single_page);
+                        url.SaveImage(pages.GetThumbnailUrl(), dt, is_meta_single_page);
 
                         idx++;
                         progress.Report((int)((double)idx / total * 100));
@@ -1260,7 +1247,7 @@ namespace PixivWPF.Pages
                     //await url.ToImageFile(tokens, dt, is_meta_single_page);
                     if (is_meta_single_page)
                     {
-                        url.ToImageFile(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                        url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
                     }
                     else
                     {
@@ -1273,7 +1260,7 @@ namespace PixivWPF.Pages
                                 foreach (var p in w.Metadata.Pages)
                                 {
                                     var u = p.GetOriginalUrl();
-                                    u.ToImageFile(p.GetThumbnailUrl(), dt, is_meta_single_page);
+                                    u.SaveImage(p.GetThumbnailUrl(), dt, is_meta_single_page);
                                 }
                             }
                             
