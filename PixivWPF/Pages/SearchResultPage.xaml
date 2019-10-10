@@ -73,6 +73,7 @@
                 <Expander Grid.Row="0" x:Name="ResultExpander" x:Uid="ResultIllustsExpander"
                           IsExpanded="true" ExpandDirection="Down"
                           Visibility="Visible" Header="Search Results"
+                          ContextMenu="{StaticResource MenuSearchResult}"
                           Expanded="ResultExpander_Expanded" Collapsed="ResultExpander_Collapsed">
                     <Common:ImageListGrid x:Name="ResultIllusts" x:Uid="IllustsWithTag"
                                           Columns="5" TileWidth="128" TileHeight="128"

@@ -549,6 +549,35 @@
                     </Button>
                 </StackPanel>
 
+                <!-- Illust Comments  -->
+                <Expander Grid.Row="6" x:Name="CommentsExpander" x:Uid="CommentsExpander" Margin="0, 4, 0, 0" 
+                          IsExpanded="False" ExpandDirection="Down" 
+                          Visibility="Collapsed" Header="Comments"
+                          Collapsed="CommentsExpander_Collapsed"
+                          Expanded="CommentsExpander_Expanded">
+                    <WebBrowser x:Name="CommentsViewer">
+                        
+                    </WebBrowser>
+                </Expander>
+                <StackPanel Grid.Row="6" x:Name="CommentsNavigator" x:Uid="CommentsNavigator"
+                            Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
+                    <Button x:Name="CommentsPrevPage" Visibility="Collapsed"
+                            Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
+                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Width="32" Height="32" HorizontalAlignment="Right"
+                            Click="CommentsPrevPage_Click">
+                        <iconPacks:PackIconModern Kind="NavigatePrevious" />
+                    </Button>
+                    <Button x:Name="CommentsNextPage" Visibility="Collapsed"
+                            Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
+                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Width="32" Height="32" HorizontalAlignment="Right"
+                            Click="CommentsNextPage_Click">
+                        <iconPacks:PackIconModern Kind="NavigateNext" />
+                    </Button>
+                </StackPanel>
+
+
 
             </Grid>
         </ScrollViewer>
