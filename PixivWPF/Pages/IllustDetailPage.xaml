@@ -38,6 +38,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <!-- Illust Preview -->
                 <Grid Grid.Row="0" Width="Auto" Height="Auto" Visibility="Collapsed">
@@ -550,7 +551,7 @@
                 </StackPanel>
 
                 <!-- Illust Comments  -->
-                <Expander Grid.Row="6" x:Name="CommentsExpander" x:Uid="CommentsExpander" Margin="0, 4, 0, 0" 
+                <Expander Grid.Row="7" x:Name="CommentsExpander" x:Uid="CommentsExpander" Margin="0, 4, 0, 0" 
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Collapsed" Header="Comments"
                           Collapsed="CommentsExpander_Collapsed"
@@ -559,7 +560,7 @@
                         
                     </WebBrowser>
                 </Expander>
-                <StackPanel Grid.Row="6" x:Name="CommentsNavigator" x:Uid="CommentsNavigator"
+                <StackPanel Grid.Row="7" x:Name="CommentsNavigator" x:Uid="CommentsNavigator"
                             Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="CommentsPrevPage" Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
