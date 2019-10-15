@@ -56,6 +56,7 @@
     <Compile Include="Objects\Rank.cs" />
     <Compile Include="Objects\TrendingTags.cs" />
     <Compile Include="Objects\User.cs" />
+    <Compile Include="Objects\UsersSearch.cs" />
     <Compile Include="Objects\UsersFavoriteWork.cs" />
     <Compile Include="Objects\UsersWork.cs" />
     <Compile Include="Objects\Work.cs" />

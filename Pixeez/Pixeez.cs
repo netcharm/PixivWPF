@@ -1063,6 +1063,18 @@ namespace Pixeez
             return await this.AccessNewApiAsync<Illusts>(url, req_auth, param);
         }
 
+        public async Task<UsersSearchResult> SearchUserAsync(string query, string filter = "for_ios", bool req_auth = true)
+        {
+            var url = "https://app-api.pixiv.net/v1/search/user";
+
+            var param = new Dictionary<string, string>
+            {
+                {"word",query },
+                {"filter",filter }
+            };
+            return await this.AccessNewApiAsync<UsersSearchResult>(url, req_auth, param);
+        }
+
         /// <summary>
         /// Search Trending Tags Illust, added by netcharm
         /// </summary>

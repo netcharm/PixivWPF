@@ -121,14 +121,33 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
+                else if (content.StartsWith("User:", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var query = Regex.Replace(content, @"^User:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
+                    query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
+                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchUserAsync(query) :
+                        await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(next_url);
+                    next_url = relatives.next_url ?? string.Empty;
+
+                    if (relatives is Pixeez.Objects.UsersSearchResult)
+                    {
+                        ResultExpander.Tag = next_url;
+                        foreach (var user in relatives.Users)
+                        {
+                            user.User.AddTo(ResultIllusts.Items, next_url);
+                        }
+                    }
+                }
                 else if (content.StartsWith("Fuzzy:", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var query = Regex.Replace(content, @"^Fuzzy:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
                     query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
-                    var relatives = await tokens.SearchWorksAsync(query);
+                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchWorksAsync(query) : 
+                        await tokens.AccessNewApiAsync<Pixeez.Objects.Paginated<Pixeez.Objects.NormalWork>>(next_url);
 
                     if (relatives is Pixeez.Objects.Paginated<Pixeez.Objects.NormalWork>)
                     {
+                        ResultExpander.Tag = next_url;
                         foreach (var illust in relatives)
                         {
                             illust.AddTo(ResultIllusts.Items, next_url);
@@ -139,7 +158,8 @@ namespace PixivWPF.Pages
                 {
                     var query = Regex.Replace(content, @"^Tag:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
                     query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
-                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "exact_match_for_tags") : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
+                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "exact_match_for_tags") : 
+                        await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = relatives.next_url ?? string.Empty;
 
                     if (relatives is Pixeez.Objects.Illusts && relatives.illusts is Array)

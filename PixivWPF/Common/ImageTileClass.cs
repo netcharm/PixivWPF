@@ -328,6 +328,39 @@ namespace PixivWPF.Common
                 ex.Message.ShowMessageBox("ERROR");
             }
         }
+
+        public static void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Colloection, string nexturl = "")
+        {
+            try
+            {
+                if (user is Pixeez.Objects.User && Colloection is IList<ImageItem>)
+                {
+                    var url = user.GetAvatarUrl();
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        var i = new ImageItem()
+                        {
+                            ItemType = ImageItemType.User,
+                            Thumb = url,
+                            NextURL = nexturl,
+                            BadgeValue = user.Stats == null ? null : user.Stats.Works.Value.ToString(),
+                            FavMarkVisibility = (user.IsFollowing != null && user.IsFollowing.Value) || (user.is_followed != null && user.is_followed.Value) ? Visibility.Visible : Visibility.Collapsed,
+                            ID = user.Id.ToString(),
+                            UserID = user.Id.ToString(),
+                            Subject = user.Profile == null ? $"{user.Name}" : $"{user.Name} - {user.Profile.Contacts.Twitter}",
+                            DisplayTitle = true,
+                            Illust = null,
+                            Tag = user
+                        };
+                        Colloection.Add(i);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+        }
         #endregion
 
         #region MetaPage Helper

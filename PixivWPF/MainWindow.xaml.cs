@@ -220,6 +220,7 @@ namespace PixivWPF
                         auto_suggest_list.Add($"IllustID: {content}");
                         auto_suggest_list.Add($"UserID: {content}");
                     }
+                    auto_suggest_list.Add($"User: {content}");
                     auto_suggest_list.Add($"Fuzzy Tag: {content}");
                     auto_suggest_list.Add($"Fuzzy: {content}");
                     auto_suggest_list.Add($"Tag: {content}");

@@ -34,5 +34,8 @@ namespace Pixeez.Objects
 
         [JsonProperty("px_170x170")]
         public string Px170x170 { get; set; }
+
+        [JsonProperty("medium")]
+        public string medium { get; set; }        
     }
 }

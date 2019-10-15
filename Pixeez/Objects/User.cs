@@ -129,7 +129,8 @@ namespace Pixeez.Objects
     public class User:UserBase
     {
 
-
+        [JsonProperty("is_followed")]
+        public bool? IsFollowed { get; set; }
 
         [JsonProperty("is_following")]
         public bool? IsFollowing { get; set; }
@@ -155,7 +156,7 @@ namespace Pixeez.Objects
 
         public override string GetAvatarUrl()
         {
-            return ProfileImageUrls.Px170x170 ?? ProfileImageUrls.Px50x50 ?? ProfileImageUrls.Px16x16;
+            return ProfileImageUrls.medium ?? ProfileImageUrls.Px170x170 ?? ProfileImageUrls.Px50x50 ?? ProfileImageUrls.Px16x16;
         }
     }
 }

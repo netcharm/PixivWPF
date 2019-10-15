@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -382,7 +383,7 @@ namespace PixivWPF.Common
                 }
                 else if (Regex.IsMatch(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase).Trim();
-                else if (!Regex.IsMatch(result, @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
+                else if (!Regex.IsMatch(result, @"((UserID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
                 {
                     result = $"Caption: {result}";
                 }
@@ -534,6 +535,94 @@ namespace PixivWPF.Common
                 }
             }
         });
+
+        #region SearchBox routines
+        private static ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {"a", "b" };
+        public static ObservableCollection<string> AutoSuggestList
+        {
+            get { return (auto_suggest_list); }
+        }
+
+        public static void SearchBox_TextChanged(object sender, RoutedEventArgs e)
+        {
+            if (sender is ComboBox)
+            {
+                var SearchBox = sender as ComboBox;
+                if (SearchBox.Text.Length > 0)
+                {
+                    auto_suggest_list.Clear();
+
+                    var content = SearchBox.Text.ParseLink().ParseID();
+                    if (!string.IsNullOrEmpty(content))
+                    {
+                        if (Regex.IsMatch(content, @"^\d+$", RegexOptions.IgnoreCase))
+                        {
+                            auto_suggest_list.Add($"IllustID: {content}");
+                            auto_suggest_list.Add($"UserID: {content}");
+                        }
+                        auto_suggest_list.Add($"User: {content}");
+                        auto_suggest_list.Add($"Fuzzy Tag: {content}");
+                        auto_suggest_list.Add($"Fuzzy: {content}");
+                        auto_suggest_list.Add($"Tag: {content}");
+                        auto_suggest_list.Add($"Caption: {content}");
+                        SearchBox.Items.Refresh();
+                        SearchBox.IsDropDownOpen = true;
+                    }
+
+                    e.Handled = true;
+                }
+            }
+        }
+
+        public static void SearchBox_DropDownOpened(object sender, EventArgs e)
+        {
+            if (sender is ComboBox)
+            {
+                var SearchBox = sender as ComboBox;
+
+                var textBox = Keyboard.FocusedElement as TextBox;
+                if (textBox != null && textBox.Text.Length == 1 && textBox.SelectionLength == 1)
+                {
+                    textBox.SelectionLength = 0;
+                    textBox.SelectionStart = 1;
+                }
+            }
+        }
+
+        public static void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox)
+            {
+                var SearchBox = sender as ComboBox;
+
+                e.Handled = true;
+                var items = e.AddedItems;
+                if (items.Count > 0)
+                {
+                    var item = items[0];
+                    if (item is string)
+                    {
+                        var query = (string)item;
+                        Cmd_Search.Execute(query);
+                    }
+                }
+            }
+        }
+
+        public static void SearchBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (sender is ComboBox)
+            {
+                var SearchBox = sender as ComboBox;
+
+                if (e.Key == Key.Return)
+                {
+                    e.Handled = true;
+                    Cmd_Search.Execute(SearchBox.Text);
+                }
+            }
+        }
+        #endregion
 
         public static void Show(this ProgressRing progress, bool show)
         {
