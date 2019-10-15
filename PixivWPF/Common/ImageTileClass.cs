@@ -344,7 +344,7 @@ namespace PixivWPF.Common
                             Thumb = url,
                             NextURL = nexturl,
                             BadgeValue = user.Stats == null ? null : user.Stats.Works.Value.ToString(),
-                            FavMarkVisibility = (user.IsFollowing != null && user.IsFollowing.Value) || (user.is_followed != null && user.is_followed.Value) ? Visibility.Visible : Visibility.Collapsed,
+                            FavMarkVisibility = user.IsFollowed?? (user.IsFollowing != null && user.IsFollowing.Value) || (user.is_followed != null && user.is_followed.Value) ? Visibility.Visible : Visibility.Collapsed,
                             ID = user.Id.ToString(),
                             UserID = user.Id.ToString(),
                             Subject = user.Profile == null ? $"{user.Name}" : $"{user.Name} - {user.Profile.Contacts.Twitter}",
