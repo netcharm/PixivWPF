@@ -103,7 +103,7 @@ namespace PixivWPF.Pages
                     {
                         foreach (var user in relatives)
                         {
-                            user.AddTo(ResultIllusts.Items);
+                            user.AddTo(ResultIllusts.Items, next_url);
                         }
                     }
                 }

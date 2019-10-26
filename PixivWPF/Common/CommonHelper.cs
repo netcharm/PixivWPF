@@ -418,6 +418,20 @@ namespace PixivWPF.Common
                             }
                         }
                     }
+                    else if (Regex.IsMatch(html, @"(.*?\/artworks\/)(\d+)(.*)", RegexOptions.IgnoreCase))
+                    {
+                        var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+.*?)""");
+                        if (mr.Count > 50)
+                            ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                        else
+                        {
+                            foreach (Match m in mr)
+                            {
+                                var link = m.Groups[1].Value;
+                                if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                            }
+                        }
+                    }
                     else if (Regex.IsMatch(html, @"((src)|(href))=.*?/\d+_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp))"))
                     {
                         var mr = Regex.Matches(html, @"((src)|(href))=""(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))""");
@@ -432,7 +446,7 @@ namespace PixivWPF.Common
                             }
                         }
                     }
-                    else if(Regex.IsMatch(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?"""))
+                    else if (Regex.IsMatch(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?"""))
                     {
                         var mr = Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?""");
                         if (mr.Count > 50)
@@ -467,7 +481,8 @@ namespace PixivWPF.Common
                 var html = ((string)e.Data.GetData("Text")).Trim();
                 var mr0 = Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?$");
                 var mr1 = Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?$");
-                var mr2 = Regex.Matches(html, @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$");
+                var mr2 = Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?$");
+                var mr3 = Regex.Matches(html, @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$");
                 if (mr0.Count > 50 || mr1.Count>50 || mr2.Count > 50)
                     ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
                 else
@@ -483,6 +498,11 @@ namespace PixivWPF.Common
                         if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
                     }
                     foreach (Match m in mr2)
+                    {
+                        var link = m.Groups[1].Value;
+                        if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                    }
+                    foreach (Match m in mr3)
                     {
                         var link = m.Groups[1].Value;
                         if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
