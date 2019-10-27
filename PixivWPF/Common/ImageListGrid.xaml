@@ -24,7 +24,8 @@
             <!--Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"-->
             <Grid x:Name="PART_Tile" Background="{DynamicResource AccentColorBrush}"
                   Margin="0,4,0,4"
-                  Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
+                  Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"                                          
+                  ToolTip="{Binding ToolTip, Mode=OneWay}"
                   Tag="{Binding Illust, Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="128"/>
@@ -40,7 +41,6 @@
                 <Image Grid.Row="0" x:Name="PART_Thumbnail"                       
                        Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
                        TargetUpdated="TileImage_TargetUpdated"
-                       ToolTip="{Binding ToolTip, Mode=OneWay}"
                        Tag="{Binding Illust, Mode=OneWay}"
                        Stretch="Uniform" 
                        Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 

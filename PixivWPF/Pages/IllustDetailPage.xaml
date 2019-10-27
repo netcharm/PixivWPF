@@ -18,7 +18,32 @@
       AllowDrop="True"
       d:DesignHeight="300" d:DesignWidth="300"
       Title="IllustDetailPage">
-   
+
+    <Page.Resources>
+        <ContextMenu x:Name="MenuGallaryAction" x:Key="MenuGallaryAction" Opened="ActionMenu_Opened">
+            <MenuItem x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionCopyIllustID_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionOpenIllust" Header="Open Selected Illusts" Click="ActionOpenSelectedIllust_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionPrevPage" Header="Open Previous Page" Click="ActionPrevPage_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>                        
+            <MenuItem x:Uid="ActionNextPage" Header="Open Next Page" Click="ActionNextPage_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
+    </Page.Resources>
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition MinWidth="710"/>
@@ -111,54 +136,70 @@
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="IllustTitle" Margin="4,0,0,0"
+                    <Grid Grid.Row="0" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,0,0"
                                Foreground="{DynamicResource LabelTextBrush}"
-                               HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="1" Grid.Column="1" x:Name="IllustAuthor" Margin="4,0,0,0" 
-                               Foreground="{DynamicResource LabelTextBrush}"
-                               HorizontalAlignment="Left" VerticalAlignment="Center"/>
-
-                    <StackPanel Grid.Row="0" Grid.Column="1" x:Name="IllustDateInfo" Visibility="Collapsed"
+                               HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <StackPanel Grid.Column="1" x:Name="IllustDateInfo" Visibility="Collapsed"
+                                    MinWidth="24"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
-                        <iconPacks:PackIconModern Kind="CalendarDay" x:Name="IllustDateIcon"
-                                              HorizontalAlignment="Right" VerticalAlignment="Center"
-                                              Foreground="{DynamicResource AccentColorBrush}" 
-                                              Width="16" Height="16"/>
-                        <TextBlock x:Name="IllustDate" Margin="2,0,4,0" 
+                            <iconPacks:PackIconModern 
+                                Kind="CalendarDay" x:Name="IllustDateIcon"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Foreground="{DynamicResource AccentColorBrush}" 
+                                Width="16" Height="16"/>
+                            <TextBlock x:Name="IllustDate" Margin="2,0,4,0" 
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    
-                    <StackPanel Grid.Row="1" Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
-                                HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
-                        <iconPacks:PackIconModern Kind="Download" x:Name="IllustDownloaded" Visibility="Collapsed"
-                                                  MouseDoubleClick="IllustDownloaded_MouseDoubleClick"
-                                              HorizontalAlignment="Right" VerticalAlignment="Center"
-                                              Foreground="{DynamicResource AccentColorBrush}" 
-                                              Width="16" Height="16"/>
+                        </StackPanel>
+                    </Grid>
 
-                        <iconPacks:PackIconModern Kind="ImageAnts" x:Name="IllustSizeIcon"
+                    <Grid Grid.Row="1" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
+                               Foreground="{DynamicResource LabelTextBrush}"
+                               HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
+                                HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
+                            <iconPacks:PackIconModern 
+                                Kind="DiskDownload" x:Name="IllustDownloaded" Visibility="Collapsed"
+                                MouseDoubleClick="IllustDownloaded_MouseDoubleClick"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Foreground="{DynamicResource AccentColorBrush}" 
+                                Margin="2,0,4,0" 
+                                Width="16" Height="16"/>
+                            <iconPacks:PackIconModern Kind="ImageAnts" x:Name="IllustSizeIcon"
                                               HorizontalAlignment="Right" VerticalAlignment="Center"
                                               Foreground="{DynamicResource AccentColorBrush}" 
                                               Width="16" Height="16"/>
-                        <TextBlock x:Name="IllustSize" Margin="2,0,4,0" 
+                            <TextBlock x:Name="IllustSize" Margin="2,0,4,0" 
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                        <iconPacks:PackIconModern Kind="Eye" x:Name="IllustViewedIcon"
-                                              HorizontalAlignment="Right" VerticalAlignment="Center"
-                                              Foreground="{DynamicResource AccentColorBrush}" 
-                                              Width="16" Height="16"/>
-                        <TextBlock x:Name="IllustViewed" Margin="2,0,4,0" 
+                            <iconPacks:PackIconModern 
+                                Kind="Eye" x:Name="IllustViewedIcon"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Foreground="{DynamicResource AccentColorBrush}" 
+                                Width="16" Height="16"/>
+                            <TextBlock x:Name="IllustViewed" Margin="2,0,4,0" 
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                        <iconPacks:PackIconModern Kind="Heart" x:Name="IllustFavoritedIcon"
-                                              HorizontalAlignment="Right" VerticalAlignment="Center"
-                                              Foreground="{DynamicResource AccentColorBrush}" 
-                                              Width="16" Height="16"/>
-                        <TextBlock x:Name="IllustFavorited" Margin="2,0,4,0" 
+                            <iconPacks:PackIconModern 
+                                Kind="Heart" x:Name="IllustFavoritedIcon"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Foreground="{DynamicResource AccentColorBrush}" 
+                                Width="16" Height="16"/>
+                            <TextBlock x:Name="IllustFavorited" Margin="2,0,4,0" 
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    </StackPanel>
+                        </StackPanel>
+                    </Grid>
 
                     <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button x:Name="BookmarkIllust" x:Uid="BookmarkIllust" Click="ActionIllust_Click"
@@ -371,6 +412,7 @@
                 <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander" Margin="0, 4, 0, 0"
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Collapsed" Header="Illust Sets Gallery"
+                          ContextMenu="{StaticResource MenuGallaryAction}"
                           Expanded="SubIllustsExpander_Expanded" Collapsed="SubIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
                                           Columns="5" TileWidth="128" TileHeight="128" 
@@ -440,6 +482,7 @@
                 <Expander Grid.Row="5" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" Margin="0, 4, 0, 0" 
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Collapsed" Header="Relative Illust Gallery"
+                          ContextMenu="{StaticResource MenuGallaryAction}"
                           Expanded="RelativeIllustsExpander_Expanded" Collapsed="RelativeIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="RelativeIllusts"
                                           Columns="5" TileWidth="128" TileHeight="128"
@@ -502,6 +545,7 @@
                 <Expander Grid.Row="6" x:Name="FavoriteIllustsExpander" x:Uid="RelativeIllustsExpander" Margin="0, 4, 0, 0" 
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Collapsed" Header="Author Favorites Gallery"
+                          ContextMenu="{StaticResource MenuGallaryAction}"
                           Collapsed="FavoriteIllustsExpander_Collapsed"
                           Expanded="FavoriteIllustsExpander_Expanded">
                     <Common:ImageListGrid x:Name="FavoriteIllusts" x:Uid="RelativeIllusts"
@@ -554,6 +598,7 @@
                 <Expander Grid.Row="7" x:Name="CommentsExpander" x:Uid="CommentsExpander" Margin="0, 4, 0, 0" 
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Collapsed" Header="Comments"
+                          ContextMenu="{StaticResource MenuGallaryAction}"
                           Collapsed="CommentsExpander_Collapsed"
                           Expanded="CommentsExpander_Expanded">
                     <WebBrowser x:Name="CommentsViewer">

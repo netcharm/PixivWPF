@@ -69,7 +69,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Illust Relatives -->
+                <!-- Illust Searched Results -->
                 <Expander Grid.Row="0" x:Name="ResultExpander" x:Uid="ResultIllustsExpander"
                           IsExpanded="true" ExpandDirection="Down"
                           Visibility="Visible" Header="Search Results"

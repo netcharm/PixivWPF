@@ -840,7 +840,7 @@ namespace PixivWPF.Common
             string result = text;
 
             var patten = new Regex(@"&(amp;){0,1}#(([0-9]{1,6})|(x([a-fA-F0-9]{1,5})));", RegexOptions.IgnoreCase);
-            result = WebUtility.HtmlEncode(result);
+            result = WebUtility.HtmlDecode(result);
             foreach (Match match in patten.Matches(result))
             {
                 var v = Convert.ToInt32(match.Groups[2].Value);

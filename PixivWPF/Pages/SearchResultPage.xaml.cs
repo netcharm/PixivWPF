@@ -79,6 +79,17 @@ namespace PixivWPF.Pages
             window = Window.GetWindow(this);
         }
 
+        internal void UpdateDetail(string content)
+        {
+            DataType = content;
+            ResultExpander.Visibility = Visibility.Visible;
+            ResultExpander.IsExpanded = false;
+            ResultExpander.IsExpanded = true;
+
+            if (CurrentWindow != null)
+                CurrentWindow.SizeToContent = SizeToContent.WidthAndHeight;
+        }
+
         #region Search Result Panel related routines
         internal async void ShowResultInline(Pixeez.Tokens tokens, string content, string filter = "", string next_url = "")
         {
@@ -322,40 +333,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void SearchResultPrevPage_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private async void ResultNextPage_Click(object sender, RoutedEventArgs e)
-        {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
-
-            if (DataType is string)
-            {
-                var item = (string)DataType;
-                var next_url = string.Empty;
-                if (ResultExpander.Tag is string)
-                    next_url = ResultExpander.Tag as string;
-
-                ShowResultInline(tokens, item, result_filter, next_url);
-            }
-            ResultNextPage.Visibility = Visibility.Visible;
-        }
-
-        internal void UpdateDetail(string content)
-        {
-            DataType = content;
-            ResultExpander.Visibility = Visibility.Visible;
-            ResultExpander.IsExpanded = false;
-            ResultExpander.IsExpanded = true;
-
-            if (CurrentWindow != null)
-                CurrentWindow.SizeToContent = SizeToContent.WidthAndHeight;
-        }
-        #endregion
-
         private void SearchFilter_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
@@ -412,6 +389,30 @@ namespace PixivWPF.Pages
                 }
             }
         }
+
+        private void SearchResultPrevPage_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private async void ResultNextPage_Click(object sender, RoutedEventArgs e)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (DataType is string)
+            {
+                var item = (string)DataType;
+                var next_url = string.Empty;
+                if (ResultExpander.Tag is string)
+                    next_url = ResultExpander.Tag as string;
+
+                ShowResultInline(tokens, item, result_filter, next_url);
+            }
+            ResultNextPage.Visibility = Visibility.Visible;
+        }
+
+        #endregion
 
     }
 }

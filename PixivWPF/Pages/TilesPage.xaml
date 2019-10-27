@@ -23,7 +23,9 @@
         
         <DataTemplate x:Key="ImageTileTemplate" x:Name="ImageTile" x:Uid="ImageTile">
             <StackPanel>
-                <Grid Background="{DynamicResource AccentColorBrush}" Width="128" Tag="{Binding Path='', Mode=OneWay}" Margin="0,4,0,4">
+                <Grid Background="{DynamicResource AccentColorBrush}" 
+                      ToolTip="{Binding ToolTip, Mode=OneWay}"
+                      Width="128" Tag="{Binding Path='', Mode=OneWay}" Margin="0,4,0,4">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="128"/>
                         <RowDefinition Height="Auto"/>
@@ -38,7 +40,6 @@
                     <Image Grid.Row="0" x:Name="PART_Thumbnail"
                            Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
                            TargetUpdated="TileImage_TargetUpdated"
-                           ToolTip="{Binding ToolTip, Mode=OneWay}"
                            Tag="{Binding Illust, Mode=OneWay}"
                            Stretch="Uniform" Width="128" Height="128"
                            HorizontalAlignment="Center" VerticalAlignment="Center">

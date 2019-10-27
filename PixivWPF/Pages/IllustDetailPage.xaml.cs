@@ -143,6 +143,7 @@ namespace PixivWPF.Pages
                 IllustTitle.Text = $"{item.Illust.Title}";
 
                 IllustDate.Text = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:ss");
+                IllustDateInfo.ToolTip = IllustDate.Text;
                 IllustDateInfo.Show();
 
                 ActionCopyIllustDate.Header = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:sszzz");
@@ -183,7 +184,7 @@ namespace PixivWPF.Pages
                         html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">{tag}</a>");
                         //html.AppendLine($"<button class=\"tag\" data-tag=\"{tag}\">{tag}</button>");
                     }
-                    IllustTags.Foreground = Common.Theme.TextBrush;
+                    IllustTags.Foreground = Theme.TextBrush;
                     IllustTags.Text = string.Join(";", html);
                     IllustTagExpander.Header = "Tags";
                     IllustTagExpander.Show();
@@ -195,7 +196,7 @@ namespace PixivWPF.Pages
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
-                    IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption}</div>".Replace("\r\n", "<br/>");
+                    IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption.HtmlDecodeFix()}</div>".Replace("\r\n", "<br/>");
                     IllustDescExpander.Show();
                 }
                 else
@@ -703,25 +704,32 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (args.Data is TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs)
+            if (args.Data is HtmlLinkClickedEventArgs)
             {
-                var link = args.Data as TheArtOfDev.HtmlRenderer.Core.Entities.HtmlLinkClickedEventArgs;
-
-                if (link.Attributes.ContainsKey("data-tag"))
+                try
                 {
-                    args.Handled = true;
-                    link.Handled = true;
+                    var link = args.Data as HtmlLinkClickedEventArgs;
 
-                    var tag  = link.Attributes["data-tag"];
-                    if(Keyboard.Modifiers == ModifierKeys.Control)
-                        CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
-                    else
-                        CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
+                    if (link.Attributes.ContainsKey("data-tag"))
+                    {
+                        args.Handled = true;
+                        link.Handled = true;
 
-                    //if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
-                    //    CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
-                    //else
-                    //    CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
+                        var tag  = link.Attributes["data-tag"];
+                        if (Keyboard.Modifiers == ModifierKeys.Control)
+                            CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
+                        else
+                            CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
+
+                        //if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                        //    CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
+                        //else
+                        //    CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
+                    }
+                }
+                catch (Exception e)
+                {
+                    e.Message.ShowMessageBox("ERROR");
                 }
             }
         }
@@ -730,17 +738,24 @@ namespace PixivWPF.Pages
         {
             if (args.Data is HtmlImageLoadEventArgs)
             {
-                var img = args.Data as HtmlImageLoadEventArgs;
+                try
+                {
+                    var img = args.Data as HtmlImageLoadEventArgs;
 
-                if (string.IsNullOrEmpty(img.Src)) return;
+                    if (string.IsNullOrEmpty(img.Src)) return;
 
-                var tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return;
+                    var tokens = await CommonHelper.ShowLogin();
+                    if (tokens == null) return;
 
-                var src = await img.Src.LoadImagePath(tokens);
-                img.Callback(src);
-                img.Handled = true;
-                args.Handled = true;
+                    var src = await img.Src.LoadImagePath(tokens);
+                    img.Callback(src);
+                    img.Handled = true;
+                    args.Handled = true;
+                }
+                catch (Exception e)
+                {
+                    e.Message.ShowMessageBox("ERROR");
+                }
             }
         }
 
@@ -748,55 +763,62 @@ namespace PixivWPF.Pages
         {
             if (args.Data is HtmlLinkClickedEventArgs)
             {
-                var link = args.Data as HtmlLinkClickedEventArgs;
-
-                if (link.Attributes.ContainsKey("href"))
+                try
                 {
-                    args.Handled = true;
-                    link.Handled = true;
+                    var link = args.Data as HtmlLinkClickedEventArgs;
 
-                    var href = link.Attributes["href"];
-                    if (href.StartsWith("pixiv://illusts/"))
+                    if (link.Attributes.ContainsKey("href"))
                     {
-                        var illust_id = Regex.Replace(href, @"pixiv://illusts/(\d+)", "$1", RegexOptions.IgnoreCase);
-                        if (!string.IsNullOrEmpty(illust_id))
-                        {
-                            var tokens = await CommonHelper.ShowLogin();
-                            if (tokens == null) return;
+                        args.Handled = true;
+                        link.Handled = true;
 
-                            var illusts = await tokens.GetWorksAsync(Convert.ToInt32(illust_id));
-                            foreach(var illust in illusts)
+                        var href = link.Attributes["href"];
+                        if (href.StartsWith("pixiv://illusts/"))
+                        {
+                            var illust_id = Regex.Replace(href, @"pixiv://illusts/(\d+)", "$1", RegexOptions.IgnoreCase);
+                            if (!string.IsNullOrEmpty(illust_id))
                             {
-                                if (illust is Pixeez.Objects.Work)
+                                var tokens = await CommonHelper.ShowLogin();
+                                if (tokens == null) return;
+
+                                var illusts = await tokens.GetWorksAsync(Convert.ToInt32(illust_id));
+                                foreach (var illust in illusts)
                                 {
-                                    CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                    if (illust is Pixeez.Objects.Work)
+                                    {
+                                        CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                    }
                                 }
                             }
                         }
-                    }
-                    else if (href.StartsWith("pixiv://users/"))
-                    {
-                        var user_id = Regex.Replace(href, @"pixiv://users/(\d+)", "$1", RegexOptions.IgnoreCase);
-                        if (!string.IsNullOrEmpty(user_id))
+                        else if (href.StartsWith("pixiv://users/"))
                         {
-                            var tokens = await CommonHelper.ShowLogin();
-                            if (tokens == null) return;
-
-                            var users = await tokens.GetUsersAsync(Convert.ToInt32(user_id));
-                            foreach (var user in users)
+                            var user_id = Regex.Replace(href, @"pixiv://users/(\d+)", "$1", RegexOptions.IgnoreCase);
+                            if (!string.IsNullOrEmpty(user_id))
                             {
-                                if (user is Pixeez.Objects.User)
+                                var tokens = await CommonHelper.ShowLogin();
+                                if (tokens == null) return;
+
+                                var users = await tokens.GetUsersAsync(Convert.ToInt32(user_id));
+                                foreach (var user in users)
                                 {
-                                    CommonHelper.Cmd_OpenIllust.Execute(user);
+                                    if (user is Pixeez.Objects.User)
+                                    {
+                                        CommonHelper.Cmd_OpenIllust.Execute(user);
+                                    }
                                 }
                             }
                         }
+                        else
+                        {
+                            args.Handled = false;
+                            link.Handled = false;
+                        }
                     }
-                    else
-                    {
-                        args.Handled = false;
-                        link.Handled = false;
-                    }
+                }
+                catch (Exception e)
+                {
+                    e.Message.ShowMessageBox("ERROR");
                 }
             }
         }
@@ -805,17 +827,24 @@ namespace PixivWPF.Pages
         {
             if (args.Data is HtmlImageLoadEventArgs)
             {
-                var img = args.Data as HtmlImageLoadEventArgs;
+                try
+                {
+                    var img = args.Data as HtmlImageLoadEventArgs;
 
-                if (string.IsNullOrEmpty(img.Src)) return;
+                    if (string.IsNullOrEmpty(img.Src)) return;
 
-                var tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return;
+                    var tokens = await CommonHelper.ShowLogin();
+                    if (tokens == null) return;
 
-                var src = await img.Src.LoadImagePath(tokens);
-                img.Callback(src);
-                img.Handled = true;
-                args.Handled = true;
+                    var src = await img.Src.LoadImagePath(tokens);
+                    img.Callback(src);
+                    img.Handled = true;
+                    args.Handled = true;
+                }
+                catch (Exception e)
+                {
+                    e.Message.ShowMessageBox("ERROR");
+                }
             }
         }
 
@@ -1544,23 +1573,26 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
+            var next_url = string.Empty;
+            if (RelativeIllustsExpander.Tag is string)
+            {
+                next_url = RelativeIllustsExpander.Tag as string;
+                if (string.IsNullOrEmpty(next_url))
+                    RelativeNextPage.Visibility = Visibility.Collapsed;
+                else
+                    RelativeNextPage.Visibility = Visibility.Visible;
+            }
+
             if (DataObject is ImageItem)
             {
                 var item = DataObject as ImageItem;
-                var next_url = string.Empty;
-                if (RelativeIllustsExpander.Tag is string)
-                    next_url = RelativeIllustsExpander.Tag as string;
                 ShowRelativeInline(tokens, item, next_url);
             }
             else if (DataObject is Pixeez.Objects.UserBase)
             {
                 var user = DataObject as Pixeez.Objects.UserBase;
-                var next_url = string.Empty;
-                if (RelativeIllustsExpander.Tag is string)
-                    next_url = RelativeIllustsExpander.Tag as string;
                 ShowUserWorksInline(tokens, user, next_url);
             }
-            RelativeNextPage.Visibility = Visibility.Visible;
         }
         #endregion
 
@@ -1655,24 +1687,27 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
+            var next_url = string.Empty;
+            if (FavoriteIllustsExpander.Tag is string)
+            {
+                next_url = RelativeIllustsExpander.Tag as string;
+                if (string.IsNullOrEmpty(next_url))
+                    FavoriteNextPage.Visibility = Visibility.Collapsed;
+                else
+                    FavoriteNextPage.Visibility = Visibility.Visible;
+            }
+
             if (DataObject is ImageItem)
             {
                 var item = DataObject as ImageItem;
                 var user = item.Illust.User;
-                var next_url = string.Empty;
-                if (FavoriteIllustsExpander.Tag is string)
-                    next_url = FavoriteIllustsExpander.Tag as string;
                 ShowFavoriteInline(tokens, user, next_url);
             }
             else if (DataObject is Pixeez.Objects.UserBase)
             {
                 var user = DataObject as Pixeez.Objects.UserBase;
-                var next_url = string.Empty;
-                if (FavoriteIllustsExpander.Tag is string)
-                    next_url = FavoriteIllustsExpander.Tag as string;
                 ShowFavoriteInline(tokens, user, next_url);
             }
-            FavoriteNextPage.Visibility = Visibility.Visible;
         }
         #endregion
 
@@ -1717,9 +1752,173 @@ namespace PixivWPF.Pages
         {
 
         }
+
         #endregion
 
+        #region Common ImageListGrid Context Menu
+        private void ActionMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            if (sender is ContextMenu)
+            {
+                var host = (sender as ContextMenu).PlacementTarget;
+                if (host == SubIllustsExpander)
+                {
+                    foreach(MenuItem item in (sender as ContextMenu).Items)
+                    {
+                        if(item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase)){
+                            item.Visibility = Visibility.Visible;
+                        }
+                    }
+                }
+                else if (host == RelativeIllustsExpander)
+                {
+                    foreach (MenuItem item in (sender as ContextMenu).Items)
+                    {
+                        if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            item.Visibility = Visibility.Collapsed;
+                        }
+                        else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            var next_url = RelativeIllustsExpander.Tag as string;
+                            if (string.IsNullOrEmpty(next_url))
+                                item.Visibility = Visibility.Collapsed;
+                            else
+                                item.Visibility = Visibility.Visible;
+                        }
+                    }
+                }
+                else if (host == FavoriteIllustsExpander)
+                {
+                    foreach (MenuItem item in (sender as ContextMenu).Items)
+                    {
+                        if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            item.Visibility = Visibility.Collapsed;
+                        }
+                        else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            var next_url = FavoriteIllustsExpander.Tag as string;
+                            if (string.IsNullOrEmpty(next_url))
+                                item.Visibility = Visibility.Collapsed;
+                            else
+                                item.Visibility = Visibility.Visible;
+                        }
+                    }
+                }
+                else if (host == CommentsExpander)
+                {
+                    foreach (MenuItem item in (sender as ContextMenu).Items)
+                    {
+                        if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            item.Visibility = Visibility.Visible;
+                        }
+                    }
+                }
+            }
+        }
 
+        private void ActionCopyIllustID_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+            {
+                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                if (host == SubIllustsExpander)
+                {
+                    if (DataObject is ImageItem)
+                    {
+                        var item = DataObject as ImageItem;
+                        Clipboard.SetText(item.UserID);
+                    }
+                }
+                else if (host == RelativeIllustsExpander)
+                {
+                    CommonHelper.Cmd_CopyIllustIDs.Execute(RelativeIllusts);
+                }
+                else if (host == FavoriteIllustsExpander)
+                {
+                    CommonHelper.Cmd_CopyIllustIDs.Execute(FavoriteIllusts);
+                }
+                else if (host == CommentsExpander)
+                {
+
+                }
+            }
+        }
+
+        private void ActionOpenSelectedIllust_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+            {
+                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                if (host == SubIllustsExpander)
+                {
+                    CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+                }
+                else if (host == RelativeIllustsExpander)
+                {
+                    CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+                }
+                else if (host == FavoriteIllustsExpander)
+                {
+                    CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
+                }
+                else if (host == CommentsExpander)
+                {
+
+                }
+            }
+        }
+
+        private void ActionPrevPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+            {
+                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                if (host == SubIllustsExpander)
+                {
+                    ActionPrevSubIllustPage_Click(sender, e);
+                }
+                else if (host == RelativeIllustsExpander)
+                {
+
+                }
+                else if (host == FavoriteIllustsExpander)
+                {
+
+                }
+                else if (host == CommentsExpander)
+                {
+
+                }
+            }
+        }
+
+        private void ActionNextPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+            {
+                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                if (host == SubIllustsExpander)
+                {
+                    ActionNextSubIllustPage_Click(sender, e);
+                }
+                else if (host == RelativeIllustsExpander)
+                {
+                    RelativeNextPage_Click(RelativeIllusts, e);
+                }
+                else if (host == FavoriteIllustsExpander)
+                {
+                    FavoriteNextPage_Click(FavoriteIllusts, e);
+                }
+                else if (host == CommentsExpander)
+                {
+
+                }
+            }
+        }
+        #endregion
     }
 
 }
