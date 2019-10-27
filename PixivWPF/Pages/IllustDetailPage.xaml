@@ -169,9 +169,10 @@
                         <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
                             <iconPacks:PackIconModern 
-                                Kind="DiskDownload" x:Name="IllustDownloaded" Visibility="Collapsed"
+                                Kind="Download" x:Name="IllustDownloaded" Visibility="Collapsed"
                                 MouseDoubleClick="IllustDownloaded_MouseDoubleClick"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Background="Transparent"
                                 Foreground="{DynamicResource AccentColorBrush}" 
                                 Margin="2,0,4,0" 
                                 Width="16" Height="16"/>
