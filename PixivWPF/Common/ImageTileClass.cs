@@ -230,19 +230,19 @@ namespace PixivWPF.Common
         }
 
         #region Image Tile Add Helper
-        public static void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Colloection, string nexturl = "")
+        public static void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Collection, string nexturl = "")
         {
             foreach (var illust in works)
             {
-                illust.AddTo(Colloection, nexturl);
+                illust.AddTo(Collection, nexturl);
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.Work illust, IList<ImageItem> Colloection, string nexturl = "")
+        public static void AddTo(this Pixeez.Objects.Work illust, IList<ImageItem> Collection, string nexturl = "")
         {
             try
             {
-                if (illust is Pixeez.Objects.Work && Colloection is IList<ImageItem>)
+                if (illust is Pixeez.Objects.Work && Collection is IList<ImageItem>)
                 {
                     var url = illust.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
@@ -250,50 +250,8 @@ namespace PixivWPF.Common
                         var i = illust.IllustItem(url, nexturl);
                         if (i is ImageItem)
                         {
-                            Colloection.Add(i);
+                            Collection.Add(i);
                         }
-
-                        //var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().InsertLineBreak(48).Take(256));
-                        //var age = string.Empty;
-                        //var state = string.Empty;
-                        //if (illust is Pixeez.Objects.IllustWork)
-                        //{
-                        //    var work = illust as Pixeez.Objects.IllustWork;
-                        //    var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
-                        //    age = $"R[{work.SanityLevel.SanityAge()}]";
-                        //    state = $"\r\n{age}, ♥[{work.total_bookmarks}]{like}";
-                        //}
-                        //else if(illust is Pixeez.Objects.NormalWork)
-                        //{
-                        //    var work = illust as Pixeez.Objects.NormalWork;
-                        //    var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
-                        //    age = illust.AgeLimit != null ? $"R[{illust.AgeLimit.SanityAge()}]" : string.Empty;
-                        //    state = $"\r\n{age}, ♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]{like}";
-                        //}
-                        //tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tooltip}";
-                        //var i = new ImageItem()
-                        //{
-                        //    ItemType = ImageItemType.Work,
-                        //    NextURL = nexturl,
-                        //    Thumb = url,
-                        //    Index = -1,
-                        //    Count = (int)illust.PageCount,
-                        //    BadgeValue = illust.PageCount.Value.ToString(),
-                        //    BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
-                        //    FavMarkVisibility = illust.IsBookMarked() || (illust.IsLiked != null && illust.IsLiked.Value) ? Visibility.Visible : Visibility.Collapsed,
-                        //    DisplayBadge = illust.PageCount > 1 ? true : false,
-                        //    ID = illust.Id.ToString(),
-                        //    UserID = illust.User.Id.ToString(),
-                        //    Subject = illust.Title,
-                        //    DisplayTitle = true,
-                        //    Caption = illust.Caption,
-                        //    ToolTip = $"{illust.GetDateTime()}{tooltip}",
-                        //    IsDownloaded = illust == null ? false : illust.GetOriginalUrl().IsPartDownloaded(),
-                        //    Illust = illust,
-                        //    Tag = illust
-                        //};
-                        ////i.PropertyChanged += ImageTile_PropertyChanged;
-                        //Colloection.Add(i);
                     }
                 }
             }
@@ -303,11 +261,11 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.MetaPages pages, IList<ImageItem> Colloection, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        public static void AddTo(this Pixeez.Objects.MetaPages pages, IList<ImageItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
         {
             try
             {
-                if (pages is Pixeez.Objects.MetaPages && Colloection is IList<ImageItem>)
+                if (pages is Pixeez.Objects.MetaPages && Collection is IList<ImageItem>)
                 {
                     var url = pages.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
@@ -316,50 +274,14 @@ namespace PixivWPF.Common
                         if (i is ImageItem)
                         {
                             //i.Thumb = url;
+                            i.DisplayTitle = false;
                             i.Index = index;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
                             i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloaded(false);
                             i.Tag = pages;
-                            Colloection.Add(i);
+                            Collection.Add(i);
                         }
-
-                        //var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().InsertLineBreak(48).Take(256));
-                        //var age = string.Empty;
-                        //var state = string.Empty;
-                        //if (illust is Pixeez.Objects.IllustWork)
-                        //{
-                        //    var work = illust as Pixeez.Objects.IllustWork;
-                        //    var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
-                        //    age = $"R[{work.SanityLevel.SanityAge()}]";
-                        //    state = $"\r\n{age}, ♥[{work.total_bookmarks}]{like}";
-                        //}
-                        //else if (illust is Pixeez.Objects.NormalWork)
-                        //{
-                        //    var work = illust as Pixeez.Objects.NormalWork;
-                        //    var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
-                        //    age = illust.AgeLimit != null ? $"R[{illust.AgeLimit.SanityAge()}]" : string.Empty;
-                        //    state = $"\r\n{age}, ♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]{like}";
-                        //}
-                        //tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tooltip}";
-                        //var i = new ImageItem()
-                        //{
-                        //    ItemType = ImageItemType.Pages,
-                        //    NextURL = nexturl,
-                        //    Thumb = url,
-                        //    Index = index,
-                        //    Count = illust.PageCount.Value,
-                        //    BadgeValue = (index+1).ToString(),
-                        //    ID = illust.Id.ToString(),
-                        //    UserID = illust.User.Id.ToString(),
-                        //    Subject = $"{illust.Title} - {index+1}/{illust.PageCount}",
-                        //    DisplayTitle = false,
-                        //    ToolTip = $"{illust.GetDateTime()}{tooltip}",
-                        //    IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloaded(false),
-                        //    Illust = illust,
-                        //    Tag = pages
-                        //};
-                        //Colloection.Add(i);
                     }
                 }
             }
@@ -369,11 +291,11 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.Page page, IList<ImageItem> Colloection, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        public static void AddTo(this Pixeez.Objects.Page page, IList<ImageItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
         {
             try
             {
-                if (page is Pixeez.Objects.Page && Colloection is IList<ImageItem>)
+                if (page is Pixeez.Objects.Page && Collection is IList<ImageItem>)
                 {
                     var url = page.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
@@ -382,50 +304,14 @@ namespace PixivWPF.Common
                         if (i is ImageItem)
                         {
                             //i.Thumb = url;
+                            i.DisplayTitle = false;
                             i.Index = index;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
                             i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloaded(false);
                             i.Tag = page;
-                            Colloection.Add(i);
-                        }
-
-                        //var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().InsertLineBreak(48).Take(256));
-                        //var age = string.Empty;
-                        //var state = string.Empty;
-                        //if (illust is Pixeez.Objects.IllustWork)
-                        //{
-                        //    var work = illust as Pixeez.Objects.IllustWork;
-                        //    var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
-                        //    age = $"R[{work.SanityLevel.SanityAge()}]";
-                        //    state = $"\r\n{age}, ♥[{work.total_bookmarks}]{like}";
-                        //}
-                        //else if (illust is Pixeez.Objects.NormalWork)
-                        //{
-                        //    var work = illust as Pixeez.Objects.NormalWork;
-                        //    var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
-                        //    age = illust.AgeLimit != null ? $"R[{illust.AgeLimit.SanityAge()}]" : string.Empty;
-                        //    state = $"\r\n{age}, ♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]{like}";
-                        //}
-                        //tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tooltip}";
-                        //var i = new ImageItem()
-                        //{
-                        //    ItemType = ImageItemType.Page,
-                        //    NextURL = nexturl,
-                        //    Thumb = url,
-                        //    Index = index,
-                        //    Count = illust.PageCount.Value,
-                        //    BadgeValue = (index+1).ToString(),
-                        //    ID = illust.Id.ToString(),
-                        //    UserID = illust.User.Id.ToString(),
-                        //    Subject = $"{illust.Title} - {index+1}/{illust.PageCount}",
-                        //    DisplayTitle = false,
-                        //    ToolTip = $"{illust.GetDateTime()}{tooltip}",
-                        //    IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloaded(false),
-                        //    Illust = illust,
-                        //    Tag = page
-                        //};
-                        //Colloection.Add(i);                        
+                            Collection.Add(i);
+                        }               
                     }
                 }
             }
@@ -435,11 +321,11 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Colloection)
+        public static void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Collection)
         {
             try
             {
-                if (user is Pixeez.Objects.User && Colloection is IList<ImageItem>)
+                if (user is Pixeez.Objects.User && Collection is IList<ImageItem>)
                 {
                     var url = user.GetAvatarUrl();
                     if (!string.IsNullOrEmpty(url))
@@ -457,7 +343,7 @@ namespace PixivWPF.Common
                             Illust = null,
                             Tag = user
                         };
-                        Colloection.Add(i);
+                        Collection.Add(i);
                     }
                 }
             }
@@ -467,11 +353,11 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Colloection, string nexturl = "")
+        public static void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Collection, string nexturl = "")
         {
             try
             {
-                if (user is Pixeez.Objects.User && Colloection is IList<ImageItem>)
+                if (user is Pixeez.Objects.User && Collection is IList<ImageItem>)
                 {
                     var url = user.GetAvatarUrl();
                     if (!string.IsNullOrEmpty(url))
@@ -490,7 +376,7 @@ namespace PixivWPF.Common
                             Illust = null,
                             Tag = user
                         };
-                        Colloection.Add(i);
+                        Collection.Add(i);
                     }
                 }
             }

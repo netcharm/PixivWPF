@@ -119,20 +119,6 @@ namespace PixivWPF.Pages
                     i.Tag = item.Tag;
                 }
 
-                //var i = new ImageItem()
-                //{
-                //    NextURL = item.NextURL,
-                //    Thumb = illust.GetThumbnailUrl(index_n),
-                //    Index = index_n,
-                //    Count = illust.PageCount.Value,
-                //    BadgeValue = (index_n + 1).ToString(),
-                //    ID = illust.Id.ToString(),
-                //    UserID = illust.User.Id.ToString(),
-                //    Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}",
-                //    DisplayTitle = false,
-                //    Illust = illust,
-                //    Tag = item.Tag
-                //};
                 UpdateDetail(i);
             }
         }
