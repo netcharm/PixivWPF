@@ -107,20 +107,32 @@ namespace PixivWPF.Pages
                 if (index_n >= item.Count - 1) index_n = item.Count - 1;
                 if (index_n == index_p) return;
 
-                var i = new ImageItem()
+                var i = illust.IllustItem();
+                if(i is ImageItem)
                 {
-                    NextURL = item.NextURL,
-                    Thumb = illust.GetThumbnailUrl(index_n),
-                    Index = index_n,
-                    Count = illust.PageCount.Value,
-                    BadgeValue = (index_n + 1).ToString(),
-                    ID = illust.Id.ToString(),
-                    UserID = illust.User.Id.ToString(),
-                    Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}",
-                    DisplayTitle = false,
-                    Illust = illust,
-                    Tag = item.Tag
-                };
+                    i.NextURL = item.NextURL;
+                    i.Thumb = illust.GetThumbnailUrl(index_n);
+                    i.Index = index_n;
+                    i.BadgeValue = (index_n + 1).ToString();
+                    i.Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}";
+                    i.DisplayTitle = false;
+                    i.Tag = item.Tag;
+                }
+
+                //var i = new ImageItem()
+                //{
+                //    NextURL = item.NextURL,
+                //    Thumb = illust.GetThumbnailUrl(index_n),
+                //    Index = index_n,
+                //    Count = illust.PageCount.Value,
+                //    BadgeValue = (index_n + 1).ToString(),
+                //    ID = illust.Id.ToString(),
+                //    UserID = illust.User.Id.ToString(),
+                //    Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}",
+                //    DisplayTitle = false,
+                //    Illust = illust,
+                //    Tag = item.Tag
+                //};
                 UpdateDetail(i);
             }
         }

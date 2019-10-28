@@ -256,39 +256,22 @@ namespace PixivWPF.Common
                     }
                 }
 
-                var viewer = new ContentWindow();
-                var page = new IllustDetailPage();
-
-                var url = illust.GetThumbnailUrl();
-                var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.InsertLineBreak(48).Take(256));
-                tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{tooltip}";
-                var item = new ImageItem()
+                var item = illust.IllustItem();
+                if (item is ImageItem)
                 {
-                    Thumb = url,
-                    Index = -1,
-                    Count = (int)illust.PageCount,
-                    BadgeValue = illust.PageCount.Value.ToString(),
-                    BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
-                    DisplayBadge = illust.PageCount > 1 ? true : false,
-                    ID = illust.Id.ToString(),
-                    UserID = illust.User.Id.ToString(),
-                    Subject = illust.Title,
-                    DisplayTitle = true,
-                    Caption = illust.Caption,
-                    ToolTip = $"{illust.GetDateTime()}{tooltip}",
-                    IsDownloaded = illust == null ? false : illust.GetOriginalUrl().IsPartDownloaded(),
-                    Illust = illust,
-                    Tag = illust
-                };
-                page.UpdateDetail(item);
+                    var viewer = new ContentWindow();
+                    var page = new IllustDetailPage();
 
-                viewer.Title = $"ID: {illust.Id}, {illust.Title}";
-                viewer.Width = 720;
-                viewer.Height = 900;
-                viewer.MinWidth = 720;
-                viewer.MinHeight = 500;
-                viewer.Content = page;
-                viewer.Show();
+                    page.UpdateDetail(item);
+
+                    viewer.Title = $"ID: {illust.Id}, {illust.Title}";
+                    viewer.Width = 720;
+                    viewer.Height = 900;
+                    viewer.MinWidth = 720;
+                    viewer.MinHeight = 500;
+                    viewer.Content = page;
+                    viewer.Show();
+                }
             }
             else if (obj is Pixeez.Objects.UserBase)
             {
@@ -849,6 +832,39 @@ namespace PixivWPF.Common
             }
 
             return (result);
+        }
+
+        public static string SanityAge(this string sanity)
+        {
+            string age = "all-age";
+
+            int san = 2;
+            if (int.TryParse(sanity, out san))
+            {
+                switch (sanity)
+                {
+                    case "3":
+                        age = "12+";
+                        break;
+                    case "4":
+                        age = "15+";
+                        break;
+                    case "5":
+                        age = "17+";
+                        break;
+                    case "6":
+                        age = "18+";
+                        break;
+                    default:
+                        age = "all";
+                        break;
+                }
+            }
+            else
+            {
+                age = sanity;
+            }
+            return (age);
         }
 
         // To return an array of strings instead:
