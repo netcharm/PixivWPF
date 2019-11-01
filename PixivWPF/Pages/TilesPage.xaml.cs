@@ -70,29 +70,51 @@ namespace PixivWPF.Pages
                             var opt = new ParallelOptions();
                             opt.MaxDegreeOfParallelism = 15;
                             opt.TaskScheduler = TaskScheduler.Current;
+                            opt.CancellationToken = cancelToken;
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
-                                if (cancelToken.IsCancellationRequested)
+                                using (cancelToken.Register(Thread.CurrentThread.Abort))
                                 {
-                                    cancelToken.ThrowIfCancellationRequested();
-                                    return;
-                                }
+                                    if (cancelToken.IsCancellationRequested)
+                                    {
+                                        //cancelTokenSource.Cancel(true);
+                                        //cancelToken.ThrowIfCancellationRequested();
+                                        opt.CancellationToken.ThrowIfCancellationRequested();
+                                        return;
+                                    }
 
-                                item.Dispatcher.BeginInvoke(new Action(async () =>
-                                {
-                                    try
+                                    //item.Dispatcher.BeginInvoke((Action)async delegate() 
+                                    //{
+                                    //    try
+                                    //    {
+                                    //        if (item.Source == null)
+                                    //        {
+                                    //            if(item.Illust.PageCount<=1) item.BadgeValue = null;
+                                    //            item.Source = await item.Thumb.LoadImage(tokens);
+                                    //        }
+                                    //    }
+                                    //    catch (Exception ex)
+                                    //    {
+                                    //        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                    //    }
+                                    //});
+
+                                    item.Dispatcher.BeginInvoke(new Action(async () =>
                                     {
-                                        if (item.Source == null)
+                                        try
                                         {
-                                            if(item.Illust.PageCount<=1) item.BadgeValue = null;
-                                            item.Source = await item.Thumb.LoadImage(tokens);
+                                            if (item.Source == null)
+                                            {
+                                                if(item.Illust.PageCount<=1) item.BadgeValue = null;
+                                                item.Source = await item.Thumb.LoadImage(tokens);
+                                            }
                                         }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                    }
-                                }));
+                                        catch (Exception ex)
+                                        {
+                                            $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                        }
+                                    }));
+                                }
                             });
                             if (ret.IsCompleted)
                             {
@@ -115,10 +137,15 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (lastTask is Task)
+                if (lastTask is Task && lastTask.Status == TaskStatus.Running)
                 {
                     cancelToken.ThrowIfCancellationRequested();
                     lastTask.Wait();
+                    //cancelTokenSource.Cancel(true);
+                    //lastTask.Wait(500, cancelToken);
+                    //cancelTokenSource = new CancellationTokenSource();
+                    //cancelTokenSource.CancelAfter(30000);
+                    //cancelToken = cancelTokenSource.Token;
                 }
 
                 if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
@@ -128,6 +155,7 @@ namespace PixivWPF.Pages
                         UpdateImageTilesTask(tokens);
                     }, cancelTokenSource.Token, TaskCreationOptions.None);
                     lastTask.RunSynchronously();
+                    //lastTask.Start();
                     await lastTask;
                 }
             }
@@ -147,6 +175,7 @@ namespace PixivWPF.Pages
             window = this.GetActiveWindow();
 
             cancelTokenSource = new CancellationTokenSource();
+            //cancelTokenSource.CancelAfter(30000);
             cancelToken = cancelTokenSource.Token;
 
             IllustDetail.Content = detail_page;

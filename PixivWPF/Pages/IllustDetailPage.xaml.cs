@@ -301,10 +301,15 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (lastTask is Task)
+                if (lastTask is Task && lastTask.Status == TaskStatus.Running)
                 {
                     cancelToken.ThrowIfCancellationRequested();
                     lastTask.Wait();
+                    //cancelTokenSource.Cancel(true);
+                    //lastTask.Wait(500, cancelToken);
+                    //cancelTokenSource = new CancellationTokenSource();
+                    //cancelTokenSource.CancelAfter(30000);
+                    //cancelToken = cancelTokenSource.Token;
                 }
 
                 if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
@@ -312,7 +317,7 @@ namespace PixivWPF.Pages
                     lastTask = new Task(() =>
                     {
                         UpdateDetailIllust(item);
-                    }, cancelTokenSource.Token, TaskCreationOptions.None);
+                    }, cancelToken, TaskCreationOptions.None);
                     lastTask.RunSynchronously();
                     //lastTask.Start();
                     await lastTask;
@@ -691,6 +696,7 @@ namespace PixivWPF.Pages
             IllustDetailWait.Visibility = Visibility.Collapsed;
 
             cancelTokenSource = new CancellationTokenSource();
+            //cancelTokenSource.CancelAfter(30000);
             cancelToken = cancelTokenSource.Token;
 
             cancelUpdatePreviewTokenSource = new CancellationTokenSource();
@@ -1346,49 +1352,57 @@ namespace PixivWPF.Pages
                 //IllustDetailViewer
                 e.Handled = true;
 
-                if (update_preview_task is Task)
+                if (update_preview_task is Task && update_preview_task.Status == TaskStatus.Running)
                 {
                     cancelUpdatePreviewToken.ThrowIfCancellationRequested();
                     update_preview_task.Wait();
+                    //cancelUpdatePreviewTokenSource.Cancel(true);
+                    //update_preview_task.Wait(500, cancelToken);
+                    //cancelUpdatePreviewTokenSource = new CancellationTokenSource();
+                    //cancelUpdatePreviewTokenSource.CancelAfter(30000);
+                    //cancelUpdatePreviewToken = cancelUpdatePreviewTokenSource.Token;
                 }
 
-                update_preview_task = new Task(async () =>
+                if (update_preview_task == null || (update_preview_task is Task && (update_preview_task.IsCanceled || update_preview_task.IsCompleted || update_preview_task.IsFaulted)))
                 {
-                    PreviewWait.Show();
-
-                    var item = SubIllusts.SelectedItem as ImageItem;
-                    lastSelectionItem = item;
-                    lastSelectionChanged = DateTime.Now.ToFileTime();
-
-                    string fp = string.Empty;
-                    if (item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp))
+                    update_preview_task = new Task(async () =>
                     {
-                        IllustDownloaded.Visibility = Visibility.Visible;
-                        IllustDownloaded.Tag = fp;
-                        ToolTipService.SetToolTip(IllustDownloaded, fp);
-                    }
-                    else
-                    {
-                        IllustDownloaded.Visibility = Visibility.Collapsed;
-                        IllustDownloaded.Tag = null;
-                        ToolTipService.SetToolTip(IllustDownloaded, null);
-                    }
+                        PreviewWait.Show();
 
-                    var tokens = await CommonHelper.ShowLogin();
-                    var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
-                    if (img == null || img.Width < 350)
-                    {
-                        var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
-                        if (large != null) img = large;
-                    }
-                    if (img != null) Preview.Source = img;
+                        var item = SubIllusts.SelectedItem as ImageItem;
+                        lastSelectionItem = item;
+                        lastSelectionChanged = DateTime.Now.ToFileTime();
 
-                    PreviewWait.Hide();
-                }, cancelUpdatePreviewTokenSource.Token, TaskCreationOptions.None);
-                update_preview_task.RunSynchronously();
-                SubIllusts.SelectedIndex = idx;
-                //await update_preview_task;
-                //Thread.Sleep(100);
+                        string fp = string.Empty;
+                        if (item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp))
+                        {
+                            IllustDownloaded.Visibility = Visibility.Visible;
+                            IllustDownloaded.Tag = fp;
+                            ToolTipService.SetToolTip(IllustDownloaded, fp);
+                        }
+                        else
+                        {
+                            IllustDownloaded.Visibility = Visibility.Collapsed;
+                            IllustDownloaded.Tag = null;
+                            ToolTipService.SetToolTip(IllustDownloaded, null);
+                        }
+
+                        var tokens = await CommonHelper.ShowLogin();
+                        var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
+                        if (img == null || img.Width < 350)
+                        {
+                            var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
+                            if (large != null) img = large;
+                        }
+                        if (img != null) Preview.Source = img;
+
+                        PreviewWait.Hide();
+                    }, cancelUpdatePreviewToken, TaskCreationOptions.None);
+                    update_preview_task.RunSynchronously();
+                    SubIllusts.SelectedIndex = idx;
+                    //await update_preview_task;
+                    //Thread.Sleep(100);
+                }
             }
         }
 

@@ -42,6 +42,17 @@ namespace PixivWPF.Common
         public string NextURL { get; set; }
 
         public Visibility FavMarkVisibility { get; set; } = Visibility.Collapsed;
+        public bool DisplayFavMark
+        {
+            get { return (FavMarkVisibility == Visibility.Visible ? true : false); }
+            set
+            {
+                if (value)
+                    FavMarkVisibility = Visibility.Visible;
+                else
+                    FavMarkVisibility = Visibility.Collapsed;
+            }
+        }
 
         public string BadgeValue { get; set; }
         public Visibility BadgeVisibility { get; set; } = Visibility.Collapsed;
@@ -276,6 +287,7 @@ namespace PixivWPF.Common
                             //i.Thumb = url;
                             i.DisplayTitle = false;
                             i.Index = index;
+                            i.DisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
                             i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloaded(false);
@@ -306,6 +318,7 @@ namespace PixivWPF.Common
                             //i.Thumb = url;
                             i.DisplayTitle = false;
                             i.Index = index;
+                            i.DisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
                             i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloaded(false);

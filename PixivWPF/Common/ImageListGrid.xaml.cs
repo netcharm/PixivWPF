@@ -176,6 +176,7 @@ namespace PixivWPF.Common
             InitializeComponent();
 
             cancelTokenSource = new CancellationTokenSource();
+            //cancelTokenSource.CancelAfter(30000);
             cancelToken = cancelTokenSource.Token;
 
             PART_ImageTiles.ItemsSource = ImageList;
@@ -190,6 +191,14 @@ namespace PixivWPF.Common
         internal Task lastTask = null;
         internal CancellationTokenSource cancelTokenSource;
         internal CancellationToken cancelToken;
+
+        public void Cancel()
+        {
+            if (cancelTokenSource is CancellationTokenSource)
+            {
+                cancelTokenSource.Cancel(true);
+            }
+        }
 
         internal void UpdateImageTilesTask(Pixeez.Tokens tokens, int parallel=15)
         {
@@ -209,31 +218,54 @@ namespace PixivWPF.Common
                         if (parallel <= 0) parallel = 1;
                         else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
                         opt.MaxDegreeOfParallelism = parallel;
+                        opt.CancellationToken = cancelToken;
 
                         var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                         {
-                            if (cancelToken.IsCancellationRequested)
+                            using (cancelToken.Register(Thread.CurrentThread.Abort))
                             {
-                                cancelToken.ThrowIfCancellationRequested();
-                                return;
-                            }
+                                if (cancelToken.IsCancellationRequested)
+                                {
+                                    //cancelTokenSource.Cancel(true);
+                                    //cancelToken.ThrowIfCancellationRequested();
+                                    opt.CancellationToken.ThrowIfCancellationRequested();
+                                    return;
+                                }
 
-                            item.Dispatcher.BeginInvoke(new Action(async () =>
-                            {
-                                try
+                                //item.Dispatcher.BeginInvoke((Action)async delegate() 
+                                //{
+                                //    try
+                                //    {
+                                //        if (item.Source == null)
+                                //        {
+                                //            if (item.Count <= 1) item.BadgeValue = string.Empty;
+                                //            item.Source = await item.Thumb.LoadImage(tokens);
+                                //        }
+                                //    }
+                                //    catch (Exception ex)
+                                //    {
+                                //        var ert = ex.Message;
+                                //        //$"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                //    }
+                                //});
+
+                                item.Dispatcher.BeginInvoke(new Action(async () =>
                                 {
-                                    if (item.Source == null)
+                                    try
                                     {
-                                        if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                        item.Source = await item.Thumb.LoadImage(tokens);
+                                        if (item.Source == null)
+                                        {
+                                            if (item.Count <= 1) item.BadgeValue = string.Empty;
+                                            item.Source = await item.Thumb.LoadImage(tokens);
+                                        }
                                     }
-                                }
-                                catch (Exception ex)
-                                {
-                                    var ert = ex.Message;
-                                    //$"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                }
-                            }));
+                                    catch (Exception ex)
+                                    {
+                                        var ert = ex.Message;
+                                        //$"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                    }
+                                }));
+                            }
                         });
                         if (ret.IsCompleted)
                         {
@@ -260,17 +292,23 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (lastTask is Task)
+                if (lastTask is Task && lastTask.Status == TaskStatus.Running)
                 {
                     cancelToken.ThrowIfCancellationRequested();
                     lastTask.Wait();
+                    //cancelTokenSource.Cancel(true);
+                    //lastTask.Wait(500, cancelToken);
+                    //cancelTokenSource = new CancellationTokenSource();
+                    //cancelTokenSource.CancelAfter(30000);
+                    //cancelToken = cancelTokenSource.Token;
                 }
 
                 if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
                 {
-                    lastTask = new Task(() => {
+                    lastTask = new Task(() =>
+                    {
                         UpdateImageTilesTask(tokens, parallel);
-                    }, cancelTokenSource.Token, TaskCreationOptions.None);
+                    }, cancelToken, TaskCreationOptions.None);
                     //lastTask.RunSynchronously();
                     lastTask.Start();
                     await lastTask;

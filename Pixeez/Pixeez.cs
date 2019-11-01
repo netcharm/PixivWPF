@@ -159,7 +159,7 @@ namespace Pixeez
             }
         }
 
-        public static HttpClient Client(string proxy, bool useproxy)
+        public static HttpClient Client(string proxy, bool useproxy, int timeout = 30)
         {
             var Proxy = proxy;
             var UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
@@ -172,7 +172,7 @@ namespace Pixeez
                 Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
                 UseProxy = string.IsNullOrEmpty(proxy) || !UsingProxy ? false : true
             };
-            var httpClient = new HttpClient(handler, true){ Timeout=TimeSpan.FromSeconds(120) };
+            var httpClient = new HttpClient(handler, true){ Timeout=TimeSpan.FromSeconds(timeout) };
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
             httpClient.DefaultRequestHeaders.Add("X-Client-Time", time);
             httpClient.DefaultRequestHeaders.Add("X-Client-Hash", $"{time}{PIXIV.HashSecret}".MD5Hash());
