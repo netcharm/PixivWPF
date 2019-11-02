@@ -1532,7 +1532,6 @@ namespace PixivWPF.Common
         {
             if (items is ObservableCollection<ImageItem>)
             {
-
                 if (subitems is IEnumerable<ImageItem>)
                 {
                     var count = items.Count();
@@ -1550,6 +1549,41 @@ namespace PixivWPF.Common
                 {
                     CollectionViewSource.GetDefaultView(items).Refresh();
                 }
+            }
+        }
+
+        public static void UpdateTilesDaownloadStatus(this ImageListGrid gallary, int index = -1, bool fuzzy = true)
+        {
+            if (gallary.SelectedItems.Count <= 0 || gallary.SelectedIndex < 0) return;
+            try
+            {
+                var idx = gallary.SelectedIndex;
+                var targets = new List<ImageItem>();
+                foreach (var item in gallary.SelectedItems)
+                {
+                    if (item.Illust == null) continue;
+                    bool download = fuzzy || index == -1 ? item.Illust.GetOriginalUrl().IsPartDownloaded() : item.Illust.GetOriginalUrl(idx).IsDownloaded();
+                    if (item.IsDownloaded != download)
+                    {
+                        item.IsDownloaded = download;
+                        targets.Add(item);
+                    }
+                }
+                if (targets.Count > 0)
+                {
+                    var items = gallary.SelectedItems;
+                    gallary.Items.UpdateTiles(targets);
+                    gallary.SelectedItems.Clear();
+                    foreach (var item in items)
+                        gallary.SelectedItems.Add(item);
+                    gallary.SelectedIndex = idx;
+                }
+            }
+            catch(Exception e)
+            {
+#if DEBUG
+                e.Message.ShowMessageBox("ERROR");
+#endif                
             }
         }
 

@@ -1341,6 +1341,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             Console.WriteLine($"{DateTime.Now.ToFileTime() - lastSelectionChanged}, {sender}, {e.Handled}, {e.RoutedEvent}, {e.OriginalSource}, {e.Source}");
 #endif
+            e.Handled = false;
             var idx = SubIllusts.SelectedIndex;
             if (SubIllusts.SelectedItem is ImageItem && SubIllusts.SelectedItems.Count == 1)
             {
@@ -1349,6 +1350,8 @@ namespace PixivWPF.Pages
                     SubIllusts.SelectedItem = lastSelectionItem;
                     return;
                 }
+
+                SubIllusts.UpdateTilesDaownloadStatus(idx, false);
                 //IllustDetailViewer
                 e.Handled = true;
 
@@ -1534,29 +1537,31 @@ namespace PixivWPF.Pages
 
         private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (RelativeIllusts.SelectedItems.Count <= 0 || RelativeIllusts.SelectedIndex < 0) return;
-            var targets = new List<ImageItem>();
-            foreach (var item in RelativeIllusts.SelectedItems)
-            {
-                if (item.Illust == null) continue;
-                bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
-                if (item.IsDownloaded != download)
-                {
-                    item.IsDownloaded = download;
-                    targets.Add(item);
-                }
-            }
-            if (targets.Count > 0)
-            {
-                var idx = RelativeIllusts.SelectedIndex;
-                var items = RelativeIllusts.SelectedItems;
-                RelativeIllusts.Items.UpdateTiles(targets);
-                RelativeIllusts.SelectedItems.Clear();
-                foreach (var item in items)
-                    RelativeIllusts.SelectedItems.Add(item);
-                RelativeIllusts.SelectedIndex = idx;
-            }
             e.Handled = false;
+            RelativeIllusts.UpdateTilesDaownloadStatus();
+            //if (RelativeIllusts.SelectedItems.Count <= 0 || RelativeIllusts.SelectedIndex < 0) return;
+            //var targets = new List<ImageItem>();
+            //foreach (var item in RelativeIllusts.SelectedItems)
+            //{
+            //    if (item.Illust == null) continue;
+            //    bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
+            //    if (item.IsDownloaded != download)
+            //    {
+            //        item.IsDownloaded = download;
+            //        targets.Add(item);
+            //    }
+            //}
+            //if (targets.Count > 0)
+            //{
+            //    var idx = RelativeIllusts.SelectedIndex;
+            //    var items = RelativeIllusts.SelectedItems;
+            //    RelativeIllusts.Items.UpdateTiles(targets);
+            //    RelativeIllusts.SelectedItems.Clear();
+            //    foreach (var item in items)
+            //        RelativeIllusts.SelectedItems.Add(item);
+            //    RelativeIllusts.SelectedIndex = idx;
+            //}
+            e.Handled = true;
         }
 
         private void RelativeIllusts_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -1610,7 +1615,7 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        #region Autoor Favorite routines
+        #region Author Favorite routines
         private async void FavoriteIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
@@ -1648,29 +1653,31 @@ namespace PixivWPF.Pages
 
         private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (FavoriteIllusts.SelectedItems.Count <= 0 || FavoriteIllusts.SelectedIndex < 0) return;
-            var targets = new List<ImageItem>();
-            foreach (var item in FavoriteIllusts.SelectedItems)
-            {
-                if (item.Illust == null) continue;
-                bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
-                if (item.IsDownloaded != download)
-                {
-                    item.IsDownloaded = download;
-                    targets.Add(item);
-                }
-            }
-            if (targets.Count > 0)
-            {
-                var idx = FavoriteIllusts.SelectedIndex;
-                var items = FavoriteIllusts.SelectedItems;
-                FavoriteIllusts.Items.UpdateTiles(targets);
-                FavoriteIllusts.SelectedItems.Clear();
-                foreach (var item in items)
-                    FavoriteIllusts.SelectedItems.Add(item);
-                FavoriteIllusts.SelectedIndex = idx;
-            }
             e.Handled = false;
+            FavoriteIllusts.UpdateTilesDaownloadStatus();
+            //if (FavoriteIllusts.SelectedItems.Count <= 0 || FavoriteIllusts.SelectedIndex < 0) return;
+            //var targets = new List<ImageItem>();
+            //foreach (var item in FavoriteIllusts.SelectedItems)
+            //{
+            //    if (item.Illust == null) continue;
+            //    bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
+            //    if (item.IsDownloaded != download)
+            //    {
+            //        item.IsDownloaded = download;
+            //        targets.Add(item);
+            //    }
+            //}
+            //if (targets.Count > 0)
+            //{
+            //    var idx = FavoriteIllusts.SelectedIndex;
+            //    var items = FavoriteIllusts.SelectedItems;
+            //    FavoriteIllusts.Items.UpdateTiles(targets);
+            //    FavoriteIllusts.SelectedItems.Clear();
+            //    foreach (var item in items)
+            //        FavoriteIllusts.SelectedItems.Add(item);
+            //    FavoriteIllusts.SelectedIndex = idx;
+            //}
+            e.Handled = true;
         }
 
         private void FavriteIllusts_MouseWheel(object sender, MouseWheelEventArgs e)
