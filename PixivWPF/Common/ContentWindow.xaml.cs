@@ -92,16 +92,7 @@ namespace PixivWPF.Common
                 var content = SearchBox.Text.ParseLink().ParseID();
                 if (!string.IsNullOrEmpty(content))
                 {
-                    if (Regex.IsMatch(content, @"^\d+$", RegexOptions.IgnoreCase))
-                    {
-                        auto_suggest_list.Add($"IllustID: {content}");
-                        auto_suggest_list.Add($"UserID: {content}");
-                    }
-                    auto_suggest_list.Add($"User: {content}");
-                    auto_suggest_list.Add($"Fuzzy Tag: {content}");
-                    auto_suggest_list.Add($"Fuzzy: {content}");
-                    auto_suggest_list.Add($"Tag: {content}");
-                    auto_suggest_list.Add($"Caption: {content}");
+                    content.GetSuggestList().ToList().ForEach(t => auto_suggest_list.Add(t));
                     SearchBox.Items.Refresh();
                     SearchBox.IsDropDownOpen = true;
                 }
