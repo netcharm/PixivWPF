@@ -73,6 +73,34 @@ namespace PixivWPF.Pages
             IllustDesc.AvoidImagesLateLoading = true;
         }
 
+        public void UpdateFavMark(Pixeez.Objects.Work illust)
+        {
+            if (illust.IsLiked())
+            {
+                BookmarkIllust.Tag = PackIconModernKind.Heart;// "Heart";
+                ActionBookmarkIllustRemove.IsEnabled = true;
+            }
+            else
+            {
+                BookmarkIllust.Tag = PackIconModernKind.HeartOutline;// "HeartOutline";
+                ActionBookmarkIllustRemove.IsEnabled = false;
+            }
+        }
+
+        public void UpdateFollowMark(Pixeez.Objects.UserBase user)
+        {
+            if (user.IsLiked())
+            {
+                FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
+                ActionFollowAuthorRemove.IsEnabled = true;
+            }
+            else
+            {
+                FollowAuthor.Tag = PackIconModernKind.Add;// "Add";
+                ActionFollowAuthorRemove.IsEnabled = false;
+            }
+        }
+
         public async void UpdateDetailIllust(ImageItem item)
         {
             try
@@ -149,29 +177,10 @@ namespace PixivWPF.Pages
                 ActionCopyIllustDate.Header = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:sszzz");
 
                 FollowAuthor.Show();
-                if (item.Illust.User.is_followed == true ||
-                    (item.Illust.User is Pixeez.Objects.User && (item.Illust.User as Pixeez.Objects.User).IsFollowing == true))
-                {
-                    FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
-                    ActionFollowAuthorRemove.IsEnabled = true;
-                }
-                else
-                {
-                    FollowAuthor.Tag = PackIconModernKind.Add;// "Add";
-                    ActionFollowAuthorRemove.IsEnabled = false;
-                }
+                UpdateFollowMark(item.Illust.User);
 
                 BookmarkIllust.Show();
-                if (item.Illust.IsBookMarked())
-                {
-                    BookmarkIllust.Tag = PackIconModernKind.Heart;// "Heart";
-                    ActionBookmarkIllustRemove.IsEnabled = true;
-                }
-                else
-                {
-                    BookmarkIllust.Tag = PackIconModernKind.HeartOutline;// "HeartOutline";
-                    ActionBookmarkIllustRemove.IsEnabled = false;
-                }
+                UpdateFavMark(item.Illust);
 
                 IllustActions.Show();
 
@@ -375,16 +384,7 @@ namespace PixivWPF.Pages
                 }
 
                 FollowAuthor.Show();
-                if (nuser.is_followed.Value)
-                {
-                    FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
-                    ActionFollowAuthorRemove.IsEnabled = true;
-                }
-                else
-                {
-                    FollowAuthor.Tag = PackIconModernKind.Add;// "Add";
-                    ActionFollowAuthorRemove.IsEnabled = false;
-                }
+                UpdateFollowMark(nuser);
 
                 BookmarkIllust.Hide();
                 IllustActions.Hide();
@@ -1082,7 +1082,7 @@ namespace PixivWPF.Pages
                                     ActionBookmarkIllustRemove.IsEnabled = false;
                                     item.IsFavorited = false;
                                 }
-                                CommonHelper.cacheIllust[illust.Id] = item.Illust;
+                                item.Illust.Cache();
                             }
                         }
                     }
@@ -1143,7 +1143,7 @@ namespace PixivWPF.Pages
                                     FollowAuthor.Tag = PackIconModernKind.Add;
                                     ActionFollowAuthorRemove.IsEnabled = false;
                                 }
-                                CommonHelper.cacheUser[item.Illust.User.Id] = item.Illust.User;
+                                item.Illust.User.Cache();
                             }
                         }
                     }
@@ -1189,6 +1189,7 @@ namespace PixivWPF.Pages
                             FollowAuthor.Tag = PackIconModernKind.Add;
                             ActionFollowAuthorRemove.IsEnabled = false;
                         }
+                        user.Cache();
                     }
                     catch (Exception) { }
                 }
@@ -1355,7 +1356,13 @@ namespace PixivWPF.Pages
                     return;
                 }
                 SubIllusts.UpdateTilesDaownloadStatus(false);
-                if (DataObject is ImageItem) (DataObject as ImageItem).IsDownloaded = (DataObject as ImageItem).Illust.IsPartDownloaded();
+                if (DataObject is ImageItem)
+                {
+                    (DataObject as ImageItem).IsDownloaded = (DataObject as ImageItem).Illust.IsPartDownloaded();
+                    UpdateFollowMark((DataObject as ImageItem).Illust.User);
+                }
+                else if (DataObject is Pixeez.Objects.UserBase)
+                    UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
 
                 //IllustDetailViewer
                 e.Handled = true;
@@ -1537,6 +1544,10 @@ namespace PixivWPF.Pages
         {
             e.Handled = false;
             RelativeIllusts.UpdateTilesDaownloadStatus();
+            if(DataObject is ImageItem)
+                UpdateFollowMark((DataObject as ImageItem).Illust.User);
+            else if (DataObject is Pixeez.Objects.UserBase)
+                UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
             e.Handled = true;
         }
 
@@ -1631,6 +1642,10 @@ namespace PixivWPF.Pages
         {
             e.Handled = false;
             FavoriteIllusts.UpdateTilesDaownloadStatus();
+            if (DataObject is ImageItem)
+                UpdateFollowMark((DataObject as ImageItem).Illust.User);
+            else if (DataObject is Pixeez.Objects.UserBase)
+                UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
             e.Handled = true;
         }
 

@@ -976,46 +976,6 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static bool IsDownloaded(this string url, bool is_meta_single_page = false)
-        {
-            bool result = false;
-            var file = url.GetImageName(is_meta_single_page);
-            foreach (var local in setting.LocalStorage)
-            {
-                if (string.IsNullOrEmpty(local)) continue;
-
-                var f = Path.Combine(local, file);
-                if (File.Exists(f))
-                {
-                    result = true;
-                    break;
-                }
-            }
-            return (result);
-        }
-
-        internal static bool IsDownloaded(this string url, out string filepath, bool is_meta_single_page = false)
-        {
-            bool result = false;
-            filepath = string.Empty;
-
-            var file = url.GetImageName(is_meta_single_page);
-            foreach (var local in setting.LocalStorage)
-            {
-                if (string.IsNullOrEmpty(local)) continue;
-
-                var f = Path.Combine(local, file);
-                if (File.Exists(f))
-                {
-                    filepath = f;
-                    result = true;
-                    break;
-                }
-            }
-
-            return (result);
-        }
-
         internal static bool IsPartDownloaded(this ImageItem item)
         {
             if (item.Illust is Pixeez.Objects.Work)
@@ -1045,13 +1005,55 @@ namespace PixivWPF.Common
 
         internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath)
         {
-            if(illust is Pixeez.Objects.Work)
+            if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl().IsPartDownloaded(out filepath));
             else
             {
                 filepath = string.Empty;
                 return (false);
             }
+        }
+
+        internal static bool IsDownloaded(this string url, bool is_meta_single_page = false)
+        {
+            bool result = false;
+            var file = url.GetImageName(is_meta_single_page);
+            foreach (var local in setting.LocalStorage)
+            {
+                if (string.IsNullOrEmpty(local)) continue;
+
+                var folder = local.FolderMacroReplace(url.GetIllustId());
+                var f = Path.Combine(folder, file);
+                if (File.Exists(f))
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return (result);
+        }
+
+        internal static bool IsDownloaded(this string url, out string filepath, bool is_meta_single_page = false)
+        {
+            bool result = false;
+            filepath = string.Empty;
+
+            var file = url.GetImageName(is_meta_single_page);
+            foreach (var local in setting.LocalStorage)
+            {
+                if (string.IsNullOrEmpty(local)) continue;
+
+                var folder = local.FolderMacroReplace(url.GetIllustId());
+                var f = Path.Combine(folder, file);
+                if (File.Exists(f))
+                {
+                    filepath = f;
+                    result = true;
+                    break;
+                }
+            }
+
+            return (result);
         }
 
         internal static bool IsPartDownloaded(this string url)
@@ -1064,7 +1066,8 @@ namespace PixivWPF.Common
             {
                 if (string.IsNullOrEmpty(local)) continue;
 
-                var f = Path.Combine(local, file);
+                var folder = local.FolderMacroReplace(url.GetIllustId());
+                var f = Path.Combine(folder, file);
                 if (File.Exists(f))
                 {
                     result = true;
@@ -1075,7 +1078,7 @@ namespace PixivWPF.Common
                 var fe = Path.GetExtension(file);
                 foreach (var fc in range)
                 {
-                    var fp = Path.Combine(local, $"{fn}_{fc}{fe}");
+                    var fp = Path.Combine(folder, $"{fn}_{fc}{fe}");
                     if (File.Exists(fp))
                     {
                         result = true;
@@ -1098,7 +1101,8 @@ namespace PixivWPF.Common
             {
                 if (string.IsNullOrEmpty(local)) continue;
 
-                var f = Path.Combine(local, file);
+                var folder = local.FolderMacroReplace(url.GetIllustId());
+                var f = Path.Combine(folder, file);
                 if (File.Exists(f))
                 {
                     filepath = f;
@@ -1110,7 +1114,7 @@ namespace PixivWPF.Common
                 var fe = Path.GetExtension(file);
                 foreach (var fc in range)
                 {
-                    var fp = Path.Combine(local, $"{fn}_{fc}{fe}");
+                    var fp = Path.Combine(folder, $"{fn}_{fc}{fe}");
                     if (File.Exists(fp))
                     {
                         filepath = fp;
@@ -1580,7 +1584,7 @@ namespace PixivWPF.Common
             user = cacheUser.ContainsKey(user.Id) ? cacheUser[user.Id] : user;
             if (user != null)
             {
-                result = user.is_followed ?? false;
+                result = user.is_followed ?? (user as Pixeez.Objects.User).IsFollowing ?? false;
             }
             return (result);
         }
@@ -1649,7 +1653,7 @@ namespace PixivWPF.Common
                         item.IsDownloaded = download;
                         result |= download;
                     }
-                    item.IsFavorited = item.IsLiked();
+                    item.IsFavorited = item.IsLiked() && item.DisplayFavMark;
                 }
             }
 #if DEBUG
@@ -1663,6 +1667,17 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static void Cache(this Pixeez.Objects.UserBase user)
+        {
+            if(user is Pixeez.Objects.UserBase)
+                cacheUser[user.Id] = user;
+        }
+
+        public static void Cache(this Pixeez.Objects.Work illust)
+        {
+            if (illust is Pixeez.Objects.Work)
+                cacheIllust[illust.Id] = illust;
+        }
         #endregion
 
         #region Drop Box routines
@@ -1829,6 +1844,39 @@ namespace PixivWPF.Common
                 if (is_meta_single_page) result = result.Replace("_0.", ".");
             }
             return (result);
+        }
+
+        public static string GetIllustId(this string url)
+        {
+            string result = string.Empty;
+            if (!string.IsNullOrEmpty(url))
+            {
+                var m = Regex.Match(Path.GetFileName(url), @"(\d+)(_p\d+.*?)", RegexOptions.IgnoreCase);
+                if (m.Groups.Count > 0)
+                {
+                    result = m.Groups[1].Value;
+                }
+            }
+            return (result);
+        }
+
+        public static string FolderMacroReplace(this string text)
+        {
+            var result = text;
+            result = MacroReplace(result, @"%id%", text.GetIllustId());
+            return (result);
+        }
+
+        public static string FolderMacroReplace(this string text, string target)
+        {
+            var result = text;
+            result = MacroReplace(result, @"%id%", target);
+            return (result);
+        }
+
+        public static string MacroReplace(this string text, string macro, string target)
+        {
+            return(Regex.Replace(text, macro, target, RegexOptions.IgnoreCase));
         }
 
         public static DependencyObject GetVisualChildFromTreePath(this DependencyObject dpo, int[] path)
