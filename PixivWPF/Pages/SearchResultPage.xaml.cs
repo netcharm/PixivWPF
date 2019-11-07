@@ -290,29 +290,9 @@ namespace PixivWPF.Pages
 
         private void ResultIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ResultIllusts.SelectedItems.Count <= 0 || ResultIllusts.SelectedIndex < 0) return;
-            var targets = new List<ImageItem>();
-            foreach (var item in ResultIllusts.SelectedItems)
-            {
-                if (item.Illust == null) continue;
-                bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
-                if (item.IsDownloaded != download)
-                {
-                    item.IsDownloaded = download;
-                    targets.Add(item);
-                }
-            }
-            if (targets.Count > 0)
-            {
-                var idx = ResultIllusts.SelectedIndex;
-                var items = ResultIllusts.SelectedItems;
-                ResultIllusts.Items.UpdateTiles(targets);
-                ResultIllusts.SelectedItems.Clear();
-                foreach (var item in items)
-                    ResultIllusts.SelectedItems.Add(item);
-                ResultIllusts.SelectedIndex = idx;
-            }
             e.Handled = false;
+            ResultIllusts.UpdateTilesDaownloadStatus();
+            e.Handled = true;
         }
 
         private void ResultIllusts_MouseWheel(object sender, MouseWheelEventArgs e)

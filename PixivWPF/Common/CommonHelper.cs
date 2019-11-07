@@ -105,6 +105,9 @@ namespace PixivWPF.Common
     {
         private static Setting setting = Setting.Load();
         private static CacheImage cache = new CacheImage();
+        public static Dictionary<long?, Pixeez.Objects.Work> cacheIllust = new Dictionary<long?, Pixeez.Objects.Work>();
+        public static Dictionary<long?, Pixeez.Objects.UserBase> cacheUser = new Dictionary<long?, Pixeez.Objects.UserBase>();
+
         public static DateTime SelectedDate { get; set; } = DateTime.Now;
         internal static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         internal static string[] trim_str = new string[] { Environment.NewLine };
@@ -172,7 +175,7 @@ namespace PixivWPF.Common
                 var list = obj as ImageListGrid;
                 foreach (var item in list.SelectedItems)
                 {
-                    item.IsDownloaded = item.Illust == null ? false : item.Illust.GetOriginalUrl().IsPartDownloaded();
+                    item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
 
                     if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
@@ -210,7 +213,7 @@ namespace PixivWPF.Common
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
-                item.IsDownloaded = item.Illust == null ? false : item.Illust.GetOriginalUrl().IsPartDownloaded();
+                item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
 
                 switch (item.ItemType)
                 {
@@ -935,6 +938,44 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, bool is_meta_single_page = false)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl().IsDownloaded(is_meta_single_page));
+            else
+                return (false);
+        }
+
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, bool is_meta_single_page = false)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl().IsDownloaded(out filepath, is_meta_single_page));
+            else
+            {
+                filepath = string.Empty;
+                return (false);
+            }            
+        }
+
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, int index = -1)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl(index).IsDownloaded());
+            else
+                return (false);            
+        }
+
+        internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl(index).IsDownloaded(out filepath, is_meta_single_page));
+            else
+            {
+                filepath = string.Empty;
+                return (false);
+            }
+        }
+
         internal static bool IsDownloaded(this string url, bool is_meta_single_page = false)
         {
             bool result = false;
@@ -973,6 +1014,44 @@ namespace PixivWPF.Common
             }
 
             return (result);
+        }
+
+        internal static bool IsPartDownloaded(this ImageItem item)
+        {
+            if (item.Illust is Pixeez.Objects.Work)
+                return (item.Illust.GetOriginalUrl().IsPartDownloaded());
+            else
+                return (false);
+        }
+
+        internal static bool IsPartDownloaded(this ImageItem item, out string filepath)
+        {
+            if (item.Illust is Pixeez.Objects.Work)
+                return (item.Illust.GetOriginalUrl().IsPartDownloaded(out filepath));
+            else
+            {
+                filepath = string.Empty;
+                return (false);
+            }
+        }
+
+        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl().IsPartDownloaded());
+            else
+                return (false);
+        }
+
+        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath)
+        {
+            if(illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl().IsPartDownloaded(out filepath));
+            else
+            {
+                filepath = string.Empty;
+                return (false);
+            }
         }
 
         internal static bool IsPartDownloaded(this string url)
@@ -1484,75 +1563,93 @@ namespace PixivWPF.Common
         }
 
         #region Illust Tile ListView routines
-        public static void UpdateTiles(this ObservableCollection<ImageItem> items, ImageItem item = null)
+        public static bool IsLiked(this Pixeez.Objects.Work illust)
         {
-            if (items is ObservableCollection<ImageItem>)
+            bool result = false;
+            illust = cacheIllust.ContainsKey(illust.Id) ? cacheIllust[illust.Id] : illust;
+            if (illust.User != null)
+            {
+                result = illust.IsLiked ?? illust.IsBookMarked();
+            }
+            return (result);
+        }
+
+        public static bool IsLiked(this Pixeez.Objects.UserBase user)
+        {
+            bool result = false;
+            user = cacheUser.ContainsKey(user.Id) ? cacheUser[user.Id] : user;
+            if (user != null)
+            {
+                result = user.is_followed ?? false;
+            }
+            return (result);
+        }
+
+        public static bool IsLiked(this ImageItem item, bool isuser=false)
+        {
+            return (isuser ? item.Illust.User.IsLiked() : item.Illust.IsLiked());
+        }
+
+        public static void UpdateTiles(this ObservableCollection<ImageItem> collection, ImageItem item = null)
+        {
+            if (collection is ObservableCollection<ImageItem>)
             {
                 if (item is ImageItem)
                 {
-                    int idx = items.IndexOf(item);
-                    if (idx >= 0 && idx < items.Count())
+                    int idx = collection.IndexOf(item);
+                    if (idx >= 0 && idx < collection.Count())
                     {
-                        items.Remove(item);
-                        items.Insert(idx, item);
+                        collection.Remove(item);
+                        collection.Insert(idx, item);
                     }
                 }
                 else
                 {
-                    CollectionViewSource.GetDefaultView(items).Refresh();                    
+                    CollectionViewSource.GetDefaultView(collection).Refresh();                    
                 }
             }
         }
 
-        public static void UpdateTiles(this ObservableCollection<ImageItem> items, IEnumerable<ImageItem> subitems)
+        public static void UpdateTiles(this ObservableCollection<ImageItem> collection, IEnumerable<ImageItem> items)
         {
-            if (items is ObservableCollection<ImageItem>)
+            if (collection is ObservableCollection<ImageItem>)
             {
-                if (subitems is IEnumerable<ImageItem>)
+                if (items is IEnumerable<ImageItem>)
                 {
-                    var count = items.Count();
-                    foreach (ImageItem sub in subitems)
+                    var count = collection.Count();
+                    foreach (ImageItem sub in items)
                     {
-                        int idx = items.IndexOf(sub);
+                        int idx = collection.IndexOf(sub);
                         if (idx >= 0 && idx < count)
                         {
-                            items.Remove(sub);
-                            items.Insert(idx, sub);
+                            collection.Remove(sub);
+                            collection.Insert(idx, sub);
                         }
                     }
                 }
                 else
                 {
-                    CollectionViewSource.GetDefaultView(items).Refresh();
+                    CollectionViewSource.GetDefaultView(collection).Refresh();
                 }
             }
         }
 
-        public static void UpdateTilesDaownloadStatus(this ImageListGrid gallary, int index = -1, bool fuzzy = true)
+        public static bool UpdateTilesDaownloadStatus(this ImageListGrid gallery, bool fuzzy = true)
         {
-            if (gallary.SelectedItems.Count <= 0 || gallary.SelectedIndex < 0) return;
+            bool result = false;
+            if (gallery.SelectedItems.Count <= 0 || gallery.SelectedIndex < 0) return(result);
             try
             {
-                var idx = gallary.SelectedIndex;
-                var targets = new List<ImageItem>();
-                foreach (var item in gallary.SelectedItems)
+                foreach (var item in gallery.SelectedItems)
                 {
                     if (item.Illust == null) continue;
-                    bool download = fuzzy || index == -1 ? item.Illust.GetOriginalUrl().IsPartDownloaded() : item.Illust.GetOriginalUrl(idx).IsDownloaded();
+                    bool download = fuzzy ? item.Illust.IsPartDownloaded() : item.Illust.GetOriginalUrl(item.Index).IsDownloaded();
                     if (item.IsDownloaded != download)
                     {
                         item.IsDownloaded = download;
-                        targets.Add(item);
+                        result |= download;
                     }
-                }
-                if (targets.Count > 0)
-                {
-                    var items = gallary.SelectedItems;
-                    gallary.Items.UpdateTiles(targets);
-                    gallary.SelectedItems.Clear();
-                    foreach (var item in items)
-                        gallary.SelectedItems.Add(item);
-                    gallary.SelectedIndex = idx;
+                    item.IsFavorited = item.IsLiked();
                 }
             }
 #if DEBUG
@@ -1563,7 +1660,7 @@ namespace PixivWPF.Common
 #else
             catch (Exception) { }
 #endif
-
+            return (result);
         }
 
         #endregion

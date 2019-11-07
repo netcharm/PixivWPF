@@ -42,15 +42,17 @@ namespace PixivWPF.Common
         public string NextURL { get; set; }
 
         public Visibility FavMarkVisibility { get; set; } = Visibility.Collapsed;
-        public bool DisplayFavMark
+        [Description("Get or Set Illust IsFavorited State")]
+        [Category("Common Properties")]
+        [DefaultValue(false)]
+        public bool IsFavorited
         {
             get { return (FavMarkVisibility == Visibility.Visible ? true : false); }
             set
             {
-                if (value)
-                    FavMarkVisibility = Visibility.Visible;
-                else
-                    FavMarkVisibility = Visibility.Collapsed;
+                if (value) FavMarkVisibility = Visibility.Visible;
+                else       FavMarkVisibility = Visibility.Collapsed;
+                NotifyPropertyChanged("FavMarkVisibility");
             }
         }
 
@@ -68,6 +70,7 @@ namespace PixivWPF.Common
                 if (value) BadgeVisibility = Visibility.Visible;
                 else BadgeVisibility = Visibility.Collapsed;
                 NotifyPropertyChanged("DisplayBadge");
+                NotifyPropertyChanged("BadgeVisibility");
             }
         }
 
@@ -94,17 +97,17 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool IsDownloaded
         {
-            get
-            {
-                if (IsDownloadedVisibility == Visibility.Visible) return true;
-                else return false;
-            }
+            get { return (IsDownloadedVisibility == Visibility.Visible ? true : false); }
             set
             {
                 if (value) IsDownloadedVisibility = Visibility.Visible;
-                else IsDownloadedVisibility = Visibility.Collapsed;
+                else       IsDownloadedVisibility = Visibility.Collapsed;
+                NotifyPropertyChanged("IsDownloadedVisibility");
+
                 if (DisplayTitle) IsDownloadedVisibilityAlt = Visibility.Collapsed;
-                else IsDownloadedVisibilityAlt = IsDownloadedVisibility;
+                else              IsDownloadedVisibilityAlt = IsDownloadedVisibility;
+                NotifyPropertyChanged("IsDownloadedVisibilityAlt");
+
                 NotifyPropertyChanged("IsDownloaded");
             }
         }
@@ -225,7 +228,7 @@ namespace PixivWPF.Common
                             DisplayTitle = true,
                             Caption = illust.Caption,
                             ToolTip = $"{illust.GetDateTime()}{tooltip}",
-                            IsDownloaded = illust == null ? false : illust.GetOriginalUrl().IsPartDownloaded(),
+                            IsDownloaded = illust == null ? false : illust.IsPartDownloaded(),
                             Illust = illust,
                             Tag = illust
                         };
@@ -287,7 +290,7 @@ namespace PixivWPF.Common
                             //i.Thumb = url;
                             i.DisplayTitle = false;
                             i.Index = index;
-                            i.DisplayFavMark = false;
+                            i.IsFavorited = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
                             i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloaded(false);
@@ -318,7 +321,7 @@ namespace PixivWPF.Common
                             //i.Thumb = url;
                             i.DisplayTitle = false;
                             i.Index = index;
-                            i.DisplayFavMark = false;
+                            i.IsFavorited = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
                             i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloaded(false);

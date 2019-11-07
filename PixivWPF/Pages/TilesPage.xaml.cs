@@ -824,13 +824,8 @@ namespace PixivWPF.Pages
 
                 var item = ImageList[idx];
 
-                bool download = item.Illust.GetOriginalUrl().IsPartDownloaded();
-                if (item.IsDownloaded != download)
-                {
-                    item.IsDownloaded = download;
-                    ImageList.UpdateTiles(item);
-                    ListImageTiles.SelectedIndex = idx;
-                }
+                item.IsDownloaded = item.Illust.IsPartDownloaded();
+                item.IsFavorited = item.IsLiked();
 
                 detail_page.UpdateDetail(item);
 
