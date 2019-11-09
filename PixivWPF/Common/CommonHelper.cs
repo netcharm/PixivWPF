@@ -175,12 +175,12 @@ namespace PixivWPF.Common
                 var list = obj as ImageListGrid;
                 foreach (var item in list.SelectedItems)
                 {
-                    item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
-
                     if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
+                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
+
                         if (item.Illust == null && item.Tag is Pixeez.Objects.User)
                             Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.User);
                         else
@@ -196,6 +196,8 @@ namespace PixivWPF.Common
                                 return;
                             }
                         }
+
+                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsDownloaded(item.Index);
 
                         var page = new IllustImageViewerPage();
                         page.UpdateDetail(item);
