@@ -287,11 +287,19 @@ namespace PixivWPF.Pages
                         }
                         else
                         {
-                            if (large != null) Preview.Source = large;
+                            if ((DataObject as ImageItem).Illust.Id.IsSameIllust(large.GetHashCode()))
+                            {
+                                if (large != null) Preview.Source = large;
+                            }
                         }
                     }
                     else
-                        Preview.Source = img;
+                    {
+                        if ((DataObject as ImageItem).Illust.Id.IsSameIllust(img.GetHashCode()))
+                        {
+                            Preview.Source = img;
+                        }
+                    }
                 }
 
                 if (Preview.Source != null) 

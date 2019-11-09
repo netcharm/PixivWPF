@@ -1161,6 +1161,21 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static bool IsSameIllust(this string id, int hash)
+        {
+            return (cache.IsSameIllust(hash, id));
+        }
+
+        public static bool IsSameIllust(this long id, int hash)
+        {
+            return (cache.IsSameIllust(hash, $"{id}"));
+        }
+
+        public static bool IsSameIllust(this long? id, int hash)
+        {
+            return (cache.IsSameIllust(hash, $"{id??-1}"));
+        }
+
         public static async Task<ImageSource> LoadImage(this string file)
         {
             ImageSource result = null;
