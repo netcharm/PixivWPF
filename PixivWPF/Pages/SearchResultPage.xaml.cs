@@ -114,6 +114,7 @@ namespace PixivWPF.Pages
                     {
                         foreach (var user in relatives)
                         {
+                            user.Cache();
                             user.AddTo(ResultIllusts.Items, next_url);
                         }
                     }
@@ -129,6 +130,7 @@ namespace PixivWPF.Pages
                         foreach (var illust in relatives)
                         {
                             illust.AddTo(ResultIllusts.Items, next_url);
+                            illust.Cache();
                         }
                     }
                 }

@@ -1567,13 +1567,61 @@ namespace PixivWPF.Common
         }
 
         #region Illust Tile ListView routines
+        public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens)
+        {
+            var result = Illust;
+            var illusts = await tokens.GetWorksAsync(Illust.Id.Value);
+            foreach (var illust in illusts)
+            {
+                illust.Cache();
+                Illust = illust;
+                result = illust;
+                break;
+            }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens)
+        {
+            var result = Illust.User;
+            var users = await tokens.GetUsersAsync(Illust.User.Id.Value);
+            foreach (var user in users)
+            {
+                if (user.Id.Value == Illust.User.Id.Value)
+                {
+                    user.Cache();
+                    Illust.User.is_followed = user.is_followed;
+                    result = user;
+                    break;
+                }
+            }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.UserBase User, Pixeez.Tokens tokens)
+        {
+            var result = User;
+            var users = await tokens.GetUsersAsync(User.Id.Value);
+            foreach (var user in users)
+            {
+                if (user.Id.Value == User.Id.Value)
+                {
+                    User.is_followed = user.is_followed;
+                    result = user;
+                    user.Cache();
+                    break;
+                }
+            }
+            return (result);
+        }
+
         public static bool IsLiked(this Pixeez.Objects.Work illust)
         {
             bool result = false;
             illust = cacheIllust.ContainsKey(illust.Id) ? cacheIllust[illust.Id] : illust;
             if (illust.User != null)
             {
-                result = illust.IsLiked ?? illust.IsBookMarked();
+                result = illust.IsBookMarked() && (illust.IsLiked ?? false);
             }
             return (result);
         }

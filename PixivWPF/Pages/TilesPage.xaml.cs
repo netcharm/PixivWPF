@@ -83,22 +83,6 @@ namespace PixivWPF.Pages
                                         return;
                                     }
 
-                                    //item.Dispatcher.BeginInvoke((Action)async delegate() 
-                                    //{
-                                    //    try
-                                    //    {
-                                    //        if (item.Source == null)
-                                    //        {
-                                    //            if(item.Illust.PageCount<=1) item.BadgeValue = null;
-                                    //            item.Source = await item.Thumb.LoadImage(tokens);
-                                    //        }
-                                    //    }
-                                    //    catch (Exception ex)
-                                    //    {
-                                    //        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                    //    }
-                                    //});
-
                                     item.Dispatcher.BeginInvoke(new Action(async () =>
                                     {
                                         try
@@ -128,6 +112,9 @@ namespace PixivWPF.Pages
                         UPDATING = result;
                         return (result);
                     });
+                    cancelTokenSource = new CancellationTokenSource();
+                    //cancelTokenSource.CancelAfter(30000);
+                    cancelToken = cancelTokenSource.Token;
                     UpdateTask.Start();
                 }
             }
@@ -143,9 +130,9 @@ namespace PixivWPF.Pages
                     lastTask.Wait();
                     //cancelTokenSource.Cancel(true);
                     //lastTask.Wait(500, cancelToken);
-                    //cancelTokenSource = new CancellationTokenSource();
+                    cancelTokenSource = new CancellationTokenSource();
                     //cancelTokenSource.CancelAfter(30000);
-                    //cancelToken = cancelTokenSource.Token;
+                    cancelToken = cancelTokenSource.Token;
                 }
 
                 if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
@@ -804,7 +791,8 @@ namespace PixivWPF.Pages
                 {
                     foreach (var u in users)
                     {
-                        user = u;
+                        u.Cache();
+                        user = u;                        
                         break;
                     }
                 }

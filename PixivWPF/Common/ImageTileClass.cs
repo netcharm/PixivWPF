@@ -124,6 +124,7 @@ namespace PixivWPF.Common
             {
                 if (Illust.Id == illust.Id)
                 {
+                    illust.Cache();
                     Illust = illust;
                     break;
                 }
@@ -137,6 +138,7 @@ namespace PixivWPF.Common
             {
                 if (user.Id == Illust.User.Id)
                 {
+                    user.Cache();
                     if (user is Pixeez.Objects.User)
                     {
                         var u = user as Pixeez.Objects.User;
@@ -157,8 +159,12 @@ namespace PixivWPF.Common
             var illusts = await tokens.GetWorksAsync(Illust.Id.Value);
             foreach (var illust in illusts)
             {
-                Illust = illust;
-                break;
+                if (illust.Id == Illust.Id)
+                {
+                    illust.Cache();
+                    Illust = illust;
+                    break;
+                }
             }
         }
 
@@ -167,8 +173,12 @@ namespace PixivWPF.Common
             var users = await tokens.GetUsersAsync(Illust.User.Id.Value);
             foreach (var user in users)
             {
-                Illust.User.is_followed = user.is_followed;
-                break;
+                if (user.Id == Illust.User.Id)
+                {
+                    user.Cache();
+                    Illust.User.is_followed = user.is_followed;
+                    break;
+                }
             }
         }
 

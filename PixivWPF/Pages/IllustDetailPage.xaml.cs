@@ -256,6 +256,10 @@ namespace PixivWPF.Pages
                 if (cancelToken.IsCancellationRequested)
                 {
                     cancelToken.ThrowIfCancellationRequested();
+                    cancelTokenSource = new CancellationTokenSource();
+                    //cancelTokenSource.CancelAfter(30000);
+                    cancelToken = cancelTokenSource.Token;
+                    PreviewWait.Hide();
                     return;
                 }
                 IllustAuthorAvator.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
@@ -268,32 +272,34 @@ namespace PixivWPF.Pages
                 if (cancelToken.IsCancellationRequested)
                 {
                     cancelToken.ThrowIfCancellationRequested();
-                    return;
-                }
-                if (img == null || img.Width < 350)
-                {
-                    if (cancelToken.IsCancellationRequested)
-                    {
-                        cancelToken.ThrowIfCancellationRequested();
-                        return;
-                    }
-                    var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
-                    if (cancelToken.IsCancellationRequested)
-                    {
-                        cancelToken.ThrowIfCancellationRequested();
-                        return;
-                    }
-                    if (large != null) Preview.Source = large;
+                    cancelTokenSource = new CancellationTokenSource();
+                    //cancelTokenSource.CancelAfter(30000);
+                    cancelToken = cancelTokenSource.Token;
                 }
                 else
-                    Preview.Source = img;
+                {
+                    if (img == null || img.Width < 350)
+                    {
+                        var large = await item.Illust.GetOriginalUrl().LoadImage(tokens);
+                        if (cancelToken.IsCancellationRequested)
+                        {
+                            cancelToken.ThrowIfCancellationRequested();
+                        }
+                        else
+                        {
+                            if (large != null) Preview.Source = large;
+                        }
+                    }
+                    else
+                        Preview.Source = img;
+                }
 
                 if (Preview.Source != null) 
                 {
                     Preview.Show();
-                    PreviewWait.Hide();
                 }
 
+                PreviewWait.Hide();
                 IllustDetailWait.Hide();
             }
             catch (Exception ex)
@@ -316,9 +322,9 @@ namespace PixivWPF.Pages
                     lastTask.Wait();
                     //cancelTokenSource.Cancel(true);
                     //lastTask.Wait(500, cancelToken);
-                    //cancelTokenSource = new CancellationTokenSource();
+                    cancelTokenSource = new CancellationTokenSource();
                     //cancelTokenSource.CancelAfter(30000);
-                    //cancelToken = cancelTokenSource.Token;
+                    cancelToken = cancelTokenSource.Token;
                 }
 
                 if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
@@ -519,6 +525,7 @@ namespace PixivWPF.Pages
                         var illusts = await tokens.GetWorksAsync(item.Illust.Id.Value);
                         foreach (var illust in illusts)
                         {
+                            illust.Cache();
                             item.Illust = illust;
                             subset = illust;
                             break;
@@ -792,6 +799,7 @@ namespace PixivWPF.Pages
                                 {
                                     if (illust is Pixeez.Objects.Work)
                                     {
+                                        illust.Cache();
                                         CommonHelper.Cmd_OpenIllust.Execute(illust);
                                     }
                                 }
@@ -810,6 +818,7 @@ namespace PixivWPF.Pages
                                 {
                                     if (user is Pixeez.Objects.User)
                                     {
+                                        user.Cache();
                                         CommonHelper.Cmd_OpenIllust.Execute(user);
                                     }
                                 }
@@ -1053,7 +1062,6 @@ namespace PixivWPF.Pages
                         await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
                         await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
                     }
-                    //await item.RefreshIllust(tokens);
                 }
                 catch (Exception) { }
                 finally
@@ -1065,12 +1073,11 @@ namespace PixivWPF.Pages
                         if (lastID == currentIllust.Id)
                         {
                             tokens = await CommonHelper.ShowLogin();
-                            await item.RefreshIllustAsync(tokens);
-                            currentItem = DataObject as ImageItem;
-                            currentIllust = currentItem.Illust;
-                            if (lastID == currentIllust.Id)
+                            illust = await illust.RefreshIllust(tokens);
+                            if (illust!= null && lastID == illust.Id)
                             {
-                                if (item.Illust.IsBookMarked())
+                                item.Illust = illust;
+                                if (illust.IsLiked())
                                 {
                                     BookmarkIllust.Tag = PackIconModernKind.Heart;
                                     ActionBookmarkIllustRemove.IsEnabled = true;
@@ -1082,7 +1089,6 @@ namespace PixivWPF.Pages
                                     ActionBookmarkIllustRemove.IsEnabled = false;
                                     item.IsFavorited = false;
                                 }
-                                item.Illust.Cache();
                             }
                         }
                     }
@@ -1116,7 +1122,6 @@ namespace PixivWPF.Pages
                         await tokens.DeleteFavouriteUser(illust.User.Id.ToString());
                         await tokens.DeleteFavouriteUser(illust.User.Id.ToString(), "private");
                     }
-                    //await item.RefreshUserInfo(tokens);
                 }
                 catch (Exception) { }
                 finally
@@ -1128,12 +1133,13 @@ namespace PixivWPF.Pages
                         if (lastID == currentIllust.Id)
                         {
                             tokens = await CommonHelper.ShowLogin();
-                            await item.RefreshUserInfoAsync(tokens);
+                            var user = await currentIllust.RefreshUser(tokens);
                             currentItem = DataObject as ImageItem;
                             currentIllust = currentItem.Illust;
-                            if (lastID == currentIllust.Id)
+                            if (user != null && lastID == currentIllust.Id)
                             {
-                                if (item.Illust.User != null && item.Illust.User.is_followed != null && item.Illust.User.is_followed.Value)
+                                currentIllust.User.is_followed = user.is_followed;
+                                if (user.IsLiked())
                                 {
                                     FollowAuthor.Tag = PackIconModernKind.Check;
                                     ActionFollowAuthorRemove.IsEnabled = true;
@@ -1143,7 +1149,6 @@ namespace PixivWPF.Pages
                                     FollowAuthor.Tag = PackIconModernKind.Add;
                                     ActionFollowAuthorRemove.IsEnabled = false;
                                 }
-                                item.Illust.User.Cache();
                             }
                         }
                     }
@@ -1170,16 +1175,10 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        //Thread.Sleep(250);
                         tokens = await CommonHelper.ShowLogin();
-                        var users = await tokens.GetUsersAsync(user.Id.Value);
-                        foreach (var u in users)
-                        {                            
-                            user.is_followed = u.IsFollowing;
-                            DataObject = u;
-                            break;
-                        }
-                        if (user.is_followed.Value)
+                        user = await user.RefreshUser(tokens);
+                        DataObject = user;
+                        if (user.IsLiked())
                         {
                             FollowAuthor.Tag = PackIconModernKind.Check;
                             ActionFollowAuthorRemove.IsEnabled = true;
@@ -1189,7 +1188,6 @@ namespace PixivWPF.Pages
                             FollowAuthor.Tag = PackIconModernKind.Add;
                             ActionFollowAuthorRemove.IsEnabled = false;
                         }
-                        user.Cache();
                     }
                     catch (Exception) { }
                 }
@@ -1322,6 +1320,7 @@ namespace PixivWPF.Pages
                         {
                             if(w.Metadata != null && w.Metadata.Pages != null)
                             {
+                                w.Cache();
                                 foreach (var p in w.Metadata.Pages)
                                 {
                                     var u = p.GetOriginalUrl();
@@ -1371,6 +1370,8 @@ namespace PixivWPF.Pages
                 {
                     cancelUpdatePreviewToken.ThrowIfCancellationRequested();
                     update_preview_task.Wait();
+                    cancelUpdatePreviewTokenSource = new CancellationTokenSource();
+                    cancelUpdatePreviewToken = cancelUpdatePreviewTokenSource.Token;
                 }
 
                 if (update_preview_task == null || (update_preview_task is Task && (update_preview_task.IsCanceled || update_preview_task.IsCompleted || update_preview_task.IsFaulted)))

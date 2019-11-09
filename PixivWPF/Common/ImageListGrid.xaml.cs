@@ -232,23 +232,6 @@ namespace PixivWPF.Common
                                     return;
                                 }
 
-                                //item.Dispatcher.BeginInvoke((Action)async delegate() 
-                                //{
-                                //    try
-                                //    {
-                                //        if (item.Source == null)
-                                //        {
-                                //            if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                //            item.Source = await item.Thumb.LoadImage(tokens);
-                                //        }
-                                //    }
-                                //    catch (Exception ex)
-                                //    {
-                                //        var ert = ex.Message;
-                                //        //$"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                //    }
-                                //});
-
                                 item.Dispatcher.BeginInvoke(new Action(async () =>
                                 {
                                     try
@@ -284,6 +267,9 @@ namespace PixivWPF.Common
                     UPDATING = result;
                     return (result);
                 });
+                cancelTokenSource = new CancellationTokenSource();
+                //cancelTokenSource.CancelAfter(30000);
+                cancelToken = cancelTokenSource.Token;
                 UpdateTask.Start();
             }
         }
@@ -298,9 +284,9 @@ namespace PixivWPF.Common
                     lastTask.Wait();
                     //cancelTokenSource.Cancel(true);
                     //lastTask.Wait(500, cancelToken);
-                    //cancelTokenSource = new CancellationTokenSource();
+                    cancelTokenSource = new CancellationTokenSource();
                     //cancelTokenSource.CancelAfter(30000);
-                    //cancelToken = cancelTokenSource.Token;
+                    cancelToken = cancelTokenSource.Token;
                 }
 
                 if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
