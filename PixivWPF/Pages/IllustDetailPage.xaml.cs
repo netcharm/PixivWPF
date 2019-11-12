@@ -193,6 +193,7 @@ namespace PixivWPF.Pages
                         html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">{tag}</a>");
                         //html.AppendLine($"<button class=\"tag\" data-tag=\"{tag}\">{tag}</button>");
                     }
+                    html.AppendLine("<br/>");
                     IllustTags.Foreground = Theme.TextBrush;
                     IllustTags.Text = string.Join(";", html);
                     IllustTagExpander.Header = "Tags";
@@ -205,7 +206,7 @@ namespace PixivWPF.Pages
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
-                    IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption.HtmlDecodeFix()}</div>".Replace("\r\n", "<br/>");
+                    IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption.HtmlDecodeFix()}</div><br/>".Replace("\r\n", "<br/>");
                     IllustDescExpander.Show();
                 }
                 else
@@ -1047,57 +1048,116 @@ namespace PixivWPF.Pages
 
         private async void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
         {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
+            string uid = (sender as dynamic).Uid;
 
-            if (DataObject is ImageItem)
+            if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
+                uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
             {
-                var item = DataObject as ImageItem;
-                var illust = item.Illust;
-                var lastID = illust.Id;
+                var tokens = await CommonHelper.ShowLogin();
+                if (tokens == null) return;
+
+                IList<ImageItem> items = new List<ImageItem>();
+                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                if (host == RelativeIllusts || host == RelativeIllustsExpander) items = RelativeIllusts.SelectedItems;
+                else if (host == FavoriteIllusts || host == FavoriteIllustsExpander) items = FavoriteIllusts.SelectedItems;
                 try
                 {
-                    if (sender == ActionBookmarkIllustPublic)
+                    if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags);
+                        items.LikeIllust();
                     }
-                    else if (sender == ActionBookmarkIllustPrivate)
+                    else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, "private");
+                        items.LikeIllust(false);
                     }
-                    else if (sender == ActionBookmarkIllustRemove)
+                    else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
-                        await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
+                        items.UnLikeIllust();
                     }
+
+                    //var opt = new ParallelOptions();
+                    //opt.MaxDegreeOfParallelism = 5;
+                    //var ret = Parallel.ForEach(items, opt, async (item, loopstate, elementIndex) =>
+                    //{
+                    //    var result = false;
+                    //    if (item is ImageItem)
+                    //    {
+                    //        if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? true : await item.LikeIllust();
+                    //        }
+                    //        else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? true : await item.LikeIllust(false);
+                    //        }
+                    //        else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? await item.UnLikeIllust() : false;
+                    //        }
+                    //        if (item.IsSameIllust(DataObject as ImageItem))
+                    //        {
+                    //            item.IsFavorited = result;
+                    //        }
+                    //    }
+                    //});
+
+                    //foreach (var item in items)
+                    //{
+                    //    var result = false;
+                    //    if (item is ImageItem)
+                    //    {
+                    //        if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? true : await item.LikeIllust();
+                    //        }
+                    //        else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? true : await item.LikeIllust(false);
+                    //        }
+                    //        else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? await item.UnLikeIllust() : false;
+                    //        }
+
+                    //        if (item.IsSameIllust(DataObject as ImageItem))
+                    //        {
+                    //            item.IsFavorited = result;
+                    //        }
+                    //    }
+                    //}
                 }
                 catch (Exception) { }
-                finally
+            }
+            else
+            {
+                if (DataObject is ImageItem)
                 {
+                    var tokens = await CommonHelper.ShowLogin();
+                    if (tokens == null) return;
+
+                    var item = DataObject as ImageItem;
+                    var result = false;
                     try
                     {
-                        var currentItem = DataObject as ImageItem;
-                        var currentIllust = currentItem.Illust;
-                        if (lastID == currentIllust.Id)
+                        if (sender == ActionBookmarkIllustPublic)
                         {
-                            tokens = await CommonHelper.ShowLogin();
-                            illust = await illust.RefreshIllust(tokens);
-                            if (illust!= null && lastID == illust.Id)
-                            {
-                                item.Illust = illust;
-                                if (illust.IsLiked())
-                                {
-                                    BookmarkIllust.Tag = PackIconModernKind.Heart;
-                                    ActionBookmarkIllustRemove.IsEnabled = true;
-                                    item.IsFavorited = true;
-                                }
-                                else
-                                {
-                                    BookmarkIllust.Tag = PackIconModernKind.HeartOutline;
-                                    ActionBookmarkIllustRemove.IsEnabled = false;
-                                    item.IsFavorited = false;
-                                }
-                            }
+                            result = await item.LikeIllust();
+                        }
+                        else if (sender == ActionBookmarkIllustPrivate)
+                        {
+                            result = await item.LikeIllust(false);
+                        }
+                        else if (sender == ActionBookmarkIllustRemove)
+                        {
+                            result = await item.UnLikeIllust();
+                        }
+
+                        if (item.IsSameIllust(DataObject as ImageItem))
+                        {
+                            BookmarkIllust.Tag = result ? PackIconModernKind.Heart : PackIconModernKind.HeartOutline;
+                            ActionBookmarkIllustRemove.IsEnabled = result;
+                            item.IsFavorited = result;
                         }
                     }
                     catch (Exception) { }
@@ -1107,94 +1167,116 @@ namespace PixivWPF.Pages
 
         private async void ActionFollowAuthor_Click(object sender, RoutedEventArgs e)
         {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
+            string uid = (sender as dynamic).Uid;
 
-            if (DataObject is ImageItem)
+            if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
+                uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
             {
-                var item = DataObject as ImageItem;
-                var illust = item.Illust;
-                var lastID = illust.Id;
+                var tokens = await CommonHelper.ShowLogin();
+                if (tokens == null) return;
+
+                IList<ImageItem> items = new List<ImageItem>();
+                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                if (host == RelativeIllusts || host == RelativeIllustsExpander) items = RelativeIllusts.SelectedItems;
+                else if (host == FavoriteIllusts || host == FavoriteIllustsExpander) items = FavoriteIllusts.SelectedItems;
                 try
                 {
-                    if (sender == ActionFollowAuthorPublic)
+                    if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        await tokens.AddFavouriteUser((long)illust.User.Id);
-                    }
-                    else if (sender == ActionFollowAuthorPrivate)
+                        items.LikeUser();
+                    }                        
+                    else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        await tokens.AddFavouriteUser((long)illust.User.Id, "private");
+                        items.LikeUser(false);
                     }
-                    else if (sender == ActionFollowAuthorRemove)
+                    else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        await tokens.DeleteFavouriteUser(illust.User.Id.ToString());
-                        await tokens.DeleteFavouriteUser(illust.User.Id.ToString(), "private");
+                        items.UnLikeUser();
                     }
+
+                    //var opt = new ParallelOptions();
+                    //opt.MaxDegreeOfParallelism = 5;
+                    //var ret = Parallel.ForEach(items, opt, async (item, loopstate, elementIndex) =>
+                    //{
+                    //    var result = false;
+                    //    if (item is ImageItem)
+                    //    {
+                    //        if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? true : await item.LikeUser();
+                    //        }
+                    //        else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? true : await item.LikeUser(false);
+                    //        }
+                    //        else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? await item.UnLikeUser() : false;
+                    //        }
+                    //        if (item.IsSameIllust(DataObject as ImageItem))
+                    //        {
+                    //            if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
+                    //        }
+                    //    }
+                    //});
+
+                    //foreach (var item in items)
+                    //{
+                    //    var result = false;
+                    //    if (item is ImageItem)
+                    //    {
+                    //        if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? true : await item.LikeUser();
+                    //        }
+                    //        else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? true : await item.LikeUser(false);
+                    //        }
+                    //        else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                    //        {
+                    //            result = item.IsLiked() ? await item.UnLikeUser() : false;
+                    //        }
+
+                    //        if (item.IsSameIllust(DataObject as ImageItem))
+                    //        {
+                    //            if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
+                    //        }
+                    //    }
+                    //}
                 }
                 catch (Exception) { }
-                finally
-                {
-                    try
-                    {
-                        var currentItem = DataObject as ImageItem;
-                        var currentIllust = currentItem.Illust;
-                        if (lastID == currentIllust.Id)
-                        {
-                            tokens = await CommonHelper.ShowLogin();
-                            var user = await currentIllust.RefreshUser(tokens);
-                            currentItem = DataObject as ImageItem;
-                            currentIllust = currentItem.Illust;
-                            if (user != null && lastID == currentIllust.Id)
-                            {
-                                currentIllust.User.is_followed = user.is_followed;
-                                if (user.IsLiked())
-                                {
-                                    FollowAuthor.Tag = PackIconModernKind.Check;
-                                    ActionFollowAuthorRemove.IsEnabled = true;
-                                }
-                                else
-                                {
-                                    FollowAuthor.Tag = PackIconModernKind.Add;
-                                    ActionFollowAuthorRemove.IsEnabled = false;
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception) { }
-                }
             }
-            else if (DataObject is Pixeez.Objects.UserBase)
+            else
             {
-                var user = DataObject as Pixeez.Objects.UserBase;
-                try
+                if (DataObject is ImageItem)
                 {
-                    if (sender == ActionFollowAuthorPublic)
-                        await tokens.AddFavouriteUser((long)user.Id);
-                    else if (sender == ActionFollowAuthorPrivate)
-                        await tokens.AddFavouriteUser((long)user.Id, "private");
-                    else if (sender == ActionFollowAuthorRemove)
-                    {
-                        await tokens.DeleteFavouriteUser(user.Id.ToString());
-                        await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
-                    }
-                }
-                catch (Exception) { }
-                finally
-                {
+                    var tokens = await CommonHelper.ShowLogin();
+                    if (tokens == null) return;
+
+                    var item = DataObject as ImageItem;
+                    var result = false;
                     try
                     {
-                        tokens = await CommonHelper.ShowLogin();
-                        user = await user.RefreshUser(tokens);
-                        DataObject = user;
-                        if (user.IsLiked())
+                        if (sender == ActionFollowAuthorPublic)
                         {
-                            FollowAuthor.Tag = PackIconModernKind.Check;
-                            ActionFollowAuthorRemove.IsEnabled = true;
+                            result = await item.LikeUser();
                         }
-                        else
+                        else if (sender == ActionFollowAuthorPrivate)
                         {
-                            FollowAuthor.Tag = PackIconModernKind.Add;
-                            ActionFollowAuthorRemove.IsEnabled = false;
+                            result = await item.LikeUser(false);
+                        }
+                        else if (sender == ActionFollowAuthorRemove)
+                        {
+                            result = await item.UnLikeUser();
+                        }
+
+                        if (item.IsSameIllust(DataObject as ImageItem))
+                        {
+                            FollowAuthor.Tag = result ? PackIconModernKind.Check : PackIconModernKind.Add;
+                            ActionFollowAuthorRemove.IsEnabled = result;
+                            if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
                         }
                     }
                     catch (Exception) { }
@@ -1762,57 +1844,106 @@ namespace PixivWPF.Pages
                 var host = (sender as ContextMenu).PlacementTarget;
                 if (host == SubIllustsExpander)
                 {
-                    foreach(MenuItem item in (sender as ContextMenu).Items)
+                    foreach (dynamic item in (sender as ContextMenu).Items)
                     {
-                        if(item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase)){
-                            item.Visibility = Visibility.Visible;
+                        try
+                        {
+                            if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                                item.Visibility = Visibility.Visible;
+
+                            else if (item.Uid.Equals("ActionLikeIllustSeparator", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                                item.Visibility = Visibility.Collapsed;
+
+                            else if (item.Uid.Equals("ActionLikeUserSeparator", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                                item.Visibility = Visibility.Collapsed;
                         }
+                        catch (Exception) { continue; }
                     }
                 }
                 else if (host == RelativeIllustsExpander)
                 {
-                    foreach (MenuItem item in (sender as ContextMenu).Items)
+                    foreach (dynamic item in (sender as ContextMenu).Items)
                     {
-                        if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                        try
                         {
-                            item.Visibility = Visibility.Collapsed;
-                        }
-                        else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            var next_url = RelativeIllustsExpander.Tag as string;
-                            if (string.IsNullOrEmpty(next_url))
+                            if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                            {
                                 item.Visibility = Visibility.Collapsed;
-                            else
+                            }
+                            else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                var next_url = RelativeIllustsExpander.Tag as string;
+                                if (string.IsNullOrEmpty(next_url))
+                                    item.Visibility = Visibility.Collapsed;
+                                else
+                                    item.Visibility = Visibility.Visible;
+                            }
+                            else if (item.Uid.Equals("ActionLikeIllustSeparator", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                                item.Visibility = Visibility.Visible;
+
+                            else if (item.Uid.Equals("ActionLikeUserSeparator", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
                                 item.Visibility = Visibility.Visible;
                         }
+                        catch (Exception) { continue; }
                     }
                 }
                 else if (host == FavoriteIllustsExpander)
                 {
-                    foreach (MenuItem item in (sender as ContextMenu).Items)
+                    foreach (dynamic item in (sender as ContextMenu).Items)
                     {
-                        if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                        try
                         {
-                            item.Visibility = Visibility.Collapsed;
-                        }
-                        else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            var next_url = FavoriteIllustsExpander.Tag as string;
-                            if (string.IsNullOrEmpty(next_url))
+                            if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                            {
                                 item.Visibility = Visibility.Collapsed;
-                            else
+                            }
+                            else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                var next_url = FavoriteIllustsExpander.Tag as string;
+                                if (string.IsNullOrEmpty(next_url))
+                                    item.Visibility = Visibility.Collapsed;
+                                else
+                                    item.Visibility = Visibility.Visible;
+                            }
+                            else if (item.Uid.Equals("ActionLikeIllustSeparator", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                                item.Visibility = Visibility.Visible;
+
+                            else if (item.Uid.Equals("ActionLikeUserSeparator", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
                                 item.Visibility = Visibility.Visible;
                         }
+                        catch (Exception) { continue; }
                     }
                 }
                 else if (host == CommentsExpander)
                 {
-                    foreach (MenuItem item in (sender as ContextMenu).Items)
+                    foreach (dynamic item in (sender as ContextMenu).Items)
                     {
-                        if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                        try
                         {
-                            item.Visibility = Visibility.Visible;
+                            if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                item.Visibility = Visibility.Visible;
+                            }
                         }
+                        catch (Exception) { continue; }
                     }
                 }
             }

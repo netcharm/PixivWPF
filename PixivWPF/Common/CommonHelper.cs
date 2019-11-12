@@ -1163,21 +1163,6 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameIllust(this string id, int hash)
-        {
-            return (cache.IsSameIllust(hash, id));
-        }
-
-        public static bool IsSameIllust(this long id, int hash)
-        {
-            return (cache.IsSameIllust(hash, $"{id}"));
-        }
-
-        public static bool IsSameIllust(this long? id, int hash)
-        {
-            return (cache.IsSameIllust(hash, $"{id??-1}"));
-        }
-
         public static async Task<ImageSource> LoadImage(this string file)
         {
             ImageSource result = null;
@@ -1584,6 +1569,74 @@ namespace PixivWPF.Common
         }
 
         #region Illust Tile ListView routines
+        public static bool IsSameIllust(this string id, int hash)
+        {
+            return (cache.IsSameIllust(hash, id));
+        }
+
+        public static bool IsSameIllust(this long id, int hash)
+        {
+            return (cache.IsSameIllust(hash, $"{id}"));
+        }
+
+        public static bool IsSameIllust(this long? id, int hash)
+        {
+            return (cache.IsSameIllust(hash, $"{id ?? -1}"));
+        }
+
+        public static bool IsSameIllust(this ImageItem item, long id)
+        {
+            bool result = false;
+
+            try
+            {
+                if (long.Parse(item.ID) == id) result = true;
+            }
+            catch (Exception) { }
+
+            return (result);
+        }
+
+        public static bool IsSameIllust(this ImageItem item, long? id)
+        {
+            bool result = false;
+
+            try
+            {
+                if (long.Parse(item.ID) == (id ?? -1)) result = true;
+            }
+            catch (Exception) { }
+
+            //long id_s = -1;
+            //long.TryParse(item.ID, out id_s);
+            //if (id_s == id.Value) result = true;
+            //if(string.Equals(item.ID, id.ToString(), StringComparison.CurrentCultureIgnoreCase))
+            //{
+            //    result = true;
+            //}
+
+            return (result);
+        }
+
+        public static bool IsSameIllust(this ImageItem item, ImageItem item_now)
+        {
+            bool result = false;
+
+            try
+            {
+                if (long.Parse(item.ID) == long.Parse(item_now.ID)) result = true;
+            }
+            catch (Exception) { }
+
+            //long id_s = -1;
+            //long.TryParse(item.ID, out id_s);
+            //long id_t = -1;
+            //long.TryParse(item_now.ID, out id_t);
+            //if (id_s == id_t) result = true;
+
+            return (result);
+        }
+
         public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens)
         {
             var result = Illust;
@@ -1654,9 +1707,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsLiked(this ImageItem item, bool isuser=false)
+        public static bool IsLiked(this ImageItem item)
         {
-            return (isuser ? item.Illust.User.IsLiked() : item.Illust.IsLiked());
+            return (item.ItemType == ImageItemType.User ? item.Illust.User.IsLiked() : item.Illust.IsLiked());
         }
 
         public static void UpdateTiles(this ObservableCollection<ImageItem> collection, ImageItem item = null)
@@ -1729,6 +1782,331 @@ namespace PixivWPF.Common
 #else
             catch (Exception) { }
 #endif
+            return (result);
+        }
+
+        public static async Task<bool> LikeIllust(this ImageItem item, bool pub = true)
+        {
+            bool result = false;
+
+            if (item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga )
+            {
+                var tokens = await ShowLogin();
+                if (tokens == null) return (result);
+
+                var illust = item.Illust;
+                try
+                {
+                    if (pub)
+                    {
+                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags);
+                    }
+                    else
+                    {
+                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, "private");
+                    }
+                }
+                catch (Exception) { }
+                finally
+                {
+                    try
+                    {
+                        tokens = await ShowLogin();
+                        illust = await illust.RefreshIllust(tokens);
+                        if (illust != null)
+                        {
+                            result = illust.IsLiked();
+                            item.Illust = illust;
+                            item.IsFavorited = result;
+                        }
+                    }
+                    catch (Exception) { }
+                }
+            }
+
+            return (result);
+        }
+
+        public static async Task<bool> UnLikeIllust(this ImageItem item, bool pub = true)
+        {
+            bool result = false;
+
+            if (item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga)
+            {
+                var tokens = await ShowLogin();
+                if (tokens == null) return (result);
+
+                var illust = item.Illust;
+                var lastID = illust.Id;
+                try
+                {
+                    await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
+                    await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
+                }
+                catch (Exception) { }
+                finally
+                {
+                    try
+                    {
+                        tokens = await ShowLogin();
+                        illust = await illust.RefreshIllust(tokens);
+                        if (illust != null)
+                        {
+                            result = illust.IsLiked();
+                            item.Illust = illust;
+                            item.IsFavorited = result;
+                        }
+                    }
+                    catch (Exception) { }
+                }
+            }
+
+            return (result);
+        }
+
+        public static void LikeIllust(this ObservableCollection<ImageItem> collection, bool pub = true)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item is ImageItem)
+                {
+                    item.Dispatcher.BeginInvoke((Action)(async () =>
+                    {
+                        try
+                        {
+                            var result = item.IsLiked() ? true : await item.LikeIllust(pub);
+                            item.IsFavorited = result;
+                        }
+                        catch (Exception){}
+                    }));
+                }
+            });
+        }
+
+        public static void UnLikeIllust(this ObservableCollection<ImageItem> collection, bool pub = true)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item is ImageItem)
+                {
+                    item.Dispatcher.BeginInvoke((Action)(async () =>
+                    {
+                        try
+                        {
+                            var result = item.IsLiked() ? await item.UnLikeIllust() : false;
+                            item.IsFavorited = result;
+                        }
+                        catch (Exception){}
+                    }));
+                }
+            });
+        }
+
+        public static void LikeIllust(this IList<ImageItem> collection, bool pub = true)
+        {
+            LikeIllust(new ObservableCollection<ImageItem>(collection), pub);
+        }
+
+        public static void UnLikeIllust(this IList<ImageItem> collection)
+        {
+            UnLikeIllust(new ObservableCollection<ImageItem>(collection));
+        }
+
+        public static async Task<bool> LikeUser(this ImageItem item, bool pub = true)
+        {
+            bool result = false;
+
+            if ((item.ItemType == ImageItemType.User || item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga) && item.User is Pixeez.Objects.UserBase)
+            {
+                var tokens = await ShowLogin();
+                if (tokens == null) return (result);
+
+                var user = item.User;
+                try
+                {
+                    if (pub)
+                    {
+                        await tokens.AddFavouriteUser((long)user.Id);
+                    }
+                    else
+                    {
+                        await tokens.AddFavouriteUser((long)user.Id, "private");
+                    }
+                }
+                catch (Exception) { }
+                finally
+                {
+                    try
+                    {
+                        tokens = await ShowLogin();
+                        user = await user.RefreshUser(tokens);
+                        if (user != null)
+                        {
+                            result = user.IsLiked();
+                            if (item.ItemType == ImageItemType.User)
+                                item.IsFavorited = result;
+                        }
+                    }
+                    catch (Exception) { }
+                }
+            }
+
+            return (result);
+        }
+
+        public static async Task<bool> UnLikeUser(this ImageItem item, bool pub = true)
+        {
+            bool result = false;
+
+            if (item.ItemType == ImageItemType.User && item.User is Pixeez.Objects.UserBase)
+            {
+                var tokens = await ShowLogin();
+                if (tokens == null) return (result);
+
+                var user = item.User;
+                try
+                {
+                    await tokens.DeleteFavouriteUser(user.Id.ToString());
+                    await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
+                }
+                catch (Exception) { }
+                finally
+                {
+                    try
+                    {
+                        tokens = await ShowLogin();
+                        user = await user.RefreshUser(tokens);
+                        if (user != null)
+                        {
+                            result = user.IsLiked();
+                            if (item.ItemType == ImageItemType.User)
+                                item.IsFavorited = result;
+                        }
+                    }
+                    catch (Exception) { }
+                }
+            }
+
+            return (result);
+        }
+
+        public static void LikeUser(this ObservableCollection<ImageItem> collection, bool pub = true)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item is ImageItem)
+                {
+                    item.Dispatcher.BeginInvoke((Action)(async () =>
+                    {
+                        try
+                        {
+                            var result = item.IsLiked() ? true : await item.LikeUser(pub);
+                            item.IsFavorited = result;
+                        }
+                        catch (Exception){}
+                    }));
+                }
+            });
+        }
+
+        public static void UnLikeUser(this ObservableCollection<ImageItem> collection)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item is ImageItem)
+                {
+                    item.Dispatcher.BeginInvoke((Action)(async () =>
+                    {
+                        try
+                        {
+                            var result = item.IsLiked() ? await item.UnLikeUser() : false;
+                            if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
+                        }
+                        catch (Exception){}
+                    }));
+                }
+            });
+        }
+
+        public static void LikeUser(this IList<ImageItem> collection, bool pub = true)
+        {
+            LikeUser(new ObservableCollection<ImageItem>(collection), pub);
+        }
+
+        public static void UnLikeUser(this IList<ImageItem> collection)
+        {
+            UnLikeUser(new ObservableCollection<ImageItem>(collection));
+        }
+
+        public static async Task<bool> LikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
+        {
+            bool result = false;
+
+            var tokens = await ShowLogin();
+            if (tokens == null) return (result);
+
+            try
+            {
+                if (pub)
+                {
+                    await tokens.AddFavouriteUser((long)user.Id);
+                }
+                else
+                {
+                    await tokens.AddFavouriteUser((long)user.Id, "private");
+                }
+            }
+            catch (Exception) { }
+            finally
+            {
+                try
+                {
+                    tokens = await ShowLogin();
+                    user = await user.RefreshUser(tokens);
+                    if (user != null)
+                    {
+                        result = user.IsLiked();
+                    }
+                }
+                catch (Exception) { }
+            }
+            return (result);
+        }
+
+        public static async Task<bool> UnLikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
+        {
+            bool result = false;
+
+            var tokens = await ShowLogin();
+            if (tokens == null) return (result);
+
+            try
+            {
+                await tokens.DeleteFavouriteUser(user.Id.ToString());
+                await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
+            }
+            catch (Exception) { }
+            finally
+            {
+                try
+                {
+                    tokens = await ShowLogin();
+                    user = await user.RefreshUser(tokens);
+                    if (user != null)
+                    {
+                        result = user.IsLiked();
+                    }
+                }
+                catch (Exception) { }
+            }
             return (result);
         }
 

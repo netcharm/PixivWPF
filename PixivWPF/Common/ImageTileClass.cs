@@ -33,10 +33,9 @@ namespace PixivWPF.Common
         public string Caption { get; set; }
         public int Count { get; set; }
         public int Index { get; set; }
-        //public Visibility BadgeVisibility { get; set; }
         public string UserID { get; set; }
+        public Pixeez.Objects.UserBase User { get; set; }
         public string ID { get; set; }
-        //public Pixeez.Objects.IllustWork Illust { get; set; }
         public Pixeez.Objects.Work Illust { get; set; }
         public string AccessToken { get; set; }
         public string NextURL { get; set; }
@@ -238,14 +237,15 @@ namespace PixivWPF.Common
                             DisplayFavMark = true,
                             FavMarkVisibility = illust.IsBookMarked() || (illust.IsLiked != null && illust.IsLiked.Value) ? Visibility.Visible : Visibility.Collapsed,
                             DisplayBadge = illust.PageCount > 1 ? true : false,
+                            Illust = illust,
                             ID = illust.Id.ToString(),
+                            User = illust.User,
                             UserID = illust.User.Id.ToString(),
                             Subject = illust.Title,
                             DisplayTitle = true,
                             Caption = illust.Caption,
                             ToolTip = $"{illust.GetDateTime()}{tooltip}",
                             IsDownloaded = illust == null ? false : illust.IsPartDownloaded(),
-                            Illust = illust,
                             Tag = illust
                         };
                         result = i;
@@ -370,11 +370,12 @@ namespace PixivWPF.Common
                             Thumb = url,
                             BadgeValue = user.Stats.Works.Value.ToString(),
                             FavMarkVisibility = (user.IsFollowing != null && user.IsFollowing.Value) || (user.is_followed != null && user.is_followed.Value) ? Visibility.Visible : Visibility.Collapsed,
+                            Illust = null,
                             ID = user.Id.ToString(),
+                            User = user,
                             UserID = user.Id.ToString(),
                             Subject = $"{user.Name} - {user.Profile.Contacts.Twitter}",
                             DisplayTitle = true,
-                            Illust = null,
                             Tag = user
                         };
                         Collection.Add(i);
@@ -403,11 +404,12 @@ namespace PixivWPF.Common
                             NextURL = nexturl,
                             BadgeValue = user.Stats == null ? null : user.Stats.Works.Value.ToString(),
                             FavMarkVisibility = user.IsFollowed?? (user.IsFollowing != null && user.IsFollowing.Value) || (user.is_followed != null && user.is_followed.Value) ? Visibility.Visible : Visibility.Collapsed,
+                            Illust = null,
                             ID = user.Id.ToString(),
+                            User = user,
                             UserID = user.Id.ToString(),
                             Subject = user.Profile == null ? $"{user.Name}" : $"{user.Name} - {user.Profile.Contacts.Twitter}",
                             DisplayTitle = true,
-                            Illust = null,
                             Tag = user
                         };
                         Collection.Add(i);
