@@ -1870,14 +1870,14 @@ namespace PixivWPF.Common
             opt.MaxDegreeOfParallelism = 5;
             var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
             {
-                if (item is ImageItem)
+                if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
                 {
                     item.Dispatcher.BeginInvoke((Action)(async () =>
                     {
                         try
                         {
-                            var result = item.IsLiked() ? true : await item.LikeIllust(pub);
-                            item.IsFavorited = result;
+                            var result = item.Illust.IsLiked() ? true : await item.LikeIllust(pub);
+                            if (item.ItemType == ImageItemType.Work) item.IsFavorited = result;
                         }
                         catch (Exception){}
                     }));
@@ -1891,14 +1891,14 @@ namespace PixivWPF.Common
             opt.MaxDegreeOfParallelism = 5;
             var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
             {
-                if (item is ImageItem)
+                if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
                 {
                     item.Dispatcher.BeginInvoke((Action)(async () =>
                     {
                         try
                         {
                             var result = item.IsLiked() ? await item.UnLikeIllust() : false;
-                            item.IsFavorited = result;
+                            if (item.ItemType == ImageItemType.Work) item.IsFavorited = result;
                         }
                         catch (Exception){}
                     }));
@@ -1922,37 +1922,14 @@ namespace PixivWPF.Common
 
             if ((item.ItemType == ImageItemType.User || item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga) && item.User is Pixeez.Objects.UserBase)
             {
-                var tokens = await ShowLogin();
-                if (tokens == null) return (result);
-
-                var user = item.User;
                 try
                 {
-                    if (pub)
-                    {
-                        await tokens.AddFavouriteUser((long)user.Id);
-                    }
-                    else
-                    {
-                        await tokens.AddFavouriteUser((long)user.Id, "private");
-                    }
+                    var user = item.User;
+                    result = await user.Like(pub);
+                    if (item.ItemType == ImageItemType.User)
+                        item.IsFavorited = result;
                 }
                 catch (Exception) { }
-                finally
-                {
-                    try
-                    {
-                        tokens = await ShowLogin();
-                        user = await user.RefreshUser(tokens);
-                        if (user != null)
-                        {
-                            result = user.IsLiked();
-                            if (item.ItemType == ImageItemType.User)
-                                item.IsFavorited = result;
-                        }
-                    }
-                    catch (Exception) { }
-                }
             }
 
             return (result);
@@ -1964,31 +1941,14 @@ namespace PixivWPF.Common
 
             if (item.ItemType == ImageItemType.User && item.User is Pixeez.Objects.UserBase)
             {
-                var tokens = await ShowLogin();
-                if (tokens == null) return (result);
-
-                var user = item.User;
                 try
                 {
-                    await tokens.DeleteFavouriteUser(user.Id.ToString());
-                    await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
+                    var user = item.User;
+                    result = await user.UnLike();
+                    if (item.ItemType == ImageItemType.User)
+                        item.IsFavorited = result;
                 }
                 catch (Exception) { }
-                finally
-                {
-                    try
-                    {
-                        tokens = await ShowLogin();
-                        user = await user.RefreshUser(tokens);
-                        if (user != null)
-                        {
-                            result = user.IsLiked();
-                            if (item.ItemType == ImageItemType.User)
-                                item.IsFavorited = result;
-                        }
-                    }
-                    catch (Exception) { }
-                }
             }
 
             return (result);
@@ -2000,14 +1960,14 @@ namespace PixivWPF.Common
             opt.MaxDegreeOfParallelism = 5;
             var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
             {
-                if (item is ImageItem)
+                if (item is ImageItem && item.User is Pixeez.Objects.UserBase)
                 {
                     item.Dispatcher.BeginInvoke((Action)(async () =>
                     {
                         try
                         {
-                            var result = item.IsLiked() ? true : await item.LikeUser(pub);
-                            item.IsFavorited = result;
+                            var result = item.User.IsLiked() ? true : await item.LikeUser(pub);
+                            if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
                         }
                         catch (Exception){}
                     }));
@@ -2021,13 +1981,13 @@ namespace PixivWPF.Common
             opt.MaxDegreeOfParallelism = 5;
             var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
             {
-                if (item is ImageItem)
+                if (item is ImageItem && item.User is Pixeez.Objects.UserBase)
                 {
                     item.Dispatcher.BeginInvoke((Action)(async () =>
                     {
                         try
                         {
-                            var result = item.IsLiked() ? await item.UnLikeUser() : false;
+                            var result = item.User.IsLiked() ? await item.UnLikeUser() : false;
                             if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
                         }
                         catch (Exception){}
@@ -2044,6 +2004,16 @@ namespace PixivWPF.Common
         public static void UnLikeUser(this IList<ImageItem> collection)
         {
             UnLikeUser(new ObservableCollection<ImageItem>(collection));
+        }
+
+        public static async Task<bool> Like(this Pixeez.Objects.UserBase user, bool pub = true)
+        {
+            return (await user.LikeUser(pub));
+        }
+
+        public static async Task<bool> UnLike(this Pixeez.Objects.UserBase user, bool pub = true)
+        {
+            return (await user.UnLikeUser());
         }
 
         public static async Task<bool> LikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
@@ -2081,7 +2051,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> UnLikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
+        public static async Task<bool> UnLikeUser(this Pixeez.Objects.UserBase user)
         {
             bool result = false;
 

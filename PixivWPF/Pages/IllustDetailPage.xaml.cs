@@ -1008,7 +1008,6 @@ namespace PixivWPF.Pages
             {
 
             }
-
         }
 
         private void ActionShowIllustPages_Click(object sender, RoutedEventArgs e)
@@ -1054,9 +1053,6 @@ namespace PixivWPF.Pages
                 uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
                 uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
             {
-                var tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return;
-
                 IList<ImageItem> items = new List<ImageItem>();
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                 if (host == RelativeIllusts || host == RelativeIllustsExpander) items = RelativeIllusts.SelectedItems;
@@ -1075,57 +1071,6 @@ namespace PixivWPF.Pages
                     {
                         items.UnLikeIllust();
                     }
-
-                    //var opt = new ParallelOptions();
-                    //opt.MaxDegreeOfParallelism = 5;
-                    //var ret = Parallel.ForEach(items, opt, async (item, loopstate, elementIndex) =>
-                    //{
-                    //    var result = false;
-                    //    if (item is ImageItem)
-                    //    {
-                    //        if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? true : await item.LikeIllust();
-                    //        }
-                    //        else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? true : await item.LikeIllust(false);
-                    //        }
-                    //        else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? await item.UnLikeIllust() : false;
-                    //        }
-                    //        if (item.IsSameIllust(DataObject as ImageItem))
-                    //        {
-                    //            item.IsFavorited = result;
-                    //        }
-                    //    }
-                    //});
-
-                    //foreach (var item in items)
-                    //{
-                    //    var result = false;
-                    //    if (item is ImageItem)
-                    //    {
-                    //        if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? true : await item.LikeIllust();
-                    //        }
-                    //        else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? true : await item.LikeIllust(false);
-                    //        }
-                    //        else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? await item.UnLikeIllust() : false;
-                    //        }
-
-                    //        if (item.IsSameIllust(DataObject as ImageItem))
-                    //        {
-                    //            item.IsFavorited = result;
-                    //        }
-                    //    }
-                    //}
                 }
                 catch (Exception) { }
             }
@@ -1133,9 +1078,6 @@ namespace PixivWPF.Pages
             {
                 if (DataObject is ImageItem)
                 {
-                    var tokens = await CommonHelper.ShowLogin();
-                    if (tokens == null) return;
-
                     var item = DataObject as ImageItem;
                     var result = false;
                     try
@@ -1194,57 +1136,6 @@ namespace PixivWPF.Pages
                     {
                         items.UnLikeUser();
                     }
-
-                    //var opt = new ParallelOptions();
-                    //opt.MaxDegreeOfParallelism = 5;
-                    //var ret = Parallel.ForEach(items, opt, async (item, loopstate, elementIndex) =>
-                    //{
-                    //    var result = false;
-                    //    if (item is ImageItem)
-                    //    {
-                    //        if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? true : await item.LikeUser();
-                    //        }
-                    //        else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? true : await item.LikeUser(false);
-                    //        }
-                    //        else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? await item.UnLikeUser() : false;
-                    //        }
-                    //        if (item.IsSameIllust(DataObject as ImageItem))
-                    //        {
-                    //            if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
-                    //        }
-                    //    }
-                    //});
-
-                    //foreach (var item in items)
-                    //{
-                    //    var result = false;
-                    //    if (item is ImageItem)
-                    //    {
-                    //        if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? true : await item.LikeUser();
-                    //        }
-                    //        else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? true : await item.LikeUser(false);
-                    //        }
-                    //        else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                    //        {
-                    //            result = item.IsLiked() ? await item.UnLikeUser() : false;
-                    //        }
-
-                    //        if (item.IsSameIllust(DataObject as ImageItem))
-                    //        {
-                    //            if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
-                    //        }
-                    //    }
-                    //}
                 }
                 catch (Exception) { }
             }
@@ -1252,9 +1143,6 @@ namespace PixivWPF.Pages
             {
                 if (DataObject is ImageItem)
                 {
-                    var tokens = await CommonHelper.ShowLogin();
-                    if (tokens == null) return;
-
                     var item = DataObject as ImageItem;
                     var result = false;
                     try
@@ -1278,6 +1166,30 @@ namespace PixivWPF.Pages
                             ActionFollowAuthorRemove.IsEnabled = result;
                             if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
                         }
+                    }
+                    catch (Exception) { }
+                }
+                else if (DataObject is Pixeez.Objects.UserBase)
+                {
+                    var item = DataObject as Pixeez.Objects.UserBase;
+                    var result = false;
+                    try
+                    {
+                        if (sender == ActionFollowAuthorPublic)
+                        {
+                            result = await item.LikeUser();
+                        }
+                        else if (sender == ActionFollowAuthorPrivate)
+                        {
+                            result = await item.LikeUser(false);
+                        }
+                        else if (sender == ActionFollowAuthorRemove)
+                        {
+                            result = await item.UnLikeUser();
+                        }
+
+                        FollowAuthor.Tag = result ? PackIconModernKind.Check : PackIconModernKind.Add;
+                        ActionFollowAuthorRemove.IsEnabled = result;
                     }
                     catch (Exception) { }
                 }
