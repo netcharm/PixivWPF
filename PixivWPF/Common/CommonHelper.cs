@@ -103,6 +103,9 @@ namespace PixivWPF.Common
 
     public static class CommonHelper
     {
+        private const int WIDTH_MIN = 720;
+        private const int HEIGHT_MIN = 520;
+        private const int HEIGHT_DEF = 900;
         private static Setting setting = Setting.Load();
         private static CacheImage cache = new CacheImage();
         public static Dictionary<long?, Pixeez.Objects.Work> cacheIllust = new Dictionary<long?, Pixeez.Objects.Work>();
@@ -204,10 +207,10 @@ namespace PixivWPF.Common
                         var viewer = new ContentWindow();
                         viewer.Content = page;
                         viewer.Title = $"ID: {item.ID}, {item.Subject}";
-                        viewer.Width = 720;
-                        viewer.Height = 900;
-                        viewer.MinWidth = 720;
-                        viewer.MinHeight = 500;
+                        viewer.Width = WIDTH_MIN;
+                        viewer.Height = HEIGHT_DEF;
+                        viewer.MinWidth = WIDTH_MIN;
+                        viewer.MinHeight = HEIGHT_MIN;
                         viewer.Show();
                     }
                 }
@@ -237,10 +240,10 @@ namespace PixivWPF.Common
                         var viewer = new ContentWindow();
                         viewer.Content = page;
                         viewer.Title = $"ID: {item.ID}, {item.Subject} - {item.BadgeValue}/{item.Count}";
-                        viewer.Width = 720;
-                        viewer.Height = 900;
-                        viewer.MinWidth = 500;
-                        viewer.MinHeight = 500;
+                        viewer.Width = WIDTH_MIN;
+                        viewer.Height = HEIGHT_DEF;
+                        viewer.MinWidth = WIDTH_MIN;
+                        viewer.MinHeight = HEIGHT_MIN;
                         viewer.Show();
                         break;
                     case ImageItemType.User:
@@ -272,10 +275,10 @@ namespace PixivWPF.Common
                     page.UpdateDetail(item);
 
                     viewer.Title = $"ID: {illust.Id}, {illust.Title}";
-                    viewer.Width = 720;
-                    viewer.Height = 900;
-                    viewer.MinWidth = 720;
-                    viewer.MinHeight = 500;
+                    viewer.Width = WIDTH_MIN;
+                    viewer.Height = HEIGHT_DEF;
+                    viewer.MinWidth = WIDTH_MIN;
+                    viewer.MinHeight = HEIGHT_MIN;
                     viewer.Content = page;
                     viewer.Show();
                 }
@@ -299,10 +302,10 @@ namespace PixivWPF.Common
                 page.UpdateDetail(user);
                 viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
 
-                viewer.Width = 720;
-                viewer.Height = 800;
-                viewer.MinWidth = 720;
-                viewer.MinHeight = 500;
+                viewer.Width = WIDTH_MIN;
+                viewer.Height = HEIGHT_DEF;
+                viewer.MinWidth = WIDTH_MIN;
+                viewer.MinHeight = HEIGHT_MIN;
                 viewer.Content = page;
                 viewer.Show();
             }
@@ -346,11 +349,11 @@ namespace PixivWPF.Common
 
         public static string ParseID(this string searchContent)
         {
-            var patten =  @"((UserID)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):";
+            var patten =  @"((UserID)|(IllustID)|(User)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):(.*?)$";
             string result = searchContent;
             if (!string.IsNullOrEmpty(result))
             {
-                result = Regex.Replace(result, patten, "", RegexOptions.IgnoreCase).Trim().Trim(trim_char);
+                result = Regex.Replace(result, patten, "$9", RegexOptions.IgnoreCase).Trim().Trim(trim_char);
             }
             return (result);
         }
@@ -483,8 +486,9 @@ namespace PixivWPF.Common
 
                     var viewer = new ContentWindow();
                     viewer.Title = $"Searching {content} ...";
-                    viewer.Width = 720;
-                    viewer.Height = 850;
+                    viewer.Width = WIDTH_MIN;
+                    viewer.Height = HEIGHT_DEF;
+                    viewer.MinWidth = WIDTH_MIN;
 
                     var page = new SearchResultPage();
                     page.CurrentWindow = viewer;
@@ -690,8 +694,8 @@ namespace PixivWPF.Common
             {
                 var viewer = new ContentWindow();
                 viewer.Title = $"Download Manager";
-                viewer.Width = 720;
-                viewer.Height = 520;
+                viewer.Width = WIDTH_MIN;
+                viewer.Height = HEIGHT_MIN;
                 viewer.Content = _downManager;
                 viewer.Tag = _downManager;
                 _downManager.window = viewer;
@@ -1691,7 +1695,7 @@ namespace PixivWPF.Common
             illust = cacheIllust.ContainsKey(illust.Id) ? cacheIllust[illust.Id] : illust;
             if (illust.User != null)
             {
-                result = illust.IsBookMarked() && (illust.IsLiked ?? false);
+                result = illust.IsBookMarked() || (illust.IsLiked ?? false);
             }
             return (result);
         }

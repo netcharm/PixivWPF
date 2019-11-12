@@ -25,12 +25,12 @@
             <MenuItem x:Name="SearchFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000+ Favs" Click="SearchFilter_Click"/>
         </ContextMenu>
         <ContextMenu x:Key="MenuSearchResult">
-            <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionCopyResultIllustID_Click">
+            <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy ID" Click="ActionCopyResultIllustID_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Name="ActionOpenResult" x:Uid="ActionOpenResult" Header="Open Selected Illust(s)" Click="ActionOpenResult_Click">
+            <MenuItem x:Name="ActionOpenResult" x:Uid="ActionOpenResult" Header="Open Selected Items" Click="ActionOpenResult_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>

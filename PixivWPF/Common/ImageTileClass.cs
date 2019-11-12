@@ -38,7 +38,7 @@ namespace PixivWPF.Common
         public string ID { get; set; }
         public Pixeez.Objects.Work Illust { get; set; }
         public string AccessToken { get; set; }
-        public string NextURL { get; set; }
+        public string NextURL { get; set; } = string.Empty;
 
         public Visibility FavMarkVisibility { get; set; } = Visibility.Collapsed;
         [Description("Get or Set Illust IsFavorited State")]
@@ -235,7 +235,7 @@ namespace PixivWPF.Common
                             BadgeValue = illust.PageCount.Value.ToString(),
                             BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
                             DisplayFavMark = true,
-                            FavMarkVisibility = illust.IsBookMarked() || (illust.IsLiked != null && illust.IsLiked.Value) ? Visibility.Visible : Visibility.Collapsed,
+                            FavMarkVisibility = illust.IsLiked() ? Visibility.Visible : Visibility.Collapsed,
                             DisplayBadge = illust.PageCount > 1 ? true : false,
                             Illust = illust,
                             ID = illust.Id.ToString(),
@@ -355,39 +355,6 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Collection)
-        {
-            try
-            {
-                if (user is Pixeez.Objects.User && Collection is IList<ImageItem>)
-                {
-                    var url = user.GetAvatarUrl();
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        var i = new ImageItem()
-                        {
-                            ItemType = ImageItemType.User,
-                            Thumb = url,
-                            BadgeValue = user.Stats.Works.Value.ToString(),
-                            FavMarkVisibility = (user.IsFollowing != null && user.IsFollowing.Value) || (user.is_followed != null && user.is_followed.Value) ? Visibility.Visible : Visibility.Collapsed,
-                            Illust = null,
-                            ID = user.Id.ToString(),
-                            User = user,
-                            UserID = user.Id.ToString(),
-                            Subject = $"{user.Name} - {user.Profile.Contacts.Twitter}",
-                            DisplayTitle = true,
-                            Tag = user
-                        };
-                        Collection.Add(i);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR");
-            }
-        }
-
         public static void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Collection, string nexturl = "")
         {
             try
@@ -403,7 +370,7 @@ namespace PixivWPF.Common
                             Thumb = url,
                             NextURL = nexturl,
                             BadgeValue = user.Stats == null ? null : user.Stats.Works.Value.ToString(),
-                            FavMarkVisibility = user.IsFollowed?? (user.IsFollowing != null && user.IsFollowing.Value) || (user.is_followed != null && user.is_followed.Value) ? Visibility.Visible : Visibility.Collapsed,
+                            FavMarkVisibility = user.IsLiked() ? Visibility.Visible : Visibility.Collapsed,
                             Illust = null,
                             ID = user.Id.ToString(),
                             User = user,
