@@ -25,7 +25,7 @@
             <MenuItem x:Name="SearchFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000+ Favs" Click="SearchFilter_Click"/>
         </ContextMenu>
         <ContextMenu x:Key="MenuSearchResult">
-            <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy ID" Click="ActionCopyResultIllustID_Click">
+            <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Selected ID" Click="ActionCopyResultIllustID_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
@@ -59,33 +59,33 @@
                 <MenuItem x:Name="ActionFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000+ Favs" Click="SearchFilter_Click"/>
             </MenuItem>
             <Separator x:Uid="ActionLikeIllustSeparator" />
-            <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Illust" Click="ActionBookmarkIllust_Click">
+            <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionLikeIllustPrivate" Header="Bookmark Illust Private" Click="ActionBookmarkIllust_Click">
+            <MenuItem x:Uid="ActionLikeIllustPrivate" Header="Bookmark Selected Private" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionUnLikeIllust" Header="Un-Bookmark Illust" Click="ActionBookmarkIllust_Click">
+            <MenuItem x:Uid="ActionUnLikeIllust" Header="Un-Bookmark Selected" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="HeartOutline" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionLikeUserSeparator" />
-            <MenuItem x:Uid="ActionLikeUser" Header="Follow Author" Click="ActionFollowAuthor_Click">
+            <MenuItem x:Uid="ActionLikeUser" Header="Follow Selected" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionLikeUserPrivate" Header="Follow Author Private" Click="ActionFollowAuthor_Click">
+            <MenuItem x:Uid="ActionLikeUserPrivate" Header="Follow Selected Private" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionUnLikeUser" Header="Un-Follow Author" Click="ActionFollowAuthor_Click">
+            <MenuItem x:Uid="ActionUnLikeUser" Header="Un-Follow Selected" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Add" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>

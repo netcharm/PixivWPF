@@ -1695,7 +1695,7 @@ namespace PixivWPF.Common
             illust = cacheIllust.ContainsKey(illust.Id) ? cacheIllust[illust.Id] : illust;
             if (illust.User != null)
             {
-                result = illust.IsBookMarked() || (illust.IsLiked ?? false);
+                result = illust.IsBookMarked();// || (illust.IsLiked ?? false);
             }
             return (result);
         }
@@ -1872,7 +1872,8 @@ namespace PixivWPF.Common
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
-            var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
+            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
             {
                 if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
                 {
@@ -1893,7 +1894,8 @@ namespace PixivWPF.Common
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
-            var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
+            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
             {
                 if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
                 {
@@ -1962,7 +1964,9 @@ namespace PixivWPF.Common
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
-            var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
+            //var items = collection.Distinct();
+            var items = collection.GroupBy(i => i.UserID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
             {
                 if (item is ImageItem && item.User is Pixeez.Objects.UserBase)
                 {
@@ -1983,7 +1987,8 @@ namespace PixivWPF.Common
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
-            var ret = Parallel.ForEach(collection, opt, (item, loopstate, elementIndex) =>
+            var items = collection.GroupBy(i => i.UserID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
             {
                 if (item is ImageItem && item.User is Pixeez.Objects.UserBase)
                 {

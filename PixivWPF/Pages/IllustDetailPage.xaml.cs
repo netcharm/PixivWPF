@@ -49,11 +49,11 @@ namespace PixivWPF.Pages
 
             var style = new StringBuilder();
             //style.AppendLine($"*{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", Monaco, Consolas, \"Courier New\", \"Segoe UI\", monospace, 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, \"WenQuanYi Microhei\", \"WenQuanYi Microhei Mono\", \"Microsoft YaHei\", Tahoma, Arial, Helvetica, sans-serif;}}");
-            style.AppendLine($"*{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", Consolas, \"Courier New\", \"Segoe UI\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Tahoma, Arial, Helvetica, sans-serif |important;}}");
-            style.AppendLine($"body{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", Consolas, \"Courier New\", \"Segoe UI\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Tahoma, Arial, Helvetica, sans-serif |important;}}");
-            style.AppendLine($".tag{{background-color:{Common.Theme.AccentColor.ToHtml(false)}|important;color:{Common.Theme.TextColor.ToHtml(false)}|important;margin:4px;text-decoration:none;}}");
-            style.AppendLine($".desc{{color:{Common.Theme.TextColor.ToHtml(false)} !important;text-decoration:none !important;}}");
-            style.AppendLine($"a{{color:{Common.Theme.TextColor.ToHtml(false)}|important;text-decoration:none !important;}}");
+            style.AppendLine($"*{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif |important;}}");
+            style.AppendLine($"body{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif |important;}}");
+            style.AppendLine($".tag{{background-color:{Theme.AccentColor.ToHtml(false)}|important;color:{Theme.TextColor.ToHtml(false)}|important;margin:4px;text-decoration:none;}}");
+            style.AppendLine($".desc{{color:{Theme.TextColor.ToHtml(false)} !important;text-decoration:none !important;}}");
+            style.AppendLine($"a{{color:{Theme.TextColor.ToHtml(false)}|important;text-decoration:none !important;}}");
             style.AppendLine($"img{{width:auto!important;;height:auto!important;;max-width:100%!important;;max-height:100% !important;}}");
 
             var BaseStyleSheet = string.Join("\n", style);

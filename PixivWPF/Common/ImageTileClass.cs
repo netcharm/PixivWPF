@@ -244,7 +244,7 @@ namespace PixivWPF.Common
                             Subject = illust.Title,
                             DisplayTitle = true,
                             Caption = illust.Caption,
-                            ToolTip = $"{illust.GetDateTime()}{tooltip}",
+                            ToolTip = $"{illust.GetDateTime()}{tooltip.HtmlDecodeFix()}",
                             IsDownloaded = illust == null ? false : illust.IsPartDownloaded(),
                             Tag = illust
                         };
