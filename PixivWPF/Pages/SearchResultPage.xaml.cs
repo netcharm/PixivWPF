@@ -129,8 +129,8 @@ namespace PixivWPF.Pages
                     {
                         foreach (var illust in relatives)
                         {
-                            illust.AddTo(ResultIllusts.Items, next_url);
                             illust.Cache();
+                            illust.AddTo(ResultIllusts.Items, next_url);
                         }
                     }
                 }
@@ -147,6 +147,7 @@ namespace PixivWPF.Pages
                         ResultExpander.Tag = next_url;
                         foreach (var user in relatives.Users)
                         {
+                            user.User.Cache();
                             user.User.AddTo(ResultIllusts.Items, next_url);
                         }
                     }
@@ -163,6 +164,7 @@ namespace PixivWPF.Pages
                         ResultExpander.Tag = next_url;
                         foreach (var illust in relatives)
                         {
+                            illust.Cache();
                             illust.AddTo(ResultIllusts.Items, next_url);
                         }
                     }
@@ -180,6 +182,7 @@ namespace PixivWPF.Pages
                         ResultExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
+                            illust.Cache();
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
                         }
                     }
@@ -196,6 +199,7 @@ namespace PixivWPF.Pages
                         ResultExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
+                            illust.Cache();
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
                         }
                     }
@@ -212,6 +216,7 @@ namespace PixivWPF.Pages
                         ResultExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
+                            illust.Cache();
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
                         }
                     }
@@ -229,7 +234,7 @@ namespace PixivWPF.Pages
             {
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowMessageBox("WARNING");
                 }
                 else
                 {

@@ -607,6 +607,7 @@ namespace PixivWPF.Pages
                     RelativeIllustsExpander.Tag = next_url;
                     foreach (var illust in relatives.illusts)
                     {
+                        illust.Cache();
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
                     }
                     RelativeIllusts.UpdateImageTiles(tokens);
@@ -642,6 +643,7 @@ namespace PixivWPF.Pages
                     RelativeIllustsExpander.Tag = next_url;
                     foreach (var illust in relatives.illusts)
                     {
+                        illust.Cache();
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
                     }
                     RelativeIllusts.UpdateImageTiles(tokens);
@@ -688,6 +690,7 @@ namespace PixivWPF.Pages
                     FavoriteIllustsExpander.Tag = next_url;
                     foreach (var illust in favorites.illusts)
                     {
+                        illust.Cache();
                         illust.AddTo(FavoriteIllusts.Items, favorites.next_url);
                     }
                     FavoriteIllusts.UpdateImageTiles(tokens);

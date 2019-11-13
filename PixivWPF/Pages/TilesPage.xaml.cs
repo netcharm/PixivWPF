@@ -580,6 +580,7 @@ namespace PixivWPF.Pages
                     ImageTilesWait.Show();
                     foreach (var illust in root.illusts)
                     {
+                        illust.Cache();
                         if (!ids.Contains(illust.Id.Value))
                         {
                             ids.Add(illust.Id.Value);
@@ -629,6 +630,7 @@ namespace PixivWPF.Pages
                     ImageTilesWait.Show();
                     foreach (var illust in root.illusts)
                     {
+                        illust.Cache();
                         if (!ids.Contains(illust.Id.Value))
                         {
                             ids.Add(illust.Id.Value);
@@ -683,6 +685,7 @@ namespace PixivWPF.Pages
                             foreach (var work in works.Works)
                             {
                                 var illust = work.Work;
+                                illust.Cache();
                                 if (!ids.Contains(illust.Id.Value))
                                 {
                                     ids.Add(illust.Id.Value);
@@ -745,6 +748,7 @@ namespace PixivWPF.Pages
                     ImageTilesWait.Show();
                     foreach (var illust in root.illusts)
                     {
+                        illust.Cache();
                         if (!ids.Contains(illust.Id.Value))
                         {
                             ids.Add(illust.Id.Value);
