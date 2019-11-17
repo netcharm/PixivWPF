@@ -1334,9 +1334,16 @@ namespace PixivWPF.Pages
         {
             if (sender == PreviewOpenDownloaded || (sender is MenuItem && (sender as MenuItem).Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase)))
             {
-                foreach (ImageItem item in SubIllusts.SelectedItems)
+                if (SubIllusts.SelectedItems.Count == 0)
                 {
-                    CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                    CommonHelper.Cmd_OpenDownloaded.Execute(DataObject as ImageItem);
+                }
+                else
+                {
+                    foreach (ImageItem item in SubIllusts.SelectedItems)
+                    {
+                        CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                    }
                 }
             }
             else if (sender == PreviewOpen)
