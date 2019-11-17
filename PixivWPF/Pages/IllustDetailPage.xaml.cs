@@ -101,6 +101,56 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void UpdateDownloadedMark()
+        {
+            if (DataObject is ImageItem)
+            {
+                var item = DataObject as ImageItem;
+                UpdateDownloadedMark(item);
+            }
+        }
+
+        private void UpdateDownloadedMark(ImageItem item)
+        {
+            if (item is ImageItem)
+            {
+                string fp = string.Empty;
+
+                var index = item.Index;
+                if (index < 0)
+                {
+                    item.IsDownloaded = item.Illust.IsPartDownloaded(out fp);
+                    if (item.IsDownloaded)
+                    {
+                        IllustDownloaded.Visibility = Visibility.Visible;
+                        IllustDownloaded.Tag = fp;
+                        ToolTipService.SetToolTip(IllustDownloaded, fp);
+                    }
+                    else
+                    {
+                        IllustDownloaded.Visibility = Visibility.Collapsed;
+                        IllustDownloaded.Tag = null;
+                        ToolTipService.SetToolTip(IllustDownloaded, null);
+                    }
+                }
+                else
+                {
+                    if (item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp))
+                    {
+                        IllustDownloaded.Visibility = Visibility.Visible;
+                        IllustDownloaded.Tag = fp;
+                        ToolTipService.SetToolTip(IllustDownloaded, fp);
+                    }
+                    else
+                    {
+                        IllustDownloaded.Visibility = Visibility.Collapsed;
+                        IllustDownloaded.Tag = null;
+                        ToolTipService.SetToolTip(IllustDownloaded, null);
+                    }
+                }
+            }        
+        }
+
         private void UpdateMark(bool all=false)
         {
             if (DataObject is ImageItem)
@@ -1282,15 +1332,11 @@ namespace PixivWPF.Pages
 
         private void ActionOpenIllust_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == PreviewOpenDownloaded)
+            if (sender == PreviewOpenDownloaded || (sender is MenuItem && (sender as MenuItem).Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase)))
             {
-                if (IllustDownloaded.Tag is string)
+                foreach (ImageItem item in SubIllusts.SelectedItems)
                 {
-                    var fp = IllustDownloaded.Tag as string;
-                    if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
-                    {
-                        System.Diagnostics.Process.Start(fp);
-                    }
+                    CommonHelper.Cmd_OpenDownloaded.Execute(item);
                 }
             }
             else if (sender == PreviewOpen)
@@ -1430,6 +1476,8 @@ namespace PixivWPF.Pages
                     return;
                 }
                 SubIllusts.UpdateTilesDaownloadStatus(false);
+                UpdateDownloadedMark(SubIllusts.SelectedItem);
+
                 if (DataObject is ImageItem)
                 {
                     (DataObject as ImageItem).IsDownloaded = (DataObject as ImageItem).Illust.IsPartDownloaded();
@@ -1456,20 +1504,6 @@ namespace PixivWPF.Pages
                         var item = SubIllusts.SelectedItem as ImageItem;
                         lastSelectionItem = item;
                         lastSelectionChanged = DateTime.Now.ToFileTime();
-
-                        string fp = string.Empty;
-                        if (item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp))
-                        {
-                            IllustDownloaded.Visibility = Visibility.Visible;
-                            IllustDownloaded.Tag = fp;
-                            ToolTipService.SetToolTip(IllustDownloaded, fp);
-                        }
-                        else
-                        {
-                            IllustDownloaded.Visibility = Visibility.Collapsed;
-                            IllustDownloaded.Tag = null;
-                            ToolTipService.SetToolTip(IllustDownloaded, null);
-                        }
 
                         var tokens = await CommonHelper.ShowLogin();
                         var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
@@ -1602,16 +1636,6 @@ namespace PixivWPF.Pages
         private void ActionCopyRelativeIllustID_Click(object sender, RoutedEventArgs e)
         {
             CommonHelper.Cmd_CopyIllustIDs.Execute(RelativeIllusts);
-        }
-
-        private void ActionSaveRelative_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void ActionSaveAllRelative_Click(object sender, RoutedEventArgs e)
-        {
-
         }
 
         private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -2022,6 +2046,84 @@ namespace PixivWPF.Pages
                 else if (host == CommentsExpander)
                 {
 
+                }
+            }
+        }
+
+        private void ActionSaveIllusts_Click(object sender, RoutedEventArgs e)
+        {
+            if(sender is MenuItem)
+            {
+                var m = sender as MenuItem;
+                var host = (m.Parent as ContextMenu).PlacementTarget;
+                if (m.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if(host == RelativeIllustsExpander || host == RelativeIllusts)
+                    {
+                        foreach(ImageItem item in RelativeIllusts.SelectedItems)
+                        {
+                            CommonHelper.Cmd_SaveIllust.Execute(item);
+                        }
+                    }
+                    else if(host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                    {
+                        foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                        {
+                            CommonHelper.Cmd_SaveIllust.Execute(item);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ActionSaveIllustsAll_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem)
+            {
+                var m = sender as MenuItem;
+                var host = (m.Parent as ContextMenu).PlacementTarget;
+                if (m.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                    {
+                        foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                        {
+                            CommonHelper.Cmd_SaveIllustAll.Execute(item);
+                        }
+                    }
+                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                    {
+                        foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                        {
+                            CommonHelper.Cmd_SaveIllustAll.Execute(item);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ActionOpenDownloaded_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem)
+            {
+                var m = sender as MenuItem;
+                var host = (m.Parent as ContextMenu).PlacementTarget;
+                if (m.Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                    {
+                        foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                        {
+                            CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                        }
+                    }
+                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                    {
+                        foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                        {
+                            CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                        }
+                    }
                 }
             }
         }

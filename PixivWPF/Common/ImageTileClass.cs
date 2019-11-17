@@ -209,22 +209,23 @@ namespace PixivWPF.Common
                     {
                         var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().InsertLineBreak(48).Take(256));
                         var age = string.Empty;
+                        var userliked = illust.User.IsLiked() ? $"✔/" : string.Empty;
                         var state = string.Empty;
                         if (illust is Pixeez.Objects.IllustWork)
                         {
                             var work = illust as Pixeez.Objects.IllustWork;
                             var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
                             age = $"R[{work.SanityLevel.SanityAge()}]";
-                            state = $"\r\n{age}, ♥[{work.total_bookmarks}]{like}";
+                            state = $"\r\n🔞{age}, {userliked}♥[{work.total_bookmarks}]{like}, 🖼[{work.Width}x{work.Height}]";
                         }
                         else if (illust is Pixeez.Objects.NormalWork)
                         {
                             var work = illust as Pixeez.Objects.NormalWork;
                             var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
                             age = illust.AgeLimit != null ? $"R[{illust.AgeLimit.SanityAge()}]" : string.Empty;
-                            state = $"\r\n{age}, ♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]{like}";
+                            state = $"\r\n🔞{age}, {userliked}♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]{like}, 🖼[{work.Width}x{work.Height}]";
                         }
-                        tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tooltip}";
+                        tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tooltip.HtmlDecodeFix()}";
                         var i = new ImageItem()
                         {
                             ItemType = ImageItemType.Work,
@@ -244,7 +245,7 @@ namespace PixivWPF.Common
                             Subject = illust.Title,
                             DisplayTitle = true,
                             Caption = illust.Caption,
-                            ToolTip = $"{illust.GetDateTime()}{tooltip.HtmlDecodeFix()}",
+                            ToolTip = $"📅[{illust.GetDateTime()}]{tooltip}",
                             IsDownloaded = illust == null ? false : illust.IsPartDownloaded(),
                             Tag = illust
                         };

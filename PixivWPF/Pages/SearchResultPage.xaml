@@ -35,9 +35,23 @@
                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <!--<Separator/>
-            <MenuItem x:Name="ActionSaveRelative" x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click"/>
-            <MenuItem x:Name="ActionSaveAllRelative" x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click"/>-->
+            <Separator/>
+            <MenuItem x:Name="ActionSaveResult" x:Uid="ActionSaveIllusts" Header="Save Selected Illust(s)" Click="ActionSaveResult_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="ActionSaveResultAll" x:Uid="ActionSaveIllustsAll" Header="Save All Illusts" Click="ActionSaveAllResult_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="ActionOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illusts" Click="ActionOpenDownloaded_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator/>
             <MenuItem x:Name="ActionNextResultPage" x:Uid="ActionNextResultPage" Header="Open Next Page" Click="ResultNextPage_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>

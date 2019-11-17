@@ -48,9 +48,9 @@ namespace PixivWPF.Pages
             var cmr = Resources["MenuSearchResult"] as ContextMenu;
             if (cmr is ContextMenu)
             {
-                foreach (MenuItem item in cmr.Items)
+                foreach (dynamic item in cmr.Items)
                 {
-                    if (item.Name.Equals("ActionResultFilter", StringComparison.CurrentCultureIgnoreCase))
+                    if (item is MenuItem && item.Name.Equals("ActionResultFilter", StringComparison.CurrentCultureIgnoreCase))
                     {
                         ActionResultFilter = item;
                         break;
@@ -62,7 +62,7 @@ namespace PixivWPF.Pages
             if (cmf is ContextMenu)
             {
                 ContextMenuResultFilter = cmf;
-                foreach (var item in cmf.Items)
+                foreach (dynamic item in cmf.Items)
                 {
                     if (item is MenuItem)
                     {
@@ -287,12 +287,35 @@ namespace PixivWPF.Pages
 
         private void ActionSaveResult_Click(object sender, RoutedEventArgs e)
         {
-
+            if (sender is MenuItem)
+            {
+                foreach (ImageItem item in ResultIllusts.SelectedItems)
+                {
+                    CommonHelper.Cmd_SaveIllust.Execute(item);
+                }
+            }
         }
 
         private void ActionSaveAllResult_Click(object sender, RoutedEventArgs e)
         {
+            if (sender is MenuItem)
+            {
+                foreach (ImageItem item in ResultIllusts.SelectedItems)
+                {
+                    CommonHelper.Cmd_SaveIllustAll.Execute(item);
+                }
+            }
+        }
 
+        private void ActionOpenDownloaded_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem)
+            {
+                foreach (ImageItem item in ResultIllusts.SelectedItems)
+                {
+                    CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                }
+            }
         }
 
         private void ResultIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)

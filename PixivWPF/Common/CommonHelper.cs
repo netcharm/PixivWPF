@@ -172,6 +172,91 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_SaveIllustAll { get; } = new DelegateCommand<object>(async obj => {
+            if (obj is ImageItem)
+            {
+                var item = obj as ImageItem;
+                var illust = item.Illust;
+                var dt = illust.GetDateTime();
+                var is_meta_single_page = illust.PageCount==1 ? true : false;
+
+                if (illust != null)
+                {
+                    if (illust is Pixeez.Objects.IllustWork)
+                    {
+                        var illustset = illust as Pixeez.Objects.IllustWork;
+                        var total = illustset.meta_pages.Count();
+                        if (is_meta_single_page)
+                        {
+                            var url = illust.GetOriginalUrl();
+                            url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                        }
+                        else
+                        {
+                            foreach (var pages in illustset.meta_pages)
+                            {
+                                var url = pages.GetOriginalUrl();
+                                url.SaveImage(pages.GetThumbnailUrl(), dt, is_meta_single_page);
+                            }
+                        }
+                    }
+                    else if (illust is Pixeez.Objects.NormalWork)
+                    {
+                        if (is_meta_single_page)
+                        {
+                            var url = illust.GetOriginalUrl();
+                            var illustset = illust as Pixeez.Objects.NormalWork;
+                            url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                        }
+                        else
+                        {
+                            var tokens = await ShowLogin();
+                            var illusts = await tokens.GetWorksAsync(illust.Id.Value);
+                            foreach (var w in illusts)
+                            {
+                                if (w.Metadata != null && w.Metadata.Pages != null)
+                                {
+                                    w.Cache();
+                                    foreach (var p in w.Metadata.Pages)
+                                    {
+                                        var u = p.GetOriginalUrl();
+                                        u.SaveImage(p.GetThumbnailUrl(), dt, is_meta_single_page);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        public static ICommand Cmd_OpenDownloaded { get; } = new DelegateCommand<object>(obj => {
+            if (obj is ImageItem)
+            {
+                var item = obj as ImageItem;
+                var illust = item.Illust;
+
+                if (item.Index >= 0)
+                {
+                    string fp = string.Empty;
+                    item.IsDownloaded = illust.IsDownloaded(out fp, item.Index);
+                    if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
+                    {
+                        System.Diagnostics.Process.Start(fp);
+                    }
+                }
+                else
+                {
+                    string fp = string.Empty;
+                    item.IsDownloaded = illust.IsPartDownloaded(out fp);
+                    if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
+                    {
+                        System.Diagnostics.Process.Start(fp);
+                    }
+                }
+            }
+        });
+
         public static ICommand Cmd_OpenIllust { get; } = new DelegateCommand<object>(obj => {
             if (obj is ImageListGrid)
             {

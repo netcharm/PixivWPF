@@ -31,6 +31,7 @@
                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <Separator />
             <MenuItem x:Uid="ActionPrevPage" Header="Open Previous Page" Click="ActionPrevPage_Click" >
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
@@ -39,6 +40,22 @@
             <MenuItem x:Uid="ActionNextPage" Header="Open Next Page" Click="ActionNextPage_Click" >
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator />
+            <MenuItem x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (First Page)" Click="ActionSaveIllusts_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionSaveIllustsAll" Header="Save Selected Illusts (All Pages)" Click="ActionSaveIllustsAll_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illusts" Click="ActionOpenDownloaded_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionLikeIllustSeparator" />
@@ -499,6 +516,12 @@
                                         <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <MenuItem x:Uid="ActionOpenDownloaded" 
+                                          Header="Open Downloaded Illust" Click="ActionOpenIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>                                
                             </ContextMenu>
                         </Common:ImageListGrid.ContextMenu>
                     </Common:ImageListGrid>
@@ -545,21 +568,27 @@
                                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
-                                <!--<Separator/>
-                                <MenuItem x:Uid="ActionSaveRelative" Header="Save Selected Illust(s)" Click="ActionSaveRelative_Click">
-                                    <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem x:Uid="ActionSaveAllRelative" Header="Save All Illusts" Click="ActionSaveAllRelative_Click">
-                                    <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
-                                    </MenuItem.Icon>
-                                </MenuItem>-->
+                                <Separator/>
                                 <MenuItem x:Uid="ActionNextRelativePage" Header="Open Next Page" Click="RelativeNextPage_Click"
                                           Visibility="{Binding Path=Visibility, Source={x:Reference RelativeNextPage}, Mode=OneWay, IsAsync=True}" >
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (First Page)" Click="ActionSaveIllusts_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Uid="ActionSaveIllustsAll" Header="Save Selected Illusts (All Pages)" Click="ActionSaveIllustsAll_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illusts" Click="ActionOpenDownloaded_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <Separator x:Uid="ActionLikeIllustSeparator" />
@@ -641,10 +670,27 @@
                                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <Separator />
                                 <MenuItem x:Uid="ActionNextFavoritePage" Header="Open Next Page" Click="FavoriteNextPage_Click"
                                           Visibility="{Binding Path=Visibility, Source={x:Reference FavoriteNextPage}, Mode=OneWay, IsAsync=True}" >
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (First Page)" Click="ActionSaveIllusts_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Uid="ActionSaveIllustsAll" Header="Save Selected Illusts (All Pages)" Click="ActionSaveIllustsAll_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illusts" Click="ActionOpenDownloaded_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <Separator x:Uid="ActionLikeIllustSeparator" />
