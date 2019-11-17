@@ -128,6 +128,12 @@
                                         <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <Separator/>
+                                <MenuItem x:Name="PreviewOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illust" Click="ActionOpenIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </ContextMenu>
                         </Rectangle.ContextMenu>
                     </Rectangle>
@@ -237,6 +243,7 @@
                     <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button x:Name="BookmarkIllust" x:Uid="BookmarkIllust" Click="ActionIllust_Click"
                                 ToolTip="Bookmark Illust"
+                                ContextMenuOpening="IllustActions_ContextMenuOpening"
                                 Visibility="Hidden" Width="64" Height="64"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -267,7 +274,8 @@
                             </Grid>
                         </Button>
                         <Button x:Name="FollowAuthor" x:Uid="FollowAuthor" Margin="4,0,0,0" Click="ActionIllust_Click"
-                                ToolTip="Follow Author"
+                                ToolTip="Follow Author" 
+                                ContextMenuOpening="IllustActions_ContextMenuOpening" 
                                 Visibility="Hidden" Width="64" Height="64"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -291,6 +299,7 @@
                         </Button>
                         <Button x:Name="IllustActions" x:Uid="IllustActions" Margin="4,0,0,0" Click="ActionIllust_Click"
                                 ToolTip="Illust Actions"
+                                ContextMenuOpening="IllustActions_ContextMenuOpening"
                                 Visibility="Hidden" Width="64" Height="64"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"

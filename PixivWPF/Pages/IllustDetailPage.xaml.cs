@@ -30,20 +30,20 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class IllustDetailPage : Page
     {
-        internal object DataObject = null;
-        internal Task lastTask = null;
-        internal CancellationTokenSource cancelTokenSource;
-        internal CancellationToken cancelToken;
+        private object DataObject = null;
+        private Task lastTask = null;
+        private CancellationTokenSource cancelTokenSource;
+        private CancellationToken cancelToken;
 
-        internal Task update_preview_task = null;
-        internal CancellationTokenSource cancelUpdatePreviewTokenSource;
-        internal CancellationToken cancelUpdatePreviewToken;
+        private Task update_preview_task = null;
+        private CancellationTokenSource cancelUpdatePreviewTokenSource;
+        private CancellationToken cancelUpdatePreviewToken;
 
         public ICommand MouseDoubleClickCommand { get; } = new DelegateCommand<object>(obj => {
             MessageBox.Show("");
         });
 
-        public void UpdateTheme()
+        internal void UpdateTheme()
         {
             //var fonts = string.Join(",", IllustTitle.FontFamily.FamilyNames.Values);
 
@@ -73,7 +73,7 @@ namespace PixivWPF.Pages
             IllustDesc.AvoidImagesLateLoading = true;
         }
 
-        public void UpdateFavMark(Pixeez.Objects.Work illust)
+        private void UpdateFavMark(Pixeez.Objects.Work illust)
         {
             if (illust.IsLiked())
             {
@@ -87,7 +87,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public void UpdateFollowMark(Pixeez.Objects.UserBase user)
+        private void UpdateFollowMark(Pixeez.Objects.UserBase user)
         {
             if (user.IsLiked())
             {
@@ -101,7 +101,51 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void UpdateDetailIllust(ImageItem item)
+        private void UpdateMark(bool all=false)
+        {
+            if (DataObject is ImageItem)
+            {
+                UpdateFollowMark((DataObject as ImageItem).Illust.User);
+                UpdateFavMark((DataObject as ImageItem).Illust);
+            }
+            else if (DataObject is Pixeez.Objects.UserBase)
+            {
+                UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
+            }
+            if (all && RelativeIllustsExpander.IsExpanded)
+            {
+                foreach (ImageItem item in RelativeIllusts.Items)
+                {
+                    item.IsFavorited = item.IsLiked();
+                }
+            }
+            if (all && FavoriteIllustsExpander.IsExpanded)
+            {
+                foreach (ImageItem item in FavoriteIllusts.Items)
+                {
+                    item.IsFavorited = item.IsLiked();
+                }
+            }
+        }
+
+        private void OpenDownloaded()
+        {
+            if (DataObject is ImageItem)
+            {
+                //string fp = string.Empty;
+                //(DataObject as ImageItem).IsDownloaded = (DataObject as ImageItem).Illust.IsPartDownloaded(out fp);
+                if (IllustDownloaded.Tag is string)
+                {
+                    var fp = IllustDownloaded.Tag as string;
+                    if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
+                    {
+                        System.Diagnostics.Process.Start(fp);
+                    }
+                }
+            }
+        }
+
+        private async void UpdateDetailIllust(ImageItem item)
         {
             try
             {
@@ -321,7 +365,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void UpdateDetail(ImageItem item)
+        internal async void UpdateDetail(ImageItem item)
         {
             try
             {
@@ -357,7 +401,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void UpdateDetail(Pixeez.Objects.UserBase user)
+        internal async void UpdateDetail(Pixeez.Objects.UserBase user)
         {
             try
             {
@@ -478,7 +522,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal async void ShowIllustPages(Pixeez.Tokens tokens, ImageItem item, int start = 0, int count = 30)
+        private async void ShowIllustPages(Pixeez.Tokens tokens, ImageItem item, int start = 0, int count = 30)
         {
             try
             {
@@ -587,7 +631,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal async void ShowRelativeInline(Pixeez.Tokens tokens, ImageItem item, string next_url="")
+        private async void ShowRelativeInline(Pixeez.Tokens tokens, ImageItem item, string next_url="")
         {
             try
             {
@@ -623,7 +667,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal async void ShowUserWorksInline(Pixeez.Tokens tokens, Pixeez.Objects.UserBase user, string next_url = "")
+        private async void ShowUserWorksInline(Pixeez.Tokens tokens, Pixeez.Objects.UserBase user, string next_url = "")
         {
             try
             {
@@ -913,6 +957,8 @@ namespace PixivWPF.Pages
         #region Illust Actions
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
+            UpdateMark(true);
+
             if (sender == ActionCopyIllustTitle)
             {
                 Clipboard.SetText(IllustTitle.Text);
@@ -948,7 +994,8 @@ namespace PixivWPF.Pages
                     var item = DataObject as ImageItem;
                     if (item.Illust is Pixeez.Objects.Work)
                     {
-                        var href = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={item.ID}";
+                        //var href = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={item.ID}";
+                        var href = $"https://www.pixiv.net/artworks/{item.ID}";
                         try
                         {
                             System.Diagnostics.Process.Start(href);
@@ -978,7 +1025,8 @@ namespace PixivWPF.Pages
                     var item = DataObject as ImageItem;
                     if (item.Illust is Pixeez.Objects.Work)
                     {
-                        var href = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={item.ID}";
+                        //var href = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={item.ID}";
+                        var href = $"https://www.pixiv.net/artworks/{item.ID}";
                         Clipboard.SetText(href);
                     }
                 }
@@ -1030,9 +1078,16 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Following User / Bookmark Illust routines
+        private void IllustActions_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            e.Handled = true;
+            UpdateMark(true);
+        }
+
         private void ActionIllust_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
+            UpdateMark(true);
 
             if (sender == BookmarkIllust)
                 BookmarkIllust.ContextMenu.IsOpen = true;
@@ -1050,6 +1105,8 @@ namespace PixivWPF.Pages
 
         private async void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
         {
+            e.Handled = true;
+
             string uid = (sender as dynamic).Uid;
 
             if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
@@ -1112,6 +1169,8 @@ namespace PixivWPF.Pages
 
         private async void ActionFollowAuthor_Click(object sender, RoutedEventArgs e)
         {
+            e.Handled = true;
+
             string uid = (sender as dynamic).Uid;
 
             if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
@@ -1223,20 +1282,34 @@ namespace PixivWPF.Pages
 
         private void ActionOpenIllust_Click(object sender, RoutedEventArgs e)
         {
-            if (SubIllusts.Items.Count() <= 0)
+            if (sender == PreviewOpenDownloaded)
             {
-                if (DataObject is ImageItem)
+                if (IllustDownloaded.Tag is string)
                 {
-                    var item = DataObject as ImageItem;
-                    item.ItemType = ImageItemType.Pages;
-                    CommonHelper.Cmd_OpenIllust.Execute(item);
+                    var fp = IllustDownloaded.Tag as string;
+                    if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
+                    {
+                        System.Diagnostics.Process.Start(fp);
+                    }
                 }
             }
-            else
+            else if (sender == PreviewOpen)
             {
-                if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
-                    SubIllusts.SelectedIndex = 0;
-                CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+                if (SubIllusts.Items.Count() <= 0)
+                {
+                    if (DataObject is ImageItem)
+                    {
+                        var item = DataObject as ImageItem;
+                        item.ItemType = ImageItemType.Pages;
+                        CommonHelper.Cmd_OpenIllust.Execute(item);
+                    }
+                }
+                else
+                {
+                    if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
+                        SubIllusts.SelectedIndex = 0;
+                    CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+                }
             }
         }
 
@@ -1267,7 +1340,6 @@ namespace PixivWPF.Pages
                 var item = DataObject as ImageItem;
                 CommonHelper.Cmd_SaveIllust.Execute(item);
             }
-
         }
 
         private async void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
@@ -1331,11 +1403,9 @@ namespace PixivWPF.Pages
                                     var u = p.GetOriginalUrl();
                                     u.SaveImage(p.GetThumbnailUrl(), dt, is_meta_single_page);
                                 }
-                            }
-                            
+                            }                            
                         }
-                    }
-                    
+                    }                    
                 }
                 IllustsSaveProgress.Value = 100;
                 IllustsSaveProgress.Visibility = Visibility.Collapsed;
@@ -1363,10 +1433,8 @@ namespace PixivWPF.Pages
                 if (DataObject is ImageItem)
                 {
                     (DataObject as ImageItem).IsDownloaded = (DataObject as ImageItem).Illust.IsPartDownloaded();
-                    UpdateFollowMark((DataObject as ImageItem).Illust.User);
                 }
-                else if (DataObject is Pixeez.Objects.UserBase)
-                    UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
+                UpdateMark();
 
                 //IllustDetailViewer
                 e.Handled = true;
@@ -1550,10 +1618,7 @@ namespace PixivWPF.Pages
         {
             e.Handled = false;
             RelativeIllusts.UpdateTilesDaownloadStatus();
-            if(DataObject is ImageItem)
-                UpdateFollowMark((DataObject as ImageItem).Illust.User);
-            else if (DataObject is Pixeez.Objects.UserBase)
-                UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
+            UpdateMark();
             e.Handled = true;
         }
 
@@ -1648,10 +1713,7 @@ namespace PixivWPF.Pages
         {
             e.Handled = false;
             FavoriteIllusts.UpdateTilesDaownloadStatus();
-            if (DataObject is ImageItem)
-                UpdateFollowMark((DataObject as ImageItem).Illust.User);
-            else if (DataObject is Pixeez.Objects.UserBase)
-                UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
+            UpdateMark();
             e.Handled = true;
         }
 
