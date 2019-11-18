@@ -265,7 +265,6 @@ namespace PixivWPF.Pages
             }
             if(ResultNextPage is Button)
                 ResultNextPage.Visibility = Visibility.Visible;
-            //ResultExpander.IsHitTestVisible = false;
         }
 
         private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)
@@ -283,6 +282,11 @@ namespace PixivWPF.Pages
         private void ActionOpenResult_Click(object sender, RoutedEventArgs e)
         {
             CommonHelper.Cmd_OpenIllust.Execute(ResultIllusts);
+        }
+
+        private void ActionRefreshResult_Click(object sender, RoutedEventArgs e)
+        {
+            ResultExpander_Expanded(sender, e);
         }
 
         private void ActionSaveResult_Click(object sender, RoutedEventArgs e)

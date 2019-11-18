@@ -31,6 +31,11 @@
                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="ActionRefreshIllusts_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <Separator />
             <MenuItem x:Uid="ActionPrevPage" Header="Open Previous Page" Click="ActionPrevPage_Click" >
                 <MenuItem.Icon>
@@ -143,6 +148,11 @@
                                 <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="PreviewRefresh" x:Uid="ActionRefreshPreview" Header="Refresh Illust Preview" Click="ActionRefreshPreview_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <Separator/>
