@@ -36,22 +36,6 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator/>
-            <MenuItem x:Name="ActionSaveResult" x:Uid="ActionSaveIllusts" Header="Save Selected Illust(s)" Click="ActionSaveResult_Click" >
-                <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Name="ActionSaveResultAll" x:Uid="ActionSaveIllustsAll" Header="Save All Illusts" Click="ActionSaveAllResult_Click" >
-                <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <MenuItem x:Name="ActionOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illusts" Click="ActionOpenDownloaded_Click">
-                <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
-                </MenuItem.Icon>
-            </MenuItem>
-            <Separator/>
             <MenuItem x:Name="ActionNextResultPage" x:Uid="ActionNextResultPage" Header="Open Next Page" Click="ResultNextPage_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
@@ -71,6 +55,22 @@
                 <MenuItem x:Name="ActionFilter_20000users" x:Uid="SearchFilter_20000users" Header="20000~30000 Favs" Click="SearchFilter_Click"/>
                 <MenuItem x:Name="ActionFilter_30000users" x:Uid="SearchFilter_30000users" Header="30000~50000 Favs" Click="SearchFilter_Click"/>
                 <MenuItem x:Name="ActionFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000+ Favs" Click="SearchFilter_Click"/>
+            </MenuItem>
+            <Separator/>
+            <MenuItem x:Name="ActionSaveResult" x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="ActionSaveResult_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="ActionSaveResultAll" x:Uid="ActionSaveIllustsAll" Header="Save Selected Illusts (All Pages)" Click="ActionSaveAllResult_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="ActionOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illusts" Click="ActionOpenDownloaded_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionLikeIllustSeparator" />
             <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="ActionBookmarkIllust_Click">
@@ -126,9 +126,7 @@
                                           SelectionMode="Extended"
                                           SelectionChanged="ResultIllusts_SelectionChanged" 
                                           MouseDoubleClick="ResultIllusts_MouseDoubleClick" 
-                                          ContextMenu="{StaticResource MenuSearchResult}"
-                                          KeyUp="ResultIllusts_KeyUp" >
-                    </Common:ImageListGrid>
+                                          KeyUp="ResultIllusts_KeyUp" />
                 </Expander>
                 <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0">
                     <Button x:Name="RelativePrevPage" Visibility="Collapsed"

@@ -16,6 +16,7 @@ namespace PixivWPF.Common
         private Setting setting = Setting.Load();
         private char[] trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
         private Dictionary<int, string> loadedImageHashTable = new Dictionary<int, string>();
+        private Dictionary<int, string> loadedImageFileTable = new Dictionary<int, string>();
 
         private Dictionary<string, string> _caches = new Dictionary<string, string>();
         private string _CacheFolder = string.Empty;
@@ -71,6 +72,7 @@ namespace PixivWPF.Common
             var file = GetCacheFile(url);
             var fp = string.Empty;
             var id = url.GetIllustId();
+            var fn = url.GetImageId();
 
             if (_caches.ContainsKey(url))
             {
@@ -125,6 +127,7 @@ namespace PixivWPF.Common
             if (result is ImageSource && !string.IsNullOrEmpty(id))
             {
                 loadedImageHashTable[result.GetHashCode()] = id;
+                loadedImageFileTable[result.GetHashCode()] = fn;
             }
             return (result);
         }
@@ -134,7 +137,8 @@ namespace PixivWPF.Common
             bool result = true;
             if (loadedImageHashTable.ContainsKey(hash))
             {
-                result = string.Equals(id, loadedImageHashTable[hash], StringComparison.CurrentCultureIgnoreCase);
+                result = string.Equals(id, loadedImageHashTable[hash], StringComparison.CurrentCultureIgnoreCase) || 
+                         string.Equals(id, loadedImageFileTable[hash], StringComparison.CurrentCultureIgnoreCase);
             }
             return (result);
         }

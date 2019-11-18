@@ -1673,6 +1673,17 @@ namespace PixivWPF.Common
             return (cache.IsSameIllust(hash, $"{id ?? -1}"));
         }
 
+        public static bool IsSameIllust(this ImageItem item, int hash)
+        {
+            bool result = false;
+
+            if (item.ItemType == ImageItemType.Work) {
+                result = item.Illust.GetPreviewUrl(item.Index).GetImageId().IsSameIllust(hash) || item.Illust.GetOriginalUrl(item.Index).GetImageId().IsSameIllust(hash);
+            }
+
+            return (result);
+        }
+
         public static bool IsSameIllust(this ImageItem item, long id)
         {
             bool result = false;
@@ -2363,6 +2374,16 @@ namespace PixivWPF.Common
                 {
                     result = m.Groups[1].Value;
                 }
+            }
+            return (result);
+        }
+
+        public static string GetImageId(this string url)
+        {
+            string result = string.Empty;
+            if (!string.IsNullOrEmpty(url))
+            {
+                result = Path.GetFileNameWithoutExtension(url);
             }
             return (result);
         }

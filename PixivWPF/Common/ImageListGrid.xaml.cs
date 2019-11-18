@@ -99,6 +99,13 @@ namespace PixivWPF.Common
             //}
         }
 
+        //[Description("Get or Set ContextMenu")]
+        //[Category("Common Properties")]
+        //public new ContextMenu ContextMenu {
+        //    get { return PART_ImageTiles.ContextMenu; }
+        //    set { PART_ImageTiles.ContextMenu = value; }
+        //}
+
         private Visibility badgevisibility = Visibility.Visible;
         public Visibility BadgeVisibility
         {
