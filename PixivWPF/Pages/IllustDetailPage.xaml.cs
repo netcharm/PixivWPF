@@ -1837,15 +1837,31 @@ namespace PixivWPF.Pages
         {
             if (sender is ContextMenu)
             {
-                var host = (sender as ContextMenu).PlacementTarget;
-                if (host == SubIllustsExpander)
+                var menu = sender as ContextMenu;
+                var host = menu.PlacementTarget;
+                if (host == SubIllustsExpander || host == SubIllusts)
                 {
+                    var start = SubIllustsExpander.Tag is int ? (int)(SubIllustsExpander.Tag) : 0;
+                    var count = (DataObject as ImageItem).Count;
                     foreach (dynamic item in (sender as ContextMenu).Items)
                     {
                         try
                         {
                             if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
-                                item.Visibility = Visibility.Visible;
+                            {
+                                if (start > 0) item.Visibility = Visibility.Visible;
+                                else item.Visibility = Visibility.Collapsed;
+                            }
+                            else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                if (count - start > 30) item.Visibility = Visibility.Visible;
+                                else item.Visibility = Visibility.Collapsed;
+                            }
+                            else if (item.Uid.Equals("ActionNavPageSeparator", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                if (count <= 30) item.Visibility = Visibility.Collapsed;
+                                else item.Visibility = Visibility.Visible;
+                            }
 
                             else if (item.Uid.Equals("ActionLikeIllustSeparator", StringComparison.CurrentCultureIgnoreCase) ||
                                      item.Uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
@@ -1867,7 +1883,7 @@ namespace PixivWPF.Pages
                         catch (Exception) { continue; }
                     }
                 }
-                else if (host == RelativeIllustsExpander)
+                else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                 {
                     foreach (dynamic item in (sender as ContextMenu).Items)
                     {
@@ -1877,8 +1893,9 @@ namespace PixivWPF.Pages
                             {
                                 item.Visibility = Visibility.Collapsed;
                             }
-                            else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
-                            {
+                            else if (item.Uid.Equals("ActionNavPageSeparator", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
+                            {                                
                                 var next_url = RelativeIllustsExpander.Tag as string;
                                 if (string.IsNullOrEmpty(next_url))
                                     item.Visibility = Visibility.Collapsed;
@@ -1905,7 +1922,7 @@ namespace PixivWPF.Pages
                         catch (Exception) { continue; }
                     }
                 }
-                else if (host == FavoriteIllustsExpander)
+                else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
                 {
                     foreach (dynamic item in (sender as ContextMenu).Items)
                     {
@@ -1915,7 +1932,8 @@ namespace PixivWPF.Pages
                             {
                                 item.Visibility = Visibility.Collapsed;
                             }
-                            else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
+                            else if (item.Uid.Equals("ActionNavPageSeparator", StringComparison.CurrentCultureIgnoreCase) ||
+                                     item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 var next_url = FavoriteIllustsExpander.Tag as string;
                                 if (string.IsNullOrEmpty(next_url))
@@ -1943,7 +1961,7 @@ namespace PixivWPF.Pages
                         catch (Exception) { continue; }
                     }
                 }
-                else if (host == CommentsExpander)
+                else if (host == CommentsExpander || host == CommentsViewer)
                 {
                     foreach (dynamic item in (sender as ContextMenu).Items)
                     {

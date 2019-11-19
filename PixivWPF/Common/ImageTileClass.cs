@@ -232,7 +232,7 @@ namespace PixivWPF.Common
                             NextURL = nexturl,
                             Thumb = url,
                             Index = -1,
-                            Count = (int)illust.PageCount,
+                            Count = (int)(illust.PageCount),
                             BadgeValue = illust.PageCount.Value.ToString(),
                             BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
                             DisplayFavMark = true,
