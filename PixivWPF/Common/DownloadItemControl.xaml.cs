@@ -23,7 +23,7 @@ using System.Windows.Navigation;
 
 namespace PixivWPF.Common
 {
-    public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Unknown }
+    public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Unknown }
 
     public class DownloadInfo: INotifyPropertyChanged
     {
@@ -170,6 +170,7 @@ namespace PixivWPF.Common
     /// </summary>
     public partial class DownloadItem : UserControl, INotifyPropertyChanged
     {
+        private const int HTTP_STREAM_READ_COUNT = 4096;
         private Setting setting = Setting.Load();
 
         private DownloadInfo Info { get; set; }
@@ -392,23 +393,27 @@ namespace PixivWPF.Common
                         //await ProcessContentStream(totalBytes, contentStream);
                         using (var ms = new MemoryStream())
                         {
-                            byte[] bytes = new byte[32768];
+                            byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
                             progress.Report(Info.Progress);
                             try
                             {
+                                var fail = 0;
                                 do
                                 {
-                                    var bytesread = await cs.ReadAsync(bytes, 0, 32768);
-                                    if (bytesread >= 0)
+                                    var bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT);
+                                    if (bytesread >= 0 && bytesread <= HTTP_STREAM_READ_COUNT)
                                     {
                                         Info.Received += bytesread;
                                         await ms.WriteAsync(bytes, 0, bytesread);
                                         progress.Report(Info.Progress);
+                                        fail = 0;
                                     }
-                                } while (Info.Received < Info.Length);
+                                    else fail += 1;
+                                } while (Info.Received < Info.Length && fail <= 3);
                                 //if (ms.Length == Info.Received && Info.Received == Info.Length)
                                 if (Info.Received == Info.Length)
                                 {
+                                    State = DownloadState.Writing;
                                     File.WriteAllBytes(Info.FileName, ms.ToArray());
                                     State = DownloadState.Finished;
                                     result = Info.FileName;

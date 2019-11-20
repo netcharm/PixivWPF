@@ -69,10 +69,11 @@ namespace PixivWPF.Pages
             if (IsIdle) return;
 
             var jobs = items.Where(i => i.State == DownloadState.Downloading).Count();
-            foreach (var item in items)
+            foreach (var item in items.Where(i => i.State != DownloadState.Downloading || i.State != DownloadState.Writing))
             {
                 if (item.State == DownloadState.Finished || item.State == DownloadState.Unknown) continue;
-                else if (item.State == DownloadState.Idle || item.State == DownloadState.Paused || item.State == DownloadState.Failed)
+                else if (item.State == DownloadState.Downloading || item.State == DownloadState.Writing) continue;
+                else if (item.State == DownloadState.Idle || item.State == DownloadState.Paused)//|| item.State == DownloadState.Failed)
                 {
                     if (jobs < MaxJobs)
                     {
