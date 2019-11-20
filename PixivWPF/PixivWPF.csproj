@@ -152,6 +152,7 @@
     <Compile Include="Common\LoginDialog.xaml.cs">
       <DependentUpon>LoginDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\ShaderEffects.cs" />
     <Compile Include="Common\ToastItem.xaml.cs">
       <DependentUpon>ToastItem.xaml</DependentUpon>
     </Compile>
@@ -237,6 +238,10 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <Resource Include="Resources\ExcludeReplaceColorEffect.fx.ps" />
+    <Resource Include="Resources\ReplaceColorEffect.fx.ps" />
+    <Resource Include="Resources\TransparenceEffect.fx.ps" />
+    <Resource Include="Resources\ThresholdEffect.fx.ps" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -250,6 +255,18 @@
   <ItemGroup>
     <Content Include="Assets\pixiv-logo.png" />
     <Content Include="Assets\pixiv-logo.svg" />
+    <Content Include="Resources\ExcludeReplaceColorEffect.fx">
+      <Generator>D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe /T ps_2_0 /E main /FoExcludeReplaceColorEffect.fx.ps ExcludeReplaceColorEffect.fx</Generator>
+    </Content>
+    <Content Include="Resources\ReplaceColorEffect.fx">
+      <Generator>"D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe" /T ps_2_0 /E main /Fo%24%28InputName%29.ps %24%28InputName%29</Generator>
+    </Content>
+    <Content Include="Resources\TransparenceEffect.fx">
+      <Generator>"D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe" /T ps_2_0 /E main /Fo%24%28InputName%29.ps %24%28InputName%29</Generator>
+    </Content>
+    <Content Include="Resources\ThresholdEffect.fx">
+      <Generator>"D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe" /T ps_2_0 /E main /Fo%24%28InputName%29.ps %24%28InputName%29</Generator>
+    </Content>
     <Resource Include="pixiv-logo.ico" />
     <Resource Include="Resources\CheckboardPattern_32.png" />
     <Resource Include="Resources\pixiv-logo.png" />

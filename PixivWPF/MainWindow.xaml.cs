@@ -35,15 +35,7 @@ namespace PixivWPF
         {
             if (pagenav is Pages.NavPage) pagenav.CheckPage();
             if (pagetiles is Pages.TilesPage) pagetiles.UpdateTheme();
-            foreach(Window win in Application.Current.Windows)
-            {
-                if(win.Content is Pages.IllustDetailPage)
-                {
-                    var page = win.Content as Pages.IllustDetailPage;
-                    page.UpdateTheme();
-                }
-            }
-            
+            CommonHelper.UpdateTheme();
         }
 
         public MainWindow()
@@ -114,7 +106,7 @@ namespace PixivWPF
             if(CommandToggleTheme.SelectedIndex>=0 && CommandToggleTheme.SelectedIndex< CommandToggleTheme.Items.Count)
             {
                 Common.Theme.CurrentAccent = Common.Theme.Accents[CommandToggleTheme.SelectedIndex];
-                if (pagenav is Pages.NavPage) pagenav.CheckPage();
+                UpdateTheme();
             }
         }
 

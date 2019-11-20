@@ -574,6 +574,7 @@ namespace PixivWPF.Common
                     viewer.Width = WIDTH_MIN;
                     viewer.Height = HEIGHT_DEF;
                     viewer.MinWidth = WIDTH_MIN;
+                    viewer.MinHeight = HEIGHT_DEF;
 
                     var page = new SearchResultPage();
                     page.CurrentWindow = viewer;
@@ -697,6 +698,26 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        public static void UpdateTheme()
+        {
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win.Content is IllustDetailPage)
+                {
+                    var page = win.Content as IllustDetailPage;
+                    page.UpdateTheme();
+                }
+                else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (win.Content is Image)
+                    {
+                        var effect = (win.Content as Image).Effect;
+                        if (effect is ThresholdEffect) (effect as ThresholdEffect).BlankColor = Theme.AccentColor;
+                    }
+                }
+            }
+        }
+
         public static void Show(this ProgressRing progress, bool show)
         {
             if(progress is ProgressRing)
@@ -757,7 +778,7 @@ namespace PixivWPF.Common
             }
             else
                 _downManager = new DownloadManagerPage();
-            _downManager.AutoStart = true;
+            _downManager.AutoStart = false;
 
             Window _dm = null;
             foreach (Window win in Application.Current.Windows)
@@ -781,6 +802,8 @@ namespace PixivWPF.Common
                 viewer.Title = $"Download Manager";
                 viewer.Width = WIDTH_MIN;
                 viewer.Height = HEIGHT_MIN;
+                viewer.MinWidth = WIDTH_MIN;
+                viewer.MinHeight = HEIGHT_MIN;
                 viewer.Content = _downManager;
                 viewer.Tag = _downManager;
                 _downManager.window = viewer;
@@ -2294,7 +2317,7 @@ namespace PixivWPF.Common
                 //box.Background = new SolidColorBrush(Color.FromArgb(160, 255, 255, 255));
                 box.Background = new SolidColorBrush(Theme.AccentColor);
                 //box.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
-                //box.OverlayBrush = Theme.AccentBrush;
+                box.OverlayBrush = Theme.AccentBrush;
                 //box.OverlayOpacity = 0.8;
 
                 box.Opacity = 0.85;
@@ -2314,7 +2337,15 @@ namespace PixivWPF.Common
                 //box.WindowStyle = WindowStyle.None;
                 box.Title = "DropBox";
 
-                box.Content = new System.Windows.Controls.Image() { Source = box.Icon };
+                var img = new Image() { Source = box.Icon };
+                img.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.AccentColor };
+                //img.Effect = new TranspranceEffect() { TransColor = Theme.AccentColor };
+                //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
+                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.AccentColor };
+                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Colors.Transparent };
+                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.AccentColor };
+                //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.AccentColor };
+                box.Content = img;
                 if (setting.DropBoxPosition != null)
                 {
                     double x= setting.DropBoxPosition.X;
@@ -2353,6 +2384,19 @@ namespace PixivWPF.Common
 
     public static class ExtensionMethods
     {
+        // MakePackUri is a utility method for computing a pack uri
+        // for the given resource. 
+        public static Uri MakePackUri(this string relativeFile)
+        {
+            Assembly a = typeof(ThresholdEffect).Assembly;
+
+            // Extract the short name.
+            string assemblyShortName = a.ToString().Split(',')[0];
+            string uriString = $"pack://application:,,,/{assemblyShortName};component/{relativeFile}";
+
+            return new Uri(uriString);
+        }
+
         public static string GetImageName(this string url, bool is_meta_single_page)
         {
             string result = string.Empty;

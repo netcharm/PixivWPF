@@ -24,18 +24,10 @@ namespace PixivWPF.Common
     {
         public void UpdateTheme()
         {
-            foreach (Window win in Application.Current.Windows)
-            {
-                if (win.Content is Pages.IllustDetailPage)
-                {
-                    var page = win.Content as Pages.IllustDetailPage;
-                    page.UpdateTheme();
-                }
-            }
-
+            CommonHelper.UpdateTheme();
         }
 
-        private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {"a", "b" };
+        private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>();
         public ObservableCollection<string> AutoSuggestList
         {
             get { return (auto_suggest_list); }
@@ -47,8 +39,8 @@ namespace PixivWPF.Common
 
             SearchBox.ItemsSource = AutoSuggestList;
 
-            CommandToggleTheme.ItemsSource = Common.Theme.Accents;
-            CommandToggleTheme.SelectedIndex = Common.Theme.Accents.IndexOf(Common.Theme.CurrentAccent);
+            CommandToggleTheme.ItemsSource = Theme.Accents;
+            CommandToggleTheme.SelectedIndex = Theme.Accents.IndexOf(Theme.CurrentAccent);
 
             //Topmost = true;
             ShowActivated = true;
@@ -57,15 +49,15 @@ namespace PixivWPF.Common
 
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
-            Common.Theme.Toggle();
-            this.UpdateTheme();
+            Theme.Toggle();
+            UpdateTheme();
         }
 
         private void CommandToggleTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (CommandToggleTheme.SelectedIndex >= 0 && CommandToggleTheme.SelectedIndex < CommandToggleTheme.Items.Count)
             {
-                Common.Theme.CurrentAccent = Common.Theme.Accents[CommandToggleTheme.SelectedIndex];
+                Theme.CurrentAccent = Theme.Accents[CommandToggleTheme.SelectedIndex];
             }
         }
 

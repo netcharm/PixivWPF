@@ -450,17 +450,6 @@ namespace PixivWPF.Common
 
             if (State != DownloadState.Idle && State != DownloadState.Failed) return;
 
-            //this.Dispatcher.BeginInvoke((Action)async delegate () 
-            //{            
-            //    lastTick = DateTime.Now;
-            //    var ret = await StartAsync();
-            //    if (!string.IsNullOrEmpty(ret))
-            //    {
-            //        PART_OpenFile.IsEnabled = true;
-            //        PART_OpenFolder.IsEnabled = true;
-            //    }
-            //});
-
             this.Dispatcher.BeginInvoke((Action)(async () =>
             {
                 lastTick = DateTime.Now;
@@ -471,7 +460,6 @@ namespace PixivWPF.Common
                     PART_OpenFolder.IsEnabled = true;
                 }
             }));
-
         }
 
         public DownloadItem()

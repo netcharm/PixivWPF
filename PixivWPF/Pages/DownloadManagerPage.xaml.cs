@@ -32,6 +32,13 @@ namespace PixivWPF.Pages
         [DefaultValue(true)]
         public bool AutoStart { get; set; }
 
+        [DefaultValue(5)]
+        public uint MaxJobs { get; set; } = 10;
+
+        private TimerCallback tcb = null;
+        private Timer timer = null;
+        private bool IsIdle = true;
+
         private ObservableCollection<DownloadInfo> items = new ObservableCollection<DownloadInfo>();
         public ObservableCollection<DownloadInfo> Items
         {
@@ -43,12 +50,37 @@ namespace PixivWPF.Pages
             InitializeComponent();
             DataContext = this;
 
+            tcb = timerCallback;
+            timer = new Timer(tcb);
+            timer.Change(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(1000));
+
+            PART_MaxJobs.Value = MaxJobs;
+
             DownloadItems.ItemsSource = items;
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             window = Window.GetWindow(this);
+        }
+
+        private void timerCallback(object stateInfo)
+        {
+            if (IsIdle) return;
+
+            var jobs = items.Where(i => i.State == DownloadState.Downloading).Count();
+            foreach (var item in items)
+            {
+                if (item.State == DownloadState.Finished || item.State == DownloadState.Unknown) continue;
+                else if (item.State == DownloadState.Idle || item.State == DownloadState.Paused || item.State == DownloadState.Failed)
+                {
+                    if (jobs < MaxJobs)
+                    {
+                        item.IsStart = true;
+                        jobs++;
+                    }
+                }
+            }
         }
 
         public bool IsExists(string url)
@@ -124,6 +156,7 @@ namespace PixivWPF.Pages
                     FileTime = dt
                 };
                 Add(item);
+                IsIdle = false;
             }
         }
 
@@ -147,7 +180,7 @@ namespace PixivWPF.Pages
         {
             new Task(() =>
             {
-                var needUpdate = items.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished );
+                var needUpdate = items.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished);
                 if (needUpdate.Count() > 0)
                 {
                     using (DownloadItems.Items.DeferRefresh())
@@ -172,8 +205,16 @@ namespace PixivWPF.Pages
                 var failed = items.Where(o => o.State == DownloadState.Failed );
                 var finished = items.Where(o => o.State == DownloadState.Finished );
 
+                if (finished.Count() == items.Count) IsIdle = true;
+
                 PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}";
             }
+        }
+
+        private void PART_MaxJobs_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            MaxJobs = Convert.ToUInt32(PART_MaxJobs.Value);
+            PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {MaxJobs}";
         }
     }
 }
