@@ -106,6 +106,7 @@ namespace PixivWPF.Common
         private const int WIDTH_MIN = 720;
         private const int HEIGHT_MIN = 520;
         private const int HEIGHT_DEF = 900;
+        private const int HEIGHT_MAX = 1008;
         private static Setting setting = Setting.Load();
         private static CacheImage cache = new CacheImage();
         public static Dictionary<long?, Pixeez.Objects.Work> cacheIllust = new Dictionary<long?, Pixeez.Objects.Work>();
@@ -535,6 +536,8 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/user\/\d+).*?$"));
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)$"));
 
+                mr.Add(Regex.Matches(html, @"(\d+)"));
+
                 foreach (var mi in mr)
                 {
                     if (mi.Count > 50)
@@ -545,7 +548,13 @@ namespace PixivWPF.Common
                     foreach (Match m in mi)
                     {
                         var link = m.Groups[1].Value.Trim().Trim(trim_char);
-                        if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                        long id;
+                        if (long.TryParse(link, out id))
+                        {
+                            links.Add($"https://www.pixiv.net/artworks/{link}");
+                            links.Add($"https://www.pixiv.net/member.php?id={link}");
+                        }
+                        else if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
                     }
                 }
             }
@@ -574,7 +583,8 @@ namespace PixivWPF.Common
                     viewer.Width = WIDTH_MIN;
                     viewer.Height = HEIGHT_DEF;
                     viewer.MinWidth = WIDTH_MIN;
-                    viewer.MinHeight = HEIGHT_DEF;
+                    viewer.MinHeight = HEIGHT_MIN;
+                    viewer.MaxHeight = HEIGHT_MAX;
 
                     var page = new SearchResultPage();
                     page.CurrentWindow = viewer;

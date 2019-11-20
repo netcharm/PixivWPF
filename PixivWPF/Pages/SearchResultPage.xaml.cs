@@ -223,7 +223,8 @@ namespace PixivWPF.Pages
                 }
                 ResultIllusts.UpdateImageTiles(tokens);
 
-                if (ResultIllusts.Items.Count() == 1 && no_filter)
+                if (ResultIllusts.Items.Count() == 0) window.Close();
+                else if (ResultIllusts.Items.Count() == 1 && no_filter)
                 {
                     ResultIllusts.SelectedIndex = 0;
                     CommonHelper.Cmd_OpenIllust.Execute(ResultIllusts);
