@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -196,6 +197,106 @@ namespace PixivWPF.Common
             //throw new NotImplementedException();
         }
 
+        public static async void UpdateTilesTask(this IEnumerable<ImageItem> items, CancellationToken cancelToken = default(CancellationToken), int parallel = 5)
+        {
+            var needUpdate = items.Where(item => item.Source == null);
+            if (Application.Current != null && needUpdate.Count() > 0)
+            {
+                await Application.Current.Dispatcher.BeginInvoke(new Action(async () =>
+                {
+                    try
+                    {
+                        if (parallel <= 0) parallel = 1;
+                        else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
+
+                        var opt = new ParallelOptions();
+                        //opt.TaskScheduler = TaskScheduler.Current;
+                        opt.MaxDegreeOfParallelism = parallel;
+                        opt.CancellationToken = cancelToken;
+
+                        var tokens = await CommonHelper.ShowLogin();
+
+                        using (cancelToken.Register(Thread.CurrentThread.Abort))
+                        {
+                            var ret = Parallel.ForEach(needUpdate, opt, async(item, loopstate, elementIndex) =>
+                            {
+                                if (cancelToken.IsCancellationRequested)
+                                {
+                                    opt.CancellationToken.ThrowIfCancellationRequested();
+                                    return;
+                                }
+
+                                await item.Dispatcher.BeginInvoke(new Action(async () =>
+                                {
+                                    try
+                                    {
+                                        if (item.Source == null)
+                                        {
+                                            if (item.Count <= 1) item.BadgeValue = string.Empty;
+                                            item.Source = await item.Thumb.LoadImage(tokens);
+                                        }
+                                    }
+#if DEBUG
+                                    catch (Exception ex)
+                                    {
+                                        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                    }
+#else
+                                    catch(Exception){ }
+#endif
+                                }));
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        var ert = ex.Message;
+                    }
+                    finally
+                    {
+                    }
+                }));
+            }
+        }
+
+        public static async void UpdateTiles(this IEnumerable<ImageItem> items, Task task, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5)
+        {
+            try
+            {
+                if (task is Task && task.Status == TaskStatus.Running)
+                {
+                    cancelSource.Cancel();
+                    task.Wait();
+                    cancelSource = new CancellationTokenSource();
+                }
+
+                if (Application.Current != null && (task == null || (task is Task && (task.IsCanceled || task.IsCompleted || task.IsFaulted))))
+                {
+                    await Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        task = new Task(() =>
+                        {
+                            items.UpdateTilesTask(cancelSource.Token, parallel);
+                        }, cancelSource.Token, TaskCreationOptions.PreferFairness);
+                        cancelSource = new CancellationTokenSource();
+                        task.Start();
+                    }));
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            finally
+            {
+            }
+        }
+
+        public static void UpdateTiles(this ImageListGrid gallery, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5)
+        {
+            gallery.UpdateTiles(cancelSource, parallel);
+        }
+
         public static ImageItem IllustItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "")
         {
             ImageItem result = null;
@@ -226,7 +327,7 @@ namespace PixivWPF.Common
                             state = $"\r\n🔞{age}, {userliked}♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]{like}, 🖼[{work.Width}x{work.Height}]";
                         }
                         tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tooltip.HtmlDecodeFix()}";
-                        var i = new ImageItem()
+                        result = new ImageItem()
                         {
                             ItemType = ImageItemType.Work,
                             NextURL = nexturl,
@@ -249,7 +350,6 @@ namespace PixivWPF.Common
                             IsDownloaded = illust == null ? false : illust.IsPartDownloaded(),
                             Tag = illust
                         };
-                        result = i;
                     }
                 }
             }
@@ -398,22 +498,21 @@ namespace PixivWPF.Common
             if (page is Pixeez.Objects.Page)
             {
                 var images = page.ImageUrls;
-                url = images.Px128x128;
-                if (string.IsNullOrEmpty(url))
-                {
-                    if (!string.IsNullOrEmpty(images.SquareMedium))
-                        url = images.SquareMedium;
-                    else if (!string.IsNullOrEmpty(images.Px480mw))
-                        url = images.Px480mw;
-                    else if (!string.IsNullOrEmpty(images.Small))
-                        url = images.Px128x128;
-                    else if (!string.IsNullOrEmpty(images.Medium))
-                        url = images.Medium;
-                    else if (!string.IsNullOrEmpty(images.Large))
-                        url = images.Large;
-                    else if (!string.IsNullOrEmpty(images.Original))
-                        url = images.Original;
-                }
+
+                if (!string.IsNullOrEmpty(images.Px128x128))
+                    url = images.Px128x128;
+                else if (!string.IsNullOrEmpty(images.SquareMedium))
+                    url = images.SquareMedium;
+                else if (!string.IsNullOrEmpty(images.Px480mw))
+                    url = images.Px480mw;
+                else if (!string.IsNullOrEmpty(images.Small))
+                    url = images.Px128x128;
+                else if (!string.IsNullOrEmpty(images.Medium))
+                    url = images.Medium;
+                else if (!string.IsNullOrEmpty(images.Large))
+                    url = images.Large;
+                else if (!string.IsNullOrEmpty(images.Original))
+                    url = images.Original;
             }
             return (url);
         }
@@ -424,22 +523,21 @@ namespace PixivWPF.Common
             if (page is Pixeez.Objects.Page)
             {
                 var images = page.ImageUrls;
-                url = images.Large;
-                if (string.IsNullOrEmpty(url))
-                {
-                    if (!string.IsNullOrEmpty(images.Original))
-                        url = images.Original;
-                    else if (!string.IsNullOrEmpty(images.Medium))
-                        url = images.Medium;
-                    else if (!string.IsNullOrEmpty(images.Px480mw))
-                        url = images.Px480mw;
-                    else if (!string.IsNullOrEmpty(images.SquareMedium))
-                        url = images.SquareMedium;
-                    else if (!string.IsNullOrEmpty(images.Px128x128))
-                        url = images.Px128x128;
-                    else if (!string.IsNullOrEmpty(images.Small))
-                        url = images.Small;
-                }
+
+                if (!string.IsNullOrEmpty(images.Medium))
+                    url = images.Medium;
+                else if (!string.IsNullOrEmpty(images.Px480mw))
+                    url = images.Px480mw;
+                else if (!string.IsNullOrEmpty(images.Large))
+                    url = images.Large;
+                else if (!string.IsNullOrEmpty(images.Original))
+                    url = images.Original;
+                else if (!string.IsNullOrEmpty(images.SquareMedium))
+                    url = images.SquareMedium;
+                else if (!string.IsNullOrEmpty(images.Px128x128))
+                    url = images.Px128x128;
+                else if (!string.IsNullOrEmpty(images.Small))
+                    url = images.Small;
             }
             return (url);
         }
@@ -450,22 +548,21 @@ namespace PixivWPF.Common
             if (page is Pixeez.Objects.Page)
             {
                 var images = page.ImageUrls;
-                url = images.Original;
-                if (string.IsNullOrEmpty(url))
-                {
-                    if (!string.IsNullOrEmpty(images.Large))
-                        url = images.Large;
-                    else if (!string.IsNullOrEmpty(images.Medium))
-                        url = images.Medium;
-                    else if (!string.IsNullOrEmpty(images.Px480mw))
-                        url = images.Px480mw;
-                    else if (!string.IsNullOrEmpty(images.SquareMedium))
-                        url = images.SquareMedium;
-                    else if (!string.IsNullOrEmpty(images.Px128x128))
-                        url = images.Px128x128;
-                    else if (!string.IsNullOrEmpty(images.Small))
-                        url = images.Small;
-                }
+
+                if (!string.IsNullOrEmpty(images.Original))
+                    url = images.Original;
+                else if (!string.IsNullOrEmpty(images.Large))
+                    url = images.Large;
+                else if (!string.IsNullOrEmpty(images.Medium))
+                    url = images.Medium;
+                else if (!string.IsNullOrEmpty(images.Px480mw))
+                    url = images.Px480mw;
+                else if (!string.IsNullOrEmpty(images.SquareMedium))
+                    url = images.SquareMedium;
+                else if (!string.IsNullOrEmpty(images.Px128x128))
+                    url = images.Px128x128;
+                else if (!string.IsNullOrEmpty(images.Small))
+                    url = images.Small;
             }
             return (url);
         }
@@ -504,22 +601,21 @@ namespace PixivWPF.Common
             if (pages is Pixeez.Objects.MetaPages)
             {
                 var images = pages.ImageUrls;
-                url = images.Large;
-                if (string.IsNullOrEmpty(url))
-                {
-                    if (!string.IsNullOrEmpty(images.Original))
-                        url = images.Medium;
-                    else if (!string.IsNullOrEmpty(images.Medium))
-                        url = images.Medium;
-                    else if (!string.IsNullOrEmpty(images.Px480mw))
-                        url = images.Px480mw;
-                    else if (!string.IsNullOrEmpty(images.SquareMedium))
-                        url = images.SquareMedium;
-                    else if (!string.IsNullOrEmpty(images.Px128x128))
-                        url = images.Px128x128;
-                    else if (!string.IsNullOrEmpty(images.Small))
-                        url = images.Small;
-                }
+
+                if (!string.IsNullOrEmpty(images.Medium))
+                    url = images.Medium;
+                else if (!string.IsNullOrEmpty(images.Px480mw))
+                    url = images.Px480mw;
+                else if (!string.IsNullOrEmpty(images.Large))
+                    url = images.Large;
+                else if (!string.IsNullOrEmpty(images.Original))
+                    url = images.Medium;
+                else if (!string.IsNullOrEmpty(images.SquareMedium))
+                    url = images.SquareMedium;
+                else if (!string.IsNullOrEmpty(images.Px128x128))
+                    url = images.Px128x128;
+                else if (!string.IsNullOrEmpty(images.Small))
+                    url = images.Small;
             }
             return (url);
         }
@@ -734,14 +830,14 @@ namespace PixivWPF.Common
 
             if (string.IsNullOrEmpty(url))
             {
-                if (!string.IsNullOrEmpty(Illust.ImageUrls.Large))
-                    url = Illust.ImageUrls.Large;
-                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Original))
-                    url = Illust.ImageUrls.Original;
-                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Medium))
+                if (!string.IsNullOrEmpty(Illust.ImageUrls.Medium))
                     url = Illust.ImageUrls.Medium;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.Px480mw))
                     url = Illust.ImageUrls.Px480mw;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Large))
+                    url = Illust.ImageUrls.Large;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Original))
+                    url = Illust.ImageUrls.Original;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.SquareMedium))
                     url = Illust.ImageUrls.SquareMedium;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.Px128x128))

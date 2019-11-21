@@ -474,6 +474,9 @@ namespace PixivWPF.Common
                 else if (Regex.IsMatch(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase).Trim().Trim(trim_char);
 
+                else if (Regex.IsMatch(result, @"^(\d+)(_((p)|(ugoira))*\d+)"))
+                    result = Regex.Replace(result, @"^(\d+)(_((p)|(ugoira))*\d+)", "$1", RegexOptions.IgnoreCase).Trim().Trim(trim_char);
+
                 else if (!Regex.IsMatch(result, @"((UserID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
                 {
                     result = $"Caption: {result}";
@@ -536,7 +539,7 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/user\/\d+).*?$"));
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)$"));
 
-                mr.Add(Regex.Matches(html, @"(\d+)"));
+                mr.Add(Regex.Matches(html, @"^(\d+)(_((p)|(ugoira))*\d+)"));
 
                 foreach (var mi in mr)
                 {

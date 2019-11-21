@@ -465,7 +465,9 @@
                                        Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                        HorizontalContentAlignment="Left" VerticalContentAlignment="Top" 
-                                       LinkClicked="IllustTags_LinkClicked" ImageLoad="IllustTags_ImageLoad" />
+                                       KeyUp="IllustTags_KeyUp"
+                                       LinkClicked="IllustTags_LinkClicked" 
+                                       ImageLoad="IllustTags_ImageLoad" />
                     </Grid>
                 </Expander>
 
@@ -476,7 +478,9 @@
                     <wpf:HtmlPanel x:Name="IllustDesc" 
                                    Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
                                    HorizontalAlignment="Stretch"
-                                   LinkClicked="IllustDesc_LinkClicked" ImageLoad="IllustDesc_ImageLoad"/>
+                                   KeyUp="IllustDesc_KeyUp"
+                                   LinkClicked="IllustDesc_LinkClicked" 
+                                   ImageLoad="IllustDesc_ImageLoad"/>
                 </Expander>
 
                 <!-- Illust Subsets -->

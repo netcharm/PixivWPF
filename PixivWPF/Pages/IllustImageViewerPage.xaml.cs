@@ -38,7 +38,6 @@ namespace PixivWPF.Pages
                 if (item.Illust is Pixeez.Objects.Work)
                 {
                     var illust = item.Illust as Pixeez.Objects.Work;
-                    var url = illust.GetPreviewUrl(item.Index);
 
                     if(illust.PageCount > 1)
                     {
@@ -58,7 +57,14 @@ namespace PixivWPF.Pages
                     }
 
                     var tokens = await CommonHelper.ShowLogin();
-                    Preview.Source = await url.LoadImage(tokens);
+                    var img = await illust.GetPreviewUrl(item.Index).LoadImage(tokens);
+                    if (img == null || img.Width < 360)
+                    {
+                        var large = await item.Illust.GetOriginalUrl(item.Index).LoadImage(tokens);
+                        if (large != null) img = large;
+                    }
+                    Preview.Source = img;
+
                     if (Preview.Source != null)
                     {
                         var aspect = Preview.Source.AspectRatio();

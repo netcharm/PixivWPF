@@ -322,7 +322,7 @@ namespace PixivWPF.Pages
                     foreach (var tag in item.Illust.Tags)
                     {
                         //html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag_full&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">{tag}</a>");
-                        html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">{tag}</a>");
+                        html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">#{tag}</a>");
                         //html.AppendLine($"<button class=\"tag\" data-tag=\"{tag}\">{tag}</button>");
                     }
                     html.AppendLine("<br/>");
@@ -832,6 +832,24 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void IllustTags_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+            {
+                if (IllustTags.SelectedText.Length == 0)
+                    Clipboard.SetText(IllustTags.Text);
+                else
+                    Clipboard.SetText(IllustTags.SelectedText);
+            }
+            else if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.C)
+            {
+                if (IllustTags.SelectedHtml.Length == 0)
+                    Clipboard.SetText(IllustTags.GetHtml());
+                else
+                    Clipboard.SetText(IllustTags.SelectedHtml);
+            }
+        }
+
         private async void IllustDesc_LinkClicked(object sender, RoutedEvenArgs<HtmlLinkClickedEventArgs> args)
         {
             if (args.Data is HtmlLinkClickedEventArgs)
@@ -920,6 +938,24 @@ namespace PixivWPF.Pages
                 {
                     e.Message.ShowMessageBox("ERROR");
                 }
+            }
+        }
+
+        private void IllustDesc_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+            {
+                if (IllustDesc.SelectedText.Length == 0)
+                    Clipboard.SetText(IllustDesc.Text);
+                else
+                    Clipboard.SetText(IllustDesc.SelectedText);
+            }
+            else if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.C)
+            {
+                if (IllustDesc.SelectedHtml.Length == 0)
+                    Clipboard.SetText(IllustDesc.GetHtml());
+                else
+                    Clipboard.SetText(IllustDesc.SelectedHtml);
             }
         }
 
@@ -1149,7 +1185,7 @@ namespace PixivWPF.Pages
 
                             var tokens = await CommonHelper.ShowLogin();
                             var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
-                            if (!cancelUpdatePreviewToken.IsCancellationRequested && (img == null || img.Width < 350))
+                            if (!cancelUpdatePreviewToken.IsCancellationRequested && (img == null || img.Width < 360))
                             {
                                 cancelUpdatePreviewToken.ThrowIfCancellationRequested();
                                 var large = await item.Illust.GetOriginalUrl(item.Index).LoadImage(tokens);
@@ -2223,7 +2259,6 @@ namespace PixivWPF.Pages
             }
         }
         #endregion
-
 
     }
 

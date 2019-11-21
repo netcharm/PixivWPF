@@ -29,7 +29,6 @@ namespace PixivWPF.Pages
         public PixivPage TargetPage = PixivPage.Recommanded;
         private string NextURL = null;
         private bool UPDATING = false;
-        private Task<bool> UpdateTask = null;
 
         public DateTime SelectedDate { get; set; } = DateTime.Now;
 
@@ -52,107 +51,99 @@ namespace PixivWPF.Pages
             e.Accepted = true;
         }
 
-        internal void UpdateImageTilesTask(Pixeez.Tokens tokens)
+        internal async void UpdateImageTilesTask(Pixeez.Tokens tokens)
         {
             if (UPDATING) return;
 
             var needUpdate = ImageList.Where(item => item.Source == null);
             if (needUpdate.Count() > 0)
             {
-                //using (ListImageTiles.Items.DeferRefresh())
+                await Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    UpdateTask = new Task<bool>(() =>
+                    UPDATING = true;
+                    try
                     {
-                        bool result = true;
-                        UPDATING = result;
-                        try
+                        var opt = new ParallelOptions();
+                        opt.MaxDegreeOfParallelism = 5;
+                        opt.TaskScheduler = TaskScheduler.Current;
+                        opt.CancellationToken = cancelToken;
+                        var ret = Parallel.ForEach(needUpdate, opt, async (item, loopstate, elementIndex) =>
                         {
-                            var opt = new ParallelOptions();
-                            opt.MaxDegreeOfParallelism = 15;
-                            opt.TaskScheduler = TaskScheduler.Current;
-                            opt.CancellationToken = cancelToken;
-                            var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                            using (cancelToken.Register(Thread.CurrentThread.Abort))
                             {
-                                using (cancelToken.Register(Thread.CurrentThread.Abort))
+                                if (cancelToken.IsCancellationRequested)
                                 {
-                                    if (cancelToken.IsCancellationRequested)
-                                    {
-                                        //cancelTokenSource.Cancel(true);
-                                        //cancelToken.ThrowIfCancellationRequested();
-                                        opt.CancellationToken.ThrowIfCancellationRequested();
-                                        return;
-                                    }
-
-                                    item.Dispatcher.BeginInvoke(new Action(async () =>
-                                    {
-                                        try
-                                        {
-                                            if (item.Source == null)
-                                            {
-                                                if(item.Illust.PageCount<=1) item.BadgeValue = null;
-                                                item.Source = await item.Thumb.LoadImage(tokens);
-                                            }
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                        }
-                                    }));
+                                    opt.CancellationToken.ThrowIfCancellationRequested();
+                                    return;
                                 }
-                            });
-                            if (ret.IsCompleted)
-                            {
-                                result = !ret.IsCompleted;
+
+                                await item.Dispatcher.BeginInvoke(new Action(async () =>
+                                {
+                                    try
+                                    {
+                                        if (item.Source == null)
+                                        {
+                                            if (item.Illust.PageCount <= 1) item.BadgeValue = null;
+                                            item.Source = await item.Thumb.LoadImage(tokens);
+                                        }
+                                    }
+#if DEBUG
+                                    catch (Exception ex)
+                                    {
+                                        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                    }
+#else
+                                    catch(Exception){ }
+#endif
+                                }));
+
                             }
-                        }
-                        finally
-                        {
-                            result = false;
-                        }
-                        UPDATING = result;
-                        return (result);
-                    });
-                    cancelTokenSource = new CancellationTokenSource();
-                    //cancelTokenSource.CancelAfter(30000);
-                    cancelToken = cancelTokenSource.Token;
-                    UpdateTask.Start();
-                }
+                        });
+                        UPDATING = !ret.IsCompleted;
+                    }
+                    finally
+                    {
+                        UPDATING = false;
+                    }
+                }));
             }
         }
 
-        internal async void UpdateImageTiles(Pixeez.Tokens tokens)
+        internal void UpdateImageTiles(Pixeez.Tokens tokens)
         {
-            try
-            {
-                if (lastTask is Task && lastTask.Status == TaskStatus.Running)
-                {
-                    cancelToken.ThrowIfCancellationRequested();
-                    lastTask.Wait();
-                    //cancelTokenSource.Cancel(true);
-                    //lastTask.Wait(500, cancelToken);
-                    cancelTokenSource = new CancellationTokenSource();
-                    //cancelTokenSource.CancelAfter(30000);
-                    cancelToken = cancelTokenSource.Token;
-                }
+            ImageList.UpdateTiles(lastTask, cancelTokenSource, 5);
 
-                if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
-                {
-                    lastTask = new Task(() =>
-                    {
-                        UpdateImageTilesTask(tokens);
-                    }, cancelTokenSource.Token, TaskCreationOptions.None);
-                    lastTask.RunSynchronously();
-                    //lastTask.Start();
-                    await lastTask;
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR");
-            }
-            finally
-            {
-            }
+            //try
+            //{
+            //    if (lastTask is Task && lastTask.Status == TaskStatus.Running)
+            //    {
+            //        cancelTokenSource.Cancel();
+            //        lastTask.Wait();
+            //        cancelTokenSource = new CancellationTokenSource();
+            //        cancelToken = cancelTokenSource.Token;
+            //    }
+            //    if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
+            //    {
+            //        await Dispatcher.BeginInvoke(new Action(() =>
+            //        {
+            //            lastTask = new Task(() =>
+            //            {
+            //                ImageList.UpdateTilesTask(cancelToken);
+            //                //UpdateImageTilesTask(tokens);
+            //            }, cancelTokenSource.Token, TaskCreationOptions.PreferFairness);
+            //            cancelTokenSource = new CancellationTokenSource();
+            //            cancelToken = cancelTokenSource.Token;
+            //            lastTask.Start();
+            //        }));
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    ex.Message.ShowMessageBox("ERROR");
+            //}
+            //finally
+            //{
+            //}
         }
 
         public TilesPage()
@@ -276,8 +267,6 @@ namespace PixivWPF.Pages
                     ShowRanking(NextURL, "month");
                     break;
             }
-
-            //UpdateImageTile(tokens);
         }
 
         public async void ShowRecommanded(string nexturl = null)
@@ -290,46 +279,47 @@ namespace PixivWPF.Pages
             try
             {
                 ImageTilesWait.Show();
-                Pixeez.Objects.RecommendedRootobject root = null;
-                if (Keyboard.Modifiers == ModifierKeys.Shift)
+                await Dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "20", "1", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
-                else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                {
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "200", "200", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
-                else if (Keyboard.Modifiers == ModifierKeys.Control)
-                {
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "2000", "1000", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
-                else if (Keyboard.Modifiers == ModifierKeys.Windows)
-                {
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "2000", "2000", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
-                else
-                {
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
-                nexturl = root.next_url ?? string.Empty;
-                NextURL = nexturl;
-                ImageTilesWait.Hide();
-
-                if (root.illusts != null)
-                {
-                    ImageTilesWait.Show();
-                    foreach (var illust in root.illusts)
+                    Pixeez.Objects.RecommendedRootobject root = null;
+                    if (Keyboard.Modifiers == ModifierKeys.Shift)
                     {
-                        if (!ids.Contains(illust.Id.Value))
-                        {
-                            ids.Add(illust.Id.Value);
-                            illust.AddTo(ImageList, nexturl);
-                        }
+                        root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "20", "1", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                     }
-                    ImageTilesWait.Hide();
-                    if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
-                    UpdateImageTiles(tokens);
-                }
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                    {
+                        root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "200", "200", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "2000", "1000", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.Windows)
+                    {
+                        root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "2000", "2000", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                    }
+                    else
+                    {
+                        root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                    }
+                    nexturl = root.next_url ?? string.Empty;
+                    NextURL = nexturl;
+
+                    if (root.illusts != null)
+                    {
+                        foreach (var illust in root.illusts)
+                        {
+                            if (!ids.Contains(illust.Id.Value))
+                            {
+                                ids.Add(illust.Id.Value);
+                                illust.AddTo(ImageList, nexturl);
+                            }
+                        }
+                        ImageTilesWait.Hide();
+                        if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                        UpdateImageTiles(tokens);
+                    }
+                }));
             }
             catch (Exception ex)
             {
@@ -341,12 +331,11 @@ namespace PixivWPF.Pages
                 {
                     ex.Message.ShowMessageBox("ERROR");
                 }
-                //setting.AccessToken = string.Empty;
-                //setting.Update = 0;
+                ImageTilesWait.Hide();
             }
             finally
             {
-                ImageTilesWait.Hide();
+                //ImageTilesWait.Hide();
             }
         }
 
@@ -420,18 +409,25 @@ namespace PixivWPF.Pages
 
                 if (root != null)
                 {
-                    ImageTilesWait.Show();
-                    foreach (var tag in root.tags)
+                    await Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        if (!ids.Contains(tag.illust.Id.Value))
+                        ImageTilesWait.Show();
+                        foreach (var tag in root.tags)
                         {
-                            ids.Add(tag.illust.Id.Value);
-                            tag.illust.AddTo(ImageList, nexturl);
-                        }                        
-                    }
-                    ImageTilesWait.Hide();
-                    if (root.tags.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
-                    UpdateImageTiles(tokens);
+                            if (!ids.Contains(tag.illust.Id.Value))
+                            {
+                                ids.Add(tag.illust.Id.Value);
+                                tag.illust.AddTo(ImageList, nexturl);
+                            }
+                        }
+                        ImageTilesWait.Hide();
+                        if (root.tags.Count() > 0 && ListImageTiles.SelectedIndex < 0)
+                        {
+                            ListImageTiles.SelectedIndex = 0;
+                            ListImageTiles.ScrollIntoView(ListImageTiles.Items[0]);
+                        }
+                        UpdateImageTiles(tokens);
+                    }));
                 }
             }
             catch (Exception ex)
@@ -444,10 +440,11 @@ namespace PixivWPF.Pages
                 {
                     ex.Message.ShowMessageBox("ERROR");
                 }
+                ImageTilesWait.Hide();
             }
             finally
             {
-                ImageTilesWait.Hide();
+                //ImageTilesWait.Hide();
             }
         }
 
