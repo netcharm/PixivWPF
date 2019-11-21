@@ -37,7 +37,7 @@ namespace PixivWPF.Pages
 
         private TimerCallback tcb = null;
         private Timer timer = null;
-        private bool IsIdle = true;
+        //private bool IsIdle = true;
 
         private ObservableCollection<DownloadInfo> items = new ObservableCollection<DownloadInfo>();
         public ObservableCollection<DownloadInfo> Items
@@ -66,20 +66,20 @@ namespace PixivWPF.Pages
 
         private void timerCallback(object stateInfo)
         {
-            if (IsIdle) return;
+            //if (IsIdle) return;
 
-            var jobs = items.Where(i => i.State == DownloadState.Downloading).Count();
-            foreach (var item in items.Where(i => i.State != DownloadState.Downloading || i.State != DownloadState.Writing))
+            //var states_job = new List<DownloadState>() { DownloadState.Downloading, DownloadState.Writing, DownloadState.Finished };
+
+            var jobs_count = items.Where(i => i.State == DownloadState.Downloading).Count();
+            //var pre_jobs = items.Where(i => i.State != DownloadState.Downloading && i.State != DownloadState.Writing && i.State != DownloadState.Finished);
+            var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);//|| item.State == DownloadState.Failed)
+            foreach (var item in pre_jobs)
             {
-                if (item.State == DownloadState.Finished || item.State == DownloadState.Unknown) continue;
-                else if (item.State == DownloadState.Downloading || item.State == DownloadState.Writing) continue;
-                else if (item.State == DownloadState.Idle || item.State == DownloadState.Paused)//|| item.State == DownloadState.Failed)
+                if (jobs_count < MaxJobs)
                 {
-                    if (jobs < MaxJobs)
-                    {
-                        item.IsStart = true;
-                        jobs++;
-                    }
+                    //if (states_job.Contains(item.State)) continue;
+                    item.IsStart = true;
+                    jobs_count++;
                 }
             }
         }
@@ -114,7 +114,7 @@ namespace PixivWPF.Pages
             if(item is DownloadInfo)
             {
                 items.Add(item);
-                //items.Insert(0, item);
+                DownloadItems.ScrollIntoView(item);
             }
         }
 
@@ -157,7 +157,7 @@ namespace PixivWPF.Pages
                     FileTime = dt
                 };
                 Add(item);
-                IsIdle = false;
+                //IsIdle = false;
             }
         }
 
@@ -199,16 +199,23 @@ namespace PixivWPF.Pages
 
         private void DownloadItem_TargetUpdated(object sender, DataTransferEventArgs e)
         {
-            if (e.Property != null && (e.Property.Name == "Tag" || e.Property.Name == "Value"))
+            if (e.Property != null)
             {
-                var idle = items.Where(o => o.State == DownloadState.Idle );
-                var downloading = items.Where(o => o.State == DownloadState.Downloading );
-                var failed = items.Where(o => o.State == DownloadState.Failed );
-                var finished = items.Where(o => o.State == DownloadState.Finished );
+                if (e.Property.Name == "Tag" || e.Property.Name == "Value")
+                {
+                    var idle = items.Where(o => o.State == DownloadState.Idle );
+                    var downloading = items.Where(o => o.State == DownloadState.Downloading );
+                    var failed = items.Where(o => o.State == DownloadState.Failed );
+                    var finished = items.Where(o => o.State == DownloadState.Finished );
 
-                if (finished.Count() == items.Count) IsIdle = true;
+                    //if (finished.Count() == items.Count) IsIdle = true;
 
-                PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}";
+                    PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}";
+                }
+                else if (e.Property.Name == "StateChanged")
+                {
+                    //Check
+                }
             }
         }
 

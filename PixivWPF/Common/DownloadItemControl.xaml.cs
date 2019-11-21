@@ -30,13 +30,13 @@ namespace PixivWPF.Common
         private Setting setting = Setting.Load();
 
         [DefaultValue(false)]
-        public bool UsingProxy { get; set; }
-        public string Proxy { get; set; }
+        public bool UsingProxy { get; set; } = false;
+        public string Proxy { get; set; } = string.Empty;
 
-        [DefaultValue(true)]
-        public bool AutoStart { get; set; }
         [DefaultValue(false)]
-        public bool Canceled { get; set; }
+        public bool AutoStart { get; set; } = false;
+        [DefaultValue(false)]
+        public bool Canceled { get; set; } = false;
 
         private DownloadState state = DownloadState.Idle;
         [DefaultValue(DownloadState.Idle)]
@@ -46,7 +46,7 @@ namespace PixivWPF.Common
             set
             {
                 state = value;
-                NotifyPropertyChanged();
+                NotifyPropertyChanged("StateChanged");
             }
         }
 
@@ -79,14 +79,14 @@ namespace PixivWPF.Common
                     }
                 }
                 FileName = Path.Combine(setting.LastFolder, Path.GetFileName(FileName));
-                NotifyPropertyChanged();
+                NotifyPropertyChanged("UrlChanged");
             }
         }
 
-        public string FileName { get; set; }
+        public string FileName { get; set; } = string.Empty;
         public string FolderName { get { return string.IsNullOrEmpty(FileName) ? string.Empty : Path.GetDirectoryName(FileName); } }
-        public DateTime FileTime { get; set; }
-        public double ProgressPercent { get { return Length>0 ? Received/Length*100 : 0; } }
+        public DateTime FileTime { get; set; } = DateTime.Now;
+        public double ProgressPercent { get { return Length > 0 ? Received / Length * 100 : 0; } }
         public Tuple<double, double> Progress
         {
             get { return Tuple.Create<double, double>(Received, Length); }
@@ -94,17 +94,17 @@ namespace PixivWPF.Common
             {
                 Received = (long)value.Item1;
                 Length = (long)value.Item2;
-                NotifyPropertyChanged();
+                NotifyPropertyChanged("ProgressChanged");
             }
         }
         [DefaultValue(0)]
-        public long Received { get; set; }
+        public long Received { get; set; } = 0;
         [DefaultValue(0)]
-        public long Length { get; set; }
+        public long Length { get; set; } = 0;
         [DefaultValue(true)]
-        public bool Overwrite { get; set; }
+        public bool Overwrite { get; set; } = true;
 
-        private bool singlefile = false;
+        private bool singlefile = true;
         [DefaultValue(true)]
         public bool SingleFile
         {
@@ -116,11 +116,12 @@ namespace PixivWPF.Common
                     if (value) FileName = FileName.Replace("_0.", ".");
                     else FileName = Regex.Replace(FileName, @"^(\d+)\.", "$1_0.");
                 }
+                NotifyPropertyChanged("SingleFile");
             }
         }
 
-        public ImageSource Thumbnail { get; set; }
-        public string ThumbnailUrl { get; set; }
+        public ImageSource Thumbnail { get; set; } = null;
+        public string ThumbnailUrl { get; set; } = string.Empty;
 
         private bool forcestart = false;
         [DefaultValue(false)]
@@ -135,6 +136,7 @@ namespace PixivWPF.Common
                     IsStart = value;
                 }
                 forcestart = value;
+                NotifyPropertyChanged("IsForceStart");
             }
         }
 
@@ -149,7 +151,7 @@ namespace PixivWPF.Common
             set
             {
                 start = value;
-                NotifyPropertyChanged();
+                NotifyPropertyChanged("IsStart");
             }
         }
 
@@ -170,7 +172,7 @@ namespace PixivWPF.Common
     /// </summary>
     public partial class DownloadItem : UserControl, INotifyPropertyChanged
     {
-        private const int HTTP_STREAM_READ_COUNT = 4096;
+        private const int HTTP_STREAM_READ_COUNT = 65536;
         private Setting setting = Setting.Load();
 
         private DownloadInfo Info { get; set; }
@@ -376,40 +378,36 @@ namespace PixivWPF.Common
             PART_OpenFile.IsEnabled = false;
             PART_OpenFolder.IsEnabled = false;
 
+            State = DownloadState.Downloading;
             Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
             using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, Info.Url))
             {
-                if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
+                if (response != null && response.Source.IsSuccessStatusCode)// response.Source.StatusCode == HttpStatusCode.OK)
                 {
                     PART_DownloadProgress.IsIndeterminate = false;
                     PART_DownloadProgress.IsEnabled = true;
                     Info.Received = 0;
                     Info.Length = (long)response.Source.Content.Headers.ContentLength;
-                    progress.Report(Progress);
 
-                    State = DownloadState.Downloading;
                     using (var cs = await response.Source.Content.ReadAsStreamAsync())
                     {
-                        //await ProcessContentStream(totalBytes, contentStream);
                         using (var ms = new MemoryStream())
                         {
-                            byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
                             progress.Report(Info.Progress);
+                            byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
                             try
                             {
-                                var fail = 0;
+                                int bytesread = 0;
                                 do
                                 {
-                                    var bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT);
-                                    if (bytesread >= 0 && bytesread <= HTTP_STREAM_READ_COUNT)
+                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT);
+                                    if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Info.Received < Info.Length)
                                     {
                                         Info.Received += bytesread;
                                         await ms.WriteAsync(bytes, 0, bytesread);
                                         progress.Report(Info.Progress);
-                                        fail = 0;
                                     }
-                                    else fail += 1;
-                                } while (Info.Received < Info.Length && fail <= 3);
+                                } while (bytesread > 0 && Info.Received < Info.Length);
                                 //if (ms.Length == Info.Received && Info.Received == Info.Length)
                                 if (Info.Received == Info.Length)
                                 {
@@ -476,14 +474,10 @@ namespace PixivWPF.Common
                 var received = i.Item1 >= 0 ? i.Item1 : 0;
                 var total = i.Item2 >= 0 ? i.Item2 : 0;
                 var delta = (DateTime.Now.Ticks - lastTick.Ticks) / 10000000.0;
-                var rate = delta>0 ? (received - lastReceived) / delta / 1024.0 : 0;
-                //lastTick = DateTime.Now;
-                //lastReceived = Convert.ToInt64(received);
+                var rate = delta > 0 ? (received - lastReceived) / delta / 1024.0 : 0;
                 PART_DownloadProgress.Value = total > 0 ? received / total * 100 : 0;
                 PART_DownInfo.Text = $"Downloading : {received / 1024.0:0.} KB / {total / 1024.0:0.} KB, {rate:0.00} KB/s";
                 PART_DownloadProgressPercent.Text = $"{PART_DownloadProgress.Value:0.0}%";
-                //PART_DownloadProgressPercent.Effect = new 
-                //PART_DownloadProgressPercent.TextEffects = TextEffect.
             });
 
             CheckProperties();
@@ -531,7 +525,7 @@ namespace PixivWPF.Common
                 if (State == DownloadState.Finished || State == DownloadState.Downloading) return;
                 else if(State == DownloadState.Idle || State == DownloadState.Failed)
                 {
-                    if (string.IsNullOrEmpty(Info.Url) && !string.IsNullOrEmpty(PART_FileURL.Text)) Url = (string)PART_FileURL.Text;
+                    if (string.IsNullOrEmpty(Info.Url) && !string.IsNullOrEmpty(PART_FileURL.Text)) Url = PART_FileURL.Text;
                     Start();
                 }
             }
