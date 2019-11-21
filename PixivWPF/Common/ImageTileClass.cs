@@ -517,14 +517,16 @@ namespace PixivWPF.Common
             return (url);
         }
 
-        public static string GetPreviewUrl(this Pixeez.Objects.Page page)
+        public static string GetPreviewUrl(this Pixeez.Objects.Page page, bool large = false)
         {
             var url = string.Empty;
             if (page is Pixeez.Objects.Page)
             {
                 var images = page.ImageUrls;
 
-                if (!string.IsNullOrEmpty(images.Medium))
+                if (large && !string.IsNullOrEmpty(images.Large))
+                    url = images.Large;
+                else if (!string.IsNullOrEmpty(images.Medium))
                     url = images.Medium;
                 else if (!string.IsNullOrEmpty(images.Px480mw))
                     url = images.Px480mw;
@@ -595,14 +597,16 @@ namespace PixivWPF.Common
             return (url);
         }
 
-        public static string GetPreviewUrl(this Pixeez.Objects.MetaPages pages)
+        public static string GetPreviewUrl(this Pixeez.Objects.MetaPages pages, bool large = false)
         {
             var url = string.Empty;
             if (pages is Pixeez.Objects.MetaPages)
             {
                 var images = pages.ImageUrls;
 
-                if (!string.IsNullOrEmpty(images.Medium))
+                if (large && !string.IsNullOrEmpty(images.Large))
+                    url = images.Large;
+                else if (!string.IsNullOrEmpty(images.Medium))
                     url = images.Medium;
                 else if (!string.IsNullOrEmpty(images.Px480mw))
                     url = images.Px480mw;
@@ -669,7 +673,7 @@ namespace PixivWPF.Common
             return (url);
         }
 
-        public static string GetPreviewUrl(this Pixeez.Objects.IllustWork Illust, int idx)
+        public static string GetPreviewUrl(this Pixeez.Objects.IllustWork Illust, int idx, bool large = false)
         {
             var url = string.Empty;
             if (Illust is Pixeez.Objects.IllustWork)
@@ -684,7 +688,7 @@ namespace PixivWPF.Common
                     if (idx < 0) idx = 0;
                     if (idx > illust.PageCount) idx = illust.PageCount.Value - 1;
                     var pages = illust.meta_pages[idx];
-                    url = pages.GetPreviewUrl();
+                    url = pages.GetPreviewUrl(large);
                 }
             }
             return (url);
@@ -734,7 +738,7 @@ namespace PixivWPF.Common
             return (url);
         }
 
-        public static string GetPreviewUrl(this Pixeez.Objects.NormalWork Illust, int idx)
+        public static string GetPreviewUrl(this Pixeez.Objects.NormalWork Illust, int idx, bool large = false)
         {
             var url = string.Empty;
             if (Illust is Pixeez.Objects.NormalWork)
@@ -748,8 +752,8 @@ namespace PixivWPF.Common
                 {
                     if (idx < 0) idx = 0;
                     if (idx > illust.PageCount) idx = illust.PageCount.Value - 1;
-                    var pages = illust.Metadata.Pages[idx];
-                    url = pages.GetPreviewUrl();
+                    var page = illust.Metadata.Pages[idx];
+                    url = page.GetPreviewUrl(large);
                 }
             }
             return (url);
@@ -813,24 +817,26 @@ namespace PixivWPF.Common
             return (url);
         }
 
-        public static string GetPreviewUrl(this Pixeez.Objects.Work Illust, int index = -1)
+        public static string GetPreviewUrl(this Pixeez.Objects.Work Illust, int index = -1, bool large = false)
         {
             var url = string.Empty;
 
             if (Illust is Pixeez.Objects.IllustWork)
             {
                 var illust = Illust as Pixeez.Objects.IllustWork;
-                url = illust.GetPreviewUrl(index);
+                url = illust.GetPreviewUrl(index, large);
             }
             else if (Illust is Pixeez.Objects.NormalWork)
             {
                 var illust = Illust as Pixeez.Objects.NormalWork;
-                url = illust.GetPreviewUrl(index);
+                url = illust.GetPreviewUrl(index, large);
             }
 
             if (string.IsNullOrEmpty(url))
             {
-                if (!string.IsNullOrEmpty(Illust.ImageUrls.Medium))
+                if(large && !string.IsNullOrEmpty(Illust.ImageUrls.Large))
+                    url = Illust.ImageUrls.Large;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Medium))
                     url = Illust.ImageUrls.Medium;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.Px480mw))
                     url = Illust.ImageUrls.Px480mw;
