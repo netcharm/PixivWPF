@@ -556,13 +556,20 @@ namespace Pixeez
         {
             using (var response = res)
             {
-                var json = await response.GetResponseStringAsync();
-                var obj = JToken.Parse(json).SelectToken("response").ToObject<T>();
+                if (response.Source.IsSuccessStatusCode)
+                {
+                    var json = await response.GetResponseStringAsync();
+                    var obj = JToken.Parse(json).SelectToken("response").ToObject<T>();
 
-                if (obj is IPagenated)
-                    ((IPagenated)obj).Pagination = JToken.Parse(json).SelectToken("pagination").ToObject<Pagination>();
+                    if (obj is IPagenated)
+                        ((IPagenated)obj).Pagination = JToken.Parse(json).SelectToken("pagination").ToObject<Pagination>();
 
-                return obj;
+                    return obj;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
@@ -582,17 +589,26 @@ namespace Pixeez
                 //using (var res = await SendRequestAsync(methodtype, url, dic))
                 using (var res = await SendRequestWithoutAuthAsync(methodtype, url, req_auth, dic))
                 {
-                    var str = await res.GetResponseStringAsync();
-                    return JToken.Parse(str).ToObject<T>();
+                    if (res.Source.IsSuccessStatusCode)
+                    {
+                        var str = await res.GetResponseStringAsync();
+                        return JToken.Parse(str).ToObject<T>();
+                    }
+                    else
+                        return default(T);
                 }
-
             }
             else
             {
                 using (var res = await SendRequestWithoutAuthAsync(methodtype, url, req_auth, dic))
                 {
-                    var str = await res.GetResponseStringAsync();
-                    return JToken.Parse(str).ToObject<T>();
+                    if (res.Source.IsSuccessStatusCode)
+                    {
+                        var str = await res.GetResponseStringAsync();
+                        return JToken.Parse(str).ToObject<T>();
+                    }
+                    else
+                        return default(T);
                 }
             }
         }
@@ -646,7 +662,7 @@ namespace Pixeez
                 {"user_id",user_id },
                 {"filter",filter }
             };
-            return await this.AccessNewApiAsync<UserInfo>(url, req_auth, param);
+            return await AccessNewApiAsync<UserInfo>(url, req_auth, param);
         }
 
         /// <summary>
@@ -771,7 +787,7 @@ namespace Pixeez
                 param.Add("max_bookmark_id", max_bookmark_id.Value.ToString());
             }
             if (tag != null) param.Add("tag", tag);
-            return await this.AccessNewApiAsync<Illusts>(url, dic: param, req_auth: req_auth);
+            return await AccessNewApiAsync<Illusts>(url, dic: param, req_auth: req_auth);
         }
 
         /// <summary>
@@ -793,7 +809,7 @@ namespace Pixeez
             if (tags != null)
                 param.Add("tags[]", string.Join(",", tags));
 
-            using (var res = await this.SendRequestWithoutAuthAsync(MethodType.POST, url, param: param, needauth: true))
+            using (var res = await SendRequestWithoutAuthAsync(MethodType.POST, url, param: param, needauth: true))
             {
                 var code = res.Source.EnsureSuccessStatusCode();
             }
@@ -815,7 +831,7 @@ namespace Pixeez
                 //{ "publicity", publicity } ,
             };
 
-            return await this.AccessApiAsync<List<UsersFavoriteWork>>(MethodType.POST, url, param);
+            return await AccessApiAsync<List<UsersFavoriteWork>>(MethodType.POST, url, param);
         }
 
         /// <summary>
@@ -834,7 +850,7 @@ namespace Pixeez
                 //{ "publicity", publicity } ,
             };
 
-            return await this.AccessApiAsync<Paginated<UsersFavoriteWork>>(MethodType.POST, url, param);
+            return await AccessApiAsync<Paginated<UsersFavoriteWork>>(MethodType.POST, url, param);
         }
         #endregion
 
@@ -874,7 +890,7 @@ namespace Pixeez
             if (offset.HasValue)
                 param.Add("offset", offset.Value.ToString());
 
-            return await this.AccessNewApiAsync<RecommendedRootobject>(url, dic: param);
+            return await AccessNewApiAsync<RecommendedRootobject>(url, dic: param);
         }
 
         public async Task<List<User>> GetMyFollowingUsers(long authorid, string restrict = "public", int? offset = null)
@@ -889,7 +905,7 @@ namespace Pixeez
             if (offset.HasValue)
                 param.Add("offset", offset.Value.ToString());
 
-            return await this.AccessNewApiAsync<List<User>>(url, dic: param);
+            return await AccessNewApiAsync<List<User>>(url, dic: param);
         }
         #endregion
 
@@ -919,7 +935,7 @@ namespace Pixeez
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
-            return await this.AccessApiAsync<Paginated<UsersWork>>(MethodType.GET, url, param);
+            return await AccessApiAsync<Paginated<UsersWork>>(MethodType.GET, url, param);
         }
 
         /// <summary>
@@ -947,7 +963,7 @@ namespace Pixeez
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
-            return await this.AccessApiAsync<Paginated<UsersFavoriteWork>>(MethodType.GET, url, param);
+            return await AccessApiAsync<Paginated<UsersFavoriteWork>>(MethodType.GET, url, param);
         }
 
         /// <summary>
@@ -970,7 +986,7 @@ namespace Pixeez
             if (maxId != 0)
                 param.Add("max_id", maxId.ToString());
 
-            return await this.AccessApiAsync<List<Feed>>(MethodType.GET, url, param);
+            return await AccessApiAsync<List<Feed>>(MethodType.GET, url, param);
         }
 
         /// <summary>
@@ -997,7 +1013,7 @@ namespace Pixeez
             {
                 param["offset"] = offset.Value.ToString();
             }
-            return await this.AccessNewApiAsync<Illusts>(url, req_auth, param);
+            return await AccessNewApiAsync<Illusts>(url, req_auth, param);
         }
         #endregion
 
@@ -1035,7 +1051,7 @@ namespace Pixeez
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
-            return await this.AccessApiAsync<Paginated<NormalWork>>(MethodType.GET, url, param);
+            return await AccessApiAsync<Paginated<NormalWork>>(MethodType.GET, url, param);
         }
 
         //# 搜索 (Search) (无需登录)
@@ -1060,7 +1076,7 @@ namespace Pixeez
                 param["duration"] = duration;
             if (offset != null)
                 param["offset"] = offset;
-            return await this.AccessNewApiAsync<Illusts>(url, req_auth, param);
+            return await AccessNewApiAsync<Illusts>(url, req_auth, param);
         }
 
         public async Task<UsersSearchResult> SearchUserAsync(string query, string filter = "for_ios", bool req_auth = true)
@@ -1072,7 +1088,7 @@ namespace Pixeez
                 {"word",query },
                 {"filter",filter }
             };
-            return await this.AccessNewApiAsync<UsersSearchResult>(url, req_auth, param);
+            return await AccessNewApiAsync<UsersSearchResult>(url, req_auth, param);
         }
 
         /// <summary>
@@ -1089,7 +1105,7 @@ namespace Pixeez
             {
                 {"filter",filter }
             };
-            return await this.AccessNewApiAsync<TrendingTags>(url, req_auth, param);
+            return await AccessNewApiAsync<TrendingTags>(url, req_auth, param);
         }
         #endregion
 
@@ -1189,7 +1205,7 @@ namespace Pixeez
             if (!string.IsNullOrWhiteSpace(date))
                 param.Add("date", date);
 
-            return await this.AccessApiAsync<Paginated<Rank>>(MethodType.GET, url, param);
+            return await AccessApiAsync<Paginated<Rank>>(MethodType.GET, url, param);
         }
 
         /// <summary>
@@ -1220,7 +1236,7 @@ namespace Pixeez
             if (!string.IsNullOrWhiteSpace(date))
                 param.Add("date", date);
 
-            return await this.AccessNewApiAsync<RecommendedRootobject>(url, true, param);
+            return await AccessNewApiAsync<RecommendedRootobject>(url, true, param);
         }
 
         /// <summary>
@@ -1246,9 +1262,8 @@ namespace Pixeez
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
-            return await this.AccessApiAsync<Paginated<NormalWork>>(MethodType.GET, url, param);
+            return await AccessApiAsync<Paginated<NormalWork>>(MethodType.GET, url, param);
         }
-
 
         /// <summary>
         /// try using new API, but... added by netcharm
@@ -1274,8 +1289,8 @@ namespace Pixeez
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
             };
 
-            return await this.AccessNewApiAsync<Paginated<NormalWork>>(url, true, param);
-            //return await this.AccessApiAsync<Paginated<IllustWork>>(MethodType.GET, url, param);
+            return await AccessNewApiAsync<Paginated<NormalWork>>(url, true, param);
+            //return await AccessApiAsync<Paginated<IllustWork>>(MethodType.GET, url, param);
         }
 
         /// <summary>
@@ -1297,8 +1312,8 @@ namespace Pixeez
                 dic["offset"] = offset;
             if (include_total_comments != null)
                 dic["include_total_comments"] = format_bool(include_total_comments.Value);
-            var testv = await AccessNewApiAsync<IllustCommentObject>(url, true, dic);
-            return testv;
+
+            return await AccessNewApiAsync<IllustCommentObject>(url, true, dic);
         }
 
         /// <summary>
@@ -1318,7 +1333,7 @@ namespace Pixeez
                 { "include_stats", "true" },
             };
 
-            return await this.AccessApiAsync<List<NormalWork>>(MethodType.GET, url, param);
+            return await AccessApiAsync<List<NormalWork>>(MethodType.GET, url, param);
         }
         #endregion
     }
