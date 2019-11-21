@@ -178,18 +178,14 @@ namespace PixivWPF.Common
             PreviewMouseWheel?.Invoke(sender, e);
         }
 
-        private bool UPDATING = false;
-
         internal Task lastTask = null;
         internal CancellationTokenSource cancelTokenSource;
-        internal CancellationToken cancelToken;
 
         public ImageListGrid()
         {
             InitializeComponent();
 
             cancelTokenSource = new CancellationTokenSource();
-            cancelToken = cancelTokenSource.Token;
 
             PART_ImageTiles.ItemsSource = ImageList;
             //Columns = 5;
@@ -205,106 +201,9 @@ namespace PixivWPF.Common
             }
         }
 
-        internal async void UpdateImageTilesTask(Pixeez.Tokens tokens, int parallel = 5)
-        {
-            if (UPDATING) return;
-
-            var needUpdate = ImageList.Where(item => item.Source == null);
-            if (needUpdate.Count() > 0)
-            {
-                await Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    UPDATING = true;
-                    try
-                    {
-                        var opt = new ParallelOptions();
-
-                        if (parallel <= 0) parallel = 1;
-                        else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
-                        opt.MaxDegreeOfParallelism = parallel;
-                        opt.CancellationToken = cancelToken;
-
-                        var ret = Parallel.ForEach(needUpdate, opt, async(item, loopstate, elementIndex) =>
-                        {
-                            using (cancelToken.Register(Thread.CurrentThread.Abort))
-                            {
-                                if (cancelToken.IsCancellationRequested)
-                                {
-                                    opt.CancellationToken.ThrowIfCancellationRequested();
-                                    return;
-                                }
-
-                                await item.Dispatcher.BeginInvoke(new Action(async () =>
-                                {
-                                    try
-                                    {
-                                        if (item.Source == null)
-                                        {
-                                            if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                            item.Source = await item.Thumb.LoadImage(tokens);
-                                        }
-                                    }
-#if DEBUG
-                                    catch (Exception ex)
-                                    {
-                                        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                    }
-#else
-                                    catch(Exception){ }
-#endif
-                                }));
-                            }
-                        });
-                        UPDATING = !ret.IsCompleted;
-                    }
-                    catch (Exception ex)
-                    {
-                        var ert = ex.Message;
-                        UPDATING = false;
-                    }
-                    finally
-                    {
-                        UPDATING = false;
-                    }
-                }));
-            }
-        }
-
         public void UpdateImageTiles(Pixeez.Tokens tokens, int parallel = 5)
         {
             Items.UpdateTiles(lastTask, cancelTokenSource, parallel);
-
-            //try
-            //{
-            //    if (lastTask is Task && lastTask.Status == TaskStatus.Running)
-            //    {
-            //        cancelTokenSource.Cancel();
-            //        lastTask.Wait();
-            //        cancelTokenSource = new CancellationTokenSource();
-            //        cancelToken = cancelTokenSource.Token;
-            //    }
-            //    if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
-            //    {
-            //        await Dispatcher.BeginInvoke(new Action(() =>
-            //        {
-            //            lastTask = new Task(() =>
-            //            {
-            //                Items.UpdateTilesTask(cancelToken, parallel);
-            //                //UpdateImageTilesTask(tokens, parallel);
-            //            }, cancelToken, TaskCreationOptions.PreferFairness);
-            //            cancelTokenSource = new CancellationTokenSource();
-            //            cancelToken = cancelTokenSource.Token;
-            //            lastTask.Start();
-            //        }));
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    ex.Message.ShowMessageBox("ERROR");
-            //}
-            //finally
-            //{
-            //}
         }
 
         public void Refresh()

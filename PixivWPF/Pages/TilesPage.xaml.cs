@@ -28,13 +28,11 @@ namespace PixivWPF.Pages
         private Setting setting = Setting.Load();
         public PixivPage TargetPage = PixivPage.Recommanded;
         private string NextURL = null;
-        private bool UPDATING = false;
 
         public DateTime SelectedDate { get; set; } = DateTime.Now;
 
         internal Task lastTask = null;
         internal CancellationTokenSource cancelTokenSource;
-        internal CancellationToken cancelToken;
 
         public void UpdateTheme()
         {
@@ -51,99 +49,9 @@ namespace PixivWPF.Pages
             e.Accepted = true;
         }
 
-        internal async void UpdateImageTilesTask(Pixeez.Tokens tokens)
-        {
-            if (UPDATING) return;
-
-            var needUpdate = ImageList.Where(item => item.Source == null);
-            if (needUpdate.Count() > 0)
-            {
-                await Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    UPDATING = true;
-                    try
-                    {
-                        var opt = new ParallelOptions();
-                        opt.MaxDegreeOfParallelism = 5;
-                        opt.TaskScheduler = TaskScheduler.Current;
-                        opt.CancellationToken = cancelToken;
-                        var ret = Parallel.ForEach(needUpdate, opt, async (item, loopstate, elementIndex) =>
-                        {
-                            using (cancelToken.Register(Thread.CurrentThread.Abort))
-                            {
-                                if (cancelToken.IsCancellationRequested)
-                                {
-                                    opt.CancellationToken.ThrowIfCancellationRequested();
-                                    return;
-                                }
-
-                                await item.Dispatcher.BeginInvoke(new Action(async () =>
-                                {
-                                    try
-                                    {
-                                        if (item.Source == null)
-                                        {
-                                            if (item.Illust.PageCount <= 1) item.BadgeValue = null;
-                                            item.Source = await item.Thumb.LoadImage(tokens);
-                                        }
-                                    }
-#if DEBUG
-                                    catch (Exception ex)
-                                    {
-                                        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                    }
-#else
-                                    catch(Exception){ }
-#endif
-                                }));
-
-                            }
-                        });
-                        UPDATING = !ret.IsCompleted;
-                    }
-                    finally
-                    {
-                        UPDATING = false;
-                    }
-                }));
-            }
-        }
-
         internal void UpdateImageTiles(Pixeez.Tokens tokens)
         {
             ImageList.UpdateTiles(lastTask, cancelTokenSource, 5);
-
-            //try
-            //{
-            //    if (lastTask is Task && lastTask.Status == TaskStatus.Running)
-            //    {
-            //        cancelTokenSource.Cancel();
-            //        lastTask.Wait();
-            //        cancelTokenSource = new CancellationTokenSource();
-            //        cancelToken = cancelTokenSource.Token;
-            //    }
-            //    if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
-            //    {
-            //        await Dispatcher.BeginInvoke(new Action(() =>
-            //        {
-            //            lastTask = new Task(() =>
-            //            {
-            //                ImageList.UpdateTilesTask(cancelToken);
-            //                //UpdateImageTilesTask(tokens);
-            //            }, cancelTokenSource.Token, TaskCreationOptions.PreferFairness);
-            //            cancelTokenSource = new CancellationTokenSource();
-            //            cancelToken = cancelTokenSource.Token;
-            //            lastTask.Start();
-            //        }));
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    ex.Message.ShowMessageBox("ERROR");
-            //}
-            //finally
-            //{
-            //}
         }
 
         public TilesPage()
@@ -153,8 +61,6 @@ namespace PixivWPF.Pages
             window = this.GetActiveWindow();
 
             cancelTokenSource = new CancellationTokenSource();
-            //cancelTokenSource.CancelAfter(30000);
-            cancelToken = cancelTokenSource.Token;
 
             IllustDetail.Content = detail_page;
 
