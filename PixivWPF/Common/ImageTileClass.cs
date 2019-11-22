@@ -2,6 +2,7 @@
 using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -9,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace PixivWPF.Common
@@ -197,12 +199,85 @@ namespace PixivWPF.Common
             //throw new NotImplementedException();
         }
 
-        public static async void UpdateTilesTask(this IEnumerable<ImageItem> items, CancellationToken cancelToken = default(CancellationToken), int parallel = 5)
+        public static void UpdateTiles(this ObservableCollection<ImageItem> collection, ImageItem item = null)
+        {
+            if (collection is ObservableCollection<ImageItem>)
+            {
+                if (item is ImageItem)
+                {
+                    int idx = collection.IndexOf(item);
+                    if (idx >= 0 && idx < collection.Count())
+                    {
+                        collection.Remove(item);
+                        collection.Insert(idx, item);
+                    }
+                }
+                else
+                {
+                    CollectionViewSource.GetDefaultView(collection).Refresh();
+                }
+            }
+        }
+
+        public static void UpdateTiles(this ObservableCollection<ImageItem> collection, IEnumerable<ImageItem> items)
+        {
+            if (collection is ObservableCollection<ImageItem>)
+            {
+                if (items is IEnumerable<ImageItem>)
+                {
+                    var count = collection.Count();
+                    foreach (ImageItem sub in items)
+                    {
+                        int idx = collection.IndexOf(sub);
+                        if (idx >= 0 && idx < count)
+                        {
+                            collection.Remove(sub);
+                            collection.Insert(idx, sub);
+                        }
+                    }
+                }
+                else
+                {
+                    CollectionViewSource.GetDefaultView(collection).Refresh();
+                }
+            }
+        }
+
+        public static bool UpdateTilesDaownloadStatus(this ImageListGrid gallery, bool fuzzy = true)
+        {
+            bool result = false;
+            if (gallery.SelectedItems.Count <= 0 || gallery.SelectedIndex < 0) return (result);
+            try
+            {
+                foreach (var item in gallery.SelectedItems)
+                {
+                    if (item.Illust == null) continue;
+                    bool download = fuzzy ? item.Illust.IsPartDownloaded() : item.Illust.GetOriginalUrl(item.Index).IsDownloaded();
+                    if (item.IsDownloaded != download)
+                    {
+                        item.IsDownloaded = download;
+                        result |= download;
+                    }
+                    item.IsFavorited = item.IsLiked() && item.DisplayFavMark;
+                }
+            }
+#if DEBUG
+            catch(Exception e)
+            {
+                e.Message.ShowMessageBox("ERROR");
+            }
+#else
+            catch (Exception) { }
+#endif
+            return (result);
+        }
+
+        public static async void UpdateTilesImageTask(this IEnumerable<ImageItem> items, CancellationToken cancelToken = default(CancellationToken), int parallel = 5)
         {
             var needUpdate = items.Where(item => item.Source == null);
             if (Application.Current != null && needUpdate.Count() > 0)
             {
-                await Application.Current.Dispatcher.BeginInvoke(new Action(async () =>
+                await CommonHelper.Dispatcher.BeginInvoke(new Action(async () =>
                 {
                     try
                     {
@@ -259,7 +334,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void UpdateTiles(this IEnumerable<ImageItem> items, Task task, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5)
+        public static async void UpdateTilesImage(this IEnumerable<ImageItem> items, Task task, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5)
         {
             try
             {
@@ -272,15 +347,26 @@ namespace PixivWPF.Common
 
                 if (Application.Current != null && (task == null || (task is Task && (task.IsCanceled || task.IsCompleted || task.IsFaulted))))
                 {
-                    await Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    await new Action(() =>
                     {
                         task = new Task(() =>
                         {
-                            items.UpdateTilesTask(cancelSource.Token, parallel);
+                            items.UpdateTilesImageTask(cancelSource.Token, parallel);
                         }, cancelSource.Token, TaskCreationOptions.PreferFairness);
                         cancelSource = new CancellationTokenSource();
                         task.Start();
-                    }));
+                    }).InvokeAsync();
+
+                    ////await CommonHelper.Dispatcher.BeginInvoke(new Action(() =>
+                    //await task.AppDispatcher().BeginInvoke(new Action(() =>
+                    //{
+                    //    task = new Task(() =>
+                    //    {
+                    //        items.UpdateTilesImageTask(cancelSource.Token, parallel);
+                    //    }, cancelSource.Token, TaskCreationOptions.PreferFairness);
+                    //    cancelSource = new CancellationTokenSource();
+                    //    task.Start();
+                    //}));
                 }
             }
             catch (Exception ex)

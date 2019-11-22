@@ -62,11 +62,6 @@
                   SelectionMode="Single"
                   ItemsSource="{Binding Items, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                   ItemTemplate="{DynamicResource DownloadItemTemplate}">
-            <!--<ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <VirtualizingStackPanel ScrollViewer.CanContentScroll="True" UseLayoutRounding="True"/>
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>-->
         </ListView>
     </Grid>
 </Page>

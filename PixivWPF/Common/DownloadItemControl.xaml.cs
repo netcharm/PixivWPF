@@ -414,6 +414,7 @@ namespace PixivWPF.Common
                                     State = DownloadState.Writing;
                                     File.WriteAllBytes(Info.FileName, ms.ToArray());
                                     State = DownloadState.Finished;
+                                    IsStart = false;
                                     result = Info.FileName;
                                     File.SetCreationTime(FileName, FileTime);
                                     File.SetLastWriteTime(FileName, FileTime);

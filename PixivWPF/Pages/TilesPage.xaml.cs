@@ -51,7 +51,7 @@ namespace PixivWPF.Pages
 
         internal void UpdateImageTiles(Pixeez.Tokens tokens)
         {
-            ImageList.UpdateTiles(lastTask, cancelTokenSource, 5);
+            ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);
         }
 
         public TilesPage()

@@ -82,6 +82,19 @@ namespace PixivWPF.Pages
                     jobs_count++;
                 }
             }
+            UpdateStateInfo();
+        }
+
+        private async void UpdateStateInfo()
+        {
+            await new Action(() => {
+                var idle = items.Where(o => o.State == DownloadState.Idle );
+                var downloading = items.Where(o => o.State == DownloadState.Downloading || o.State == DownloadState.Writing );
+                var failed = items.Where(o => o.State == DownloadState.Failed );
+                var finished = items.Where(o => o.State == DownloadState.Finished );
+
+                PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}";
+            }).InvokeAsync();
         }
 
         public bool IsExists(string url)
@@ -201,20 +214,9 @@ namespace PixivWPF.Pages
         {
             if (e.Property != null)
             {
-                if (e.Property.Name == "Tag" || e.Property.Name == "Value")
+                if (e.Property.Name == "Tag" || e.Property.Name == "Value" || e.Property.Name == "StateChanged")
                 {
-                    var idle = items.Where(o => o.State == DownloadState.Idle );
-                    var downloading = items.Where(o => o.State == DownloadState.Downloading );
-                    var failed = items.Where(o => o.State == DownloadState.Failed );
-                    var finished = items.Where(o => o.State == DownloadState.Finished );
-
-                    //if (finished.Count() == items.Count) IsIdle = true;
-
-                    PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}";
-                }
-                else if (e.Property.Name == "StateChanged")
-                {
-                    //Check
+                    UpdateStateInfo();
                 }
             }
         }

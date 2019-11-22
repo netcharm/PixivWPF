@@ -203,7 +203,7 @@ namespace PixivWPF.Common
 
         public void UpdateImageTiles(Pixeez.Tokens tokens, int parallel = 5)
         {
-            Items.UpdateTiles(lastTask, cancelTokenSource, parallel);
+            Items.UpdateTilesImage(lastTask, cancelTokenSource, parallel);
         }
 
         public void Refresh()
