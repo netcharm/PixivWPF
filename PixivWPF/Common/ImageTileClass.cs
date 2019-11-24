@@ -277,7 +277,7 @@ namespace PixivWPF.Common
             var needUpdate = items.Where(item => item.Source == null);
             if (Application.Current != null && needUpdate.Count() > 0)
             {
-                await CommonHelper.Dispatcher.BeginInvoke(new Action(async () =>
+                await new Action(async () =>
                 {
                     try
                     {
@@ -301,7 +301,7 @@ namespace PixivWPF.Common
                                     return;
                                 }
 
-                                await item.Dispatcher.BeginInvoke(new Action(async () =>
+                                await new Action(async () =>
                                 {
                                     try
                                     {
@@ -319,7 +319,7 @@ namespace PixivWPF.Common
 #else
                                     catch(Exception){ }
 #endif
-                                }));
+                                }).InvokeAsync();
                             });
                         }
                     }
@@ -330,7 +330,7 @@ namespace PixivWPF.Common
                     finally
                     {
                     }
-                }));
+                }).InvokeAsync();
             }
         }
 
@@ -356,17 +356,6 @@ namespace PixivWPF.Common
                         cancelSource = new CancellationTokenSource();
                         task.Start();
                     }).InvokeAsync();
-
-                    ////await CommonHelper.Dispatcher.BeginInvoke(new Action(() =>
-                    //await task.AppDispatcher().BeginInvoke(new Action(() =>
-                    //{
-                    //    task = new Task(() =>
-                    //    {
-                    //        items.UpdateTilesImageTask(cancelSource.Token, parallel);
-                    //    }, cancelSource.Token, TaskCreationOptions.PreferFairness);
-                    //    cancelSource = new CancellationTokenSource();
-                    //    task.Start();
-                    //}));
                 }
             }
             catch (Exception ex)

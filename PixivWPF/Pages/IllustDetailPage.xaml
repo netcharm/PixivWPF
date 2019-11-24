@@ -104,7 +104,7 @@
             <ColumnDefinition MinWidth="710"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Illust Preview Viewport -->
+        <!-- Illust Detail Viewport -->
         <ScrollViewer Grid.Column="1" x:Name="IllustDetailViewer"
                       Margin="4,4,4,4"
                       HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
@@ -193,7 +193,7 @@
                     <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvator" 
                        Width="64" Height="64" Stretch="Uniform"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInto" x:Uid="btnAuthorInto"
+                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInfo" x:Uid="btnAuthorInto"
                             Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
                             Background="Transparent" Foreground="Transparent"
                             Click="ActionIllustAuthourInfo_Click"/>
@@ -243,10 +243,11 @@
                                 Foreground="{DynamicResource AccentColorBrush}" 
                                 Margin="2,0,4,0" 
                                 Width="16" Height="16"/>
-                            <iconPacks:PackIconModern Kind="ImageAnts" x:Name="IllustSizeIcon"
-                                              HorizontalAlignment="Right" VerticalAlignment="Center"
-                                              Foreground="{DynamicResource AccentColorBrush}" 
-                                              Width="16" Height="16"/>
+                            <iconPacks:PackIconModern 
+                                Kind="ImageAnts" x:Name="IllustSizeIcon"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Foreground="{DynamicResource AccentColorBrush}" 
+                                Width="16" Height="16"/>
                             <TextBlock x:Name="IllustSize" Margin="2,0,4,0" 
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>

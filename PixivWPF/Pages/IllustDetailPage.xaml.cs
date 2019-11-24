@@ -31,15 +31,9 @@ namespace PixivWPF.Pages
     public partial class IllustDetailPage : Page
     {
         private object DataObject = null;
-        private Task lastTask = null;
-        private CancellationTokenSource cancelTokenSource;
-        private CancellationToken cancelToken;
 
-        private Task update_preview_task = null;
-        private CancellationTokenSource cancelUpdatePreviewTokenSource;
-        private CancellationToken cancelUpdatePreviewToken;
-
-        public ICommand MouseDoubleClickCommand { get; } = new DelegateCommand<object>(obj => {
+        public ICommand MouseDoubleClickCommand { get; } = new DelegateCommand<object>(obj =>
+        {
             MessageBox.Show("");
         });
 
@@ -152,10 +146,10 @@ namespace PixivWPF.Pages
                         ToolTipService.SetToolTip(IllustDownloaded, null);
                     }
                 }
-            }        
+            }
         }
 
-        private void UpdateMark(bool all=false)
+        private void UpdateMark(bool all = false)
         {
             if (DataObject is ImageItem)
             {
@@ -203,29 +197,10 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (lastTask is Task && lastTask.Status == TaskStatus.Running)
+                await new Action(() =>
                 {
-                    cancelUpdatePreviewTokenSource.Cancel();
-                    update_preview_task.Wait();
-                    cancelUpdatePreviewTokenSource = new CancellationTokenSource();
-                    cancelUpdatePreviewToken = cancelUpdatePreviewTokenSource.Token;
-
-                    cancelTokenSource.Cancel();
-                    lastTask.Wait();
-                    cancelTokenSource = new CancellationTokenSource();
-                    cancelToken = cancelTokenSource.Token;
-                }
-
-                if (lastTask == null || (lastTask is Task && (lastTask.IsCanceled || lastTask.IsCompleted || lastTask.IsFaulted)))
-                {
-                    lastTask = new Task(() =>
-                    {
-                        UpdateDetailIllust(item);
-                    }, cancelToken, TaskCreationOptions.None);
-                    lastTask.RunSynchronously();
-                    //lastTask.Start();
-                    await lastTask;
-                }
+                    UpdateDetailIllust(item);
+                }).InvokeAsync();
             }
             catch (Exception ex)
             {
@@ -391,7 +366,6 @@ namespace PixivWPF.Pages
                 IllustAuthorAvator.Source = await item.Illust.User.GetAvatarUrl().LoadImage(tokens);
                 if (IllustAuthorAvator.Source != null)
                 {
-                    cancelToken.ThrowIfCancellationRequested();
                     IllustAuthorAvatorWait.Hide();
                 }
 
@@ -581,7 +555,7 @@ namespace PixivWPF.Pages
                 {
                     //System.Threading.Thread.Sleep(250);
                     var subset = item.Illust as Pixeez.Objects.NormalWork;
-                    if(subset.Metadata == null)
+                    if (subset.Metadata == null)
                     {
                         var illusts = await tokens.GetWorksAsync(item.Illust.Id.Value);
                         foreach (var illust in illusts)
@@ -639,7 +613,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ShowRelativeInline(Pixeez.Tokens tokens, ImageItem item, string next_url="")
+        private async void ShowRelativeInline(Pixeez.Tokens tokens, ImageItem item, string next_url = "")
         {
             try
             {
@@ -766,13 +740,6 @@ namespace PixivWPF.Pages
 
             IllustDetailWait.Visibility = Visibility.Collapsed;
 
-            cancelTokenSource = new CancellationTokenSource();
-            //cancelTokenSource.CancelAfter(30000);
-            cancelToken = cancelTokenSource.Token;
-
-            cancelUpdatePreviewTokenSource = new CancellationTokenSource();
-            cancelUpdatePreviewToken = cancelUpdatePreviewTokenSource.Token;
-
             UpdateTheme();
         }
 
@@ -838,20 +805,28 @@ namespace PixivWPF.Pages
 
         private void IllustTags_KeyUp(object sender, KeyEventArgs e)
         {
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+            try
             {
-                if (IllustTags.SelectedText.Length == 0)
-                    Clipboard.SetText(IllustTags.Text.HtmlToText().HtmlDecode());
-                else
-                    Clipboard.SetText(IllustTags.SelectedText);
+                if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+                {
+                    if (IllustTags.SelectedText.Length == 0)
+                        Clipboard.SetDataObject(IllustTags.Text.HtmlToText().HtmlDecode());
+                    else
+                        Clipboard.SetDataObject(IllustTags.SelectedText);
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.C)
+                {
+                    if (IllustTags.SelectedHtml.Length == 0)
+                        Clipboard.SetDataObject(IllustTags.GetHtml());
+                    else
+                        Clipboard.SetDataObject(IllustTags.SelectedHtml);
+                }
             }
-            else if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.C)
-            {
-                if (IllustTags.SelectedHtml.Length == 0)
-                    Clipboard.SetText(IllustTags.GetHtml());
-                else
-                    Clipboard.SetText(IllustTags.SelectedHtml);
-            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception ) { }
+#endif
         }
 
         private async void IllustDesc_LinkClicked(object sender, RoutedEvenArgs<HtmlLinkClickedEventArgs> args)
@@ -947,20 +922,28 @@ namespace PixivWPF.Pages
 
         private void IllustDesc_KeyUp(object sender, KeyEventArgs e)
         {
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+            try
             {
-                if (IllustDesc.SelectedText.Length == 0)
-                    Clipboard.SetText(IllustDesc.Text.HtmlToText().HtmlDecode());
-                else
-                    Clipboard.SetText(IllustDesc.SelectedText);
+                if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+                {
+                    if (IllustDesc.SelectedText.Length == 0)
+                        Clipboard.SetDataObject(IllustDesc.Text.HtmlToText().HtmlDecode());
+                    else
+                        Clipboard.SetDataObject(IllustDesc.SelectedText);
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.C)
+                {
+                    if (IllustDesc.SelectedHtml.Length == 0)
+                        Clipboard.SetDataObject(IllustDesc.GetHtml());
+                    else
+                        Clipboard.SetDataObject(IllustDesc.SelectedHtml);
+                }
             }
-            else if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.C)
-            {
-                if (IllustDesc.SelectedHtml.Length == 0)
-                    Clipboard.SetText(IllustDesc.GetHtml());
-                else
-                    Clipboard.SetText(IllustDesc.SelectedHtml);
-            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception ) { }
+#endif
         }
 
         private void IllustDownloaded_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -1082,14 +1065,14 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if(sender == ActionIllustAuthorInfo || sender == btnAuthorInto)
+            if (sender == ActionIllustAuthorInfo || sender == btnAuthorInfo)
             {
                 if (DataObject is ImageItem)
                 {
                     CommonHelper.Cmd_OpenIllust.Execute((DataObject as ImageItem).Illust.User);
                 }
             }
-            else if(sender == ActionIllustAuthorFollowing)
+            else if (sender == ActionIllustAuthorFollowing)
             {
                 if (DataObject is Pixeez.Objects.UserBase)
                 {
@@ -1158,69 +1141,54 @@ namespace PixivWPF.Pages
 
         private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
         {
-            if (update_preview_task is Task && update_preview_task.Status == TaskStatus.Running)
-            {
-                cancelUpdatePreviewTokenSource.Cancel();
-                update_preview_task.Wait();
-                cancelUpdatePreviewTokenSource = new CancellationTokenSource();
-                cancelUpdatePreviewToken = cancelUpdatePreviewTokenSource.Token;
-            }
-
-            if (update_preview_task == null || (update_preview_task is Task && (update_preview_task.IsCanceled || update_preview_task.IsCompleted || update_preview_task.IsFaulted)))
+            if (DataObject is ImageItem)
             {
                 var ua = new Action(async () =>
                 {
-                    if(DataObject is ImageItem)
+                    try
                     {
-                        try
+                        PreviewWait.Show();
+
+                        var idx = -1;
+                        var item = DataObject as ImageItem;
+                        if (SubIllusts.SelectedItem is ImageItem)
                         {
-                            PreviewWait.Show();
-
-                            var idx = -1;
-                            var item = DataObject as ImageItem;
-                            if (SubIllusts.SelectedItem is ImageItem)
-                            {
-                                idx = SubIllusts.SelectedIndex;
-                                item = SubIllusts.SelectedItem as ImageItem;
-                            }
-
-                            lastSelectionItem = item;
-                            lastSelectionChanged = DateTime.Now.ToFileTime();
-
-                            var tokens = await CommonHelper.ShowLogin();
-                            var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
-                            if (!cancelUpdatePreviewToken.IsCancellationRequested && (img == null || img.Width < 360))
-                            {
-                                cancelUpdatePreviewToken.ThrowIfCancellationRequested();
-                                var large = await item.Illust.GetOriginalUrl(item.Index).LoadImage(tokens);
-                                cancelUpdatePreviewToken.ThrowIfCancellationRequested();
-                                if (!cancelUpdatePreviewToken.IsCancellationRequested && large != null) img = large;
-                            }
-                            if (!cancelUpdatePreviewToken.IsCancellationRequested && img != null)
-                            {
-                                if(SubIllusts.SelectedItem is ImageItem)
-                                {
-                                    if(SubIllusts.SelectedItem == item && SubIllusts.SelectedItem.IsSameIllust(img.GetHashCode()))
-                                        Preview.Source = img;
-                                }
-                                else
-                                {
-                                    //if((DataObject as ImageItem).IsSameIllust(img.GetHashCode()))
-                                    if ((DataObject as ImageItem).Illust.Id.IsSameIllust(img.GetHashCode()) ||
-                                        (DataObject as ImageItem).IsSameIllust(img.GetHashCode()))
-                                        Preview.Source = img;
-                                }
-                            }
+                            idx = SubIllusts.SelectedIndex;
+                            item = SubIllusts.SelectedItem as ImageItem;
                         }
-                        catch (Exception) { }
-                        finally
+
+                        lastSelectionItem = item;
+                        lastSelectionChanged = DateTime.Now.ToFileTime();
+
+                        var tokens = await CommonHelper.ShowLogin();
+                        var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
+                        if (img == null || img.Width < 360)
                         {
-                            if (Preview.Source != null) Preview.Show();
-                            PreviewWait.Hide();
+                            var large = await item.Illust.GetPreviewUrl(item.Index, true).LoadImage(tokens);
+                            if (large != null) img = large;
+                        }
+                        if (img != null)
+                        {
+                            if(SubIllusts.SelectedItem is ImageItem)
+                            {
+                                if(SubIllusts.SelectedItem == item && SubIllusts.SelectedItem.IsSameIllust(img.GetHashCode()))
+                                    Preview.Source = img;
+                            }
+                            else
+                            {
+                                if ((DataObject as ImageItem).Illust.Id.IsSameIllust(img.GetHashCode()) ||
+                                        (DataObject as ImageItem).IsSameIllust(img.GetHashCode()))
+                                    Preview.Source = img;
+                            }
                         }
                     }
-                });
-                this.Dispatcher.BeginInvoke(ua);
+                    catch (Exception) { }
+                    finally
+                    {
+                        if (Preview.Source != null) Preview.Show();
+                        PreviewWait.Hide();
+                    }
+                }).InvokeAsync();
             }
         }
         #endregion
@@ -1337,7 +1305,7 @@ namespace PixivWPF.Pages
                     if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
                     {
                         items.LikeUser();
-                    }                        
+                    }
                     else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
                     {
                         items.LikeUser(false);
@@ -1653,7 +1621,7 @@ namespace PixivWPF.Pages
                 var item = DataObject as ImageItem;
                 ShowRelativeInline(tokens, item);
             }
-            else if(DataObject is Pixeez.Objects.UserBase)
+            else if (DataObject is Pixeez.Objects.UserBase)
             {
                 var user = DataObject as Pixeez.Objects.UserBase;
                 ShowUserWorksInline(tokens, user);
@@ -1843,9 +1811,9 @@ namespace PixivWPF.Pages
                 //CommentsViewer.Language = System.Windows.Markup.XmlLanguage.GetLanguage("zh");
                 CommentsViewer.NavigateToString("about:blank");
 
-                    //.Document = string.Empty;
+                //.Document = string.Empty;
                 var result = await tokens.GetIllustComments(item.ID, "0", true);
-                foreach(var comment in result.comments)
+                foreach (var comment in result.comments)
                 {
                     //comment.
                 }
@@ -1935,7 +1903,7 @@ namespace PixivWPF.Pages
                             }
                             else if (item.Uid.Equals("ActionNavPageSeparator", StringComparison.CurrentCultureIgnoreCase) ||
                                      item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
-                            {                                
+                            {
                                 var next_url = RelativeIllustsExpander.Tag as string;
                                 if (string.IsNullOrEmpty(next_url))
                                     item.Visibility = Visibility.Collapsed;
@@ -2120,7 +2088,7 @@ namespace PixivWPF.Pages
 
         private void ActionSaveIllusts_Click(object sender, RoutedEventArgs e)
         {
-            if(sender is MenuItem)
+            if (sender is MenuItem)
             {
                 var m = sender as MenuItem;
                 var host = (m.Parent as ContextMenu).PlacementTarget;
@@ -2135,12 +2103,12 @@ namespace PixivWPF.Pages
                     }
                     else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                     {
-                        foreach(ImageItem item in RelativeIllusts.SelectedItems)
+                        foreach (ImageItem item in RelativeIllusts.SelectedItems)
                         {
                             CommonHelper.Cmd_SaveIllust.Execute(item);
                         }
                     }
-                    else if(host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
                     {
                         foreach (ImageItem item in FavoriteIllusts.SelectedItems)
                         {
@@ -2238,7 +2206,7 @@ namespace PixivWPF.Pages
                         if (DataObject is ImageItem)
                         {
                             var item = DataObject as ImageItem;
-                            ShowRelativeInline(tokens, item, RelativeIllustsExpander.Tag is string ? RelativeIllustsExpander.Tag as string:string.Empty);
+                            ShowRelativeInline(tokens, item, RelativeIllustsExpander.Tag is string ? RelativeIllustsExpander.Tag as string : string.Empty);
                         }
                         else if (DataObject is Pixeez.Objects.UserBase)
                         {
