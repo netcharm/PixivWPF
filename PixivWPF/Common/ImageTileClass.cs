@@ -412,7 +412,7 @@ namespace PixivWPF.Common
                             age = illust.AgeLimit != null ? $"R[{illust.AgeLimit.SanityAge()}]" : string.Empty;
                             state = $"\r\n🔞{age}, {userliked}♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]{like}, 🖼[{work.Width}x{work.Height}]";
                         }
-                        tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tooltip.HtmlDecodeFix()}";
+                        tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tooltip.HtmlDecode()}";
                         result = new ImageItem()
                         {
                             ItemType = ImageItemType.Work,

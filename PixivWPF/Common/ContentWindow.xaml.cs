@@ -160,11 +160,7 @@ namespace PixivWPF.Common
 
         private void Window_KeyUp(object sender, KeyEventArgs e)
         {
-            if (this.Content is Pages.DownloadManagerPage) return;
-            if (this.Tag is Pages.DownloadManagerPage) return;
-
-            e.Handled = true;
-            if (e.Key == Key.Escape) Close();
+            sender.WindowKeyUp(e);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

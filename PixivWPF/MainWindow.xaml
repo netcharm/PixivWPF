@@ -19,8 +19,9 @@
                  RenderOptions.EdgeMode="Aliased"
                  TextOptions.TextFormattingMode="Display"
                  AllowDrop="True"
-                 PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
                  WindowStartupLocation="CenterScreen" MinWidth="1440" MinHeight="720" Width="1440" Height="972"
+                 KeyUp="MetroWindow_KeyUp"
+                 PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
                  Closing="MainWindow_Closing" >
 
 

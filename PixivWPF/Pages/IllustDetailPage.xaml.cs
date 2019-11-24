@@ -51,10 +51,14 @@ namespace PixivWPF.Pages
             //style.AppendLine($"*{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", Monaco, Consolas, \"Courier New\", \"Segoe UI\", monospace, 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, \"WenQuanYi Microhei\", \"WenQuanYi Microhei Mono\", \"Microsoft YaHei\", Tahoma, Arial, Helvetica, sans-serif;}}");
             style.AppendLine($"*{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif |important;}}");
             style.AppendLine($"body{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif |important;}}");
+            style.AppendLine($"a:link{{color:{Theme.AccentColor.ToHtml(false)}|important;text-decoration:none !important;}}");
+            style.AppendLine($"a:hover{{color:{Theme.AccentColor.ToHtml(false)}|important;text-decoration:none !important;}}");
+            style.AppendLine($"a:active{{color:{Theme.AccentColor.ToHtml(false)}|important;text-decoration:none !important;}}");
+            style.AppendLine($"a:visited{{color:{Theme.AccentColor.ToHtml(false)}|important;text-decoration:none !important;}}");
+            //style.AppendLine($"a{{color:{Theme.TextColor.ToHtml(false)}|important;text-decoration:none !important;}}");
+            style.AppendLine($"img{{width:auto!important;;height:auto!important;;max-width:100%!important;;max-height:100% !important;}}");
             style.AppendLine($".tag{{background-color:{Theme.AccentColor.ToHtml(false)}|important;color:{Theme.TextColor.ToHtml(false)}|important;margin:4px;text-decoration:none;}}");
             style.AppendLine($".desc{{color:{Theme.TextColor.ToHtml(false)} !important;text-decoration:none !important;}}");
-            style.AppendLine($"a{{color:{Theme.TextColor.ToHtml(false)}|important;text-decoration:none !important;}}");
-            style.AppendLine($"img{{width:auto!important;;height:auto!important;;max-width:100%!important;;max-height:100% !important;}}");
 
             var BaseStyleSheet = string.Join("\n", style);
             IllustTags.BaseStylesheet = BaseStyleSheet;
@@ -338,7 +342,7 @@ namespace PixivWPF.Pages
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
-                    IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption.HtmlDecodeFix()}</div><br/>".Replace("\r\n", "<br/>");
+                    IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption.HtmlDecode()}</div>".Replace("\r\n", "<br/>");
                     IllustDescExpander.Show();
                 }
                 else
@@ -490,7 +494,7 @@ namespace PixivWPF.Pages
                 if (!string.IsNullOrEmpty(nuser.comment) && nuser.comment.Length > 0)
                 {
                     var comment = nuser.comment.HtmlEncode();
-                    IllustDesc.Text = $"<div class=\"desc\">{comment.HtmlDecodeFix()}</div>".Replace("\r\n", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>");
+                    IllustDesc.Text = $"<div class=\"desc\">{comment.HtmlDecode()}</div>".Replace("\r\n", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>");
                     IllustDescExpander.Show();
                 }
                 else
@@ -837,7 +841,7 @@ namespace PixivWPF.Pages
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
             {
                 if (IllustTags.SelectedText.Length == 0)
-                    Clipboard.SetText(IllustTags.Text);
+                    Clipboard.SetText(IllustTags.Text.HtmlToText().HtmlDecode());
                 else
                     Clipboard.SetText(IllustTags.SelectedText);
             }
@@ -946,7 +950,7 @@ namespace PixivWPF.Pages
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
             {
                 if (IllustDesc.SelectedText.Length == 0)
-                    Clipboard.SetText(IllustDesc.Text);
+                    Clipboard.SetText(IllustDesc.Text.HtmlToText().HtmlDecode());
                 else
                     Clipboard.SetText(IllustDesc.SelectedText);
             }

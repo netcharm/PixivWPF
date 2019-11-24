@@ -454,33 +454,30 @@
                 <Expander Grid.Row="2" Margin="0,4,0,0" IsExpanded="True"
                           x:Name="IllustTagExpander" x:Uid="IllustTagExpander"
                           Header="Tags" Visibility="Collapsed">
-                    <Grid >
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <wpf:HtmlPanel Grid.Column="1" x:Name="IllustTags" x:Uid="IllustTags" 
-                                       Margin="8,0,0,0" MinHeight="48"
-                                       AvoidImagesLateLoading="True"
-                                       Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
-                                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                                       HorizontalContentAlignment="Left" VerticalContentAlignment="Top" 
-                                       KeyUp="IllustTags_KeyUp"
-                                       LinkClicked="IllustTags_LinkClicked" 
-                                       ImageLoad="IllustTags_ImageLoad" />
-                    </Grid>
+                    <wpf:HtmlPanel x:Name="IllustTags" x:Uid="IllustTags" 
+                                   Margin="8,0" MinHeight="48"
+                                   AvoidImagesLateLoading="True"
+                                   Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
+                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                                   HorizontalContentAlignment="Left" VerticalContentAlignment="Top" 
+                                   KeyUp="IllustTags_KeyUp"
+                                   LinkClicked="IllustTags_LinkClicked" 
+                                   ImageLoad="IllustTags_ImageLoad" />
                 </Expander>
 
                 <!-- Illust Info -->
                 <Expander Grid.Row="3" Margin="0,4,0,0" IsExpanded="True"
                           x:Name="IllustDescExpander" x:Uid="IllustDescExpander"
                           Header="Description" Visibility="Collapsed">
-                    <wpf:HtmlPanel x:Name="IllustDesc" 
+                    <wpf:HtmlPanel x:Name="IllustDesc" x:Uid="IllustDesc" 
+                                   Margin="8,0" MinHeight="48"
+                                   AvoidImagesLateLoading="True"
                                    Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
-                                   HorizontalAlignment="Stretch"
+                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                                   HorizontalContentAlignment="Left" VerticalContentAlignment="Top" 
                                    KeyUp="IllustDesc_KeyUp"
                                    LinkClicked="IllustDesc_LinkClicked" 
-                                   ImageLoad="IllustDesc_ImageLoad"/>
+                                   ImageLoad="IllustDesc_ImageLoad" />
                 </Expander>
 
                 <!-- Illust Subsets -->

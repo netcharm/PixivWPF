@@ -20,9 +20,9 @@
                  TextOptions.TextFormattingMode="Display"                 
                  AllowDrop="True"
                  PreviewDragOver="Window_DragOver" PreviewDrop="Window_Drop"
-                 Closing="Window_Closing"
+                 KeyUp="Window_KeyUp"
                  MouseDown="Window_MouseDown"
-                 KeyUp="Window_KeyUp">
+                 Closing="Window_Closing">
 
     <mah:MetroWindow.Resources>
         <Style x:Key="MetroSplitButton" TargetType="{x:Type mah:SplitButton}">

@@ -13,6 +13,7 @@ using System.Media;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -111,17 +112,18 @@ namespace PixivWPF.Common
 
         private static Setting setting = Setting.Load();
         private static CacheImage cache = new CacheImage();
-        public static Dictionary<long?, Pixeez.Objects.Work> cacheIllust = new Dictionary<long?, Pixeez.Objects.Work>();
-        public static Dictionary<long?, Pixeez.Objects.UserBase> cacheUser = new Dictionary<long?, Pixeez.Objects.UserBase>();
+        public static Dictionary<long?, Pixeez.Objects.Work> IllustCache = new Dictionary<long?, Pixeez.Objects.Work>();
+        public static Dictionary<long?, Pixeez.Objects.UserBase> UserCache = new Dictionary<long?, Pixeez.Objects.UserBase>();
 
         public static DateTime SelectedDate { get; set; } = DateTime.Now;
 
         internal static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         internal static string[] trim_str = new string[] { Environment.NewLine };
 
-        public static ICommand Cmd_DatePicker { get; } = new DelegateCommand<Point?>(obj => {
+        public static ICommand Cmd_DatePicker { get; } = new DelegateCommand<Point?>(obj =>
+        {
             if (obj.HasValue)
-            {              
+            {
                 var page = new DateTimePicker();
                 var viewer = new MetroWindow();
                 viewer.Icon = BitmapFrame.Create(new Uri("pack://application:,,,/PixivWPF;component/Resources/pixiv-icon.ico"));
@@ -172,7 +174,8 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_OpenIllust { get; } = new DelegateCommand<object>(obj => {
+        public static ICommand Cmd_OpenIllust { get; } = new DelegateCommand<object>(obj =>
+        {
             if (obj is ImageListGrid)
             {
                 var list = obj as ImageListGrid;
@@ -315,7 +318,8 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_SaveIllust { get; } = new DelegateCommand<object>(obj => {
+        public static ICommand Cmd_SaveIllust { get; } = new DelegateCommand<object>(obj =>
+        {
             if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
@@ -351,7 +355,8 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_SaveIllustAll { get; } = new DelegateCommand<object>(async obj => {
+        public static ICommand Cmd_SaveIllustAll { get; } = new DelegateCommand<object>(async obj =>
+        {
             if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
@@ -409,7 +414,8 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_OpenDownloaded { get; } = new DelegateCommand<object>(obj => {
+        public static ICommand Cmd_OpenDownloaded { get; } = new DelegateCommand<object>(obj =>
+        {
             if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
@@ -436,7 +442,8 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(obj => {
+        public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(obj =>
+        {
             if (obj is string)
             {
                 var content = ParseLink((string)obj);
@@ -444,7 +451,7 @@ namespace PixivWPF.Common
 
                 if (!string.IsNullOrEmpty(content))
                 {
-                    foreach(Window win in Application.Current.Windows)
+                    foreach (Window win in Application.Current.Windows)
                     {
                         if (win.Title.Contains(content) || win.Title.Contains($": {id},") || win.Title.Contains($"/ {id} /"))
                         {
@@ -471,12 +478,14 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_Drop { get; } = new DelegateCommand<object>(async obj => {
+        public static ICommand Cmd_Drop { get; } = new DelegateCommand<object>(async obj =>
+        {
             if (obj is IEnumerable)
             {
                 foreach (var link in (obj as List<string>))
                 {
-                    await Task.Run(new Action(() => {
+                    await Task.Run(new Action(() =>
+                    {
                         Cmd_Search.Execute(link);
                     }));
                 }
@@ -675,23 +684,20 @@ namespace PixivWPF.Common
                     result = Regex.Replace(result, @"(.*?\/user\/)(\d+)(.*)", "UserID: $2", RegexOptions.IgnoreCase).Trim().Trim(trim_char);
 
                 else if (Regex.IsMatch(result, @"^(.*?tag_full&word=)(.*)$", RegexOptions.IgnoreCase))
-                {
-                    result = Regex.Replace(result, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase).Trim().Trim(trim_char);
-                    result = Uri.UnescapeDataString(result);
-                }
+                    result = Regex.Replace(result, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase).Trim().Trim(trim_char).HtmlDecode();
                 else if (Regex.IsMatch(result, @"(.*?\/pixiv\.navirank\.com\/tag\/)(.*?)", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"(.*?\/tag\/)(.*?)", "Tag: $2", RegexOptions.IgnoreCase).Trim().Trim(trim_char).HtmlDecodeFix();
+                    result = Regex.Replace(result, @"(.*?\/tag\/)(.*?)", "Tag: $2", RegexOptions.IgnoreCase).Trim().Trim(trim_char).HtmlDecode();
 
 
                 else if (Regex.IsMatch(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase).Trim().Trim(trim_char);
+                    result = Regex.Replace(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase).Trim().Trim(trim_char).HtmlDecode();
 
                 else if (Regex.IsMatch(result, @"((\d+)(_((p)|(ugoira))*\d+)*)"))
                     result = Regex.Replace(result, @"((\d+)(_((p)|(ugoira))*\d+)*)", "$2", RegexOptions.IgnoreCase).Trim().Trim(trim_char);
 
                 else if (!Regex.IsMatch(result, @"((UserID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
                 {
-                    result = $"Caption: {result}";
+                    result = $"Caption: {result.Trim().Trim(trim_char).HtmlDecode()}";
                 }
             }
 
@@ -715,12 +721,13 @@ namespace PixivWPF.Common
             return (WebUtility.HtmlEncode(text));
         }
 
-        public static string HtmlDecodeFix(this string text)
+        public static string HtmlDecode(this string text)
         {
             string result = text;
 
             var patten = new Regex(@"&(amp;){0,1}#(([0-9]{1,6})|(x([a-fA-F0-9]{1,5})));", RegexOptions.IgnoreCase);
-            result = WebUtility.UrlDecode(WebUtility.HtmlDecode(result));
+            //result = WebUtility.UrlDecode(WebUtility.HtmlDecode(result));
+            result = Uri.UnescapeDataString(WebUtility.HtmlDecode(result));
             foreach (Match match in patten.Matches(result))
             {
                 var v = Convert.ToInt32(match.Groups[2].Value);
@@ -729,6 +736,53 @@ namespace PixivWPF.Common
             }
 
             return (result);
+        }
+
+        /// <summary>
+        /// How To Convert HTML To Formatted Plain Text
+        /// source: http://www.beansoftware.com/ASP.NET-Tutorials/Convert-HTML-To-Plain-Text.aspx
+        /// </summary>
+        /// <param name="html"></param>
+        /// <returns></returns>
+        public static string HtmlToText(this string html)
+        {
+            string result = string.Copy(html);
+            try
+            {
+                // Remove new lines since they are not visible in HTML
+                result = result.Replace("\n", " ");
+
+                // Remove tab spaces
+                result = result.Replace("\t", " ");
+
+                // Remove multiple white spaces from HTML
+                result = Regex.Replace(result, "\\s+", " ");
+
+                // Remove HEAD tag
+                result = Regex.Replace(result, "<head.*?</head>", "", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+                // Remove any JavaScript
+                result = Regex.Replace(result, "<script.*?</script>", "", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+                // Replace special characters like &, <, >, " etc.
+                StringBuilder sb = new StringBuilder(result);
+                // Note: There are many more special characters, these are just
+                // most common. You can add new characters in this arrays if needed
+                string[] OldWords = {"&nbsp;", "&amp;", "&quot;", "&lt;", "&gt;", "&reg;", "&copy;", "&bull;", "&trade;"};
+                string[] NewWords = {" ", "&", "\"", "<", ">", "®", "©", "•", "™"};
+                for (int i = 0; i < OldWords.Length; i++)
+                {
+                    sb.Replace(OldWords[i], NewWords[i]);
+                }
+
+                // Check if there are line breaks (<br>) or paragraph (<p>)
+                sb.Replace("<br>", "\n<br>");
+                sb.Replace("<br ", "\n<br ");
+                sb.Replace("<p ", "\n<p ");
+                result = Regex.Replace(sb.ToString(), "<[^>]*>", "");
+            }
+            catch (Exception) { result = html; }
+            return result;
         }
 
         // To return an array of strings instead:
@@ -881,7 +935,7 @@ namespace PixivWPF.Common
                     result = pngDec.Frames[0];
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 await ex.Message.ShowMessageBoxAsync("ERROR");
             }
@@ -911,12 +965,12 @@ namespace PixivWPF.Common
                 {
                     result = BitmapFrame.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
                 }
-                catch(Exception exx)
+                catch (Exception exx)
                 {
                     var retx = exx.Message;
                 }
             }
-            if(result is ImageSource)
+            if (result is ImageSource)
             {
                 var dpi = new DPI();
                 if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
@@ -941,7 +995,7 @@ namespace PixivWPF.Common
             {
                 filepath = string.Empty;
                 return (false);
-            }            
+            }
         }
 
         internal static bool IsDownloaded(this Pixeez.Objects.Work illust, int index = -1)
@@ -949,7 +1003,7 @@ namespace PixivWPF.Common
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloaded());
             else
-                return (false);            
+                return (false);
         }
 
         internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false)
@@ -1184,7 +1238,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> SaveImage(this string url, Pixeez.Tokens tokens, string file, bool overwrite=true)
+        public static async Task<bool> SaveImage(this string url, Pixeez.Tokens tokens, string file, bool overwrite = true)
         {
             bool result = false;
             if (!string.IsNullOrEmpty(file))
@@ -1221,7 +1275,7 @@ namespace PixivWPF.Common
                 }
                 catch (Exception ex)
                 {
-                    if(ex is IOException)
+                    if (ex is IOException)
                     {
 
                     }
@@ -1234,7 +1288,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, bool is_meta_single_page=false, bool overwrite = true)
+        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, bool is_meta_single_page = false, bool overwrite = true)
         {
             string result = string.Empty;
             //url = Regex.Replace(url, @"//.*?\.pixiv.net/", "//i.pximg.net/", RegexOptions.IgnoreCase);
@@ -1349,7 +1403,7 @@ namespace PixivWPF.Common
         public static void SaveImage(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
             ShowDownloadManager();
-            if(_downManager is DownloadManagerPage)
+            if (_downManager is DownloadManagerPage)
             {
                 _downManager.Add(url, thumb, dt, is_meta_single_page, overwrite);
             }
@@ -1453,6 +1507,85 @@ namespace PixivWPF.Common
             MetroWindow window = Application.Current.Windows.OfType<MetroWindow>().SingleOrDefault(x => x.IsActive);
             if (window == null) window = Application.Current.MainWindow as MetroWindow;
             return (window);
+        }
+
+        public static MetroWindow GetPrevWindow(this MetroWindow window)
+        {
+            return (window.GetWindow(-1));
+        }
+
+        public static MetroWindow GetNextWindow(this MetroWindow window)
+        {
+            return (window.GetWindow(1));
+        }
+
+        public static MetroWindow GetWindow(this MetroWindow window, int index = 0, bool relative = true)
+        {
+            var wins = Application.Current.Windows.OfType<MetroWindow>().Where(w => !w.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase)).ToList();
+            var active = window is MetroWindow ? window : wins.SingleOrDefault(x => x.IsActive);
+            if (active == null) active = Application.Current.MainWindow as MetroWindow;
+
+            var result = active;
+            var current_index = wins.IndexOf(active);
+
+            var next = relative ? current_index + index : index;
+            if (next > 0)
+            {
+                if (next >= wins.Count) next = next % wins.Count;
+                result = wins.ElementAtOrDefault(next);
+            }
+            else if (next < 0)
+            {
+                if (next < 0) next = wins.Count - (Math.Abs(next) % wins.Count);
+                result = wins.ElementAtOrDefault(next);
+            }
+            else
+            {
+            }
+
+            return (result);
+        }
+
+        public static void Active(this MetroWindow window)
+        {
+            if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
+            window.Show();
+            window.Activate();
+        }
+
+        public static void WindowKeyUp(this object sender, KeyEventArgs e)
+        {
+            if (sender is MetroWindow)
+            {
+                try
+                {
+                    var win = sender as MetroWindow;
+                    if ((Keyboard.Modifiers & ModifierKeys.Control & ModifierKeys.Shift) > 0 && e.Key == Key.Tab)
+                    {
+                        win.GetPrevWindow().Active();
+                    }
+                    else if ((Keyboard.Modifiers & ModifierKeys.Control) > 0 && e.Key == Key.Tab)
+                    {
+                        win.GetNextWindow().Active();
+                    }
+                    else
+                    {
+                        if ((sender as MetroWindow).Content is DownloadManagerPage) return;
+                        if ((sender as MetroWindow).Tag is DownloadManagerPage) return;
+
+                        if (e.Key == Key.Escape) win.Close();
+                    }
+                    e.Handled = true;
+                }
+#if DEBUG
+                catch (Exception ex)
+                {
+                    ex.Message.ShowMessageBox("ERROR");
+                }
+#else
+                catch(Exception) { }
+#endif
+            }
         }
 
         public static Dispatcher Dispatcher = Application.Current is Application ? Application.Current.Dispatcher : Dispatcher.CurrentDispatcher;
@@ -1642,7 +1775,8 @@ namespace PixivWPF.Common
         {
             bool result = false;
 
-            if (item.ItemType == ImageItemType.Work) {
+            if (item.ItemType == ImageItemType.Work)
+            {
                 result = item.Illust.GetPreviewUrl(item.Index).GetImageId().IsSameIllust(hash) || item.Illust.GetOriginalUrl(item.Index).GetImageId().IsSameIllust(hash);
             }
 
@@ -1753,7 +1887,7 @@ namespace PixivWPF.Common
         public static bool IsLiked(this Pixeez.Objects.Work illust)
         {
             bool result = false;
-            illust = cacheIllust.ContainsKey(illust.Id) ? cacheIllust[illust.Id] : illust;
+            illust = IllustCache.ContainsKey(illust.Id) ? IllustCache[illust.Id] : illust;
             if (illust.User != null)
             {
                 result = illust.IsBookMarked();// || (illust.IsLiked ?? false);
@@ -1764,10 +1898,10 @@ namespace PixivWPF.Common
         public static bool IsLiked(this Pixeez.Objects.UserBase user)
         {
             bool result = false;
-            user = cacheUser.ContainsKey(user.Id) ? cacheUser[user.Id] : user;
+            user = UserCache.ContainsKey(user.Id) ? UserCache[user.Id] : user;
             if (user != null)
             {
-                result = user.is_followed ?? (user as Pixeez.Objects.User).IsFollowing ?? false;
+                result = user.is_followed ?? (user as Pixeez.Objects.User).IsFollowing ?? (user as Pixeez.Objects.User).IsFollowed ?? false;
             }
             return (result);
         }
@@ -1781,7 +1915,7 @@ namespace PixivWPF.Common
         {
             bool result = false;
 
-            if (item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga )
+            if (item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga)
             {
                 var tokens = await ShowLogin();
                 if (tokens == null) return (result);
@@ -2079,14 +2213,14 @@ namespace PixivWPF.Common
 
         public static void Cache(this Pixeez.Objects.UserBase user)
         {
-            if(user is Pixeez.Objects.UserBase)
-                cacheUser[user.Id] = user;
+            if (user is Pixeez.Objects.UserBase)
+                UserCache[user.Id] = user;
         }
 
         public static void Cache(this Pixeez.Objects.Work illust)
         {
             if (illust is Pixeez.Objects.Work)
-                cacheIllust[illust.Id] = illust;
+                IllustCache[illust.Id] = illust;
         }
         #endregion
 
@@ -2265,9 +2399,9 @@ namespace PixivWPF.Common
         #region Drop Window routines
         private static void DropBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left )
+            if (e.ChangedButton == MouseButton.Left)
             {
-                if(sender is ContentWindow)
+                if (sender is ContentWindow)
                 {
                     var window = sender as ContentWindow;
                     window.DragMove();
@@ -2275,7 +2409,7 @@ namespace PixivWPF.Common
                     setting.Save();
                 }
             }
-            else if(e.ChangedButton == MouseButton.XButton1)
+            else if (e.ChangedButton == MouseButton.XButton1)
             {
                 if (sender is ContentWindow)
                 {
@@ -2288,7 +2422,7 @@ namespace PixivWPF.Common
 
         private static void DropBox_MouseMove(object sender, MouseEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed )
+            if (e.LeftButton == MouseButtonState.Pressed)
             {
                 if (sender is ContentWindow)
                 {
@@ -2397,7 +2531,7 @@ namespace PixivWPF.Common
                     {
                         box.Left = x;
                         box.Top = y;
-                    }                        
+                    }
                 }
             }
             if (box.IsVisible)
@@ -2411,7 +2545,7 @@ namespace PixivWPF.Common
             }
 
             return (box.IsVisible);
-        }        
+        }
         #endregion
     }
 

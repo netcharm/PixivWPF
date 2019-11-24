@@ -300,6 +300,10 @@ namespace PixivWPF
             }
         }
 
+        private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
+        {
+            sender.WindowKeyUp(e);
+        }
     }
 
 
