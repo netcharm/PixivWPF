@@ -22,6 +22,7 @@
                  WindowStartupLocation="CenterScreen" MinWidth="1440" MinHeight="720" Width="1440" Height="972"
                  KeyUp="MetroWindow_KeyUp"
                  PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
+                 StateChanged="MetroWindow_StateChanged" 
                  Closing="MainWindow_Closing" >
 
 

@@ -18,6 +18,8 @@ namespace PixivWPF
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
+        public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
+
         public Frame MainContent = null;
 
         private Pages.TilesPage pagetiles = null;
@@ -303,6 +305,12 @@ namespace PixivWPF
         private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
         {
             sender.WindowKeyUp(e);
+        }
+
+        private void MetroWindow_StateChanged(object sender, EventArgs e)
+        {
+            LastWindowStates.Enqueue(this.WindowState);
+            if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
         }
     }
 

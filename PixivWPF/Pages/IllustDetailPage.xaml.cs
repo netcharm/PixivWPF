@@ -477,7 +477,7 @@ namespace PixivWPF.Pages
                         desc.AppendLine($"<br/>Workspace Images:<br/> <img src=\"{nworks.workspace_image_url}\"/>");
                     }
 
-                    IllustTags.Foreground = Common.Theme.TextBrush;
+                    IllustTags.Foreground = Theme.TextBrush;
                     IllustTags.Text = string.Join(";", desc);
                     IllustTagExpander.Header = "User Infomation";
                     IllustTagExpander.IsExpanded = false;
@@ -493,7 +493,7 @@ namespace PixivWPF.Pages
 
                 if (!string.IsNullOrEmpty(nuser.comment) && nuser.comment.Length > 0)
                 {
-                    var comment = nuser.comment.HtmlEncode();
+                    var comment = nuser.comment;//.HtmlEncode();
                     IllustDesc.Text = $"<div class=\"desc\">{comment.HtmlDecode()}</div>".Replace("\r\n", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>");
                     IllustDescExpander.Show();
                 }

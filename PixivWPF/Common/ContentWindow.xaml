@@ -22,7 +22,7 @@
                  PreviewDragOver="Window_DragOver" PreviewDrop="Window_Drop"
                  KeyUp="Window_KeyUp"
                  MouseDown="Window_MouseDown"
-                 Closing="Window_Closing">
+                 Closing="Window_Closing" StateChanged="MetroWindow_StateChanged">
 
     <mah:MetroWindow.Resources>
         <Style x:Key="MetroSplitButton" TargetType="{x:Type mah:SplitButton}">

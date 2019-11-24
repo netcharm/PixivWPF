@@ -22,6 +22,8 @@ namespace PixivWPF.Common
     /// </summary>
     public partial class ContentWindow : MetroWindow
     {
+        public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
+
         public void UpdateTheme()
         {
             CommonHelper.UpdateTheme();
@@ -205,5 +207,10 @@ namespace PixivWPF.Common
             }
         }
 
+        private void MetroWindow_StateChanged(object sender, EventArgs e)
+        {
+            LastWindowStates.Enqueue(this.WindowState);
+            if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
+        }
     }
 }

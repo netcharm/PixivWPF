@@ -1501,260 +1501,6 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Window/Dialog/MessageBox routines
-        public static MetroWindow GetActiveWindow()
-        {
-            MetroWindow window = Application.Current.Windows.OfType<MetroWindow>().SingleOrDefault(x => x.IsActive);
-            if (window == null) window = Application.Current.MainWindow as MetroWindow;
-            return (window);
-        }
-
-        public static MetroWindow GetPrevWindow(this MetroWindow window)
-        {
-            return (window.GetWindow(-1));
-        }
-
-        public static MetroWindow GetNextWindow(this MetroWindow window)
-        {
-            return (window.GetWindow(1));
-        }
-
-        public static MetroWindow GetWindow(this MetroWindow window, int index = 0, bool relative = true)
-        {
-            var wins = Application.Current.Windows.OfType<MetroWindow>().Where(w => !w.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase)).ToList();
-            var active = window is MetroWindow ? window : wins.SingleOrDefault(x => x.IsActive);
-            if (active == null) active = Application.Current.MainWindow as MetroWindow;
-
-            var result = active;
-            var current_index = wins.IndexOf(active);
-
-            var next = relative ? current_index + index : index;
-            if (next > 0)
-            {
-                if (next >= wins.Count) next = next % wins.Count;
-                result = wins.ElementAtOrDefault(next);
-            }
-            else if (next < 0)
-            {
-                if (next < 0) next = wins.Count - (Math.Abs(next) % wins.Count);
-                result = wins.ElementAtOrDefault(next);
-            }
-            else
-            {
-            }
-
-            return (result);
-        }
-
-        public static void Active(this MetroWindow window)
-        {
-            if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
-            window.Show();
-            window.Activate();
-        }
-
-        public static void WindowKeyUp(this object sender, KeyEventArgs e)
-        {
-            if (sender is MetroWindow)
-            {
-                try
-                {
-                    var win = sender as MetroWindow;
-                    if ((Keyboard.Modifiers & ModifierKeys.Control & ModifierKeys.Shift) > 0 && e.Key == Key.Tab)
-                    {
-                        win.GetPrevWindow().Active();
-                    }
-                    else if ((Keyboard.Modifiers & ModifierKeys.Control) > 0 && e.Key == Key.Tab)
-                    {
-                        win.GetNextWindow().Active();
-                    }
-                    else
-                    {
-                        if ((sender as MetroWindow).Content is DownloadManagerPage) return;
-                        if ((sender as MetroWindow).Tag is DownloadManagerPage) return;
-
-                        if (e.Key == Key.Escape) win.Close();
-                    }
-                    e.Handled = true;
-                }
-#if DEBUG
-                catch (Exception ex)
-                {
-                    ex.Message.ShowMessageBox("ERROR");
-                }
-#else
-                catch(Exception) { }
-#endif
-            }
-        }
-
-        public static Dispatcher Dispatcher = Application.Current is Application ? Application.Current.Dispatcher : Dispatcher.CurrentDispatcher;
-        public static Dispatcher AppDispatcher(this object obj)
-        {
-            if (Application.Current is Application)
-                return (Application.Current.Dispatcher);
-            else
-                return (Dispatcher.CurrentDispatcher);
-        }
-
-        public static async Task Invoke(this Action action)
-        {
-            Dispatcher dispatcher = action.AppDispatcher();
-
-            await dispatcher.BeginInvoke(action);
-        }
-
-        public static async Task InvokeAsync(this Action action)
-        {
-            Dispatcher dispatcher = action.AppDispatcher();
-
-            await dispatcher.InvokeAsync(action);
-        }
-
-        public static Window GetActiveWindow(this Page page)
-        {
-            var window = Window.GetWindow(page);
-            if (window == null) window = GetActiveWindow();
-            return (window);
-        }
-
-        internal static DownloadManagerPage _downManager = new DownloadManagerPage();
-
-        public static void ShowDownloadManager(bool active = false)
-        {
-            if (_downManager is DownloadManagerPage)
-            {
-
-            }
-            else
-                _downManager = new DownloadManagerPage();
-            _downManager.AutoStart = false;
-
-            Window _dm = null;
-            foreach (Window win in Application.Current.Windows)
-            {
-                if (win.Content is DownloadManagerPage)
-                {
-                    _dm = win;
-                    break;
-                }
-            }
-
-            if (_dm is Window)
-            {
-                _dm.Show();
-                if (active)
-                    _dm.Activate();
-            }
-            else
-            {
-                var viewer = new ContentWindow();
-                viewer.Title = $"Download Manager";
-                viewer.Width = WIDTH_MIN;
-                viewer.Height = HEIGHT_MIN;
-                viewer.MinWidth = WIDTH_MIN;
-                viewer.MinHeight = HEIGHT_MIN;
-                viewer.Content = _downManager;
-                viewer.Tag = _downManager;
-                _downManager.window = viewer;
-                viewer.Show();
-            }
-        }
-
-        public static void ShowMessageBox(this string content, string title)
-        {
-            ShowMessageDialog(title, content);
-        }
-
-        public static async Task ShowMessageBoxAsync(this string content, string title)
-        {
-            await ShowMessageDialogAsync(title, content);
-        }
-
-        public static async void ShowMessageDialog(string title, string content)
-        {
-            MetroWindow window = GetActiveWindow();
-            await window.ShowMessageAsync(title, content);
-        }
-
-        public static async Task ShowMessageDialogAsync(string title, string content)
-        {
-            MetroWindow window = GetActiveWindow();
-            await window.ShowMessageAsync(title, content);
-        }
-
-        public static async void ShowProgressDialog(object sender, RoutedEventArgs e)
-        {
-            var mySettings = new MetroDialogSettings()
-            {
-                NegativeButtonText = "Close now",
-                AnimateShow = false,
-                AnimateHide = false
-            };
-
-            MetroWindow window = GetActiveWindow();
-
-            var controller = await window.ShowProgressAsync("Please wait...", "We are baking some cupcakes!", settings: mySettings);
-            controller.SetIndeterminate();
-
-            //await Task.Delay(5000);
-
-            controller.SetCancelable(true);
-
-            double i = 0.0;
-            while (i < 6.0)
-            {
-                double val = (i / 100.0) * 20.0;
-                controller.SetProgress(val);
-                controller.SetMessage("Baking cupcake: " + i + "...");
-
-                if (controller.IsCanceled)
-                    break; //canceled progressdialog auto closes.
-
-                i += 1.0;
-
-                //await Task.Delay(2000);
-            }
-
-            await controller.CloseAsync();
-
-            if (controller.IsCanceled)
-            {
-
-                await window.ShowMessageAsync("No cupcakes!", "You stopped baking!");
-            }
-            else
-            {
-                await window.ShowMessageAsync("Cupcakes!", "Your cupcakes are finished! Enjoy!");
-            }
-        }
-
-        public static void ShowToast(this string content, string title = "Pixiv", string imgsrc = "", object tag = null)
-        {
-            INotificationDialogService _dailogService = new NotificationDialogService();
-            NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-            NotificationConfiguration cfg = new NotificationConfiguration(
-                //new TimeSpan(0, 0, 30), 
-                TimeSpan.FromSeconds(3),
-                cfgDefault.Width+32, cfgDefault.Height,
-                "ToastTemplate",
-                //cfgDefault.TemplateName, 
-                cfgDefault.NotificationFlowDirection
-            );
-
-            var newNotification = new MyNotification()
-            {
-                Title = title,
-                ImgURL = imgsrc,
-                Message = content,
-                Tag = tag
-            };
-
-            _dailogService.ClearNotifications();
-            _dailogService.ShowNotificationWindow(newNotification, cfg);
-        }
-        #endregion
-
         #region Illust Tile ListView routines
         public static bool IsSameIllust(this string id, int hash)
         {
@@ -2293,6 +2039,273 @@ namespace PixivWPF.Common
         public static void Hide(this UIElement element, bool parent = false)
         {
             element.Show(false, parent);
+        }
+        #endregion
+
+        #region Window/Dialog/MessageBox routines
+        public static MetroWindow GetActiveWindow()
+        {
+            MetroWindow window = Application.Current.Windows.OfType<MetroWindow>().SingleOrDefault(x => x.IsActive);
+            if (window == null) window = Application.Current.MainWindow as MetroWindow;
+            return (window);
+        }
+
+        public static MetroWindow GetPrevWindow(this MetroWindow window)
+        {
+            return (window.GetWindow(-1));
+        }
+
+        public static MetroWindow GetNextWindow(this MetroWindow window)
+        {
+            return (window.GetWindow(1));
+        }
+
+        public static MetroWindow GetWindow(this MetroWindow window, int index = 0, bool relative = true)
+        {
+            var wins = Application.Current.Windows.OfType<MetroWindow>().Where(w => !w.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase)).ToList();
+            var active = window is MetroWindow ? window : wins.SingleOrDefault(x => x.IsActive);
+            if (active == null) active = Application.Current.MainWindow as MetroWindow;
+
+            var result = active;
+            var current_index = wins.IndexOf(active);
+
+            var next = relative ? current_index + index : index;
+            if (next > 0)
+            {
+                if (next >= wins.Count) next = next % wins.Count;
+                result = wins.ElementAtOrDefault(next);
+            }
+            else if (next < 0)
+            {
+                if (next < 0) next = wins.Count - (Math.Abs(next) % wins.Count);
+                result = wins.ElementAtOrDefault(next);
+            }
+            else
+            {
+            }
+
+            return (result);
+        }
+
+        public static void Active(this MetroWindow window)
+        {
+            if (window.WindowState == WindowState.Minimized)
+            {
+                try
+                {
+                    if (window is MainWindow)
+                        window.WindowState = (window as MainWindow).LastWindowStates.Dequeue();
+                    else if (window is ContentWindow)
+                        window.WindowState = (window as ContentWindow).LastWindowStates.Dequeue();
+                }
+                catch (Exception)
+                {
+                    window.WindowState = WindowState.Normal;
+                }
+            }
+            window.Show();
+            window.Activate();
+        }
+
+        public static void WindowKeyUp(this object sender, KeyEventArgs e)
+        {
+            if (sender is MetroWindow)
+            {
+                try
+                {
+                    var win = sender as MetroWindow;
+                    if ((Keyboard.Modifiers & ModifierKeys.Control & ModifierKeys.Shift) > 0 && e.Key == Key.Tab)
+                    {
+                        win.GetPrevWindow().Active();
+                    }
+                    else if ((Keyboard.Modifiers & ModifierKeys.Control) > 0 && e.Key == Key.Tab)
+                    {
+                        win.GetNextWindow().Active();
+                    }
+                    else
+                    {
+                        if ((sender as MetroWindow).Content is DownloadManagerPage) return;
+                        if ((sender as MetroWindow).Tag is DownloadManagerPage) return;
+
+                        if (e.Key == Key.Escape) win.Close();
+                    }
+                    e.Handled = true;
+                }
+#if DEBUG
+                catch (Exception ex)
+                {
+                    ex.Message.ShowMessageBox("ERROR");
+                }
+#else
+                catch(Exception) { }
+#endif
+            }
+        }
+
+        public static Dispatcher Dispatcher = Application.Current is Application ? Application.Current.Dispatcher : Dispatcher.CurrentDispatcher;
+        public static Dispatcher AppDispatcher(this object obj)
+        {
+            if (Application.Current is Application)
+                return (Application.Current.Dispatcher);
+            else
+                return (Dispatcher.CurrentDispatcher);
+        }
+
+        public static async Task Invoke(this Action action)
+        {
+            Dispatcher dispatcher = action.AppDispatcher();
+
+            await dispatcher.BeginInvoke(action);
+        }
+
+        public static async Task InvokeAsync(this Action action)
+        {
+            Dispatcher dispatcher = action.AppDispatcher();
+
+            await dispatcher.InvokeAsync(action);
+        }
+
+        public static Window GetActiveWindow(this Page page)
+        {
+            var window = Window.GetWindow(page);
+            if (window == null) window = GetActiveWindow();
+            return (window);
+        }
+
+        internal static DownloadManagerPage _downManager = new DownloadManagerPage();
+
+        public static void ShowDownloadManager(bool active = false)
+        {
+            if (_downManager is DownloadManagerPage)
+            {
+
+            }
+            else
+                _downManager = new DownloadManagerPage();
+            _downManager.AutoStart = false;
+
+            Window _dm = null;
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win.Content is DownloadManagerPage)
+                {
+                    _dm = win;
+                    break;
+                }
+            }
+
+            if (_dm is Window)
+            {
+                _dm.Show();
+                if (active)
+                    _dm.Activate();
+            }
+            else
+            {
+                var viewer = new ContentWindow();
+                viewer.Title = $"Download Manager";
+                viewer.Width = WIDTH_MIN;
+                viewer.Height = HEIGHT_MIN;
+                viewer.MinWidth = WIDTH_MIN;
+                viewer.MinHeight = HEIGHT_MIN;
+                viewer.Content = _downManager;
+                viewer.Tag = _downManager;
+                _downManager.window = viewer;
+                viewer.Show();
+            }
+        }
+
+        public static void ShowMessageBox(this string content, string title)
+        {
+            ShowMessageDialog(title, content);
+        }
+
+        public static async Task ShowMessageBoxAsync(this string content, string title)
+        {
+            await ShowMessageDialogAsync(title, content);
+        }
+
+        public static async void ShowMessageDialog(string title, string content)
+        {
+            MetroWindow window = GetActiveWindow();
+            await window.ShowMessageAsync(title, content);
+        }
+
+        public static async Task ShowMessageDialogAsync(string title, string content)
+        {
+            MetroWindow window = GetActiveWindow();
+            await window.ShowMessageAsync(title, content);
+        }
+
+        public static async void ShowProgressDialog(object sender, RoutedEventArgs e)
+        {
+            var mySettings = new MetroDialogSettings()
+            {
+                NegativeButtonText = "Close now",
+                AnimateShow = false,
+                AnimateHide = false
+            };
+
+            MetroWindow window = GetActiveWindow();
+
+            var controller = await window.ShowProgressAsync("Please wait...", "We are baking some cupcakes!", settings: mySettings);
+            controller.SetIndeterminate();
+
+            //await Task.Delay(5000);
+
+            controller.SetCancelable(true);
+
+            double i = 0.0;
+            while (i < 6.0)
+            {
+                double val = (i / 100.0) * 20.0;
+                controller.SetProgress(val);
+                controller.SetMessage("Baking cupcake: " + i + "...");
+
+                if (controller.IsCanceled)
+                    break; //canceled progressdialog auto closes.
+
+                i += 1.0;
+
+                //await Task.Delay(2000);
+            }
+
+            await controller.CloseAsync();
+
+            if (controller.IsCanceled)
+            {
+
+                await window.ShowMessageAsync("No cupcakes!", "You stopped baking!");
+            }
+            else
+            {
+                await window.ShowMessageAsync("Cupcakes!", "Your cupcakes are finished! Enjoy!");
+            }
+        }
+
+        public static void ShowToast(this string content, string title = "Pixiv", string imgsrc = "", object tag = null)
+        {
+            INotificationDialogService _dailogService = new NotificationDialogService();
+            NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+            NotificationConfiguration cfg = new NotificationConfiguration(
+                //new TimeSpan(0, 0, 30), 
+                TimeSpan.FromSeconds(3),
+                cfgDefault.Width+32, cfgDefault.Height,
+                "ToastTemplate",
+                //cfgDefault.TemplateName, 
+                cfgDefault.NotificationFlowDirection
+            );
+
+            var newNotification = new MyNotification()
+            {
+                Title = title,
+                ImgURL = imgsrc,
+                Message = content,
+                Tag = tag
+            };
+
+            _dailogService.ClearNotifications();
+            _dailogService.ShowNotificationWindow(newNotification, cfg);
         }
         #endregion
 
