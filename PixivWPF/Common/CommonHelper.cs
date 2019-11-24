@@ -781,7 +781,7 @@ namespace PixivWPF.Common
                 sb.Replace("<p ", "\n<p ");
                 result = Regex.Replace(sb.ToString(), "<[^>]*>", "");
             }
-            catch (Exception) { result = html; }
+            catch (Exception) { result = html.HtmlDecode(); }
             return result;
         }
 

@@ -199,6 +199,7 @@ namespace PixivWPF.Common
             //throw new NotImplementedException();
         }
 
+        #region Tile Update Helper
         public static void UpdateTiles(this ObservableCollection<ImageItem> collection, ImageItem item = null)
         {
             if (collection is ObservableCollection<ImageItem>)
@@ -371,6 +372,7 @@ namespace PixivWPF.Common
         {
             gallery.UpdateTiles(cancelSource, parallel);
         }
+        #endregion
 
         public static ImageItem IllustItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "")
         {
@@ -383,7 +385,8 @@ namespace PixivWPF.Common
 
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().InsertLineBreak(48).Take(256));
+                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().HtmlToText().InsertLineBreak(48).Take(256));
+                        var tags = illust.Tags.Count>0 ? $"\r\n🔖[#{string.Join(", #", illust.Tags.Take(5))} ...]" : string.Empty;
                         var age = string.Empty;
                         var userliked = illust.User.IsLiked() ? $"✔/" : string.Empty;
                         var state = string.Empty;
@@ -401,7 +404,7 @@ namespace PixivWPF.Common
                             age = illust.AgeLimit != null ? $"R[{illust.AgeLimit.SanityAge()}]" : string.Empty;
                             state = $"\r\n🔞{age}, {userliked}♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]{like}, 🖼[{work.Width}x{work.Height}]";
                         }
-                        tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tooltip.HtmlDecode()}";
+                        tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{tags}{state}{tooltip}";
                         result = new ImageItem()
                         {
                             ItemType = ImageItemType.Work,
