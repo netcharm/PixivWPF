@@ -278,7 +278,7 @@ namespace PixivWPF.Common
             var needUpdate = items.Where(item => item.Source == null);
             if (Application.Current != null && needUpdate.Count() > 0)
             {
-                await new Action(async () =>
+                await new Action(() =>
                 {
                     try
                     {
@@ -290,36 +290,33 @@ namespace PixivWPF.Common
                         opt.MaxDegreeOfParallelism = parallel;
                         opt.CancellationToken = cancelToken;
 
-                        var tokens = await CommonHelper.ShowLogin();
-
                         using (cancelToken.Register(Thread.CurrentThread.Abort))
                         {
                             var ret = Parallel.ForEach(needUpdate, opt, async(item, loopstate, elementIndex) =>
                             {
-                                if (cancelToken.IsCancellationRequested)
-                                {
-                                    opt.CancellationToken.ThrowIfCancellationRequested();
-                                    return;
-                                }
-
                                 await new Action(async () =>
                                 {
-                                    try
+                                    if (cancelToken.IsCancellationRequested)
+                                        opt.CancellationToken.ThrowIfCancellationRequested();
+                                    else
                                     {
-                                        if (item.Source == null)
+                                        try
                                         {
-                                            if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                            item.Source = await item.Thumb.LoadImage(tokens);
+                                            if (item.Source == null)
+                                            {
+                                                if (item.Count <= 1) item.BadgeValue = string.Empty;
+                                                item.Source = await item.Thumb.LoadImage(null);
+                                            }
                                         }
-                                    }
 #if DEBUG
-                                    catch (Exception ex)
-                                    {
-                                        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                    }
+                                        catch (Exception ex)
+                                        {
+                                            $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                        }
 #else
                                     catch(Exception){ }
 #endif
+                                    }
                                 }).InvokeAsync();
                             });
                         }
@@ -404,7 +401,7 @@ namespace PixivWPF.Common
                             age = illust.AgeLimit != null ? $"R[{illust.AgeLimit.SanityAge()}]" : string.Empty;
                             state = $"\r\n🔞{age}, {userliked}♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]{like}, 🖼[{work.Width}x{work.Height}]";
                         }
-                        tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{tags}{state}{tooltip}";
+                        tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tags}{tooltip}";
                         result = new ImageItem()
                         {
                             ItemType = ImageItemType.Work,

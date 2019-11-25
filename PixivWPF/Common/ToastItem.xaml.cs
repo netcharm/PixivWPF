@@ -99,23 +99,16 @@ namespace PixivWPF.Common
                     if(image.Tag is string)
                     {
                         var file = (string)image.Tag;
-                        //if (!string.IsNullOrEmpty(file) && System.IO.File.Exists(file))
-                        //{
-                        //    Preview.Source = await file.LoadImage();
-                        //    CheckImageSource();
-                        //}
                         if(!string.IsNullOrEmpty(file))
                         {
                             Preview.Source = await file.GetLocalFile().LoadImage();
                             if(Preview.Source == null)
                             {
-                                Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
-                                Preview.Source = await file.LoadImage(tokens);
+                                Preview.Source = await file.LoadImage(null);
                             }
                             CheckImageSource();
                         }
                     }
-                    //else Preview.Source = 
                 }
             }
         }

@@ -1218,21 +1218,23 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> LoadImage(this string url, Pixeez.Tokens tokens)
+        public static async Task<ImageSource> LoadImage(this string url, Pixeez.Tokens tokens = null)
         {
             ImageSource result = null;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
+                if (tokens == null) tokens = await ShowLogin();
                 result = await cache.GetImage(url, tokens);
             }
             return (result);
         }
 
-        public static async Task<string> LoadImagePath(this string url, Pixeez.Tokens tokens)
+        public static async Task<string> LoadImagePath(this string url, Pixeez.Tokens tokens = null)
         {
             string result = null;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
+                if (tokens == null) tokens = await ShowLogin();
                 result = await cache.GetImagePath(url, tokens);
             }
             return (result);

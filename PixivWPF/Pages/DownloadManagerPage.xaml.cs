@@ -157,15 +157,13 @@ namespace PixivWPF.Pages
                 }
                 if (Canceled) return;
 
-                Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return;
                 var item = new DownloadInfo()
                 {
                     AutoStart = AutoStart,
                     SingleFile = is_meta_single_page,
                     Overwrite = overwrite,
                     ThumbnailUrl = thumb,
-                    Thumbnail = await thumb.LoadImage(tokens),
+                    Thumbnail = await thumb.LoadImage(null),
                     Url = url,
                     FileTime = dt
                 };

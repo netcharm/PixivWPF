@@ -221,7 +221,7 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
-                ResultIllusts.UpdateImageTiles(tokens);
+                ResultIllusts.UpdateTilesImage();
 
                 if (ResultIllusts.Items.Count() == 0 && window != null && no_filter) window.Close();
                 else if (ResultIllusts.Items.Count() == 1 && no_filter)
