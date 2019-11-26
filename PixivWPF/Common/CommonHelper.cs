@@ -294,14 +294,8 @@ namespace PixivWPF.Common
             if (obj is Pixeez.Objects.Work)
             {
                 var illust = obj as Pixeez.Objects.Work;
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win.Title.Contains($"ID: {illust.Id}, {illust.Title}"))
-                    {
-                        win.Activate();
-                        return;
-                    }
-                }
+                var title = $"ID: {illust.Id}, {illust.Title}";
+                if (title.ActiveByTitle()) return;
 
                 var item = illust.IllustItem();
                 if (item is ImageItem)
@@ -311,7 +305,7 @@ namespace PixivWPF.Common
 
                     var viewer = new ContentWindow()
                     {
-                        Title = $"ID: {illust.Id}, {illust.Title}",
+                        Title = title,
                         Width = WIDTH_MIN,
                         Height = HEIGHT_DEF,
                         MinWidth = WIDTH_MIN,
@@ -330,21 +324,15 @@ namespace PixivWPF.Common
                 var item = obj as ImageItem;
                 item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
 
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win.Title.StartsWith($"ID: {item.ID}, {item.Subject} - "))
-                    {
-                        win.Activate();
-                        return;
-                    }
-                }
+                var title = $"ID: {item.ID}, {item.Subject} - ";
+                if (title.ActiveByTitle()) return;
 
                 var page = new IllustImageViewerPage() { Tag = item };
                 page.UpdateDetail(item);
 
                 var viewer = new ContentWindow()
                 {
-                    Title = $"ID: {item.ID}, {item.Subject} - {item.BadgeValue}/{item.Count}",
+                    Title = $"{title}{item.BadgeValue}/{item.Count}",
                     Width = WIDTH_MIN,
                     Height = HEIGHT_DEF,
                     MinWidth = WIDTH_MIN,
@@ -360,22 +348,15 @@ namespace PixivWPF.Common
             if (obj is Pixeez.Objects.UserBase)
             {
                 var user = obj as Pixeez.Objects.UserBase;
-
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win.Title.Contains($"User: {user.Name} / {user.Id} / {user.Account}"))
-                    {
-                        win.Activate();
-                        return;
-                    }
-                }
+                var title = $"User: {user.Name} / {user.Id} / {user.Account}";
+                if (title.ActiveByTitle()) return;
 
                 var page = new IllustDetailPage() { Tag = obj };
                 page.UpdateDetail(user);
 
                 var viewer = new ContentWindow()
                 {
-                    Title = $"User: {user.Name} / {user.Id} / {user.Account}",
+                    Title = title,
                     Width = WIDTH_MIN,
                     Height = HEIGHT_DEF,
                     MinWidth = WIDTH_MIN,
@@ -2305,6 +2286,22 @@ namespace PixivWPF.Common
             }
             window.Show();
             window.Activate();
+        }
+
+        public static bool ActiveByTitle(this string title)
+        {
+            bool result = false;
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win.Title.StartsWith(title))
+                {
+                    if (win is MetroWindow) (win as MetroWindow).Active();
+                    else win.Activate();
+                    result = true;
+                    break;
+                }
+            }
+            return (result);
         }
 
         public static void WindowKeyUp(this object sender, KeyEventArgs e)
