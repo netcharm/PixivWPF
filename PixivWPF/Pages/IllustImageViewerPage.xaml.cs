@@ -25,10 +25,10 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class IllustImageViewerPage : Page
     {
-        internal object DataType = null;
-        internal Window window = null;
+        private object DataType = null;
+        private Window window = null;
 
-        public async void UpdateDetail(ImageItem item)
+        internal async void UpdateDetail(ImageItem item)
         {
             try
             {
@@ -56,11 +56,10 @@ namespace PixivWPF.Pages
                         ActionViewPageSep.Visibility = Visibility.Collapsed;
                     }
 
-                    var tokens = await CommonHelper.ShowLogin();
-                    var img = await illust.GetPreviewUrl(item.Index, true).LoadImage(tokens);
+                    var img = await illust.GetPreviewUrl(item.Index, true).LoadImageFromUrl();
                     if (img == null || img.Width < 360)
                     {
-                        var large = await item.Illust.GetOriginalUrl(item.Index).LoadImage(tokens);
+                        var large = await item.Illust.GetOriginalUrl(item.Index).LoadImageFromUrl();
                         if (large != null) img = large;
                     }
                     Preview.Source = img;
@@ -100,7 +99,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal void ChangeIllustPage(int offset)
+        private void ChangeIllustPage(int offset)
         {
             if (DataType is ImageItem)
             {
@@ -129,11 +128,8 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal async void SaveIllust()
+        private void SaveIllust()
         {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
-
             if (DataType is ImageItem)
             {
                 var item = DataType as ImageItem;
@@ -147,12 +143,9 @@ namespace PixivWPF.Pages
 
                     if (!string.IsNullOrEmpty(url))
                     {
-                        //await url.ToImageFile(tokens);
                         try
                         {
                             var is_meta_single_page = illust.PageCount==1 ? true : false;
-                            //await url.ToImageFile(tokens, dt, is_meta_single_page);
-                            //SystemSounds.Beep.Play();                            
                             url.SaveImage(illust.GetThumbnailUrl(idx), dt, is_meta_single_page);
                         }
                         catch (Exception ex)
@@ -177,6 +170,20 @@ namespace PixivWPF.Pages
                 var titleheight = window is MetroWindow ? (window as MetroWindow).TitlebarHeight : 0;
                 window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
                 window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom + (32 - titleheight % 32);
+            }
+        }
+
+        private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (btnViewFullSize.IsChecked.Value)
+            {
+                PreviewBox.Width = Preview.Source.Width;
+                PreviewBox.Height = Preview.Source.Height;
+            }
+            else
+            {
+                PreviewBox.Width = PreviewScroll.ActualWidth;
+                PreviewBox.Height = PreviewScroll.ActualHeight;
             }
         }
 
@@ -220,18 +227,20 @@ namespace PixivWPF.Pages
 
         private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (e.ClickCount >= 2) ActionViewOriginalPage_Click(sender, e);
+
             //int offset = 0;
             //int factor = 1;
             //if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             //    factor = 10;
 
-            //if (e.ChangedButton == MouseButton.XButton1)
-            //    offset = -1 * factor;
-            //else if (e.ChangedButton == MouseButton.XButton2)
-            //    offset = 1 * factor;
+                //if (e.ChangedButton == MouseButton.XButton1)
+                //    offset = -1 * factor;
+                //else if (e.ChangedButton == MouseButton.XButton2)
+                //    offset = 1 * factor;
 
-            //ChangeIllustPage(offset);
-            //e.Handled = true;
+                //ChangeIllustPage(offset);
+                //e.Handled = true;
         }
 
         private void Preview_KeyUp(object sender, KeyEventArgs e)
@@ -345,8 +354,7 @@ namespace PixivWPF.Pages
                 if (item.Illust is Pixeez.Objects.Work)
                 {
                     var illust = item.Illust as Pixeez.Objects.Work;
-                    var tokens = await CommonHelper.ShowLogin();
-                    var large = await illust.GetOriginalUrl(item.Index).LoadImage(tokens);
+                    var large = await illust.GetOriginalUrl(item.Index).LoadImageFromUrl();
                     if (large != null) Preview.Source = large;
                     if (Preview.Source != null)
                     {
@@ -354,17 +362,6 @@ namespace PixivWPF.Pages
                         PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
 
                         Page_SizeChanged(null, null);
-
-                        //if (btnViewFullSize.IsChecked.Value)
-                        //{
-                        //    PreviewBox.Width = Preview.Source.Width;
-                        //    PreviewBox.Height = Preview.Source.Height;
-                        //}
-                        //else
-                        //{
-                        //    PreviewBox.Width = PreviewScroll.ActualWidth;
-                        //    PreviewBox.Height = PreviewScroll.ActualHeight;
-                        //}
                     }
                 }
 
@@ -372,18 +369,5 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (btnViewFullSize.IsChecked.Value)
-            {
-                PreviewBox.Width = Preview.Source.Width;
-                PreviewBox.Height = Preview.Source.Height;
-            }
-            else
-            {
-                PreviewBox.Width = PreviewScroll.ActualWidth;
-                PreviewBox.Height = PreviewScroll.ActualHeight;
-            }
-        }
     }
 }

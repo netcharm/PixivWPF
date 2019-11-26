@@ -134,12 +134,12 @@ namespace PixivWPF.Pages
                         setting.Save();
                     }
 
-                    if(tokens is Pixeez.Tokens && !string.IsNullOrEmpty(tokens.AccessToken))
+                    if (tokens is Pixeez.Tokens && !string.IsNullOrEmpty(tokens.AccessToken))
                     {
-                        if(Tag is Frame)
+                        if (Tag is Frame)
                         {
                             var frame = Tag as Frame;
-                            if(frame.Tag is PixivLoginDialog)
+                            if (frame.Tag is PixivLoginDialog)
                             {
                                 var win = frame.Tag as PixivLoginDialog;
                                 win.AccessToken = tokens.AccessToken;

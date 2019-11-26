@@ -101,10 +101,10 @@ namespace PixivWPF.Common
                         var file = (string)image.Tag;
                         if(!string.IsNullOrEmpty(file))
                         {
-                            Preview.Source = await file.GetLocalFile().LoadImage();
+                            Preview.Source = await file.GetFilePath().LoadImageFromFile();
                             if(Preview.Source == null)
                             {
-                                Preview.Source = await file.LoadImage(null);
+                                Preview.Source = await file.LoadImageFromUrl();
                             }
                             CheckImageSource();
                         }

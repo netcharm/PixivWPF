@@ -26,7 +26,7 @@ namespace PixivWPF.Pages
         private Setting setting = Setting.Load();
         private PixivPage page = PixivPage.Recommanded;
 
-        public MahApps.Metro.Controls.Flyout NavFlyout = null;
+        internal MahApps.Metro.Controls.Flyout NavFlyout = null;
 
         private Brush ToggleOnBG = new SolidColorBrush(Colors.Transparent);
         private Brush ToggleOffBG = new SolidColorBrush(Colors.Transparent);

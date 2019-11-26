@@ -100,7 +100,7 @@ namespace PixivWPF
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
             Common.Theme.Toggle();
-            this.UpdateTheme();
+            UpdateTheme();
         }
 
         private void CommandToggleTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)

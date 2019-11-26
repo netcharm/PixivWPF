@@ -26,6 +26,7 @@ namespace PixivWPF.Common
 
         public void UpdateTheme()
         {
+            CommonHelper.UpdateTheme(this);
         }
 
         public PixivLoginDialog()
@@ -34,6 +35,8 @@ namespace PixivWPF.Common
 
             ContentFrame.Tag = this;
             ContentFrame.Content = new Pages.LoginPage() { Tag = ContentFrame };
+
+            UpdateTheme();
         }
     }
 }

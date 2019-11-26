@@ -24,18 +24,13 @@ namespace PixivWPF.Pages
     public partial class SearchResultPage : Page
     {
         private Window window = null;
-        public Window CurrentWindow
-        {
-            get { return (window); }
-            set { window = value; }
-        }
 
-        internal object DataType = null;
+        private object DataType = null;
 
-        internal string result_filter = string.Empty;
+        private string result_filter = string.Empty;
 
-        internal MenuItem ActionResultFilter = null;
-        internal ContextMenu ContextMenuResultFilter = null;
+        private MenuItem ActionResultFilter = null;
+        private ContextMenu ContextMenuResultFilter = null;
         private Dictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new Dictionary<string, Tuple<MenuItem, MenuItem>>();
 
         public SearchResultPage()
@@ -86,12 +81,12 @@ namespace PixivWPF.Pages
             ResultExpander.IsExpanded = false;
             ResultExpander.IsExpanded = true;
 
-            if (CurrentWindow != null)
-                CurrentWindow.SizeToContent = SizeToContent.WidthAndHeight;
+            if (window != null)
+                window.SizeToContent = SizeToContent.WidthAndHeight;
         }
 
         #region Search Result Panel related routines
-        internal async void ShowResultInline(Pixeez.Tokens tokens, string content, string filter = "", string next_url = "")
+        private async void ShowResultInline(Pixeez.Tokens tokens, string content, string filter = "", string next_url = "")
         {
             try
             {
@@ -235,7 +230,8 @@ namespace PixivWPF.Pages
             {
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("WARNING");
+                    //"No Result".ShowMessageBox("WARNING");
+                    "No Result".ShowToast("WARNING");
                 }
                 else
                 {

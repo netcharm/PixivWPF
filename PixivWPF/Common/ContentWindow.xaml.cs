@@ -24,9 +24,12 @@ namespace PixivWPF.Common
     {
         public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
 
-        public void UpdateTheme()
+        public void UpdateTheme(MetroWindow win = null)
         {
-            CommonHelper.UpdateTheme();
+            if (win != null)
+                CommonHelper.UpdateTheme(win);
+            else
+                CommonHelper.UpdateTheme();
         }
 
         private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>();
@@ -47,6 +50,125 @@ namespace PixivWPF.Common
             //Topmost = true;
             ShowActivated = true;
             //Activate();
+
+            UpdateTheme();
+        }
+
+        private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (Content is Pages.IllustDetailPage || Content is Pages.IllustImageViewerPage) CommandPageRefresh.Visibility = Visibility.Visible;
+            else CommandPageRefresh.Visibility = Visibility.Collapsed;
+        }
+
+        private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
+        {
+            sender.WindowKeyUp(e);
+        }
+
+        private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+        }
+
+        private void MetroWindow_DragOver(object sender, DragEventArgs e)
+        {
+            var fmts = e.Data.GetFormats(true);
+            if (new List<string>(fmts).Contains("Text"))
+            {
+                e.Effects = DragDropEffects.Link;
+            }
+        }
+
+        private void MetroWindow_Drop(object sender, DragEventArgs e)
+        {
+            var links = e.ParseDragContent();
+            foreach (var link in links)
+            {
+                CommonHelper.Cmd_Search.Execute(link);
+            }
+        }
+
+        private void MetroWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.XButton1)
+            {
+                if (Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    //Hide();
+                }
+                else if (Title.Equals("Download Manager", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Hide();
+                }
+                else
+                {
+                    Close();
+                }
+                e.Handled = true;
+            }
+        }
+
+        private void MetroWindow_StateChanged(object sender, EventArgs e)
+        {
+            LastWindowStates.Enqueue(this.WindowState);
+            if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
+        }
+
+        private void CommandPageRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            if (Content is Pages.IllustDetailPage)
+            {
+                var page = Content as Pages.IllustDetailPage;
+                if(page.Tag is ImageItem)
+                    page.UpdateDetail(page.Tag as ImageItem);
+                else if(page.Tag is Pixeez.Objects.UserBase)
+                    page.UpdateDetail(page.Tag as Pixeez.Objects.UserBase);
+            }
+            else if (Content is Pages.IllustImageViewerPage)
+            {
+                var page = Content as Pages.IllustImageViewerPage;
+                if (page.Tag is ImageItem)
+                    page.UpdateDetail(page.Tag as ImageItem);
+            }
+        }
+
+        private void CommandLogin_Click(object sender, RoutedEventArgs e)
+        {
+            var accesstoken = Setting.Token();
+            var dlgLogin = new PixivLoginDialog() { AccessToken = accesstoken };
+            var ret = dlgLogin.ShowDialog();
+            accesstoken = dlgLogin.AccessToken;
+            Setting.Token(accesstoken);
+        }
+
+        private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
+        {
+            CommonHelper.ShowDownloadManager(true);
+        }
+
+        private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Primitives.ToggleButton)
+            {
+                ContentWindow box = null;
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win.Title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (win is ContentWindow)
+                        {
+                            box = win as ContentWindow;
+                            break;
+                        }
+                    }
+                }
+
+                var btn = sender as System.Windows.Controls.Primitives.ToggleButton;
+                if (box == null && !btn.IsChecked.Value)
+                {
+                    btn.IsChecked = true;
+                }
+                btn.IsChecked = CommonHelper.ShowDropBox(btn.IsChecked.Value);
+            }
         }
 
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
@@ -61,15 +183,6 @@ namespace PixivWPF.Common
             {
                 Theme.CurrentAccent = Theme.Accents[CommandToggleTheme.SelectedIndex];
             }
-        }
-
-        private void CommandLogin_Click(object sender, RoutedEventArgs e)
-        {
-            var accesstoken = Setting.Token();
-            var dlgLogin = new PixivLoginDialog() { AccessToken = accesstoken };
-            var ret = dlgLogin.ShowDialog();
-            accesstoken = dlgLogin.AccessToken;
-            Setting.Token(accesstoken);
         }
 
         private void CommandSearch_Click(object sender, RoutedEventArgs e)
@@ -127,90 +240,6 @@ namespace PixivWPF.Common
                 e.Handled = true;
                 CommonHelper.Cmd_Search.Execute(SearchBox.Text);
             }
-        }
-
-        private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
-        {
-            CommonHelper.ShowDownloadManager(true);
-        }
-
-        private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is System.Windows.Controls.Primitives.ToggleButton)
-            {
-                ContentWindow box = null;
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win.Title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        if (win is ContentWindow)
-                        {
-                            box = win as ContentWindow;
-                            break;
-                        }
-                    }
-                }
-
-                var btn = sender as System.Windows.Controls.Primitives.ToggleButton;
-                if (box == null && !btn.IsChecked.Value)
-                {
-                    btn.IsChecked = true;
-                }
-                btn.IsChecked = CommonHelper.ShowDropBox(btn.IsChecked.Value);
-            }
-        }
-
-        private void Window_KeyUp(object sender, KeyEventArgs e)
-        {
-            sender.WindowKeyUp(e);
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-        }
-
-        private void Window_DragOver(object sender, DragEventArgs e)
-        {
-            var fmts = e.Data.GetFormats(true);
-            if (new List<string>(fmts).Contains("Text"))
-            {
-                e.Effects = DragDropEffects.Link;
-            }
-        }
-
-        private void Window_Drop(object sender, DragEventArgs e)
-        {
-            var links = e.ParseDragContent();
-            foreach (var link in links)
-            {
-                CommonHelper.Cmd_Search.Execute(link);
-            }
-        }
-
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if(e.ChangedButton == MouseButton.XButton1)
-            {
-                if (Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    //Hide();
-                }
-                else if (Title.Equals("Download Manager", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    Hide();
-                }
-                else
-                {
-                    Close();
-                }
-                e.Handled = true;
-            }
-        }
-
-        private void MetroWindow_StateChanged(object sender, EventArgs e)
-        {
-            LastWindowStates.Enqueue(this.WindowState);
-            if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
         }
     }
 }

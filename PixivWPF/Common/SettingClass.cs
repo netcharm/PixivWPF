@@ -98,7 +98,6 @@ namespace PixivWPF.Common
             get { return AppPath; }
         }
 
-
         private string accesstoken = string.Empty;
         public string AccessToken
         {

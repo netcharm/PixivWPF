@@ -34,7 +34,7 @@ namespace PixivWPF.Pages
         internal Task lastTask = null;
         internal CancellationTokenSource cancelTokenSource;
 
-        public void UpdateTheme()
+        internal void UpdateTheme()
         {
             detail_page.UpdateTheme();
         }
@@ -73,7 +73,7 @@ namespace PixivWPF.Pages
             ShowImages();
         }
 
-        public void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false)
+        internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false)
         {
             if (window == null) window = this.GetActiveWindow();
 
@@ -175,7 +175,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowRecommanded(string nexturl = null)
+        private async void ShowRecommanded(string nexturl = null)
         {
             ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
@@ -241,7 +241,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowLatest(string nexturl = null)
+        private async void ShowLatest(string nexturl = null)
         {
             ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
@@ -288,7 +288,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowTrendingTags(string nexturl = null)
+        private async void ShowTrendingTags(string nexturl = null)
         {
             ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
@@ -339,7 +339,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowFeeds(long uid, string nexturl = null)
+        private async void ShowFeeds(long uid, string nexturl = null)
         {
             ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
@@ -386,7 +386,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowFeeds(string nexturl = null)
+        private async void ShowFeeds(string nexturl = null)
         {
             ImageTilesWait.Show();
             var force = setting.MyInfo is Pixeez.Objects.User ? false : true;
@@ -435,7 +435,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowFavorite(string nexturl = null, bool IsPrivate = false)
+        private async void ShowFavorite(string nexturl = null, bool IsPrivate = false)
         {
             ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin(setting.MyInfo == null && IsPrivate);
@@ -489,7 +489,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowFollowing(string nexturl = null, bool IsPrivate = false)
+        private async void ShowFollowing(string nexturl = null, bool IsPrivate = false)
         {
             ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
@@ -537,7 +537,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowRankingAll(string nexturl = null, string condition = "daily")
+        private async void ShowRankingAll(string nexturl = null, string condition = "daily")
         {
             ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
@@ -596,7 +596,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowRanking(string nexturl = null, string condition = "day")
+        private async void ShowRanking(string nexturl = null, string condition = "day")
         {
             ImageTilesWait.Show();
             var tokens = await CommonHelper.ShowLogin();
@@ -651,7 +651,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void ShowUser(long uid, bool IsPrivate=false)
+        private async void ShowUser(long uid, bool IsPrivate=false)
         {
             var force = uid == 0 && setting.MyInfo is Pixeez.Objects.User ? false : true;
             var tokens = await CommonHelper.ShowLogin(force);
@@ -693,9 +693,8 @@ namespace PixivWPF.Pages
                 item.IsDownloaded = item.Illust.IsPartDownloaded();
                 item.IsFavorited = item.IsLiked();
 
+                detail_page.Tag = item;
                 detail_page.UpdateDetail(item);
-
-                //UpdateDetail(item);
             }
             catch (Exception ex)
             {

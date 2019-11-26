@@ -305,7 +305,7 @@ namespace PixivWPF.Common
                                             if (item.Source == null)
                                             {
                                                 if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                                item.Source = await item.Thumb.LoadImage(null);
+                                                item.Source = await item.Thumb.LoadImageFromUrl();
                                             }
                                         }
 #if DEBUG

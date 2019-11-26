@@ -26,8 +26,8 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class DownloadManagerPage : Page
     {
-        internal Window window = null;
-        internal Setting setting = Setting.Load();
+        private Window window = null;
+        private Setting setting = Setting.Load();
 
         [DefaultValue(true)]
         public bool AutoStart { get; set; }
@@ -97,7 +97,7 @@ namespace PixivWPF.Pages
             }).InvokeAsync();
         }
 
-        public bool IsExists(string url)
+        private bool IsExists(string url)
         {
             bool result = false;
 
@@ -122,7 +122,7 @@ namespace PixivWPF.Pages
             return (result);
         }
 
-        public void Add(DownloadInfo item)
+        internal void Add(DownloadInfo item)
         {
             if(item is DownloadInfo)
             {
@@ -131,7 +131,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        public async void Add(string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        internal async void Add(string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
             if (!IsExists(url))
             {
@@ -163,7 +163,7 @@ namespace PixivWPF.Pages
                     SingleFile = is_meta_single_page,
                     Overwrite = overwrite,
                     ThumbnailUrl = thumb,
-                    Thumbnail = await thumb.LoadImage(null),
+                    Thumbnail = await thumb.LoadImageFromUrl(),
                     Url = url,
                     FileTime = dt
                 };
@@ -172,12 +172,12 @@ namespace PixivWPF.Pages
             }
         }
 
-        public void Refresh()
+        internal void Refresh()
         {
             DownloadItems.Items.Refresh();
         }
 
-        public void Start()
+        internal void Start()
         {
             foreach(var item in items)
             {

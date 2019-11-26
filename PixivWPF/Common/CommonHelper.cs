@@ -90,16 +90,65 @@ namespace PixivWPF.Common
 
     public class DPI
     {
-        public int X { get; }
-        public int Y { get; }
+        public double X { get; } = 96.0;
+        public double Y { get; } = 96.0;
 
         public DPI()
         {
-            var dpiXProperty = typeof(SystemParameters).GetProperty("DpiX", BindingFlags.NonPublic | BindingFlags.Static);
-            var dpiYProperty = typeof(SystemParameters).GetProperty("Dpi", BindingFlags.NonPublic | BindingFlags.Static);
+            var dpi = BySystemParameters();
+            X = dpi.X;
+            Y = dpi.Y;
+        }
 
-            X = (int)dpiXProperty.GetValue(null, null);
-            Y = (int)dpiYProperty.GetValue(null, null);
+        public DPI(double x, double y)
+        {
+            X = x;
+            Y = y;
+        }
+
+        public DPI(Visual visual)
+        {
+            try
+            {
+                var dpi = FromVisual(visual);
+                X = dpi.X;
+                Y = dpi.Y;
+            }
+            catch (Exception) {}
+        }
+
+        public static DPI FromVisual(Visual visual)
+        {
+            var source = PresentationSource.FromVisual(visual);
+            var dpiX = 96.0;
+            var dpiY = 96.0;
+            try
+            {
+                if (source?.CompositionTarget != null)
+                {
+                    dpiX = 96.0 * source.CompositionTarget.TransformToDevice.M11;
+                    dpiY = 96.0 * source.CompositionTarget.TransformToDevice.M22;
+                }
+            }
+            catch (Exception) { }
+            return new DPI(dpiX, dpiY);
+        }
+
+        public static DPI BySystemParameters()
+        {
+            BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
+            var dpiXProperty = typeof(SystemParameters).GetProperty("DpiX", flags);
+            //var dpiYProperty = typeof(SystemParameters).GetProperty("DpiY", flags);
+            var dpiYProperty = typeof(SystemParameters).GetProperty("Dpi", flags);
+            var dpiX = 96.0;
+            var dpiY = 96.0;
+            try
+            {
+                if (dpiXProperty != null) { dpiX = (int)dpiXProperty.GetValue(null, null); }
+                if (dpiYProperty != null) { dpiY = (int)dpiYProperty.GetValue(null, null); }
+            }
+            catch (Exception) { }
+            return new DPI(dpiX, dpiY);
         }
     }
 
@@ -205,15 +254,18 @@ namespace PixivWPF.Common
 
                         item.IsDownloaded = item.Illust == null ? false : item.Illust.IsDownloaded(item.Index);
 
-                        var page = new IllustImageViewerPage();
+                        var page = new IllustImageViewerPage() { Tag = item };
                         page.UpdateDetail(item);
-                        var viewer = new ContentWindow();
-                        viewer.Content = page;
-                        viewer.Title = $"ID: {item.ID}, {item.Subject}";
-                        viewer.Width = WIDTH_MIN;
-                        viewer.Height = HEIGHT_DEF;
-                        viewer.MinWidth = WIDTH_MIN;
-                        viewer.MinHeight = HEIGHT_MIN;
+
+                        var viewer = new ContentWindow()
+                        {
+                            Title = $"ID: {item.ID}, {item.Subject}",
+                            Width = WIDTH_MIN,
+                            Height = HEIGHT_DEF,
+                            MinWidth = WIDTH_MIN,
+                            MinHeight = HEIGHT_MIN,
+                            Content = page
+                        };
                         viewer.Show();
                     }
                 }
@@ -238,15 +290,18 @@ namespace PixivWPF.Common
                                 return;
                             }
                         }
-                        var page = new IllustImageViewerPage();
+                        var page = new IllustImageViewerPage() { Tag = item };
                         page.UpdateDetail(item);
-                        var viewer = new ContentWindow();
-                        viewer.Content = page;
-                        viewer.Title = $"ID: {item.ID}, {item.Subject} - {item.BadgeValue}/{item.Count}";
-                        viewer.Width = WIDTH_MIN;
-                        viewer.Height = HEIGHT_DEF;
-                        viewer.MinWidth = WIDTH_MIN;
-                        viewer.MinHeight = HEIGHT_MIN;
+
+                        var viewer = new ContentWindow()
+                        {
+                            Title = $"ID: {item.ID}, {item.Subject} - {item.BadgeValue}/{item.Count}",
+                            Width = WIDTH_MIN,
+                            Height = HEIGHT_DEF,
+                            MinWidth = WIDTH_MIN,
+                            MinHeight = HEIGHT_MIN,
+                            Content = page
+                        };
                         viewer.Show();
                         break;
                     case ImageItemType.User:
@@ -272,17 +327,18 @@ namespace PixivWPF.Common
                 var item = illust.IllustItem();
                 if (item is ImageItem)
                 {
-                    var viewer = new ContentWindow();
-                    var page = new IllustDetailPage();
-
+                    var page = new IllustDetailPage() { Tag = item };
                     page.UpdateDetail(item);
 
-                    viewer.Title = $"ID: {illust.Id}, {illust.Title}";
-                    viewer.Width = WIDTH_MIN;
-                    viewer.Height = HEIGHT_DEF;
-                    viewer.MinWidth = WIDTH_MIN;
-                    viewer.MinHeight = HEIGHT_MIN;
-                    viewer.Content = page;
+                    var viewer = new ContentWindow()
+                    {
+                        Title = $"ID: {illust.Id}, {illust.Title}",
+                        Width = WIDTH_MIN,
+                        Height = HEIGHT_DEF,
+                        MinWidth = WIDTH_MIN,
+                        MinHeight = HEIGHT_MIN,
+                        Content = page
+                    };
                     viewer.Show();
                 }
             }
@@ -299,17 +355,18 @@ namespace PixivWPF.Common
                     }
                 }
 
-                var viewer = new ContentWindow();
-                var page = new IllustDetailPage();
-
+                var page = new IllustDetailPage() { Tag = obj };
                 page.UpdateDetail(user);
-                viewer.Title = $"User: {user.Name} / {user.Id} / {user.Account}";
 
-                viewer.Width = WIDTH_MIN;
-                viewer.Height = HEIGHT_DEF;
-                viewer.MinWidth = WIDTH_MIN;
-                viewer.MinHeight = HEIGHT_MIN;
-                viewer.Content = page;
+                var viewer = new ContentWindow()
+                {
+                    Title = $"User: {user.Name} / {user.Id} / {user.Account}",
+                    Width = WIDTH_MIN,
+                    Height = HEIGHT_DEF,
+                    MinWidth = WIDTH_MIN,
+                    MinHeight = HEIGHT_MIN,
+                    Content = page
+                };
                 viewer.Show();
             }
             else if (obj is string)
@@ -442,9 +499,9 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(obj =>
+        public static ICommand Cmd_Search { get; } = new DelegateCommand<string>(obj =>
         {
-            if (obj is string)
+            if (obj is string && !string.IsNullOrEmpty(obj))
             {
                 var content = ParseLink((string)obj);
                 var id = ParseID(content);
@@ -460,25 +517,25 @@ namespace PixivWPF.Common
                         }
                     }
 
-                    var viewer = new ContentWindow();
-                    viewer.Title = $"Searching {content} ...";
-                    viewer.Width = WIDTH_MIN;
-                    viewer.Height = HEIGHT_DEF;
-                    viewer.MinWidth = WIDTH_MIN;
-                    viewer.MinHeight = HEIGHT_MIN;
-                    viewer.MaxHeight = HEIGHT_MAX;
-
-                    var page = new SearchResultPage();
-                    page.CurrentWindow = viewer;
+                    var page = new SearchResultPage() { Tag = content };
                     page.UpdateDetail(content);
 
-                    viewer.Content = page;
+                    var viewer = new ContentWindow()
+                    {
+                        Title = $"Searching {content} ...",
+                        Width = WIDTH_MIN,
+                        Height = HEIGHT_DEF,
+                        MinWidth = WIDTH_MIN,
+                        MinHeight = HEIGHT_MIN,
+                        MaxHeight = HEIGHT_MAX,
+                        Content = page
+                    };
                     viewer.Show();
                 }
             }
         });
 
-        public static ICommand Cmd_Drop { get; } = new DelegateCommand<object>(async obj =>
+        public static ICommand Cmd_Drop { get; } = new DelegateCommand<IEnumerable<string>>(async obj =>
         {
             if (obj is IEnumerable)
             {
@@ -1192,7 +1249,7 @@ namespace PixivWPF.Common
             while (!IsFileReady(filename)) { }
         }
 
-        public static string GetLocalFile(this string url)
+        public static string GetFilePath(this string url)
         {
             string result = url;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
@@ -1202,23 +1259,23 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> LoadImage(this string file)
+        public static async Task<ImageSource> LoadImageFromFile(this string file)
         {
             ImageSource result = null;
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
                 using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    await Task.Run(async () =>
+                    await new Action(async () =>
                     {
                         result = await stream.ToImageSource();
-                    });
+                    }).InvokeAsync();
                 }
             }
             return (result);
         }
 
-        public static async Task<ImageSource> LoadImage(this string url, Pixeez.Tokens tokens = null)
+        public static async Task<ImageSource> LoadImageFromUrl(this string url, Pixeez.Tokens tokens = null)
         {
             ImageSource result = null;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
@@ -1229,7 +1286,17 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> LoadImagePath(this string url, Pixeez.Tokens tokens = null)
+        public static async Task<ImageSource> LoadImageFromUri(this Uri uri, Pixeez.Tokens tokens = null)
+        {
+            ImageSource result = null;
+            if (uri.IsUnc || uri.IsFile)
+                result = await LoadImageFromFile(uri.LocalPath);
+            else
+                result = await LoadImageFromUrl(uri.OriginalString, tokens);
+            return (result);
+        }
+
+        public static async Task<string> GetImagePath(this string url, Pixeez.Tokens tokens = null)
         {
             string result = null;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
@@ -1501,6 +1568,54 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+
+        private static void Arrange(UIElement element, int width, int height)
+        {
+            element.Measure(new Size(width, height));
+            element.Arrange(new Rect(0, 0, width, height));
+            element.UpdateLayout();
+        }
+
+        public static Image GetThemedImage(this Uri uri)
+        {
+            Image result = new Image() { Source = new BitmapImage(uri) };
+            try
+            {
+                var dpi = new DPI();
+
+                var img = new BitmapImage(uri);
+                var src = new Image() { Source = img, Width = img.Width, Height = img.Height, Opacity = 0.8 };
+                src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.AccentColor };
+                //img.Effect = new TranspranceEffect() { TransColor = Theme.AccentColor };
+                //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
+                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.AccentColor };
+                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Colors.Transparent };
+                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.AccentColor };
+                //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.AccentColor };
+
+                Grid root = new Grid();
+                root.Background = Theme.AccentBrush;
+                Arrange(root, (int)src.Width, (int)src.Height);
+                root.Children.Add(src);
+                Arrange(src, (int)src.Width, (int)src.Height);
+
+                RenderTargetBitmap bmp = new RenderTargetBitmap((int)(src.Width), (int)(src.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+                DrawingVisual drawingVisual = new DrawingVisual();
+                using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+                {
+                    VisualBrush visualBrush = new VisualBrush(root);
+                    drawingContext.DrawRectangle(visualBrush, null, new Rect(new Point(), new Size(src.Width, src.Height)));
+                }
+                bmp.Render(drawingVisual);
+                result.Source = bmp;
+            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception) { }
+#endif
+            return (result);
+        }
         #endregion
 
         #region Illust Tile ListView routines
@@ -1659,43 +1774,34 @@ namespace PixivWPF.Common
             return (item.ItemType == ImageItemType.User ? item.Illust.User.IsLiked() : item.Illust.IsLiked());
         }
 
+        public static async Task<bool> Like(this ImageItem item, bool pub = true)
+        {
+            if (item.ItemType == ImageItemType.Work)
+                return (await item.LikeIllust(pub));
+            else if (item.ItemType == ImageItemType.User)
+                return (await item.LikeUser(pub));
+            else return false;
+        }
+
+        public static async Task<bool> UnLike(this ImageItem item, bool pub = true)
+        {
+            if (item.ItemType == ImageItemType.Work)
+                return (await item.UnLikeIllust());
+            else if (item.ItemType == ImageItemType.User)
+                return (await item.UnLikeUser());
+            else return false;
+        }
+
         public static async Task<bool> LikeIllust(this ImageItem item, bool pub = true)
         {
             bool result = false;
 
             if (item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga)
             {
-                var tokens = await ShowLogin();
-                if (tokens == null) return (result);
-
-                var illust = item.Illust;
-                try
-                {
-                    if (pub)
-                    {
-                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags);
-                    }
-                    else
-                    {
-                        await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, "private");
-                    }
-                }
-                catch (Exception) { }
-                finally
-                {
-                    try
-                    {
-                        tokens = await ShowLogin();
-                        illust = await illust.RefreshIllust(tokens);
-                        if (illust != null)
-                        {
-                            result = illust.IsLiked();
-                            item.Illust = illust;
-                            item.IsFavorited = result;
-                        }
-                    }
-                    catch (Exception) { }
-                }
+                var ret = await item.Illust.LikeIllust(pub);
+                result = ret.Item1;
+                item.Illust = ret.Item2;
+                item.IsFavorited = result;
             }
 
             return (result);
@@ -1707,32 +1813,10 @@ namespace PixivWPF.Common
 
             if (item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga)
             {
-                var tokens = await ShowLogin();
-                if (tokens == null) return (result);
-
-                var illust = item.Illust;
-                var lastID = illust.Id;
-                try
-                {
-                    await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
-                    await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
-                }
-                catch (Exception) { }
-                finally
-                {
-                    try
-                    {
-                        tokens = await ShowLogin();
-                        illust = await illust.RefreshIllust(tokens);
-                        if (illust != null)
-                        {
-                            result = illust.IsLiked();
-                            item.Illust = illust;
-                            item.IsFavorited = result;
-                        }
-                    }
-                    catch (Exception) { }
-                }
+                var ret = await item.Illust.UnLikeIllust();
+                result = ret.Item1;
+                item.Illust = ret.Item2;
+                item.IsFavorited = result;
             }
 
             return (result);
@@ -1747,7 +1831,7 @@ namespace PixivWPF.Common
             {
                 if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
                 {
-                    item.Dispatcher.BeginInvoke((Action)(async () =>
+                    var ua = new Action(async()=>
                     {
                         try
                         {
@@ -1755,7 +1839,7 @@ namespace PixivWPF.Common
                             if (item.ItemType == ImageItemType.Work) item.IsFavorited = result;
                         }
                         catch (Exception){}
-                    }));
+                    }).InvokeAsync();
                 }
             });
         }
@@ -1769,7 +1853,7 @@ namespace PixivWPF.Common
             {
                 if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
                 {
-                    item.Dispatcher.BeginInvoke((Action)(async () =>
+                    var ua = new Action(async()=>
                     {
                         try
                         {
@@ -1777,7 +1861,7 @@ namespace PixivWPF.Common
                             if (item.ItemType == ImageItemType.Work) item.IsFavorited = result;
                         }
                         catch (Exception){}
-                    }));
+                    }).InvokeAsync();
                 }
             });
         }
@@ -1792,6 +1876,74 @@ namespace PixivWPF.Common
             UnLikeIllust(new ObservableCollection<ImageItem>(collection));
         }
 
+        public static async Task<Tuple<bool, Pixeez.Objects.Work>> LikeIllust(this Pixeez.Objects.Work illust, bool pub = true)
+        {
+            Tuple<bool, Pixeez.Objects.Work> result = new Tuple<bool, Pixeez.Objects.Work>(false, illust);
+
+            var tokens = await ShowLogin();
+            if (tokens == null) return (result);
+
+            try
+            {
+                if (pub)
+                {
+                    await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags);
+                }
+                else
+                {
+                    await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, "private");
+                }
+            }
+            catch (Exception) { }
+            finally
+            {
+                try
+                {
+                    tokens = await ShowLogin();
+                    illust = await illust.RefreshIllust(tokens);
+                    if (illust != null)
+                    {
+                        result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
+                        $"{illust.Title} is Liked!".ShowToast("INFO");
+                    }
+                }
+                catch (Exception) { }
+            }
+
+            return (result);
+        }
+
+        public static async Task<Tuple<bool, Pixeez.Objects.Work>> UnLikeIllust(this Pixeez.Objects.Work illust)
+        {
+            Tuple<bool, Pixeez.Objects.Work> result = new Tuple<bool, Pixeez.Objects.Work>(false, illust);
+
+            var tokens = await ShowLogin();
+            if (tokens == null) return (result);
+
+            try
+            {
+                await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
+                await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
+            }
+            catch (Exception) { }
+            finally
+            {
+                try
+                {
+                    tokens = await ShowLogin();
+                    illust = await illust.RefreshIllust(tokens);
+                    if (illust != null)
+                    {
+                        result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
+                        $"{illust.Title} is Un-Liked!".ShowToast("INFO");
+                    }
+                }
+                catch (Exception) { }
+            }
+
+            return (result);
+        }
+
         public static async Task<bool> LikeUser(this ImageItem item, bool pub = true)
         {
             bool result = false;
@@ -1803,7 +1955,9 @@ namespace PixivWPF.Common
                     var user = item.User;
                     result = await user.Like(pub);
                     if (item.ItemType == ImageItemType.User)
+                    {
                         item.IsFavorited = result;
+                    }
                 }
                 catch (Exception) { }
             }
@@ -1822,7 +1976,9 @@ namespace PixivWPF.Common
                     var user = item.User;
                     result = await user.UnLike();
                     if (item.ItemType == ImageItemType.User)
+                    {
                         item.IsFavorited = result;
+                    }
                 }
                 catch (Exception) { }
             }
@@ -1840,7 +1996,7 @@ namespace PixivWPF.Common
             {
                 if (item is ImageItem && item.User is Pixeez.Objects.UserBase)
                 {
-                    item.Dispatcher.BeginInvoke((Action)(async () =>
+                    var ua = new Action(async()=>
                     {
                         try
                         {
@@ -1848,7 +2004,7 @@ namespace PixivWPF.Common
                             if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
                         }
                         catch (Exception){}
-                    }));
+                    }).InvokeAsync();
                 }
             });
         }
@@ -1862,7 +2018,7 @@ namespace PixivWPF.Common
             {
                 if (item is ImageItem && item.User is Pixeez.Objects.UserBase)
                 {
-                    item.Dispatcher.BeginInvoke((Action)(async () =>
+                    var ua = new Action(async()=>
                     {
                         try
                         {
@@ -1870,7 +2026,7 @@ namespace PixivWPF.Common
                             if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
                         }
                         catch (Exception){}
-                    }));
+                    }).InvokeAsync();
                 }
             });
         }
@@ -1887,17 +2043,17 @@ namespace PixivWPF.Common
 
         public static async Task<bool> Like(this Pixeez.Objects.UserBase user, bool pub = true)
         {
-            return (await user.LikeUser(pub));
+            return ((await user.LikeUser(pub)).Item1);
         }
 
         public static async Task<bool> UnLike(this Pixeez.Objects.UserBase user, bool pub = true)
         {
-            return (await user.UnLikeUser());
+            return ((await user.UnLikeUser()).Item1);
         }
 
-        public static async Task<bool> LikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
+        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> LikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
         {
-            bool result = false;
+            Tuple<bool, Pixeez.Objects.UserBase> result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
 
             var tokens = await ShowLogin();
             if (tokens == null) return (result);
@@ -1922,7 +2078,8 @@ namespace PixivWPF.Common
                     user = await user.RefreshUser(tokens);
                     if (user != null)
                     {
-                        result = user.IsLiked();
+                        result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
+                        $"{user.Name ?? string.Empty} is Liked!".ShowToast("INFO");
                     }
                 }
                 catch (Exception) { }
@@ -1930,9 +2087,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> UnLikeUser(this Pixeez.Objects.UserBase user)
+        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> UnLikeUser(this Pixeez.Objects.UserBase user)
         {
-            bool result = false;
+            Tuple<bool, Pixeez.Objects.UserBase> result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
 
             var tokens = await ShowLogin();
             if (tokens == null) return (result);
@@ -1951,7 +2108,8 @@ namespace PixivWPF.Common
                     user = await user.RefreshUser(tokens);
                     if (user != null)
                     {
-                        result = user.IsLiked();
+                        result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
+                        $"{user.Name ?? string.Empty} is Un-Liked!".ShowToast("INFO");
                     }
                 }
                 catch (Exception) { }
@@ -1973,10 +2131,13 @@ namespace PixivWPF.Common
         #endregion
 
         #region UI Element Show/Hide
-        public static void UpdateTheme()
+        public static void UpdateTheme(MetroWindow win)
         {
-            foreach (Window win in Application.Current.Windows)
+            try
             {
+                var img = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
+                win.Icon = img.Source;
+
                 if (win.Content is IllustDetailPage)
                 {
                     var page = win.Content as IllustDetailPage;
@@ -1986,11 +2147,37 @@ namespace PixivWPF.Common
                 {
                     if (win.Content is Image)
                     {
-                        var effect = (win.Content as Image).Effect;
-                        if (effect is ThresholdEffect) (effect as ThresholdEffect).BlankColor = Theme.AccentColor;
+                        win.Content = img;
                     }
                 }
             }
+            catch (Exception) { }
+        }
+
+        public static void UpdateTheme()
+        {
+            try
+            {
+                var img = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
+
+                foreach (Window win in Application.Current.Windows)
+                {
+                    win.Icon = img.Source;
+                    if (win.Content is IllustDetailPage)
+                    {
+                        var page = win.Content as IllustDetailPage;
+                        page.UpdateTheme();
+                    }
+                    else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (win.Content is Image)
+                        {
+                            win.Content = img;
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
         }
 
         public static void Show(this ProgressRing progress, bool show)
@@ -2204,15 +2391,16 @@ namespace PixivWPF.Common
             }
             else
             {
-                var viewer = new ContentWindow();
-                viewer.Title = $"Download Manager";
-                viewer.Width = WIDTH_MIN;
-                viewer.Height = HEIGHT_MIN;
-                viewer.MinWidth = WIDTH_MIN;
-                viewer.MinHeight = HEIGHT_MIN;
-                viewer.Content = _downManager;
-                viewer.Tag = _downManager;
-                _downManager.window = viewer;
+                var viewer = new ContentWindow()
+                {
+                    Title = $"Download Manager",
+                    Width = WIDTH_MIN,
+                    Height = HEIGHT_MIN,
+                    MinWidth = WIDTH_MIN,
+                    MinHeight = HEIGHT_MIN,
+                    Tag = _downManager,
+                    Content = _downManager
+                };
                 viewer.Show();
             }
         }
@@ -2287,7 +2475,7 @@ namespace PixivWPF.Common
 
         public static void ShowToast(this string content, string title = "Pixiv", string imgsrc = "", object tag = null)
         {
-            INotificationDialogService _dailogService = new NotificationDialogService();
+            INotificationDialogService _dialogService = new NotificationDialogService();
             NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
             NotificationConfiguration cfg = new NotificationConfiguration(
                 //new TimeSpan(0, 0, 30), 
@@ -2306,8 +2494,31 @@ namespace PixivWPF.Common
                 Tag = tag
             };
 
-            _dailogService.ClearNotifications();
-            _dailogService.ShowNotificationWindow(newNotification, cfg);
+            _dialogService.ClearNotifications();
+            _dialogService.ShowNotificationWindow(newNotification, cfg);
+        }
+
+        public static void ShowToast(this string content, string title)
+        {
+            INotificationDialogService _dialogService = new NotificationDialogService();
+            NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+            NotificationConfiguration cfg = new NotificationConfiguration(
+                //new TimeSpan(0, 0, 30), 
+                TimeSpan.FromSeconds(3),
+                cfgDefault.Width+32, cfgDefault.Height,
+                "ToastTemplate",
+                //cfgDefault.TemplateName, 
+                cfgDefault.NotificationFlowDirection
+            );
+
+            var newNotification = new Notification()
+            {
+                Title = title,
+                Message = content
+            };
+
+            _dialogService.ClearNotifications();
+            _dialogService.ShowNotificationWindow(newNotification, cfg);
         }
         #endregion
 
@@ -2496,7 +2707,6 @@ namespace PixivWPF.Common
             }
             else
             {
-                //var box = new Window();
                 box = new ContentWindow();
                 box.MouseDown += DropBox_MouseDown;
                 ///box.MouseMove += DropBox_MouseMove;
@@ -2527,15 +2737,10 @@ namespace PixivWPF.Common
                 //box.WindowStyle = WindowStyle.None;
                 box.Title = "DropBox";
 
-                var img = new Image() { Source = box.Icon };
-                img.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.AccentColor };
-                //img.Effect = new TranspranceEffect() { TransColor = Theme.AccentColor };
-                //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
-                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.AccentColor };
-                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Colors.Transparent };
-                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.AccentColor };
-                //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.AccentColor };
-                box.Content = img;
+                box.Content = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
+                box.Icon = (box.Content as Image).Source;
+                //box.Content = img;
+
                 if (setting.DropBoxPosition != null)
                 {
                     double x= setting.DropBoxPosition.X;

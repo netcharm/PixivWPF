@@ -19,10 +19,12 @@
                  RenderOptions.EdgeMode="Aliased"
                  TextOptions.TextFormattingMode="Display"                 
                  AllowDrop="True"
-                 PreviewDragOver="Window_DragOver" PreviewDrop="Window_Drop"
-                 KeyUp="Window_KeyUp"
-                 MouseDown="Window_MouseDown"
-                 Closing="Window_Closing" StateChanged="MetroWindow_StateChanged">
+                 PreviewDragOver="MetroWindow_DragOver" PreviewDrop="MetroWindow_Drop"
+                 KeyUp="MetroWindow_KeyUp"
+                 MouseDown="MetroWindow_MouseDown"
+                 StateChanged="MetroWindow_StateChanged"
+                 Loaded="MetroWindow_Loaded"
+                 Closing="MetroWindow_Closing">
 
     <mah:MetroWindow.Resources>
         <Style x:Key="MetroSplitButton" TargetType="{x:Type mah:SplitButton}">
@@ -41,6 +43,16 @@
         <mah:WindowButtonCommands Style="{DynamicResource MahApps.Metro.Styles.WindowButtonCommands.Win10}" />
     </mah:MetroWindow.WindowButtonCommands>
 
+    <mah:MetroWindow.LeftWindowCommands>
+        <mah:WindowCommands ShowLastSeparator="True">
+            <Button x:Name="CommandPageRefresh"
+                    Click="CommandPageRefresh_Click"
+                    ToolTip="Refresh Current Page">
+                <iconPacks:PackIconModern Kind="Refresh" />
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.LeftWindowCommands>
+    
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands ShowLastSeparator="False">
             <ComboBox x:Name="SearchBox" x:Uid="SearchBox" 

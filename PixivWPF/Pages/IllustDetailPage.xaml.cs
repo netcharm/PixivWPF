@@ -197,10 +197,20 @@ namespace PixivWPF.Pages
         {
             try
             {
-                await new Action(() =>
+                if (item.ItemType == ImageItemType.Work)
                 {
-                    UpdateDetailIllust(item);
-                }).InvokeAsync();
+                    await new Action(() =>
+                    {
+                        UpdateDetailIllust(item);
+                    }).InvokeAsync();
+                }
+                else if(item.ItemType == ImageItemType.User)
+                {
+                    await new Action(() =>
+                    {
+                        UpdateDetailUser(item.User);
+                    }).InvokeAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -325,7 +335,10 @@ namespace PixivWPF.Pages
                     html.AppendLine("<br/>");
                     IllustTags.Foreground = Theme.TextBrush;
                     IllustTags.Text = string.Join(";", html);
+                    IllustTags.ClearSelection();
+
                     IllustTagExpander.Header = "Tags";
+                    IllustTagExpander.IsExpanded = true;
                     IllustTagExpander.Show();
                 }
                 else
@@ -336,6 +349,9 @@ namespace PixivWPF.Pages
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
                     IllustDesc.Text = $"<div class=\"desc\">{item.Illust.Caption.HtmlDecode()}</div>".Replace("\r\n", "<br/>");
+                    IllustDesc.ClearSelection();
+
+                    IllustDescExpander.IsExpanded = true;
                     IllustDescExpander.Show();
                 }
                 else
@@ -418,9 +434,9 @@ namespace PixivWPF.Pages
                 PreviewBox.Height = 0;
                 Preview.Source = null;
                 //if (nprof.background_image_url is string)
-                //    Preview.Source = await ((string)nprof.background_image_url).LoadImage(tokens);
+                //    Preview.Source = await ((string)nprof.background_image_url).LoadImageFromURL();
                 //else
-                //    Preview.Source = await nuser.GetPreviewUrl().LoadImage(tokens);
+                //    Preview.Source = await nuser.GetPreviewUrl().LoadImageFromURL();
 
                 IllustSizeIcon.Kind = PackIconModernKind.Image;
                 IllustSize.Text = $"{nprof.total_illusts + nprof.total_manga}";
@@ -432,7 +448,7 @@ namespace PixivWPF.Pages
 
                 IllustTitle.Text = string.Empty;
                 IllustAuthor.Text = nuser.Name;
-                IllustAuthorAvator.Source = await nuser.GetAvatarUrl().LoadImage(tokens);
+                IllustAuthorAvator.Source = await nuser.GetAvatarUrl().LoadImageFromUrl();
                 if (IllustAuthorAvator.Source != null)
                 {
                     IllustAuthorAvatorWait.Hide();
@@ -796,7 +812,7 @@ namespace PixivWPF.Pages
 
                     if (string.IsNullOrEmpty(img.Src)) return;
 
-                    var src = await img.Src.LoadImagePath();
+                    var src = await img.Src.GetImagePath();
                     if (!string.IsNullOrEmpty(src)) img.Callback(src);
                     img.Handled = true;
                     args.Handled = true;
@@ -910,7 +926,7 @@ namespace PixivWPF.Pages
 
                     if (string.IsNullOrEmpty(img.Src)) return;
 
-                    var src = await img.Src.LoadImagePath();
+                    var src = await img.Src.GetImagePath();
                     if (!string.IsNullOrEmpty(src)) img.Callback(src);
                     img.Handled = true;
                     args.Handled = true;
@@ -1161,11 +1177,10 @@ namespace PixivWPF.Pages
                         lastSelectionItem = item;
                         lastSelectionChanged = DateTime.Now.ToFileTime();
 
-                        var tokens = await CommonHelper.ShowLogin();
-                        var img = await item.Illust.GetPreviewUrl(item.Index).LoadImage(tokens);
+                        var img = await item.Illust.GetPreviewUrl(item.Index).LoadImageFromUrl();
                         if (img == null || img.Width < 360)
                         {
-                            var large = await item.Illust.GetPreviewUrl(item.Index, true).LoadImage(tokens);
+                            var large = await item.Illust.GetPreviewUrl(item.Index, true).LoadImageFromUrl();
                             if (large != null) img = large;
                         }
                         if (img != null)
@@ -1197,7 +1212,7 @@ namespace PixivWPF.Pages
         {
             var ua = new Action(async () =>
              {
-                 IllustAuthorAvator.Source = await item.User.GetAvatarUrl().LoadImage(null);
+                 IllustAuthorAvator.Source = await item.User.GetAvatarUrl().LoadImageFromUrl();
                  if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
              }).InvokeAsync();
         }
@@ -1365,15 +1380,15 @@ namespace PixivWPF.Pages
                     {
                         if (sender == ActionFollowAuthorPublic)
                         {
-                            result = await item.LikeUser();
+                            result = await item.Like();
                         }
                         else if (sender == ActionFollowAuthorPrivate)
                         {
-                            result = await item.LikeUser(false);
+                            result = await item.Like(false);
                         }
                         else if (sender == ActionFollowAuthorRemove)
                         {
-                            result = await item.UnLikeUser();
+                            result = await item.UnLike();
                         }
 
                         FollowAuthor.Tag = result ? PackIconModernKind.Check : PackIconModernKind.Add;
