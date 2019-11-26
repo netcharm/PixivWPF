@@ -51,6 +51,7 @@ namespace PixivWPF.Common
             ShowActivated = true;
             //Activate();
 
+            LastWindowStates.Enqueue(WindowState.Normal);
             UpdateTheme();
         }
 

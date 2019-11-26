@@ -67,6 +67,8 @@ namespace PixivWPF
             NavFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
 
             NavPageTitle.Text = pagetiles.TargetPage.ToString();
+
+            LastWindowStates.Enqueue(WindowState.Normal);
         }
 
 #if DEBUG
