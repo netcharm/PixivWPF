@@ -280,30 +280,30 @@ namespace PixivWPF.Common
                     case ImageItemType.Work:
                         Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.Work);
                         break;
-                    case ImageItemType.Page:
-                    case ImageItemType.Pages:
-                        foreach (Window win in Application.Current.Windows)
-                        {
-                            if (win.Title.StartsWith($"ID: {item.ID}, {item.Subject} - "))
-                            {
-                                win.Activate();
-                                return;
-                            }
-                        }
-                        var page = new IllustImageViewerPage() { Tag = item };
-                        page.UpdateDetail(item);
-
-                        var viewer = new ContentWindow()
-                        {
-                            Title = $"ID: {item.ID}, {item.Subject} - {item.BadgeValue}/{item.Count}",
-                            Width = WIDTH_MIN,
-                            Height = HEIGHT_DEF,
-                            MinWidth = WIDTH_MIN,
-                            MinHeight = HEIGHT_MIN,
-                            Content = page
-                        };
-                        viewer.Show();
-                        break;
+                    //case ImageItemType.Page:
+                    //case ImageItemType.Pages:
+                    //    foreach (Window win in Application.Current.Windows)
+                    //    {
+                    //        if (win.Title.StartsWith($"ID: {item.ID}, {item.Subject} - "))
+                    //        {
+                    //            win.Activate();
+                    //            return;
+                    //        }
+                    //    }
+                    //    var page = new IllustImageViewerPage() { Tag = item };
+                    //    page.UpdateDetail(item);
+                    //
+                    //    var viewer = new ContentWindow()
+                    //    {
+                    //        Title = $"ID: {item.ID}, {item.Subject} - {item.BadgeValue}/{item.Count}",
+                    //        Width = WIDTH_MIN,
+                    //        Height = HEIGHT_DEF,
+                    //        MinWidth = WIDTH_MIN,
+                    //        MinHeight = HEIGHT_MIN,
+                    //        Content = page
+                    //    };
+                    //    viewer.Show();
+                    //    break;
                     case ImageItemType.User:
                         Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.User);
                         break;

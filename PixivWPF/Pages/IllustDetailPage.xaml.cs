@@ -197,14 +197,14 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (item.ItemType == ImageItemType.Work)
+                if (item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Manga)
                 {
                     await new Action(() =>
                     {
                         UpdateDetailIllust(item);
                     }).InvokeAsync();
                 }
-                else if(item.ItemType == ImageItemType.User)
+                else if (item.ItemType == ImageItemType.User)
                 {
                     await new Action(() =>
                     {
@@ -985,7 +985,7 @@ namespace PixivWPF.Pages
                     if (DataObject is ImageItem)
                     {
                         var item = DataObject as ImageItem;
-                        item.ItemType = ImageItemType.Pages;
+                        //item.ItemType = ImageItemType.Pages;
                         CommonHelper.Cmd_OpenIllust.Execute(item);
                     }
                 }
@@ -1143,7 +1143,7 @@ namespace PixivWPF.Pages
                     if (DataObject is ImageItem)
                     {
                         var item = DataObject as ImageItem;
-                        item.ItemType = ImageItemType.Pages;
+                        //item.ItemType = ImageItemType.Pages;
                         CommonHelper.Cmd_OpenIllust.Execute(item);
                     }
                 }
