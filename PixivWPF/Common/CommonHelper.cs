@@ -223,7 +223,31 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_OpenIllust { get; } = new DelegateCommand<object>(obj =>
+        public static ICommand Cmd_OpenIllust { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is ImageListGrid)
+            {
+                Cmd_OpenItems.Execute(obj);
+            }
+            else if (obj is ImageItem)
+            {
+                Cmd_OpenItem.Execute(obj);
+            }
+            else if (obj is Pixeez.Objects.Work)
+            {
+                Cmd_OpenWork.Execute(obj);
+            }
+            else if (obj is Pixeez.Objects.UserBase)
+            {
+                Cmd_OpenUser.Execute(obj);
+            }
+            else if (obj is string)
+            {
+                Cmd_Search.Execute(obj as string);
+            }
+        });
+
+        public static ICommand Cmd_OpenItems { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is ImageListGrid)
             {
@@ -234,85 +258,40 @@ namespace PixivWPF.Common
                         list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
-
-                        if (item.Illust == null && item.Tag is Pixeez.Objects.User)
-                            Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.User);
-                        else
-                            Cmd_OpenIllust.Execute(item);
+                        Cmd_OpenItem.Execute(item);
                     }
-                    else
+                    else if(list.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        foreach (Window win in Application.Current.Windows)
-                        {
-                            if (win.Title.Contains($"ID: {item.ID}, {item.Subject}"))
-                            {
-                                win.Activate();
-                                return;
-                            }
-                        }
-
-                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsDownloaded(item.Index);
-
-                        var page = new IllustImageViewerPage() { Tag = item };
-                        page.UpdateDetail(item);
-
-                        var viewer = new ContentWindow()
-                        {
-                            Title = $"ID: {item.ID}, {item.Subject}",
-                            Width = WIDTH_MIN,
-                            Height = HEIGHT_DEF,
-                            MinWidth = WIDTH_MIN,
-                            MinHeight = HEIGHT_MIN,
-                            Content = page
-                        };
-                        viewer.Show();
+                        Cmd_OpenWorkPreview.Execute(item);
                     }
                 }
             }
-            else if (obj is ImageItem)
+        });
+
+        public static ICommand Cmd_OpenItem { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
-                item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
-
                 switch (item.ItemType)
                 {
                     case ImageItemType.Work:
-                        Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.Work);
+                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
+                        Cmd_OpenWork.Execute(item.Illust);
                         break;
-                    //case ImageItemType.Page:
-                    //case ImageItemType.Pages:
-                    //    foreach (Window win in Application.Current.Windows)
-                    //    {
-                    //        if (win.Title.StartsWith($"ID: {item.ID}, {item.Subject} - "))
-                    //        {
-                    //            win.Activate();
-                    //            return;
-                    //        }
-                    //    }
-                    //    var page = new IllustImageViewerPage() { Tag = item };
-                    //    page.UpdateDetail(item);
-                    //
-                    //    var viewer = new ContentWindow()
-                    //    {
-                    //        Title = $"ID: {item.ID}, {item.Subject} - {item.BadgeValue}/{item.Count}",
-                    //        Width = WIDTH_MIN,
-                    //        Height = HEIGHT_DEF,
-                    //        MinWidth = WIDTH_MIN,
-                    //        MinHeight = HEIGHT_MIN,
-                    //        Content = page
-                    //    };
-                    //    viewer.Show();
-                    //    break;
                     case ImageItemType.User:
-                        Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.User);
+                        Cmd_OpenUser.Execute(item.User);
                         break;
                     default:
-                        Cmd_OpenIllust.Execute(item.Tag as Pixeez.Objects.Work);
+                        Cmd_OpenIllust.Execute(item.Illust);
                         break;
                 }
             }
-            else if (obj is Pixeez.Objects.Work)
+        });
+
+        public static ICommand Cmd_OpenWork { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is Pixeez.Objects.Work)
             {
                 var illust = obj as Pixeez.Objects.Work;
                 foreach (Window win in Application.Current.Windows)
@@ -342,9 +321,45 @@ namespace PixivWPF.Common
                     viewer.Show();
                 }
             }
-            else if (obj is Pixeez.Objects.UserBase)
+        });
+
+        public static ICommand Cmd_OpenWorkPreview { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is ImageItem && (obj.ItemType == ImageItemType.Work || obj.ItemType == ImageItemType.Manga))
             {
-                dynamic user = obj;
+                var item = obj as ImageItem;
+                item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
+
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win.Title.StartsWith($"ID: {item.ID}, {item.Subject} - "))
+                    {
+                        win.Activate();
+                        return;
+                    }
+                }
+
+                var page = new IllustImageViewerPage() { Tag = item };
+                page.UpdateDetail(item);
+
+                var viewer = new ContentWindow()
+                {
+                    Title = $"ID: {item.ID}, {item.Subject} - {item.BadgeValue}/{item.Count}",
+                    Width = WIDTH_MIN,
+                    Height = HEIGHT_DEF,
+                    MinWidth = WIDTH_MIN,
+                    MinHeight = HEIGHT_MIN,
+                    Content = page
+                };
+                viewer.Show();
+            }
+        });
+
+        public static ICommand Cmd_OpenUser { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is Pixeez.Objects.UserBase)
+            {
+                var user = obj as Pixeez.Objects.UserBase;
 
                 foreach (Window win in Application.Current.Windows)
                 {
@@ -368,10 +383,6 @@ namespace PixivWPF.Common
                     Content = page
                 };
                 viewer.Show();
-            }
-            else if (obj is string)
-            {
-                Cmd_Search.Execute(obj as string);
             }
         });
 

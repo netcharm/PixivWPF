@@ -985,8 +985,7 @@ namespace PixivWPF.Pages
                     if (DataObject is ImageItem)
                     {
                         var item = DataObject as ImageItem;
-                        //item.ItemType = ImageItemType.Pages;
-                        CommonHelper.Cmd_OpenIllust.Execute(item);
+                        CommonHelper.Cmd_OpenWorkPreview.Execute(item);
                     }
                 }
                 else
@@ -1086,7 +1085,7 @@ namespace PixivWPF.Pages
                     if (Keyboard.Modifiers == ModifierKeys.Control)
                         ActionRefreshAvator(DataObject as ImageItem);
                     else
-                        CommonHelper.Cmd_OpenIllust.Execute((DataObject as ImageItem).User);
+                        CommonHelper.Cmd_OpenUser.Execute((DataObject as ImageItem).User);
                 }
             }
             else if (sender == ActionIllustAuthorFollowing)
@@ -1143,8 +1142,7 @@ namespace PixivWPF.Pages
                     if (DataObject is ImageItem)
                     {
                         var item = DataObject as ImageItem;
-                        //item.ItemType = ImageItemType.Pages;
-                        CommonHelper.Cmd_OpenIllust.Execute(item);
+                        CommonHelper.Cmd_OpenWorkPreview.Execute(item);
                     }
                 }
                 else
