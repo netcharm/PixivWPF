@@ -263,7 +263,7 @@ namespace PixivWPF.Common
                 }
             }
 #if DEBUG
-            catch(Exception e)
+            catch (Exception e)
             {
                 e.Message.ShowMessageBox("ERROR");
             }
@@ -521,7 +521,7 @@ namespace PixivWPF.Common
                             i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloaded(false);
                             i.Tag = page;
                             Collection.Add(i);
-                        }               
+                        }
                     }
                 }
             }
@@ -567,21 +567,23 @@ namespace PixivWPF.Common
         #endregion
 
         #region MetaPage Helper
-        public static string GetThumbnailUrl(this Pixeez.Objects.Page page)
+        public static string GetThumbnailUrl(this Pixeez.Objects.Page page, bool large = false)
         {
             var url = string.Empty;
             if (page is Pixeez.Objects.Page)
             {
                 var images = page.ImageUrls;
 
-                if (!string.IsNullOrEmpty(images.Px128x128))
-                    url = images.Px128x128;
+                if (large && !string.IsNullOrEmpty(images.Px480mw))
+                    url = images.Px480mw;
                 else if (!string.IsNullOrEmpty(images.SquareMedium))
                     url = images.SquareMedium;
+                else if (!string.IsNullOrEmpty(images.Px128x128))
+                    url = images.Px128x128;
+                else if (!string.IsNullOrEmpty(images.Small))
+                    url = images.Small;
                 else if (!string.IsNullOrEmpty(images.Px480mw))
                     url = images.Px480mw;
-                else if (!string.IsNullOrEmpty(images.Small))
-                    url = images.Px128x128;
                 else if (!string.IsNullOrEmpty(images.Medium))
                     url = images.Medium;
                 else if (!string.IsNullOrEmpty(images.Large))
@@ -646,28 +648,28 @@ namespace PixivWPF.Common
         #endregion
 
         #region MetaPage Helper
-        public static string GetThumbnailUrl(this Pixeez.Objects.MetaPages pages)
+        public static string GetThumbnailUrl(this Pixeez.Objects.MetaPages pages, bool large = false)
         {
             var url = string.Empty;
             if (pages is Pixeez.Objects.MetaPages)
             {
                 var images = pages.ImageUrls;
-                url = images.Px128x128;
-                if (string.IsNullOrEmpty(url))
-                {
-                    if (!string.IsNullOrEmpty(images.SquareMedium))
-                        url = images.SquareMedium;
-                    else if (!string.IsNullOrEmpty(images.Px480mw))
-                        url = images.Px480mw;
-                    else if (!string.IsNullOrEmpty(images.Small))
-                        url = images.Px128x128;
-                    else if (!string.IsNullOrEmpty(images.Medium))
-                        url = images.Medium;
-                    else if (!string.IsNullOrEmpty(images.Large))
-                        url = images.Large;
-                    else if (!string.IsNullOrEmpty(images.Original))
-                        url = images.Original;
-                }
+                if (large && !string.IsNullOrEmpty(images.Px480mw))
+                    url = images.Px480mw;
+                else if (!string.IsNullOrEmpty(images.SquareMedium))
+                    url = images.SquareMedium;
+                else if (!string.IsNullOrEmpty(images.Px128x128))
+                    url = images.Px128x128;
+                else if (!string.IsNullOrEmpty(images.Small))
+                    url = images.Small;
+                else if (!string.IsNullOrEmpty(images.Px480mw))
+                    url = images.Px480mw;
+                else if (!string.IsNullOrEmpty(images.Medium))
+                    url = images.Medium;
+                else if (!string.IsNullOrEmpty(images.Large))
+                    url = images.Large;
+                else if (!string.IsNullOrEmpty(images.Original))
+                    url = images.Original;
             }
             return (url);
         }
@@ -792,7 +794,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region NormalWork Helper
-        public static string GetThumbnailUrl(this Pixeez.Objects.NormalWork Illust, int idx)
+        public static string GetThumbnailUrl(this Pixeez.Objects.NormalWork Illust, int idx, bool large = false)
         {
             var url = string.Empty;
             if (Illust is Pixeez.Objects.NormalWork)
@@ -807,7 +809,7 @@ namespace PixivWPF.Common
                     if (idx < 0) idx = 0;
                     if (idx > illust.PageCount) idx = illust.PageCount.Value - 1;
                     var pages = illust.Metadata.Pages[idx];
-                    url = pages.GetThumbnailUrl();
+                    url = pages.GetThumbnailUrl(large);
                 }
             }
             return (url);
@@ -857,7 +859,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Work Helper
-        public static string GetThumbnailUrl(this Pixeez.Objects.Work Illust, int index = -1)
+        public static string GetThumbnailUrl(this Pixeez.Objects.Work Illust, int index = -1, bool large = false)
         {
             var url = string.Empty;
 
@@ -874,16 +876,18 @@ namespace PixivWPF.Common
 
             if (string.IsNullOrEmpty(url))
             {
-                if (!string.IsNullOrEmpty(Illust.ImageUrls.Px128x128))
-                    url = Illust.ImageUrls.Px128x128;
+                if (large && !string.IsNullOrEmpty(Illust.ImageUrls.Px480mw))
+                    url = Illust.ImageUrls.Px480mw;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.SquareMedium))
                     url = Illust.ImageUrls.SquareMedium;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Px128x128))
+                    url = Illust.ImageUrls.Px128x128;
+                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Small))
+                    url = Illust.ImageUrls.Small;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.Px480mw))
                     url = Illust.ImageUrls.Px480mw;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.Medium))
                     url = Illust.ImageUrls.Medium;
-                else if (!string.IsNullOrEmpty(Illust.ImageUrls.Small))
-                    url = Illust.ImageUrls.Small;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.Large))
                     url = Illust.ImageUrls.Large;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.Original))
@@ -909,7 +913,7 @@ namespace PixivWPF.Common
 
             if (string.IsNullOrEmpty(url))
             {
-                if(large && !string.IsNullOrEmpty(Illust.ImageUrls.Large))
+                if (large && !string.IsNullOrEmpty(Illust.ImageUrls.Large))
                     url = Illust.ImageUrls.Large;
                 else if (!string.IsNullOrEmpty(Illust.ImageUrls.Medium))
                     url = Illust.ImageUrls.Medium;
@@ -966,19 +970,23 @@ namespace PixivWPF.Common
         #endregion
 
         #region User Image Help
-        public static string GetThumbnailUrl(this Pixeez.Objects.NewUser user)
+        public static string GetThumbnailUrl(this Pixeez.Objects.NewUser user, bool large = false)
         {
             var url = user.profile_image_urls.Px128x128;
             if (string.IsNullOrEmpty(url))
             {
-                if (!string.IsNullOrEmpty(user.profile_image_urls.SquareMedium))
+                if (large && !string.IsNullOrEmpty(user.profile_image_urls.Px480mw))
+                    url = user.profile_image_urls.Px480mw;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.SquareMedium))
                     url = user.profile_image_urls.SquareMedium;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Px128x128))
+                    url = user.profile_image_urls.Px128x128;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Small))
+                    url = user.profile_image_urls.Small;
                 else if (!string.IsNullOrEmpty(user.profile_image_urls.Px480mw))
                     url = user.profile_image_urls.Px480mw;
                 else if (!string.IsNullOrEmpty(user.profile_image_urls.Medium))
                     url = user.profile_image_urls.Medium;
-                else if (!string.IsNullOrEmpty(user.profile_image_urls.Small))
-                    url = user.profile_image_urls.Small;
                 else if (!string.IsNullOrEmpty(user.profile_image_urls.Large))
                     url = user.profile_image_urls.Large;
                 else if (!string.IsNullOrEmpty(user.profile_image_urls.Original))
@@ -987,15 +995,17 @@ namespace PixivWPF.Common
             return (url);
         }
 
-        public static string GetPreviewUrl(this Pixeez.Objects.NewUser user)
+        public static string GetPreviewUrl(this Pixeez.Objects.NewUser user, bool large = false)
         {
             var url = user.profile_image_urls.Large;
             if (string.IsNullOrEmpty(url))
             {
-                if (!string.IsNullOrEmpty(user.profile_image_urls.Original))
-                    url = user.profile_image_urls.Original;
+                if (large && !string.IsNullOrEmpty(user.profile_image_urls.Large))
+                    url = user.profile_image_urls.Large;
                 else if (!string.IsNullOrEmpty(user.profile_image_urls.Medium))
                     url = user.profile_image_urls.Medium;
+                else if (!string.IsNullOrEmpty(user.profile_image_urls.Original))
+                    url = user.profile_image_urls.Original;
                 else if (!string.IsNullOrEmpty(user.profile_image_urls.Px480mw))
                     url = user.profile_image_urls.Px480mw;
                 else if (!string.IsNullOrEmpty(user.profile_image_urls.SquareMedium))

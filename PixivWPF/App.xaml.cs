@@ -18,9 +18,9 @@ namespace PixivWPF
         {
             var setting = Setting.Load();
             if (!string.IsNullOrEmpty(setting.Theme))
-                Common.Theme.CurrentTheme = setting.Theme;
+                Theme.CurrentTheme = setting.Theme;
             if (!string.IsNullOrEmpty(setting.Accent))
-                Common.Theme.CurrentAccent = setting.Accent;
+                Theme.CurrentAccent = setting.Accent;            
         }
     }
 }
