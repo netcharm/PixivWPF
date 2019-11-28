@@ -422,7 +422,7 @@ namespace PixivWPF.Common
                                     progress.Report(Info.Progress);
                                     PART_OpenFile.IsEnabled = true;
                                     PART_OpenFolder.IsEnabled = true;
-                                    $"{Path.GetFileName(Info.FileName)} is saved!".ShowDownloadToast("Successed", Info.ThumbnailUrl, Info.FileName);
+                                    $"{Path.GetFileName(Info.FileName)} is saved!".ShowDownloadToast("Succeed", Info.ThumbnailUrl, Info.FileName);
                                     SystemSounds.Beep.Play();
                                 }
                                 else

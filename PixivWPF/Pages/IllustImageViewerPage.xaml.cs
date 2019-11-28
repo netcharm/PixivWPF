@@ -225,22 +225,36 @@ namespace PixivWPF.Pages
             ChangeIllustPage(offset);
         }
 
+        private Point start;
+        private Point origin;
+
         private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount >= 2) ActionViewOriginalPage_Click(sender, e);
+            if (e.ClickCount >= 2)
+                ActionViewOriginalPage_Click(sender, e);
+            else
+            {
+                start = e.GetPosition(PreviewScroll);
+                origin = new Point(PreviewScroll.HorizontalOffset, PreviewScroll.VerticalOffset);
+            }
+        }
 
-            //int offset = 0;
-            //int factor = 1;
-            //if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-            //    factor = 10;
+        private void Preview_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+        }
 
-                //if (e.ChangedButton == MouseButton.XButton1)
-                //    offset = -1 * factor;
-                //else if (e.ChangedButton == MouseButton.XButton2)
-                //    offset = 1 * factor;
-
-                //ChangeIllustPage(offset);
-                //e.Handled = true;
+        private void Preview_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (PreviewBox.Stretch == Stretch.None)
+            {
+                if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    Point factor = new Point(PreviewScroll.ExtentWidth/PreviewScroll.ActualWidth, PreviewScroll.ExtentHeight/PreviewScroll.ActualHeight);
+                    Vector v = start - e.GetPosition(PreviewScroll);
+                    PreviewScroll.ScrollToHorizontalOffset(origin.X + v.X*factor.X);
+                    PreviewScroll.ScrollToVerticalOffset(origin.Y + v.Y*factor.Y);
+                }
+            }
         }
 
         private void Preview_KeyUp(object sender, KeyEventArgs e)
@@ -326,6 +340,7 @@ namespace PixivWPF.Pages
                 PreviewBox.HorizontalAlignment = HorizontalAlignment.Center;
                 PreviewBox.VerticalAlignment = VerticalAlignment.Center;
                 PreviewBox.Stretch = Stretch.None;
+                PreviewScroll.PanningMode = PanningMode.Both;
                 PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
                 PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
                 InfoBar.Margin = new Thickness(16, 16, 16, 32);
@@ -336,6 +351,7 @@ namespace PixivWPF.Pages
                 PreviewBox.HorizontalAlignment = HorizontalAlignment.Stretch;
                 PreviewBox.VerticalAlignment = VerticalAlignment.Stretch;
                 PreviewBox.Stretch = Stretch.Uniform;
+                PreviewScroll.PanningMode = PanningMode.None;
                 PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
                 PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
                 InfoBar.Margin = new Thickness(16);
@@ -368,6 +384,5 @@ namespace PixivWPF.Pages
                 PreviewWait.Visibility = Visibility.Hidden;
             }
         }
-
     }
 }

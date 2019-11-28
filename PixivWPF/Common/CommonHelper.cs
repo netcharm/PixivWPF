@@ -446,18 +446,14 @@ namespace PixivWPF.Common
                         }
                         else
                         {
-                            var tokens = await ShowLogin();
-                            var illusts = await tokens.GetWorksAsync(illust.Id.Value);
-                            foreach (var w in illusts)
+                            illust = await illust.RefreshIllust();
+                            if (illust.Metadata != null && illust.Metadata.Pages != null)
                             {
-                                if (w.Metadata != null && w.Metadata.Pages != null)
+                                illust.Cache();
+                                foreach (var p in illust.Metadata.Pages)
                                 {
-                                    w.Cache();
-                                    foreach (var p in w.Metadata.Pages)
-                                    {
-                                        var u = p.GetOriginalUrl();
-                                        u.SaveImage(p.GetThumbnailUrl(), dt, is_meta_single_page);
-                                    }
+                                    var u = p.GetOriginalUrl();
+                                    u.SaveImage(p.GetThumbnailUrl(), dt, is_meta_single_page);
                                 }
                             }
                         }
@@ -1696,58 +1692,135 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens)
+        public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null)
         {
             var result = Illust;
-            var illusts = await tokens.GetWorksAsync(Illust.Id.Value);
-            foreach (var illust in illusts)
+            if (tokens == null) tokens = await ShowLogin();
+            if (tokens == null) return result;
+            try
             {
-                if (string.IsNullOrEmpty(illust.ImageUrls.Px128x128)) illust.ImageUrls.Px128x128 = result.ImageUrls.Px128x128;
-                if (string.IsNullOrEmpty(illust.ImageUrls.Px480mw)) illust.ImageUrls.Px480mw = result.ImageUrls.Px480mw;
-                if (string.IsNullOrEmpty(illust.ImageUrls.SquareMedium)) illust.ImageUrls.SquareMedium = result.ImageUrls.SquareMedium;
-                if (string.IsNullOrEmpty(illust.ImageUrls.Small)) illust.ImageUrls.Small = result.ImageUrls.Small;
-                if (string.IsNullOrEmpty(illust.ImageUrls.Medium)) illust.ImageUrls.Medium = result.ImageUrls.Medium;
-                if (string.IsNullOrEmpty(illust.ImageUrls.Large)) illust.ImageUrls.Large = result.ImageUrls.Large;
-                if (string.IsNullOrEmpty(illust.ImageUrls.Original)) illust.ImageUrls.Original = result.ImageUrls.Original;
+                var illusts = await tokens.GetWorksAsync(Illust.Id.Value);
+                foreach (var illust in illusts)
+                {
+                    if (string.IsNullOrEmpty(illust.ImageUrls.Px128x128)) illust.ImageUrls.Px128x128 = result.ImageUrls.Px128x128;
+                    if (string.IsNullOrEmpty(illust.ImageUrls.Px480mw)) illust.ImageUrls.Px480mw = result.ImageUrls.Px480mw;
+                    if (string.IsNullOrEmpty(illust.ImageUrls.SquareMedium)) illust.ImageUrls.SquareMedium = result.ImageUrls.SquareMedium;
+                    if (string.IsNullOrEmpty(illust.ImageUrls.Small)) illust.ImageUrls.Small = result.ImageUrls.Small;
+                    if (string.IsNullOrEmpty(illust.ImageUrls.Medium)) illust.ImageUrls.Medium = result.ImageUrls.Medium;
+                    if (string.IsNullOrEmpty(illust.ImageUrls.Large)) illust.ImageUrls.Large = result.ImageUrls.Large;
+                    if (string.IsNullOrEmpty(illust.ImageUrls.Original)) illust.ImageUrls.Original = result.ImageUrls.Original;
 
-                illust.Cache();
-                Illust = illust;
-                result = illust;
-                break;
+                    illust.Cache();
+                    Illust = illust;
+                    result = illust;
+                    break;
+                }
             }
+            catch (Exception) { }
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens)
+        public static async Task<Pixeez.Objects.Work> RefreshIllust(this long IllustID, Pixeez.Tokens tokens = null)
         {
-            var result = Illust.User;
-            var users = await tokens.GetUsersAsync(Illust.User.Id.Value);
-            foreach (var user in users)
+            Pixeez.Objects.Work result = null;
+            if (IllustID < 0) return result;
+            if (tokens == null) tokens = await ShowLogin();
+            if (tokens == null) return result;
+            try
             {
+                var illusts = await tokens.GetWorksAsync(IllustID);
+                foreach (var illust in illusts)
+                {
+                    illust.Cache();
+                    result = illust;
+                    break;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.Work> RefreshIllust(this string IllustID, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.Work result = null;
+            try
+            {
+                if (!string.IsNullOrEmpty(IllustID))
+                    result = await RefreshIllust(Convert.ToInt32(IllustID), tokens);
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.UserBase result = Illust.User;
+            try
+            {
+                var user = await Illust.User.RefreshUser(tokens);
                 if (user.Id.Value == Illust.User.Id.Value)
                 {
                     user.Cache();
                     Illust.User.is_followed = user.is_followed;
                     result = user;
-                    break;
                 }
             }
+            catch (Exception) { }
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.UserBase User, Pixeez.Tokens tokens)
+        public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.UserBase User, Pixeez.Tokens tokens = null)
         {
-            var result = User;
-            var users = await tokens.GetUsersAsync(User.Id.Value);
-            foreach (var user in users)
+            Pixeez.Objects.UserBase result = User;
+            if (tokens == null) tokens = await ShowLogin();
+            if (tokens == null) return result;
+            try
             {
-                if (user.Id.Value == User.Id.Value)
+                var users = await tokens.GetUsersAsync(User.Id.Value);
+                foreach (var user in users)
                 {
-                    User.is_followed = user.is_followed;
-                    result = user;
                     user.Cache();
-                    break;
+                    if (user.Id.Value == User.Id.Value)
+                    {
+                        User.is_followed = user.is_followed;
+                        result = user;
+                        break;
+                    }
                 }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.User> RefreshUser(this long UserID, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.User result = null;
+            if (UserID < 0) return (result);
+            if (tokens == null) tokens = await ShowLogin();
+            if (tokens == null) return (result);
+            try
+            {
+                var users = await tokens.GetUsersAsync(UserID);
+                foreach (var user in users)
+                {
+                    user.Cache();
+                    if (user.Id.Value == UserID) result = user;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.User> RefreshUser(this string UserID, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.User result = null;
+            if (!string.IsNullOrEmpty(UserID))
+            {
+                try
+                {
+                    result = await RefreshUser(Convert.ToInt32(UserID), tokens);
+                }
+                catch (Exception) { }
             }
             return (result);
         }
@@ -1904,12 +1977,11 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    tokens = await ShowLogin();
-                    illust = await illust.RefreshIllust(tokens);
+                    illust = await illust.RefreshIllust();
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
-                        $"Illust -=- \"{illust.Title}\" -=- is Liked!".ShowToast("Success", illust.GetThumbnailUrl());
+                        $"Illust \"{illust.Title}\" is Liked!".ShowToast("Succeed", illust.GetThumbnailUrl());
                     }
                 }
                 catch (Exception) { }
@@ -1935,12 +2007,11 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    tokens = await ShowLogin();
-                    illust = await illust.RefreshIllust(tokens);
+                    illust = await illust.RefreshIllust();
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
-                        $"Illust -=- \"{illust.Title}\" -=- is Un-Liked!".ShowToast("Success", illust.GetThumbnailUrl());
+                        $"Illust \"{illust.Title}\" is Un-Liked!".ShowToast("Succeed", illust.GetThumbnailUrl());
                     }
                 }
                 catch (Exception) { }
@@ -2079,12 +2150,11 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    tokens = await ShowLogin();
-                    user = await user.RefreshUser(tokens);
+                    user = await user.RefreshUser();
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
-                        $"User -=- \"{user.Name ?? string.Empty}\" -=- is Liked!".ShowToast("Success", user.GetAvatarUrl());
+                        $"User \"{user.Name ?? string.Empty}\" is Liked!".ShowToast("Succeed", user.GetAvatarUrl());
                     }
                 }
                 catch (Exception) { }
@@ -2109,12 +2179,11 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    tokens = await ShowLogin();
-                    user = await user.RefreshUser(tokens);
+                    user = await user.RefreshUser();
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
-                        $"User -=- \"{user.Name ?? string.Empty}\" -=- is Un-Liked!".ShowToast("Success", user.GetAvatarUrl());
+                        $"User \"{user.Name ?? string.Empty}\" is Un-Liked!".ShowToast("Succeed", user.GetAvatarUrl());
                     }
                 }
                 catch (Exception) { }

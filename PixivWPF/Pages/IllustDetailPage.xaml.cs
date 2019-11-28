@@ -582,13 +582,11 @@ namespace PixivWPF.Pages
                     var subset = item.Illust as Pixeez.Objects.NormalWork;
                     if (subset.Metadata == null)
                     {
-                        var illusts = await tokens.GetWorksAsync(item.Illust.Id.Value);
-                        foreach (var illust in illusts)
+                        var illust = (await item.Illust.RefreshIllust()) as Pixeez.Objects.NormalWork;
+                        if (illust is Pixeez.Objects.Work)
                         {
-                            illust.Cache();
                             item.Illust = illust;
                             subset = illust;
-                            break;
                         }
                     }
 
@@ -869,37 +867,20 @@ namespace PixivWPF.Pages
                             var illust_id = Regex.Replace(href, @"pixiv://illusts/(\d+)", "$1", RegexOptions.IgnoreCase);
                             if (!string.IsNullOrEmpty(illust_id))
                             {
-                                var tokens = await CommonHelper.ShowLogin();
-                                if (tokens == null) return;
-
-                                var illusts = await tokens.GetWorksAsync(Convert.ToInt32(illust_id));
-                                foreach (var illust in illusts)
+                                var illust = await illust_id.RefreshIllust();
+                                if (illust is Pixeez.Objects.Work)
                                 {
-                                    if (illust is Pixeez.Objects.Work)
-                                    {
-                                        illust.Cache();
-                                        CommonHelper.Cmd_OpenIllust.Execute(illust);
-                                    }
+                                    CommonHelper.Cmd_OpenIllust.Execute(illust);
                                 }
                             }
                         }
                         else if (href.StartsWith("pixiv://users/"))
                         {
                             var user_id = Regex.Replace(href, @"pixiv://users/(\d+)", "$1", RegexOptions.IgnoreCase);
-                            if (!string.IsNullOrEmpty(user_id))
+                            var user = await user_id.RefreshUser();
+                            if (user is Pixeez.Objects.User)
                             {
-                                var tokens = await CommonHelper.ShowLogin();
-                                if (tokens == null) return;
-
-                                var users = await tokens.GetUsersAsync(Convert.ToInt32(user_id));
-                                foreach (var user in users)
-                                {
-                                    if (user is Pixeez.Objects.User)
-                                    {
-                                        user.Cache();
-                                        CommonHelper.Cmd_OpenIllust.Execute(user);
-                                    }
-                                }
+                                CommonHelper.Cmd_OpenIllust.Execute(user);
                             }
                         }
                         else
@@ -1548,9 +1529,6 @@ namespace PixivWPF.Pages
 
         private async void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
         {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
-
             IllustsSaveProgress.Visibility = Visibility.Visible;
             IllustsSaveProgress.Value = 0;
             IProgress<int> progress = new Progress<int>(i => { IllustsSaveProgress.Value = i; });
@@ -1574,8 +1552,6 @@ namespace PixivWPF.Pages
                     foreach (var pages in illustset.meta_pages)
                     {
                         var url = pages.GetOriginalUrl();
-                        tokens = await CommonHelper.ShowLogin();
-                        //await url.ToImageFile(tokens, dt, is_meta_single_page);
                         url.SaveImage(pages.GetThumbnailUrl(), dt, is_meta_single_page);
 
                         idx++;
@@ -1587,26 +1563,19 @@ namespace PixivWPF.Pages
                     var url = illust.GetOriginalUrl();
                     var illustset = illust as Pixeez.Objects.NormalWork;
                     var is_meta_single_page = illust.PageCount==1 ? true : false;
-                    tokens = await CommonHelper.ShowLogin();
-                    //await url.ToImageFile(tokens, dt, is_meta_single_page);
                     if (is_meta_single_page)
                     {
                         url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
                     }
                     else
                     {
-                        tokens = await CommonHelper.ShowLogin();
-                        var illusts = await tokens.GetWorksAsync(illust.Id.Value);
-                        foreach (var w in illusts)
+                        illust = await illust.RefreshIllust();
+                        if (illust is Pixeez.Objects.Work && illust.Metadata != null && illust.Metadata.Pages != null)
                         {
-                            if (w.Metadata != null && w.Metadata.Pages != null)
+                            foreach (var p in illust.Metadata.Pages)
                             {
-                                w.Cache();
-                                foreach (var p in w.Metadata.Pages)
-                                {
-                                    var u = p.GetOriginalUrl();
-                                    u.SaveImage(p.GetThumbnailUrl(), dt, is_meta_single_page);
-                                }
+                                var u = p.GetOriginalUrl();
+                                u.SaveImage(p.GetThumbnailUrl(), dt, is_meta_single_page);
                             }
                         }
                     }

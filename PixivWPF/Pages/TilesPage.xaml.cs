@@ -654,8 +654,6 @@ namespace PixivWPF.Pages
         private async void ShowUser(long uid, bool IsPrivate=false)
         {
             var force = uid == 0 && setting.MyInfo is Pixeez.Objects.User ? false : true;
-            var tokens = await CommonHelper.ShowLogin(force);
-            if (tokens == null) return;
 
             if ((IsPrivate || uid == 0) && setting.MyInfo is Pixeez.Objects.User)
             {
@@ -663,17 +661,7 @@ namespace PixivWPF.Pages
             }
             else
             {
-                var users = await tokens.GetUsersAsync(uid);
-                Pixeez.Objects.User user = null;
-                if (users is List<Pixeez.Objects.User>)
-                {
-                    foreach (var u in users)
-                    {
-                        u.Cache();
-                        user = u;                        
-                        break;
-                    }
-                }
+                var user = await uid.RefreshUser();
                 if (user is Pixeez.Objects.User && uid == user.Id.Value)
                 {
                     CommonHelper.Cmd_OpenIllust.Execute(user);
