@@ -32,11 +32,6 @@ namespace PixivWPF.Pages
     {
         private object DataObject = null;
 
-        public ICommand MouseDoubleClickCommand { get; } = new DelegateCommand<object>(obj =>
-        {
-            MessageBox.Show("");
-        });
-
         internal void UpdateTheme()
         {
             //var fonts = string.Join(",", IllustTitle.FontFamily.FamilyNames.Values);
@@ -211,6 +206,7 @@ namespace PixivWPF.Pages
                         UpdateDetailUser(item.User);
                     }).InvokeAsync();
                 }
+                IllustDetailViewer.ScrollToTop();
             }
             catch (Exception ex)
             {

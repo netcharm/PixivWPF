@@ -100,7 +100,7 @@ namespace PixivWPF.Common
                 if (result is ImageSource)
                 {
                     _caches[url] = file.Replace(_CacheFolder, "");
-                    Save();
+                    //Save();
                 }
             }
             else if (url.IsDownloaded(out fp, true) || url.IsDownloaded(out fp))
@@ -121,7 +121,7 @@ namespace PixivWPF.Common
                 {
                     result = await file.LoadImageFromFile();
                     _caches[url] = file.Replace(_CacheFolder, "");
-                    Save();
+                    //Save();
                 }
             }
             if (result is ImageSource && !string.IsNullOrEmpty(id))
@@ -177,7 +177,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(result))
                 {
                     _caches[url] = file.Replace(_CacheFolder, "");
-                    Save();
+                    //Save();
                 }
             }
             else
@@ -190,7 +190,7 @@ namespace PixivWPF.Common
                 {
                     result = file;
                     _caches[url] = file.Replace(_CacheFolder, "");
-                    Save();
+                    //Save();
                 }
             }
             return (result);

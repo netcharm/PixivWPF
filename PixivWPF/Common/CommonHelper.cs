@@ -178,7 +178,7 @@ namespace PixivWPF.Common
             {
                 var page = new DateTimePicker();
                 var viewer = new MetroWindow();
-                viewer.Icon = BitmapFrame.Create(new Uri("pack://application:,,,/PixivWPF;component/Resources/pixiv-icon.ico"));
+                viewer.Icon = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage().Source;
                 viewer.ShowMinButton = false;
                 viewer.ShowMaxRestoreButton = false;
                 viewer.ResizeMode = ResizeMode.NoResize;
@@ -2205,12 +2205,13 @@ namespace PixivWPF.Common
         #endregion
 
         #region UI Element Show/Hide
-        public static void UpdateTheme(MetroWindow win)
+        public static void UpdateTheme(this Window win, Image icon=null)
         {
             try
             {
-                var img = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
-                win.Icon = img.Source;
+                if (icon == null)
+                    icon = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
+                win.Icon = icon.Source;
 
                 if (win.Content is IllustDetailPage)
                 {
@@ -2221,7 +2222,7 @@ namespace PixivWPF.Common
                 {
                     if (win.Content is Image)
                     {
-                        win.Content = img;
+                        win.Content = icon;
                     }
                 }
             }
@@ -2236,19 +2237,7 @@ namespace PixivWPF.Common
 
                 foreach (Window win in Application.Current.Windows)
                 {
-                    win.Icon = img.Source;
-                    if (win.Content is IllustDetailPage)
-                    {
-                        var page = win.Content as IllustDetailPage;
-                        page.UpdateTheme();
-                    }
-                    else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        if (win.Content is Image)
-                        {
-                            win.Content = img;
-                        }
-                    }
+                    win.UpdateTheme(img);
                 }
             }
             catch (Exception) { }
@@ -2746,6 +2735,10 @@ namespace PixivWPF.Common
                 {
                     var window = sender as ContentWindow;
                     window.DragMove();
+                    if (window.Left < 0) window.Left = 0;
+                    if (window.Top < 0) window.Top = 0;
+                    if (window.Left + window.Width > SystemParameters.WorkArea.Width) window.Left = SystemParameters.WorkArea.Width - window.Width;
+                    if (window.Top + window.Height > SystemParameters.WorkArea.Height) window.Top = SystemParameters.WorkArea.Height - window.Height;
                     setting.DropBoxPosition = new Point(window.Left, window.Top);
                     setting.Save();
                 }
@@ -2875,6 +2868,8 @@ namespace PixivWPF.Common
             }
             else
             {
+                box.Width = 48;
+                box.Height = 48;
                 box.Show();
                 box.Activate();
             }
