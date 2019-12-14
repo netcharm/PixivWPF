@@ -94,6 +94,9 @@ namespace PixivWPF.Pages
 
                 ResultIllusts.Items.Clear();
 
+                List<long?> id_user = new List<long?>();
+                List<long?> id_illust = new List<long?>();
+
                 var no_filter = string.IsNullOrEmpty(filter);
                 var filter_string = no_filter ? string.Empty : $" ({filter.Replace("users入り", "+ Favs")})";
                 ResultExpander.Header = $"Search Results{filter_string}";
@@ -109,8 +112,10 @@ namespace PixivWPF.Pages
                     {
                         foreach (var user in relatives)
                         {
+                            if (id_user.Contains(user.Id)) continue;
                             user.Cache();
                             user.AddTo(ResultIllusts.Items, next_url);
+                            id_user.Add(user.Id);
                         }
                     }
                 }
@@ -124,8 +129,10 @@ namespace PixivWPF.Pages
                     {
                         foreach (var illust in relatives)
                         {
+                            if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
                             illust.AddTo(ResultIllusts.Items, next_url);
+                            id_illust.Add(illust.Id);
                         }
                     }
                 }
@@ -142,8 +149,10 @@ namespace PixivWPF.Pages
                         ResultExpander.Tag = next_url;
                         foreach (var user in relatives.Users)
                         {
+                            if (id_user.Contains(user.User.Id)) continue;
                             user.User.Cache();
                             user.User.AddTo(ResultIllusts.Items, next_url);
+                            id_user.Add(user.User.Id);
                         }
                     }
                 }
@@ -159,8 +168,10 @@ namespace PixivWPF.Pages
                         ResultExpander.Tag = next_url;
                         foreach (var illust in relatives)
                         {
+                            if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
                             illust.AddTo(ResultIllusts.Items, next_url);
+                            id_illust.Add(illust.Id);
                         }
                     }
                 }
@@ -177,8 +188,10 @@ namespace PixivWPF.Pages
                         ResultExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
+                            if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
+                            id_illust.Add(illust.Id);
                         }
                     }
                 }
@@ -194,8 +207,10 @@ namespace PixivWPF.Pages
                         ResultExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
+                            if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
+                            id_illust.Add(illust.Id);
                         }
                     }
                 }
@@ -211,8 +226,10 @@ namespace PixivWPF.Pages
                         ResultExpander.Tag = next_url;
                         foreach (var illust in relatives.illusts)
                         {
+                            if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
+                            id_illust.Add(illust.Id);
                         }
                     }
                 }
