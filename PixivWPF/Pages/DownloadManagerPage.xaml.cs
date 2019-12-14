@@ -39,6 +39,8 @@ namespace PixivWPF.Pages
         private Timer timer = null;
         //private bool IsIdle = true;
 
+        public Point Pos { get; set; } = new Point(0, 0);
+
         private ObservableCollection<DownloadInfo> items = new ObservableCollection<DownloadInfo>();
         public ObservableCollection<DownloadInfo> Items
         {

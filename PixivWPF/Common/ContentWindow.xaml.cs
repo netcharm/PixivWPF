@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.Controls;
+using PixivWPF.Pages;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -68,6 +69,10 @@ namespace PixivWPF.Common
 
         private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (this.Content is DownloadManagerPage)
+            {
+                (this.Content as DownloadManagerPage).Pos = new Point(this.Left, this.Top);
+            }
         }
 
         private void MetroWindow_DragOver(object sender, DragEventArgs e)
@@ -143,32 +148,15 @@ namespace PixivWPF.Common
 
         private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.ShowDownloadManager(true);
+            true.ShowDownloadManager();
         }
 
         private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
         {
             if (sender is System.Windows.Controls.Primitives.ToggleButton)
             {
-                ContentWindow box = null;
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win.Title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        if (win is ContentWindow)
-                        {
-                            box = win as ContentWindow;
-                            break;
-                        }
-                    }
-                }
-
                 var btn = sender as System.Windows.Controls.Primitives.ToggleButton;
-                if (box == null && !btn.IsChecked.Value)
-                {
-                    btn.IsChecked = true;
-                }
-                btn.IsChecked = CommonHelper.ShowDropBox(btn.IsChecked.Value);
+                btn.IsChecked = btn.IsChecked.Value.ShowDropBox();
             }
         }
 

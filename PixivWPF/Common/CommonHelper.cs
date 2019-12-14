@@ -1464,7 +1464,7 @@ namespace PixivWPF.Common
 
         public static void SaveImage(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
-            ShowDownloadManager();
+            ShowDownloadManager(true);
             if (_downManager is DownloadManagerPage)
             {
                 _downManager.Add(url, thumb, dt, is_meta_single_page, overwrite);
@@ -2205,7 +2205,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region UI Element Show/Hide
-        public static void UpdateTheme(this Window win, Image icon=null)
+        public static void UpdateTheme(this Window win, Image icon = null)
         {
             try
             {
@@ -2220,10 +2220,8 @@ namespace PixivWPF.Common
                 }
                 else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (win.Content is Image)
-                    {
-                        win.Content = icon;
-                    }
+                    win.Background = Theme.AccentBrush;
+                    win.Content = icon;
                 }
             }
             catch (Exception) { }
@@ -2442,15 +2440,13 @@ namespace PixivWPF.Common
 
         internal static DownloadManagerPage _downManager = new DownloadManagerPage();
 
-        public static void ShowDownloadManager(bool active = false)
+        public static void ShowDownloadManager(this bool active)
         {
-            if (_downManager is DownloadManagerPage)
+            if (!(_downManager is DownloadManagerPage))
             {
-
-            }
-            else
                 _downManager = new DownloadManagerPage();
-            _downManager.AutoStart = false;
+                _downManager.AutoStart = false;
+            }
 
             Window _dm = null;
             foreach (Window win in Application.Current.Windows)
@@ -2465,8 +2461,7 @@ namespace PixivWPF.Common
             if (_dm is Window)
             {
                 _dm.Show();
-                if (active)
-                    _dm.Activate();
+                if (active) _dm.Activate();
             }
             else
             {
@@ -2477,6 +2472,8 @@ namespace PixivWPF.Common
                     Height = HEIGHT_MIN,
                     MinWidth = WIDTH_MIN,
                     MinHeight = HEIGHT_MIN,
+                    Left = _downManager.Pos.X,
+                    Top = _downManager.Pos.Y,
                     Tag = _downManager,
                     Content = _downManager
                 };
@@ -2794,7 +2791,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static bool ShowDropBox(bool show = true)
+        public static bool ShowDropBox(this bool show)
         {
             ContentWindow box = null;
             foreach (Window win in Application.Current.Windows)
@@ -2809,11 +2806,7 @@ namespace PixivWPF.Common
                 }
             }
 
-            if (box is ContentWindow)
-            {
-                //box.Activate();
-            }
-            else
+            if (show || !(box is ContentWindow))
             {
                 box = new ContentWindow();
                 box.MouseDown += DropBox_MouseDown;
@@ -2822,6 +2815,10 @@ namespace PixivWPF.Common
                 box.MouseLeftButtonDown += DropBox_MouseLeftButtonDown;
                 box.Width = 48;
                 box.Height = 48;
+                box.MinWidth = 48;
+                box.MinHeight = 48;
+                box.MaxWidth = 48;
+                box.MaxHeight = 48;
                 //box.Background = new SolidColorBrush(Color.FromArgb(160, 255, 255, 255));
                 box.Background = new SolidColorBrush(Theme.AccentColor);
                 //box.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
@@ -2861,20 +2858,18 @@ namespace PixivWPF.Common
                         box.Top = y;
                     }
                 }
-            }
-            if (box.IsVisible)
-            {
-                box.Hide();
-            }
-            else
-            {
-                box.Width = 48;
-                box.Height = 48;
+
                 box.Show();
                 box.Activate();
             }
+            else
+            {
+                box.Hide();
+                box.Close();
+                box = null;
+            }
 
-            return (box.IsVisible);
+            return (box is ContentWindow ? box.IsVisible : false);
         }
         #endregion
     }

@@ -264,25 +264,8 @@ namespace PixivWPF
         {
             if(sender is System.Windows.Controls.Primitives.ToggleButton)
             {
-                ContentWindow box = null;
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win.Title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        if (win is ContentWindow)
-                        {
-                            box = win as ContentWindow;
-                            break;
-                        }
-                    }
-                }
-
                 var btn = sender as System.Windows.Controls.Primitives.ToggleButton;
-                if (box == null && !btn.IsChecked.Value )
-                {
-                    btn.IsChecked = true;
-                }
-                btn.IsChecked = CommonHelper.ShowDropBox(btn.IsChecked.Value);
+                btn.IsChecked = btn.IsChecked.Value.ShowDropBox();
             }            
         }
 
