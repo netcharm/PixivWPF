@@ -25,6 +25,11 @@ namespace PixivWPF.Common
     {
         public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
 
+        public void SetDropBoxState(bool state)
+        {
+            CommandToggleDropbox.IsChecked = state;
+        }
+
         public void UpdateTheme(MetroWindow win = null)
         {
             if (win != null)
@@ -58,8 +63,13 @@ namespace PixivWPF.Common
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (Content is Pages.IllustDetailPage || Content is Pages.IllustImageViewerPage) CommandPageRefresh.Visibility = Visibility.Visible;
+            if (Content is IllustDetailPage || Content is IllustImageViewerPage) CommandPageRefresh.Visibility = Visibility.Visible;
             else CommandPageRefresh.Visibility = Visibility.Collapsed;
+
+            if (this.DropBoxExists() == null)
+                CommandToggleDropbox.IsChecked = false;
+            else
+                CommandToggleDropbox.IsChecked = true;
         }
 
         private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
@@ -155,8 +165,7 @@ namespace PixivWPF.Common
         {
             if (sender is System.Windows.Controls.Primitives.ToggleButton)
             {
-                var btn = sender as System.Windows.Controls.Primitives.ToggleButton;
-                btn.IsChecked = btn.IsChecked.Value.ShowDropBox();
+                SetDropBoxState(true.ShowDropBox());
             }
         }
 

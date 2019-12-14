@@ -2732,10 +2732,12 @@ namespace PixivWPF.Common
                 {
                     var window = sender as ContentWindow;
                     window.DragMove();
-                    if (window.Left < 0) window.Left = 0;
-                    if (window.Top < 0) window.Top = 0;
-                    if (window.Left + window.Width > SystemParameters.WorkArea.Width) window.Left = SystemParameters.WorkArea.Width - window.Width;
-                    if (window.Top + window.Height > SystemParameters.WorkArea.Height) window.Top = SystemParameters.WorkArea.Height - window.Height;
+
+                    var desktop = SystemParameters.WorkArea;
+                    if (window.Left < desktop.Left) window.Left = desktop.Left;
+                    if (window.Top < desktop.Top) window.Top = desktop.Top;
+                    if (window.Left + window.Width > desktop.Left + desktop.Width) window.Left = desktop.Left + desktop.Width - window.Width;
+                    if (window.Top + window.Height > desktop.Top + desktop.Height) window.Top = desktop.Top + desktop.Height - window.Height;
                     setting.DropBoxPosition = new Point(window.Left, window.Top);
                     setting.Save();
                 }
@@ -2778,6 +2780,8 @@ namespace PixivWPF.Common
                 {
                     var window = sender as ContentWindow;
                     window.Hide();
+                    window.Close();
+                    window = null;
                 }
             }
         }
@@ -2788,25 +2792,65 @@ namespace PixivWPF.Common
             {
                 var window = sender as ContentWindow;
                 window.Hide();
+                window.Close();
+                window = null;
+            }
+        }
+
+        public static Window DropBoxExists(this Window window)
+        {
+            Window result = null;
+            foreach (Window win in Application.Current.Windows)
+            {
+                var title = win.Title;
+                var tag = win.Tag is string ? win.Tag as string : string.Empty;
+
+                if (title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase) ||
+                    tag.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (win is ContentWindow)
+                    {
+                        result = win as ContentWindow;
+                        break;
+                    }
+                }
+            }
+            return (result);
+        }
+
+        public static void SetDropBoxState(this bool state)
+        {
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win is MetroWindow)
+                {
+                    var title = win.Title;
+                    var tag = win.Tag is string ? win.Tag as string : string.Empty;
+
+                    if (!title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase) &&
+                        !tag.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (win is ContentWindow)
+                            (win as ContentWindow).SetDropBoxState(state);
+                        else if (win is MainWindow)
+                            (win as MainWindow).SetDropBoxState(state);
+                    }
+                }
             }
         }
 
         public static bool ShowDropBox(this bool show)
         {
-            ContentWindow box = null;
-            foreach (Window win in Application.Current.Windows)
-            {
-                if (win.Title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    if (win is ContentWindow)
-                    {
-                        box = win as ContentWindow;
-                        break;
-                    }
-                }
-            }
+            var win = DropBoxExists(null);
+            ContentWindow box = win == null ? null : (ContentWindow)win;
 
-            if (show || !(box is ContentWindow))
+            if (box is ContentWindow)
+            {
+                box.Hide();
+                box.Close();
+                box = null;
+            }
+            else
             {
                 box = new ContentWindow();
                 box.MouseDown += DropBox_MouseDown;
@@ -2819,9 +2863,8 @@ namespace PixivWPF.Common
                 box.MinHeight = 48;
                 box.MaxWidth = 48;
                 box.MaxHeight = 48;
-                //box.Background = new SolidColorBrush(Color.FromArgb(160, 255, 255, 255));
+
                 box.Background = new SolidColorBrush(Theme.AccentColor);
-                //box.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
                 box.OverlayBrush = Theme.AccentBrush;
                 //box.OverlayOpacity = 0.8;
 
@@ -2841,6 +2884,7 @@ namespace PixivWPF.Common
                 box.ShowTitleBar = false;
                 //box.WindowStyle = WindowStyle.None;
                 box.Title = "DropBox";
+                box.Tag = "DropBox";
 
                 box.Content = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
                 box.Icon = (box.Content as Image).Source;
@@ -2862,14 +2906,10 @@ namespace PixivWPF.Common
                 box.Show();
                 box.Activate();
             }
-            else
-            {
-                box.Hide();
-                box.Close();
-                box = null;
-            }
 
-            return (box is ContentWindow ? box.IsVisible : false);
+            var result = box is ContentWindow ? box.IsVisible : false;
+            SetDropBoxState(result);
+            return (result);
         }
         #endregion
     }

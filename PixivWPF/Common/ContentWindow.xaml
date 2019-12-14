@@ -75,7 +75,7 @@
                     ToolTip="Open Download Manager">
                 <iconPacks:PackIconModern Kind="Download" />
             </Button>
-            <ToggleButton Click="CommandToggleDropbox_Click" >
+            <ToggleButton x:Name="CommandToggleDropbox" Click="CommandToggleDropbox_Click" >
                 <iconPacks:PackIconModern Kind="Link" />
             </ToggleButton>
             <Button Click="CommandLogin_Click"

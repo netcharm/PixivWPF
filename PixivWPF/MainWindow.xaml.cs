@@ -33,6 +33,11 @@ namespace PixivWPF
 
         private DateTime LastSelectedDate = DateTime.Now;
 
+        public void SetDropBoxState(bool state)
+        {
+            CommandToggleDropbox.IsChecked = state;
+        }
+
         public void UpdateTheme()
         {
             if (pagenav is Pages.NavPage) pagenav.CheckPage();
@@ -264,8 +269,7 @@ namespace PixivWPF
         {
             if(sender is System.Windows.Controls.Primitives.ToggleButton)
             {
-                var btn = sender as System.Windows.Controls.Primitives.ToggleButton;
-                btn.IsChecked = btn.IsChecked.Value.ShowDropBox();
+                SetDropBoxState(true.ShowDropBox());
             }            
         }
 
