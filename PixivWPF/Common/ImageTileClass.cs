@@ -169,6 +169,7 @@ namespace PixivWPF.Common
                             collection.Remove(sub);
                             collection.Insert(idx, sub);
                         }
+                        CommonHelper.DoEvents();
                     }
                 }
                 else
@@ -194,6 +195,7 @@ namespace PixivWPF.Common
                         result |= download;
                     }
                     item.IsFavorited = item.IsLiked() && item.DisplayFavMark;
+                    CommonHelper.DoEvents();
                 }
             }
 #if DEBUG
@@ -226,8 +228,10 @@ namespace PixivWPF.Common
 
                         using (cancelToken.Register(Thread.CurrentThread.Abort))
                         {
+                            CommonHelper.DoEvents();
                             var ret = Parallel.ForEach(needUpdate, opt, async(item, loopstate, elementIndex) =>
                             {
+                                CommonHelper.DoEvents();
                                 await new Action(async () =>
                                 {
                                     if (cancelToken.IsCancellationRequested)
@@ -239,7 +243,9 @@ namespace PixivWPF.Common
                                             if (item.Source == null)
                                             {
                                                 if (item.Count <= 1) item.BadgeValue = string.Empty;
+                                                CommonHelper.DoEvents();
                                                 item.Source = await item.Thumb.LoadImageFromUrl();
+                                                CommonHelper.DoEvents();
                                             }
                                         }
 #if DEBUG
@@ -251,8 +257,11 @@ namespace PixivWPF.Common
                                     catch(Exception){ }
 #endif
                                     }
+                                    CommonHelper.DoEvents();
                                 }).InvokeAsync();
+                                CommonHelper.DoEvents();
                             });
+                            CommonHelper.DoEvents();
                         }
                     }
                     catch (Exception ex)
@@ -263,6 +272,7 @@ namespace PixivWPF.Common
                     {
                     }
                 }).InvokeAsync();
+                CommonHelper.DoEvents();
             }
         }
 
@@ -283,6 +293,7 @@ namespace PixivWPF.Common
                     {
                         task = new Task(() =>
                         {
+                            CommonHelper.DoEvents();
                             items.UpdateTilesImageTask(cancelSource.Token, parallel);
                         }, cancelSource.Token, TaskCreationOptions.PreferFairness);
                         cancelSource = new CancellationTokenSource();
@@ -297,11 +308,6 @@ namespace PixivWPF.Common
             finally
             {
             }
-        }
-
-        public static void UpdateTiles(this ImageListGrid gallery, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5)
-        {
-            gallery.UpdateTiles(cancelSource, parallel);
         }
         #endregion
 

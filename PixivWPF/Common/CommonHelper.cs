@@ -228,6 +228,7 @@ namespace PixivWPF.Common
 
         public static ICommand Cmd_OpenIllust { get; } = new DelegateCommand<dynamic>(obj =>
         {
+            DoEvents();
             if (obj is ImageListGrid)
             {
                 Cmd_OpenItems.Execute(obj);
@@ -248,6 +249,7 @@ namespace PixivWPF.Common
             {
                 Cmd_Search.Execute(obj as string);
             }
+            DoEvents();
         });
 
         public static ICommand Cmd_OpenItems { get; } = new DelegateCommand<dynamic>(obj =>
@@ -267,6 +269,7 @@ namespace PixivWPF.Common
                     {
                         Cmd_OpenWorkPreview.Execute(item);
                     }
+                    CommonHelper.DoEvents();
                 }
             }
         });
@@ -316,6 +319,7 @@ namespace PixivWPF.Common
                         Content = page
                     };
                     viewer.Show();
+                    CommonHelper.DoEvents();
                 }
             }
         });
@@ -343,6 +347,7 @@ namespace PixivWPF.Common
                     Content = page
                 };
                 viewer.Show();
+                CommonHelper.DoEvents();
             }
         });
 
@@ -367,6 +372,7 @@ namespace PixivWPF.Common
                     Content = page
                 };
                 viewer.Show();
+                CommonHelper.DoEvents();
             }
         });
 
@@ -522,6 +528,7 @@ namespace PixivWPF.Common
                         Content = page
                     };
                     viewer.Show();
+                    CommonHelper.DoEvents();
                 }
             }
         });
@@ -539,6 +546,37 @@ namespace PixivWPF.Common
                 }
             }
         });
+
+        #region Maybe reduce UI frozen
+        private static object ExitFrame(object state)
+        {
+            ((DispatcherFrame)state).Continue = false;
+            return null;
+        }
+
+        public static async void DoEvents()
+        {
+            DispatcherFrame frame = new DispatcherFrame();
+            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
+            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
+            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+            await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
+            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
+            Dispatcher.PushFrame(frame);
+
+            //await System.Windows.Threading.Dispatcher.Yield();
+        }
+
+        public static async void Sleep(int ms)
+        {
+            for (int i = 0; i < ms; i += 10)
+            {
+                System.Threading.Thread.Sleep(5);
+                //DoEvents();
+                await Dispatcher.Yield();
+            }
+        }
+        #endregion
 
         private static async Task<Pixeez.Tokens> RefreshToken()
         {

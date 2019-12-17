@@ -554,10 +554,12 @@ namespace PixivWPF.Pages
 
                             var pages = subset.meta_pages[i];
                             pages.AddTo(SubIllusts.Items, item.Illust, i, item.NextURL);
+                            CommonHelper.DoEvents();
 
                             if (i - start >= count - 1) break;
                             btnSubIllustNextPages.Tag = i + 2;
                         }
+                        CommonHelper.DoEvents();
 
                         if ((int)btnSubIllustPrevPages.Tag < 0)
                             btnSubIllustPrevPages.Visibility = Visibility.Collapsed;
@@ -569,7 +571,6 @@ namespace PixivWPF.Pages
                         else
                             btnSubIllustNextPages.Visibility = Visibility.Visible;
 
-                        //SubIllustsPanel.InvalidateVisual();
                         SubIllusts.UpdateTilesImage();
                     }
                 }
@@ -622,6 +623,7 @@ namespace PixivWPF.Pages
             finally
             {
                 IllustDetailWait.Hide();
+                CommonHelper.DoEvents();
             }
         }
 
@@ -650,7 +652,9 @@ namespace PixivWPF.Pages
                     {
                         illust.Cache();
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
+                        CommonHelper.DoEvents();
                     }
+                    CommonHelper.DoEvents();
                     RelativeIllusts.UpdateTilesImage();
                 }
             }
@@ -689,7 +693,9 @@ namespace PixivWPF.Pages
                     {
                         illust.Cache();
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
+                        CommonHelper.DoEvents();
                     }
+                    CommonHelper.DoEvents();
                     RelativeIllusts.UpdateTilesImage();
                 }
             }
@@ -736,7 +742,9 @@ namespace PixivWPF.Pages
                     {
                         illust.Cache();
                         illust.AddTo(FavoriteIllusts.Items, favorites.next_url);
+                        CommonHelper.DoEvents();
                     }
+                    CommonHelper.DoEvents();
                     FavoriteIllusts.UpdateTilesImage();
                 }
             }

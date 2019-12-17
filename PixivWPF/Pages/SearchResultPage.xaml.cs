@@ -116,7 +116,9 @@ namespace PixivWPF.Pages
                             user.Cache();
                             user.AddTo(ResultIllusts.Items, next_url);
                             id_user.Add(user.Id);
+                            CommonHelper.DoEvents();
                         }
+                        CommonHelper.DoEvents();
                     }
                 }
                 else if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
@@ -133,7 +135,9 @@ namespace PixivWPF.Pages
                             illust.Cache();
                             illust.AddTo(ResultIllusts.Items, next_url);
                             id_illust.Add(illust.Id);
+                            CommonHelper.DoEvents();
                         }
+                        CommonHelper.DoEvents();
                     }
                 }
                 else if (content.StartsWith("User:", StringComparison.CurrentCultureIgnoreCase))
@@ -153,7 +157,9 @@ namespace PixivWPF.Pages
                             user.User.Cache();
                             user.User.AddTo(ResultIllusts.Items, next_url);
                             id_user.Add(user.User.Id);
+                            CommonHelper.DoEvents();
                         }
+                        CommonHelper.DoEvents();
                     }
                 }
                 else if (content.StartsWith("Fuzzy:", StringComparison.CurrentCultureIgnoreCase))
@@ -172,7 +178,9 @@ namespace PixivWPF.Pages
                             illust.Cache();
                             illust.AddTo(ResultIllusts.Items, next_url);
                             id_illust.Add(illust.Id);
+                            CommonHelper.DoEvents();
                         }
+                        CommonHelper.DoEvents();
                     }
                 }
                 else if (content.StartsWith("Tag:", StringComparison.CurrentCultureIgnoreCase))
@@ -192,7 +200,9 @@ namespace PixivWPF.Pages
                             illust.Cache();
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
                             id_illust.Add(illust.Id);
+                            CommonHelper.DoEvents();
                         }
+                        CommonHelper.DoEvents();
                     }
                 }
                 else if (content.StartsWith("Fuzzy Tag:", StringComparison.CurrentCultureIgnoreCase))
@@ -211,7 +221,9 @@ namespace PixivWPF.Pages
                             illust.Cache();
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
                             id_illust.Add(illust.Id);
+                            CommonHelper.DoEvents();
                         }
+                        CommonHelper.DoEvents();
                     }
                 }
                 else if (content.StartsWith("Caption:", StringComparison.CurrentCultureIgnoreCase))
@@ -230,7 +242,9 @@ namespace PixivWPF.Pages
                             illust.Cache();
                             illust.AddTo(ResultIllusts.Items, relatives.next_url);
                             id_illust.Add(illust.Id);
+                            CommonHelper.DoEvents();
                         }
+                        CommonHelper.DoEvents();
                     }
                 }
                 ResultIllusts.UpdateTilesImage();

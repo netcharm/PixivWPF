@@ -203,6 +203,7 @@ namespace PixivWPF.Common
 
         public void UpdateTilesImage(int parallel = 5)
         {
+            CommonHelper.DoEvents();
             Items.UpdateTilesImage(lastTask, cancelTokenSource, parallel);
         }
 
