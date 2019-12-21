@@ -171,6 +171,41 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void UpdateSubPageNav()
+        {
+            if (DataObject is Pixeez.Objects.UserBase)
+            {
+                btnPageNext.Hide();
+                btnPagePrev.Hide();
+            }
+            else if (DataObject is ImageItem)
+            {
+                var item = DataObject as ImageItem;
+                if (item.Illust.PageCount > 1)
+                {
+                    btnPageNext.Show();
+                    btnPagePrev.Show();
+                }
+                if (SubIllusts.SelectedIndex <= 0)
+                {
+                    btnPagePrev.IsEnabled = false;
+                    btnPageNext.IsEnabled = true;
+                }
+                else if (SubIllusts.SelectedIndex == SubIllusts.Items.Count - 1)
+                {
+                    btnPagePrev.IsEnabled = true;
+                    btnPageNext.IsEnabled = false;
+                }
+                else
+                {
+                    btnPagePrev.IsEnabled = true;
+                    btnPageNext.IsEnabled = true;
+                }
+                btnPagePrev.Foreground = btnPagePrev.IsEnabled ? Theme.AccentBrush : Theme.IdealForegroundDisableBrush;
+                btnPageNext.Foreground = btnPageNext.IsEnabled ? Theme.AccentBrush : Theme.IdealForegroundDisableBrush;
+            }
+        }
+
         private void OpenDownloaded()
         {
             if (DataObject is ImageItem)
@@ -360,6 +395,8 @@ namespace PixivWPF.Pages
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.Illust is Pixeez.Objects.IllustWork && item.Illust.PageCount > 1)
                 {
+                    btnPagePrev.Show();
+                    btnPageNext.Show();
                     PreviewBadge.Show();
                     SubIllustsExpander.Show();
                     SubIllustsNavPanel.Show();
@@ -367,6 +404,8 @@ namespace PixivWPF.Pages
                 }
                 else if (item.Illust is Pixeez.Objects.NormalWork && item.Illust.PageCount > 1)
                 {
+                    btnPagePrev.Show();
+                    btnPageNext.Show();
                     PreviewBadge.Show();
                     SubIllustsExpander.Show();
                     SubIllustsNavPanel.Show();
@@ -374,6 +413,8 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
+                    btnPagePrev.Hide();
+                    btnPageNext.Hide();
                     PreviewBadge.Hide();
                     SubIllustsExpander.Hide();
                     SubIllustsNavPanel.Hide();
@@ -615,6 +656,8 @@ namespace PixivWPF.Pages
                         SubIllusts.UpdateTilesImage();
                     }
                 }
+                if (SubIllusts.SelectedIndex < 0) SubIllusts.SelectedIndex = 0;
+                UpdateSubPageNav();
             }
             catch (Exception ex)
             {
@@ -1426,6 +1469,8 @@ namespace PixivWPF.Pages
                 }
                 UpdateMark();
 
+                UpdateSubPageNav();
+
                 //IllustDetailViewer
                 e.Handled = true;
 
@@ -1587,6 +1632,27 @@ namespace PixivWPF.Pages
                 IllustsSaveProgress.Value = 100;
                 IllustsSaveProgress.Visibility = Visibility.Collapsed;
                 SystemSounds.Beep.Play();
+            }
+        }
+
+        private void SubPageNav_Clicked(object sender, RoutedEventArgs e)
+        {
+            var count = SubIllusts.Items.Count;
+            if (count > 1)
+            {
+                if (sender == btnPagePrev)
+                {
+                    if (SubIllusts.SelectedIndex > 0)
+                        SubIllusts.SelectedIndex -= 1;
+                }
+                else if (sender == btnPageNext)
+                {
+                    if (SubIllusts.SelectedIndex < 0)
+                        SubIllusts.SelectedIndex = 1;
+                    else if (SubIllusts.SelectedIndex < count - 1)
+                        SubIllusts.SelectedIndex += 1;
+                }
+                UpdateSubPageNav();
             }
         }
         #endregion

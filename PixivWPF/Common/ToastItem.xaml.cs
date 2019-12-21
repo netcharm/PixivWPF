@@ -177,6 +177,7 @@ namespace PixivWPF.Common
 
         private void Toast_Loaded(object sender, RoutedEventArgs e)
         {
+            SetButton(ItemType);
             parentWindow = Window.GetWindow(this);
             if (parentWindow is Window)
                 parentWindow.Closing += Window_Closing;

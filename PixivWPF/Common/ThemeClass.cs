@@ -204,6 +204,38 @@ namespace PixivWPF.Common
             }
         }
 
+        public static Brush IdealForegroundDisableBrush
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["DarkIdealForegroundDisableBrush"] as Brush);
+            }
+        }
+
+        public static Brush GrayBrush
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["GrayBrush6"] as Brush);
+            }
+        }
+
+        public static Brush GrayBrushs(int index)
+        {
+            Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+            AppTheme appTheme = appStyle.Item1;
+            Accent appAccent = appStyle.Item2;
+            if (index < 1) index = 1;
+            else if (index > 10) index = 10;
+            return (appTheme.Resources[$"GrayBrush{index}"] as Brush);
+        }
+
         public static Color ToColor(this Brush b, bool prefixsharp = true)
         {
             if (b is SolidColorBrush)

@@ -556,24 +556,36 @@ namespace PixivWPF.Common
 
         public static async void DoEvents()
         {
-            DispatcherFrame frame = new DispatcherFrame();
-            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
-            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
-            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-            await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
-            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
-            Dispatcher.PushFrame(frame);
+            try
+            {
+                if (Application.Current.Dispatcher.CheckAccess())
+                {
+                    await Dispatcher.Yield();
+                    //await System.Windows.Threading.Dispatcher.Yield();
+                }
+            }
+            catch (Exception)
+            {
+                if (Application.Current.Dispatcher.CheckAccess())
+                {
+                    DispatcherFrame frame = new DispatcherFrame();
+                    //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
+                    //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
 
-            //await System.Windows.Threading.Dispatcher.Yield();
+                    //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                    await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
+                    //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
+                    Dispatcher.PushFrame(frame);
+                }
+            }
         }
 
-        public static async void Sleep(int ms)
+        public static void Sleep(int ms)
         {
             for (int i = 0; i < ms; i += 10)
             {
                 System.Threading.Thread.Sleep(5);
-                //DoEvents();
-                await Dispatcher.Yield();
+                DoEvents();
             }
         }
         #endregion
@@ -2619,7 +2631,7 @@ namespace PixivWPF.Common
             NotificationConfiguration cfg = new NotificationConfiguration(
                 //new TimeSpan(0, 0, 30), 
                 TimeSpan.FromSeconds(3),
-                cfgDefault.Width+32, cfgDefault.Height,
+                cfgDefault.Width + 32, cfgDefault.Height,
                 "ToastTemplate",
                 //cfgDefault.TemplateName, 
                 cfgDefault.NotificationFlowDirection
@@ -2644,7 +2656,7 @@ namespace PixivWPF.Common
             NotificationConfiguration cfg = new NotificationConfiguration(
                 //new TimeSpan(0, 0, 30), 
                 TimeSpan.FromSeconds(3),
-                cfgDefault.Width+32, cfgDefault.Height,
+                cfgDefault.Width + 32, cfgDefault.Height,
                 "ToastTemplate",
                 //cfgDefault.TemplateName, 
                 cfgDefault.NotificationFlowDirection

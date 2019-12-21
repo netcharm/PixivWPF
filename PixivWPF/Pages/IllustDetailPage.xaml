@@ -132,40 +132,72 @@
                     </Viewbox>
                 </Grid>
                 <ContentControl Grid.Row="0" x:Name="PreviewBox" >
-                    <Rectangle  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" MouseLeftButtonDown="Preview_MouseDoubleClick">
-                        <Rectangle.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem x:Name="PreviewCopyIllustID" x:Uid="ActionCopyIllustID" 
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" MaxWidth="48"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto" MaxWidth="48"/>
+                        </Grid.ColumnDefinitions>
+                        <Rectangle
+                            Grid.Column="1"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                            Fill="Transparent" MouseLeftButtonDown="Preview_MouseDoubleClick">
+                            <Rectangle.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem x:Name="PreviewCopyIllustID" x:Uid="ActionCopyIllustID" 
                                           Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
-                                    <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
-                                    <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
-                                    <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <Separator/>
-                                <MenuItem x:Name="PreviewRefresh" x:Uid="ActionRefreshPreview" Header="Refresh Illust Preview" Click="ActionRefreshPreview_Click">
-                                    <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <Separator/>
-                                <MenuItem x:Name="PreviewOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illust" Click="ActionOpenIllust_Click">
-                                    <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                            </ContextMenu>
-                        </Rectangle.ContextMenu>
-                    </Rectangle>
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem x:Name="PreviewRefresh" x:Uid="ActionRefreshPreview" Header="Refresh Illust Preview" Click="ActionRefreshPreview_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem x:Name="PreviewOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illust" Click="ActionOpenIllust_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Rectangle.ContextMenu>
+                        </Rectangle>
+                        <Button Grid.Column="0" x:Name="btnPagePrev" x:Uid="btnSubPagePrev"
+                                Width="64" Visibility="Collapsed"
+                                HorizontalAlignment="Center" VerticalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="Transparent" Foreground="{DynamicResource AccentColorBrush}" 
+                                BorderThickness="0" BorderBrush="{DynamicResource AccentColorBrush}"
+                                Click="SubPageNav_Clicked">
+                            <Button.Content>
+                                <iconPacks:PackIconModern Kind="NavigatePrevious" Width="32" Height="32" />
+                            </Button.Content>
+                        </Button>
+                        <Button Grid.Column="2" x:Name="btnPageNext" x:Uid="btnSubPageNext"
+                                Width="64" Visibility="Collapsed"
+                                HorizontalAlignment="Center" VerticalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="Transparent" Foreground="{DynamicResource AccentColorBrush}" 
+                                BorderThickness="0" BorderBrush="{DynamicResource AccentColorBrush}"
+                                Click="SubPageNav_Clicked">
+                            <Button.Content>
+                                <iconPacks:PackIconModern Kind="NavigateNext" Width="32" Height="32" />
+                            </Button.Content>
+                        </Button>
+                    </Grid>
                 </ContentControl>
                 <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge" 
                             BadgePlacementMode="BottomRight" Margin="0,0,16,16" 
@@ -193,15 +225,15 @@
                     <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvator" 
                        Width="64" Height="64" Stretch="Uniform"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInfo" x:Uid="btnAuthorInto"
-                            Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
-                            Background="Transparent" Foreground="Transparent"
-                            Click="ActionIllustAuthourInfo_Click"/>
                     <mah:ProgressRing Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvatorWait"
                           Width="48" Height="48" Opacity="0.38" 
                           Foreground="{DynamicResource AccentColorBrush}"
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInfo" x:Uid="btnAuthorInto"
+                            Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
+                            Background="Transparent" Foreground="Transparent"
+                            Click="ActionIllustAuthourInfo_Click"/>
 
                     <Grid Grid.Row="0" Grid.Column="1">
                         <Grid.ColumnDefinitions>
