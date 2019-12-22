@@ -87,8 +87,8 @@ namespace PixivWPF.Common
             set
             {
                 lastfolder = value;
-                if (LocalStorage.IndexOf(lastfolder) < 0)
-                    LocalStorage.Add(lastfolder);
+                if (LocalStorage.Count(o => o.Folder.Equals(Cache.SaveFolder)) <= 0)
+                    LocalStorage.Add(new StorageType(lastfolder, true));
             }
         }
 
@@ -123,7 +123,6 @@ namespace PixivWPF.Common
                 refreshtoken = value;
             }
         }
-
 
         private string proxy = string.Empty;
         public string Proxy
@@ -161,7 +160,7 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public string SaveFolder { get; set; }
 
-        public List<string> LocalStorage { get; set; } = new List<string>();
+        public List<StorageType> LocalStorage { get; set; } = new List<StorageType>();
 
         public Point DropBoxPosition { get; set; } = new Point(0, 0);
 
@@ -171,9 +170,9 @@ namespace PixivWPF.Common
             {
                 if (string.IsNullOrEmpty(configfile)) configfile = config;
 
-                if(Cache.LocalStorage.IndexOf(Cache.SaveFolder) < 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
+                if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.SaveFolder)) < 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
                 {
-                    Cache.LocalStorage.Add(Cache.SaveFolder);
+                    Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
                 }
 
                 var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
@@ -203,13 +202,19 @@ namespace PixivWPF.Common
                             Cache = JsonConvert.DeserializeObject<Setting>(text);
 
                         if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
-                            Cache.LocalStorage.Add(Cache.SaveFolder);
+                            Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
+
+                        Cache.LocalStorage.InitDownloadedWatcher();
 
                         result = Cache;
                     }
                 }
             }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowToast("ERROR"); }
+#else
             catch (Exception) { }
+#endif
             return (result);
         }
 

@@ -218,12 +218,13 @@ namespace PixivWPF.Pages
                         {
                             ids.Add(illust.Id.Value);
                             illust.AddTo(ImageList, nexturl);
-                            CommonHelper.DoEvents();
+                            this.DoEvents();
                         }
                     }
-                    CommonHelper.DoEvents();
+                    this.DoEvents();
                     if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
                     UpdateImageTiles();
+                    this.DoEvents();
                 }
             }
             catch (Exception ex)
@@ -696,7 +697,7 @@ namespace PixivWPF.Pages
 
                 var item = ImageList[idx];
 
-                item.IsDownloaded = item.Illust.IsPartDownloaded();
+                item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
                 item.IsFavorited = item.IsLiked();
 
                 detail_page.Tag = item;

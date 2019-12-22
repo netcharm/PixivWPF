@@ -188,7 +188,7 @@ namespace PixivWPF.Common
                 foreach (var item in gallery.SelectedItems)
                 {
                     if (item.Illust == null) continue;
-                    bool download = fuzzy ? item.Illust.IsPartDownloaded() : item.Illust.GetOriginalUrl(item.Index).IsDownloaded();
+                    bool download = fuzzy ? item.Illust.IsPartDownloadedAsync() : item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
                     if (item.IsDownloaded != download)
                     {
                         item.IsDownloaded = download;
@@ -362,7 +362,7 @@ namespace PixivWPF.Common
                             DisplayTitle = true,
                             Caption = illust.Caption,
                             ToolTip = $"📅[{illust.GetDateTime()}]{tooltip}",
-                            IsDownloaded = illust == null ? false : illust.IsPartDownloaded(),
+                            IsDownloaded = illust == null ? false : illust.IsPartDownloadedAsync(),
                             Tag = illust
                         };
                     }
@@ -381,6 +381,7 @@ namespace PixivWPF.Common
             foreach (var illust in works)
             {
                 illust.AddTo(Collection, nexturl);
+                illust.DoEvents();
             }
         }
 
@@ -397,6 +398,7 @@ namespace PixivWPF.Common
                         if (i is ImageItem)
                         {
                             Collection.Add(i);
+                            i.DoEvents();
                         }
                     }
                 }
@@ -429,6 +431,7 @@ namespace PixivWPF.Common
                             i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloaded(false);
                             i.Tag = pages;
                             Collection.Add(i);
+                            i.DoEvents();
                         }
                     }
                 }
@@ -461,6 +464,7 @@ namespace PixivWPF.Common
                             i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloaded(false);
                             i.Tag = page;
                             Collection.Add(i);
+                            i.DoEvents();
                         }
                     }
                 }
@@ -496,6 +500,7 @@ namespace PixivWPF.Common
                             Tag = user
                         };
                         Collection.Add(i);
+                        i.DoEvents();
                     }
                 }
             }

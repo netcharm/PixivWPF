@@ -1,6 +1,7 @@
 ﻿using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 using PixivWPF.Pages;
 using Prism.Commands;
 using System;
@@ -14,6 +15,7 @@ using System.Media;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Permissions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -155,6 +157,21 @@ namespace PixivWPF.Common
         }
     }
 
+    public class StorageType
+    {
+        public string Folder { get; set; } = string.Empty;
+        public bool Cached { get; set; } = false;
+        [JsonIgnore]
+        public int Count { get; set; } = -1;
+
+        public StorageType(string path, bool cached = false)
+        {
+            Folder = path;
+            Cached = cached;
+            Count = -1;
+        }
+    }
+
     public static class CommonHelper
     {
         private const int WIDTH_MIN = 720;
@@ -282,7 +299,7 @@ namespace PixivWPF.Common
                 switch (item.ItemType)
                 {
                     case ImageItemType.Work:
-                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
+                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
                         Cmd_OpenWork.Execute(item.Illust);
                         break;
                     case ImageItemType.User:
@@ -329,7 +346,7 @@ namespace PixivWPF.Common
             if (obj is ImageItem && (obj.ItemType == ImageItemType.Work || obj.ItemType == ImageItemType.Manga))
             {
                 var item = obj as ImageItem;
-                item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloaded();
+                item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
 
                 var title = $"ID: {item.ID}, {item.Subject} - ";
                 if (title.ActiveByTitle()) return;
@@ -575,6 +592,29 @@ namespace PixivWPF.Common
                     //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
                     await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
                     //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
+                    Dispatcher.PushFrame(frame);
+                }
+            }
+        }
+
+        public static async void DoEvents(this object obj)
+        {
+            try
+            {
+                if (Application.Current.Dispatcher.CheckAccess())
+                {
+                    //await Dispatcher.Yield();
+                    DispatcherFrame frame = new DispatcherFrame();
+                    await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                    Dispatcher.PushFrame(frame);
+                }
+            }
+            catch (Exception)
+            {
+                if (Application.Current.Dispatcher.CheckAccess())
+                {
+                    DispatcherFrame frame = new DispatcherFrame();
+                    await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
                     Dispatcher.PushFrame(frame);
                 }
             }
@@ -1076,7 +1116,151 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+        #endregion
 
+        #region Downloaded Cache routines
+        private static Dictionary<string, bool> _cachedDownloadedList = new Dictionary<string, bool>();
+        internal static void UpdateDownloadedListCache(this string folder, bool cached = false)
+        {
+            if (Directory.Exists(folder) && cached)
+            {
+                if (!_cachedDownloadedList.ContainsKey(folder))
+                {
+                    _cachedDownloadedList[folder] = cached;
+                    var files = Directory.GetFiles(folder);
+                    var local = setting.LocalStorage.Where(o => o.Folder.Equals(folder, StringComparison.CurrentCultureIgnoreCase));
+                    if (local.Count() > 0) local.First().Count = files.Count();
+                    foreach (var f in files)
+                        _cachedDownloadedList[f] = cached;
+                }
+            }
+        }
+
+        internal static async void UpdateDownloadedListCacheAsync(this string folder, bool cached = false)
+        {
+            await Task.Run(() => {
+                UpdateDownloadedListCache(folder, cached);
+            });
+        }
+
+        internal static void UpdateDownloadedListCache(this StorageType storage)
+        {
+            if (storage is StorageType)
+            {
+                storage.Folder.UpdateDownloadedListCacheAsync(storage.Cached);
+            }
+        }
+
+        internal static async void UpdateDownloadedListCacheAsync(this StorageType storage)
+        {
+            await Task.Run(() => {
+                UpdateDownloadedListCache(storage);
+            });
+        }
+
+        internal static bool DownoadedCacheExists(this string file)
+        {
+            return (_cachedDownloadedList.ContainsKey(file));
+        }
+
+        private static Func<string, bool> DownoadedCacheExistsFunc = x => DownoadedCacheExists(x);
+        internal static bool DownoadedCacheExistsAsync(this string file)
+        {
+            return (DownoadedCacheExistsFunc(file));
+        }
+
+        internal static void DownloadedCacheAdd(this string file, bool cached = true)
+        {
+            try
+            {
+                _cachedDownloadedList[file] = cached;
+            }
+            catch (Exception) { }
+        }
+
+        internal static void DownloadedCacheRemove(this string file)
+        {
+            try
+            {
+                if(_cachedDownloadedList.ContainsKey(file))
+                    _cachedDownloadedList.Remove(file);
+            }
+            catch (Exception) { }
+        }
+
+        internal static void DownloadedCacheUpdate(this string old_file, string new_file, bool cached = true)
+        {
+            try
+            {
+                if (_cachedDownloadedList.ContainsKey(old_file))
+                {
+                    old_file.DownloadedCacheRemove();
+                }
+                new_file.DownloadedCacheAdd(cached);
+            }
+            catch (Exception) { }
+        }
+
+        // Define the event handlers.
+        private static void OnChanged(object source, FileSystemEventArgs e)
+        {
+#if DEBUG
+            // Specify what is done when a file is changed, created, or deleted.
+            Console.WriteLine($"File: {e.FullPath} {e.ChangeType}");
+#endif
+            if (e.ChangeType == WatcherChangeTypes.Deleted)
+            {
+                e.FullPath.DownloadedCacheRemove();
+            }
+            else if (e.ChangeType == WatcherChangeTypes.Created)
+            {
+                e.FullPath.DownloadedCacheAdd();
+            }
+        }
+
+        private static void OnRenamed(object source, RenamedEventArgs e)
+        {
+#if DEBUG
+            // Specify what is done when a file is renamed.
+            Console.WriteLine($"File: {e.OldFullPath} renamed to {e.FullPath}");
+#endif
+            if (e.ChangeType == WatcherChangeTypes.Renamed)
+            {
+                e.OldFullPath.DownloadedCacheUpdate(e.FullPath);
+            }
+        }
+
+        private static List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
+
+        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+        public static void InitDownloadedWatcher(this IEnumerable<StorageType> storages)
+        {
+            _watchers.Clear();
+            foreach (var l in storages)
+            {
+                if (Directory.Exists(l.Folder))
+                {
+                    l.UpdateDownloadedListCacheAsync();
+                    var watcher = new FileSystemWatcher()
+                    {
+                        Path = l.Folder,
+                        NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
+                        Filter = "*.*"
+                    };
+                    watcher.Changed += OnChanged;
+                    watcher.Created += OnChanged;
+                    watcher.Deleted += OnChanged;
+                    watcher.Renamed += OnRenamed;
+                    // Begin watching.
+                    watcher.EnableRaisingEvents = true;
+
+                    _watchers.Add(watcher);
+                }
+            }
+        }
+        #endregion
+
+        #region Checking image download state
         internal static bool IsDownloaded(this Pixeez.Objects.Work illust, bool is_meta_single_page = false)
         {
             if (illust is Pixeez.Objects.Work)
@@ -1142,6 +1326,13 @@ namespace PixivWPF.Common
                 return (false);
         }
 
+        private static Func<Pixeez.Objects.Work, bool> IsPartDownloadedFunc = x => IsPartDownloaded(x);
+
+        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust)
+        {            
+            return IsPartDownloadedFunc(illust);
+        }
+
         internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath)
         {
             if (illust is Pixeez.Objects.Work)
@@ -1159,17 +1350,37 @@ namespace PixivWPF.Common
             var file = url.GetImageName(is_meta_single_page);
             foreach (var local in setting.LocalStorage)
             {
-                if (string.IsNullOrEmpty(local)) continue;
+                if (string.IsNullOrEmpty(local.Folder)) continue;
 
-                var folder = local.FolderMacroReplace(url.GetIllustId());
+                var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
+                folder.UpdateDownloadedListCacheAsync(local.Cached);
+
                 var f = Path.Combine(folder, file);
-                if (File.Exists(f))
+                if (local.Cached)
                 {
-                    result = true;
-                    break;
+                    if(f.DownoadedCacheExistsAsync())
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (File.Exists(f))
+                    {
+                        result = true;
+                        break;
+                    }
                 }
             }
             return (result);
+        }
+
+        private static Func<string, bool, bool> IsDownloadedFunc = IsDownloaded;
+
+        internal static bool IsDownloadedAsync(this string url, bool is_meta_single_page = false)
+        {
+            return (IsDownloadedFunc(url, is_meta_single_page));
         }
 
         internal static bool IsDownloaded(this string url, out string filepath, bool is_meta_single_page = false)
@@ -1180,15 +1391,28 @@ namespace PixivWPF.Common
             var file = url.GetImageName(is_meta_single_page);
             foreach (var local in setting.LocalStorage)
             {
-                if (string.IsNullOrEmpty(local)) continue;
+                if (string.IsNullOrEmpty(local.Folder)) continue;
 
-                var folder = local.FolderMacroReplace(url.GetIllustId());
+                var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
+                folder.UpdateDownloadedListCacheAsync(local.Cached);
+
                 var f = Path.Combine(folder, file);
-                if (File.Exists(f))
+                if (local.Cached)
                 {
-                    filepath = f;
-                    result = true;
-                    break;
+                    if (f.DownoadedCacheExistsAsync())
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (File.Exists(f))
+                    {
+                        filepath = f;
+                        result = true;
+                        break;
+                    }
                 }
             }
 
@@ -1203,14 +1427,27 @@ namespace PixivWPF.Common
 
             foreach (var local in setting.LocalStorage)
             {
-                if (string.IsNullOrEmpty(local)) continue;
+                if (string.IsNullOrEmpty(local.Folder)) continue;
 
-                var folder = local.FolderMacroReplace(url.GetIllustId());
+                var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
+                folder.UpdateDownloadedListCacheAsync(local.Cached);
+
                 var f = Path.Combine(folder, file);
-                if (File.Exists(f))
+                if (local.Cached)
                 {
-                    result = true;
-                    break;
+                    if (f.DownoadedCacheExistsAsync())
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (File.Exists(f))
+                    {
+                        result = true;
+                        break;
+                    }
                 }
 
                 var fn = Path.GetFileNameWithoutExtension(file);
@@ -1218,10 +1455,22 @@ namespace PixivWPF.Common
                 foreach (var fc in range)
                 {
                     var fp = Path.Combine(folder, $"{fn}_{fc}{fe}");
-                    if (File.Exists(fp))
+
+                    if (local.Cached)
                     {
-                        result = true;
-                        break;
+                        if (f.DownoadedCacheExistsAsync())
+                        {
+                            result = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (File.Exists(fp))
+                        {
+                            result = true;
+                            break;
+                        }
                     }
                 }
                 if (result) break;
@@ -1238,15 +1487,28 @@ namespace PixivWPF.Common
             filepath = string.Empty;
             foreach (var local in setting.LocalStorage)
             {
-                if (string.IsNullOrEmpty(local)) continue;
+                if (string.IsNullOrEmpty(local.Folder)) continue;
 
-                var folder = local.FolderMacroReplace(url.GetIllustId());
+                var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
+                folder.UpdateDownloadedListCacheAsync(local.Cached);
+
                 var f = Path.Combine(folder, file);
-                if (File.Exists(f))
+                if (local.Cached)
                 {
-                    filepath = f;
-                    result = true;
-                    break;
+                    if (f.DownoadedCacheExistsAsync())
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (File.Exists(f))
+                    {
+                        filepath = f;
+                        result = true;
+                        break;
+                    }
                 }
 
                 var fn = Path.GetFileNameWithoutExtension(file);
@@ -1254,11 +1516,22 @@ namespace PixivWPF.Common
                 foreach (var fc in range)
                 {
                     var fp = Path.Combine(folder, $"{fn}_{fc}{fe}");
-                    if (File.Exists(fp))
+                    if (local.Cached)
                     {
-                        filepath = fp;
-                        result = true;
-                        break;
+                        if (f.DownoadedCacheExistsAsync())
+                        {
+                            result = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (File.Exists(fp))
+                        {
+                            filepath = fp;
+                            result = true;
+                            break;
+                        }
                     }
                 }
                 if (result) break;
