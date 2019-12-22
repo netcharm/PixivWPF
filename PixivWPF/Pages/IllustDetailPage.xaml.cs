@@ -430,6 +430,7 @@ namespace PixivWPF.Pages
                     IllustDescExpander.Hide();
                 }
 
+                SubIllusts.Tag = 0;
                 SubIllusts.Items.Clear();
                 SubIllustsExpander.IsExpanded = false;
                 PreviewBadge.Badge = item.Illust.PageCount;
