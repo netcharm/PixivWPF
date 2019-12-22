@@ -33,6 +33,50 @@ namespace PixivWPF.Pages
         private ContextMenu ContextMenuResultFilter = null;
         private Dictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new Dictionary<string, Tuple<MenuItem, MenuItem>>();
 
+        private void UpdateDownloadStateMark(int illustid = -1)
+        {
+            foreach (var item in ResultIllusts.Items)
+            {
+                if (item.Illust is Pixeez.Objects.Work)
+                {
+                    if (illustid == -1 || illustid == (int)(item.Illust.Id))
+                    {
+                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                    }
+                }
+            }
+        }
+
+        public async void UpdateDownloadStateAsync(int illustid = -1)
+        {
+            await Task.Run(() =>
+            {
+                UpdateDownloadStateMark(illustid);
+            });
+        }
+
+        public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        {
+            await new Action(() => {
+                UpdateLikeState(illustid);
+            }).InvokeAsync();
+        }
+
+        public void UpdateLikeState(int illustid = -1, bool is_user = false)
+        {
+            if (ResultExpander.IsExpanded)
+            {
+                foreach (ImageItem item in ResultIllusts.Items)
+                {
+                    var id = -1;
+                    if (!is_user && item.Illust is Pixeez.Objects.Work) id = (int)(item.Illust.Id.Value);
+                    else if(is_user && item.User is Pixeez.Objects.UserBase) id = (int)(item.User.Id.Value);
+                    if (illustid == -1 || illustid == id)
+                        item.IsFavorited = item.IsLiked();
+                }
+            }
+        }
+
         public SearchResultPage()
         {
             InitializeComponent();

@@ -1220,14 +1220,14 @@ namespace PixivWPF.Common
             if (e.ChangeType == WatcherChangeTypes.Deleted)
             {
                 e.FullPath.DownloadedCacheRemove();
-                UpdateDownloadStateMark(GetIllustId(e.FullPath));
+                UpdateDownloadStateAsync(GetIllustId(e.FullPath));
             }
             else if (e.ChangeType == WatcherChangeTypes.Created)
             {
                 if (File.Exists(e.FullPath))
                 {
                     e.FullPath.DownloadedCacheAdd();
-                    UpdateDownloadStateMark(GetIllustId(e.FullPath));
+                    UpdateDownloadStateAsync(GetIllustId(e.FullPath));
                 }
             }
         }
@@ -1241,7 +1241,7 @@ namespace PixivWPF.Common
             if (e.ChangeType == WatcherChangeTypes.Renamed)
             {
                 e.OldFullPath.DownloadedCacheUpdate(e.FullPath);
-                UpdateDownloadStateMark(GetIllustId(e.FullPath));
+                UpdateDownloadStateAsync(GetIllustId(e.FullPath));
             }
         }
 
@@ -1274,14 +1274,14 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void UpdateDownloadStateMark(string illustid = default(string))
+        public static void UpdateDownloadStateAsync(string illustid = default(string))
         {
             int id = -1;
             int.TryParse(illustid, out id);
-            UpdateDownloadStateMark(id);
+            UpdateDownloadStateAsync(id);
         }
 
-        public static async void UpdateDownloadStateMark(int illustid = -1)
+        public static async void UpdateDownloadStateAsync(int illustid = -1)
         {
             await new Action(() => {
                 foreach (var win in Application.Current.Windows)
@@ -1296,6 +1296,8 @@ namespace PixivWPF.Common
                         var w = win as ContentWindow;
                         if (w.Content is IllustDetailPage)
                             (w.Content as IllustDetailPage).UpdateDownloadStateAsync(illustid);
+                        else if (w.Content is SearchResultPage)
+                            (w.Content as SearchResultPage).UpdateLikeStateAsync(illustid);
                     }
                 }
             }).InvokeAsync();
@@ -2021,6 +2023,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Illust Tile ListView routines
+        #region SameIllust
         public static bool IsSameIllust(this string id, int hash)
         {
             return (cache.IsSameIllust(hash, id));
@@ -2100,7 +2103,9 @@ namespace PixivWPF.Common
 
             return (result);
         }
-
+        #endregion
+        
+        #region Refresh Illust/User Info
         public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null)
         {
             var result = Illust;
@@ -2233,7 +2238,9 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+        #endregion
 
+        #region Like Helper routines
         public static bool IsLiked(this Pixeez.Objects.Work illust)
         {
             bool result = false;
@@ -2263,20 +2270,52 @@ namespace PixivWPF.Common
 
         public static async Task<bool> Like(this ImageItem item, bool pub = true)
         {
-            if (item.ItemType == ImageItemType.Work)
-                return (await item.LikeIllust(pub));
-            else if (item.ItemType == ImageItemType.User)
-                return (await item.LikeUser(pub));
+            if (item.ItemType == ImageItemType.Work && item.Illust is Pixeez.Objects.Work)
+            {
+                var result = item.Illust.IsLiked() ? true : await item.LikeIllust(pub);
+                UpdateLikeStateAsync((int)(item.Illust.Id));
+                return (result);
+            }
+            else if (item.ItemType == ImageItemType.User && item.User is Pixeez.Objects.UserBase)
+            {
+                var result = item.User.IsLiked() ? true : await item.LikeUser(pub);
+                UpdateLikeStateAsync((int)(item.User.Id), true);
+                return (result);
+            }
             else return false;
         }
 
         public static async Task<bool> UnLike(this ImageItem item, bool pub = true)
         {
-            if (item.ItemType == ImageItemType.Work)
-                return (await item.UnLikeIllust());
-            else if (item.ItemType == ImageItemType.User)
-                return (await item.UnLikeUser());
+            if (item.ItemType == ImageItemType.Work && item.Illust is Pixeez.Objects.Work)
+            {
+                var result = item.Illust.IsLiked() ? await item.UnLikeIllust(pub) : false;
+                UpdateLikeStateAsync((int)(item.Illust.Id));
+                return (result);
+            }
+            else if (item.ItemType == ImageItemType.User && item.User is Pixeez.Objects.UserBase)
+            {
+                var result = item.User.IsLiked() ? await item.UnLikeUser(pub) : false;
+                item.IsFavorited = result;
+                UpdateLikeStateAsync((int)(item.User.Id), true);
+                return (result);
+            }
             else return false;
+        }
+
+        #region Like/Unlike Illust helper routines
+        public static async Task<bool> Like(this Pixeez.Objects.Work illust, bool pub = true)
+        {
+            var result = (await illust.LikeIllust(pub)).Item1;
+            UpdateLikeStateAsync((int)(illust.Id.Value), false);
+            return (result);
+        }
+
+        public static async Task<bool> UnLike(this Pixeez.Objects.Work illust, bool pub = true)
+        {
+            var result = (await illust.UnLikeIllust()).Item1;
+            UpdateLikeStateAsync((int)(illust.Id.Value), false);
+            return (result);
         }
 
         public static async Task<bool> LikeIllust(this ImageItem item, bool pub = true)
@@ -2309,50 +2348,6 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void LikeIllust(this ObservableCollection<ImageItem> collection, bool pub = true)
-        {
-            var opt = new ParallelOptions();
-            opt.MaxDegreeOfParallelism = 5;
-            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
-            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
-            {
-                if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
-                {
-                    var ua = new Action(async()=>
-                    {
-                        try
-                        {
-                            var result = item.Illust.IsLiked() ? true : await item.LikeIllust(pub);
-                            if (item.ItemType == ImageItemType.Work) item.IsFavorited = result;
-                        }
-                        catch (Exception){}
-                    }).InvokeAsync();
-                }
-            });
-        }
-
-        public static void UnLikeIllust(this ObservableCollection<ImageItem> collection, bool pub = true)
-        {
-            var opt = new ParallelOptions();
-            opt.MaxDegreeOfParallelism = 5;
-            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
-            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
-            {
-                if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
-                {
-                    var ua = new Action(async()=>
-                    {
-                        try
-                        {
-                            var result = item.IsLiked() ? await item.UnLikeIllust() : false;
-                            if (item.ItemType == ImageItemType.Work) item.IsFavorited = result;
-                        }
-                        catch (Exception){}
-                    }).InvokeAsync();
-                }
-            });
-        }
-
         public static void LikeIllust(this IList<ImageItem> collection, bool pub = true)
         {
             LikeIllust(new ObservableCollection<ImageItem>(collection), pub);
@@ -2361,6 +2356,49 @@ namespace PixivWPF.Common
         public static void UnLikeIllust(this IList<ImageItem> collection)
         {
             UnLikeIllust(new ObservableCollection<ImageItem>(collection));
+        }
+
+        public static void LikeIllust(this ObservableCollection<ImageItem> collection, bool pub = true)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            //var items = collection.Distinct();
+            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
+                {
+                    var ua = new Action(async()=>
+                    {
+                        try
+                        {
+                            var result = await item.Illust.Like(pub);
+                        }
+                        catch (Exception){}
+                    }).InvokeAsync();
+                }
+            });
+        }
+
+        public static void UnLikeIllust(this ObservableCollection<ImageItem> collection)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
+                {
+                    var ua = new Action(async()=>
+                    {
+                        try
+                        {
+                            var result = await item.Illust.UnLike();
+                        }
+                        catch (Exception){}
+                    }).InvokeAsync();
+                }
+            });
         }
 
         public static async Task<Tuple<bool, Pixeez.Objects.Work>> LikeIllust(this Pixeez.Objects.Work illust, bool pub = true)
@@ -2428,6 +2466,22 @@ namespace PixivWPF.Common
 
             return (result);
         }
+        #endregion
+
+        #region Like/Unlike User helper routines
+        public static async Task<bool> Like(this Pixeez.Objects.UserBase user, bool pub = true)
+        {
+            var result = (await user.LikeUser(pub)).Item1;
+            UpdateLikeStateAsync((int)(user.Id.Value), true);
+            return (result);
+        }
+
+        public static async Task<bool> UnLike(this Pixeez.Objects.UserBase user, bool pub = true)
+        {
+            var result = (await user.UnLikeUser()).Item1;
+            UpdateLikeStateAsync((int)(user.Id.Value), true);
+            return (result);
+        }
 
         public static async Task<bool> LikeUser(this ImageItem item, bool pub = true)
         {
@@ -2438,7 +2492,9 @@ namespace PixivWPF.Common
                 try
                 {
                     var user = item.User;
-                    result = await user.Like(pub);
+                    var ret = await user.LikeUser(pub);
+                    result = ret.Item1;
+                    item.User = ret.Item2;
                     if (item.ItemType == ImageItemType.User)
                     {
                         item.IsFavorited = result;
@@ -2471,6 +2527,16 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static void LikeUser(this IList<ImageItem> collection, bool pub = true)
+        {
+            LikeUser(new ObservableCollection<ImageItem>(collection), pub);
+        }
+
+        public static void UnLikeUser(this IList<ImageItem> collection)
+        {
+            UnLikeUser(new ObservableCollection<ImageItem>(collection));
+        }
+
         public static void LikeUser(this ObservableCollection<ImageItem> collection, bool pub = true)
         {
             var opt = new ParallelOptions();
@@ -2485,8 +2551,7 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            var result = item.User.IsLiked() ? true : await item.LikeUser(pub);
-                            if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
+                            var result = await item.User.Like(pub);
                         }
                         catch (Exception){}
                     }).InvokeAsync();
@@ -2507,33 +2572,12 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            var result = item.User.IsLiked() ? await item.UnLikeUser() : false;
-                            if (item.ItemType == ImageItemType.User) item.IsFavorited = result;
+                            var result = await item.User.UnLike();
                         }
                         catch (Exception){}
                     }).InvokeAsync();
                 }
             });
-        }
-
-        public static void LikeUser(this IList<ImageItem> collection, bool pub = true)
-        {
-            LikeUser(new ObservableCollection<ImageItem>(collection), pub);
-        }
-
-        public static void UnLikeUser(this IList<ImageItem> collection)
-        {
-            UnLikeUser(new ObservableCollection<ImageItem>(collection));
-        }
-
-        public static async Task<bool> Like(this Pixeez.Objects.UserBase user, bool pub = true)
-        {
-            return ((await user.LikeUser(pub)).Item1);
-        }
-
-        public static async Task<bool> UnLike(this Pixeez.Objects.UserBase user, bool pub = true)
-        {
-            return ((await user.UnLikeUser()).Item1);
         }
 
         public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> LikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
@@ -2599,7 +2643,10 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+        #endregion
+        #endregion
 
+        #region Update Illust/User info cache
         public static void Cache(this Pixeez.Objects.UserBase user)
         {
             if (user is Pixeez.Objects.UserBase)
@@ -2611,6 +2658,39 @@ namespace PixivWPF.Common
             if (illust is Pixeez.Objects.Work)
                 IllustCache[illust.Id] = illust;
         }
+        #endregion
+
+        #region Sync Illust/User Like State
+        public static void UpdateLikeStateAsync(string illustid = default(string), bool is_user = false)
+        {
+            int id = -1;
+            int.TryParse(illustid, out id);
+            UpdateLikeStateAsync(id);
+        }
+
+        public static async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        {
+            await new Action(() => {
+                foreach (var win in Application.Current.Windows)
+                {
+                    if (win is MainWindow)
+                    {
+                        var mw = win as MainWindow;
+                        mw.UpdateLikeState(illustid, is_user);
+                    }
+                    else if (win is ContentWindow)
+                    {
+                        var w = win as ContentWindow;
+                        if (w.Content is IllustDetailPage)
+                            (w.Content as IllustDetailPage).UpdateLikeStateAsync(illustid, is_user);
+                        else if (w.Content is SearchResultPage)
+                            (w.Content as SearchResultPage).UpdateLikeStateAsync(illustid, is_user);
+                    }
+                }
+            }).InvokeAsync();
+        }
+        #endregion
+
         #endregion
 
         #region UI Element Show/Hide

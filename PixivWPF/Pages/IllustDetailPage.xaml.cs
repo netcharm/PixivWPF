@@ -66,8 +66,7 @@ namespace PixivWPF.Pages
             IllustDesc.AvoidImagesLateLoading = true;
         }
 
-        public static Action UpdateDownloadState = null;
-        public void UpdateDownloadStateMark(int illustid = -1)
+        private void UpdateDownloadStateMark(int illustid = -1)
         {
             foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeIllusts, FavoriteIllusts })
             {
@@ -96,34 +95,6 @@ namespace PixivWPF.Pages
             {
                 UpdateDownloadStateMark(illustid);
             });
-        }
-
-        private void UpdateFavMark(Pixeez.Objects.Work illust)
-        {
-            if (illust.IsLiked())
-            {
-                BookmarkIllust.Tag = PackIconModernKind.Heart;// "Heart";
-                ActionBookmarkIllustRemove.IsEnabled = true;
-            }
-            else
-            {
-                BookmarkIllust.Tag = PackIconModernKind.HeartOutline;// "HeartOutline";
-                ActionBookmarkIllustRemove.IsEnabled = false;
-            }
-        }
-
-        private void UpdateFollowMark(Pixeez.Objects.UserBase user)
-        {
-            if (user.IsLiked())
-            {
-                FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
-                ActionFollowAuthorRemove.IsEnabled = true;
-            }
-            else
-            {
-                FollowAuthor.Tag = PackIconModernKind.Add;// "Add";
-                ActionFollowAuthorRemove.IsEnabled = false;
-            }
         }
 
         private void UpdateDownloadedMark()
@@ -176,7 +147,42 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void UpdateMark(bool all = false)
+        private void UpdateFavMark(Pixeez.Objects.Work illust)
+        {
+            if (illust.IsLiked())
+            {
+                BookmarkIllust.Tag = PackIconModernKind.Heart;// "Heart";
+                ActionBookmarkIllustRemove.IsEnabled = true;
+            }
+            else
+            {
+                BookmarkIllust.Tag = PackIconModernKind.HeartOutline;// "HeartOutline";
+                ActionBookmarkIllustRemove.IsEnabled = false;
+            }
+        }
+
+        private void UpdateFollowMark(Pixeez.Objects.UserBase user)
+        {
+            if (user.IsLiked())
+            {
+                FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
+                ActionFollowAuthorRemove.IsEnabled = true;
+            }
+            else
+            {
+                FollowAuthor.Tag = PackIconModernKind.Add;// "Add";
+                ActionFollowAuthorRemove.IsEnabled = false;
+            }
+        }
+
+        public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        {
+            await new Action(() => {
+                UpdateLikeState(illustid);
+            }).InvokeAsync();
+        }
+
+        public void UpdateLikeState(int illustid = -1, bool is_user = false)
         {
             if (DataObject is ImageItem)
             {
@@ -187,18 +193,20 @@ namespace PixivWPF.Pages
             {
                 UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
             }
-            if (all && RelativeIllustsExpander.IsExpanded)
+            if (RelativeIllustsExpander.IsExpanded)
             {
                 foreach (ImageItem item in RelativeIllusts.Items)
                 {
-                    item.IsFavorited = item.IsLiked();
+                    if (illustid == -1 || illustid == item.Illust.Id)
+                        item.IsFavorited = item.IsLiked();
                 }
             }
-            if (all && FavoriteIllustsExpander.IsExpanded)
+            if (FavoriteIllustsExpander.IsExpanded)
             {
                 foreach (ImageItem item in FavoriteIllusts.Items)
                 {
-                    item.IsFavorited = item.IsLiked();
+                    if (illustid == -1 || illustid == item.Illust.Id)
+                        item.IsFavorited = item.IsLiked();
                 }
             }
         }
@@ -550,7 +558,7 @@ namespace PixivWPF.Pages
                     }
 
                     IllustTags.Foreground = Theme.TextBrush;
-                    IllustTags.Text = string.Join(";", desc);
+                    IllustTags.Text = $"<div class=\"desc\">{string.Join(";", desc)}</div>";
                     IllustTagExpander.Header = "User Infomation";
                     IllustTagExpander.IsExpanded = false;
                     IllustTagExpander.Show();
@@ -1093,7 +1101,7 @@ namespace PixivWPF.Pages
         #region Illust Actions
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
-            UpdateMark(true);
+            UpdateLikeState();
 
             if (sender == ActionCopyIllustTitle)
             {
@@ -1315,13 +1323,13 @@ namespace PixivWPF.Pages
         private void IllustActions_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             e.Handled = true;
-            UpdateMark(true);
+            UpdateLikeState();
         }
 
         private void ActionIllust_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            UpdateMark(true);
+            UpdateLikeState();
 
             if (sender == BookmarkIllust)
                 BookmarkIllust.ContextMenu.IsOpen = true;
@@ -1378,15 +1386,15 @@ namespace PixivWPF.Pages
                     {
                         if (sender == ActionBookmarkIllustPublic)
                         {
-                            result = await item.LikeIllust();
+                            result = await item.Illust.Like();
                         }
                         else if (sender == ActionBookmarkIllustPrivate)
                         {
-                            result = await item.LikeIllust(false);
+                            result = await item.Illust.Like(false);
                         }
                         else if (sender == ActionBookmarkIllustRemove)
                         {
-                            result = await item.UnLikeIllust();
+                            result = await item.Illust.UnLike();
                         }
 
                         if (item.IsSameIllust(DataObject as ImageItem))
@@ -1445,15 +1453,15 @@ namespace PixivWPF.Pages
                     {
                         if (sender == ActionFollowAuthorPublic)
                         {
-                            result = await item.LikeUser();
+                            result = await item.User.Like();
                         }
                         else if (sender == ActionFollowAuthorPrivate)
                         {
-                            result = await item.LikeUser(false);
+                            result = await item.User.Like(false);
                         }
                         else if (sender == ActionFollowAuthorRemove)
                         {
-                            result = await item.UnLikeUser();
+                            result = await item.User.UnLike();
                         }
 
                         if (item.IsSameIllust(DataObject as ImageItem))
@@ -1539,7 +1547,7 @@ namespace PixivWPF.Pages
                 {
                     (DataObject as ImageItem).IsDownloaded = (DataObject as ImageItem).Illust.IsPartDownloadedAsync();
                 }
-                UpdateMark();
+                UpdateLikeState();
 
                 UpdateSubPageNav();
 
@@ -1765,7 +1773,7 @@ namespace PixivWPF.Pages
         {
             e.Handled = false;
             RelativeIllusts.UpdateTilesDaownloadStatus();
-            UpdateMark();
+            UpdateLikeState();
             e.Handled = true;
         }
 
@@ -1852,7 +1860,7 @@ namespace PixivWPF.Pages
         {
             e.Handled = false;
             FavoriteIllusts.UpdateTilesDaownloadStatus();
-            UpdateMark();
+            UpdateLikeState();
             e.Handled = true;
         }
 

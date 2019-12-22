@@ -61,6 +61,28 @@ namespace PixivWPF.Pages
             });
         }
 
+        public void UpdateLikeState(int illustid = -1)
+        {
+            if (ImageList is ObservableCollection<ImageItem>)
+            {
+                foreach (var item in ImageList)
+                {
+                    if (item.Illust is Pixeez.Objects.Work)
+                    {
+                        if (illustid == -1 || illustid == (int)(item.Illust.Id))
+                            item.IsFavorited = item.Illust.IsLiked();
+                    }
+                }
+            }
+        }
+
+        public async void UpdateLikeStateAsync(int illustid = -1)
+        {
+            await Task.Run(() => {
+                UpdateLikeState(illustid);
+            });
+        }
+
         private void OnlyActiveItems(object sender, FilterEventArgs e)
         {
             e.Accepted = false;
