@@ -338,8 +338,9 @@ namespace PixivWPF.Common
                         {
                             var work = illust as Pixeez.Objects.NormalWork;
                             var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
+                            var stats = work.Stats != null ? $"♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]" : string.Empty;
                             age = illust.AgeLimit != null ? $"R[{illust.AgeLimit.SanityAge()}]" : string.Empty;
-                            state = $"\r\n🔞{age}, {userliked}♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]{like}, 🖼[{work.Width}x{work.Height}]";
+                            state = $"\r\n🔞{age}, {userliked}{stats}{like}, 🖼[{work.Width}x{work.Height}]";
                         }
                         tooltip = string.IsNullOrEmpty(illust.Title) ? tooltip : $" , {illust.Title}{state}{tags}{tooltip}";
                         result = new ImageItem()

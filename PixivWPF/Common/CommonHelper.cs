@@ -186,6 +186,7 @@ namespace PixivWPF.Common
 
         public static DateTime SelectedDate { get; set; } = DateTime.Now;
 
+        private static List<string> ext_imgs = new List<string>() { ".png", ".jpg" };
         internal static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         internal static string[] trim_str = new string[] { Environment.NewLine };
 
@@ -1129,23 +1130,24 @@ namespace PixivWPF.Common
 
         #region Downloaded Cache routines
         private static Dictionary<string, bool> _cachedDownloadedList = new Dictionary<string, bool>();
-        internal static void UpdateDownloadedListCache(this string folder, bool cached = false)
+        internal static void UpdateDownloadedListCache(this string folder, bool cached = true)
         {
             if (Directory.Exists(folder) && cached)
             {
                 if (!_cachedDownloadedList.ContainsKey(folder))
                 {
                     _cachedDownloadedList[folder] = cached;
-                    var files = Directory.GetFiles(folder);
-                    var local = setting.LocalStorage.Where(o => o.Folder.Equals(folder, StringComparison.CurrentCultureIgnoreCase));
-                    if (local.Count() > 0) local.First().Count = files.Count();
+                    var files = Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories);
                     foreach (var f in files)
-                        _cachedDownloadedList[f] = cached;
+                    {
+                        if(ext_imgs.Contains(Path.GetExtension(f)))
+                            _cachedDownloadedList[f] = cached;
+                    }
                 }
             }
         }
 
-        internal static async void UpdateDownloadedListCacheAsync(this string folder, bool cached = false)
+        internal static async void UpdateDownloadedListCacheAsync(this string folder, bool cached = true)
         {
             await Task.Run(() => {
                 UpdateDownloadedListCache(folder, cached);
@@ -1245,20 +1247,35 @@ namespace PixivWPF.Common
             }
         }
 
-        private static List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
+        private static Dictionary<string, FileSystemWatcher> _watchers = new Dictionary<string, FileSystemWatcher>();
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static void InitDownloadedWatcher(this IEnumerable<StorageType> storages)
         {
-            _watchers.Clear();
-            foreach (var l in storages)
+            var folders = new List<string>();
+            foreach(var l in storages)
             {
-                if (Directory.Exists(l.Folder))
+                folders.Add(l.Folder);
+            }
+            folders = folders.Distinct().ToList();
+            folders.Sort();
+
+            _watchers.Clear();
+            foreach (var l in folders)
+            {
+                //var folder = l.Folder.MacroReplace("%ID%", "");
+                var folder = l.MacroReplace("%ID%", "");
+                var c = _watchers.Where(o => folder.StartsWith(o.Key, StringComparison.CurrentCultureIgnoreCase)).Count();
+                if (c > 0) continue;
+                //if (_watchers.ContainsKey(Path.GetDirectoryName(folder))) continue;
+
+                if (Directory.Exists(folder))
                 {
                     l.UpdateDownloadedListCacheAsync();
                     var watcher = new FileSystemWatcher()
                     {
-                        Path = l.Folder,
+                        Path = folder,
+                        IncludeSubdirectories = true,
                         NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
                         Filter = "*.*"
                     };
@@ -1269,7 +1286,7 @@ namespace PixivWPF.Common
                     // Begin watching.
                     watcher.EnableRaisingEvents = true;
 
-                    _watchers.Add(watcher);
+                    _watchers[folder] = watcher;
                 }
             }
         }

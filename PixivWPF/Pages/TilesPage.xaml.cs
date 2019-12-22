@@ -230,6 +230,8 @@ namespace PixivWPF.Pages
             {
                 ImageTilesWait.Show();
 
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
                 Pixeez.Objects.RecommendedRootobject root = null;
                 if (Keyboard.Modifiers == ModifierKeys.Shift)
                 {
@@ -299,6 +301,8 @@ namespace PixivWPF.Pages
             {
                 ImageTilesWait.Show();
 
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
                 var page_no = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
                 var root = await tokens.GetLatestWorksAsync(page_no);
                 nexturl = root.Pagination.Next.ToString() ?? string.Empty;
@@ -347,6 +351,8 @@ namespace PixivWPF.Pages
             try
             {
                 ImageTilesWait.Show();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
                 var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
                 var root = await tokens.GetTrendingTagsIllustAsync();
@@ -401,6 +407,8 @@ namespace PixivWPF.Pages
             {
                 ImageTilesWait.Show();
 
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
                 var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
                 var root = await tokens.GetMyFeedsAsync(uid);
                 nexturl = string.Empty;
@@ -449,10 +457,13 @@ namespace PixivWPF.Pages
 
             try
             {
+                ImageTilesWait.Show();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
                 var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
                 var uid = setting.MyInfo is Pixeez.Objects.User ? setting.MyInfo.Id.Value : 0;
 
-                ImageTilesWait.Show();
                 var root = await tokens.GetMyFeedsAsync(uid);
                 nexturl = string.Empty;
                 NextURL = nexturl;
@@ -500,6 +511,8 @@ namespace PixivWPF.Pages
             try
             {
                 ImageTilesWait.Show();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
                 long uid = 0;
                 var condition = IsPrivate ? "private" : "public";
@@ -557,6 +570,8 @@ namespace PixivWPF.Pages
             {
                 ImageTilesWait.Show();
 
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
                 var condition = IsPrivate ? "private" : "public";
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetMyFollowingWorksAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                 nexturl = root.next_url ?? string.Empty;
@@ -606,6 +621,8 @@ namespace PixivWPF.Pages
             try
             {
                 ImageTilesWait.Show();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
                 var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
                 var root = await tokens.GetRankingAllAsync(condition, page);
@@ -667,6 +684,8 @@ namespace PixivWPF.Pages
             try
             {
                 ImageTilesWait.Show();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
                 var date = CommonHelper.SelectedDate.Date == DateTime.Now.Date ? string.Empty : (CommonHelper.SelectedDate - TimeSpan.FromDays(1)).ToString("yyyy-MM-dd");
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
