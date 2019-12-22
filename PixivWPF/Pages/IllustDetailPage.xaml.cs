@@ -88,8 +88,7 @@ namespace PixivWPF.Pages
         {
             if (DataObject is ImageItem)
             {
-                //IllustDownloaded.Visibility = (DataObject as ImageItem).IsDownloadedVisibility;
-                (DataObject as ImageItem).IsDownloaded = (DataObject as ImageItem).Illust.IsPartDownloadedAsync();
+                UpdateDownloadedMark(DataObject as ImageItem);
                 SubIllusts.UpdateTilesDaownloadStatus(false);
             }
 
@@ -145,7 +144,7 @@ namespace PixivWPF.Pages
                 var index = item.Index;
                 if (index < 0)
                 {
-                    item.IsDownloaded = item.Illust.IsPartDownloaded(out fp);
+                    item.IsDownloaded = item.Illust.IsPartDownloadedAsync(out fp);
                     if (item.IsDownloaded)
                     {
                         IllustDownloaded.Visibility = Visibility.Visible;
@@ -161,7 +160,7 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
-                    if (item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp))
+                    if (item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp))
                     {
                         IllustDownloaded.Visibility = Visibility.Visible;
                         IllustDownloaded.Tag = fp;
@@ -349,7 +348,7 @@ namespace PixivWPF.Pages
                     IllustDownloaded.Show();
                     string fp = string.Empty;
                     //item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp, item.Illust.PageCount <= 1);
-                    item.Illust.IsPartDownloaded(out fp);
+                    item.Illust.IsPartDownloadedAsync(out fp);
                     IllustDownloaded.Tag = fp;
                     ToolTipService.SetToolTip(IllustDownloaded, fp);
                 }

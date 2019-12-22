@@ -428,7 +428,7 @@ namespace PixivWPF.Common
                             i.DisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
-                            i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloaded(false);
+                            i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloadedAsync(false);
                             i.Tag = pages;
                             Collection.Add(i);
                             i.DoEvents();
@@ -461,7 +461,7 @@ namespace PixivWPF.Common
                             i.DisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
-                            i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloaded(false);
+                            i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false);
                             i.Tag = page;
                             Collection.Add(i);
                             i.DoEvents();

@@ -495,7 +495,7 @@ namespace PixivWPF.Common
                 if (item.Index >= 0)
                 {
                     string fp = string.Empty;
-                    item.IsDownloaded = illust.IsDownloaded(out fp, item.Index);
+                    item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
                     if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
                     {
                         System.Diagnostics.Process.Start(fp);
@@ -504,7 +504,7 @@ namespace PixivWPF.Common
                 else
                 {
                     string fp = string.Empty;
-                    item.IsDownloaded = illust.IsPartDownloaded(out fp);
+                    item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
                     if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
                     {
                         System.Diagnostics.Process.Start(fp);
@@ -1302,13 +1302,33 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Checking image download state
+        #region Check Download State routines
+        #region IsDownloaded
+        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, bool is_meta_single_page = false)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl().IsDownloadedAsync(is_meta_single_page));
+            else
+                return (false);
+        }
+
         internal static bool IsDownloaded(this Pixeez.Objects.Work illust, bool is_meta_single_page = false)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl().IsDownloaded(is_meta_single_page));
             else
                 return (false);
+        }
+
+        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, bool is_meta_single_page = false)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl().IsDownloadedAsync(out filepath, is_meta_single_page));
+            else
+            {
+                filepath = string.Empty;
+                return (false);
+            }
         }
 
         internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, bool is_meta_single_page = false)
@@ -1322,12 +1342,31 @@ namespace PixivWPF.Common
             }
         }
 
+        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, int index = -1)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl(index).IsDownloadedAsync());
+            else
+                return (false);
+        }
+
         internal static bool IsDownloaded(this Pixeez.Objects.Work illust, int index = -1)
         {
             if (illust is Pixeez.Objects.Work)
                 return (illust.GetOriginalUrl(index).IsDownloaded());
             else
                 return (false);
+        }
+
+        internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl(index).IsDownloadedAsync(out filepath, is_meta_single_page));
+            else
+            {
+                filepath = string.Empty;
+                return (false);
+            }
         }
 
         internal static bool IsDownloaded(this Pixeez.Objects.Work illust, out string filepath, int index = -1, bool is_meta_single_page = false)
@@ -1341,96 +1380,23 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static bool IsPartDownloaded(this ImageItem item)
+        private static Func<string, bool, bool> IsDownloadedFunc = (url, meta) => IsDownloaded(url, meta);
+        internal static bool IsDownloadedAsync(this string url, bool is_meta_single_page = false)
         {
-            if (item.Illust is Pixeez.Objects.Work)
-                return (item.Illust.GetOriginalUrl().IsPartDownloaded());
-            else
-                return (false);
+            return (IsDownloadedFunc(url, is_meta_single_page));
         }
 
-        internal static bool IsPartDownloaded(this ImageItem item, out string filepath)
-        {
-            if (item.Illust is Pixeez.Objects.Work)
-                return (item.Illust.GetOriginalUrl().IsPartDownloaded(out filepath));
-            else
-            {
-                filepath = string.Empty;
-                return (false);
-            }
-        }
-
-        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust)
-        {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl().IsPartDownloaded());
-            else
-                return (false);
-        }
-
-        private static Func<Pixeez.Objects.Work, bool> IsPartDownloadedFunc = x => IsPartDownloaded(x);
-
-        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust)
-        {            
-            return IsPartDownloadedFunc(illust);
-        }
-
-        private static Func<Pixeez.Objects.Work, string, bool> IsPartDownloadedFileFunc = (x, f) => IsPartDownloaded(x, out f);
-
-        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath)
+        private static Func<string, string, bool, bool> IsDownloadedFileFunc = (url, path, meta) => IsDownloaded(url, out path, meta);
+        internal static bool IsDownloadedAsync(this string url, out string filepath, bool is_meta_single_page = false)
         {
             filepath = string.Empty;
-            return IsPartDownloadedFileFunc(illust, filepath);
-        }
-
-        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath)
-        {
-            if (illust is Pixeez.Objects.Work)
-                return (illust.GetOriginalUrl().IsPartDownloaded(out filepath));
-            else
-            {
-                filepath = string.Empty;
-                return (false);
-            }
+            return (IsDownloadedFileFunc(url, filepath, is_meta_single_page));
         }
 
         internal static bool IsDownloaded(this string url, bool is_meta_single_page = false)
         {
-            bool result = false;
-            var file = url.GetImageName(is_meta_single_page);
-            foreach (var local in setting.LocalStorage)
-            {
-                if (string.IsNullOrEmpty(local.Folder)) continue;
-
-                var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
-                folder.UpdateDownloadedListCacheAsync(local.Cached);
-
-                var f = Path.Combine(folder, file);
-                if (local.Cached)
-                {
-                    if(f.DownoadedCacheExistsAsync())
-                    {
-                        result = true;
-                        break;
-                    }
-                }
-                else
-                {
-                    if (File.Exists(f))
-                    {
-                        result = true;
-                        break;
-                    }
-                }
-            }
-            return (result);
-        }
-
-        private static Func<string, bool, bool> IsDownloadedFunc = IsDownloaded;
-
-        internal static bool IsDownloadedAsync(this string url, bool is_meta_single_page = false)
-        {
-            return (IsDownloadedFunc(url, is_meta_single_page));
+            string fp = string.Empty;
+            return (IsDownloaded(url, out fp, is_meta_single_page));
         }
 
         internal static bool IsDownloaded(this string url, out string filepath, bool is_meta_single_page = false)
@@ -1469,64 +1435,96 @@ namespace PixivWPF.Common
 
             return (result);
         }
+        #endregion
 
-        internal static bool IsPartDownloaded(this string url)
+        #region IsPartDownloaded
+        internal static bool IsPartDownloadedAsync(this ImageItem item)
         {
-            bool result = false;
-            var file = url.GetImageName(true);
-            int[] range = Enumerable.Range(0, 250).ToArray();
+            if (item.Illust is Pixeez.Objects.Work)
+                return (item.Illust.GetOriginalUrl().IsPartDownloadedAsync());
+            else
+                return (false);
+        }
 
-            foreach (var local in setting.LocalStorage)
+        internal static bool IsPartDownloaded(this ImageItem item)
+        {
+            if (item.Illust is Pixeez.Objects.Work)
+                return (item.Illust.GetOriginalUrl().IsPartDownloaded());
+            else
+                return (false);
+        }
+
+        internal static bool IsPartDownloadedAsync(this ImageItem item, out string filepath)
+        {
+            if (item.Illust is Pixeez.Objects.Work)
+                return (item.Illust.GetOriginalUrl().IsPartDownloadedAsync(out filepath));
+            else
             {
-                if (string.IsNullOrEmpty(local.Folder)) continue;
-
-                var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
-                folder.UpdateDownloadedListCacheAsync(local.Cached);
-
-                var f = Path.Combine(folder, file);
-                if (local.Cached)
-                {
-                    if (f.DownoadedCacheExistsAsync())
-                    {
-                        result = true;
-                        break;
-                    }
-                }
-                else
-                {
-                    if (File.Exists(f))
-                    {
-                        result = true;
-                        break;
-                    }
-                }
-
-                var fn = Path.GetFileNameWithoutExtension(file);
-                var fe = Path.GetExtension(file);
-                foreach (var fc in range)
-                {
-                    var fp = Path.Combine(folder, $"{fn}_{fc}{fe}");
-
-                    if (local.Cached)
-                    {
-                        if (fp.DownoadedCacheExistsAsync())
-                        {
-                            result = true;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (File.Exists(fp))
-                        {
-                            result = true;
-                            break;
-                        }
-                    }
-                }
-                if (result) break;
+                filepath = string.Empty;
+                return (false);
             }
-            return (result);
+        }
+
+        internal static bool IsPartDownloaded(this ImageItem item, out string filepath)
+        {
+            if (item.Illust is Pixeez.Objects.Work)
+                return (item.Illust.GetOriginalUrl().IsPartDownloaded(out filepath));
+            else
+            {
+                filepath = string.Empty;
+                return (false);
+            }
+        }
+
+        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl().IsPartDownloadedAsync());
+            else
+                return (false);
+        }
+
+        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl().IsPartDownloaded());
+            else
+                return (false);
+        }
+
+        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl().IsPartDownloadedAsync(out filepath));
+            else
+            {
+                filepath = string.Empty;
+                return (false);
+            }
+        }
+
+        internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath)
+        {
+            if (illust is Pixeez.Objects.Work)
+                return (illust.GetOriginalUrl().IsPartDownloaded(out filepath));
+            else
+            {
+                filepath = string.Empty;
+                return (false);
+            }
+        }
+
+        private static Func<string, bool> IsPartDownloadedFunc = (url) => IsPartDownloaded(url);
+        internal static bool IsPartDownloadedAsync(this string url)
+        {
+            return (IsPartDownloaded(url));
+        }
+
+        private static Func<string, string, bool> IsPartDownloadedFileFunc = (url, fp) => IsPartDownloaded(url, out fp);
+        internal static bool IsPartDownloadedAsync(this string url, out string filepath)
+        {
+            filepath = string.Empty;
+            return (IsPartDownloadedFileFunc(url, filepath));
         }
 
         internal static bool IsPartDownloaded(this string url, out string filepath)
@@ -1592,6 +1590,15 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        internal static bool IsPartDownloaded(this string url)
+        {
+            string fp = string.Empty;
+            return (IsPartDownloaded(url, out fp));
+        }
+        #endregion
+        #endregion
+
+        #region Load/Save Image routines
         internal static bool IsFileReady(this string filename)
         {
             // If the file can be opened for exclusive access it means that the file

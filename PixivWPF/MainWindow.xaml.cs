@@ -48,8 +48,15 @@ namespace PixivWPF
         public void UpdateDownloadState(int illustid = -1)
         {
             if (ContentFrame.Content is Pages.TilesPage)
-                (ContentFrame.Content as Pages.TilesPage).UpdateDownloadStateAsync(illustid);
-            //if()
+            {
+                var tiles = ContentFrame.Content as Pages.TilesPage;
+                tiles.UpdateDownloadStateAsync(illustid);
+                if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
+                {
+                    var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
+                    detail.UpdateDownloadStateAsync(illustid);
+                }
+            }
         }
 
         public MainWindow()
