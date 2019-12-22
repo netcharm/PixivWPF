@@ -1191,7 +1191,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                if(_cachedDownloadedList.ContainsKey(file))
+                if (_cachedDownloadedList.ContainsKey(file))
                     _cachedDownloadedList.Remove(file);
             }
             catch (Exception) { }
@@ -1273,14 +1273,14 @@ namespace PixivWPF.Common
                 }
             }
         }
-        
+
         public static void UpdateDownloadStateMark(string illustid = default(string))
         {
             int id = -1;
             int.TryParse(illustid, out id);
             UpdateDownloadStateMark(id);
         }
-            
+
         public static async void UpdateDownloadStateMark(int illustid = -1)
         {
             await new Action(() => {
@@ -1304,6 +1304,12 @@ namespace PixivWPF.Common
 
         #region Check Download State routines
         #region IsDownloaded
+        private class DownloadState
+        {
+            public string Path { get; set; } = string.Empty;
+            public bool Exists { get; set; } = false;
+        }
+
         internal static bool IsDownloadedAsync(this Pixeez.Objects.Work illust, bool is_meta_single_page = false)
         {
             if (illust is Pixeez.Objects.Work)
@@ -1386,11 +1392,21 @@ namespace PixivWPF.Common
             return (IsDownloadedFunc(url, is_meta_single_page));
         }
 
-        private static Func<string, string, bool, bool> IsDownloadedFileFunc = (url, path, meta) => IsDownloaded(url, out path, meta);
+        private static Func<string, string, bool, DownloadState> IsDownloadedFileFunc = (url, file, meta) =>
+        {
+            var state = new DownloadState();
+            file = string.Empty;
+            state.Exists = IsDownloaded(url, out file, meta);
+            state.Path = file;
+            return(state);
+        };
+
         internal static bool IsDownloadedAsync(this string url, out string filepath, bool is_meta_single_page = false)
         {
             filepath = string.Empty;
-            return (IsDownloadedFileFunc(url, filepath, is_meta_single_page));
+            var result = IsDownloadedFileFunc(url, filepath, is_meta_single_page);
+            filepath = result.Path;
+            return (result.Exists); ;
         }
 
         internal static bool IsDownloaded(this string url, bool is_meta_single_page = false)
@@ -1520,11 +1536,21 @@ namespace PixivWPF.Common
             return (IsPartDownloaded(url));
         }
 
-        private static Func<string, string, bool> IsPartDownloadedFileFunc = (url, fp) => IsPartDownloaded(url, out fp);
+        private static Func<string, string, DownloadState> IsPartDownloadedFileFunc = (url, file) =>
+        {
+            var state = new DownloadState();
+            file = string.Empty;
+            state.Exists = IsPartDownloaded(url, out file);
+            state.Path = file;
+            return(state);
+        };
+
         internal static bool IsPartDownloadedAsync(this string url, out string filepath)
         {
             filepath = string.Empty;
-            return (IsPartDownloadedFileFunc(url, filepath));
+            var result =IsPartDownloadedFileFunc(url, filepath);
+            filepath = result.Path;
+            return (result.Exists);
         }
 
         internal static bool IsPartDownloaded(this string url, out string filepath)
