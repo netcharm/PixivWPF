@@ -66,6 +66,39 @@ namespace PixivWPF.Pages
             IllustDesc.AvoidImagesLateLoading = true;
         }
 
+        public static Action UpdateDownloadState = null;
+        public void UpdateDownloadStateMark(int illustid = -1)
+        {
+            foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeIllusts, FavoriteIllusts })
+            {
+                foreach (var item in illusts.Items)
+                {
+                    if (item.Illust is Pixeez.Objects.Work)
+                    {
+                        if (illustid == -1 || illustid == (int)(item.Illust.Id))
+                        {
+                            item.IsDownloaded = illusts == SubIllusts ? item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync() : item.Illust.IsPartDownloadedAsync();
+                        }
+                    }
+                }
+            }
+        }
+
+        public async void UpdateDownloadStateAsync(int illustid = -1)
+        {
+            if (DataObject is ImageItem)
+            {
+                //IllustDownloaded.Visibility = (DataObject as ImageItem).IsDownloadedVisibility;
+                (DataObject as ImageItem).IsDownloaded = (DataObject as ImageItem).Illust.IsPartDownloadedAsync();
+                SubIllusts.UpdateTilesDaownloadStatus(false);
+            }
+
+            await Task.Run(() =>
+            {
+                UpdateDownloadStateMark(illustid);
+            });
+        }
+
         private void UpdateFavMark(Pixeez.Objects.Work illust)
         {
             if (illust.IsLiked())
@@ -731,7 +764,7 @@ namespace PixivWPF.Pages
         {
             await new Action(async () =>
             {
-                await ShowIllustPages(item);
+                await ShowRelativeInline(item);
             }).InvokeAsync();
         }
 
@@ -1268,7 +1301,7 @@ namespace PixivWPF.Pages
                 }).InvokeAsync();
             }
         }
-        
+
         private void ActionRefreshAvator(ImageItem item)
         {
             var ua = new Action(async () =>

@@ -964,10 +964,19 @@ namespace PixivWPF.Common
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url))
             {
-                var m = Regex.Match(Path.GetFileName(url), @"(\d+)(_p\d+.*?)", RegexOptions.IgnoreCase);
+                var m = Regex.Match(Path.GetFileName(url), @"(\d+)(_((p)(ugoira))\d+.*?)", RegexOptions.IgnoreCase);
                 if (m.Groups.Count > 0)
                 {
                     result = m.Groups[1].Value;
+                }
+
+                if (string.IsNullOrEmpty(result))
+                {
+                    m = Regex.Match(Path.GetFileName(url), @"(\d+)", RegexOptions.IgnoreCase);
+                    if (m.Groups.Count > 0)
+                    {
+                        result = m.Groups[1].Value;
+                    }
                 }
             }
             return (result);
@@ -1211,10 +1220,15 @@ namespace PixivWPF.Common
             if (e.ChangeType == WatcherChangeTypes.Deleted)
             {
                 e.FullPath.DownloadedCacheRemove();
+                UpdateDownloadStateMark(GetIllustId(e.FullPath));
             }
             else if (e.ChangeType == WatcherChangeTypes.Created)
             {
-                e.FullPath.DownloadedCacheAdd();
+                if (File.Exists(e.FullPath))
+                {
+                    e.FullPath.DownloadedCacheAdd();
+                    UpdateDownloadStateMark(GetIllustId(e.FullPath));
+                }
             }
         }
 
@@ -1227,6 +1241,7 @@ namespace PixivWPF.Common
             if (e.ChangeType == WatcherChangeTypes.Renamed)
             {
                 e.OldFullPath.DownloadedCacheUpdate(e.FullPath);
+                UpdateDownloadStateMark(GetIllustId(e.FullPath));
             }
         }
 
@@ -1257,6 +1272,33 @@ namespace PixivWPF.Common
                     _watchers.Add(watcher);
                 }
             }
+        }
+        
+        public static void UpdateDownloadStateMark(string illustid = default(string))
+        {
+            int id = -1;
+            int.TryParse(illustid, out id);
+            UpdateDownloadStateMark(id);
+        }
+            
+        public static async void UpdateDownloadStateMark(int illustid = -1)
+        {
+            await new Action(() => {
+                foreach (var win in Application.Current.Windows)
+                {
+                    if (win is MainWindow)
+                    {
+                        var mw = win as MainWindow;
+                        mw.UpdateDownloadState(illustid);
+                    }
+                    else if (win is ContentWindow)
+                    {
+                        var w = win as ContentWindow;
+                        if (w.Content is IllustDetailPage)
+                            (w.Content as IllustDetailPage).UpdateDownloadStateAsync(illustid);
+                    }
+                }
+            }).InvokeAsync();
         }
         #endregion
 
@@ -1333,6 +1375,14 @@ namespace PixivWPF.Common
             return IsPartDownloadedFunc(illust);
         }
 
+        private static Func<Pixeez.Objects.Work, string, bool> IsPartDownloadedFileFunc = (x, f) => IsPartDownloaded(x, out f);
+
+        internal static bool IsPartDownloadedAsync(this Pixeez.Objects.Work illust, out string filepath)
+        {
+            filepath = string.Empty;
+            return IsPartDownloadedFileFunc(illust, filepath);
+        }
+
         internal static bool IsPartDownloaded(this Pixeez.Objects.Work illust, out string filepath)
         {
             if (illust is Pixeez.Objects.Work)
@@ -1401,6 +1451,7 @@ namespace PixivWPF.Common
                 {
                     if (f.DownoadedCacheExistsAsync())
                     {
+                        filepath = f;
                         result = true;
                         break;
                     }
@@ -1458,7 +1509,7 @@ namespace PixivWPF.Common
 
                     if (local.Cached)
                     {
-                        if (f.DownoadedCacheExistsAsync())
+                        if (fp.DownoadedCacheExistsAsync())
                         {
                             result = true;
                             break;
@@ -1497,6 +1548,7 @@ namespace PixivWPF.Common
                 {
                     if (f.DownoadedCacheExistsAsync())
                     {
+                        filepath = f;
                         result = true;
                         break;
                     }
@@ -1518,8 +1570,9 @@ namespace PixivWPF.Common
                     var fp = Path.Combine(folder, $"{fn}_{fc}{fe}");
                     if (local.Cached)
                     {
-                        if (f.DownoadedCacheExistsAsync())
+                        if (fp.DownoadedCacheExistsAsync())
                         {
+                            filepath = fp;
                             result = true;
                             break;
                         }

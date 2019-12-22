@@ -39,6 +39,28 @@ namespace PixivWPF.Pages
             detail_page.UpdateTheme();
         }
 
+        public void UpdateDownloadStateMark(int illustid = -1)
+        {
+            if(ImageList is ObservableCollection<ImageItem>)
+            {
+                foreach(var item in ImageList)
+                {
+                    if (item.Illust is Pixeez.Objects.Work)
+                    {
+                        if (illustid == -1 || illustid == (int)(item.Illust.Id))
+                            item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                    }
+                }
+            }
+        }
+
+        public async void UpdateDownloadStateAsync(int illustid = -1)
+        {
+            await Task.Run(() => {
+                UpdateDownloadStateMark(illustid);
+            });
+        }
+
         private void OnlyActiveItems(object sender, FilterEventArgs e)
         {
             e.Accepted = false;

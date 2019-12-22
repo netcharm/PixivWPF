@@ -45,6 +45,13 @@ namespace PixivWPF
             CommonHelper.UpdateTheme();
         }
 
+        public void UpdateDownloadState(int illustid = -1)
+        {
+            if (ContentFrame.Content is Pages.TilesPage)
+                (ContentFrame.Content as Pages.TilesPage).UpdateDownloadStateAsync(illustid);
+            //if()
+        }
+
         public MainWindow()
         {
             InitializeComponent();
