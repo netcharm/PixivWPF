@@ -112,6 +112,7 @@ namespace PixivWPF
                 if (win == this) continue;
                 win.Close();
             }
+            if (Setting.Instance is Setting) Setting.Instance.Save();
         }
 #else
         private async void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -128,6 +129,14 @@ namespace PixivWPF
             var ret = await this.ShowMessageAsync("Confirm", "Continue Exit?", MessageDialogStyle.AffirmativeAndNegative, opt);
             if (ret == MessageDialogResult.Affirmative)
             {
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win == this) 
+                        continue;
+                    else if(win is ContentWindow)
+                        win.Close();
+                }
+                if (Setting.Instance is Setting) Setting.Instance.Save();
                 Application.Current.Shutdown();
             }
         }

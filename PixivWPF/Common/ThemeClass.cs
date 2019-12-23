@@ -14,7 +14,7 @@ namespace PixivWPF.Common
                 "Indigo","Lime","Magenta","Mauve","Olive","Orange", "Pink",
                 "Purple","Red","Sienna","Steel","Taupe","Teal","Violet","Yellow"
         };
-        private static Setting setting = Setting.Load();
+        private static Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
         public static IList<string> Accents
         {
             get { return accents; }
@@ -28,8 +28,11 @@ namespace PixivWPF.Common
 
             var target = ThemeManager.GetInverseAppTheme(appTheme);
             ThemeManager.ChangeAppStyle(Application.Current, appAccent, target);
-            setting.Theme = target.Name;
-            setting.Save();
+            if (setting.Theme != target.Name)
+            {
+                setting.Theme = target.Name;
+                setting.Save();
+            }
         }
 
         public static string CurrentAccent
@@ -47,8 +50,11 @@ namespace PixivWPF.Common
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
                 ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent(value), appTheme);
-                setting.Accent = value;
-                setting.Save();
+                if (setting.Accent != value)
+                {
+                    setting.Accent = value;
+                    setting.Save();
+                }
             }
         }
 
@@ -67,8 +73,11 @@ namespace PixivWPF.Common
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
                 ThemeManager.ChangeAppStyle(Application.Current, appAccent, ThemeManager.GetAppTheme(value));
-                setting.Theme = value;
-                setting.Save();
+                if (setting.Theme != value)
+                {
+                    setting.Theme = value;
+                    setting.Save();
+                }
             }
         }
 

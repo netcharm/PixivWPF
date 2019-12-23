@@ -27,7 +27,7 @@ namespace PixivWPF.Common
 
     public class DownloadInfo: INotifyPropertyChanged
     {
-        private Setting setting = Setting.Load();
+        private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
 
         [DefaultValue(false)]
         public bool UsingProxy { get; set; } = false;
@@ -173,7 +173,7 @@ namespace PixivWPF.Common
     public partial class DownloadItem : UserControl, INotifyPropertyChanged
     {
         private const int HTTP_STREAM_READ_COUNT = 65536;
-        private Setting setting = Setting.Load();
+        private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
 
         private DownloadInfo Info { get; set; }
 

@@ -159,10 +159,20 @@ namespace PixivWPF.Common
 
     public class StorageType
     {
+        [JsonProperty("Folder")]
         public string Folder { get; set; } = string.Empty;
-        public bool Cached { get; set; } = false;
+        [JsonProperty("Cached")]
+        public bool Cached { get; set; } = true;
+        [JsonProperty("IncludeSubFolder")]
+        public bool IncludeSubFolder { get; set; } = false;
+
         [JsonIgnore]
         public int Count { get; set; } = -1;
+
+        public override string ToString()
+        {
+            return Folder;
+        }
 
         public StorageType(string path, bool cached = false)
         {
@@ -179,7 +189,7 @@ namespace PixivWPF.Common
         private const int HEIGHT_DEF = 900;
         private const int HEIGHT_MAX = 1008;
 
-        private static Setting setting = Setting.Load();
+        private static Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
         private static CacheImage cache = new CacheImage();
         public static Dictionary<long?, Pixeez.Objects.Work> IllustCache = new Dictionary<long?, Pixeez.Objects.Work>();
         public static Dictionary<long?, Pixeez.Objects.UserBase> UserCache = new Dictionary<long?, Pixeez.Objects.UserBase>();
@@ -1219,18 +1229,26 @@ namespace PixivWPF.Common
             // Specify what is done when a file is changed, created, or deleted.
             Console.WriteLine($"File: {e.FullPath} {e.ChangeType}");
 #endif
-            if (e.ChangeType == WatcherChangeTypes.Deleted)
-            {
-                e.FullPath.DownloadedCacheRemove();
-                UpdateDownloadStateAsync(GetIllustId(e.FullPath));
-            }
-            else if (e.ChangeType == WatcherChangeTypes.Created)
+            if (e.ChangeType == WatcherChangeTypes.Created)
             {
                 if (File.Exists(e.FullPath))
                 {
                     e.FullPath.DownloadedCacheAdd();
                     UpdateDownloadStateAsync(GetIllustId(e.FullPath));
                 }
+            }
+            else if (e.ChangeType == WatcherChangeTypes.Changed)
+            {
+                //if (File.Exists(e.FullPath))
+                //{
+                //    e.FullPath.DownloadedCacheAdd();
+                //    UpdateDownloadStateAsync(GetIllustId(e.FullPath));
+                //}
+            }
+            else if (e.ChangeType == WatcherChangeTypes.Deleted)
+            {
+                e.FullPath.DownloadedCacheRemove();
+                UpdateDownloadStateAsync(GetIllustId(e.FullPath));
             }
         }
 
@@ -1261,23 +1279,23 @@ namespace PixivWPF.Common
             folders.Sort();
 
             _watchers.Clear();
-            foreach (var l in folders)
+            foreach (var f in folders)
             {
-                //var folder = l.Folder.MacroReplace("%ID%", "");
-                var folder = l.MacroReplace("%ID%", "");
+                var folder = Path.GetFullPath(f.MacroReplace("%ID%", "")).TrimEnd('\\');
                 var c = _watchers.Where(o => folder.StartsWith(o.Key, StringComparison.CurrentCultureIgnoreCase)).Count();
                 if (c > 0) continue;
-                //if (_watchers.ContainsKey(Path.GetDirectoryName(folder))) continue;
 
                 if (Directory.Exists(folder))
                 {
-                    l.UpdateDownloadedListCacheAsync();
-                    var watcher = new FileSystemWatcher()
+                    var locals = storages.Where(o => Path.GetFullPath(o.Folder).TrimEnd('\\').Equals(folder, StringComparison.CurrentCultureIgnoreCase));
+                    var local = locals.Count() > 0 ? locals.First() : null;
+                    if (!(local != null ? local.Cached : false)) continue;
+
+                    f.UpdateDownloadedListCacheAsync();
+                    var watcher = new FileSystemWatcher(folder, "*.*")
                     {
-                        Path = folder,
-                        IncludeSubdirectories = true,
                         NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
-                        Filter = "*.*"
+                        IncludeSubdirectories = local is StorageType ? local.IncludeSubFolder : false
                     };
                     watcher.Changed += OnChanged;
                     watcher.Created += OnChanged;
@@ -1314,7 +1332,7 @@ namespace PixivWPF.Common
                         if (w.Content is IllustDetailPage)
                             (w.Content as IllustDetailPage).UpdateDownloadStateAsync(illustid);
                         else if (w.Content is SearchResultPage)
-                            (w.Content as SearchResultPage).UpdateLikeStateAsync(illustid);
+                            (w.Content as SearchResultPage).UpdateDownloadStateAsync(illustid);
                     }
                 }
             }).InvokeAsync();
@@ -1809,13 +1827,6 @@ namespace PixivWPF.Common
                             using (var ms = await response.ToMemoryStream())
                             {
                                 file = Path.Combine(setting.LastFolder, Path.GetFileName(file));
-                                //using(var sms = new FileStream(fn, FileMode.Create, FileAccess.Write, FileShare.Read))
-                                //{
-                                //    ms.Seek(0, SeekOrigin.Begin);
-                                //    await sms.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
-                                //    result = fn;
-                                //}
-                                //WaitForFile(file);
                                 File.WriteAllBytes(file, ms.ToArray());
                                 result = file;
                             }

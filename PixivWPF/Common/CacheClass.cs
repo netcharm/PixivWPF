@@ -13,7 +13,7 @@ namespace PixivWPF.Common
 {
     class CacheImage
     {
-        private Setting setting = Setting.Load();
+        private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
         private char[] trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
         private Dictionary<int, string> loadedImageHashTable = new Dictionary<int, string>();
         private Dictionary<int, string> loadedImageFileTable = new Dictionary<int, string>();

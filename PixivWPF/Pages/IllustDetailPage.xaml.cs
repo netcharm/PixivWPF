@@ -826,8 +826,6 @@ namespace PixivWPF.Pages
                 IllustDetailWait.Show();
                 FavoriteIllusts.Items.Clear();
 
-                Setting setting = Setting.Load();
-
                 var tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return;
 

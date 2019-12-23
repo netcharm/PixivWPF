@@ -26,7 +26,7 @@ namespace PixivWPF.Pages
     {
         private Window window = null;
         private string AppPath = System.IO.Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString());
-        private Setting setting = Setting.Load();
+        private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
         private Pixeez.Tokens tokens = null;
 
         private void CloseWindow()

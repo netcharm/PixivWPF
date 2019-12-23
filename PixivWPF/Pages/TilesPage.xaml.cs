@@ -25,7 +25,7 @@ namespace PixivWPF.Pages
         internal List<long> ids = new List<long>();
         internal ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
 
-        private Setting setting = Setting.Load();
+        private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
         public PixivPage TargetPage = PixivPage.Recommanded;
         private string NextURL = null;
 
@@ -39,7 +39,7 @@ namespace PixivWPF.Pages
             detail_page.UpdateTheme();
         }
 
-        public void UpdateDownloadStateMark(int illustid = -1)
+        public void UpdateDownloadState(int illustid = -1)
         {
             if(ImageList is ObservableCollection<ImageItem>)
             {
@@ -57,7 +57,7 @@ namespace PixivWPF.Pages
         public async void UpdateDownloadStateAsync(int illustid = -1)
         {
             await Task.Run(() => {
-                UpdateDownloadStateMark(illustid);
+                UpdateDownloadState(illustid);
             });
         }
 
