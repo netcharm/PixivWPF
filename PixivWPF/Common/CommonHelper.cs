@@ -1279,36 +1279,32 @@ namespace PixivWPF.Common
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static void InitDownloadedWatcher(this IEnumerable<StorageType> storages)
         {
-            var folders = new List<string>();
+            Dictionary<string, StorageType> items = new Dictionary<string, StorageType>();
             foreach(var l in storages)
             {
-                folders.Add(l.Folder);
+                var folder = Path.GetFullPath(l.Folder.MacroReplace("%ID%", "")).TrimEnd('\\');
+                var parent = storages.Where(o => folder.StartsWith(o.Folder, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                if (items.ContainsKey(folder))
+                {
+                    if (parent is StorageType && parent.IncludeSubFolder) l.Cached = true;
+                    continue;
+                }
+                items.Add(l.Folder.TrimEnd('\\'), l);
             }
-            folders = folders.Distinct().ToList();
-            folders.Sort();
 
             _watchers.Clear();
-            foreach (var f in folders)
+            foreach (var i in items)
             {
-                var folder = Path.GetFullPath(f.MacroReplace("%ID%", "")).TrimEnd('\\');
-                var c = _watchers.Where(o => folder.StartsWith(o.Key, StringComparison.CurrentCultureIgnoreCase)).Count();
-                if (c > 0) {
-                    var stores = storages.Where(o=>o.Folder.Equals(f, StringComparison.CurrentCultureIgnoreCase));
-                    if (stores.Count() > 0) stores.First().Cached = true;
-                    continue;
-                } 
+                var folder = i.Key;
+                var storage = i.Value;
 
                 if (Directory.Exists(folder))
                 {
-                    var locals = storages.Where(o => Path.GetFullPath(o.Folder).TrimEnd('\\').Equals(folder, StringComparison.CurrentCultureIgnoreCase));
-                    var local = locals.Count() > 0 ? locals.First() : null;
-                    if (!(local != null ? local.Cached : false)) continue;
-
-                    f.UpdateDownloadedListCacheAsync();
+                    folder.UpdateDownloadedListCacheAsync();
                     var watcher = new FileSystemWatcher(folder, "*.*")
                     {
                         NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
-                        IncludeSubdirectories = local is StorageType ? local.IncludeSubFolder : false
+                        IncludeSubdirectories = storage is StorageType ? storage.IncludeSubFolder : false
                     };
                     watcher.Changed += OnChanged;
                     watcher.Created += OnChanged;
