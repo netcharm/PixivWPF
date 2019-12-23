@@ -179,7 +179,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static bool UpdateTilesDaownloadStatus(this ImageListGrid gallery, bool fuzzy = true)
+        public static bool UpdateTilesDownloadState(this ImageListGrid gallery, bool fuzzy = true)
         {
             bool result = false;
             if (gallery.SelectedItems.Count <= 0 || gallery.SelectedIndex < 0) return (result);

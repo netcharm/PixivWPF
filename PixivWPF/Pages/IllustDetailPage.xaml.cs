@@ -66,34 +66,49 @@ namespace PixivWPF.Pages
             IllustDesc.AvoidImagesLateLoading = true;
         }
 
-        private void UpdateDownloadStateMark(int illustid = -1)
+        private void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
+            var id = illustid ?? -1;
             foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeIllusts, FavoriteIllusts })
             {
                 foreach (var item in illusts.Items)
                 {
                     if (item.Illust is Pixeez.Objects.Work)
                     {
-                        if (illustid == -1 || illustid == (int)(item.Illust.Id))
+                        if (id == -1)
                         {
-                            item.IsDownloaded = illusts == SubIllusts ? item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync() : item.Illust.IsPartDownloadedAsync();
+                            var download = item.Illust.IsPartDownloadedAsync();
+                            if (item.IsDownloaded != download) item.IsDownloaded = download;
+                        }
+                        else if (id == (int)(item.Illust.Id))
+                        {
+                            if (illusts == SubIllusts)
+                            {
+                                var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
+                                if (item.IsDownloaded != download) item.IsDownloaded = download;
+                            }
+                            else
+                            {
+                                var download = exists ?? false;
+                                if (item.IsDownloaded != download) item.IsDownloaded = download;
+                            }
                         }
                     }
                 }
             }
         }
 
-        public async void UpdateDownloadStateAsync(int illustid = -1)
+        public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
         {
             if (DataObject is ImageItem)
             {
                 UpdateDownloadedMark(DataObject as ImageItem);
-                SubIllusts.UpdateTilesDaownloadStatus(false);
+                SubIllusts.UpdateTilesDownloadState(false);
             }
 
             await Task.Run(() =>
             {
-                UpdateDownloadStateMark(illustid);
+                UpdateDownloadState(illustid);
             });
         }
 
@@ -106,7 +121,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void UpdateDownloadedMark(ImageItem item)
+        private void UpdateDownloadedMark(ImageItem item, bool? exists = null)
         {
             if (item is ImageItem)
             {
@@ -115,7 +130,8 @@ namespace PixivWPF.Pages
                 var index = item.Index;
                 if (index < 0)
                 {
-                    item.IsDownloaded = item.Illust.IsPartDownloadedAsync(out fp);
+                    var download = item.Illust.IsPartDownloadedAsync(out fp);
+                    if (item.IsDownloaded != download) item.IsDownloaded = download;
                     if (item.IsDownloaded)
                     {
                         IllustDownloaded.Visibility = Visibility.Visible;
@@ -131,7 +147,8 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
-                    if (item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp))
+                    var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp);
+                    if (download)
                     {
                         IllustDownloaded.Visibility = Visibility.Visible;
                         IllustDownloaded.Tag = fp;
@@ -1540,7 +1557,7 @@ namespace PixivWPF.Pages
                     SubIllusts.SelectedItem = lastSelectionItem;
                     return;
                 }
-                SubIllusts.UpdateTilesDaownloadStatus(false);
+                SubIllusts.UpdateTilesDownloadState(false);
                 UpdateDownloadedMark(SubIllusts.SelectedItem);
 
                 if (DataObject is ImageItem)
@@ -1778,7 +1795,7 @@ namespace PixivWPF.Pages
         private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             e.Handled = false;
-            RelativeIllusts.UpdateTilesDaownloadStatus();
+            RelativeIllusts.UpdateTilesDownloadState();
             UpdateLikeState();
             e.Handled = true;
         }
@@ -1865,7 +1882,7 @@ namespace PixivWPF.Pages
         private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             e.Handled = false;
-            FavoriteIllusts.UpdateTilesDaownloadStatus();
+            FavoriteIllusts.UpdateTilesDownloadState();
             UpdateLikeState();
             e.Handled = true;
         }

@@ -33,25 +33,32 @@ namespace PixivWPF.Pages
         private ContextMenu ContextMenuResultFilter = null;
         private Dictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new Dictionary<string, Tuple<MenuItem, MenuItem>>();
 
-        private void UpdateDownloadStateMark(int illustid = -1)
+        private void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
+            var id = illustid ?? -1;
             foreach (var item in ResultIllusts.Items)
             {
                 if (item.Illust is Pixeez.Objects.Work)
                 {
-                    if (illustid == -1 || illustid == (int)(item.Illust.Id))
+                    if (id == -1)
                     {
-                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                        var download = item.Illust.IsPartDownloadedAsync();
+                        if (item.IsDownloaded != download) item.IsDownloaded = download;
+                    }
+                    else if (id == (int)(item.Illust.Id))
+                    {
+                        var download = exists ?? false;
+                        if (item.IsDownloaded != download) item.IsDownloaded = download;
                     }
                 }
             }
         }
 
-        public async void UpdateDownloadStateAsync(int illustid = -1)
+        public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = false)
         {
             await Task.Run(() =>
             {
-                UpdateDownloadStateMark(illustid);
+                UpdateDownloadState(illustid);
             });
         }
 
@@ -397,7 +404,7 @@ namespace PixivWPF.Pages
         private void ResultIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             e.Handled = false;
-            ResultIllusts.UpdateTilesDaownloadStatus();
+            ResultIllusts.UpdateTilesDownloadState();
             e.Handled = true;
         }
 

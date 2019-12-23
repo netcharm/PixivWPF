@@ -45,16 +45,16 @@ namespace PixivWPF
             CommonHelper.UpdateTheme();
         }
 
-        public void UpdateDownloadState(int illustid = -1)
+        public void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
             if (ContentFrame.Content is Pages.TilesPage)
             {
                 var tiles = ContentFrame.Content as Pages.TilesPage;
-                tiles.UpdateDownloadStateAsync(illustid);
+                tiles.UpdateDownloadStateAsync(illustid, exists);
                 if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
                 {
                     var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
-                    detail.UpdateDownloadStateAsync(illustid);
+                    detail.UpdateDownloadStateAsync(illustid, exists);
                 }
             }
         }

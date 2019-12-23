@@ -1233,8 +1233,11 @@ namespace PixivWPF.Common
             {
                 if (File.Exists(e.FullPath))
                 {
-                    e.FullPath.DownloadedCacheAdd();
-                    UpdateDownloadStateAsync(GetIllustId(e.FullPath));
+                    if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
+                    {
+                        e.FullPath.DownloadedCacheAdd();
+                        UpdateDownloadStateAsync(GetIllustId(e.Name), true);
+                    }
                 }
             }
             else if (e.ChangeType == WatcherChangeTypes.Changed)
@@ -1247,8 +1250,11 @@ namespace PixivWPF.Common
             }
             else if (e.ChangeType == WatcherChangeTypes.Deleted)
             {
-                e.FullPath.DownloadedCacheRemove();
-                UpdateDownloadStateAsync(GetIllustId(e.FullPath));
+                if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
+                {
+                    e.FullPath.DownloadedCacheRemove();
+                    UpdateDownloadStateAsync(GetIllustId(e.Name), false);
+                }
             }
         }
 
@@ -1261,7 +1267,10 @@ namespace PixivWPF.Common
             if (e.ChangeType == WatcherChangeTypes.Renamed)
             {
                 e.OldFullPath.DownloadedCacheUpdate(e.FullPath);
-                UpdateDownloadStateAsync(GetIllustId(e.FullPath));
+                if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
+                {
+                    UpdateDownloadStateAsync(GetIllustId(e.Name));
+                }
             }
         }
 
@@ -1283,7 +1292,11 @@ namespace PixivWPF.Common
             {
                 var folder = Path.GetFullPath(f.MacroReplace("%ID%", "")).TrimEnd('\\');
                 var c = _watchers.Where(o => folder.StartsWith(o.Key, StringComparison.CurrentCultureIgnoreCase)).Count();
-                if (c > 0) continue;
+                if (c > 0) {
+                    var stores = storages.Where(o=>o.Folder.Equals(f, StringComparison.CurrentCultureIgnoreCase));
+                    if (stores.Count() > 0) stores.First().Cached = true;
+                    continue;
+                } 
 
                 if (Directory.Exists(folder))
                 {
@@ -1309,14 +1322,14 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void UpdateDownloadStateAsync(string illustid = default(string))
+        public static void UpdateDownloadStateAsync(string illustid = default(string), bool? exists = null)
         {
             int id = -1;
             int.TryParse(illustid, out id);
-            UpdateDownloadStateAsync(id);
+            UpdateDownloadStateAsync(id, exists);
         }
 
-        public static async void UpdateDownloadStateAsync(int illustid = -1)
+        public static async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
         {
             await new Action(() => {
                 foreach (var win in Application.Current.Windows)
@@ -1324,15 +1337,15 @@ namespace PixivWPF.Common
                     if (win is MainWindow)
                     {
                         var mw = win as MainWindow;
-                        mw.UpdateDownloadState(illustid);
+                        mw.UpdateDownloadState(illustid, exists);
                     }
                     else if (win is ContentWindow)
                     {
                         var w = win as ContentWindow;
                         if (w.Content is IllustDetailPage)
-                            (w.Content as IllustDetailPage).UpdateDownloadStateAsync(illustid);
+                            (w.Content as IllustDetailPage).UpdateDownloadStateAsync(illustid, exists);
                         else if (w.Content is SearchResultPage)
-                            (w.Content as SearchResultPage).UpdateDownloadStateAsync(illustid);
+                            (w.Content as SearchResultPage).UpdateDownloadStateAsync(illustid, exists);
                     }
                 }
             }).InvokeAsync();

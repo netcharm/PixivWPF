@@ -39,22 +39,31 @@ namespace PixivWPF.Pages
             detail_page.UpdateTheme();
         }
 
-        public void UpdateDownloadState(int illustid = -1)
+        public void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
-            if(ImageList is ObservableCollection<ImageItem>)
+            if (ImageList is ObservableCollection<ImageItem>)
             {
-                foreach(var item in ImageList)
+                var id = illustid ?? -1;
+                foreach (var item in ImageList)
                 {
                     if (item.Illust is Pixeez.Objects.Work)
                     {
-                        if (illustid == -1 || illustid == (int)(item.Illust.Id))
-                            item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                        if (id == -1)
+                        {
+                            var download = item.Illust.IsPartDownloadedAsync();
+                            if (item.IsDownloaded != download) item.IsDownloaded = download;
+                        }
+                        else if (id == (int)(item.Illust.Id))
+                        {
+                            var download = exists ?? false;
+                            if (item.IsDownloaded != download) item.IsDownloaded = download;
+                        }
                     }
                 }
             }
         }
 
-        public async void UpdateDownloadStateAsync(int illustid = -1)
+        public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
         {
             await Task.Run(() => {
                 UpdateDownloadState(illustid);
