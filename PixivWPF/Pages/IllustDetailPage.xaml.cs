@@ -76,22 +76,13 @@ namespace PixivWPF.Pages
                     if (item.Illust is Pixeez.Objects.Work)
                     {
                         if (id == -1)
-                        {
-                            var download = item.Illust.IsPartDownloadedAsync();
-                            if (item.IsDownloaded != download) item.IsDownloaded = download;
-                        }
+                            item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
                         else if (id == (int)(item.Illust.Id))
                         {
                             if (illusts == SubIllusts)
-                            {
-                                var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
-                                if (item.IsDownloaded != download) item.IsDownloaded = download;
-                            }
+                                item.IsDownloaded = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
                             else
-                            {
-                                var download = exists ?? false;
-                                if (item.IsDownloaded != download) item.IsDownloaded = download;
-                            }
+                                item.IsDownloaded = exists ?? false;
                         }
                     }
                 }
@@ -103,7 +94,7 @@ namespace PixivWPF.Pages
             if (DataObject is ImageItem)
             {
                 UpdateDownloadedMark(DataObject as ImageItem);
-                SubIllusts.UpdateTilesDownloadState(false);
+                SubIllusts.UpdateTilesState(false);
             }
 
             await Task.Run(() =>
@@ -1557,7 +1548,7 @@ namespace PixivWPF.Pages
                     SubIllusts.SelectedItem = lastSelectionItem;
                     return;
                 }
-                SubIllusts.UpdateTilesDownloadState(false);
+                SubIllusts.UpdateTilesState(false);
                 UpdateDownloadedMark(SubIllusts.SelectedItem);
 
                 if (DataObject is ImageItem)
@@ -1795,7 +1786,7 @@ namespace PixivWPF.Pages
         private void RelativeIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             e.Handled = false;
-            RelativeIllusts.UpdateTilesDownloadState();
+            RelativeIllusts.UpdateTilesState();
             UpdateLikeState();
             e.Handled = true;
         }
@@ -1882,7 +1873,7 @@ namespace PixivWPF.Pages
         private void FavriteIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             e.Handled = false;
-            FavoriteIllusts.UpdateTilesDownloadState();
+            FavoriteIllusts.UpdateTilesState();
             UpdateLikeState();
             e.Handled = true;
         }

@@ -61,7 +61,7 @@ namespace PixivWPF.Common
         [Description("Get or Set Display Illust Favorited State Mark")]
         [Category("Common Properties")]
         [DefaultValue(true)]
-        public bool DisplayFavMark { get; set; } = true;
+        public bool IsDisplayFavMark { get; set; } = true;
 
         public string BadgeValue { get; set; }
         public Visibility BadgeVisibility { get; set; } = Visibility.Collapsed;
@@ -179,7 +179,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static bool UpdateTilesDownloadState(this ImageListGrid gallery, bool fuzzy = true)
+        public static bool UpdateTilesState(this ImageListGrid gallery, bool fuzzy = true)
         {
             bool result = false;
             if (gallery.SelectedItems.Count <= 0 || gallery.SelectedIndex < 0) return (result);
@@ -194,7 +194,7 @@ namespace PixivWPF.Common
                         item.IsDownloaded = download;
                         result |= download;
                     }
-                    item.IsFavorited = item.IsLiked() && item.DisplayFavMark;
+                    item.IsFavorited = item.IsLiked() && item.IsDisplayFavMark;
                     CommonHelper.DoEvents();
                 }
             }
@@ -352,7 +352,7 @@ namespace PixivWPF.Common
                             Count = (int)(illust.PageCount),
                             BadgeValue = illust.PageCount.Value.ToString(),
                             BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
-                            DisplayFavMark = true,
+                            IsDisplayFavMark = true,
                             FavMarkVisibility = illust.IsLiked() ? Visibility.Visible : Visibility.Collapsed,
                             DisplayBadge = illust.PageCount > 1 ? true : false,
                             Illust = illust,
@@ -426,7 +426,7 @@ namespace PixivWPF.Common
                             i.DisplayTitle = false;
                             i.Index = index;
                             i.IsFavorited = false;
-                            i.DisplayFavMark = false;
+                            i.IsDisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
                             i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloadedAsync(false);
@@ -459,7 +459,7 @@ namespace PixivWPF.Common
                             i.DisplayTitle = false;
                             i.Index = index;
                             i.IsFavorited = false;
-                            i.DisplayFavMark = false;
+                            i.IsDisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
                             i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false);

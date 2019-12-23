@@ -49,15 +49,9 @@ namespace PixivWPF.Pages
                     if (item.Illust is Pixeez.Objects.Work)
                     {
                         if (id == -1)
-                        {
-                            var download = item.Illust.IsPartDownloadedAsync();
-                            if (item.IsDownloaded != download) item.IsDownloaded = download;
-                        }
+                            item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
                         else if (id == (int)(item.Illust.Id))
-                        {
-                            var download = exists ?? false;
-                            if (item.IsDownloaded != download) item.IsDownloaded = download;
-                        }
+                            item.IsDownloaded = exists ?? false;
                     }
                 }
             }
