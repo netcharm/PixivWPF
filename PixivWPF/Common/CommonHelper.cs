@@ -736,7 +736,7 @@ namespace PixivWPF.Common
                 using (var ms = (MemoryStream)e.Data.GetData("text/html"))
                 {
 
-                    var html = System.Text.Encoding.Unicode.GetString(ms.ToArray()).Trim();
+                    var html = Encoding.Unicode.GetString(ms.ToArray()).Trim();
 
                     var mr = new List<MatchCollection>();
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)"""));
@@ -778,7 +778,8 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/user\/\d+).*?$"));
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)$"));
 
-                mr.Add(Regex.Matches(html, @"((\d+)(_((p)|(ugoira))*\d+)*)"));
+                if(!html.StartsWith("http"))
+                    mr.Add(Regex.Matches(html, @"((\d+)(_((p)|(ugoira))*\d+)*)"));
 
                 foreach (var mi in mr)
                 {
@@ -790,13 +791,22 @@ namespace PixivWPF.Common
                     foreach (Match m in mi)
                     {
                         var link = m.Groups[1].Value.Trim().Trim(trim_char);
-                        long id;
-                        if (long.TryParse(link, out id))
+
+                        if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            links.Add($"https://www.pixiv.net/artworks/{link}");
-                            links.Add($"https://www.pixiv.net/member.php?id={link}");
+                            if(!links.Contains(link)) links.Add(link);
+                            break;
                         }
-                        else if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+
+                        if (m == mi[mi.Count])
+                        {
+                            long id;
+                            if (long.TryParse(link, out id))
+                            {
+                                links.Add($"https://www.pixiv.net/artworks/{link}");
+                                links.Add($"https://www.pixiv.net/member.php?id={link}");
+                            }
+                        }
                     }
                 }
             }

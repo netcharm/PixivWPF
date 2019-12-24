@@ -51,7 +51,7 @@ namespace PixivWPF.Pages
                         if (id == -1)
                             item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
                         else if (id == (int)(item.Illust.Id))
-                            item.IsDownloaded = exists ?? false;
+                            item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
                     }
                 }
             }
@@ -60,7 +60,7 @@ namespace PixivWPF.Pages
         public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
         {
             await Task.Run(() => {
-                UpdateDownloadState(illustid);
+                UpdateDownloadState(illustid, exists);
             });
         }
 
