@@ -209,70 +209,61 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async void UpdateTilesImageTask(this IEnumerable<ImageItem> items, CancellationToken cancelToken = default(CancellationToken), int parallel = 5)
+        public static void UpdateTilesImageTask(this IEnumerable<ImageItem> items, CancellationToken cancelToken = default(CancellationToken), int parallel = 5)
         {
             var needUpdate = items.Where(item => item.Source == null);
             if (Application.Current != null && needUpdate.Count() > 0)
             {
-                await new Action(() =>
+                try
                 {
-                    try
+                    if (parallel <= 0) parallel = 1;
+                    else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
+
+                    var opt = new ParallelOptions();
+                    //opt.TaskScheduler = TaskScheduler.Current;
+                    opt.MaxDegreeOfParallelism = parallel;
+                    opt.CancellationToken = cancelToken;
+
+                    using (cancelToken.Register(Thread.CurrentThread.Abort))
                     {
-                        if (parallel <= 0) parallel = 1;
-                        else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
-
-                        var opt = new ParallelOptions();
-                        //opt.TaskScheduler = TaskScheduler.Current;
-                        opt.MaxDegreeOfParallelism = parallel;
-                        opt.CancellationToken = cancelToken;
-
-                        using (cancelToken.Register(Thread.CurrentThread.Abort))
+                        var ret = Parallel.ForEach(needUpdate, opt, async (item, loopstate, elementIndex) =>
                         {
-                            CommonHelper.DoEvents();
-                            var ret = Parallel.ForEach(needUpdate, opt, async(item, loopstate, elementIndex) =>
+                            await new Action(async () =>
                             {
-                                CommonHelper.DoEvents();
-                                await new Action(async () =>
+                                if (cancelToken.IsCancellationRequested)
+                                    opt.CancellationToken.ThrowIfCancellationRequested();
+                                else
                                 {
-                                    if (cancelToken.IsCancellationRequested)
-                                        opt.CancellationToken.ThrowIfCancellationRequested();
-                                    else
+                                    try
                                     {
-                                        try
+                                        if (item.Source == null)
                                         {
-                                            if (item.Source == null)
-                                            {
-                                                if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                                CommonHelper.DoEvents();
-                                                item.Source = await item.Thumb.LoadImageFromUrl();
-                                                CommonHelper.DoEvents();
-                                            }
+                                            if (item.Count <= 1) item.BadgeValue = string.Empty;
+                                            item.Source = await item.Thumb.LoadImageFromUrl();
+                                            item.DoEvents();
                                         }
+                                    }
 #if DEBUG
-                                        catch (Exception ex)
-                                        {
-                                            $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                        }
+                                    catch (Exception ex)
+                                    {
+                                        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                    }
 #else
                                     catch(Exception){ }
 #endif
-                                    }
-                                    CommonHelper.DoEvents();
-                                }).InvokeAsync();
-                                CommonHelper.DoEvents();
-                            });
-                            CommonHelper.DoEvents();
-                        }
+                                }
+                            }).InvokeAsync();
+                        });
                     }
-                    catch (Exception ex)
-                    {
-                        var ert = ex.Message;
-                    }
-                    finally
-                    {
-                    }
-                }).InvokeAsync();
-                CommonHelper.DoEvents();
+                }
+                catch (Exception ex)
+                {
+                    var ert = ex.Message;
+                }
+                finally
+                {
+                    items.DoEvents();
+                }
             }
         }
 
@@ -281,35 +272,26 @@ namespace PixivWPF.Common
             Task result = null;
             try
             {
-                //if (task is Task && (task.Status == TaskStatus.Running || task.Status == TaskStatus.RanToCompletion))
-                //if (task is Task && task.Status == TaskStatus.Running)
-                if (task is Task && (
-                    task.Status == TaskStatus.Running || 
-                    task.Status == TaskStatus.Created || 
-                    task.Status == TaskStatus.WaitingForActivation || 
-                    task.Status == TaskStatus.WaitingToRun))
+                var idle = !(task is Task) || task.IsCompleted || task.IsCanceled || task.IsFaulted;
+                if (!idle)
                 {
                     cancelSource.Cancel();
-                    //task.Wait();
-                    if (task.Wait(5000, cancelSource.Token))
+                    if (task is Task && task.Wait(5000, cancelSource.Token))
                     {
-                        CommonHelper.DoEvents();
+                        items.DoEvents();
                     }
-                    cancelSource = new CancellationTokenSource();
                 }
 
-                if (Application.Current != null && (task == null || (task is Task && (task.IsCanceled || task.IsCompleted || task.IsFaulted))))
+                if (Application.Current is Application)
                 {
                     await new Action(() =>
                     {
-                        task = new Task(() =>
-                        {
-                            CommonHelper.DoEvents();
-                            items.UpdateTilesImageTask(cancelSource.Token, parallel);
-                        }, cancelSource.Token, TaskCreationOptions.PreferFairness);
                         cancelSource = new CancellationTokenSource();
-                        result = task;
-                        task.Start();
+                        result = new Task(() =>
+                        {
+                            items.UpdateTilesImageTask(cancelSource.Token, parallel);
+                        }, cancelSource.Token, TaskCreationOptions.PreferFairness);                        
+                        result.Start();
                     }).InvokeAsync();
                 }
             }

@@ -281,7 +281,7 @@ namespace PixivWPF.Common
             DoEvents();
         });
 
-        public static ICommand Cmd_OpenItems { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand Cmd_OpenItems { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is ImageListGrid)
             {
@@ -298,7 +298,8 @@ namespace PixivWPF.Common
                     {
                         Cmd_OpenWorkPreview.Execute(item);
                     }
-                    CommonHelper.DoEvents();
+                    await Task.Delay(1);
+                    DoEvents();
                 }
             }
         });
@@ -324,7 +325,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_OpenWork { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand Cmd_OpenWork { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is Pixeez.Objects.Work)
             {
@@ -348,12 +349,13 @@ namespace PixivWPF.Common
                         Content = page
                     };
                     viewer.Show();
-                    CommonHelper.DoEvents();
+                    await Task.Delay(1);
+                    DoEvents();
                 }
             }
         });
 
-        public static ICommand Cmd_OpenWorkPreview { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand Cmd_OpenWorkPreview { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is ImageItem && (obj.ItemType == ImageItemType.Work || obj.ItemType == ImageItemType.Manga))
             {
@@ -376,11 +378,12 @@ namespace PixivWPF.Common
                     Content = page
                 };
                 viewer.Show();
-                CommonHelper.DoEvents();
+                await Task.Delay(1);
+                DoEvents();
             }
         });
 
-        public static ICommand Cmd_OpenUser { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand Cmd_OpenUser { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is Pixeez.Objects.UserBase)
             {
@@ -401,7 +404,8 @@ namespace PixivWPF.Common
                     Content = page
                 };
                 viewer.Show();
-                CommonHelper.DoEvents();
+                await Task.Delay(1);
+                DoEvents();
             }
         });
 
@@ -525,7 +529,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_Search { get; } = new DelegateCommand<string>(obj =>
+        public static ICommand Cmd_Search { get; } = new DelegateCommand<string>(async obj =>
         {
             if (obj is string && !string.IsNullOrEmpty(obj))
             {
@@ -557,7 +561,8 @@ namespace PixivWPF.Common
                         Content = page
                     };
                     viewer.Show();
-                    CommonHelper.DoEvents();
+                    await Task.Delay(1);
+                    DoEvents();
                 }
             }
         });
@@ -599,16 +604,23 @@ namespace PixivWPF.Common
             }
             catch (Exception)
             {
-                if (Application.Current.Dispatcher.CheckAccess())
+                try
                 {
-                    DispatcherFrame frame = new DispatcherFrame();
-                    //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
-                    //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
+                    if (Application.Current.Dispatcher.CheckAccess())
+                    {
+                        DispatcherFrame frame = new DispatcherFrame();
+                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
+                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
 
-                    //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-                    await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
-                    //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
-                    Dispatcher.PushFrame(frame);
+                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                        await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
+                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
+                        Dispatcher.PushFrame(frame);
+                    }
+                }
+                catch (Exception)
+                {
+                    await Task.Delay(1);
                 }
             }
         }
@@ -620,12 +632,35 @@ namespace PixivWPF.Common
 
         public static void Sleep(int ms)
         {
+            //Task.Delay(ms);
             for (int i = 0; i < ms; i += 10)
             {
-                System.Threading.Thread.Sleep(5);
+                //Task.Delay(5);
+                Thread.Sleep(5);
                 DoEvents();
             }
         }
+
+        public static async void Delay(int ms)
+        {
+            await Task.Delay(ms);
+        }
+
+        public static async Task DelayAsync(int ms)
+        {
+            await Task.Delay(ms);
+        }
+
+        public static void Delay(this object obj, int ms)
+        {
+            Delay(ms);
+        }
+
+        public static async Task DelayAsync(this object obj, int ms)
+        {
+            await DelayAsync(ms);
+        }
+
         #endregion
 
         private static async Task<Pixeez.Tokens> RefreshToken()
@@ -699,9 +734,7 @@ namespace PixivWPF.Common
                     else
                     {
                         var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
-                        DoEvents();
                         var ret = dlgLogin.ShowDialog();
-                        DoEvents();
                         result = dlgLogin.Tokens;
                     }
                 }

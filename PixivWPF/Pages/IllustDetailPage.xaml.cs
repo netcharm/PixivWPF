@@ -185,7 +185,8 @@ namespace PixivWPF.Pages
 
         public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
         {
-            await new Action(() => {
+            await new Action(() =>
+            {
                 UpdateLikeState(illustid);
             }).InvokeAsync();
         }
@@ -917,11 +918,6 @@ namespace PixivWPF.Pages
                             CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
                         else
                             CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
-
-                        //if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
-                        //    CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
-                        //else
-                        //    CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
                     }
                 }
                 catch (Exception e)
@@ -1522,11 +1518,6 @@ namespace PixivWPF.Pages
                 {
                     var item = DataObject as ImageItem;
                     ShowIllustPagesAsync(item);
-                    //await new Action(async () =>
-                    //{
-                    //    var item = DataObject as ImageItem;
-                    //    await ShowIllustPagesAsync(item);
-                    //}).InvokeAsync();
                 }
             }
         }
