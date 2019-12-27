@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,6 +20,8 @@ namespace PixivWPF
     public partial class MainWindow : MetroWindow
     {
         public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
+
+        //private FakeWindow _fakeWindow = null;
 
         public Frame MainContent = null;
 
@@ -76,6 +79,21 @@ namespace PixivWPF
         public MainWindow()
         {
             InitializeComponent();
+
+            //if (_fakeWindow == null)
+            //{
+            //    _fakeWindow = new FakeWindow()
+            //    {
+            //        Width = 0,
+            //        Height = 0,
+            //        Opacity = 0.00,
+            //        ShowInTaskbar = false,
+            //        ShowActivated = false
+            //    };
+            //    StylusPlugIns.Add(new FakeStylusPlugIn(_fakeWindow));
+            //    _fakeWindow.Show();
+            //    _fakeWindow.Hide();
+            //}
 
             SearchBox.ItemsSource = AutoSuggestList;
 
@@ -337,6 +355,13 @@ namespace PixivWPF
         {
             LastWindowStates.Enqueue(this.WindowState);
             if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
+        }
+
+        private async void MetroWindow_StylusUp(object sender, StylusEventArgs e)
+        {
+            //
+            await Task.Delay(1);
+            this.DoEvents();
         }
     }
 

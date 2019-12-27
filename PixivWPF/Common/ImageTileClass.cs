@@ -390,16 +390,17 @@ namespace PixivWPF.Common
         }
 
         #region Image Tile Add Helper
-        public static void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Collection, string nexturl = "")
+        public static async void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Collection, string nexturl = "")
         {
             foreach (var illust in works)
             {
                 illust.AddTo(Collection, nexturl);
+                await Task.Delay(1);
                 illust.DoEvents();
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.Work illust, IList<ImageItem> Collection, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.Work illust, IList<ImageItem> Collection, string nexturl = "")
         {
             try
             {
@@ -413,6 +414,7 @@ namespace PixivWPF.Common
                         {
                             i.ToolTip = $"№[{Collection.Count + 1}], {i.ToolTip}";
                             Collection.Add(i);
+                            await Task.Delay(1);
                             i.DoEvents();
                         }
                     }
@@ -424,7 +426,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.MetaPages pages, IList<ImageItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.MetaPages pages, IList<ImageItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
         {
             try
             {
@@ -446,6 +448,7 @@ namespace PixivWPF.Common
                             i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloadedAsync(false);
                             i.Tag = pages;
                             Collection.Add(i);
+                            await Task.Delay(1);
                             i.DoEvents();
                         }
                     }
@@ -457,7 +460,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.Page page, IList<ImageItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.Page page, IList<ImageItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
         {
             try
             {
@@ -479,6 +482,7 @@ namespace PixivWPF.Common
                             i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false);
                             i.Tag = page;
                             Collection.Add(i);
+                            await Task.Delay(1);
                             i.DoEvents();
                         }
                     }
@@ -490,7 +494,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Collection, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Collection, string nexturl = "")
         {
             try
             {
@@ -515,6 +519,7 @@ namespace PixivWPF.Common
                             Tag = user
                         };
                         Collection.Add(i);
+                        await Task.Delay(1);
                         i.DoEvents();
                     }
                 }

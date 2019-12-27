@@ -23,6 +23,7 @@
                  KeyUp="MetroWindow_KeyUp"
                  PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
                  StateChanged="MetroWindow_StateChanged" 
+                 StylusUp="MetroWindow_StylusUp"
                  Closing="MainWindow_Closing" >
 
 

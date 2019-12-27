@@ -68,7 +68,7 @@ namespace PixivWPF.Common
         RankingYear
     }
 
-    public enum ToastType { DOWNLOAD=0, OK, OKCANCEL, YES, NO, YESNO };
+    public enum ToastType { DOWNLOAD = 0, OK, OKCANCEL, YES, NO, YESNO };
 
     public class SimpleCommand : ICommand
     {
@@ -120,7 +120,7 @@ namespace PixivWPF.Common
                 X = dpi.X;
                 Y = dpi.Y;
             }
-            catch (Exception) {}
+            catch (Exception) { }
         }
 
         public static DPI FromVisual(Visual visual)
@@ -591,6 +591,10 @@ namespace PixivWPF.Common
                 {
                     await Dispatcher.Yield();
                     //await System.Windows.Threading.Dispatcher.Yield();
+
+                    //DispatcherFrame frame = new DispatcherFrame();
+                    //await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                    //Dispatcher.PushFrame(frame);
                 }
             }
             catch (Exception)
@@ -609,27 +613,9 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void DoEvents(this object obj)
+        public static void DoEvents(this object obj)
         {
-            try
-            {
-                if (Application.Current.Dispatcher.CheckAccess())
-                {
-                    //await Dispatcher.Yield();
-                    DispatcherFrame frame = new DispatcherFrame();
-                    await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-                    Dispatcher.PushFrame(frame);
-                }
-            }
-            catch (Exception)
-            {
-                if (Application.Current.Dispatcher.CheckAccess())
-                {
-                    DispatcherFrame frame = new DispatcherFrame();
-                    await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
-                    Dispatcher.PushFrame(frame);
-                }
-            }
+            DoEvents();
         }
 
         public static void Sleep(int ms)
@@ -713,9 +699,9 @@ namespace PixivWPF.Common
                     else
                     {
                         var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
-                        CommonHelper.DoEvents();
+                        DoEvents();
                         var ret = dlgLogin.ShowDialog();
-                        CommonHelper.DoEvents();
+                        DoEvents();
                         result = dlgLogin.Tokens;
                     }
                 }
@@ -781,7 +767,7 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/user\/\d+).*?$"));
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)$"));
 
-                if(!html.StartsWith("http"))
+                if (!html.StartsWith("http"))
                     mr.Add(Regex.Matches(html, @"((\d+)(_((p)|(ugoira))*\d+)*)"));
 
                 foreach (var mi in mr)
@@ -797,7 +783,7 @@ namespace PixivWPF.Common
 
                         if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            if(!links.Contains(link)) links.Add(link);
+                            if (!links.Contains(link)) links.Add(link);
                             break;
                         }
 
@@ -1163,7 +1149,7 @@ namespace PixivWPF.Common
                     var files = Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories);
                     foreach (var f in files)
                     {
-                        if(ext_imgs.Contains(Path.GetExtension(f)))
+                        if (ext_imgs.Contains(Path.GetExtension(f)))
                             _cachedDownloadedList[f] = cached;
                     }
                 }
@@ -1172,7 +1158,8 @@ namespace PixivWPF.Common
 
         internal static async void UpdateDownloadedListCacheAsync(this string folder, bool cached = true)
         {
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 UpdateDownloadedListCache(folder, cached);
             });
         }
@@ -1187,7 +1174,8 @@ namespace PixivWPF.Common
 
         internal static async void UpdateDownloadedListCacheAsync(this StorageType storage)
         {
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 UpdateDownloadedListCache(storage);
             });
         }
@@ -1293,7 +1281,7 @@ namespace PixivWPF.Common
         public static void InitDownloadedWatcher(this IEnumerable<StorageType> storages)
         {
             Dictionary<string, StorageType> items = new Dictionary<string, StorageType>();
-            foreach(var l in storages)
+            foreach (var l in storages)
             {
                 var folder = Path.GetFullPath(l.Folder.MacroReplace("%ID%", "")).TrimEnd('\\');
                 var parent = storages.Where(o => folder.StartsWith(o.Folder, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
@@ -1340,7 +1328,8 @@ namespace PixivWPF.Common
 
         public static async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
         {
-            await new Action(() => {
+            await new Action(() =>
+            {
                 foreach (var win in Application.Current.Windows)
                 {
                     if (win is MainWindow)
@@ -2154,7 +2143,7 @@ namespace PixivWPF.Common
             return (result);
         }
         #endregion
-        
+
         #region Refresh Illust/User Info
         public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null)
         {
@@ -2720,7 +2709,8 @@ namespace PixivWPF.Common
 
         public static async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
         {
-            await new Action(() => {
+            await new Action(() =>
+            {
                 foreach (var win in Application.Current.Windows)
                 {
                     if (win is MainWindow)
@@ -2960,14 +2950,14 @@ namespace PixivWPF.Common
         {
             Dispatcher dispatcher = action.AppDispatcher();
 
-            await dispatcher.BeginInvoke(action);
+            await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
         }
 
         public static async Task InvokeAsync(this Action action)
         {
             Dispatcher dispatcher = action.AppDispatcher();
 
-            await dispatcher.InvokeAsync(action);
+            await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
         }
 
         public static Window GetActiveWindow(this Page page)
