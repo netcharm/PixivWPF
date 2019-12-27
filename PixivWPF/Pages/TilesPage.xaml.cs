@@ -96,9 +96,11 @@ namespace PixivWPF.Pages
             e.Accepted = true;
         }
 
-        internal void UpdateImageTiles()
+        internal async void UpdateImageTiles()
         {
-            ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);
+            CommonHelper.DoEvents();
+            lastTask = await ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);
+            //ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);
         }
 
         public TilesPage()
@@ -267,6 +269,7 @@ namespace PixivWPF.Pages
                         {
                             ids.Add(illust.Id.Value);
                             illust.AddTo(ImageList, nexturl);
+                            if(ImageList.Count == 30) UpdateImageTiles();
                             this.DoEvents();
                         }
                     }

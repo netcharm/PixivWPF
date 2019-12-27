@@ -635,6 +635,30 @@ namespace PixivWPF.Pages
                     var pageCount = (total / count + (total % count > 0 ? 1 : 0)).Value;
                     var pageNum = SubIllusts.Tag is int ? (int)(SubIllusts.Tag) : 0;
 
+                    #region Update sub-pages nav button
+                    if (pageNum <= 0)
+                    {
+                        pageNum = 0;
+                        btnSubIllustPrevPages.Hide();
+                    }
+                    else
+                        btnSubIllustPrevPages.Show();
+
+                    if (pageNum >= pageCount - 1)
+                    {
+                        pageNum = pageCount - 1;
+                        btnSubIllustNextPages.Hide();
+                    }
+                    else
+                        btnSubIllustNextPages.Show();
+
+                    SubIllusts.Tag = pageNum;
+
+                    this.DoEvents();
+                    UpdateSubPageNav();
+                    this.DoEvents();
+                    #endregion
+
                     start = pageNum * count;
                     var end = start + count;
 
@@ -685,28 +709,8 @@ namespace PixivWPF.Pages
                     SubIllusts.UpdateTilesImage();
                     this.DoEvents();
 
-                    if (pageNum <= 0)
-                    {
-                        pageNum = 0;
-                        btnSubIllustPrevPages.Hide();
-                    }
-                    else
-                        btnSubIllustPrevPages.Show();
-
-                    if (pageNum >= pageCount - 1)
-                    {
-                        pageNum = pageCount - 1;
-                        btnSubIllustNextPages.Hide();
-                    }
-                    else
-                        btnSubIllustNextPages.Show();
-
-                    SubIllusts.Tag = pageNum;
-
                     if (SubIllusts.SelectedIndex < 0) SubIllusts.SelectedIndex = 0;
-                    this.DoEvents();
-                    UpdateSubPageNav();
-                    this.DoEvents();
+
                 }
             }
             catch (Exception ex)

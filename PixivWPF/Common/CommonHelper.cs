@@ -18,6 +18,7 @@ using System.Reflection;
 using System.Security.Permissions;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -712,7 +713,9 @@ namespace PixivWPF.Common
                     else
                     {
                         var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
+                        CommonHelper.DoEvents();
                         var ret = dlgLogin.ShowDialog();
+                        CommonHelper.DoEvents();
                         result = dlgLogin.Tokens;
                     }
                 }
@@ -3474,6 +3477,35 @@ namespace PixivWPF.Common
         //public string Message { get; set; }
         //public string Title { get; set; }
         public object Tag { get; set; }
+    }
+
+    public static class TaskWaitingExtensions
+    {
+        /// <summary>
+        /// Async Task Wait
+        /// </summary>
+        /// <typeparam name="TResult">result</typeparam>
+        /// <param name="task">task instance</param>
+        /// <param name="timeout">milliseconds timeout</param>
+        /// <returns></returns>
+        public static async Task<TResult> WaitAsync<TResult>(this Task<TResult> task, int timeout)
+        {
+            return (await WaitAsync(task, TimeSpan.FromMilliseconds(timeout)));
+        }
+
+        public static async Task<TResult> WaitAsync<TResult>(this Task<TResult> task, TimeSpan timeout)
+        {
+            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
+            {
+                var delayTask = Task.Delay(timeout, timeoutCancellationTokenSource.Token);
+                if (await Task.WhenAny(task, delayTask) == task)
+                {
+                    timeoutCancellationTokenSource.Cancel();
+                    return await task;
+                }
+                throw new TimeoutException("The operation has timed out.");
+            }
+        }
     }
 
     public static class ExtensionMethods

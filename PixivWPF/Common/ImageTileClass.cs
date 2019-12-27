@@ -276,14 +276,25 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void UpdateTilesImage(this IEnumerable<ImageItem> items, Task task, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5)
+        public static async Task<Task> UpdateTilesImage(this IEnumerable<ImageItem> items, Task task, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5)
         {
+            Task result = null;
             try
             {
-                if (task is Task && task.Status == TaskStatus.Running)
+                //if (task is Task && (task.Status == TaskStatus.Running || task.Status == TaskStatus.RanToCompletion))
+                //if (task is Task && task.Status == TaskStatus.Running)
+                if (task is Task && (
+                    task.Status == TaskStatus.Running || 
+                    task.Status == TaskStatus.Created || 
+                    task.Status == TaskStatus.WaitingForActivation || 
+                    task.Status == TaskStatus.WaitingToRun))
                 {
                     cancelSource.Cancel();
-                    task.Wait();
+                    //task.Wait();
+                    if (task.Wait(5000, cancelSource.Token))
+                    {
+                        CommonHelper.DoEvents();
+                    }
                     cancelSource = new CancellationTokenSource();
                 }
 
@@ -297,6 +308,7 @@ namespace PixivWPF.Common
                             items.UpdateTilesImageTask(cancelSource.Token, parallel);
                         }, cancelSource.Token, TaskCreationOptions.PreferFairness);
                         cancelSource = new CancellationTokenSource();
+                        result = task;
                         task.Start();
                     }).InvokeAsync();
                 }
@@ -308,6 +320,7 @@ namespace PixivWPF.Common
             finally
             {
             }
+            return (result);
         }
         #endregion
 
@@ -398,6 +411,7 @@ namespace PixivWPF.Common
                         var i = illust.IllustItem(url, nexturl);
                         if (i is ImageItem)
                         {
+                            i.ToolTip = $"№[{Collection.Count + 1}], {i.ToolTip}";
                             Collection.Add(i);
                             i.DoEvents();
                         }
