@@ -131,7 +131,7 @@
                       HorizontalAlignment="Center" VerticalAlignment="Top"
                       ScrollViewer.IsDeferredScrollingEnabled="False"
                       mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
-                      KeyUp="ListImageTiles_KeyUp" 
+                      KeyUp="ListImageTiles_KeyUp" KeyDown="ListImageTiles_KeyDown"
                       MouseDoubleClick="ListImageTiles_MouseDoubleClick"
                       PreviewMouseWheel="ListImageTiles_PreviewMouseWheel" Margin="4">
                 <ListView.CacheMode>

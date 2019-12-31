@@ -220,7 +220,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void UpdateSubPageNav()
+        private async void UpdateSubPageNav()
         {
             if (DataObject is Pixeez.Objects.UserBase)
             {
@@ -237,10 +237,15 @@ namespace PixivWPF.Pages
                 }
                 if (SubIllusts.SelectedIndex <= 0)
                 {
+                    SubIllusts.SelectedIndex = 0;
+                    await Task.Delay(1);
+                }
+                if (SubIllusts.SelectedItem.Index <= 0)
+                {
                     btnPagePrev.IsEnabled = false;
                     btnPageNext.IsEnabled = true;
                 }
-                else if (SubIllusts.SelectedIndex == SubIllusts.Items.Count - 1)
+                else if (SubIllusts.SelectedItem.Index >= SubIllusts.SelectedItem.Count - 1)
                 {
                     btnPagePrev.IsEnabled = true;
                     btnPageNext.IsEnabled = false;
@@ -249,7 +254,7 @@ namespace PixivWPF.Pages
                 {
                     btnPagePrev.IsEnabled = true;
                     btnPageNext.IsEnabled = true;
-                }
+                }                
                 btnPagePrev.Foreground = btnPagePrev.IsEnabled ? Theme.AccentBrush : Theme.IdealForegroundDisableBrush;
                 btnPageNext.Foreground = btnPageNext.IsEnabled ? Theme.AccentBrush : Theme.IdealForegroundDisableBrush;
             }
@@ -409,7 +414,7 @@ namespace PixivWPF.Pages
                     foreach (var tag in item.Illust.Tags)
                     {
                         //html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag_full&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">{tag}</a>");
-                        html.AppendLine($"<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">#{tag}</a>");
+                        html.AppendLine($"&nbsp;<a href=\"https://www.pixiv.net/search.php?s_mode=s_tag&word={Uri.EscapeDataString(tag)}\" class=\"tag\" data-tag=\"{tag}\">#{tag}</a>&nbsp;");
                         //html.AppendLine($"<button class=\"tag\" data-tag=\"{tag}\">{tag}</button>");
                     }
                     html.AppendLine("<br/>");
@@ -420,10 +425,12 @@ namespace PixivWPF.Pages
                     IllustTagExpander.Header = "Tags";
                     IllustTagExpander.IsExpanded = true;
                     IllustTagExpander.Show();
+                    btnIllustTagSpeech.Show();
                 }
                 else
                 {
                     IllustTagExpander.Hide();
+                    btnIllustTagSpeech.Hide();
                 }
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
@@ -433,10 +440,12 @@ namespace PixivWPF.Pages
 
                     IllustDescExpander.IsExpanded = true;
                     IllustDescExpander.Show();
+                    btnIllustIntroSpeech.Show();
                 }
                 else
                 {
                     IllustDescExpander.Hide();
+                    btnIllustIntroSpeech.Hide();
                 }
 
                 SubIllusts.Tag = 0;
@@ -572,10 +581,12 @@ namespace PixivWPF.Pages
                     IllustTagExpander.Header = "User Infomation";
                     IllustTagExpander.IsExpanded = false;
                     IllustTagExpander.Show();
+                    btnIllustIntroSpeech.Show();
                 }
                 else
                 {
                     IllustTagExpander.Hide();
+                    btnIllustIntroSpeech.Hide();
                 }
 
                 CommentsExpander.Hide();
@@ -621,7 +632,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async Task ShowIllustPages(ImageItem item, int start = 0, int count = 30)
+        private async Task ShowIllustPages(ImageItem item, int index = 0, int start = 0, int count = 30)
         {
             try
             {
@@ -710,8 +721,7 @@ namespace PixivWPF.Pages
                     SubIllusts.UpdateTilesImage();
                     this.DoEvents();
 
-                    if (SubIllusts.SelectedIndex < 0) SubIllusts.SelectedIndex = 0;
-
+                    if (SubIllusts.SelectedIndex < 0) SubIllusts.SelectedIndex = index;
                 }
             }
             catch (Exception ex)
@@ -725,11 +735,11 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ShowIllustPagesAsync(ImageItem item, int start = 0, int count = 30)
+        private async void ShowIllustPagesAsync(ImageItem item, int index = 0, int start = 0, int count = 30)
         {
             await new Action(async () =>
             {
-                await ShowIllustPages(item);
+                await ShowIllustPages(item, index, start, count);
             }).InvokeAsync();
         }
 
@@ -895,6 +905,24 @@ namespace PixivWPF.Pages
             IllustDetailWait.Visibility = Visibility.Collapsed;
 
             UpdateTheme();
+        }
+
+        private void btnIllustSpeech_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender == btnIllustTagSpeech)
+            {
+                if (IllustTags.SelectedText.Length == 0)
+                    IllustTags.Text.HtmlToText().HtmlDecode().Play();
+                else
+                    IllustTags.SelectedText.Play();
+            }
+            else if (sender == btnIllustIntroSpeech)
+            {
+                if (IllustDesc.SelectedText.Length == 0)
+                    IllustDesc.Text.HtmlToText().HtmlDecode().Play();
+                else
+                    IllustDesc.SelectedText.Play();
+            }
         }
 
         private async void IllustTags_LinkClicked(object sender, RoutedEvenArgs<HtmlLinkClickedEventArgs> args)
@@ -1591,9 +1619,11 @@ namespace PixivWPF.Pages
                     if (illust is Pixeez.Objects.Work)
                     {
                         var pageNum = SubIllusts.Tag is int ? (int)(SubIllusts.Tag) : 0;
+                        var index = 0;
                         if (btn == btnSubIllustPrevPages)
                         {
                             pageNum -= 1;
+                            index = 29;
                         }
                         else if (btn == btnSubIllustNextPages)
                         {
@@ -1601,7 +1631,7 @@ namespace PixivWPF.Pages
                         }
                         SubIllusts.Tag = pageNum;
 
-                        ShowIllustPagesAsync(item);
+                        ShowIllustPagesAsync(item, index);
                     }
                 }
             }
@@ -1619,7 +1649,7 @@ namespace PixivWPF.Pages
                 {
                     var item = DataObject as ImageItem;
                     if (start < item.Count)
-                        ShowIllustPagesAsync(item, start);
+                        ShowIllustPagesAsync(item, 29, start);
                 }
             }
         }
@@ -1636,7 +1666,7 @@ namespace PixivWPF.Pages
                 {
                     var item = DataObject as ImageItem;
                     if (start < item.Count)
-                        ShowIllustPagesAsync(item, start);
+                        ShowIllustPagesAsync(item, 0, start);
                 }
             }
         }
@@ -1735,13 +1765,21 @@ namespace PixivWPF.Pages
                 {
                     if (SubIllusts.SelectedIndex > 0)
                         SubIllusts.SelectedIndex -= 1;
+                    else if (SubIllusts.SelectedIndex == 0 && btnSubIllustPrevPages.IsShown())
+                    {
+                        SubIllustPagesNav_Click(btnSubIllustPrevPages, e);
+                    }
                 }
                 else if (sender == btnPageNext)
                 {
-                    if (SubIllusts.SelectedIndex < 0)
+                    if (SubIllusts.SelectedIndex <= 0)
                         SubIllusts.SelectedIndex = 1;
                     else if (SubIllusts.SelectedIndex < count - 1)
                         SubIllusts.SelectedIndex += 1;
+                    else if (SubIllusts.SelectedIndex == count - 1 && btnSubIllustNextPages.IsShown())
+                    {
+                        SubIllustPagesNav_Click(btnSubIllustNextPages, e);
+                    }
                 }
                 UpdateSubPageNav();
             }
@@ -2321,7 +2359,7 @@ namespace PixivWPF.Pages
                         if (DataObject is ImageItem)
                         {
                             var item = DataObject as ImageItem;
-                            ShowIllustPagesAsync(item, SubIllusts.Tag is int ? (int)(SubIllusts.Tag) : 0);
+                            ShowIllustPagesAsync(item, 0, SubIllusts.Tag is int ? (int)(SubIllusts.Tag) : 0);
                         }
                     }
                     else if (host == RelativeIllustsExpander || host == RelativeIllusts)

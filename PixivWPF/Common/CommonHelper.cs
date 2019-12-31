@@ -2803,6 +2803,11 @@ namespace PixivWPF.Common
             catch (Exception) { }
         }
 
+        public static bool IsShown(this UIElement element)
+        {
+            return (element.Visibility == Visibility.Visible ? true : false);
+        }
+
         public static void Show(this ProgressRing progress, bool show)
         {
             if (progress is ProgressRing)
@@ -3476,6 +3481,32 @@ namespace PixivWPF.Common
         #endregion
     }
 
+    public static class Speech
+    {
+        private static SpeechTTS t2s = new SpeechTTS()
+        {
+            IsCompleted = new Action(() =>
+            {
+                if (Application.Current.Dispatcher.CheckAccess())
+                {
+                    
+                }
+            })
+        };
+
+        public static void Play(this string text)
+        {
+            if(!(t2s is SpeechTTS))
+            {
+                t2s = new SpeechTTS();
+            }
+            if (t2s is SpeechTTS)
+            {
+                t2s.Play(text);
+            }
+        }
+    }
+
     public class DownloadToast : Notification
     {
         [Description("Get or Set Toast Type")]
@@ -3533,6 +3564,13 @@ namespace PixivWPF.Common
 
     public static class ExtensionMethods
     {
+        public static void Log(this string text)
+        {
+#if DEBUG
+            Console.WriteLine(text);
+#endif
+        }
+
         public static DependencyObject GetVisualChildFromTreePath(this DependencyObject dpo, int[] path)
         {
             if (path.Length == 0) return dpo;

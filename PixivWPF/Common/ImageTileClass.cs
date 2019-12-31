@@ -423,6 +423,7 @@ namespace PixivWPF.Common
                             //i.Thumb = url;
                             i.DisplayTitle = false;
                             i.Index = index;
+                            i.Count = illust.PageCount ?? 0;
                             i.IsFavorited = false;
                             i.IsDisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
@@ -457,6 +458,7 @@ namespace PixivWPF.Common
                             //i.Thumb = url;
                             i.DisplayTitle = false;
                             i.Index = index;
+                            i.Count = illust.PageCount ?? 0;
                             i.IsFavorited = false;
                             i.IsDisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();

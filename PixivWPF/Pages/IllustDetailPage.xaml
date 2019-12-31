@@ -212,7 +212,6 @@
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-
                 <!-- Illust Author Info -->
                 <Grid Grid.Row="1" Margin="0,8,0,0">
                     <Grid.RowDefinitions>
@@ -499,6 +498,15 @@
                                    LinkClicked="IllustTags_LinkClicked" 
                                    ImageLoad="IllustTags_ImageLoad" />
                 </Expander>
+                <Button Grid.Row="2"
+                        x:Name="btnIllustTagSpeech" x:Uid="Speech"
+                        Visibility="Collapsed"
+                        Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
+                        Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                        Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0"
+                        Click="btnIllustSpeech_Click">
+                    <iconPacks:PackIconModern Kind="Speakerphone" />
+                </Button>
 
                 <!-- Illust Info -->
                 <Expander Grid.Row="3" Margin="0,4,0,0" IsExpanded="True"
@@ -514,7 +522,15 @@
                                    LinkClicked="IllustDesc_LinkClicked" 
                                    ImageLoad="IllustDesc_ImageLoad" />
                 </Expander>
-
+                <Button Grid.Row="3" 
+                        x:Name="btnIllustIntroSpeech" x:Uid="Speech"
+                        Visibility="Collapsed"
+                        Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
+                        Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                        Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0"
+                        Click="btnIllustSpeech_Click">
+                    <iconPacks:PackIconModern Kind="Speakerphone" />
+                </Button>
                 <!-- Illust Subsets -->
                 <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander" Margin="0, 4, 0, 0"
                           IsExpanded="False" ExpandDirection="Down" 
@@ -532,14 +548,16 @@
 
                 </Expander>
                 <StackPanel Grid.Row="4" Orientation="Horizontal" x:Name="SubIllustsNavPanel" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
-                    <Button Name="btnSubIllustPrevPages" Visibility="Collapsed"
+                    <Button x:Name="btnSubIllustPrevPages" x:Uid="SubIllustPrevPages"
+                            Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"
                             Click="SubIllustPagesNav_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
-                    <Button Name="btnSubIllustNextPages" Visibility="Collapsed"
+                    <Button x:Name="btnSubIllustNextPages" x:Uid="SubIllustNextPages"
+                            Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"
@@ -563,14 +581,16 @@
                                           KeyUp="RelativeIllusts_KeyUp" />
                 </Expander>
                 <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
-                    <Button x:Name="RelativePrevPage" Visibility="Collapsed"
+                    <Button x:Name="RelativePrevPage" x:Uid="RelativePrevPage"
+                            Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"
                             Click="RelativePrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
-                    <Button x:Name="RelativeNextPage" Visibility="Collapsed"
+                    <Button x:Name="RelativeNextPage" x:Uid="RelativeNextPage"
+                            Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"
@@ -595,14 +615,16 @@
                                           KeyUp="FavriteIllusts_KeyUp"/>
                 </Expander>
                 <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
-                    <Button x:Name="FavoritePrevPage" Visibility="Collapsed"
+                    <Button x:Name="FavoritePrevPage" x:Uid="FavoritePrevPage"
+                            Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"
                             Click="FavoritePrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
-                    <Button x:Name="FavoriteNextPage" Visibility="Collapsed"
+                    <Button x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage"
+                            Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"
@@ -624,14 +646,16 @@
                 </Expander>
                 <StackPanel Grid.Row="7" x:Name="CommentsNavigator" x:Uid="CommentsNavigator"
                             Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
-                    <Button x:Name="CommentsPrevPage" Visibility="Collapsed"
+                    <Button x:Name="CommentsPrevPage" x:Uid="CommentsPrevPage" 
+                            Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"
                             Click="CommentsPrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
-                    <Button x:Name="CommentsNextPage" Visibility="Collapsed"
+                    <Button x:Name="CommentsNextPage" x:Uid="CommentsNextPage" 
+                            Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                             Width="32" Height="32" HorizontalAlignment="Right"
@@ -639,8 +663,6 @@
                         <iconPacks:PackIconModern Kind="NavigateNext" />
                     </Button>
                 </StackPanel>
-
-
 
             </Grid>
         </ScrollViewer>

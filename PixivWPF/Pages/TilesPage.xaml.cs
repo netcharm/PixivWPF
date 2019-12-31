@@ -788,13 +788,9 @@ namespace PixivWPF.Pages
 
                 }
             }
-            else if (e.Key == Key.Down || e.Key == Key.Right || e.Key == Key.PageDown)
+            else if (e.Key == Key.Down || e.Key == Key.PageDown)
             {
                 if (ListImageTiles.SelectedIndex >= ListImageTiles.Items.Count - 1)
-                {
-                    ShowImages(TargetPage, true);
-                }
-                else if (ListImageTiles.Items.CurrentPosition >= ListImageTiles.Items.Count - 1)
                 {
                     ShowImages(TargetPage, true);
                 }
@@ -831,6 +827,28 @@ namespace PixivWPF.Pages
                             url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
                         }
                     }
+                }
+            }
+        }
+
+        private void ListImageTiles_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Left)
+            {
+                if (ListImageTiles.SelectedIndex % 5 == 0)
+                {
+                    //ListImageTiles.SelectedIndex -= 1;
+                }
+            }
+            else if (e.Key == Key.Right)
+            {
+                if (ListImageTiles.SelectedIndex >= ListImageTiles.Items.Count - 1)
+                {
+                    ShowImages(TargetPage, true);
+                }
+                else if (ListImageTiles.SelectedIndex % 5 == 4)
+                {
+                    //ListImageTiles.SelectedIndex += 1;
                 }
             }
         }
