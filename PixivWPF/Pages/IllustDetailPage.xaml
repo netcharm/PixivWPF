@@ -31,6 +31,13 @@
                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionReadIllustTitle" Header="Read Selected Illusts Title" Click="ActionSpeech_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource AccentColorBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <Separator />
             <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="ActionRefreshIllusts_Click">
                 <MenuItem.Icon>
@@ -98,7 +105,7 @@
             </MenuItem>
         </ContextMenu>
         <ContextMenu x:Name="MenuSpeech" x:Key="MenuSpeech">
-            <MenuItem x:Name="miSpeechAuto" x:Uid="SpeechAuto" Header="Auto Detect" Click="IllustSpeech_Click" >
+            <MenuItem x:Name="miSpeechAuto" x:Uid="SpeechAuto" Header="Auto Detect" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE164;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource AccentColorBrush}"
@@ -106,35 +113,35 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator/>
-            <MenuItem x:Name="miSpeechChineseS" x:Uid="SpeechChineseS" Header="Chinese Simp" Click="IllustSpeech_Click" >
+            <MenuItem x:Name="miSpeechChineseS" x:Uid="SpeechChineseS" Header="ChineseS" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE88D;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource AccentColorBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Name="miSpeechChineseT" x:Uid="SpeechChineseT" Header="Chinese Trad" Click="IllustSpeech_Click" >
+            <MenuItem x:Name="miSpeechChineseT" x:Uid="SpeechChineseT" Header="ChineseT" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE88C;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource AccentColorBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Name="miSpeechJapaness" x:Uid="SpeechJapaness" Header="Japanese" Click="IllustSpeech_Click" >
+            <MenuItem x:Name="miSpeechJapaness" x:Uid="SpeechJapaness" Header="Japanese" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE986;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource AccentColorBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Name="miSpeechKorean" x:Uid="SpeechKorean" Header="Korean" Click="IllustSpeech_Click" >
+            <MenuItem x:Name="miSpeechKorean" x:Uid="SpeechKorean" Header="Korean" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE97D;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource AccentColorBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Name="miSpeechEnglish" x:Uid="SpeechEnglish" Header="English" Click="IllustSpeech_Click" >
+            <MenuItem x:Name="miSpeechEnglish" x:Uid="SpeechEnglish" Header="English" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE97E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource AccentColorBrush}"
@@ -287,6 +294,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,0,0"
+                                   ContextMenu="{DynamicResource MenuSpeech}"
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustDateInfo" Visibility="Collapsed"
@@ -309,6 +317,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
+                                   ContextMenu="{DynamicResource MenuSpeech}"
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
@@ -550,8 +559,12 @@
                         Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                         Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                         Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0"
-                        Click="IllustSpeech_Click">
-                    <iconPacks:PackIconModern Kind="Speakerphone" />
+                        Click="ActionSpeech_Click">
+                    <Button.Content>
+                        <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource LabelTextBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button.Content>
                 </Button>
 
                 <!-- Illust Info -->
@@ -575,8 +588,12 @@
                         Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                         Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                         Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0"
-                        Click="IllustSpeech_Click">
-                    <iconPacks:PackIconModern Kind="Speakerphone" />
+                        Click="ActionSpeech_Click">
+                    <Button.Content>
+                        <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource LabelTextBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button.Content>
                 </Button>
                 <!-- Illust Subsets -->
                 <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander" Margin="0, 4, 0, 0"

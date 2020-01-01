@@ -2,6 +2,7 @@
 using Prism.Commands;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -326,27 +327,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ResultExpander_Expanded(object sender, RoutedEventArgs e)
-        {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
-
-            if (DataType is string)
-            {
-                var tag = (string)DataType;
-                ShowResultInline(tokens, tag, result_filter);
-            }
-            if(ResultNextPage is Button)
-                ResultNextPage.Visibility = Visibility.Visible;
-        }
-
-        private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)
-        {
-            PreviewWait.Hide();
-            if (ResultNextPage is Button)
-                ResultNextPage.Visibility = Visibility.Collapsed;
-        }
-
         private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)
         {
             CommonHelper.Cmd_CopyIllustIDs.Execute(ResultIllusts);
@@ -393,6 +373,110 @@ namespace PixivWPF.Pages
                     CommonHelper.Cmd_OpenDownloaded.Execute(item);
                 }
             }
+        }
+
+        private void ActionSpeech_Click(object sender, RoutedEventArgs e)
+        {
+            var text = string.Empty;
+            CultureInfo culture = null;
+            if (sender is MenuItem)
+            {
+                var mi = sender as MenuItem;
+                if (mi.Parent is ContextMenu)
+                {
+                    var host = (mi.Parent as ContextMenu).PlacementTarget;
+                    if (host == ResultExpander || host == ResultIllusts)
+                    {
+                        foreach (ImageItem item in ResultIllusts.SelectedItems)
+                        {
+                            text += $"{item.Subject},\r\n";
+                        }
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(text)) text.Play(culture);
+        }
+
+        private void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
+        {
+            string uid = (sender as dynamic).Uid;
+
+            if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
+                uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+            {
+                IList<ImageItem> items = new List<ImageItem>();
+                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                if (host == ResultIllusts || host == ResultExpander) items = ResultIllusts.SelectedItems;
+                try
+                {
+                    if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        items.LikeIllust();
+                    }
+                    else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        items.LikeIllust(false);
+                    }
+                    else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        items.UnLikeIllust();
+                    }
+                }
+                catch (Exception) { }
+            }
+        }
+
+        private void ActionFollowAuthor_Click(object sender, RoutedEventArgs e)
+        {
+            string uid = (sender as dynamic).Uid;
+
+            if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
+                uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
+            {
+                IList<ImageItem> items = new List<ImageItem>();
+                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                if (host == ResultIllusts || host == ResultExpander) items = ResultIllusts.SelectedItems;
+                try
+                {
+                    if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        items.LikeUser();
+                    }
+                    else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        items.LikeUser(false);
+                    }
+                    else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        items.UnLikeUser();
+                    }
+                }
+                catch (Exception) { }
+            }
+        }
+
+        private async void ResultExpander_Expanded(object sender, RoutedEventArgs e)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            if (DataType is string)
+            {
+                var tag = (string)DataType;
+                ShowResultInline(tokens, tag, result_filter);
+            }
+            if (ResultNextPage is Button)
+                ResultNextPage.Visibility = Visibility.Visible;
+        }
+
+        private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)
+        {
+            PreviewWait.Hide();
+            if (ResultNextPage is Button)
+                ResultNextPage.Visibility = Visibility.Collapsed;
         }
 
         private void ResultIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -497,66 +581,6 @@ namespace PixivWPF.Pages
                 ShowResultInline(tokens, item, result_filter, next_url);
             }
             ResultNextPage.Visibility = Visibility.Visible;
-        }
-
-        private void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
-        {
-            string uid = (sender as dynamic).Uid;
-
-            if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
-                uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
-                uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-            {
-                IList<ImageItem> items = new List<ImageItem>();
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == ResultIllusts || host == ResultExpander) items = ResultIllusts.SelectedItems;
-                try
-                {
-                    if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.LikeIllust();
-                    }
-                    else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.LikeIllust(false);
-                    }
-                    else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.UnLikeIllust();
-                    }
-                }
-                catch (Exception) { }
-            }
-        }
-
-        private void ActionFollowAuthor_Click(object sender, RoutedEventArgs e)
-        {
-            string uid = (sender as dynamic).Uid;
-
-            if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
-                uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
-                uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
-            {
-                IList<ImageItem> items = new List<ImageItem>();
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == ResultIllusts || host == ResultExpander) items = ResultIllusts.SelectedItems;
-                try
-                {
-                    if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.LikeUser();
-                    }
-                    else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.LikeUser(false);
-                    }
-                    else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.UnLikeUser();
-                    }
-                }
-                catch (Exception) { }
-            }
         }
 
         #endregion

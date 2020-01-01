@@ -137,7 +137,10 @@ namespace PixivWPF.Common
             {
                 VoiceInfo info = voice.VoiceInfo;
                 if (result.ContainsKey(info.Culture))
+                {
                     result[info.Culture].Add(info.Name);
+                    result[info.Culture].Sort();
+                }
                 else
                     result[info.Culture] = new List<string>() { info.Name };
             }
@@ -167,7 +170,7 @@ namespace PixivWPF.Common
                 var nvs = GetVoiceNames();
                 if (nvs.ContainsKey(locale))
                 {
-                    string[] ns = new string[] {"huihui", "yaoyao", "lili", "yating", "hanhan", "ayumi", "haruka", "heami", "zira"};
+                    string[] ns = new string[] {"huihui", "yaoyao", "lili", "yating", "hanhan", "haruka", "ayumi", "heami", "david", "zira"};
                     foreach(var nl in nvs[locale])
                     {
                         var found = false;

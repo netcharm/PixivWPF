@@ -692,7 +692,7 @@ namespace PixivWPF.Pages
                             var illust = await item.Illust.RefreshIllust();
                             if (illust is Pixeez.Objects.Work)
                             {
-                                item.Illust.Metadata = illust.Metadata;
+                                item.Illust = illust;
                             }
                         }
                         if (item.Illust.Metadata is Pixeez.Objects.Metadata)
@@ -928,7 +928,7 @@ namespace PixivWPF.Pages
             return (result);
         }
 
-        private void IllustSpeech_Click(object sender, RoutedEventArgs e)
+        private void ActionSpeech_Click(object sender, RoutedEventArgs e)
         {
             var text = string.Empty;
             CultureInfo culture = null;
@@ -944,6 +944,26 @@ namespace PixivWPF.Pages
                     var host = (mi.Parent as ContextMenu).PlacementTarget;
                     if (host == btnIllustTagSpeech) text = GetText(IllustTags);
                     else if (host == btnIllustDescSpeech) text = GetText(IllustDesc);
+                    else if (host == IllustAuthor) text = IllustAuthor.Text;
+                    else if (host == IllustTitle) text = IllustTitle.Text;
+                    else if (host == SubIllustsExpander || host == SubIllusts)
+                    {
+                        text = IllustTitle.Text;
+                    }
+                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                    {
+                        foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                        {
+                            text += $"{item.Illust.Title},\r\n";
+                        }
+                    }
+                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                    {
+                        foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                        {
+                            text += $"{item.Illust.Title},\r\n";
+                        }
+                    }
 
                     if (mi.Uid.Equals("SpeechAuto", StringComparison.CurrentCultureIgnoreCase))
                         culture = null;
@@ -1031,11 +1051,6 @@ namespace PixivWPF.Pages
                     var text = GetText(IllustTags, false);
                     var data = ClipboardHelper.CreateDataObject(html, text);
                     Clipboard.SetDataObject(data);
-                    //var dataObject =  new DataObject();
-                    //dataObject.SetData(DataFormats.Html, html);
-                    //dataObject.SetData(DataFormats.Text, text);
-                    //dataObject.SetData(DataFormats.UnicodeText, text);
-                    //Clipboard.SetDataObject(dataObject);
                 }
             }
 #if DEBUG
@@ -1132,11 +1147,7 @@ namespace PixivWPF.Pages
                     var text = GetText(IllustDesc, false);
                     var data = ClipboardHelper.CreateDataObject(html, text);
                     Clipboard.SetDataObject(data);
-                    //var dataObject =  new DataObject();
-                    //dataObject.SetData(DataFormats.Html, html);
-                    //dataObject.SetData(DataFormats.Text, text);
-                    //dataObject.SetData(DataFormats.UnicodeText, text);
-                    //Clipboard.SetDataObject(dataObject);
+
                 }
             }
 #if DEBUG
