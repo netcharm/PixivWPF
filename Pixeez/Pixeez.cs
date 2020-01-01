@@ -168,6 +168,8 @@ namespace Pixeez
 
             HttpClientHandler handler = new HttpClientHandler()
             {
+                AllowAutoRedirect = true,
+                MaxAutomaticRedirections = 15,                
                 //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
                 Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
                 UseProxy = string.IsNullOrEmpty(proxy) || !UsingProxy ? false : true
@@ -176,6 +178,7 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
             httpClient.DefaultRequestHeaders.Add("X-Client-Time", time);
             httpClient.DefaultRequestHeaders.Add("X-Client-Hash", $"{time}{PIXIV.HashSecret}".MD5Hash());
+            //httpClient.Timeout = TimeSpan.FromSeconds(60);
 
             return (httpClient);
         }
@@ -388,10 +391,14 @@ namespace Pixeez
         /// <returns></returns>
         public async Task<AsyncResponse> SendRequestWithAuthAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
-            var httpClient = PIXIV.Client(Auth.Proxy, Auth.UsingProxy);
-            httpClient.DefaultRequestHeaders.Add("Referer", "http://spapi.pixiv.net/");
-            httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
-            return await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
+            AsyncResponse result = null;
+            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.UsingProxy))
+            {
+                httpClient.DefaultRequestHeaders.Add("Referer", "https://spapi.pixiv.net/");
+                httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
+                result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
+            }
+            return (result);
         }
 
         /// <summary>
@@ -404,9 +411,13 @@ namespace Pixeez
         /// <returns></returns>
         public async Task<AsyncResponse> SendRequestToGetImageAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
-            var httpClient = PIXIV.Client(Auth.Proxy, Auth.UsingProxy);
-            httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
-            return await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
+            AsyncResponse result = null;
+            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.UsingProxy))
+            {
+                httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+                result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
+            }
+            return (result);
         }
 
         /// <summary>
@@ -420,11 +431,16 @@ namespace Pixeez
         /// <returns></returns>
         public async Task<AsyncResponse> SendRequestWithoutAuthAsync(MethodType type, string url, bool needauth = false, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
-            var httpClient = PIXIV.Client(Auth.Proxy, Auth.UsingProxy);
-            httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
-            httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
-            if (needauth) httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
-            return await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
+            AsyncResponse result = null;
+            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.UsingProxy))
+            {
+                httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
+                httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
+                httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("ja_JP");
+                if (needauth) httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
+                result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
+            }
+            return (result);
         }
 
         /// <summary>
@@ -450,8 +466,17 @@ namespace Pixeez
             {
                 var reqParam = new FormUrlEncodedContent(param);
                 //reqParam.Headers.ContentType=""
-                var response = await httpClient.PostAsync(url, reqParam);
-                asyncResponse = new AsyncResponse(response);
+                try
+                {
+                    using (var response = await httpClient.PostAsync(url, reqParam))
+                    {
+                        asyncResponse = new AsyncResponse(response);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var r = ex.Message;
+                }
             }
             else if (type == MethodType.DELETE)
             {
@@ -471,9 +496,17 @@ namespace Pixeez
                     }
                     uri += query_string;
                 }
-
-                var response = await httpClient.DeleteAsync(uri);
-                asyncResponse = new AsyncResponse(response);
+                try
+                {
+                    using (var response = await httpClient.DeleteAsync(uri))
+                    {
+                        asyncResponse = new AsyncResponse(response);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    var r = ex.Message;
+                }
             }
             else
             {
@@ -497,6 +530,7 @@ namespace Pixeez
                 try
                 {
                     var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
                     string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                     if (vl != null && vl == "gzip")
                     {
@@ -1333,7 +1367,14 @@ namespace Pixeez
                 { "include_stats", "true" },
             };
 
-            return await AccessApiAsync<List<NormalWork>>(MethodType.GET, url, param);
+            try
+            {
+                return await AccessApiAsync<List<NormalWork>>(MethodType.GET, url, param);
+            }
+            catch(Exception)
+            {
+                return (null);
+            }
         }
         #endregion
     }

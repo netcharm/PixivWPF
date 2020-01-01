@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Media;
@@ -1799,7 +1800,8 @@ namespace PixivWPF.Common
                     {
                         return (true);
                     }
-                    using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                    //using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                    using (var response = await tokens.SendRequestToGetImageAsync(Pixeez.MethodType.GET, url))
                     {
                         if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
                         {
@@ -2178,34 +2180,6 @@ namespace PixivWPF.Common
         #endregion
 
         #region Refresh Illust/User Info
-        public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null)
-        {
-            var result = Illust;
-            if (tokens == null) tokens = await ShowLogin();
-            if (tokens == null) return result;
-            try
-            {
-                var illusts = await tokens.GetWorksAsync(Illust.Id.Value);
-                foreach (var illust in illusts)
-                {
-                    if (string.IsNullOrEmpty(illust.ImageUrls.Px128x128)) illust.ImageUrls.Px128x128 = result.ImageUrls.Px128x128;
-                    if (string.IsNullOrEmpty(illust.ImageUrls.Px480mw)) illust.ImageUrls.Px480mw = result.ImageUrls.Px480mw;
-                    if (string.IsNullOrEmpty(illust.ImageUrls.SquareMedium)) illust.ImageUrls.SquareMedium = result.ImageUrls.SquareMedium;
-                    if (string.IsNullOrEmpty(illust.ImageUrls.Small)) illust.ImageUrls.Small = result.ImageUrls.Small;
-                    if (string.IsNullOrEmpty(illust.ImageUrls.Medium)) illust.ImageUrls.Medium = result.ImageUrls.Medium;
-                    if (string.IsNullOrEmpty(illust.ImageUrls.Large)) illust.ImageUrls.Large = result.ImageUrls.Large;
-                    if (string.IsNullOrEmpty(illust.ImageUrls.Original)) illust.ImageUrls.Original = result.ImageUrls.Original;
-
-                    illust.Cache();
-                    Illust = illust;
-                    result = illust;
-                    break;
-                }
-            }
-            catch (Exception) { }
-            return (result);
-        }
-
         public static async Task<Pixeez.Objects.Work> RefreshIllust(this long IllustID, Pixeez.Tokens tokens = null)
         {
             Pixeez.Objects.Work result = null;
@@ -2233,6 +2207,23 @@ namespace PixivWPF.Common
             {
                 if (!string.IsNullOrEmpty(IllustID))
                     result = await RefreshIllust(Convert.ToInt32(IllustID), tokens);
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null)
+        {
+            var result = Illust.Id != null ? await RefreshIllust(Illust.Id.Value, tokens) : Illust;
+            try
+            {
+                if (string.IsNullOrEmpty(result.ImageUrls.Px128x128)) result.ImageUrls.Px128x128 = Illust.ImageUrls.Px128x128;
+                if (string.IsNullOrEmpty(result.ImageUrls.Px480mw)) result.ImageUrls.Px480mw = Illust.ImageUrls.Px480mw;
+                if (string.IsNullOrEmpty(result.ImageUrls.SquareMedium)) result.ImageUrls.SquareMedium = Illust.ImageUrls.SquareMedium;
+                if (string.IsNullOrEmpty(result.ImageUrls.Small)) result.ImageUrls.Small = Illust.ImageUrls.Small;
+                if (string.IsNullOrEmpty(result.ImageUrls.Medium)) result.ImageUrls.Medium = Illust.ImageUrls.Medium;
+                if (string.IsNullOrEmpty(result.ImageUrls.Large)) result.ImageUrls.Large = Illust.ImageUrls.Large;
+                if (string.IsNullOrEmpty(result.ImageUrls.Original)) result.ImageUrls.Original = Illust.ImageUrls.Original;
             }
             catch (Exception) { }
             return (result);
@@ -3494,7 +3485,7 @@ namespace PixivWPF.Common
             })
         };
 
-        public static void Play(this string text)
+        public static void Play(this string text, CultureInfo culture)
         {
             if(!(t2s is SpeechTTS))
             {
@@ -3502,7 +3493,7 @@ namespace PixivWPF.Common
             }
             if (t2s is SpeechTTS)
             {
-                t2s.Play(text);
+                t2s.Play(text, culture);
             }
         }
     }

@@ -19,6 +19,7 @@ namespace PixivWPF.Common
         //private bool SPEECH_AUTO = false;
         private bool SPEECH_SLOW = false;
         private string SPEECH_TEXT = string.Empty;
+        private CultureInfo SPEECH_CULTURE = null;
 
         private void Synth_StateChanged(object sender, StateChangedEventArgs e)
         {
@@ -57,7 +58,93 @@ namespace PixivWPF.Common
         public CultureInfo Culture { get; set; } = CultureInfo.CurrentCulture;
         public Action IsCompleted { get; set; } = null;
 
-        public void Play(string text, CultureInfo locale = null, bool auto = true)
+        private CultureInfo DetectCulture(string text)
+        {
+            CultureInfo result = CultureInfo.CurrentCulture;
+
+            //
+            // 中文：[\u4e00-\u9fcc, \u3400-\u4db5, \u20000-\u2a6d6, \u2a700-\u2b734, \u2b740-\u2b81d, \uf900-\ufad9, \u2f800-\u2fa1d]
+            // 繁体标点: [\u3000-\u3003, \u3008-\u300F, \u3010-\u3011, \u3014-\u3015, \u301C-\u301E]
+            // BIG-5: [\ue000-\uf848]
+            // 日文：[\u0800-\u4e00] [\u3041-\u31ff]
+            // 韩文：[\uac00-\ud7ff]
+            //
+            //var m_jp = Regex.Matches(text, @"([\u0800-\u4e00])", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            //var m_zh = Regex.Matches(text, @"([\u4e00-\u9fbb])", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+
+            if (Regex.Matches(text, @"[\u3041-\u31ff]", RegexOptions.Multiline).Count > 0)
+            {
+                result = CultureInfo.GetCultureInfoByIetfLanguageTag("ja-JP");
+            }
+            else if (Regex.Matches(text, @"[\uac00-\ud7ff]", RegexOptions.Multiline).Count > 0)
+            {
+                result = CultureInfo.GetCultureInfoByIetfLanguageTag("ko-KR");
+            }
+            else if (Regex.Matches(text, @"[\ua140-\ua3bf\ua440-\uc67e\uc940-\uf9d5\ue000-\uf848]", RegexOptions.Multiline).Count > 0)
+            {
+                result = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-Hant");
+            }
+            else if (Regex.Matches(text, @"[\u4e00-\u9fbb]", RegexOptions.Multiline).Count > 0)
+            {
+                result = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-Hans");
+            }
+
+            return (result);
+        }
+
+        private InstalledVoice GetVoice(CultureInfo culture)
+        {
+            InstalledVoice result = null;
+            if (culture is CultureInfo)
+            {
+                foreach (InstalledVoice voice in synth.GetInstalledVoices())
+                {
+                    VoiceInfo info = voice.VoiceInfo;
+                    var vl = info.Culture.IetfLanguageTag;
+                    if (vl.Equals(culture.IetfLanguageTag, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        result = voice;
+                        break;
+                    }
+                }
+            }
+            return (result);
+        }
+
+        private string GetVoiceName(CultureInfo culture)
+        {
+            string result = null;
+            if (culture is CultureInfo)
+            {
+                foreach (InstalledVoice voice in synth.GetInstalledVoices())
+                {
+                    VoiceInfo info = voice.VoiceInfo;
+                    var vl = info.Culture.IetfLanguageTag;
+                    if (vl.Equals(culture.IetfLanguageTag, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        result = voice.VoiceInfo.Name;
+                        break;
+                    }
+                }
+            }
+            return (result);
+        }
+
+        private Dictionary<CultureInfo, List<string>> GetVoiceNames()
+        {
+            Dictionary<CultureInfo, List<string>> result = new Dictionary<CultureInfo, List<string>>();
+            foreach (InstalledVoice voice in synth.GetInstalledVoices())
+            {
+                VoiceInfo info = voice.VoiceInfo;
+                if (result.ContainsKey(info.Culture))
+                    result[info.Culture].Add(info.Name);
+                else
+                    result[info.Culture] = new List<string>() { info.Name };
+            }
+            return (result);
+        }
+
+        public void Play(string text, CultureInfo locale = null)
         {
             if (!(synth is SpeechSynthesizer)) return;
 
@@ -67,77 +154,47 @@ namespace PixivWPF.Common
                 return;
             }
 
-            List<string> lang_cn = new List<string>() { "zh-hans", "zh-cn", "zh" };
-            List<string> lang_tw = new List<string>() { "zh-hant", "zh-tw" };
-            List<string> lang_jp = new List<string>() { "ja-jp", "ja", "jp" };
-            List<string> lang_en = new List<string>() { "en-us", "us", "en" };
-
             try
             {
-                if (!(locale is CultureInfo)) locale = Culture;
+                synth.SpeakAsyncCancelAll();
+                synth.Resume();
 
                 synth.SelectVoice(voice_default);
-                string lang = auto ? "unk" : locale.IetfLanguageTag;
-                if (lang.Equals("unk", StringComparison.CurrentCultureIgnoreCase))
+
+                if (!(locale is CultureInfo))
+                    locale = DetectCulture(text);
+
+                var nvs = GetVoiceNames();
+                if (nvs.ContainsKey(locale))
                 {
-                    lang = CultureInfo.CurrentCulture.IetfLanguageTag;
-                    //
-                    // 中文：[\u4e00-\u9fcc, \u3400-\u4db5, \u20000-\u2a6d6, \u2a700-\u2b734, \u2b740-\u2b81d, \uf900-\ufad9, \u2f800-\u2fa1d]
-                    // 日文：[\u0800-\u4e00] [\u3041-\u31ff]
-                    // 韩文：[\uac00-\ud7ff]
-                    //
-                    //var m_jp = Regex.Matches(text, @"([\u0800-\u4e00])", RegexOptions.Multiline | RegexOptions.IgnoreCase);
-                    //var m_zh = Regex.Matches(text, @"([\u4e00-\u9fbb])", RegexOptions.Multiline | RegexOptions.IgnoreCase);
-
-                    if (Regex.Matches(text, @"[\u3041-\u31ff]", RegexOptions.Multiline).Count > 0)
+                    string[] ns = new string[] {"huihui", "yaoyao", "lili", "yating", "hanhan", "ayumi", "haruka", "heami", "zira"};
+                    foreach(var nl in nvs[locale])
                     {
-                        lang = "ja";
-                    }
-                    else if (Regex.Matches(text, @"[\u4e00-\u9fbb]", RegexOptions.Multiline).Count > 0)
-                    {
-                        lang = "zh";
-                    }
-                }
-
-                // Initialize a new instance of the SpeechSynthesizer.
-                foreach (InstalledVoice voice in synth.GetInstalledVoices())
-                {
-                    VoiceInfo info = voice.VoiceInfo;
-                    var vl = info.Culture.IetfLanguageTag;
-
-                    if (lang_cn.Contains(vl.ToLower()) &&
-                        lang.StartsWith("zh", StringComparison.CurrentCultureIgnoreCase) &&
-                        voice.VoiceInfo.Name.ToLower().Contains("huihui"))
-                    {
-                        synth.SelectVoice(voice.VoiceInfo.Name);
-                        break;
-                    }
-                    else if (lang_jp.Contains(vl.ToLower()) &&
-                        lang.StartsWith("ja", StringComparison.CurrentCultureIgnoreCase) &&
-                        voice.VoiceInfo.Name.ToLower().Contains("haruka"))
-                    {
-                        synth.SelectVoice(voice.VoiceInfo.Name);
-                        break;
-                    }
-                    else if (lang_en.Contains(vl.ToLower()) &&
-                        lang.StartsWith("en", StringComparison.CurrentCultureIgnoreCase) &&
-                        voice.VoiceInfo.Name.ToLower().Contains("zira"))
-                    {
-                        synth.SelectVoice(voice.VoiceInfo.Name);
-                        break;
+                        var found = false;
+                        var nll = nl.ToLower();
+                        foreach (var n in ns)
+                        {
+                            if (nll.Contains(n))
+                            {
+                                synth.SelectVoice(nl);
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found) break;
                     }
                 }
 
                 //synth.Volume = 100;  // 0...100
                 //synth.Rate = 0;     // -10...10
-                if (text.Equals(SPEECH_TEXT, StringComparison.CurrentCultureIgnoreCase))
+                if (text.Equals(SPEECH_TEXT, StringComparison.CurrentCultureIgnoreCase) && 
+                    SPEECH_CULTURE.IetfLanguageTag.Equals(locale.IetfLanguageTag, StringComparison.CurrentCultureIgnoreCase))
                     SPEECH_SLOW = !SPEECH_SLOW;
                 else
                     SPEECH_SLOW = false;
 
                 if (SPEECH_SLOW) synth.Rate = -5;
                 else synth.Rate = 0;
-
 
                 // Synchronous
                 //synth.Speak( text );
@@ -146,6 +203,7 @@ namespace PixivWPF.Common
                 synth.Resume();
                 synth.SpeakAsync(text);
                 SPEECH_TEXT = text;
+                SPEECH_CULTURE = locale;
             }
 #if DEBUG
             catch (Exception ex)

@@ -97,6 +97,51 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
+        <ContextMenu x:Name="MenuSpeech" x:Key="MenuSpeech">
+            <MenuItem x:Name="miSpeechAuto" x:Uid="SpeechAuto" Header="Auto Detect" Click="IllustSpeech_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE164;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource AccentColorBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator/>
+            <MenuItem x:Name="miSpeechChineseS" x:Uid="SpeechChineseS" Header="Chinese Simp" Click="IllustSpeech_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE88D;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource AccentColorBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="miSpeechChineseT" x:Uid="SpeechChineseT" Header="Chinese Trad" Click="IllustSpeech_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE88C;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource AccentColorBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="miSpeechJapaness" x:Uid="SpeechJapaness" Header="Japanese" Click="IllustSpeech_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE986;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource AccentColorBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="miSpeechKorean" x:Uid="SpeechKorean" Header="Korean" Click="IllustSpeech_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE97D;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource AccentColorBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="miSpeechEnglish" x:Uid="SpeechEnglish" Header="English" Click="IllustSpeech_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE97E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource AccentColorBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
     </Page.Resources>
     
     <Grid>
@@ -500,11 +545,12 @@
                 </Expander>
                 <Button Grid.Row="2"
                         x:Name="btnIllustTagSpeech" x:Uid="Speech"
-                        Visibility="Collapsed"
+                        Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        ContextMenu="{DynamicResource MenuSpeech}"
                         Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                         Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                         Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0"
-                        Click="btnIllustSpeech_Click">
+                        Click="IllustSpeech_Click">
                     <iconPacks:PackIconModern Kind="Speakerphone" />
                 </Button>
 
@@ -523,12 +569,13 @@
                                    ImageLoad="IllustDesc_ImageLoad" />
                 </Expander>
                 <Button Grid.Row="3" 
-                        x:Name="btnIllustIntroSpeech" x:Uid="Speech"
-                        Visibility="Collapsed"
+                        x:Name="btnIllustDescSpeech" x:Uid="Speech"
+                        Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        ContextMenu="{DynamicResource MenuSpeech}"
                         Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                         Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                         Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0"
-                        Click="btnIllustSpeech_Click">
+                        Click="IllustSpeech_Click">
                     <iconPacks:PackIconModern Kind="Speakerphone" />
                 </Button>
                 <!-- Illust Subsets -->
@@ -547,7 +594,9 @@
                                           KeyUp="SubIllusts_KeyUp"/>
 
                 </Expander>
-                <StackPanel Grid.Row="4" Orientation="Horizontal" x:Name="SubIllustsNavPanel" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
+                <StackPanel Grid.Row="4" Orientation="Horizontal" x:Name="SubIllustsNavPanel" 
+                            Visibility="{Binding ElementName=SubIllustsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="btnSubIllustPrevPages" x:Uid="SubIllustPrevPages"
                             Visibility="Collapsed"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"

@@ -1,27 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Media;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
 using PixivWPF.Common;
 using MahApps.Metro.IconPacks;
+
 using TheArtOfDev.HtmlRenderer.Core.Entities;
 using TheArtOfDev.HtmlRenderer.WPF;
-using Prism.Commands;
-using System.IO;
 
 namespace PixivWPF.Pages
 {
@@ -326,7 +321,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void UpdateDetailIllust(ImageItem item)
+        private async void UpdateDetailIllust(ImageItem item)
         {
             try
             {
@@ -369,7 +364,6 @@ namespace PixivWPF.Pages
                 {
                     IllustDownloaded.Show();
                     string fp = string.Empty;
-                    //item.Illust.GetOriginalUrl(item.Index).IsDownloaded(out fp, item.Illust.PageCount <= 1);
                     item.Illust.IsPartDownloadedAsync(out fp);
                     IllustDownloaded.Tag = fp;
                     ToolTipService.SetToolTip(IllustDownloaded, fp);
@@ -425,12 +419,10 @@ namespace PixivWPF.Pages
                     IllustTagExpander.Header = "Tags";
                     IllustTagExpander.IsExpanded = true;
                     IllustTagExpander.Show();
-                    btnIllustTagSpeech.Show();
                 }
                 else
                 {
                     IllustTagExpander.Hide();
-                    btnIllustTagSpeech.Hide();
                 }
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
@@ -440,12 +432,10 @@ namespace PixivWPF.Pages
 
                     IllustDescExpander.IsExpanded = true;
                     IllustDescExpander.Show();
-                    btnIllustIntroSpeech.Show();
                 }
                 else
                 {
                     IllustDescExpander.Hide();
-                    btnIllustIntroSpeech.Hide();
                 }
 
                 SubIllusts.Tag = 0;
@@ -458,16 +448,27 @@ namespace PixivWPF.Pages
                     btnPageNext.Show();
                     PreviewBadge.Show();
                     SubIllustsExpander.Show();
-                    SubIllustsNavPanel.Show();
                     SubIllustsExpander.IsExpanded = true;
                 }
                 else if (item.Illust is Pixeez.Objects.NormalWork && item.Illust.PageCount > 1)
                 {
+                    if (item.Illust is Pixeez.Objects.NormalWork)
+                    {
+                        var subset = item.Illust as Pixeez.Objects.NormalWork;
+                        if (subset.PageCount >= 1 && subset.Metadata == null)
+                        {
+                            var illust = await item.Illust.RefreshIllust();
+                            if (illust is Pixeez.Objects.Work)
+                            {
+                                item.Illust = illust;
+                            }
+                        }
+                    }
+
                     btnPagePrev.Show();
                     btnPageNext.Show();
                     PreviewBadge.Show();
                     SubIllustsExpander.Show();
-                    SubIllustsNavPanel.Show();
                     SubIllustsExpander.IsExpanded = true;
                 }
                 else
@@ -476,7 +477,6 @@ namespace PixivWPF.Pages
                     btnPageNext.Hide();
                     PreviewBadge.Hide();
                     SubIllustsExpander.Hide();
-                    SubIllustsNavPanel.Hide();
                 }
 
                 RelativeIllustsExpander.Header = "Related Illusts";
@@ -581,12 +581,10 @@ namespace PixivWPF.Pages
                     IllustTagExpander.Header = "User Infomation";
                     IllustTagExpander.IsExpanded = false;
                     IllustTagExpander.Show();
-                    btnIllustIntroSpeech.Show();
                 }
                 else
                 {
                     IllustTagExpander.Hide();
-                    btnIllustIntroSpeech.Hide();
                 }
 
                 CommentsExpander.Hide();
@@ -604,10 +602,8 @@ namespace PixivWPF.Pages
                 }
 
                 SubIllusts.Items.Clear();
-                //SubIllusts.Refresh();
                 SubIllustsExpander.IsExpanded = false;
                 SubIllustsExpander.Hide();
-                SubIllustsNavPanel.Hide();
                 PreviewBadge.Hide();
 
                 RelativeIllustsExpander.Header = "Illusts";
@@ -665,9 +661,6 @@ namespace PixivWPF.Pages
                         btnSubIllustNextPages.Show();
 
                     SubIllusts.Tag = pageNum;
-
-                    this.DoEvents();
-                    UpdateSubPageNav();
                     this.DoEvents();
                     #endregion
 
@@ -680,7 +673,6 @@ namespace PixivWPF.Pages
                         if (subset.meta_pages.Count() > 1)
                         {
                             total = subset.meta_pages.Count();
-                            //pageCount = total / count + (total % count > 0 ? 1 : 0);
                             var pages = subset.meta_pages.Skip(start).Take(count).ToList();
                             SubIllusts.Items.Clear();
                             for (var i = start; i < end; i++)
@@ -698,28 +690,30 @@ namespace PixivWPF.Pages
                         if (subset.Metadata == null)
                         {
                             var illust = await item.Illust.RefreshIllust();
-                            //var illust = (await item.Illust.RefreshIllust()) as Pixeez.Objects.NormalWork;
                             if (illust is Pixeez.Objects.Work)
                             {
-                                item.Illust = illust;
+                                item.Illust.Metadata = illust.Metadata;
                             }
                         }
-                        total = item.Illust.Metadata.Pages.Count();
-                        //pageCount = total / count + (total % count > 0 ? 1 : 0);
-                        var pages = item.Illust.Metadata.Pages.Skip(start).Take(count).ToList();
-                        SubIllusts.Items.Clear();
-                        for (var i = start; i < end; i++)
+                        if (item.Illust.Metadata is Pixeez.Objects.Metadata)
                         {
-                            if (i == total) break;
-                            var p = pages[i-start];
-                            p.AddTo(SubIllusts.Items, item.Illust, i, item.NextURL);
+                            total = item.Illust.Metadata.Pages.Count();
+                            var pages = item.Illust.Metadata.Pages.Skip(start).Take(count).ToList();
+                            SubIllusts.Items.Clear();
+                            for (var i = start; i < end; i++)
+                            {
+                                if (i == total) break;
+                                var p = pages[i-start];
+                                p.AddTo(SubIllusts.Items, item.Illust, i, item.NextURL);
+                                this.DoEvents();
+                            }
                             this.DoEvents();
                         }
-                        this.DoEvents();
                     }
                     this.DoEvents();
                     SubIllusts.UpdateTilesImage();
                     this.DoEvents();
+                    UpdateSubPageNav();
 
                     if (SubIllusts.SelectedIndex < 0) SubIllusts.SelectedIndex = index;
                 }
@@ -907,22 +901,66 @@ namespace PixivWPF.Pages
             UpdateTheme();
         }
 
-        private void btnIllustSpeech_Click(object sender, RoutedEventArgs e)
+        private string GetText(HtmlPanel obj, bool html = false)
         {
-            if (sender == btnIllustTagSpeech)
+            string result = string.Empty;
+            if(obj is HtmlPanel)
             {
-                if (IllustTags.SelectedText.Length == 0)
-                    IllustTags.Text.HtmlToText().HtmlDecode().Play();
-                else
-                    IllustTags.SelectedText.Play();
+                var hp = obj as HtmlPanel;
+                if (!string.IsNullOrEmpty(hp.Text))
+                {
+                    if (html)
+                    {
+                        if (IllustDesc.SelectedHtml.Length == 0)
+                            result = hp.GetHtml();
+                        else
+                            result = hp.SelectedHtml;
+                    }
+                    else
+                    {
+                        if (hp.SelectedText.Length == 0)
+                            result = hp.Text.HtmlToText().HtmlDecode();
+                        else
+                            result = hp.SelectedText;
+                    }
+                }
             }
-            else if (sender == btnIllustIntroSpeech)
+            return (result);
+        }
+
+        private void IllustSpeech_Click(object sender, RoutedEventArgs e)
+        {
+            var text = string.Empty;
+            CultureInfo culture = null;
+            if (sender == btnIllustTagSpeech && !string.IsNullOrEmpty(IllustTags.Text))
+                text = GetText(IllustTags);
+            else if (sender == btnIllustDescSpeech && !string.IsNullOrEmpty(IllustDesc.Text))
+                text = GetText(IllustDesc);
+            else if(sender is MenuItem)
             {
-                if (IllustDesc.SelectedText.Length == 0)
-                    IllustDesc.Text.HtmlToText().HtmlDecode().Play();
-                else
-                    IllustDesc.SelectedText.Play();
+                var mi = sender as MenuItem;
+                if (mi.Parent is ContextMenu)
+                {
+                    var host = (mi.Parent as ContextMenu).PlacementTarget;
+                    if (host == btnIllustTagSpeech) text = GetText(IllustTags);
+                    else if (host == btnIllustDescSpeech) text = GetText(IllustDesc);
+
+                    if (mi.Uid.Equals("SpeechAuto", StringComparison.CurrentCultureIgnoreCase))
+                        culture = null;
+                    else if (mi.Uid.Equals("SpeechChineseS", StringComparison.CurrentCultureIgnoreCase))
+                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-CN");
+                    else if (mi.Uid.Equals("SpeechChineseT", StringComparison.CurrentCultureIgnoreCase))
+                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-TW");
+                    else if (mi.Uid.Equals("SpeechJapaness", StringComparison.CurrentCultureIgnoreCase))
+                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("ja-JP");
+                    else if (mi.Uid.Equals("SpeechKorean", StringComparison.CurrentCultureIgnoreCase))
+                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("ko-KR");
+                    else if (mi.Uid.Equals("SpeechEnglish", StringComparison.CurrentCultureIgnoreCase))
+                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("en-US");
+                }
             }
+
+            if (!string.IsNullOrEmpty(text)) text.Play(culture);
         }
 
         private async void IllustTags_LinkClicked(object sender, RoutedEvenArgs<HtmlLinkClickedEventArgs> args)
@@ -983,17 +1021,21 @@ namespace PixivWPF.Pages
             {
                 if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
                 {
-                    if (IllustTags.SelectedText.Length == 0)
-                        Clipboard.SetDataObject(IllustTags.Text.HtmlToText().HtmlDecode());
-                    else
-                        Clipboard.SetDataObject(IllustTags.SelectedText);
+                    var text = GetText(IllustTags);
+                    if (!string.IsNullOrEmpty(text))
+                        Clipboard.SetDataObject(text);
                 }
                 else if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.C)
                 {
-                    if (IllustTags.SelectedHtml.Length == 0)
-                        Clipboard.SetDataObject(IllustTags.GetHtml());
-                    else
-                        Clipboard.SetDataObject(IllustTags.SelectedHtml);
+                    var html = GetText(IllustTags, true);
+                    var text = GetText(IllustTags, false);
+                    var data = ClipboardHelper.CreateDataObject(html, text);
+                    Clipboard.SetDataObject(data);
+                    //var dataObject =  new DataObject();
+                    //dataObject.SetData(DataFormats.Html, html);
+                    //dataObject.SetData(DataFormats.Text, text);
+                    //dataObject.SetData(DataFormats.UnicodeText, text);
+                    //Clipboard.SetDataObject(dataObject);
                 }
             }
 #if DEBUG
@@ -1080,17 +1122,21 @@ namespace PixivWPF.Pages
             {
                 if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
                 {
-                    if (IllustDesc.SelectedText.Length == 0)
-                        Clipboard.SetDataObject(IllustDesc.Text.HtmlToText().HtmlDecode());
-                    else
-                        Clipboard.SetDataObject(IllustDesc.SelectedText);
+                    var text = GetText(IllustDesc);
+                    if (!string.IsNullOrEmpty(text))
+                        Clipboard.SetDataObject(text);
                 }
                 else if (Keyboard.Modifiers == ModifierKeys.Shift && e.Key == Key.C)
                 {
-                    if (IllustDesc.SelectedHtml.Length == 0)
-                        Clipboard.SetDataObject(IllustDesc.GetHtml());
-                    else
-                        Clipboard.SetDataObject(IllustDesc.SelectedHtml);
+                    var html = GetText(IllustDesc, true);
+                    var text = GetText(IllustDesc, false);
+                    var data = ClipboardHelper.CreateDataObject(html, text);
+                    Clipboard.SetDataObject(data);
+                    //var dataObject =  new DataObject();
+                    //dataObject.SetData(DataFormats.Html, html);
+                    //dataObject.SetData(DataFormats.Text, text);
+                    //dataObject.SetData(DataFormats.UnicodeText, text);
+                    //Clipboard.SetDataObject(dataObject);
                 }
             }
 #if DEBUG
