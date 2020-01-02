@@ -2984,9 +2984,12 @@ namespace PixivWPF.Common
 
         public static async Task InvokeAsync(this Action action)
         {
-            Dispatcher dispatcher = action.AppDispatcher();
-
-            await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+            try
+            {
+                Dispatcher dispatcher = action.AppDispatcher();
+                await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+            }
+            catch (Exception) { }
         }
 
         public static Window GetActiveWindow(this Page page)

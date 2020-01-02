@@ -82,11 +82,15 @@ namespace PixivWPF.Common
             }
             else if (Regex.Matches(text, @"[\ua140-\ua3bf\ua440-\uc67e\uc940-\uf9d5\ue000-\uf848]", RegexOptions.Multiline).Count > 0)
             {
-                result = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-Hant");
+                result = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-TW");
             }
             else if (Regex.Matches(text, @"[\u4e00-\u9fbb]", RegexOptions.Multiline).Count > 0)
             {
-                result = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-Hans");
+                result = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-CN");
+            }
+            else
+            {
+                result = CultureInfo.GetCultureInfoByIetfLanguageTag("en-US");
             }
 
             return (result);

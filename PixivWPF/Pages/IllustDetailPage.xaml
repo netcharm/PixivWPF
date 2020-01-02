@@ -295,7 +295,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,0,0"
                                    ContextMenu="{DynamicResource MenuSpeech}"
-                               Foreground="{DynamicResource LabelTextBrush}"
+                               Foreground="{DynamicResource IdealForegroundColorBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustDateInfo" Visibility="Collapsed"
                                     MinWidth="24"
@@ -318,7 +318,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
                                    ContextMenu="{DynamicResource MenuSpeech}"
-                               Foreground="{DynamicResource LabelTextBrush}"
+                               Foreground="{DynamicResource IdealForegroundColorBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
@@ -542,15 +542,19 @@
                 <Expander Grid.Row="2" Margin="0,4,0,0" IsExpanded="True"
                           x:Name="IllustTagExpander" x:Uid="IllustTagExpander"
                           Header="Tags" Visibility="Collapsed">
-                    <wpf:HtmlPanel x:Name="IllustTags" x:Uid="IllustTags" 
+                    <StackPanel Orientation="Vertical">
+                        <wpf:HtmlPanel x:Name="IllustTags" x:Uid="IllustTags" 
                                    Margin="8,0" MinHeight="48"
                                    AvoidImagesLateLoading="True"
+                                   Visibility="Collapsed"
                                    Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                    HorizontalContentAlignment="Left" VerticalContentAlignment="Top" 
                                    KeyUp="IllustTags_KeyUp"
                                    LinkClicked="IllustTags_LinkClicked" 
                                    ImageLoad="IllustTags_ImageLoad" />
+                        <WindowsFormsHost x:Name="IllustTagsHtmlHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinHeight="32" MaxHeight="480" Height="auto"/>
+                    </StackPanel>
                 </Expander>
                 <Button Grid.Row="2"
                         x:Name="btnIllustTagSpeech" x:Uid="Speech"
@@ -571,15 +575,19 @@
                 <Expander Grid.Row="3" Margin="0,4,0,0" IsExpanded="True"
                           x:Name="IllustDescExpander" x:Uid="IllustDescExpander"
                           Header="Description" Visibility="Collapsed">
-                    <wpf:HtmlPanel x:Name="IllustDesc" x:Uid="IllustDesc" 
-                                   Margin="8,0" MinHeight="48"
+                    <StackPanel Orientation="Vertical">
+                        <wpf:HtmlPanel x:Name="IllustDesc" x:Uid="IllustDesc" 
+                                   Margin="8,0" MinHeight="96"
                                    AvoidImagesLateLoading="True"
+                                   Visibility="Collapsed"
                                    Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                    HorizontalContentAlignment="Left" VerticalContentAlignment="Top" 
                                    KeyUp="IllustDesc_KeyUp"
                                    LinkClicked="IllustDesc_LinkClicked" 
                                    ImageLoad="IllustDesc_ImageLoad" />
+                        <WindowsFormsHost x:Name="IllustDescHtmlHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinHeight="64" MaxHeight="480" Height="auto"/>
+                    </StackPanel>
                 </Expander>
                 <Button Grid.Row="3" 
                         x:Name="btnIllustDescSpeech" x:Uid="Speech"
@@ -595,6 +603,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button.Content>
                 </Button>
+                
                 <!-- Illust Subsets -->
                 <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander" Margin="0, 4, 0, 0"
                           IsExpanded="False" ExpandDirection="Down" 

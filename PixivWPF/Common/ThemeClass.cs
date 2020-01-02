@@ -88,7 +88,7 @@ namespace PixivWPF.Common
                 Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["WhiteColor"] as Brush).ToColor();
+                return (appTheme.Resources["WhiteColorBrush"] as Brush).ToColor();
             }
         }
 
@@ -110,7 +110,7 @@ namespace PixivWPF.Common
                 Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["BlackColor"] as Brush).ToColor();
+                return (appTheme.Resources["BlackColorBrush"] as Brush).ToColor();
             }
         }
 
@@ -144,6 +144,28 @@ namespace PixivWPF.Common
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
                 return appAccent.Resources["AccentColorBrush"] as Brush;
+            }
+        }
+
+        public static Color AccentBaseColor
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appAccent.Resources["AccentBaseColorBrush"] as Brush).ToColor();
+            }
+        }
+
+        public static Brush AccentBaseBrush
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return appAccent.Resources["AccentBaseColorBrush"] as Brush;
             }
         }
 
@@ -224,6 +246,28 @@ namespace PixivWPF.Common
             }
         }
 
+        public static Color WindowColor
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["WindowBrush"] as Brush).ToColor();
+            }
+        }
+
+        public static Brush WindowBrush
+        {
+            get
+            {
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                AppTheme appTheme = appStyle.Item1;
+                Accent appAccent = appStyle.Item2;
+                return (appTheme.Resources["WindowBrush"] as Brush);
+            }
+        }
+
         public static Brush GrayBrush
         {
             get
@@ -253,10 +297,14 @@ namespace PixivWPF.Common
             }
             else
             {
-                var hc = b.ToString();//.Replace("#", "");
-                var c = System.Drawing.ColorTranslator.FromHtml(hc);
-                var rc = Color.FromArgb(c.A, c.R, c.G, c.B);
-                return (rc);
+                try
+                {
+                    var hc = b.ToString();//.Replace("#", "");
+                    var c = System.Drawing.ColorTranslator.FromHtml(hc);
+                    var rc = Color.FromArgb(c.A, c.R, c.G, c.B);
+                    return (rc);
+                }
+                catch (Exception) { return (default(Color)); }
             }
         }
 
