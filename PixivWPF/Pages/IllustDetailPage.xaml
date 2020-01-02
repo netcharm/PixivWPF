@@ -6,7 +6,6 @@
       xmlns:local="clr-namespace:PixivWPF.Pages"
       xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-      xmlns:wpf="clr-namespace:TheArtOfDev.HtmlRenderer.WPF;assembly=HtmlRenderer.WPF"
       xmlns:Common="clr-namespace:PixivWPF.Common"
       mc:Ignorable="d" 
       VisualTextRenderingMode="Auto"
@@ -357,7 +356,8 @@
                         </StackPanel>
                     </Grid>
 
-                    <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" 
+                                Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button x:Name="BookmarkIllust" x:Uid="BookmarkIllust" Click="ActionIllust_Click"
                                 ToolTip="Bookmark Illust"
                                 ContextMenuOpening="IllustActions_ContextMenuOpening"
@@ -541,19 +541,11 @@
                 <!-- Illust Tag -->
                 <Expander Grid.Row="2" Margin="0,4,0,0" IsExpanded="True"
                           x:Name="IllustTagExpander" x:Uid="IllustTagExpander"
-                          Header="Tags" Visibility="Collapsed">
-                    <StackPanel Orientation="Vertical">
-                        <wpf:HtmlPanel x:Name="IllustTags" x:Uid="IllustTags" 
-                                   Margin="8,0" MinHeight="48"
-                                   AvoidImagesLateLoading="True"
-                                   Visibility="Collapsed"
-                                   Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
-                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                                   HorizontalContentAlignment="Left" VerticalContentAlignment="Top" 
-                                   KeyUp="IllustTags_KeyUp"
-                                   LinkClicked="IllustTags_LinkClicked" 
-                                   ImageLoad="IllustTags_ImageLoad" />
-                        <WindowsFormsHost x:Name="IllustTagsHtmlHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinHeight="32" MaxHeight="480" Height="auto"/>
+                          Header="Tags" Visibility="Collapsed" Expanded="IllustTagExpander_Expanded">
+                    <StackPanel x:Name="IllustTagsHost"  Orientation="Vertical">
+                        <WindowsFormsHost x:Name="IllustTagsHtmlHost" Visibility="Collapsed"
+                                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                                          MinHeight="24" MaxHeight="480" Height="auto" UseLayoutRounding="True"/>
                     </StackPanel>
                 </Expander>
                 <Button Grid.Row="2"
@@ -574,19 +566,11 @@
                 <!-- Illust Info -->
                 <Expander Grid.Row="3" Margin="0,4,0,0" IsExpanded="True"
                           x:Name="IllustDescExpander" x:Uid="IllustDescExpander"
-                          Header="Description" Visibility="Collapsed">
-                    <StackPanel Orientation="Vertical">
-                        <wpf:HtmlPanel x:Name="IllustDesc" x:Uid="IllustDesc" 
-                                   Margin="8,0" MinHeight="96"
-                                   AvoidImagesLateLoading="True"
-                                   Visibility="Collapsed"
-                                   Background="Transparent" Foreground="{DynamicResource LabelTextBrush}"
-                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                                   HorizontalContentAlignment="Left" VerticalContentAlignment="Top" 
-                                   KeyUp="IllustDesc_KeyUp"
-                                   LinkClicked="IllustDesc_LinkClicked" 
-                                   ImageLoad="IllustDesc_ImageLoad" />
-                        <WindowsFormsHost x:Name="IllustDescHtmlHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinHeight="64" MaxHeight="480" Height="auto"/>
+                          Header="Description" Visibility="Collapsed" Expanded="IllustDescExpander_Expanded">
+                    <StackPanel x:Name="IllustDescHost" Orientation="Vertical">
+                        <WindowsFormsHost x:Name="IllustDescHtmlHost" Visibility="Collapsed"
+                                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                                          MinHeight="72" MaxHeight="480" Height="auto" UseLayoutRounding="True"/>
                     </StackPanel>
                 </Expander>
                 <Button Grid.Row="3" 

@@ -60,6 +60,7 @@
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ScrollViewer.IsDeferredScrollingEnabled="False"
                   SelectionMode="Single"
+                  TargetUpdated="DownloadItem_TargetUpdated"
                   ItemsSource="{Binding Items, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                   ItemTemplate="{DynamicResource DownloadItemTemplate}">
         </ListView>

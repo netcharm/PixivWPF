@@ -23,7 +23,7 @@ using System.Windows.Navigation;
 
 namespace PixivWPF.Common
 {
-    public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Unknown }
+    public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Unknown }
 
     public class DownloadInfo: INotifyPropertyChanged
     {
@@ -47,6 +47,7 @@ namespace PixivWPF.Common
             {
                 state = value;
                 NotifyPropertyChanged("StateChanged");
+                NotifyPropertyChanged();
             }
         }
 
@@ -155,6 +156,14 @@ namespace PixivWPF.Common
             }
         }
 
+        public void UpdateDownloadState(int? illustid = null, bool? exists = null)
+        {
+            if (FileName.DownoadedCacheExists())
+                State = DownloadState.Finished;
+            else
+                State = DownloadState.NonExists;
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
@@ -231,7 +240,7 @@ namespace PixivWPF.Common
             set
             {
                 Info.State = value;
-                NotifyPropertyChanged();
+                NotifyPropertyChanged("StateChanged");
             }
         }
 
@@ -515,6 +524,11 @@ namespace PixivWPF.Common
                 PART_DownInfo.Text = $"Downloading : {i.Item1 / 1024.0:0.} KB / {i.Item2 / 1024.0:0.} KB";
             });
 
+            CheckProperties();
+        }
+
+        public void UpdateDownloadState()
+        {
             CheckProperties();
         }
 

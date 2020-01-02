@@ -1378,6 +1378,8 @@ namespace PixivWPF.Common
                             (w.Content as IllustDetailPage).UpdateDownloadStateAsync(illustid, exists);
                         else if (w.Content is SearchResultPage)
                             (w.Content as SearchResultPage).UpdateDownloadStateAsync(illustid, exists);
+                        else if (w.Content is DownloadManagerPage)
+                            (w.Content as DownloadManagerPage).UpdateDownloadStateAsync(illustid, exists);
                     }
                 }
             }).InvokeAsync();

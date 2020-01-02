@@ -155,6 +155,9 @@ namespace PixivWPF.Common
         {
             if (!(synth is SpeechSynthesizer)) return;
 
+            var voices = synth.GetInstalledVoices();
+            if (voices.Count <= 0) return;
+
             if (synth.State == SynthesizerState.Paused)
             {
                 synth.Resume();
