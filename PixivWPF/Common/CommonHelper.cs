@@ -968,6 +968,81 @@ namespace PixivWPF.Common
             return result;
         }
 
+        private static string GetDefaultTemplate()
+        {
+            var result = string.Empty;
+            if (Setting.Instance is Setting)
+            {
+                var setting = Setting.Instance;
+                var template = string.IsNullOrEmpty(setting.ContentsTemplete) ? string.Empty : setting.ContentsTemplete;
+                if (string.IsNullOrEmpty(template))
+                {
+                    if (string.IsNullOrEmpty(setting.CustomContentsTemplete))
+                    {
+                        StringBuilder html = new StringBuilder();
+                        html.AppendLine("<!DOCTYPE html>");
+                        html.AppendLine("<HTML>");
+                        html.AppendLine("  <HEAD>");
+                        html.AppendLine("    <TITLE>{%title%}</TITLE>");
+                        html.AppendLine("    <META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
+                        html.AppendLine("    <META http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />");
+                        html.AppendLine("    <STYLE>");
+                        html.AppendLine("      *{font-family:\"等距更纱黑体 SC\", FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", Iosevka, \"Sarasa Mono J\", \"Sarasa Term J\", \"Sarasa Gothic J\", \"更纱黑体 SC\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif !important;}");
+                        html.AppendLine("      body{background-color: {%backcolor%} !important;}");
+                        html.AppendLine("      a:link{color:{%accentcolor%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:hover{color:{%accentcolor%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:active{color:{%accentcolor%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:visited{color:{%accentcolor%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      img{width:auto!important;height:auto!important;max-width:100%!important;max-height:100% !important;}");
+                        html.AppendLine("      .tag{color:{%accentcolor%} !important;margin:4px;text-decoration:none;}");
+                        html.AppendLine("      .desc{color:{%textcolor%} !important;text-decoration:none !important;width: 99% !important;word-wrap: break-word !important;overflow-wrap: break-word !important;white-space:normal !important;}");
+                        html.AppendLine("    </STYLE>");
+                        html.AppendLine("  </HEAD>");
+                        html.AppendLine("<BODY>");
+                        html.AppendLine("{%contents%}");
+                        html.AppendLine("</BODY>");
+                        html.AppendLine("</HTML>");
+
+                        result = html.ToString();
+
+                        File.WriteAllText(setting.ContentTemplateFile, result);
+                    }
+                    else
+                    {
+                        result = setting.CustomContentsTemplete;
+                    }
+                    setting.ContentsTemplete = result;
+                    setting.Save();
+                }
+                else
+                {
+                    result = template;
+                }
+            }
+            return (result);
+        }
+
+        public static string GetHtmlFromTemplate(this string contents, string title = "")
+        {
+            var backcolor = Theme.WhiteColor.ToHtml();
+            if (backcolor.StartsWith("#FF") && backcolor.Length > 6) backcolor = backcolor.Replace("#FF", "#");
+            else if (backcolor.StartsWith("#00") && backcolor.Length > 6) backcolor = backcolor.Replace("#00", "#");
+            var accentcolor = Theme.AccentBaseColor.ToHtml(false);
+            var textcolor = Theme.TextColor.ToHtml(false);
+
+            if (string.IsNullOrEmpty(contents)) contents = string.Empty;
+            if (string.IsNullOrEmpty(title)) title = string.Empty;
+
+            var template = GetDefaultTemplate();
+            template = Regex.Replace(template, "{%title%}", title, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%backcolor%}", backcolor, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%accentcolor%}", accentcolor, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%textcolor%}", textcolor, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%contents%}", contents, RegexOptions.IgnoreCase);
+
+            return (template.ToString());
+        }
+
         // To return an array of strings instead:
         public static string[] Slice(this string text, int lineLength)
         {

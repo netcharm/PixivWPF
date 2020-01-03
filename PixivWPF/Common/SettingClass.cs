@@ -162,6 +162,12 @@ namespace PixivWPF.Common
         private string accent = string.Empty;
         public string Accent { get; set; }
 
+        public DateTime ContentTemplateTime { get; set; } = new DateTime(0);
+        public string ContentTemplateFile { get; } = "contents-template.html";
+        public string ContentsTemplete { get; set; } = string.Empty;
+        [JsonIgnore]
+        public string CustomContentsTemplete { get; set; } = string.Empty;
+
         [JsonIgnore]
         public string SaveFolder { get; set; }
 
@@ -221,6 +227,22 @@ namespace PixivWPF.Common
                                 Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
 
                             Cache.LocalStorage.InitDownloadedWatcher();
+
+                            #region Update Contents Template
+                            if (File.Exists(Cache.ContentTemplateFile))
+                            {
+                                Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentTemplateFile);
+                                var ftc = File.GetCreationTime(Cache.ContentTemplateFile);
+                                var ftw = File.GetLastWriteTime(Cache.ContentTemplateFile);
+                                var fta = File.GetLastAccessTime(Cache.ContentTemplateFile);
+                                if (ftw > Cache.ContentTemplateTime || ftc > Cache.ContentTemplateTime || fta > Cache.ContentTemplateTime)
+                                {
+                                    Cache.ContentsTemplete = Cache.CustomContentsTemplete;
+                                    Cache.ContentTemplateTime = DateTime.Now;
+                                    Cache.Save();
+                                }
+                            }
+                            #endregion
 
                             result = Cache;
                         }

@@ -31,49 +31,6 @@ namespace PixivWPF.Pages
         private System.Windows.Forms.WebBrowser IllustDescHtml;
         private System.Windows.Forms.WebBrowser IllustTagsHtml;
 
-        private string HtmlStylus()
-        {
-            //var fonts = string.Join(",", IllustTitle.FontFamily.FamilyNames.Values);
-            var backcolor = Theme.WhiteColor.ToHtml();
-            if (backcolor.StartsWith("#FF") && backcolor.Length > 6) backcolor = backcolor.Replace("#FF", "#");
-            else if (backcolor.StartsWith("#00") && backcolor.Length > 6) backcolor = backcolor.Replace("#00", "#");
-
-            var style = new StringBuilder();
-            //style.AppendLine($"*{{font-family:FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", Monaco, Consolas, \"Courier New\", \"Segoe UI\", monospace, 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, \"WenQuanYi Microhei\", \"WenQuanYi Microhei Mono\", \"Microsoft YaHei\", Tahoma, Arial, Helvetica, sans-serif;}}");
-            style.AppendLine($"*{{font-family:\"等距更纱黑体 SC\", FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif !important;}}");
-            style.AppendLine($"body{{background-color: {backcolor} !important;}}");
-            style.AppendLine($"a:link{{color:{Theme.AccentBaseColor.ToHtml(false)} !important;text-decoration:none !important;}}");
-            style.AppendLine($"a:hover{{color:{Theme.AccentBaseColor.ToHtml(false)} !important;text-decoration:none !important;}}");
-            style.AppendLine($"a:active{{color:{Theme.AccentBaseColor.ToHtml(false)} !important;text-decoration:none !important;}}");
-            style.AppendLine($"a:visited{{color:{Theme.AccentBaseColor.ToHtml(false)} !important;text-decoration:none !important;}}");
-            //style.AppendLine($"a{{color:{Theme.TextColor.ToHtml(false)}|important;text-decoration:none !important;}}");
-            style.AppendLine($"img{{width:auto!important;height:auto!important;max-width:100%!important;max-height:100% !important;}}");
-            style.AppendLine($".tag{{color:{Theme.AccentBaseColor.ToHtml(false)} !important;margin:4px;text-decoration:none;}}");
-            style.AppendLine($".desc{{color:{Theme.TextColor.ToHtml(false)} !important;text-decoration:none !important;width: 99% !important;word-wrap: break-word !important;overflow-wrap: break-word !important;white-space:normal !important;}}");
-
-            return (style.ToString());
-        }
-
-        private string HtmlTemplate(string contents, string title = "")
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("<!DOCTYPE html>");
-            sb.AppendLine($"<HTML>");
-            sb.AppendLine("<HEAD>");
-            sb.AppendLine($"<TITLE>{title}</TITLE>");
-            sb.AppendLine("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
-            sb.AppendLine("<STYLE>");
-            sb.AppendLine(HtmlStylus().Trim());
-            sb.AppendLine("</STYLE>");
-            sb.AppendLine("</HEAD>");
-            sb.AppendLine($"<BODY>");
-            sb.AppendLine(contents);
-            sb.AppendLine("</BODY>");
-            sb.AppendLine("</HTML>");
-
-            return (sb.ToString());
-        }
-
         private WindowsFormsHostEx GetHostEx(System.Windows.Forms.WebBrowser browser)
         {
             if (browser == IllustDescHtml)
@@ -99,6 +56,7 @@ namespace PixivWPF.Pages
                 await Task.Delay(1);
                 var size = browser.Document.Body.ScrollRectangle.Size;
                 var offset = browser.Document.Body.OffsetRectangle.Top;
+                if (offset <= 0) offset = 16;
                 browser.Height = Math.Min(Math.Max(size.Height, h_min), h_max) + offset * 2;
             }
         }
@@ -152,8 +110,8 @@ namespace PixivWPF.Pages
         {
             var tagsTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustTagsHtml.Document.Title : string.Empty;
             var descTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustDescHtml.Document.Title : string.Empty;
-            IllustTagsHtml.DocumentText = HtmlTemplate(GetText(IllustTagsHtml, true), tagsTitle);
-            IllustDescHtml.DocumentText = HtmlTemplate(GetText(IllustDescHtml, true), descTitle);
+            IllustTagsHtml.DocumentText = GetText(IllustTagsHtml, true).GetHtmlFromTemplate(tagsTitle);
+            IllustDescHtml.DocumentText = GetText(IllustDescHtml, true).GetHtmlFromTemplate(descTitle);
         }
 
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -507,7 +465,7 @@ namespace PixivWPF.Pages
                         //html.AppendLine($"<button class=\"tag\" data-tag=\"{tag}\">{tag}</button>");
                     }
                     html.AppendLine("<br/>");
-                    IllustTagsHtml.DocumentText = HtmlTemplate(html.ToString().Trim(), IllustTitle.Text);
+                    IllustTagsHtml.DocumentText = html.ToString().Trim().GetHtmlFromTemplate(IllustTitle.Text);
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "Tags";
@@ -522,7 +480,8 @@ namespace PixivWPF.Pages
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
                     var contents = item.Illust.Caption.HtmlDecode().Replace("\r\n", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>").Replace("<br/>", "<br/>\r\n");
-                    IllustDescHtml.DocumentText = HtmlTemplate($"<div class=\"desc\">\r\n{contents}\r\n</div>", IllustTitle.Text);
+                    contents = $"<div class=\"desc\">\r\n{contents}\r\n</div>";
+                    IllustDescHtml.DocumentText = contents.GetHtmlFromTemplate(IllustTitle.Text);
                     AdjustBrowserSize(IllustDescHtml);
 
                     IllustDescExpander.IsExpanded = true;
@@ -674,7 +633,7 @@ namespace PixivWPF.Pages
                     }
                     desc.AppendLine("</div>");
 
-                    IllustTagsHtml.DocumentText = HtmlTemplate(desc.ToString(), IllustAuthor.Text);
+                    IllustTagsHtml.DocumentText = desc.ToString().GetHtmlFromTemplate(IllustAuthor.Text);
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "User Infomation";
@@ -693,7 +652,8 @@ namespace PixivWPF.Pages
                 {
                     var comment = nuser.comment;//.HtmlEncode();
                     var contents = comment.HtmlDecode().Replace("\r\n", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>").Replace("<br/>", "<br/>\r\n");
-                    IllustDescHtml.DocumentText = HtmlTemplate($"<div class=\"desc\">\r\n{contents}\r\n</div>", IllustAuthor.Text);
+                    contents = $"<div class=\"desc\">\r\n{contents}\r\n</div>";
+                    IllustDescHtml.DocumentText = contents.GetHtmlFromTemplate(IllustAuthor.Text);
                     AdjustBrowserSize(IllustDescHtml);
 
                     IllustDescExpander.IsExpanded = true;
@@ -1023,10 +983,10 @@ namespace PixivWPF.Pages
 
         private void CreateHtmlRender()
         {
-            IllustTagsHtml = new System.Windows.Forms.WebBrowser() { DocumentText = HtmlTemplate(string.Empty) };
+            IllustTagsHtml = new System.Windows.Forms.WebBrowser() { DocumentText = string.Empty.GetHtmlFromTemplate() };
             SetupHtmlRender(IllustTagsHtml);
 
-            IllustDescHtml = new System.Windows.Forms.WebBrowser() { DocumentText = HtmlTemplate(string.Empty) };
+            IllustDescHtml = new System.Windows.Forms.WebBrowser() { DocumentText = string.Empty.GetHtmlFromTemplate() };
             SetupHtmlRender(IllustDescHtml);
 
             UpdateTheme();
