@@ -2813,7 +2813,7 @@ namespace PixivWPF.Common
                 }
                 else
                 {
-                    progress.Visibility = Visibility.Hidden;
+                    progress.Visibility = Visibility.Collapsed;
                     progress.IsEnabled = false;
                     progress.IsActive = false;
                 }
@@ -2855,7 +2855,7 @@ namespace PixivWPF.Common
         #region Window/Dialog/MessageBox routines
         public static MetroWindow GetActiveWindow()
         {
-            MetroWindow window = Application.Current.Windows.OfType<MetroWindow>().SingleOrDefault(x => x.IsActive);
+            MetroWindow window = Application.Current.Windows.OfType<MetroWindow>().SingleOrDefault(x => x.IsActive || x.IsFocused);
             if (window == null) window = Application.Current.MainWindow as MetroWindow;
             return (window);
         }

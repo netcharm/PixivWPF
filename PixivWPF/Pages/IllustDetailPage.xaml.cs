@@ -54,32 +54,24 @@ namespace PixivWPF.Pages
             return (style.ToString());
         }
 
-        private string HtmlTemplate(string text)
+        private string HtmlTemplate(string contents, string title = "")
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("<!DOCTYPE html>");
             sb.AppendLine($"<HTML>");
             sb.AppendLine("<HEAD>");
+            sb.AppendLine($"<TITLE>{title}</TITLE>");
             sb.AppendLine("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
             sb.AppendLine("<STYLE>");
             sb.AppendLine(HtmlStylus().Trim());
             sb.AppendLine("</STYLE>");
             sb.AppendLine("</HEAD>");
             sb.AppendLine($"<BODY>");
-            sb.AppendLine(text);
+            sb.AppendLine(contents);
             sb.AppendLine("</BODY>");
             sb.AppendLine("</HTML>");
 
             return (sb.ToString());
-        }
-
-        private System.Windows.Forms.Integration.WindowsFormsHost GetHost(System.Windows.Forms.WebBrowser browser)
-        {
-            if (browser == IllustDescHtml)
-                return (IllustDescHtmlHost);
-            else if (browser == IllustTagsHtml)
-                return (IllustTagsHtmlHost);
-            else return (null);
         }
 
         private WindowsFormsHostEx GetHostEx(System.Windows.Forms.WebBrowser browser)
@@ -116,7 +108,7 @@ namespace PixivWPF.Pages
             string result = string.Empty;
             try
             {
-                if (browser is System.Windows.Forms.WebBrowser)
+                if (browser is System.Windows.Forms.WebBrowser && browser.Document is System.Windows.Forms.HtmlDocument)
                 {
                     mshtml.IHTMLDocument2 document = browser.Document.DomDocument as mshtml.IHTMLDocument2;
                     mshtml.IHTMLSelectionObject currentSelection = document.selection;
@@ -158,8 +150,10 @@ namespace PixivWPF.Pages
 
         internal void UpdateTheme()
         {
-            IllustTagsHtml.DocumentText = HtmlTemplate(GetText(IllustTagsHtml, true));
-            IllustDescHtml.DocumentText = HtmlTemplate(GetText(IllustDescHtml, true));
+            var tagsTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustTagsHtml.Document.Title : string.Empty;
+            var descTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustDescHtml.Document.Title : string.Empty;
+            IllustTagsHtml.DocumentText = HtmlTemplate(GetText(IllustTagsHtml, true), tagsTitle);
+            IllustDescHtml.DocumentText = HtmlTemplate(GetText(IllustDescHtml, true), descTitle);
         }
 
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -513,7 +507,7 @@ namespace PixivWPF.Pages
                         //html.AppendLine($"<button class=\"tag\" data-tag=\"{tag}\">{tag}</button>");
                     }
                     html.AppendLine("<br/>");
-                    IllustTagsHtml.DocumentText = HtmlTemplate(html.ToString().Trim());
+                    IllustTagsHtml.DocumentText = HtmlTemplate(html.ToString().Trim(), IllustTitle.Text);
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "Tags";
@@ -528,7 +522,7 @@ namespace PixivWPF.Pages
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
                     var contents = item.Illust.Caption.HtmlDecode().Replace("\r\n", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>").Replace("<br/>", "<br/>\r\n");
-                    IllustDescHtml.DocumentText = HtmlTemplate($"<div class=\"desc\">\r\n{contents}\r\n</div>");
+                    IllustDescHtml.DocumentText = HtmlTemplate($"<div class=\"desc\">\r\n{contents}\r\n</div>", IllustTitle.Text);
                     AdjustBrowserSize(IllustDescHtml);
 
                     IllustDescExpander.IsExpanded = true;
@@ -625,7 +619,8 @@ namespace PixivWPF.Pages
 
                 DataObject = user;
 
-                PreviewViewer.Hide(true);
+                PreviewWait.Hide();
+                PreviewViewer.Hide();
                 PreviewViewer.Height = 0;
                 PreviewBox.Hide();
                 PreviewBox.Height = 0;
@@ -679,7 +674,7 @@ namespace PixivWPF.Pages
                     }
                     desc.AppendLine("</div>");
 
-                    IllustTagsHtml.DocumentText = HtmlTemplate(desc.ToString());
+                    IllustTagsHtml.DocumentText = HtmlTemplate(desc.ToString(), IllustAuthor.Text);
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "User Infomation";
@@ -698,7 +693,7 @@ namespace PixivWPF.Pages
                 {
                     var comment = nuser.comment;//.HtmlEncode();
                     var contents = comment.HtmlDecode().Replace("\r\n", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>").Replace("<br/>", "<br/>\r\n");
-                    IllustDescHtml.DocumentText = HtmlTemplate($"<div class=\"desc\">\r\n{contents}\r\n</div>");
+                    IllustDescHtml.DocumentText = HtmlTemplate($"<div class=\"desc\">\r\n{contents}\r\n</div>", IllustAuthor.Text);
                     AdjustBrowserSize(IllustDescHtml);
 
                     IllustDescExpander.IsExpanded = true;
@@ -998,44 +993,52 @@ namespace PixivWPF.Pages
             }).InvokeAsync();
         }
 
-        private void CreateHtmlRenderPanel()
+        private void SetupHtmlRenderHost(WindowsFormsHostEx host)
         {
-            IllustTagsHtml = new System.Windows.Forms.WebBrowser();
-            IllustTagsHtml.Dock = System.Windows.Forms.DockStyle.Fill;
-            IllustTagsHtml.DocumentCompleted += WebBrowser_DocumentCompleted;
-            IllustTagsHtml.Navigating += WebBrowser_Navigating;
-            IllustTagsHtml.ProgressChanged += WebBrowser_ProgressChanged;
-            IllustTagsHtml.PreviewKeyDown += WebBrowser_PreviewKeyDown;
+            if (host is WindowsFormsHostEx)
+            {
+                host.MinHeight = 24;
+                host.MaxHeight = 480;
+                host.HorizontalAlignment = HorizontalAlignment.Stretch;
+                host.VerticalAlignment = VerticalAlignment.Stretch;
+            }
+        }
 
-            IllustDescHtml = new System.Windows.Forms.WebBrowser();
-            IllustDescHtml.Dock = System.Windows.Forms.DockStyle.Fill;
-            IllustDescHtml.DocumentCompleted += WebBrowser_DocumentCompleted;
-            IllustDescHtml.Navigating += WebBrowser_Navigating;
-            IllustDescHtml.ProgressChanged += WebBrowser_ProgressChanged;
-            IllustDescHtml.PreviewKeyDown += WebBrowser_PreviewKeyDown;
+        private void SetupHtmlRender(System.Windows.Forms.WebBrowser browser)
+        {
+            if (browser is System.Windows.Forms.WebBrowser)
+            {
+                browser.Dock = System.Windows.Forms.DockStyle.Fill;
+                //browser.AllowNavigation = false;
+                browser.AllowWebBrowserDrop = false;
+                browser.WebBrowserShortcutsEnabled = true;
+                browser.DocumentCompleted += WebBrowser_DocumentCompleted;
+                browser.Navigating += WebBrowser_Navigating;
+                browser.ProgressChanged += WebBrowser_ProgressChanged;
+                browser.PreviewKeyDown += WebBrowser_PreviewKeyDown;
+            }
+        }
+
+        private void CreateHtmlRender()
+        {
+            IllustTagsHtml = new System.Windows.Forms.WebBrowser() { DocumentText = HtmlTemplate(string.Empty) };
+            SetupHtmlRender(IllustTagsHtml);
+
+            IllustDescHtml = new System.Windows.Forms.WebBrowser() { DocumentText = HtmlTemplate(string.Empty) };
+            SetupHtmlRender(IllustDescHtml);
 
             UpdateTheme();
 
             tagsHost = new WindowsFormsHostEx();
-            tagsHost.MinHeight = IllustTagsHtmlHost.MinHeight;
-            tagsHost.MaxHeight = IllustTagsHtmlHost.MaxHeight;
-            tagsHost.Width = IllustTagsHtmlHost.Width;
-            tagsHost.HorizontalAlignment = IllustTagsHtmlHost.HorizontalAlignment;
-            tagsHost.VerticalAlignment = IllustTagsHtmlHost.VerticalAlignment;
+            SetupHtmlRenderHost(tagsHost);
             tagsHost.Child = IllustTagsHtml;
             IllustTagsHost.Children.Add(tagsHost);
 
             descHost = new WindowsFormsHostEx();
-            descHost.MinHeight = IllustDescHtmlHost.MinHeight;
-            descHost.MaxHeight = IllustDescHtmlHost.MaxHeight;
-            descHost.Width = IllustDescHtmlHost.Width;
-            descHost.HorizontalAlignment = IllustDescHtmlHost.HorizontalAlignment;
-            descHost.VerticalAlignment = IllustDescHtmlHost.VerticalAlignment;
+            SetupHtmlRenderHost(descHost);
             descHost.Child = IllustDescHtml;
             IllustDescHost.Children.Add(descHost);
 
-            //IllustTagsHtmlHost.Child = IllustTagsHtml;
-            //IllustDescHtmlHost.Child = IllustDescHtml;
             this.UpdateLayout();
         }
 
@@ -1047,7 +1050,7 @@ namespace PixivWPF.Pages
 
             IllustDetailWait.Visibility = Visibility.Collapsed;
 
-            CreateHtmlRenderPanel();
+            CreateHtmlRender();
         }
 
         #region WebBrowser Events Handle
@@ -1224,58 +1227,65 @@ namespace PixivWPF.Pages
         {
             var text = string.Empty;
             CultureInfo culture = null;
-            //if (sender == btnIllustTagSpeech && !string.IsNullOrEmpty(IllustTags.Text))
-            //    text = GetText(IllustTags).Replace("#", " ");
-            if (sender == btnIllustTagSpeech)
-                text = GetText(IllustTagsHtml).Replace("#", " ");
-            //else if (sender == btnIllustDescSpeech && !string.IsNullOrEmpty(IllustDesc.Text))
-            //    text = GetText(IllustDesc);
-            else if (sender == btnIllustDescSpeech)
-                text = GetText(IllustDescHtml);
-            else if (sender is MenuItem)
+            try
             {
-                var mi = sender as MenuItem;
-                if (mi.Parent is ContextMenu)
+                //if (sender == btnIllustTagSpeech && !string.IsNullOrEmpty(IllustTags.Text))
+                //    text = GetText(IllustTags).Replace("#", " ");
+                if (sender == btnIllustTagSpeech)
+                    text = GetText(IllustTagsHtml).Replace("#", " ");
+                //else if (sender == btnIllustDescSpeech && !string.IsNullOrEmpty(IllustDesc.Text))
+                //    text = GetText(IllustDesc);
+                else if (sender == btnIllustDescSpeech)
+                    text = GetText(IllustDescHtml);
+                else if (sender is MenuItem)
                 {
-                    var host = (mi.Parent as ContextMenu).PlacementTarget;
-                    if (host == btnIllustTagSpeech) text = GetText(IllustTagsHtml).Replace("#", " ");
-                    else if (host == btnIllustDescSpeech) text = GetText(IllustDescHtml);
-                    else if (host == IllustAuthor) text = IllustAuthor.Text;
-                    else if (host == IllustTitle) text = IllustTitle.Text;
-                    else if (host == SubIllustsExpander || host == SubIllusts)
+                    var mi = sender as MenuItem;
+                    if (mi.Parent is ContextMenu)
                     {
-                        text = IllustTitle.Text;
-                    }
-                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
-                    {
-                        foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                        var host = (mi.Parent as ContextMenu).PlacementTarget;
+                        if (host == btnIllustTagSpeech) text = GetText(IllustTagsHtml).Replace("#", " ");
+                        else if (host == btnIllustDescSpeech) text = GetText(IllustDescHtml);
+                        else if (host == IllustAuthor) text = IllustAuthor.Text;
+                        else if (host == IllustTitle) text = IllustTitle.Text;
+                        else if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            text += $"{item.Illust.Title},\r\n";
+                            text = IllustTitle.Text;
                         }
-                    }
-                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                    {
-                        foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                        else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                         {
-                            text += $"{item.Illust.Title},\r\n";
+                            foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                            {
+                                text += $"{item.Illust.Title},\r\n";
+                            }
                         }
-                    }
+                        else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                        {
+                            foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                            {
+                                text += $"{item.Illust.Title},\r\n";
+                            }
+                        }
 
-                    if (mi.Uid.Equals("SpeechAuto", StringComparison.CurrentCultureIgnoreCase))
-                        culture = null;
-                    else if (mi.Uid.Equals("SpeechChineseS", StringComparison.CurrentCultureIgnoreCase))
-                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-CN");
-                    else if (mi.Uid.Equals("SpeechChineseT", StringComparison.CurrentCultureIgnoreCase))
-                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-TW");
-                    else if (mi.Uid.Equals("SpeechJapaness", StringComparison.CurrentCultureIgnoreCase))
-                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("ja-JP");
-                    else if (mi.Uid.Equals("SpeechKorean", StringComparison.CurrentCultureIgnoreCase))
-                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("ko-KR");
-                    else if (mi.Uid.Equals("SpeechEnglish", StringComparison.CurrentCultureIgnoreCase))
-                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("en-US");
+                        if (mi.Uid.Equals("SpeechAuto", StringComparison.CurrentCultureIgnoreCase))
+                            culture = null;
+                        else if (mi.Uid.Equals("SpeechChineseS", StringComparison.CurrentCultureIgnoreCase))
+                            culture = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-CN");
+                        else if (mi.Uid.Equals("SpeechChineseT", StringComparison.CurrentCultureIgnoreCase))
+                            culture = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-TW");
+                        else if (mi.Uid.Equals("SpeechJapaness", StringComparison.CurrentCultureIgnoreCase))
+                            culture = CultureInfo.GetCultureInfoByIetfLanguageTag("ja-JP");
+                        else if (mi.Uid.Equals("SpeechKorean", StringComparison.CurrentCultureIgnoreCase))
+                            culture = CultureInfo.GetCultureInfoByIetfLanguageTag("ko-KR");
+                        else if (mi.Uid.Equals("SpeechEnglish", StringComparison.CurrentCultureIgnoreCase))
+                            culture = CultureInfo.GetCultureInfoByIetfLanguageTag("en-US");
+                    }
                 }
             }
-
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception ) { }
+#endif
             if (!string.IsNullOrEmpty(text)) text.Play(culture);
         }
 

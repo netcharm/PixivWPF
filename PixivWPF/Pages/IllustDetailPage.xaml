@@ -294,7 +294,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,0,0"
                                    ContextMenu="{DynamicResource MenuSpeech}"
-                               Foreground="{DynamicResource IdealForegroundColorBrush}"
+                               Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustDateInfo" Visibility="Collapsed"
                                     MinWidth="24"
@@ -317,7 +317,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
                                    ContextMenu="{DynamicResource MenuSpeech}"
-                               Foreground="{DynamicResource IdealForegroundColorBrush}"
+                               Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
@@ -554,11 +554,11 @@
                         ContextMenu="{DynamicResource MenuSpeech}"
                         Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                         Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                        Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0"
+                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionSpeech_Click">
                     <Button.Content>
                         <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource LabelTextBrush}"
+                               Foreground="{DynamicResource IdealForegroundColorBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button.Content>
                 </Button>
@@ -579,11 +579,11 @@
                         ContextMenu="{DynamicResource MenuSpeech}"
                         Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                         Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                        Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0"
+                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionSpeech_Click">
                     <Button.Content>
                         <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource LabelTextBrush}"
+                               Foreground="{DynamicResource IdealForegroundColorBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button.Content>
                 </Button>
@@ -608,18 +608,18 @@
                             Visibility="{Binding ElementName=SubIllustsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                             HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="btnSubIllustPrevPages" x:Uid="SubIllustPrevPages"
-                            Visibility="Collapsed"
+                            Visibility="Collapsed" Margin="0,2,0,0"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="32" Height="32" HorizontalAlignment="Right"
+                            Width="28" Height="28" HorizontalAlignment="Right"
                             Click="SubIllustPagesNav_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
                     <Button x:Name="btnSubIllustNextPages" x:Uid="SubIllustNextPages"
-                            Visibility="Collapsed"
+                            Visibility="Collapsed" Margin="0,2,0,0"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="32" Height="32" HorizontalAlignment="Right"
+                            Width="28" Height="28" HorizontalAlignment="Right"
                             Click="SubIllustPagesNav_Click">
                         <iconPacks:PackIconModern Kind="NavigateNext" />
                     </Button>
@@ -641,18 +641,18 @@
                 </Expander>
                 <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="RelativePrevPage" x:Uid="RelativePrevPage"
-                            Visibility="Collapsed"
+                            Visibility="Collapsed" Margin="0,2,0,0"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="32" Height="32" HorizontalAlignment="Right"
+                            Width="28" Height="28" HorizontalAlignment="Right"
                             Click="RelativePrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
                     <Button x:Name="RelativeNextPage" x:Uid="RelativeNextPage"
-                            Visibility="Collapsed"
+                            Visibility="Collapsed" Margin="0,2,0,0"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="32" Height="32" HorizontalAlignment="Right"
+                            Width="28" Height="28" HorizontalAlignment="Right"
                             Click="RelativeNextPage_Click">
                         <iconPacks:PackIconModern Kind="NavigateNext" />
                     </Button>
@@ -675,18 +675,18 @@
                 </Expander>
                 <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="FavoritePrevPage" x:Uid="FavoritePrevPage"
-                            Visibility="Collapsed"
+                            Visibility="Collapsed" Margin="0,2,0,0"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="32" Height="32" HorizontalAlignment="Right"
+                            Width="28" Height="28" HorizontalAlignment="Right"
                             Click="FavoritePrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
                     <Button x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage"
-                            Visibility="Collapsed"
+                            Visibility="Collapsed" Margin="0,2,0,0"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="32" Height="32" HorizontalAlignment="Right"
+                            Width="28" Height="28" HorizontalAlignment="Right"
                             Click="FavoriteNextPage_Click">
                         <iconPacks:PackIconModern Kind="NavigateNext" />
                     </Button>
@@ -706,18 +706,18 @@
                 <StackPanel Grid.Row="7" x:Name="CommentsNavigator" x:Uid="CommentsNavigator"
                             Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="CommentsPrevPage" x:Uid="CommentsPrevPage" 
-                            Visibility="Collapsed"
+                            Visibility="Collapsed" Margin="0,2,0,0"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="32" Height="32" HorizontalAlignment="Right"
+                            Width="28" Height="28" HorizontalAlignment="Right"
                             Click="CommentsPrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
                     <Button x:Name="CommentsNextPage" x:Uid="CommentsNextPage" 
-                            Visibility="Collapsed"
+                            Visibility="Collapsed" Margin="0,2,0,0"
                             Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                             Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
-                            Width="32" Height="32" HorizontalAlignment="Right"
+                            Width="28" Height="28" HorizontalAlignment="Right"
                             Click="CommentsNextPage_Click">
                         <iconPacks:PackIconModern Kind="NavigateNext" />
                     </Button>
