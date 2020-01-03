@@ -327,7 +327,7 @@ namespace PixivWPF.Common
                             var work = illust as Pixeez.Objects.IllustWork;
                             var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
                             age = $"R[{work.SanityLevel.SanityAge()}]";
-                            state = $"\r\n🔞{age}, {userliked}♥[{work.total_bookmarks}]{like}, 🖼[{work.Width}x{work.Height}]";
+                            state = $", 🔞{age}, {userliked}♥[{work.total_bookmarks}]{like}, 🖼[{work.Width}x{work.Height}]";
                         }
                         else if (illust is Pixeez.Objects.NormalWork)
                         {
@@ -335,9 +335,10 @@ namespace PixivWPF.Common
                             var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
                             var stats = work.Stats != null ? $"♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]" : string.Empty;
                             age = illust.AgeLimit != null ? $"R[{illust.AgeLimit.SanityAge()}]" : string.Empty;
-                            state = $"\r\n🔞{age}, {userliked}{stats}{like}, 🖼[{work.Width}x{work.Height}]";
+                            state = $", 🔞{age}, {userliked}{stats}{like}, 🖼[{work.Width}x{work.Height}]";
                         }
-                        tooltip = string.IsNullOrEmpty(illust.Title) ? $"{state}{tags}{tooltip}" : $"{illust.Title}{state}{tags}{tooltip}";
+                        var uname = illust.User is Pixeez.Objects.UserBase ? $"\r\n🎨[{illust.User.Name}]" : string.Empty;
+                        tooltip = string.IsNullOrEmpty(illust.Title) ? $"{uname}{state}{tags}{tooltip}" : $"{illust.Title}{uname}{state}{tags}{tooltip}";
                         result = new ImageItem()
                         {
                             ItemType = ImageItemType.Work,

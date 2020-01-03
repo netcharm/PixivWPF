@@ -78,6 +78,8 @@ namespace PixivWPF
         {
             InitializeComponent();
 
+            this.FontFamily = Setting.Instance.FontFamily;
+
             SearchBox.ItemsSource = AutoSuggestList;
 
             CommandToggleTheme.ItemsSource = Common.Theme.Accents;
@@ -85,8 +87,8 @@ namespace PixivWPF
 
             MainContent = ContentFrame;
 
-            pagetiles = new Pages.TilesPage() { Tag = ContentFrame };
-            pagenav = new Pages.NavPage() { Tag = pagetiles, NavFlyout = NavFlyout };
+            pagetiles = new Pages.TilesPage() { FontFamily = FontFamily, Tag = ContentFrame };
+            pagenav = new Pages.NavPage() { FontFamily = FontFamily, Tag = pagetiles, NavFlyout = NavFlyout };
 
             NavFlyout.Content = pagenav;
             NavFlyout.Theme = FlyoutTheme.Adapt;
@@ -119,38 +121,15 @@ namespace PixivWPF
         {
             if (MessageBox.Show("Continue Exit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes)
             {
-                //foreach (Window win in Application.Current.Windows)
-                //{
-                //    if (win == this)
-                //        continue;
-                //    else if (win is ContentWindow)
-                //        win.Close();
-                //}
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win is MainWindow) continue;
+                    else win.Close();
+                }
                 if (Setting.Instance is Setting) Setting.Instance.Save();
                 Application.Current.Shutdown();
             }
             else e.Cancel = true;
-
-            //var opt = new MetroDialogSettings();
-            //opt.AffirmativeButtonText = "_Yes";
-            //opt.NegativeButtonText = "_No";
-            //opt.DefaultButtonFocus = MessageDialogResult.Affirmative;
-            //opt.DialogMessageFontSize = 24;
-            //opt.DialogResultOnCancel = MessageDialogResult.Canceled;
-            //
-            //var ret = await this.ShowMessageAsync("Confirm", "Continue Exit?", MessageDialogStyle.AffirmativeAndNegative, opt);
-            //if (ret == MessageDialogResult.Affirmative)
-            //{
-            //    foreach (Window win in Application.Current.Windows)
-            //    {
-            //        if (win == this) 
-            //            continue;
-            //        else if(win is ContentWindow)
-            //            win.Close();
-            //    }
-            //    if (Setting.Instance is Setting) Setting.Instance.Save();
-            //    Application.Current.Shutdown();
-            //}
         }
 #endif
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)

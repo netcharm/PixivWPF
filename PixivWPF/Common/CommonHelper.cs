@@ -206,7 +206,7 @@ namespace PixivWPF.Common
         {
             if (obj.HasValue)
             {
-                var page = new DateTimePicker();
+                var page = new DateTimePicker() { FontFamily = setting.FontFamily };
                 var viewer = new MetroWindow();
                 viewer.Icon = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage().Source;
                 viewer.ShowMinButton = false;
@@ -333,11 +333,11 @@ namespace PixivWPF.Common
                 var illust = obj as Pixeez.Objects.Work;
                 var title = $"ID: {illust.Id}, {illust.Title}";
                 if (title.ActiveByTitle()) return;
-
+                
                 var item = illust.IllustItem();
                 if (item is ImageItem)
                 {
-                    var page = new IllustDetailPage() { Tag = item };
+                    var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Tag = item };
                     page.UpdateDetail(item);
 
                     var viewer = new ContentWindow()
@@ -347,6 +347,7 @@ namespace PixivWPF.Common
                         Height = HEIGHT_DEF,
                         MinWidth = WIDTH_MIN,
                         MinHeight = HEIGHT_MIN,
+                        FontFamily = setting.FontFamily,
                         Content = page
                     };
                     viewer.Show();
@@ -366,7 +367,7 @@ namespace PixivWPF.Common
                 var title = $"ID: {item.ID}, {item.Subject} - ";
                 if (title.ActiveByTitle()) return;
 
-                var page = new IllustImageViewerPage() { Tag = item };
+                var page = new IllustImageViewerPage() { FontFamily = setting.FontFamily, Tag = item };
                 page.UpdateDetail(item);
 
                 var viewer = new ContentWindow()
@@ -376,6 +377,7 @@ namespace PixivWPF.Common
                     Height = HEIGHT_DEF,
                     MinWidth = WIDTH_MIN,
                     MinHeight = HEIGHT_MIN,
+                    FontFamily = setting.FontFamily,
                     Content = page
                 };
                 viewer.Show();
@@ -392,7 +394,7 @@ namespace PixivWPF.Common
                 var title = $"User: {user.Name} / {user.Id} / {user.Account}";
                 if (title.ActiveByTitle()) return;
 
-                var page = new IllustDetailPage() { Tag = obj };
+                var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Tag = obj };
                 page.UpdateDetail(user);
 
                 var viewer = new ContentWindow()
@@ -402,6 +404,7 @@ namespace PixivWPF.Common
                     Height = HEIGHT_DEF,
                     MinWidth = WIDTH_MIN,
                     MinHeight = HEIGHT_MIN,
+                    FontFamily = setting.FontFamily,
                     Content = page
                 };
                 viewer.Show();
@@ -548,7 +551,7 @@ namespace PixivWPF.Common
                         }
                     }
 
-                    var page = new SearchResultPage() { Tag = content };
+                    var page = new SearchResultPage() { FontFamily = setting.FontFamily, Tag = content };
                     page.UpdateDetail(content);
 
                     var viewer = new ContentWindow()
@@ -559,6 +562,7 @@ namespace PixivWPF.Common
                         MinWidth = WIDTH_MIN,
                         MinHeight = HEIGHT_MIN,
                         MaxHeight = HEIGHT_MAX,
+                        FontFamily = setting.FontFamily,
                         Content = page
                     };
                     viewer.Show();
@@ -3116,6 +3120,7 @@ namespace PixivWPF.Common
                     Left = _downManager.Pos.X,
                     Top = _downManager.Pos.Y,
                     Tag = _downManager,
+                    FontFamily = setting.FontFamily,
                     Content = _downManager
                 };
                 viewer.Show();

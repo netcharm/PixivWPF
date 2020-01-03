@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 
 namespace PixivWPF.Common
 {
@@ -156,6 +157,12 @@ namespace PixivWPF.Common
             }
         }
 
+        public string FontName { get; set; } = string.Empty;
+        [JsonIgnore]
+        private FontFamily fontfamily = SystemFonts.MessageFontFamily;
+        [JsonIgnore]
+        public FontFamily FontFamily { get { return (fontfamily); } }
+
         private string theme = string.Empty;
         public string Theme { get; set; }
 
@@ -227,7 +234,21 @@ namespace PixivWPF.Common
                                 Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
 
                             Cache.LocalStorage.InitDownloadedWatcher();
-
+#if DEBUG
+                            #region Setup UI font
+                            if (!string.IsNullOrEmpty(Cache.FontName))
+                            {
+                                try
+                                {
+                                    Cache.fontfamily = new FontFamily(Cache.FontName);
+                                }
+                                catch (Exception)
+                                {
+                                    Cache.fontfamily = SystemFonts.MessageFontFamily;
+                                }
+                            }
+                            #endregion
+#endif
                             #region Update Contents Template
                             if (File.Exists(Cache.ContentTemplateFile))
                             {

@@ -14,6 +14,14 @@ namespace PixivWPF.Common
         #region Speech Synthesis routines
         public static List<InstalledVoice> InstalledVoices { get; private set; } = null;
 
+        private Dictionary<CultureInfo, List<string>> nametable = new Dictionary<CultureInfo, List<string>>() {
+            { CultureInfo.GetCultureInfo("zh-CN"), new List<string>() { "huihui", "yaoyao", "lili", "kangkang" } },
+            { CultureInfo.GetCultureInfo("zh-TW"), new List<string>() { "hanhan", "yating", "zhiwei" } },
+            { CultureInfo.GetCultureInfo("ja-JP"), new List<string>() { "haruka", "ayumi", "sayaka", "ichiro" } },
+            { CultureInfo.GetCultureInfo("ko-KR"), new List<string>() { "heami" } },
+            { CultureInfo.GetCultureInfo("en-US"), new List<string>() { "david", "zira", "mark", "eva" } }
+        };
+
         private SpeechSynthesizer synth = null;
         private string voice_default = string.Empty;
         //private bool SPEECH_AUTO = false;
@@ -177,13 +185,13 @@ namespace PixivWPF.Common
                 var nvs = GetVoiceNames();
                 if (nvs.ContainsKey(locale))
                 {
-                    string[] ns = new string[] {"huihui", "yaoyao", "lili", "yating", "hanhan", "haruka", "ayumi", "heami", "david", "zira"};
-                    foreach(var nl in nvs[locale])
+                    //string[] ns = new string[] {"huihui", "yaoyao", "lili", "yating", "hanhan", "haruka", "ayumi", "heami", "david", "zira"};
+                    foreach (var n in nametable[locale])
                     {
                         var found = false;
-                        var nll = nl.ToLower();
-                        foreach (var n in ns)
+                        foreach (var nl in nvs[locale])
                         {
+                            var nll = nl.ToLower();
                             if (nll.Contains(n))
                             {
                                 synth.SelectVoice(nl);
