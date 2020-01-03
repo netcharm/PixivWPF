@@ -21,8 +21,6 @@ namespace PixivWPF
     {
         public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
 
-        //private FakeWindow _fakeWindow = null;
-
         public Frame MainContent = null;
 
         private Pages.TilesPage pagetiles = null;
@@ -80,21 +78,6 @@ namespace PixivWPF
         {
             InitializeComponent();
 
-            //if (_fakeWindow == null)
-            //{
-            //    _fakeWindow = new FakeWindow()
-            //    {
-            //        Width = 0,
-            //        Height = 0,
-            //        Opacity = 0.00,
-            //        ShowInTaskbar = false,
-            //        ShowActivated = false
-            //    };
-            //    StylusPlugIns.Add(new FakeStylusPlugIn(_fakeWindow));
-            //    _fakeWindow.Show();
-            //    _fakeWindow.Hide();
-            //}
-
             SearchBox.ItemsSource = AutoSuggestList;
 
             CommandToggleTheme.ItemsSource = Common.Theme.Accents;
@@ -102,7 +85,6 @@ namespace PixivWPF
 
             MainContent = ContentFrame;
 
-            //ContentFrame.Content = new Pages.PageLogin() { Tag = ContentFrame };
             pagetiles = new Pages.TilesPage() { Tag = ContentFrame };
             pagenav = new Pages.NavPage() { Tag = pagetiles, NavFlyout = NavFlyout };
 
@@ -133,30 +115,42 @@ namespace PixivWPF
             if (Setting.Instance is Setting) Setting.Instance.Save();
         }
 #else
-        private async void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            e.Cancel = true;
-
-            var opt = new MetroDialogSettings();
-            opt.AffirmativeButtonText = "Yes";
-            opt.NegativeButtonText = "No";
-            opt.DefaultButtonFocus = MessageDialogResult.Affirmative;
-            opt.DialogMessageFontSize = 24;
-            opt.DialogResultOnCancel = MessageDialogResult.Canceled;
-
-            var ret = await this.ShowMessageAsync("Confirm", "Continue Exit?", MessageDialogStyle.AffirmativeAndNegative, opt);
-            if (ret == MessageDialogResult.Affirmative)
+            if (MessageBox.Show("Continue Exit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes)
             {
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win == this) 
-                        continue;
-                    else if(win is ContentWindow)
-                        win.Close();
-                }
+                //foreach (Window win in Application.Current.Windows)
+                //{
+                //    if (win == this)
+                //        continue;
+                //    else if (win is ContentWindow)
+                //        win.Close();
+                //}
                 if (Setting.Instance is Setting) Setting.Instance.Save();
                 Application.Current.Shutdown();
             }
+            else e.Cancel = true;
+
+            //var opt = new MetroDialogSettings();
+            //opt.AffirmativeButtonText = "_Yes";
+            //opt.NegativeButtonText = "_No";
+            //opt.DefaultButtonFocus = MessageDialogResult.Affirmative;
+            //opt.DialogMessageFontSize = 24;
+            //opt.DialogResultOnCancel = MessageDialogResult.Canceled;
+            //
+            //var ret = await this.ShowMessageAsync("Confirm", "Continue Exit?", MessageDialogStyle.AffirmativeAndNegative, opt);
+            //if (ret == MessageDialogResult.Affirmative)
+            //{
+            //    foreach (Window win in Application.Current.Windows)
+            //    {
+            //        if (win == this) 
+            //            continue;
+            //        else if(win is ContentWindow)
+            //            win.Close();
+            //    }
+            //    if (Setting.Instance is Setting) Setting.Instance.Save();
+            //    Application.Current.Shutdown();
+            //}
         }
 #endif
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)

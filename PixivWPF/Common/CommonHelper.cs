@@ -742,7 +742,8 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                await ex.Message.ShowMessageBoxAsync("ERROR");
+                //await ex.Message.ShowMessageBoxAsync("ERROR");
+                ex.Message.ShowMessageBox("ERROR");
             }
             return (result);
         }
@@ -1128,7 +1129,9 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                await ex.Message.ShowMessageBoxAsync("ERROR");
+                //await ex.Message.ShowMessageBoxAsync("ERROR");
+                await Task.Delay(1);
+                ex.Message.ShowMessageBox("ERROR");
             }
             return result;
         }
@@ -3054,13 +3057,15 @@ namespace PixivWPF.Common
             await ShowMessageDialogAsync(title, content);
         }
 
-        public static async void ShowMessageDialog(string title, string content)
+        public static async void ShowMessageDialog(this string title, string content)
         {
-            MetroWindow window = GetActiveWindow();
-            await window.ShowMessageAsync(title, content);
+            //MetroWindow window = GetActiveWindow();
+            //await window.ShowMessageAsync(title, content);
+            await Task.Delay(1);
+            MessageBox.Show(content, title, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        public static async Task ShowMessageDialogAsync(string title, string content)
+        public static async Task ShowMessageDialogAsync(this string title, string content)
         {
             MetroWindow window = GetActiveWindow();
             await window.ShowMessageAsync(title, content);

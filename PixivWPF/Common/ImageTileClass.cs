@@ -366,7 +366,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                CommonHelper.ShowMessageDialog("ERROR", ex.Message);
+                ex.Message.ShowMessageDialog("ERROR");
             }
             return (result);
         }
@@ -404,7 +404,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                CommonHelper.ShowMessageDialog("ERROR", ex.Message);
+                ex.Message.ShowMessageDialog("ERROR");
             }
         }
 

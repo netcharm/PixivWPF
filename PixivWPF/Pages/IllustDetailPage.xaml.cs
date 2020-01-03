@@ -997,6 +997,8 @@ namespace PixivWPF.Pages
         {
             if (host is WindowsFormsHostEx)
             {
+                //host.IsRedirected = true;
+                //host.CompositionMode = 
                 host.MinHeight = 24;
                 host.MaxHeight = 480;
                 host.HorizontalAlignment = HorizontalAlignment.Stretch;

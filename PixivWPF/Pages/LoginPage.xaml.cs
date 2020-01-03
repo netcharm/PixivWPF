@@ -151,7 +151,8 @@ namespace PixivWPF.Pages
                 }
                 catch (Exception ex)
                 {
-                    await ex.Message.ShowMessageBoxAsync("ERROR");
+                    //await ex.Message.ShowMessageBoxAsync("ERROR");
+                    ex.Message.ShowMessageBox("ERROR");
                     LoginWait.Hide();
                     CloseWindow();
                 }
