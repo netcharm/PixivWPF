@@ -537,7 +537,7 @@ namespace PixivWPF.Common
         {
             if (obj is string && !string.IsNullOrEmpty(obj))
             {
-                var content = ParseLink((string)obj);
+                var content = ParseLink(obj);
                 var id = ParseID(content);
 
                 if (!string.IsNullOrEmpty(content))
@@ -881,7 +881,7 @@ namespace PixivWPF.Common
                 else if (Regex.IsMatch(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase);
 
-                else if (Regex.IsMatch(result, @"((\d+)(_((p)|(ugoira))*\d+)*)"))
+                else if (Regex.IsMatch(result, @"^((\d+)(_((p)|(ugoira))*\d+)*)"))
                     result = Regex.Replace(result, @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
 
                 else if (!Regex.IsMatch(result, @"((UserID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
