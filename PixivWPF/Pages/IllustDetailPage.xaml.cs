@@ -495,26 +495,8 @@ namespace PixivWPF.Pages
                 SubIllusts.Items.Clear();
                 SubIllustsExpander.IsExpanded = false;
                 PreviewBadge.Badge = item.Illust.PageCount;
-                if (item.Illust is Pixeez.Objects.IllustWork && item.Illust.PageCount > 1)
+                if (item.Illust is Pixeez.Objects.Work && item.Illust.PageCount > 1)
                 {
-                    btnSubPagePrev.Show();
-                    btnSubPageNext.Show();
-                    PreviewBadge.Show();
-                    SubIllustsExpander.Show();
-                    SubIllustsExpander.IsExpanded = true;
-                }
-                else if (item.Illust is Pixeez.Objects.NormalWork && item.Illust.PageCount > 1)
-                {
-                    //var subset = item.Illust as Pixeez.Objects.NormalWork;
-                    //if (subset.PageCount >= 1 && subset.Metadata == null)
-                    //{
-                    //    var illust = await item.Illust.RefreshIllust();
-                    //    if (illust is Pixeez.Objects.Work)
-                    //    {
-                    //        item.Illust = illust;
-                    //    }
-                    //}
-
                     btnSubPagePrev.Show();
                     btnSubPageNext.Show();
                     PreviewBadge.Show();
@@ -545,7 +527,8 @@ namespace PixivWPF.Pages
 
                 await Task.Delay(1);
                 ActionRefreshAvator(item);
-                ActionRefreshPreview_Click(this, new RoutedEventArgs());
+                if(!SubIllustsExpander.IsExpanded)
+                    ActionRefreshPreview_Click(this, new RoutedEventArgs());
             }
             catch (OperationCanceledException) { }
             catch (ObjectDisposedException) { }

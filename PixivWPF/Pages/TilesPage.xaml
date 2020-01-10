@@ -130,8 +130,9 @@
                       VirtualizingPanel.VirtualizationMode="Recycling"
                       VirtualizingPanel.ScrollUnit="Item"
                       mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
-                      KeyUp="ListImageTiles_KeyUp" KeyDown="ListImageTiles_KeyDown"
+                      KeyDown="ListImageTiles_KeyDown"                      
                       MouseDoubleClick="ListImageTiles_MouseDoubleClick"
+                      MouseDown="ListImageTiles_MouseDown"
                       PreviewMouseWheel="ListImageTiles_PreviewMouseWheel"
                       SelectionChanged="ImageTiles_SelectionChanged">
                 <ListView.CacheMode>

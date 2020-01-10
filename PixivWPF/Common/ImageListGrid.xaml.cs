@@ -91,12 +91,6 @@ namespace PixivWPF.Common
             {
                 return ImageList;
             }
-            //set
-            //{
-            //    ImageList = value;
-            //    NotifyPropertyChanged("Items");
-            //    NotifyPropertyChanged("Source");
-            //}
         }
 
         //[Description("Get or Set ContextMenu")]
@@ -161,6 +155,7 @@ namespace PixivWPF.Common
         public delegate void KeyUpEventHandler(object sender, KeyEventArgs e);
         private void PART_ImageTiles_KeyUp(object sender, KeyEventArgs e)
         {
+            if (e.Handled) return;
             KeyUp?.Invoke(sender, e);
         }
 
@@ -168,6 +163,7 @@ namespace PixivWPF.Common
         public delegate void MouseWheelEventHandler(object sender, MouseWheelEventArgs e);
         private void PART_ImageTiles_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            if (e.Handled) return;
             MouseWheel?.Invoke(sender, e);
         }
 
@@ -175,7 +171,40 @@ namespace PixivWPF.Common
         public delegate void PreviewMouseWheelEventHandler(object sender, MouseWheelEventArgs e);
         private void PART_ImageTiles_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
+            if (e.Handled) return;
             PreviewMouseWheel?.Invoke(sender, e);
+        }
+
+        public new event MouseDownEventHandler MouseDown;
+        public delegate void MouseDownEventHandler(object sender, MouseButtonEventArgs e);
+        private void PART_ImageTiles_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.Handled) return;
+            MouseDown?.Invoke(sender, e);
+            //if (MouseDown is MouseDownEventHandler)
+            //{
+            //    MouseDown?.Invoke(sender, e);
+            //}
+            //else
+            //{
+            //    if (PART_ImageTiles.SelectedIndex < 0)
+            //    {
+            //        PART_ImageTiles.SelectedIndex = 0;
+            //        e.Handled = true;
+            //    }
+            //    else if (e.XButton1 == MouseButtonState.Pressed)
+            //    {
+            //        PART_ImageTiles.Items.MoveCurrentToNext();
+            //        PART_ImageTiles.ScrollIntoView(PART_ImageTiles.SelectedItem);
+            //        e.Handled = true;
+            //    }
+            //    else if (e.XButton2 == MouseButtonState.Pressed)
+            //    {
+            //        PART_ImageTiles.Items.MoveCurrentToPrevious();
+            //        PART_ImageTiles.ScrollIntoView(PART_ImageTiles.SelectedItem);
+            //        e.Handled = true;
+            //    }
+            //}
         }
 
         internal Task lastTask = null;
@@ -254,6 +283,7 @@ namespace PixivWPF.Common
                 }
             }
         }
+
 
     }
 }

@@ -144,7 +144,7 @@
                   VirtualizingPanel.ScrollUnit="Item"
                   mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
                   KeyUp="PART_ImageTiles_KeyUp" 
-                  MouseWheel="PART_ImageTiles_MouseWheel"
+                  MouseWheel="PART_ImageTiles_MouseWheel" MouseDown="PART_ImageTiles_MouseDown"
                   PreviewMouseWheel="PART_ImageTiles_PreviewMouseWheel"
                   SelectionChanged="PART_ImageTiles_SelectionChanged" >
             <ListView.CacheMode>

@@ -779,7 +779,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ListImageTiles_KeyUp(object sender, KeyEventArgs e)
+        private void ListImageTiles_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
@@ -798,17 +798,17 @@ namespace PixivWPF.Pages
             else if (e.Key == Key.Home)
             {
                 if (ListImageTiles.Items.Count > 0)
-                {
-                    ListImageTiles.SelectedIndex = 0;
-                    //ListImageTiles.Items.MoveCurrentToFirst();
+                {                   
+                    ListImageTiles.Items.MoveCurrentToFirst();
+                    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
                 }
             }
             else if (e.Key == Key.End)
             {
                 if (ListImageTiles.Items.Count > 0)
                 {
-                    ListImageTiles.SelectedIndex = ListImageTiles.Items.Count - 1;
-                    //ListImageTiles.Items.MoveCurrentToLast();
+                    ListImageTiles.Items.MoveCurrentToLast();
+                    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
                 }
             }
             else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
@@ -831,34 +831,36 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ListImageTiles_KeyDown(object sender, KeyEventArgs e)
+        private void ListImageTiles_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.Key == Key.Left)
+            //if (ListImageTiles.SelectedIndex < 0)
+            //{
+            //    ListImageTiles.Items.MoveCurrentToFirst();
+            //    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+            //    e.Handled = true;
+            //}
+            if (e.XButton1 == MouseButtonState.Pressed)
             {
-                if (ListImageTiles.SelectedIndex % 5 == 0)
-                {
-                    //ListImageTiles.SelectedIndex -= 1;
-                }
+                if (ListImageTiles.Items.IsCurrentAfterLast)
+                    ListImageTiles.Items.MoveCurrentToFirst();
+                else
+                    ListImageTiles.Items.MoveCurrentToNext();
+                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                e.Handled = true;
             }
-            else if (e.Key == Key.Right)
+            else if (e.XButton2 == MouseButtonState.Pressed)
             {
-                if (ListImageTiles.SelectedIndex >= ListImageTiles.Items.Count - 1)
-                {
-                    ShowImages(TargetPage, true);
-                }
-                else if (ListImageTiles.SelectedIndex % 5 == 4)
-                {
-                    //ListImageTiles.SelectedIndex += 1;
-                }
+                if (ListImageTiles.Items.IsCurrentBeforeFirst)
+                    ListImageTiles.Items.MoveCurrentToLast();
+                else
+                    ListImageTiles.Items.MoveCurrentToPrevious();
+                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                e.Handled = true;
             }
         }
 
         private void ListImageTiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            //var originalSource = (DependencyObject)e.OriginalSource;
-            //while ((originalSource != null) && !(originalSource is ListViewItem)) originalSource = VisualTreeHelper.GetParent(originalSource);
-            //if (originalSource == null) return;
-
             FrameworkElement originalSource = e.OriginalSource as FrameworkElement;
             FrameworkElement source = e.Source as FrameworkElement;
 
@@ -870,10 +872,6 @@ namespace PixivWPF.Pages
             {
                 ShowImages(TargetPage, true);
             }
-            //if (originalSource.DataContext != source.DataContext)
-            //{
-            //    ShowImages(TargetPage, true);
-            //}
         }
 
         private void ListImageTiles_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
