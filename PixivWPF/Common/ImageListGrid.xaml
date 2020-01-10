@@ -124,27 +124,32 @@
         <Grid.RowDefinitions>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <ListView Grid.Row="0" x:Name="PART_ImageTiles" x:Uid="ImageTiles"
+        <ListView Grid.Row="0" 
+                  x:Name="PART_ImageTiles" x:Uid="ImageTiles"
+                  BorderBrush="Transparent"
+                  HorizontalAlignment="Center" VerticalAlignment="Top" Margin="4"
                   IsSynchronizedWithCurrentItem="true"
-                  SelectionMode="{Binding SelectionMode, Mode=OneWay}"
                   ItemsSource="{Binding Items, Mode=OneWay, IsAsync=True, NotifyOnSourceUpdated=True}" 
                   ItemTemplate="{DynamicResource PART_ImageTileTemplate}"
-                  BorderBrush="Transparent"
-                  HorizontalAlignment="Center" VerticalAlignment="Top"
-                  Template="{StaticResource PART_NoScroll}"
+                  ScrollViewer.IsDeferredScrollingEnabled="False"
+                  SelectionMode="{Binding SelectionMode, Mode=OneWay}"
                   Style="{DynamicResource VirtualisedMetroListView}"
+                  Template="{StaticResource PART_NoScroll}"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.IsContainerVirtualizable="True"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                  VirtualizingPanel.CacheLength ="500"             
+                  VirtualizingPanel.CacheLength ="250"             
                   VirtualizingPanel.CacheLengthUnit="Item"
                   VirtualizingPanel.VirtualizationMode="Recycling"
-                  VirtualizingPanel.ScrollUnit="Item"                  
+                  VirtualizingPanel.ScrollUnit="Item"
                   mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
-                  SelectionChanged="PART_ImageTiles_SelectionChanged" 
                   KeyUp="PART_ImageTiles_KeyUp" 
                   MouseWheel="PART_ImageTiles_MouseWheel"
-                  PreviewMouseWheel="PART_ImageTiles_PreviewMouseWheel">
+                  PreviewMouseWheel="PART_ImageTiles_PreviewMouseWheel"
+                  SelectionChanged="PART_ImageTiles_SelectionChanged" >
+            <ListView.CacheMode>
+                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+            </ListView.CacheMode>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->

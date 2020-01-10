@@ -258,7 +258,6 @@ namespace PixivWPF.Common
 
         public static ICommand Cmd_OpenIllust { get; } = new DelegateCommand<dynamic>(obj =>
         {
-            DoEvents();
             if (obj is ImageListGrid)
             {
                 Cmd_OpenItems.Execute(obj);
@@ -279,7 +278,6 @@ namespace PixivWPF.Common
             {
                 Cmd_Search.Execute(obj as string);
             }
-            DoEvents();
         });
 
         public static ICommand Cmd_OpenItems { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -644,6 +642,11 @@ namespace PixivWPF.Common
                 Thread.Sleep(5);
                 DoEvents();
             }
+        }
+
+        public static void Sleep(this UIElement obj, int ms)
+        {
+            Sleep(ms);
         }
 
         public static async void Delay(int ms)

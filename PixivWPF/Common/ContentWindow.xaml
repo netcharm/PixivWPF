@@ -11,7 +11,7 @@
                  BorderBrush="{DynamicResource AccentColorBrush}"
                  GlowBrush="{DynamicResource AccentColorBrush}"
                  BorderThickness="1"
-                 Title="ImageViewerWindow" Height="300" Width="300" 
+                 Title="ContentWindow" Height="300" Width="300" 
                  VisualTextRenderingMode="Auto"
                  RenderOptions.BitmapScalingMode="HighQuality"
                  RenderOptions.CachingHint="Cache"

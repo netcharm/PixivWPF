@@ -72,11 +72,6 @@ namespace PixivWPF.Common
                 CommandToggleDropbox.IsChecked = true;
         }
 
-        private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
-        {
-            sender.WindowKeyUp(e);
-        }
-
         private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (this.Content is DownloadManagerPage)
@@ -101,6 +96,15 @@ namespace PixivWPF.Common
             {
                 CommonHelper.Cmd_Search.Execute(link);
             }
+        }
+
+        private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                sender.WindowKeyUp(e);
+            }
+            catch (Exception) { }
         }
 
         private void MetroWindow_MouseDown(object sender, MouseButtonEventArgs e)
@@ -239,5 +243,6 @@ namespace PixivWPF.Common
                 CommonHelper.Cmd_Search.Execute(SearchBox.Text);
             }
         }
+
     }
 }

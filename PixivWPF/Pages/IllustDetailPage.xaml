@@ -180,7 +180,7 @@
                     </Grid.Background>
                     <Viewbox x:Name="PreviewViewer" StretchDirection="DownOnly">
                         <Image x:Name="Preview" x:Uid="Preview" Stretch="None" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
                                SnapsToDevicePixels="True" />
                     </Viewbox>
                 </Grid>
@@ -219,19 +219,18 @@
                     </ContentControl.ContextMenu>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="auto" MaxWidth="48"/>
+                            <ColumnDefinition Width=".25*"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="auto" MaxWidth="48"/>
+                            <ColumnDefinition Width=".25*"/>
                         </Grid.ColumnDefinitions>
                         <Rectangle
                             Grid.Column="1"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                            Fill="Transparent" MouseLeftButtonDown="Preview_MouseLeftButtonDown">
-                        </Rectangle>
-                        <Button Grid.Column="0" x:Name="btnPagePrev" x:Uid="btnSubPagePrev"
-                                Width="64" Visibility="Collapsed"
-                                HorizontalAlignment="Center" VerticalAlignment="Stretch" 
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 
+                            MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" />
+                        <Button Grid.Column="0" x:Name="btnSubPagePrev" x:Uid="btnSubPagePrev"
+                                Width="auto" Visibility="Collapsed"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                 Background="Transparent" Foreground="{DynamicResource AccentColorBrush}" 
                                 BorderThickness="0" BorderBrush="{DynamicResource AccentColorBrush}"
                                 Click="SubPageNav_Clicked">
@@ -239,10 +238,10 @@
                                 <iconPacks:PackIconModern Kind="NavigatePrevious" Width="32" Height="32" />
                             </Button.Content>
                         </Button>
-                        <Button Grid.Column="2" x:Name="btnPageNext" x:Uid="btnSubPageNext"
-                                Width="64" Visibility="Collapsed"
-                                HorizontalAlignment="Center" VerticalAlignment="Stretch" 
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        <Button Grid.Column="2" x:Name="btnSubPageNext" x:Uid="btnSubPageNext"
+                                Width="auto" Visibility="Collapsed"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                                HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                                 Background="Transparent" Foreground="{DynamicResource AccentColorBrush}" 
                                 BorderThickness="0" BorderBrush="{DynamicResource AccentColorBrush}"
                                 Click="SubPageNav_Clicked">
@@ -293,7 +292,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,0,0"
-                                   ContextMenu="{DynamicResource MenuSpeech}"
+                                   ContextMenu="{DynamicResource MenuSpeech}" MouseLeftButtonDown="IllustInfo_MouseLeftButtonDown"
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustDateInfo" Visibility="Collapsed"
@@ -316,7 +315,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
-                                   ContextMenu="{DynamicResource MenuSpeech}"
+                                   ContextMenu="{DynamicResource MenuSpeech}" MouseLeftButtonDown="IllustInfo_MouseLeftButtonDown"
                                Foreground="{DynamicResource LabelTextBrush}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
