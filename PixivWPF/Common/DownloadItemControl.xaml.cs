@@ -23,7 +23,7 @@ using System.Windows.Navigation;
 
 namespace PixivWPF.Common
 {
-    public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Unknown }
+    public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Remove, Unknown }
 
     public class DownloadInfo: INotifyPropertyChanged
     {
@@ -160,8 +160,10 @@ namespace PixivWPF.Common
         {
             if (FileName.DownoadedCacheExists())
                 State = DownloadState.Finished;
-            else
+            else if(ProgressPercent == 100)
                 State = DownloadState.NonExists;
+            else
+                State = DownloadState.Failed;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -363,14 +365,23 @@ namespace PixivWPF.Common
                 if (IsForceStart) State = DownloadState.Idle;
                 if(Info.State == DownloadState.Finished)
                 {
+                    miOpenImage.IsEnabled = true;
+                    miOpenFolder.IsEnabled = true;
                     PART_OpenFile.IsEnabled = true;
                     PART_OpenFolder.IsEnabled = true;
                 }
                 else
                 {
+                    miOpenImage.IsEnabled = false;
+                    //miOpenFolder.IsEnabled = false;
                     PART_OpenFile.IsEnabled = false;
-                    PART_OpenFolder.IsEnabled = false;
+                    //PART_OpenFolder.IsEnabled = false;
                 }
+
+                if (Info.State == DownloadState.Downloading || Info.State == DownloadState.Writing)
+                    miRemove.IsEnabled = false;
+                else
+                    miRemove.IsEnabled = true;
             }
         }
 
@@ -624,6 +635,11 @@ namespace PixivWPF.Common
                 {
                     System.Diagnostics.Process.Start(FolderName);
                 }
+            }
+            else if(sender == miRemove)
+            {
+                if(State != DownloadState.Downloading || State != DownloadState.Writing)
+                    State = DownloadState.Remove;
             }
         }
     }

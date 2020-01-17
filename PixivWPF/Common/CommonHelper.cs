@@ -2578,7 +2578,9 @@ namespace PixivWPF.Common
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
-                        $"Illust \"{illust.Title}\" is Liked!".ShowToast("Succeed", illust.GetThumbnailUrl());
+                        var info = result.Item1 ? "Liked" : "Unliked";
+                        var title = result.Item1 ? "Succeed" : "Failed";
+                        $"Illust \"{illust.Title}\" is {info}!".ShowToast(title, illust.GetThumbnailUrl());
                     }
                 }
                 catch (Exception) { }
@@ -2608,7 +2610,9 @@ namespace PixivWPF.Common
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
-                        $"Illust \"{illust.Title}\" is Un-Liked!".ShowToast("Succeed", illust.GetThumbnailUrl());
+                        var info = result.Item1 ? "Liked" : "Unliked";
+                        var title = result.Item1 ? "Failed" : "Succeed";
+                        $"Illust \"{illust.Title}\" is {info}!".ShowToast(title, illust.GetThumbnailUrl());
                     }
                 }
                 catch (Exception) { }
@@ -2757,7 +2761,9 @@ namespace PixivWPF.Common
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
-                        $"User \"{user.Name ?? string.Empty}\" is Liked!".ShowToast("Succeed", user.GetAvatarUrl());
+                        var info = result.Item1 ? "Liked" : "Unliked";
+                        var title = result.Item1 ? "Failed" : "Succeed";
+                        $"User \"{user.Name ?? string.Empty}\" is {info}!".ShowToast(title, user.GetAvatarUrl());
                     }
                 }
                 catch (Exception) { }
@@ -2786,7 +2792,9 @@ namespace PixivWPF.Common
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
-                        $"User \"{user.Name ?? string.Empty}\" is Un-Liked!".ShowToast("Succeed", user.GetAvatarUrl());
+                        var info = result.Item1 ? "Liked" : "Unliked";
+                        var title = result.Item1 ? "Succeed" : "Failed";
+                        $"User \"{user.Name ?? string.Empty}\" is {info}!".ShowToast(title, user.GetAvatarUrl());
                     }
                 }
                 catch (Exception) { }
@@ -3116,9 +3124,9 @@ namespace PixivWPF.Common
                 var viewer = new ContentWindow()
                 {
                     Title = $"Download Manager",
-                    Width = WIDTH_MIN,
+                    Width = WIDTH_MIN + 80,
                     Height = HEIGHT_MIN,
-                    MinWidth = WIDTH_MIN,
+                    MinWidth = WIDTH_MIN + 80,
                     MinHeight = HEIGHT_MIN,
                     Left = _downManager.Pos.X,
                     Top = _downManager.Pos.Y,

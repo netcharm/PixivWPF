@@ -1270,6 +1270,7 @@ namespace PixivWPF.Pages
 
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+#if DEBUG
             if (SubIllusts.Items.Count > 0)
             {
                 if (e.Delta > 0)
@@ -1283,6 +1284,9 @@ namespace PixivWPF.Pages
                     e.Handled = true;
                 }
             }
+#else
+
+#endif
         }
 
         private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
@@ -1308,17 +1312,16 @@ namespace PixivWPF.Pages
                     e.Handled = true;
                 }
             }
-            else if (SubIllusts.Items.Count > 0 && e.XButton1 == MouseButtonState.Pressed)
+            else if (e.XButton1 == MouseButtonState.Pressed && SubIllusts.Items.Count > 0)
             {
                 SubPageNav_Clicked(btnSubPageNext, e);
                 e.Handled = true;
             }
-            else if (SubIllusts.Items.Count > 0 && e.XButton2 == MouseButtonState.Pressed)
+            else if (e.XButton2 == MouseButtonState.Pressed && SubIllusts.Items.Count > 0)
             {
                 SubPageNav_Clicked(btnSubPagePrev, e);
                 e.Handled = true;
             }
-            //this.Sleep(50);
         }
 
         private void IllustTagExpander_Expanded(object sender, RoutedEventArgs e)
@@ -1330,9 +1333,9 @@ namespace PixivWPF.Pages
         {
             AdjustBrowserSize(IllustDescHtml);
         }
-        #endregion
+#endregion
 
-        #region Illust Actions
+#region Illust Actions
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
             UpdateLikeState();
@@ -1552,9 +1555,9 @@ namespace PixivWPF.Pages
                  if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
              }).InvokeAsync();
         }
-        #endregion
+#endregion
 
-        #region Following User / Bookmark Illust routines
+#region Following User / Bookmark Illust routines
         private void IllustActions_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             e.Handled = true;
@@ -1734,9 +1737,9 @@ namespace PixivWPF.Pages
                 }
             }
         }
-        #endregion
+#endregion
 
-        #region Illust Multi-Pages related routines
+#region Illust Multi-Pages related routines
         private void SubIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (SubIllusts.Items.Count() <= 0)
@@ -1983,9 +1986,9 @@ namespace PixivWPF.Pages
                 UpdateSubPageNav();
             }
         }
-        #endregion
+#endregion
 
-        #region Relative Panel related routines
+#region Relative Panel related routines
         private void RelativeIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (DataObject is ImageItem)
@@ -2069,9 +2072,9 @@ namespace PixivWPF.Pages
                 ShowUserWorksInlineAsync(user, next_url);
             }
         }
-        #endregion
+#endregion
 
-        #region Author Favorite routines
+#region Author Favorite routines
         private void FavoriteIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (DataObject is ImageItem)
@@ -2157,9 +2160,9 @@ namespace PixivWPF.Pages
                 ShowFavoriteInlineAsunc(user, next_url);
             }
         }
-        #endregion
+#endregion
 
-        #region Illust Comments related routines
+#region Illust Comments related routines
         private async void CommentsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
@@ -2201,9 +2204,9 @@ namespace PixivWPF.Pages
 
         }
 
-        #endregion
+#endregion
 
-        #region Common ImageListGrid Context Menu
+#region Common ImageListGrid Context Menu
         private void ActionMenu_Opened(object sender, RoutedEventArgs e)
         {
             if (sender is ContextMenu)
@@ -2590,7 +2593,7 @@ namespace PixivWPF.Pages
                 }
             }
         }
-        #endregion
+#endregion
     }
 
 }

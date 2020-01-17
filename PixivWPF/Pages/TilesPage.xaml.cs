@@ -833,12 +833,6 @@ namespace PixivWPF.Pages
 
         private void ListImageTiles_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            //if (ListImageTiles.SelectedIndex < 0)
-            //{
-            //    ListImageTiles.Items.MoveCurrentToFirst();
-            //    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
-            //    e.Handled = true;
-            //}
             if (e.XButton1 == MouseButtonState.Pressed)
             {
                 if (ListImageTiles.Items.IsCurrentAfterLast)

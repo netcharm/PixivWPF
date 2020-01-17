@@ -28,7 +28,11 @@
                         <iconPacks:PackIconModern Kind="PageImage" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <Separator/>
+                <MenuItem x:Name="miRemove" x:Uid="ActionRemove" Header="Remove Current" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    </MenuItem.Icon>
+                </MenuItem>                <Separator/>
                 <MenuItem x:Name="miDownload" x:Uid="Download" Header="Download" Click="miActions_Click">
                     <MenuItem.Icon>
                         <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>

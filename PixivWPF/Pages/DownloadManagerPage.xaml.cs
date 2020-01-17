@@ -88,11 +88,7 @@ namespace PixivWPF.Pages
         private void timerCallback(object stateInfo)
         {
             //if (IsIdle) return;
-
-            //var states_job = new List<DownloadState>() { DownloadState.Downloading, DownloadState.Writing, DownloadState.Finished };
-
             var jobs_count = items.Where(i => i.State == DownloadState.Downloading).Count();
-            //var pre_jobs = items.Where(i => i.State != DownloadState.Downloading && i.State != DownloadState.Writing && i.State != DownloadState.Finished);
             var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);//|| item.State == DownloadState.Failed)
             foreach (var item in pre_jobs)
             {
@@ -109,6 +105,9 @@ namespace PixivWPF.Pages
         private async void UpdateStateInfo()
         {
             await new Action(() => {
+                var remove = items.Where(o => o.State == DownloadState.Remove );
+                foreach(var i in remove) { items.Remove(i); }
+
                 var idle = items.Where(o => o.State == DownloadState.Idle );
                 var downloading = items.Where(o => o.State == DownloadState.Downloading || o.State == DownloadState.Writing );
                 var failed = items.Where(o => o.State == DownloadState.Failed );
@@ -224,10 +223,18 @@ namespace PixivWPF.Pages
                         var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                         {
                             item.IsStart = true;
+                            item.State = DownloadState.Idle;
                         });
                     }
                 }
             }).Start();
+        }
+
+        private void ClearAll_Click(object sender, RoutedEventArgs e)
+        {
+            var clear = items.Where(o => o.State != DownloadState.Downloading || o.State != DownloadState.Writing );
+            foreach (var i in clear) { items.Remove(i); }
+            //items.Clear();
         }
 
         private void DownloadItem_TargetUpdated(object sender, DataTransferEventArgs e)
@@ -250,5 +257,6 @@ namespace PixivWPF.Pages
             MaxJobs = Convert.ToUInt32(PART_MaxJobs.Value);
             PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {MaxJobs}";
         }
+
     }
 }
