@@ -767,7 +767,7 @@ namespace PixivWPF.Common
                 using (var ms = (MemoryStream)e.Data.GetData("text/html"))
                 {
 
-                    var html = Encoding.Unicode.GetString(ms.ToArray()).Trim();
+                    var html = Encoding.Unicode.GetString(ms.ToArray()).Trim().Trim('\0');
 
                     var mr = new List<MatchCollection>();
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)"""));
@@ -775,6 +775,8 @@ namespace PixivWPF.Common
                     mr.Add(Regex.Matches(html, @"((src)|(href))=""(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"""));
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?"""));
                     mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?"));
+                    mr.Add(Regex.Matches(html, @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"));
+                    mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"));
 
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/pixiv\.navirank\.com\/id\/\d+).*?"""));
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/pixiv\.navirank\.com\/user\/\d+).*?"""));
@@ -797,7 +799,7 @@ namespace PixivWPF.Common
             }
             else if (fmts.Contains("Text"))
             {
-                var html = ((string)e.Data.GetData("Text")).Trim();
+                var html = ((string)e.Data.GetData("Text")).Trim().Trim('\0');
 
                 var mr = new List<MatchCollection>();
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?$"));
