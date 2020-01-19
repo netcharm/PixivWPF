@@ -158,12 +158,13 @@ namespace PixivWPF.Common
 
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
-            if (FileName.DownoadedCacheExists())
-                State = DownloadState.Finished;
-            else if(ProgressPercent == 100)
-                State = DownloadState.NonExists;
-            else
-                State = DownloadState.Failed;
+            if (ProgressPercent == 100)
+            {
+                if (FileName.DownoadedCacheExists())
+                    State = DownloadState.Finished;
+                else
+                    State = DownloadState.NonExists;
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -378,7 +379,7 @@ namespace PixivWPF.Common
                     //PART_OpenFolder.IsEnabled = false;
                 }
 
-                if (Info.State == DownloadState.Downloading || Info.State == DownloadState.Writing)
+                if (Info.State == DownloadState.Downloading)
                     miRemove.IsEnabled = false;
                 else
                     miRemove.IsEnabled = true;
@@ -390,7 +391,7 @@ namespace PixivWPF.Common
             CheckProperties();
         }
 
-        private async Task<string> StartAsync()
+        private async Task<string> DownloadAsync()
         {
             string result = string.Empty;
             if (string.IsNullOrEmpty(Info.Url)) return (result);
@@ -431,7 +432,7 @@ namespace PixivWPF.Common
                                 //if (ms.Length == Info.Received && Info.Received == Info.Length)
                                 if (Info.Received == Info.Length)
                                 {
-                                    State = DownloadState.Writing;
+                                    //State = DownloadState.Writing;
                                     File.WriteAllBytes(Info.FileName, ms.ToArray());
                                     State = DownloadState.Finished;
                                     IsStart = false;
@@ -477,7 +478,7 @@ namespace PixivWPF.Common
             this.Dispatcher.BeginInvoke((Action)(async () =>
             {
                 lastTick = DateTime.Now;
-                var ret = await StartAsync();
+                var ret = await DownloadAsync();
                 if (!string.IsNullOrEmpty(ret))
                 {
                     PART_OpenFile.IsEnabled = true;
@@ -638,7 +639,7 @@ namespace PixivWPF.Common
             }
             else if(sender == miRemove)
             {
-                if(State != DownloadState.Downloading || State != DownloadState.Writing)
+                if(State != DownloadState.Downloading)
                     State = DownloadState.Remove;
             }
         }

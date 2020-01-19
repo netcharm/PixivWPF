@@ -109,7 +109,7 @@ namespace PixivWPF.Pages
                 foreach(var i in remove) { items.Remove(i); }
 
                 var idle = items.Where(o => o.State == DownloadState.Idle );
-                var downloading = items.Where(o => o.State == DownloadState.Downloading || o.State == DownloadState.Writing );
+                var downloading = items.Where(o => o.State == DownloadState.Downloading);
                 var failed = items.Where(o => o.State == DownloadState.Failed );
                 var finished = items.Where(o => o.State == DownloadState.Finished );
                 var nonexists = items.Where(o => o.State == DownloadState.NonExists );
@@ -232,7 +232,7 @@ namespace PixivWPF.Pages
 
         private void ClearAll_Click(object sender, RoutedEventArgs e)
         {
-            var clear = items.Where(o => o.State != DownloadState.Downloading || o.State != DownloadState.Writing );
+            var clear = items.Where(o => o.State != DownloadState.Downloading);
             foreach (var i in clear) { items.Remove(i); }
             //items.Clear();
         }
