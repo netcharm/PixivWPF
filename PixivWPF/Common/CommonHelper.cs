@@ -2764,7 +2764,7 @@ namespace PixivWPF.Common
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
                         var info = result.Item1 ? "Liked" : "Unliked";
-                        var title = result.Item1 ? "Failed" : "Succeed";
+                        var title = result.Item1 ? "Succeed" : "Failed";
                         $"User \"{user.Name ?? string.Empty}\" is {info}!".ShowToast(title, user.GetAvatarUrl());
                     }
                 }
@@ -2795,7 +2795,7 @@ namespace PixivWPF.Common
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
                         var info = result.Item1 ? "Liked" : "Unliked";
-                        var title = result.Item1 ? "Succeed" : "Failed";
+                        var title = result.Item1 ? "Failed" : "Succeed";
                         $"User \"{user.Name ?? string.Empty}\" is {info}!".ShowToast(title, user.GetAvatarUrl());
                     }
                 }
