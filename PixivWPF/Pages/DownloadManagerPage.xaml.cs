@@ -38,6 +38,7 @@ namespace PixivWPF.Pages
         private TimerCallback tcb = null;
         private Timer timer = null;
         //private bool IsIdle = true;
+        private bool IsUpdating = false;
 
         public Point Pos { get; set; } = new Point(0, 0);
 
@@ -104,18 +105,30 @@ namespace PixivWPF.Pages
 
         private async void UpdateStateInfo()
         {
-            await new Action(() => {
-                var remove = items.Where(o => o.State == DownloadState.Remove );
-                foreach(var i in remove) { items.Remove(i); }
+            try
+            {
+                if (IsUpdating) return;
+                await new Action(() =>
+                {
+                    try
+                    {
+                        IsUpdating = true;
+                        var remove = items.Where(o => o.State == DownloadState.Remove );
+                        foreach (var i in remove) { items.Remove(i); }
 
-                var idle = items.Where(o => o.State == DownloadState.Idle );
-                var downloading = items.Where(o => o.State == DownloadState.Downloading);
-                var failed = items.Where(o => o.State == DownloadState.Failed );
-                var finished = items.Where(o => o.State == DownloadState.Finished );
-                var nonexists = items.Where(o => o.State == DownloadState.NonExists );
+                        var idle = items.Where(o => o.State == DownloadState.Idle );
+                        var downloading = items.Where(o => o.State == DownloadState.Downloading);
+                        var failed = items.Where(o => o.State == DownloadState.Failed );
+                        var finished = items.Where(o => o.State == DownloadState.Finished );
+                        var nonexists = items.Where(o => o.State == DownloadState.NonExists );
 
-                PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}";
-            }).InvokeAsync();
+                        PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}";                        
+                    }
+                    catch (Exception) { }
+                    finally { IsUpdating = false; }
+                }).InvokeAsync();
+            }
+            catch (Exception) { }
         }
 
         private bool IsExists(string url)
@@ -230,11 +243,17 @@ namespace PixivWPF.Pages
             }).Start();
         }
 
-        private void ClearAll_Click(object sender, RoutedEventArgs e)
+        private async void RemoveAll_Click(object sender, RoutedEventArgs e)
         {
-            var clear = items.Where(o => o.State != DownloadState.Downloading);
-            foreach (var i in clear) { items.Remove(i); }
-            //items.Clear();
+            try
+            {
+                await new Action(() => {
+                    var remove = items.Where(o => o.State != DownloadState.Downloading );
+                    //foreach (var i in remove) { items.Remove(i); }
+                    foreach (var i in remove) { i.State = DownloadState.Remove; }
+                }).InvokeAsync();
+            }
+            catch (Exception) { }
         }
 
         private void DownloadItem_TargetUpdated(object sender, DataTransferEventArgs e)

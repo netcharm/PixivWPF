@@ -380,9 +380,15 @@ namespace PixivWPF.Common
                 }
 
                 if (Info.State == DownloadState.Downloading)
+                {
                     miRemove.IsEnabled = false;
+                    miStopDownload.IsEnabled = true;
+                }
                 else
+                {
                     miRemove.IsEnabled = true;
+                    miStopDownload.IsEnabled = false;
+                }
             }
         }
 
@@ -421,6 +427,11 @@ namespace PixivWPF.Common
                                 int bytesread = 0;
                                 do
                                 {
+                                    if (Canceled)
+                                    {
+                                        State = DownloadState.Failed;
+                                        break;
+                                    }
                                     bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT);
                                     if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Info.Received < Info.Length)
                                     {
@@ -448,7 +459,7 @@ namespace PixivWPF.Common
                                 }
                                 else
                                 {
-                                    throw new Exception($"Download {Path.GetFileName(Info.FileName)} Failed!");
+                                    if(!Canceled) throw new Exception($"Download {Path.GetFileName(Info.FileName)} Failed!");
                                 }
                             }
                             catch (Exception ex)
@@ -641,6 +652,13 @@ namespace PixivWPF.Common
             {
                 if(State != DownloadState.Downloading)
                     State = DownloadState.Remove;
+            }
+            else if(sender == miStopDownload)
+            {
+                if (State == DownloadState.Downloading)
+                {
+                    Canceled = true;
+                }
             }
         }
     }
