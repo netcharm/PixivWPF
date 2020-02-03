@@ -302,7 +302,7 @@ namespace PixivWPF.Pages
                 {
                     btnSubPagePrev.IsEnabled = true;
                     btnSubPageNext.IsEnabled = true;
-                }                
+                }
                 btnSubPagePrev.Foreground = btnSubPagePrev.IsEnabled ? Theme.AccentBrush : Theme.IdealForegroundDisableBrush;
                 btnSubPageNext.Foreground = btnSubPageNext.IsEnabled ? Theme.AccentBrush : Theme.IdealForegroundDisableBrush;
             }
@@ -527,7 +527,7 @@ namespace PixivWPF.Pages
 
                 await Task.Delay(1);
                 ActionRefreshAvator(item);
-                if(!SubIllustsExpander.IsExpanded)
+                if (!SubIllustsExpander.IsExpanded)
                     ActionRefreshPreview_Click(this, new RoutedEventArgs());
             }
             catch (OperationCanceledException) { }
@@ -1094,7 +1094,7 @@ namespace PixivWPF.Pages
                                 Console.WriteLine(ex.Message);
                             }
 #else
-                        catch (Exception) { }
+                            catch (Exception) { }
 #endif
                         }
                     }
@@ -1123,7 +1123,7 @@ namespace PixivWPF.Pages
                         link.Click += WebBrowser_LinkClick;
                     }
                 }
-                else if(sender == IllustTagsHtml)
+                else if (sender == IllustTagsHtml)
                 {
                     var document = IllustTagsHtml.Document;
                     foreach (System.Windows.Forms.HtmlElement link in document.Links)
@@ -1149,14 +1149,14 @@ namespace PixivWPF.Pages
                 try
                 {
                     var browser = sender as System.Windows.Forms.WebBrowser;
-                    if(e.Control && e.KeyCode == System.Windows.Forms.Keys.C)
+                    if (e.Control && e.KeyCode == System.Windows.Forms.Keys.C)
                     {
                         var text = GetText(browser);
                         if (sender == IllustTagsHtml) text = text.Replace("#", " ");
                         if (!string.IsNullOrEmpty(text))
                             Clipboard.SetDataObject(text, true);
                     }
-                    else if(e.Shift && e.KeyCode == System.Windows.Forms.Keys.C)
+                    else if (e.Shift && e.KeyCode == System.Windows.Forms.Keys.C)
                     {
                         var html = GetText(browser, true);
                         var text = GetText(browser, false);
@@ -1167,7 +1167,7 @@ namespace PixivWPF.Pages
 #if DEBUG
                 catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception ) { }
+                catch (Exception) { }
 #endif
             }
         }
@@ -1188,7 +1188,7 @@ namespace PixivWPF.Pages
                 //    text = GetText(IllustDesc);
                 else if (sender == btnIllustDescSpeech)
                     text = GetText(IllustDescHtml);
-                else if(sender == IllustTitle)
+                else if (sender == IllustTitle)
                     text = IllustTitle.Text;
                 else if (sender == IllustAuthor)
                     text = IllustAuthor.Text;
@@ -1239,7 +1239,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception ) { }
+            catch (Exception) { }
 #endif
             if (!string.IsNullOrEmpty(text)) text.Play(culture);
         }
@@ -1333,9 +1333,9 @@ namespace PixivWPF.Pages
         {
             AdjustBrowserSize(IllustDescHtml);
         }
-#endregion
+        #endregion
 
-#region Illust Actions
+        #region Illust Actions
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
             UpdateLikeState();
@@ -1555,9 +1555,9 @@ namespace PixivWPF.Pages
                  if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
              }).InvokeAsync();
         }
-#endregion
+        #endregion
 
-#region Following User / Bookmark Illust routines
+        #region Following User / Bookmark Illust routines
         private void IllustActions_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             e.Handled = true;
@@ -1737,9 +1737,9 @@ namespace PixivWPF.Pages
                 }
             }
         }
-#endregion
+        #endregion
 
-#region Illust Multi-Pages related routines
+        #region Illust Multi-Pages related routines
         private void SubIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (SubIllusts.Items.Count() <= 0)
@@ -1986,9 +1986,9 @@ namespace PixivWPF.Pages
                 UpdateSubPageNav();
             }
         }
-#endregion
+        #endregion
 
-#region Relative Panel related routines
+        #region Relative Panel related routines
         private void RelativeIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (DataObject is ImageItem)
@@ -2072,9 +2072,9 @@ namespace PixivWPF.Pages
                 ShowUserWorksInlineAsync(user, next_url);
             }
         }
-#endregion
+        #endregion
 
-#region Author Favorite routines
+        #region Author Favorite routines
         private void FavoriteIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (DataObject is ImageItem)
@@ -2160,9 +2160,9 @@ namespace PixivWPF.Pages
                 ShowFavoriteInlineAsunc(user, next_url);
             }
         }
-#endregion
+        #endregion
 
-#region Illust Comments related routines
+        #region Illust Comments related routines
         private async void CommentsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
@@ -2203,10 +2203,9 @@ namespace PixivWPF.Pages
         {
 
         }
+        #endregion
 
-#endregion
-
-#region Common ImageListGrid Context Menu
+        #region Common ImageListGrid Context Menu
         private void ActionMenu_Opened(object sender, RoutedEventArgs e)
         {
             if (sender is ContextMenu)
@@ -2593,7 +2592,7 @@ namespace PixivWPF.Pages
                 }
             }
         }
-#endregion
+        #endregion
     }
 
 }

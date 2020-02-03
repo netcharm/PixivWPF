@@ -331,7 +331,7 @@ namespace PixivWPF.Common
                 var illust = obj as Pixeez.Objects.Work;
                 var title = $"ID: {illust.Id}, {illust.Title}";
                 if (title.ActiveByTitle()) return;
-                
+
                 var item = illust.IllustItem();
                 if (item is ImageItem)
                 {
@@ -770,10 +770,11 @@ namespace PixivWPF.Common
                     var html = Encoding.Unicode.GetString(ms.ToArray()).Trim().Trim('\0');
 
                     var mr = new List<MatchCollection>();
-                    mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)"""));
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+.*?)"""));
-                    mr.Add(Regex.Matches(html, @"((src)|(href))=""(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"""));
+                    mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+.*?)"""));
+                    mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)"""));
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?"""));
+                    mr.Add(Regex.Matches(html, @"((src)|(href))=""(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"""));
                     mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?"));
                     mr.Add(Regex.Matches(html, @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"));
                     mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"));
@@ -802,9 +803,10 @@ namespace PixivWPF.Common
                 var html = ((string)e.Data.GetData("Text")).Trim().Trim('\0');
 
                 var mr = new List<MatchCollection>();
-                mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?$"));
-                mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?$"));
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?$"));
+                mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?$"));
+                mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?$"));
+                mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?$"));
                 mr.Add(Regex.Matches(html, @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$"));
 
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/id\/\d+).*?$"));
@@ -837,7 +839,7 @@ namespace PixivWPF.Common
                             if (long.TryParse(link, out id))
                             {
                                 links.Add($"https://www.pixiv.net/artworks/{link}");
-                                links.Add($"https://www.pixiv.net/member.php?id={link}");
+                                links.Add($"https://www.pixiv.net/users/{link}");
                             }
                         }
                     }
@@ -866,13 +868,15 @@ namespace PixivWPF.Common
                 if (Regex.IsMatch(result, @"((UserID)|(IllustID)):( )*(\d+)", RegexOptions.IgnoreCase))
                     result = result.Trim();
 
-                else if (Regex.IsMatch(result, @"(.*?illust_id=)(\d+)(.*)", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"(.*?\/artworks\/)(\d+)(.*)", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"(.*?\/artworks\/)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"(.*?illust_id=)(\d+)(.*)", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"(.*?\/pixiv\.navirank\.com\/id\/)(\d+)(.*)", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"(.*?\/id\/)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
 
+                else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net\/users\/)(\d+)(.*)$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?\.pixiv.net\/users\/)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"^(.*?\?id=)(\d+)(.*)$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?\?id=)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"(.*?\/pixiv\.navirank\.com\/user\/)(\d+)(.*)", RegexOptions.IgnoreCase))
@@ -3058,7 +3062,7 @@ namespace PixivWPF.Common
                     ex.Message.ShowMessageBox("ERROR");
                 }
 #else
-                catch(Exception) { }
+                catch (Exception) { }
 #endif
             }
         }
@@ -3583,14 +3587,14 @@ namespace PixivWPF.Common
             {
                 if (Application.Current.Dispatcher.CheckAccess())
                 {
-                    
+
                 }
             })
         };
 
         public static void Play(this string text, CultureInfo culture)
         {
-            if(!(t2s is SpeechTTS))
+            if (!(t2s is SpeechTTS))
             {
                 t2s = new SpeechTTS();
             }
