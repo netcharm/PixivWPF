@@ -793,8 +793,14 @@ namespace PixivWPF.Pages
                 item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
                 item.IsFavorited = item.IsLiked();
 
-                detail_page.Tag = item;
-                detail_page.UpdateDetail(item);
+                var ID_O = detail_page.Tag is ImageItem ? (detail_page.Tag as ImageItem).ID : string.Empty;
+                var ID_N = item is ImageItem ? item.ID : string.Empty;
+
+                if (string.IsNullOrEmpty(ID_O) || !ID_O.Equals(ID_N, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    detail_page.Tag = item;
+                    detail_page.UpdateDetail(item);
+                }
             }
             catch (Exception ex)
             {
