@@ -1901,10 +1901,6 @@ namespace PixivWPF.Pages
 
         private async void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
         {
-            IllustsSaveProgress.Visibility = Visibility.Visible;
-            IllustsSaveProgress.Value = 0;
-            IProgress<int> progress = new Progress<int>(i => { IllustsSaveProgress.Value = i; });
-
             Pixeez.Objects.Work illust = null;
             if (DataObject is Pixeez.Objects.Work)
                 illust = DataObject as Pixeez.Objects.Work;
@@ -1919,15 +1915,10 @@ namespace PixivWPF.Pages
                 {
                     var illustset = illust as Pixeez.Objects.IllustWork;
                     var is_meta_single_page = illust.PageCount==1 ? true : false;
-                    var idx=1;
-                    var total = illustset.meta_pages.Count();
                     foreach (var pages in illustset.meta_pages)
                     {
                         var url = pages.GetOriginalUrl();
                         url.SaveImage(pages.GetThumbnailUrl(), dt, is_meta_single_page);
-
-                        idx++;
-                        progress.Report((int)((double)idx / total * 100));
                     }
                 }
                 else if (illust is Pixeez.Objects.NormalWork)
@@ -1952,9 +1943,6 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
-                IllustsSaveProgress.Value = 100;
-                IllustsSaveProgress.Visibility = Visibility.Collapsed;
-                SystemSounds.Beep.Play();
             }
         }
 

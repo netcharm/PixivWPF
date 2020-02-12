@@ -174,7 +174,8 @@ namespace PixivWPF
                 NavPageTitle.Text = title;
                 CommandNavDate.IsEnabled = false;
             }
-            pagetiles.ShowImages(pagetiles.TargetPage, false);
+            var id = pagetiles.ListImageTiles.SelectedItem is ImageItem ? (pagetiles.ListImageTiles.SelectedItem as ImageItem).ID : string.Empty;
+            pagetiles.ShowImages(pagetiles.TargetPage, false, id);
         }
 
         private void CommandNavDate_Click(object sender, RoutedEventArgs e)

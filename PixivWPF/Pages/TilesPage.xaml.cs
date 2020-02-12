@@ -22,6 +22,7 @@ namespace PixivWPF.Pages
         private Window window = null;
         private IllustDetailPage detail_page = new IllustDetailPage();
 
+        private string lastSelectedId = string.Empty;
         internal List<long> ids = new List<long>();
         internal ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
 
@@ -124,7 +125,7 @@ namespace PixivWPF.Pages
             ShowImages();
         }
 
-        internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false)
+        internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
         {
             if (window == null) window = this.GetActiveWindow();
 
@@ -224,6 +225,32 @@ namespace PixivWPF.Pages
                     ShowRanking(NextURL, "month");
                     break;
             }
+
+            lastSelectedId = id;
+        }
+
+        private void KeepLastSelected(string id)
+        {
+            if (ListImageTiles.Items.Count > 0)
+            {
+                if (!string.IsNullOrEmpty(id))
+                {
+                    foreach (var item in ListImageTiles.Items)
+                    {
+                        if (item is ImageItem)
+                        {
+                            var ID = (item as ImageItem).ID;
+                            if (ID.Equals(id, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                ListImageTiles.SelectedItem = item;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+            }
         }
 
         private async void ShowRecommanded(string nexturl = null)
@@ -275,7 +302,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                    KeepLastSelected(lastSelectedId);
                     UpdateImageTiles();
                     this.DoEvents();
                 }
@@ -327,7 +354,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                    KeepLastSelected(lastSelectedId);
                     UpdateImageTiles();
                 }
             }
@@ -378,11 +405,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    if (root.tags.Count() > 0 && ListImageTiles.SelectedIndex < 0)
-                    {
-                        ListImageTiles.SelectedIndex = 0;
-                        ListImageTiles.ScrollIntoView(ListImageTiles.Items[0]);
-                    }
+                    KeepLastSelected(lastSelectedId);
                     UpdateImageTiles();
                 }
             }
@@ -433,7 +456,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                    KeepLastSelected(lastSelectedId);
                     UpdateImageTiles();
                 }
             }
@@ -487,7 +510,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                    KeepLastSelected(lastSelectedId);
                     UpdateImageTiles();
                 }
             }
@@ -544,7 +567,7 @@ namespace PixivWPF.Pages
                             }
                         }
                         this.DoEvents();
-                        if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                        KeepLastSelected(lastSelectedId);
                         UpdateImageTiles();
                     }
                 }
@@ -597,7 +620,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                    KeepLastSelected(lastSelectedId);
                     UpdateImageTiles();
                 }
             }
@@ -660,7 +683,7 @@ namespace PixivWPF.Pages
                             ex.Message.ShowMessageBox("ERROR");
                         }
                     }
-                    if (root.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                    KeepLastSelected(lastSelectedId);
                     UpdateImageTiles();
                 }
             }
@@ -719,7 +742,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    if (root.illusts.Count() > 0 && ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
+                    KeepLastSelected(lastSelectedId);
                     UpdateImageTiles();
                 }
             }

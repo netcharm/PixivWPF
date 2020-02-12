@@ -257,7 +257,7 @@
                             Visibility="{Binding Badge}" 
                             BadgeBackground="{DynamicResource AccentColorBrush}" />
                 <mah:ProgressRing Grid.Row="0" x:Name="PreviewWait"
-                          Width="64" Height="64" Opacity="0.38" 
+                          Width="64" Height="64" Opacity="0.67" 
                           Foreground="{DynamicResource AccentColorBrush}"
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -277,7 +277,7 @@
                        Width="64" Height="64" Stretch="Uniform"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <mah:ProgressRing Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvatorWait"
-                          Width="48" Height="48" Opacity="0.38" 
+                          Width="48" Height="48" Opacity="0.67" 
                           Foreground="{DynamicResource AccentColorBrush}"
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -731,9 +731,5 @@
                           Foreground="{DynamicResource AccentColorBrush}"
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
-        <!-- Illust Save Progress -->
-        <mah:MetroProgressBar Grid.Column="1" x:Name="IllustsSaveProgress" x:Uid="IllustsSaveProgress" Height="8" VerticalAlignment="Bottom" Visibility="Collapsed"/>
-
     </Grid>
 </Page>
