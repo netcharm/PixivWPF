@@ -22,7 +22,7 @@ namespace PixivWPF.Pages
         private Window window = null;
         private IllustDetailPage detail_page = new IllustDetailPage();
 
-        private string lastSelectedId = string.Empty;
+        internal string lastSelectedId = string.Empty;
         internal List<long> ids = new List<long>();
         internal ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
 
@@ -243,13 +243,17 @@ namespace PixivWPF.Pages
                             if (ID.Equals(id, StringComparison.CurrentCultureIgnoreCase))
                             {
                                 ListImageTiles.SelectedItem = item;
+                                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
                                 break;
                             }
                         }
                     }
                 }
-                if (ListImageTiles.SelectedIndex < 0) ListImageTiles.SelectedIndex = 0;
-                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                if (ListImageTiles.SelectedIndex < 0)
+                {
+                    ListImageTiles.SelectedIndex = 0;
+                    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                }
             }
         }
 
