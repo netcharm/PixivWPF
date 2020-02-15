@@ -2586,7 +2586,8 @@ namespace PixivWPF.Common
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
                         var info = result.Item1 ? "Liked" : "Unliked";
                         var title = result.Item1 ? "Succeed" : "Failed";
-                        $"Illust \"{illust.Title}\" is {info}!".ShowToast(title, illust.GetThumbnailUrl());
+                        var fail = result.Item1 ? "is" : "isn't";
+                        $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl());
                     }
                 }
                 catch (Exception) { }
@@ -2618,7 +2619,8 @@ namespace PixivWPF.Common
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
                         var info = result.Item1 ? "Liked" : "Unliked";
                         var title = result.Item1 ? "Failed" : "Succeed";
-                        $"Illust \"{illust.Title}\" is {info}!".ShowToast(title, illust.GetThumbnailUrl());
+                        var fail = result.Item1 ?  "isn't" : "is";
+                        $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl());
                     }
                 }
                 catch (Exception) { }
@@ -2769,7 +2771,8 @@ namespace PixivWPF.Common
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
                         var info = result.Item1 ? "Liked" : "Unliked";
                         var title = result.Item1 ? "Succeed" : "Failed";
-                        $"User \"{user.Name ?? string.Empty}\" is {info}!".ShowToast(title, user.GetAvatarUrl());
+                        var fail = result.Item1 ?  "is" : "isn't";
+                        $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl());
                     }
                 }
                 catch (Exception) { }
@@ -2800,7 +2803,8 @@ namespace PixivWPF.Common
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
                         var info = result.Item1 ? "Liked" : "Unliked";
                         var title = result.Item1 ? "Failed" : "Succeed";
-                        $"User \"{user.Name ?? string.Empty}\" is {info}!".ShowToast(title, user.GetAvatarUrl());
+                        var fail = result.Item1 ?  "isn't" : "is";
+                        $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl());
                     }
                 }
                 catch (Exception) { }
