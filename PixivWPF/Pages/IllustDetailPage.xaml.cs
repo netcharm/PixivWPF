@@ -468,7 +468,7 @@ namespace PixivWPF.Pages
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "Tags";
-                    IllustTagExpander.IsExpanded = true;
+                    if (!IllustTagExpander.IsExpanded) IllustTagExpander.IsExpanded = true;
                     IllustTagExpander.Show();
                 }
                 else
@@ -483,7 +483,7 @@ namespace PixivWPF.Pages
                     IllustDescHtml.DocumentText = contents.GetHtmlFromTemplate(IllustTitle.Text);
                     AdjustBrowserSize(IllustDescHtml);
 
-                    IllustDescExpander.IsExpanded = true;
+                    if (!IllustDescExpander.IsExpanded) IllustDescExpander.IsExpanded = true;
                     IllustDescExpander.Show();
                 }
                 else
@@ -538,7 +538,6 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                //PreviewWait.Hide();
                 IllustDetailWait.Hide();
             }
         }
@@ -645,7 +644,7 @@ namespace PixivWPF.Pages
                     IllustDescHtml.DocumentText = contents.GetHtmlFromTemplate(IllustAuthor.Text);
                     AdjustBrowserSize(IllustDescHtml);
 
-                    IllustDescExpander.IsExpanded = true;
+                    if(!IllustDescExpander.IsExpanded) IllustDescExpander.IsExpanded = true;
                     IllustDescExpander.Show();
                 }
                 else
