@@ -225,7 +225,7 @@ namespace PixivWPF.Pages
                     ShowRanking(NextURL, "month");
                     break;
             }
-            if(ListImageTiles.SelectedIndex > 0 ) lastSelectedId = id;
+            if(!string.IsNullOrEmpty(id)) lastSelectedId = id;
         }
 
         private void KeepLastSelected(string id)

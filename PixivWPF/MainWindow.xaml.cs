@@ -175,7 +175,7 @@ namespace PixivWPF
                 CommandNavDate.IsEnabled = false;
             }
             //var id = pagetiles.ListImageTiles.SelectedItem is ImageItem ? (pagetiles.ListImageTiles.SelectedItem as ImageItem).ID : string.Empty;
-            var id = pagetiles.ListImageTiles.SelectedItem is ImageItem ? (pagetiles.ListImageTiles.SelectedItem as ImageItem).ID : pagetiles.lastSelectedId;
+            var id = pagetiles.ListImageTiles.SelectedIndex > 0 && pagetiles.ListImageTiles.SelectedItem is ImageItem ? (pagetiles.ListImageTiles.SelectedItem as ImageItem).ID : pagetiles.lastSelectedId;
             pagetiles.ShowImages(pagetiles.TargetPage, false, id);
         }
 
@@ -195,7 +195,8 @@ namespace PixivWPF
                 {
                     LastSelectedDate = CommonHelper.SelectedDate;
                     NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
-                    pagetiles.ShowImages(pagetiles.TargetPage, false);
+                    var id = pagetiles.ListImageTiles.SelectedIndex > 0 && pagetiles.ListImageTiles.SelectedItem is ImageItem ? (pagetiles.ListImageTiles.SelectedItem as ImageItem).ID : pagetiles.lastSelectedId;
+                    pagetiles.ShowImages(pagetiles.TargetPage, false, id);
                 }
             }
         }
@@ -206,12 +207,6 @@ namespace PixivWPF
 
         private void CommandNavNext_Click(object sender, RoutedEventArgs e)
         {
-            //var title = pagetiles.TargetPage.ToString();
-            //if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
-            //    NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
-            //else
-            //    NavPageTitle.Text = title;
-
             pagetiles.ShowImages(pagetiles.TargetPage, true);
         }
 
