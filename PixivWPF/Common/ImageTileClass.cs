@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -339,6 +340,8 @@ namespace PixivWPF.Common
                         }
                         var uname = illust.User is Pixeez.Objects.UserBase ? $"\r\n🎨[{illust.User.Name}]" : string.Empty;
                         tooltip = string.IsNullOrEmpty(illust.Title) ? $"{uname}{state}{tags}{tooltip}" : $"{illust.Title}{uname}{state}{tags}{tooltip}";
+                        //var title = string.Join(" ", Regex.Split(illust.Title, @"(?:\r\n|\n|\r)"));
+                        var title = Regex.Replace(illust.Title, @"[\n\r]", "", RegexOptions.IgnoreCase);
                         result = new ImageItem()
                         {
                             ItemType = ImageItemType.Work,
@@ -355,7 +358,7 @@ namespace PixivWPF.Common
                             ID = illust.Id.ToString(),
                             User = illust.User,
                             UserID = illust.User.Id.ToString(),
-                            Subject = illust.Title,
+                            Subject = title,
                             DisplayTitle = true,
                             Caption = illust.Caption,
                             ToolTip = $"📅[{illust.GetDateTime()}]{tooltip}",
@@ -428,7 +431,7 @@ namespace PixivWPF.Common
                             i.IsFavorited = false;
                             i.IsDisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
-                            i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
+                            i.Subject = $"{i.Subject} - {index + 1}/{illust.PageCount}";
                             i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloadedAsync(false);
                             i.Tag = pages;
                             Collection.Add(i);
@@ -463,7 +466,7 @@ namespace PixivWPF.Common
                             i.IsFavorited = false;
                             i.IsDisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
-                            i.Subject = $"{illust.Title} - {index + 1}/{illust.PageCount}";
+                            i.Subject = $"{i.Subject} - {index + 1}/{illust.PageCount}";
                             i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false);
                             i.Tag = page;
                             Collection.Add(i);
