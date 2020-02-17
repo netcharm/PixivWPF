@@ -74,6 +74,18 @@ namespace PixivWPF
             }
         }
 
+        private string GetLastSelectedID()
+        {
+            string id = string.Empty;
+            if (pagetiles.ListImageTiles.Items.Count > 0)
+            {
+                if (pagetiles.ListImageTiles.SelectedIndex == 0 && string.IsNullOrEmpty(pagetiles.lastSelectedId))
+                    pagetiles.lastSelectedId = (pagetiles.ListImageTiles.Items[0] as ImageItem).ID;
+                id = pagetiles.ListImageTiles.SelectedItem is ImageItem ? (pagetiles.ListImageTiles.SelectedItem as ImageItem).ID : pagetiles.lastSelectedId;
+            }
+            return (id);
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -174,9 +186,7 @@ namespace PixivWPF
                 NavPageTitle.Text = title;
                 CommandNavDate.IsEnabled = false;
             }
-            //var id = pagetiles.ListImageTiles.SelectedItem is ImageItem ? (pagetiles.ListImageTiles.SelectedItem as ImageItem).ID : string.Empty;
-            var id = pagetiles.ListImageTiles.SelectedIndex > 0 && pagetiles.ListImageTiles.SelectedItem is ImageItem ? (pagetiles.ListImageTiles.SelectedItem as ImageItem).ID : pagetiles.lastSelectedId;
-            pagetiles.ShowImages(pagetiles.TargetPage, false, id);
+            pagetiles.ShowImages(pagetiles.TargetPage, false, GetLastSelectedID());
         }
 
         private void CommandNavDate_Click(object sender, RoutedEventArgs e)
@@ -195,8 +205,7 @@ namespace PixivWPF
                 {
                     LastSelectedDate = CommonHelper.SelectedDate;
                     NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
-                    var id = pagetiles.ListImageTiles.SelectedIndex > 0 && pagetiles.ListImageTiles.SelectedItem is ImageItem ? (pagetiles.ListImageTiles.SelectedItem as ImageItem).ID : pagetiles.lastSelectedId;
-                    pagetiles.ShowImages(pagetiles.TargetPage, false, id);
+                    pagetiles.ShowImages(pagetiles.TargetPage, false, GetLastSelectedID());
                 }
             }
         }
