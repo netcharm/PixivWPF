@@ -368,15 +368,10 @@ namespace PixivWPF.Common
                 {
                     miOpenImage.IsEnabled = true;
                     miOpenFolder.IsEnabled = true;
-                    PART_OpenFile.IsEnabled = true;
-                    PART_OpenFolder.IsEnabled = true;
                 }
                 else
                 {
                     miOpenImage.IsEnabled = false;
-                    //miOpenFolder.IsEnabled = false;
-                    PART_OpenFile.IsEnabled = false;
-                    //PART_OpenFolder.IsEnabled = false;
                 }
 
                 if (Info.State == DownloadState.Downloading)
@@ -389,6 +384,15 @@ namespace PixivWPF.Common
                     miRemove.IsEnabled = true;
                     miStopDownload.IsEnabled = false;
                 }
+
+                PART_CopyIllustID.IsEnabled = miCopyIllustID.IsEnabled;
+                PART_StopDownload.IsEnabled = miStopDownload.IsEnabled;
+                PART_Remove.IsEnabled = miRemove.IsEnabled;
+                PART_Download.IsEnabled = miDownload.IsEnabled;
+
+                PART_OpenIllust.IsEnabled = miOpenIllust.IsEnabled;
+                PART_OpenFile.IsEnabled = miOpenImage.IsEnabled;
+                PART_OpenFolder.IsEnabled = miOpenFolder.IsEnabled;
             }
         }
 
@@ -620,44 +624,44 @@ namespace PixivWPF.Common
 
         private void miActions_Click(object sender, RoutedEventArgs e)
         {
-            if(sender == miCopyIllustID && !string.IsNullOrEmpty(Url))
+            if((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
             {
                 CommonHelper.Cmd_CopyIllustIDs.Execute(Url);
             }
-            else if(sender == miOpenIllust && !string.IsNullOrEmpty(Url))
+            else if((sender == miOpenIllust || sender == PART_OpenIllust) && !string.IsNullOrEmpty(Url))
             {
                 CommonHelper.Cmd_OpenIllust.Execute(Url);
             }
-            else if (sender == miDownload)
+            else if (sender == miDownload || sender == PART_Download)
             {
                 CheckProperties();
                 State = DownloadState.Idle;
                 Start();
             }
-            else if (sender == miOpenImage)
+            else if (sender == miRemove || sender == PART_Remove)
+            {
+                if (State != DownloadState.Downloading)
+                    State = DownloadState.Remove;
+            }
+            else if (sender == miStopDownload || sender == PART_StopDownload)
+            {
+                if (State == DownloadState.Downloading)
+                {
+                    Canceled = true;
+                }
+            }
+            else if (sender == miOpenImage || sender == PART_OpenFile)
             {
                 if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
                 {
                     System.Diagnostics.Process.Start(FileName);
                 }
             }
-            else if (sender == miOpenFolder)
+            else if (sender == miOpenFolder || sender == PART_OpenFolder)
             {
                 if (!string.IsNullOrEmpty(FolderName) && Directory.Exists(FolderName))
                 {
                     System.Diagnostics.Process.Start(FolderName);
-                }
-            }
-            else if(sender == miRemove)
-            {
-                if(State != DownloadState.Downloading)
-                    State = DownloadState.Remove;
-            }
-            else if(sender == miStopDownload)
-            {
-                if (State == DownloadState.Downloading)
-                {
-                    Canceled = true;
                 }
             }
         }

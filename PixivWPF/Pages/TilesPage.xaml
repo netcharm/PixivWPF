@@ -125,7 +125,7 @@
                       VirtualizingPanel.IsVirtualizing="True"
                       VirtualizingPanel.IsContainerVirtualizable="True"
                       VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                      VirtualizingPanel.CacheLength ="250"
+                      VirtualizingPanel.CacheLength ="150"
                       VirtualizingPanel.CacheLengthUnit="Item"
                       VirtualizingPanel.VirtualizationMode="Recycling"
                       VirtualizingPanel.ScrollUnit="Item"

@@ -76,7 +76,7 @@ namespace PixivWPF
 
         private string GetLastSelectedID()
         {
-            string id = string.Empty;
+            string id = pagetiles is Pages.TilesPage ? pagetiles.lastSelectedId : string.Empty;
             if (pagetiles.ListImageTiles.Items.Count > 0)
             {
                 if (pagetiles.ListImageTiles.SelectedIndex == 0 && string.IsNullOrEmpty(pagetiles.lastSelectedId))
@@ -216,7 +216,7 @@ namespace PixivWPF
 
         private void CommandNavNext_Click(object sender, RoutedEventArgs e)
         {
-            pagetiles.ShowImages(pagetiles.TargetPage, true);
+            pagetiles.ShowImages(pagetiles.TargetPage, true, GetLastSelectedID());
         }
 
         private void NavFlyout_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)

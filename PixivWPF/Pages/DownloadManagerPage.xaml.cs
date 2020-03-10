@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using PixivWPF.Common;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -222,35 +223,73 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void DownloadAll_Click(object sender, RoutedEventArgs e)
+        private async void DownloadAll_Click(object sender, RoutedEventArgs e)
         {
-            new Task(() =>
+            try
             {
-                var needUpdate = items.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished);
-                if (needUpdate.Count() > 0)
+                await new Action(() =>
                 {
-                    using (DownloadItems.Items.DeferRefresh())
+                    if (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1)
                     {
-                        var opt = new ParallelOptions();
-                        opt.MaxDegreeOfParallelism = 5;
-                        var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                        var targets = new List<DownloadInfo>();
+                        foreach (var item in DownloadItems.SelectedItems)
                         {
-                            item.IsStart = true;
-                            item.State = DownloadState.Idle;
-                        });
+                            if (item is DownloadInfo)
+                                targets.Add(item as DownloadInfo);
+                        }
+                        var needUpdate = targets.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished);
+                        if (needUpdate.Count() > 0)
+                        {
+                            var opt = new ParallelOptions();
+                            opt.MaxDegreeOfParallelism = 5;
+                            var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                            {
+                                item.IsStart = true;
+                                item.State = DownloadState.Idle;
+                            });
+                        }
                     }
-                }
-            }).Start();
+                    else
+                    {
+                        var needUpdate = items.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished);
+                        if (needUpdate.Count() > 0)
+                        {
+                            var opt = new ParallelOptions();
+                            opt.MaxDegreeOfParallelism = 5;
+                            var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
+                            {
+                                item.IsStart = true;
+                                item.State = DownloadState.Idle;
+                            });
+                        }
+                    }
+                }).InvokeAsync();
+            }
+            catch (Exception) { }
         }
 
         private async void RemoveAll_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                await new Action(() => {
-                    var remove = items.Where(o => o.State != DownloadState.Downloading );
-                    //foreach (var i in remove) { items.Remove(i); }
-                    foreach (var i in remove) { i.State = DownloadState.Remove; }
+                await new Action(() =>
+                {
+                    if (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1)
+                    {
+                        var targets = new List<DownloadInfo>();
+                        foreach (var item in DownloadItems.SelectedItems)
+                        {
+                            if (item is DownloadInfo)
+                                targets.Add(item as DownloadInfo);
+                        }
+                        var remove = targets.Where(o => o.State != DownloadState.Downloading);
+                        foreach (var i in remove) { i.State = DownloadState.Remove; }
+                    }
+                    else
+                    {
+                        var remove = items.Where(o => o.State != DownloadState.Downloading);
+                        foreach (var i in remove) { i.State = DownloadState.Remove; }
+                    }
                 }).InvokeAsync();
             }
             catch (Exception) { }

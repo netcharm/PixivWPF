@@ -29,7 +29,7 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
-                <MenuItem x:Name="miStopDownload" x:Uid="ActionRemove" Header="Stop Selected" Click="miActions_Click">
+                <MenuItem x:Name="miStopDownload" x:Uid="ActionStop" Header="Stop Selected" Click="miActions_Click">
                     <MenuItem.Icon>
                         <iconPacks:PackIconModern Kind="Stop" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
@@ -107,6 +107,38 @@
                        HorizontalAlignment="Left" VerticalAlignment="Center" />
             <StackPanel Grid.Column="1" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,0,2"
                     Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="PART_CopyIllustID" x:Uid="ActionCopyIllustID" Margin="2,0,2,0" Click="miActions_Click"
+                        ToolTip="Open Illust ID" 
+                        Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                        BorderBrush="{DynamicResource AccentColorBrush}"
+                        Foreground="{DynamicResource LabelTextBrush}" 
+                        Background="Transparent">
+                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" />
+                </Button>
+                <Button x:Name="PART_OpenIllust" x:Uid="ActionOpenIllust" Margin="2,0,2,0" Click="miActions_Click"
+                        ToolTip="Open Illust" 
+                        Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                        BorderBrush="{DynamicResource AccentColorBrush}"
+                        Foreground="{DynamicResource LabelTextBrush}" 
+                        Background="Transparent">
+                    <iconPacks:PackIconModern Kind="PageImage" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" />
+                </Button>
+                <Button x:Name="PART_StopDownload" x:Uid="ActionStop" Margin="2,0,2,0" Click="miActions_Click"
+                        ToolTip="Stop Downloading" 
+                        Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                        BorderBrush="{DynamicResource AccentColorBrush}"
+                        Foreground="{DynamicResource LabelTextBrush}" 
+                        Background="Transparent">
+                    <iconPacks:PackIconModern Kind="Stop" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" />
+                </Button>
+                <Button x:Name="PART_Remove" x:Uid="ActionRemove" Margin="2,0,2,0" Click="miActions_Click"
+                        ToolTip="Remove Item" 
+                        Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                        BorderBrush="{DynamicResource AccentColorBrush}"
+                        Foreground="{DynamicResource LabelTextBrush}" 
+                        Background="Transparent">
+                    <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" />
+                </Button>                
                 <Button x:Name="PART_Download" x:Uid="Download" Margin="2,0,2,0" Click="Download_Click"
                         ToolTip="Download File" Tag="{Binding IsStart, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                         TargetUpdated="PART_Download_TargetUpdated"
@@ -119,7 +151,7 @@
                         mah:ButtonHelper.PreserveTextCase="True">
                     <StackPanel Orientation="Horizontal">
                         <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
-                        <TextBlock Text="Download" Margin="8,0,0,0" FontSize="10"/>
+                        <TextBlock Text="Download" Margin="2,0,0,0" FontSize="10"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="PART_OpenFile" x:Uid="OpenFile" Margin="2,0,2,0" Click="OpenFile_Click"
@@ -133,7 +165,7 @@
                     mah:ButtonHelper.PreserveTextCase="True">
                     <StackPanel Orientation="Horizontal">
                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
-                        <TextBlock Text="View File" Margin="8,0,0,0" FontSize="10"/>
+                        <TextBlock Text="View File" Margin="2,0,0,0" FontSize="10"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="PART_OpenFolder" x:Uid="OpenFolder" Margin="2,0,2,0" Click="OpenFolder_Click"
