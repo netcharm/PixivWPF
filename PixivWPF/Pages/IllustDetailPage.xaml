@@ -219,9 +219,9 @@
                     </ContentControl.ContextMenu>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width=".25*"/>
+                            <ColumnDefinition Width=".25*" MinWidth="32"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width=".25*"/>
+                            <ColumnDefinition Width=".25*" MinWidth="32"/>
                         </Grid.ColumnDefinitions>
                         <Rectangle
                             Grid.Column="1"

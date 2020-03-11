@@ -74,8 +74,19 @@ namespace PixivWPF.Pages
                 {
                     if (item.Illust is Pixeez.Objects.Work)
                     {
-                        if (illustid == -1 || illustid == (int)(item.Illust.Id))
-                            item.IsFavorited = item.Illust.IsLiked();
+                        if (illustid == -1 || illustid == (int)(item.Illust.Id) || illustid == (int)item.User.Id)
+                        {
+                            if (item.ItemType == ImageItemType.User)
+                            {
+                                item.IsFavorited = false;
+                                item.IsFollowed = item.User.IsLiked();
+                            }
+                            else
+                            {
+                                item.IsFavorited = item.Illust.IsLiked();
+                                item.IsFollowed = item.User.IsLiked();
+                            }
+                        }
                     }
                 }
             }
@@ -896,7 +907,7 @@ namespace PixivWPF.Pages
             }
             else if (source == ListImageTiles)
             {
-                ShowImages(TargetPage, true);
+                //ShowImages(TargetPage, true);
             }
         }
 

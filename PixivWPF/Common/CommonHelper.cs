@@ -2421,7 +2421,7 @@ namespace PixivWPF.Common
 
         public static bool IsLiked(this ImageItem item)
         {
-            return (item.ItemType == ImageItemType.User ? item.Illust.User.IsLiked() : item.Illust.IsLiked());
+            return (item.ItemType == ImageItemType.User ? item.User.IsLiked() : item.Illust.IsLiked());
         }
 
         public static async Task<bool> Like(this ImageItem item, bool pub = true)

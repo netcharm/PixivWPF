@@ -119,6 +119,7 @@
             </Button>
             <mah:SplitButton x:Name="CommandToggleTheme"
                              ToolTip="Toggle Application Theme"
+                             MinWidth="96"
                              Background="Transparent"
                              AlternationCount="2"
                              BorderBrush="{DynamicResource WindowTitleColorBrush}"

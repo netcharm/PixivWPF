@@ -59,6 +59,21 @@ namespace PixivWPF.Common
             }
         }
 
+        public Visibility FollowMarkVisibility { get; set; } = Visibility.Collapsed;
+        [Description("Get or Set User IsFollowed State")]
+        [Category("Common Properties")]
+        [DefaultValue(false)]
+        public bool IsFollowed
+        {
+            get { return (FollowMarkVisibility == Visibility.Visible ? true : false); }
+            set
+            {
+                if (value) FollowMarkVisibility = Visibility.Visible;
+                else FollowMarkVisibility = Visibility.Collapsed;
+                NotifyPropertyChanged("FollowMarkVisibility");
+            }
+        }
+
         [Description("Get or Set Display Illust Favorited State Mark")]
         [Category("Common Properties")]
         [DefaultValue(true)]
@@ -352,7 +367,8 @@ namespace PixivWPF.Common
                             BadgeValue = illust.PageCount.Value.ToString(),
                             BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
                             IsDisplayFavMark = true,
-                            FavMarkVisibility = illust.IsLiked() ? Visibility.Visible : Visibility.Collapsed,
+                            IsFavorited = illust.IsLiked(),
+                            IsFollowed = illust.User.IsLiked(),
                             DisplayBadge = illust.PageCount > 1 ? true : false,
                             Illust = illust,
                             ID = illust.Id.ToString(),
@@ -429,6 +445,7 @@ namespace PixivWPF.Common
                             i.Index = index;
                             i.Count = illust.PageCount ?? 0;
                             i.IsFavorited = false;
+                            i.IsFollowed = false;
                             i.IsDisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{i.Subject} - {index + 1}/{illust.PageCount}";
@@ -464,6 +481,7 @@ namespace PixivWPF.Common
                             i.Index = index;
                             i.Count = illust.PageCount ?? 0;
                             i.IsFavorited = false;
+                            i.IsFollowed = false;
                             i.IsDisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{i.Subject} - {index + 1}/{illust.PageCount}";
@@ -497,7 +515,8 @@ namespace PixivWPF.Common
                             Thumb = url,
                             NextURL = nexturl,
                             BadgeValue = user.Stats == null ? null : user.Stats.Works.Value.ToString(),
-                            FavMarkVisibility = user.IsLiked() ? Visibility.Visible : Visibility.Collapsed,
+                            IsFavorited = false,
+                            IsFollowed = user.IsLiked(),
                             Illust = null,
                             ID = user.Id.ToString(),
                             User = user,

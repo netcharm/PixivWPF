@@ -50,11 +50,11 @@
                     Grid.Row="0"
                     Kind="Heart" 
                     Width="28" Height="24" Margin="0,0,6,8" 
-                    Foreground="White" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Visibility="{Binding FavMarkVisibility, Mode=OneWay}" >
                     <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="White" Opacity="1" BlurRadius="9"/>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource IdealForegroundColor}" Opacity="1" BlurRadius="9"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>
                 <iconPacks:PackIconModern 
@@ -65,9 +65,20 @@
                     Foreground="{DynamicResource AccentColorBrush}"
                     Visibility="{Binding FavMarkVisibility, Mode=OneWay}" >
                     <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="White" Opacity="1" BlurRadius="5"/>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource IdealForegroundColor}" Opacity="1" BlurRadius="5"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>
+                <iconPacks:PackIconModern 
+                    Grid.Row="0" x:Name="PART_Follow" 
+                    Kind="Check"
+                    Width="16" Height="16" Margin="0,0,12,12" 
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Visibility="{Binding FollowMarkVisibility, Mode=OneWay}" >
+                    <iconPacks:PackIconModern.Effect>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource AccentColor}" Opacity="1" BlurRadius="10"/>
+                    </iconPacks:PackIconModern.Effect>
+                </iconPacks:PackIconModern>                
                 <iconPacks:PackIconModern 
                     Grid.Row="0"
                     Kind="Download" 
@@ -76,7 +87,7 @@
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Visibility="{Binding IsDownloadedVisibilityAlt, Mode=OneWay}" >
                     <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="White" Opacity="1" BlurRadius="9"/>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource AccentColor}" Opacity="1" BlurRadius="9"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>                
                 <iconPacks:PackIconModern 
@@ -87,7 +98,7 @@
                     Foreground="{DynamicResource AccentColorBrush}"
                     Visibility="{Binding IsDownloadedVisibilityAlt, Mode=OneWay}">
                     <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="White" Opacity="1" BlurRadius="5"/>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource IdealForegroundColor}" Opacity="1" BlurRadius="5"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>
                 <mah:Badged Grid.Row="0"

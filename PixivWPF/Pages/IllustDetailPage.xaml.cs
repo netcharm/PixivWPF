@@ -112,6 +112,9 @@ namespace PixivWPF.Pages
             var descTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustDescHtml.Document.Title : string.Empty;
             IllustTagsHtml.DocumentText = GetText(IllustTagsHtml, true).GetHtmlFromTemplate(tagsTitle);
             IllustDescHtml.DocumentText = GetText(IllustDescHtml, true).GetHtmlFromTemplate(descTitle);
+
+            btnSubPagePrev.Foreground = Theme.AccentBrush;
+            btnSubPageNext.Foreground = Theme.AccentBrush;
         }
 
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -254,16 +257,38 @@ namespace PixivWPF.Pages
             {
                 foreach (ImageItem item in RelativeIllusts.Items)
                 {
-                    if (illustid == -1 || illustid == item.Illust.Id)
-                        item.IsFavorited = item.IsLiked();
+                    if (illustid == -1 || illustid == item.Illust.Id || illustid == (int)item.User.Id)
+                    {
+                        if (item.ItemType == ImageItemType.User)
+                        {
+                            item.IsFavorited = false;
+                            item.IsFollowed = item.User.IsLiked();
+                        }
+                        else
+                        {
+                            item.IsFavorited = item.Illust.IsLiked();
+                            item.IsFollowed = item.User.IsLiked();
+                        }
+                    }
                 }
             }
             if (FavoriteIllustsExpander.IsExpanded)
             {
                 foreach (ImageItem item in FavoriteIllusts.Items)
                 {
-                    if (illustid == -1 || illustid == item.Illust.Id)
-                        item.IsFavorited = item.IsLiked();
+                    if (illustid == -1 || illustid == item.Illust.Id || illustid == (int)item.User.Id)
+                    {
+                        if (item.ItemType == ImageItemType.User)
+                        {
+                            item.IsFavorited = false;
+                            item.IsFollowed = item.User.IsLiked();
+                        }
+                        else
+                        {
+                            item.IsFavorited = item.Illust.IsLiked();
+                            item.IsFollowed = item.User.IsLiked();
+                        }
+                    }
                 }
             }
         }
