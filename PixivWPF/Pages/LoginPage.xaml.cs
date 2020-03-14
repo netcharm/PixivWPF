@@ -173,5 +173,11 @@ namespace PixivWPF.Pages
         {
             CloseWindow();
         }
+
+        private void chkUseProxy_Clicked(object sender, RoutedEventArgs e)
+        {
+            bool useproxy = chkUseProxy.IsChecked == true ? true : false;
+            setting.UsingProxy = useproxy;
+        }
     }
 }

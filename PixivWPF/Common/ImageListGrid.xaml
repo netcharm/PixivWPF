@@ -82,12 +82,12 @@
                 <iconPacks:PackIconModern 
                     Grid.Row="0"
                     Kind="Download" 
-                    Width="28" Height="24" Margin="0,0,6,8" 
-                    Foreground="White" 
+                    Width="28" Height="28" Margin="0,0,6,6" 
+                    Foreground="{DynamicResource IdealForegroundColorBrush}" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Visibility="{Binding IsDownloadedVisibilityAlt, Mode=OneWay}" >
                     <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource AccentColor}" Opacity="1" BlurRadius="9"/>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource IdealForegroundColor}" Opacity="1" BlurRadius="9"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>                
                 <iconPacks:PackIconModern 

@@ -35,7 +35,7 @@
                     <ColumnDefinition Width=".5*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" x:Name="headerProxy" x:Uid="headerProxy" Text="HTTP Proxy Server" HorizontalAlignment="Left" Foreground="{DynamicResource AccentColorBrush}" />
-                <CheckBox Grid.Column="1" x:Name="chkUseProxy" x:Uid="chkUseProxy" Content="Using Proxy" IsChecked="True" FlowDirection="RightToLeft" Foreground="{DynamicResource AccentColorBrush}" />
+                <CheckBox Grid.Column="1" x:Name="chkUseProxy" x:Uid="chkUseProxy" Content="Using Proxy" IsChecked="True" FlowDirection="RightToLeft" Foreground="{DynamicResource AccentColorBrush}" Click="chkUseProxy_Clicked" />
             </Grid>
             <TextBox x:Name="edProxy" x:Uid="edProxy" AcceptsReturn="False" Margin="12, 12, 12, 12" 
                      mah:TextBoxHelper.Watermark="Your Proxy Server"
