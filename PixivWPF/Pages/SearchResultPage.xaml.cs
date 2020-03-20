@@ -60,7 +60,7 @@ namespace PixivWPF.Pages
         public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
         {
             await new Action(() => {
-                UpdateLikeState(illustid);
+                UpdateLikeState(illustid, is_user);
             }).InvokeAsync();
         }
 
@@ -68,14 +68,18 @@ namespace PixivWPF.Pages
         {
             if (ResultExpander.IsExpanded)
             {
-                foreach (ImageItem item in ResultIllusts.Items)
-                {
-                    var id = -1;
-                    if (!is_user && item.Illust is Pixeez.Objects.Work) id = (int)(item.Illust.Id.Value);
-                    else if(is_user && item.User is Pixeez.Objects.UserBase) id = (int)(item.User.Id.Value);
-                    if (illustid == -1 || illustid == id)
-                        item.IsFavorited = item.IsLiked();
-                }
+                ResultIllusts.UpdateLikeState(illustid, is_user);
+                //foreach (ImageItem item in ResultIllusts.Items)
+                //{
+                //    var id = -1;
+                //    if (!is_user && item.Illust is Pixeez.Objects.Work) id = (int)(item.Illust.Id.Value);
+                //    else if (is_user && item.User is Pixeez.Objects.UserBase) id = (int)(item.User.Id.Value);
+                //    if (illustid == -1 || illustid == id)
+                //    {
+                //        if (is_user) item.IsFollowed = item.User.IsLiked();
+                //        else item.IsFavorited = item.IsLiked();
+                //    }
+                //}
             }
         }
 

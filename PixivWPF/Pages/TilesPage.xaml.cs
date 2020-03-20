@@ -96,7 +96,8 @@ namespace PixivWPF.Pages
         {
             await Task.Run(() =>
             {
-                UpdateLikeState(illustid);
+                ImageList.UpdateLikeState(illustid);
+                //UpdateLikeState(illustid);
             });
         }
 

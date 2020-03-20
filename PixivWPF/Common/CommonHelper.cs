@@ -2858,6 +2858,46 @@ namespace PixivWPF.Common
                 }
             }).InvokeAsync();
         }
+        
+        public static void UpdateLikeState(this ImageListGrid list, int illustid = -1, bool is_user = false)
+        {
+            foreach (ImageItem item in list.Items)
+            {
+                if (illustid == -1 || illustid == item.Illust.Id || illustid == (int)item.User.Id)
+                {
+                    if (item.ItemType == ImageItemType.User)
+                    {
+                        item.IsFavorited = false;
+                        item.IsFollowed = item.User.IsLiked();
+                    }
+                    else
+                    {
+                        item.IsFavorited = item.Illust.IsLiked();
+                        item.IsFollowed = item.User.IsLiked();
+                    }
+                }
+            }
+        }
+
+        public static void UpdateLikeState(this ObservableCollection<ImageItem> collection, int illustid = -1, bool is_user = false)
+        {
+            foreach (ImageItem item in collection)
+            {
+                if (illustid == -1 || illustid == item.Illust.Id || illustid == (int)item.User.Id)
+                {
+                    if (item.ItemType == ImageItemType.User)
+                    {
+                        item.IsFavorited = false;
+                        item.IsFollowed = item.User.IsLiked();
+                    }
+                    else
+                    {
+                        item.IsFavorited = item.Illust.IsLiked();
+                        item.IsFollowed = item.User.IsLiked();
+                    }
+                }
+            }
+        }
         #endregion
 
         #endregion
