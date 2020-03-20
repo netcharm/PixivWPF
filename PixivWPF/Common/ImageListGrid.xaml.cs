@@ -1,5 +1,6 @@
 ﻿using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
+using MahApps.Metro.IconPacks;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -259,7 +260,8 @@ namespace PixivWPF.Common
 
         private void TileImage_TargetUpdated(object sender, DataTransferEventArgs e)
         {
-            if (sender is Image && e.Property != null)
+            if (e.Property == null) return;
+            if (sender is Image)
             {
                 var image = sender as Image;
                 if (e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
@@ -281,6 +283,47 @@ namespace PixivWPF.Common
                         }
                     }
                 }
+            }
+            else if (sender is PackIconModern)
+            {
+#if DEBUG
+                var icon = sender as PackIconModern;
+                if (e.Property.Name.Equals("Visibility", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var follow = icon.FindName("PART_Follow");
+                    var fav = icon.FindName("PART_Favorite");
+                    if (follow is PackIconModern && fav is PackIconModern)
+                    {
+                        var follow_mark = follow as PackIconModern;
+                        var follow_effect = follow_mark.FindName("PART_Follow_Shadow");
+                        var fav_mark = fav as PackIconModern;
+                        if (fav_mark.Visibility == Visibility.Visible)
+                        {
+                            follow_mark.Height = 16;
+                            follow_mark.Width = 16;
+                            follow_mark.Margin = new Thickness(0, 0, 12, 12);
+                            follow_mark.Foreground = Common.Theme.WhiteBrush;
+                            if (follow_effect is System.Windows.Media.Effects.DropShadowEffect)
+                            {
+                                var shadow = follow_effect as System.Windows.Media.Effects.DropShadowEffect;
+                                shadow.Color = Common.Theme.AccentColor;
+                            }
+                        }
+                        else
+                        {
+                            follow_mark.Height = 24;
+                            follow_mark.Width = 24;
+                            follow_mark.Margin = new Thickness(0, 0, 8, 8);
+                            follow_mark.Foreground = Common.Theme.AccentBrush;
+                            if (follow_effect is System.Windows.Media.Effects.DropShadowEffect)
+                            {
+                                var shadow = follow_effect as System.Windows.Media.Effects.DropShadowEffect;
+                                shadow.Color = Common.Theme.WhiteColor;
+                            }
+                        }
+                    }
+                }
+#endif
             }
         }
 

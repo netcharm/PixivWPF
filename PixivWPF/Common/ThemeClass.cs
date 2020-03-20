@@ -220,7 +220,7 @@ namespace PixivWPF.Common
                 Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["IdealForegroundColorBrush"] as Brush).ToColor();
+                return ((appTheme.Resources["IdealForegroundColorBrush"] ?? appTheme.Resources["WhiteBrush"]) as Brush).ToColor();
             }
         }
 
@@ -231,7 +231,7 @@ namespace PixivWPF.Common
                 Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["IdealForegroundColorBrush"] as Brush);
+                return ((appTheme.Resources["IdealForegroundColorBrush"] ?? appTheme.Resources["WhiteBrush"]) as Brush);
             }
         }
 

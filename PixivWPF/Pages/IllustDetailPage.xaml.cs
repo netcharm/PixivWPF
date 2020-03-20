@@ -256,43 +256,10 @@ namespace PixivWPF.Pages
             if (RelativeIllustsExpander.IsExpanded)
             {
                 RelativeIllusts.UpdateLikeState(illustid, is_user);
-
-                //foreach (ImageItem item in RelativeIllusts.Items)
-                //{
-                //    if (illustid == -1 || illustid == item.Illust.Id || illustid == (int)item.User.Id)
-                //    {
-                //        if (item.ItemType == ImageItemType.User)
-                //        {
-                //            item.IsFavorited = false;
-                //            item.IsFollowed = item.User.IsLiked();
-                //        }
-                //        else
-                //        {
-                //            item.IsFavorited = item.Illust.IsLiked();
-                //            item.IsFollowed = item.User.IsLiked();
-                //        }
-                //    }
-                //}
             }
             if (FavoriteIllustsExpander.IsExpanded)
             {
                 FavoriteIllusts.UpdateLikeState(illustid, is_user);
-                //foreach (ImageItem item in FavoriteIllusts.Items)
-                //{
-                //    if (illustid == -1 || illustid == item.Illust.Id || illustid == (int)item.User.Id)
-                //    {
-                //        if (item.ItemType == ImageItemType.User)
-                //        {
-                //            item.IsFavorited = false;
-                //            item.IsFollowed = item.User.IsLiked();
-                //        }
-                //        else
-                //        {
-                //            item.IsFavorited = item.Illust.IsLiked();
-                //            item.IsFollowed = item.User.IsLiked();
-                //        }
-                //    }
-                //}
             }
         }
 

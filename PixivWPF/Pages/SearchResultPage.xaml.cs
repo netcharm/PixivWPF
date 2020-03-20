@@ -69,17 +69,6 @@ namespace PixivWPF.Pages
             if (ResultExpander.IsExpanded)
             {
                 ResultIllusts.UpdateLikeState(illustid, is_user);
-                //foreach (ImageItem item in ResultIllusts.Items)
-                //{
-                //    var id = -1;
-                //    if (!is_user && item.Illust is Pixeez.Objects.Work) id = (int)(item.Illust.Id.Value);
-                //    else if (is_user && item.User is Pixeez.Objects.UserBase) id = (int)(item.User.Id.Value);
-                //    if (illustid == -1 || illustid == id)
-                //    {
-                //        if (is_user) item.IsFollowed = item.User.IsLiked();
-                //        else item.IsFavorited = item.IsLiked();
-                //    }
-                //}
             }
         }
 
