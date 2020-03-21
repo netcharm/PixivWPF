@@ -156,7 +156,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Illust Detail Viewport -->
-        <ScrollViewer Grid.Column="1" x:Name="IllustDetailViewer"
+        <ScrollViewer Grid.Column="0" x:Name="IllustDetailViewer"
                       Margin="4,4,4,4"
                       HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
             <Grid>
@@ -726,7 +726,7 @@
         </ScrollViewer>
         
         <!-- Illust Open Progress Prompt -->
-        <mah:ProgressRing Grid.Column="1" x:Name="IllustDetailWait"
+        <mah:ProgressRing Grid.Column="0" x:Name="IllustDetailWait"
                           Width="128" Height="128" Opacity="0.62" 
                           Foreground="{DynamicResource AccentColorBrush}"
                           Visibility="Hidden"
