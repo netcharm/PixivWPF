@@ -35,6 +35,20 @@
         <StackPanel Grid.Row="0" Margin="2,4,2,4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
             <Slider x:Name="PART_MaxJobs" HorizontalAlignment="Right" VerticalAlignment="Center" Width="133" Margin="4,10" 
                     Minimum="1" SmallChange="1" LargeChange="5" Value="10" Maximum="25" ValueChanged="PART_MaxJobs_ValueChanged"/>
+            <Button x:Name="PART_ChangeFolder" x:Uid="ChangeFolder" Margin="2,0,2,0" Click="ChangeFolder_Click"
+                    ToolTip="Change Destination Save Folder"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                    BorderBrush="{DynamicResource AccentColorBrush}"
+                    Foreground="{DynamicResource LabelTextBrush}" 
+                    Background="Transparent"
+                    mah:ButtonHelper.PreserveTextCase="True">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="Folder" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                    <!--<TextBlock Text="Remove All" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>-->
+                </StackPanel>
+            </Button>
             <Button x:Name="PART_RemoveAll" x:Uid="ClearAll" Margin="2,0,2,0" Click="RemoveAll_Click"
                     ToolTip="Remove All/Selected Items"
                     HorizontalAlignment="Right" VerticalAlignment="Center"

@@ -594,7 +594,7 @@
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           Expanded="SubIllustsExpander_Expanded" Collapsed="SubIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
-                                          Columns="5" TileWidth="128" TileHeight="128" 
+                                          Columns="5" TileWidth="128" TileHeight="128"                                  
                                           SelectionMode="Extended" 
                                           BadgeVisibility="Visible" TitleVisibility="Collapsed"
                                           SelectionChanged="SubIllusts_SelectionChanged" 

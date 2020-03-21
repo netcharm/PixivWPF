@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using PixivWPF.Common;
 using System;
 using System.Collections;
@@ -316,5 +317,29 @@ namespace PixivWPF.Pages
             PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {MaxJobs}";
         }
 
+        private void ChangeFolder_Click(object sender, RoutedEventArgs e)
+        {
+            CommonOpenFileDialog dlg = new CommonOpenFileDialog() {
+                Title = "Select Folder",
+                IsFolderPicker = true,
+                InitialDirectory = setting.LastFolder,
+
+                AddToMostRecentlyUsedList = false,
+                AllowNonFileSystemItems = false,
+                DefaultDirectory = setting.LastFolder,
+                EnsureFileExists = true,
+                EnsurePathExists = true,
+                EnsureReadOnly = false,
+                EnsureValidNames = true,
+                Multiselect = false,
+                ShowPlacesList = true
+            };
+
+            if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                setting.LastFolder = dlg.FileName;
+                // Do something with selected folder string
+            }
+        }
     }
 }
