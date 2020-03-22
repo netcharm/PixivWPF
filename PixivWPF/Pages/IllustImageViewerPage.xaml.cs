@@ -85,7 +85,7 @@ namespace PixivWPF.Pages
                         if (Regex.IsMatch(item.Subject, @" - \d+\/\d+$", RegexOptions.IgnoreCase))
                             window.Title = $"ID: {item.ID}, {item.Subject}";
                         else
-                            window.Title = $"ID: {item.ID}, {item.Subject} - 1/1";
+                            window.Title = $"ID: {item.ID}, {item.Subject}";// - 1/1";
                     }
                 }
             }

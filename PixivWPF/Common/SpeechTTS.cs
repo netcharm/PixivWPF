@@ -226,7 +226,7 @@ namespace PixivWPF.Common
 #if DEBUG
             catch (Exception ex)
             {
-                ex.Message.Log();
+                ex.Message.DEBUG();
             }
 #else
             catch (Exception ){}

@@ -362,15 +362,17 @@ namespace PixivWPF.Common
                 var item = obj as ImageItem;
                 item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
 
-                var title = $"ID: {item.ID}, {item.Subject} - ";
+                var title = $"ID: {item.ID}, {item.Subject}";
                 if (title.ActiveByTitle()) return;
+
+                var suffix = item.Count > 1 ? $" - {item.BadgeValue}/{item.Count}" : string.Empty;
 
                 var page = new IllustImageViewerPage() { FontFamily = setting.FontFamily, Tag = item };
                 page.UpdateDetail(item);
 
                 var viewer = new ContentWindow()
                 {
-                    Title = $"{title}{item.BadgeValue}/{item.Count}",
+                    Title = $"{title}{suffix}",
                     Width = WIDTH_MIN,
                     Height = HEIGHT_DEF,
                     MinWidth = WIDTH_MIN,
@@ -1353,7 +1355,7 @@ namespace PixivWPF.Common
         {
 #if DEBUG
             // Specify what is done when a file is changed, created, or deleted.
-            Console.WriteLine($"File: {e.FullPath} {e.ChangeType}");
+            $"File: {e.FullPath} {e.ChangeType}".DEBUG();
 #endif
             if (e.ChangeType == WatcherChangeTypes.Created)
             {
@@ -1388,7 +1390,7 @@ namespace PixivWPF.Common
         {
 #if DEBUG
             // Specify what is done when a file is renamed.
-            Console.WriteLine($"File: {e.OldFullPath} renamed to {e.FullPath}");
+            $"File: {e.OldFullPath} renamed to {e.FullPath}".DEBUG();
 #endif
             if (e.ChangeType == WatcherChangeTypes.Renamed)
             {
@@ -2812,6 +2814,7 @@ namespace PixivWPF.Common
             return (result);
         }
         #endregion
+
         #endregion
 
         #region Update Illust/User info cache
@@ -2963,6 +2966,18 @@ namespace PixivWPF.Common
             }
         }
 
+        public static void Pause(this ProgressRing progress)
+        {
+            progress.IsEnabled = false;
+            progress.IsActive = false;
+        }
+
+        public static void Resume(this ProgressRing progress)
+        {
+            progress.IsEnabled = true;
+            progress.IsActive = true;
+        }
+
         public static void Show(this ProgressRing progress)
         {
             progress.Show(true);
@@ -3076,7 +3091,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void WindowKeyUp(this object sender, KeyEventArgs e)
+        public static KeyEventArgs WindowKeyUp(this object sender, KeyEventArgs e)
         {
             if (sender is MetroWindow)
             {
@@ -3093,8 +3108,8 @@ namespace PixivWPF.Common
                     }
                     else
                     {
-                        if ((sender as MetroWindow).Content is DownloadManagerPage) return;
-                        if ((sender as MetroWindow).Tag is DownloadManagerPage) return;
+                        if ((sender as MetroWindow).Content is DownloadManagerPage) return (e);
+                        if ((sender as MetroWindow).Tag is DownloadManagerPage) return (e);
 
                         if (e.Key == Key.Escape) win.Close();
                     }
@@ -3109,6 +3124,7 @@ namespace PixivWPF.Common
                 catch (Exception) { }
 #endif
             }
+            return (e);
         }
 
         public static Dispatcher Dispatcher = Application.Current is Application ? Application.Current.Dispatcher : Dispatcher.CurrentDispatcher;
@@ -3706,7 +3722,7 @@ namespace PixivWPF.Common
 
     public static class ExtensionMethods
     {
-        public static void Log(this string text)
+        public static void DEBUG(this string text)
         {
 #if DEBUG
             Console.WriteLine(text);

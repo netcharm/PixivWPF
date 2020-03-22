@@ -825,12 +825,14 @@ namespace PixivWPF.Pages
 
         private void ListImageTiles_KeyDown(object sender, KeyEventArgs e)
         {
+            e.Handled = false;
             if (e.Key == Key.Enter)
             {
                 if (ListImageTiles.SelectedItem != null)
                 {
 
                 }
+                e.Handled = true;
             }
             else if (e.Key == Key.Down || e.Key == Key.PageDown)
             {
@@ -838,6 +840,7 @@ namespace PixivWPF.Pages
                 {
                     ShowImages(TargetPage, true);
                 }
+                e.Handled = true;
             }
             else if (e.Key == Key.Home)
             {
@@ -846,6 +849,7 @@ namespace PixivWPF.Pages
                     ListImageTiles.Items.MoveCurrentToFirst();
                     ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
                 }
+                e.Handled = true;
             }
             else if (e.Key == Key.End)
             {
@@ -854,6 +858,7 @@ namespace PixivWPF.Pages
                     ListImageTiles.Items.MoveCurrentToLast();
                     ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
                 }
+                e.Handled = true;
             }
             else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
             {
@@ -872,6 +877,7 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
+                e.Handled = true;
             }
         }
 
@@ -910,6 +916,7 @@ namespace PixivWPF.Pages
             {
                 //ShowImages(TargetPage, true);
             }
+            e.Handled = true;
         }
 
         private void ListImageTiles_PreviewMouseWheel(object sender, MouseWheelEventArgs e)

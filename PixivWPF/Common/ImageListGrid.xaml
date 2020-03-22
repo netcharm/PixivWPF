@@ -26,7 +26,7 @@
                   Margin="0,4,0,4"
                   Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"                                          
                   ToolTip="{Binding ToolTip, Mode=OneWay}"
-                  Tag="{Binding Illust, Mode=OneWay}">
+                  Tag="{Binding State, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" TargetUpdated="TileImage_TargetUpdated">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="128"/>
                     <RowDefinition Height="Auto"/>

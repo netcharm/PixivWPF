@@ -327,7 +327,8 @@ namespace PixivWPF
 
         private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
         {
-            sender.WindowKeyUp(e);
+            var ret = sender.WindowKeyUp(e);
+            e.Handled = ret.Handled;
         }
 
         private void MetroWindow_StateChanged(object sender, EventArgs e)

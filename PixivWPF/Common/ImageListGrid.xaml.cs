@@ -94,13 +94,6 @@ namespace PixivWPF.Common
             }
         }
 
-        //[Description("Get or Set ContextMenu")]
-        //[Category("Common Properties")]
-        //public new ContextMenu ContextMenu {
-        //    get { return PART_ImageTiles.ContextMenu; }
-        //    set { PART_ImageTiles.ContextMenu = value; }
-        //}
-
         private Visibility badgevisibility = Visibility.Visible;
         public Visibility BadgeVisibility
         {
@@ -272,14 +265,30 @@ namespace PixivWPF.Common
                     {
                         var progress = progressObj as ProgressRing;
                         if (image.Source == null)
-                        {
                             progress.Show();
-                            //if (mask != null) mask.Opacity = 0.67;
-                        }
                         else
-                        {
-                            //if (mask != null) mask.Opacity = 0.13;
                             progress.Hide();
+                    }
+                }
+            }
+            else if(sender is Grid)
+            {
+                var tile = sender as Grid;
+                if (e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var progressObj = tile.FindName("PART_Progress");
+                    if (progressObj is ProgressRing)
+                    {
+                        var progress = progressObj as ProgressRing;
+                        if (tile.Tag is TaskStatus)
+                        {
+                            var state = (TaskStatus)tile.Tag;
+                            if (state == TaskStatus.RanToCompletion)
+                                progress.Hide();
+                            else if (state == TaskStatus.Created)
+                                progress.Show();
+                            else
+                                progress.Pause();
                         }
                     }
                 }

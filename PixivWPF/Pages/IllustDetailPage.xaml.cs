@@ -98,7 +98,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ex.Message.DEBUG();
             }
 #else
             catch (Exception) { }
@@ -275,7 +275,7 @@ namespace PixivWPF.Pages
                 var item = DataObject as ImageItem;
                 if (item.Illust.PageCount > 1)
                 {
-                    btnSubPageNext.Show();
+                    btnSubPageNext.Hide();
                     btnSubPagePrev.Show();
                 }
                 if (SubIllusts.SelectedIndex <= 0)
@@ -287,16 +287,22 @@ namespace PixivWPF.Pages
                 {
                     btnSubPagePrev.IsEnabled = false;
                     btnSubPageNext.IsEnabled = true;
+                    btnSubPagePrev.Hide();
+                    btnSubPageNext.Show();
                 }
                 else if (SubIllusts.SelectedItem.Index >= SubIllusts.SelectedItem.Count - 1)
                 {
                     btnSubPagePrev.IsEnabled = true;
                     btnSubPageNext.IsEnabled = false;
+                    btnSubPagePrev.Show();
+                    btnSubPageNext.Hide();
                 }
                 else
                 {
                     btnSubPagePrev.IsEnabled = true;
                     btnSubPageNext.IsEnabled = true;
+                    btnSubPagePrev.Show();
+                    btnSubPageNext.Show();
                 }
                 btnSubPagePrev.Foreground = btnSubPagePrev.IsEnabled ? Theme.AccentBrush : Theme.IdealForegroundDisableBrush;
                 btnSubPageNext.Foreground = btnSubPageNext.IsEnabled ? Theme.AccentBrush : Theme.IdealForegroundDisableBrush;
@@ -492,7 +498,8 @@ namespace PixivWPF.Pages
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.Illust is Pixeez.Objects.Work && item.Illust.PageCount > 1)
                 {
-                    btnSubPagePrev.Show();
+                    //btnSubPagePrev.Show();
+                    btnSubPagePrev.Hide();
                     btnSubPageNext.Show();
                     PreviewBadge.Show();
                     SubIllustsExpander.Show();
@@ -503,17 +510,20 @@ namespace PixivWPF.Pages
                     btnSubPagePrev.Hide();
                     btnSubPageNext.Hide();
                     PreviewBadge.Hide();
+                    SubIllusts.Items.Clear();
                     SubIllustsExpander.Hide();
                 }
 
                 RelativeIllustsExpander.Header = "Related Illusts";
                 RelativeIllustsExpander.IsExpanded = false;
                 RelativeIllustsExpander.Show();
+                RelativeIllusts.Items.Clear();
                 RelativeNextPage.Hide();
 
                 FavoriteIllustsExpander.Header = "Author Favorite";
                 FavoriteIllustsExpander.IsExpanded = false;
                 FavoriteIllustsExpander.Show();
+                FavoriteIllusts.Items.Clear();
                 FavoriteNextPage.Hide();
 
                 CommentsExpander.IsExpanded = false;
@@ -1057,7 +1067,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ex.Message.DEBUG();
             }
 #else
             catch (Exception) { }
@@ -1085,7 +1095,7 @@ namespace PixivWPF.Pages
 #if DEBUG
                             catch (Exception ex)
                             {
-                                Console.WriteLine(ex.Message);
+                                ex.Message.DEBUG();
                             }
 #else
                             catch (Exception) { }
@@ -1129,7 +1139,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ex.Message.DEBUG();
             }
 #else
             catch (Exception) { }
@@ -1756,7 +1766,7 @@ namespace PixivWPF.Pages
         private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 #if DEBUG
-            Console.WriteLine($"{DateTime.Now.ToFileTime() - lastSelectionChanged}, {sender}, {e.Handled}, {e.RoutedEvent}, {e.OriginalSource}, {e.Source}");
+            $"TimeDelta:{DateTime.Now.ToFileTime() - lastSelectionChanged}, {sender}, {e.Handled}, {e.RoutedEvent}, {e.OriginalSource}, {e.Source}".DEBUG();
 #endif
             e.Handled = false;
 

@@ -43,6 +43,7 @@ namespace PixivWPF.Common
         public Pixeez.Objects.Work Illust { get; set; }
         public string AccessToken { get; set; }
         public string NextURL { get; set; } = string.Empty;
+        public TaskStatus State { get; internal set; } = TaskStatus.Created;
 
         public Visibility FavMarkVisibility { get; set; } = Visibility.Collapsed;
         [Description("Get or Set Illust IsFavorited State")]
@@ -256,13 +257,18 @@ namespace PixivWPF.Common
                                         {
                                             if (item.Count <= 1) item.BadgeValue = string.Empty;
                                             item.Source = await item.Thumb.LoadImageFromUrl();
+                                            if(item.Source is ImageSource)
+                                                item.State = TaskStatus.RanToCompletion;
+                                            else
+                                                item.State = TaskStatus.Faulted;
                                             item.DoEvents();
                                         }
                                     }
 #if DEBUG
                                     catch (Exception ex)
                                     {
-                                        $"Download Image Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                        $"Download Thumbnail Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                        item.State = TaskStatus.Faulted;
                                     }
 #else
                                     catch(Exception){ }
