@@ -287,8 +287,8 @@ namespace PixivWPF.Common
                 var list = obj as ImageListGrid;
                 foreach (var item in list.SelectedItems)
                 {
-                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                        list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    if (list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                        list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||                        
                         list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
                         Cmd_OpenItem.Execute(item);
@@ -362,17 +362,16 @@ namespace PixivWPF.Common
                 var item = obj as ImageItem;
                 item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
 
-                var title = $"ID: {item.ID}, {item.Subject}";
-                if (title.ActiveByTitle()) return;
-
                 var suffix = item.Count > 1 ? $" - {item.BadgeValue}/{item.Count}" : string.Empty;
+                var title = $"ID: {item.ID}, {item.Subject}{suffix}";
+                if (title.ActiveByTitle()) return;
 
                 var page = new IllustImageViewerPage() { FontFamily = setting.FontFamily, Tag = item };
                 page.UpdateDetail(item);
 
                 var viewer = new ContentWindow()
                 {
-                    Title = $"{title}{suffix}",
+                    Title = $"{title}",
                     Width = WIDTH_MIN,
                     Height = HEIGHT_DEF,
                     MinWidth = WIDTH_MIN,
@@ -538,25 +537,17 @@ namespace PixivWPF.Common
             if (obj is string && !string.IsNullOrEmpty(obj))
             {
                 var content = ParseLink(obj);
-                var id = ParseID(content);
-
                 if (!string.IsNullOrEmpty(content))
                 {
-                    foreach (Window win in Application.Current.Windows)
-                    {
-                        if (win.Title.Contains(content) || win.Title.Contains($": {id},") || win.Title.Contains($"/ {id} /"))
-                        {
-                            win.Activate();
-                            return;
-                        }
-                    }
+                    var title = $"Searching {content} ...";
+                    if (content.ActiveByTitle()) return;
 
                     var page = new SearchResultPage() { FontFamily = setting.FontFamily, Tag = content };
                     page.UpdateDetail(content);
 
                     var viewer = new ContentWindow()
                     {
-                        Title = $"Searching {content} ...",
+                        Title = title,
                         Width = WIDTH_MIN,
                         Height = HEIGHT_DEF,
                         MinWidth = WIDTH_MIN,
@@ -3087,7 +3078,8 @@ namespace PixivWPF.Common
             bool result = false;
             foreach (Window win in Application.Current.Windows)
             {
-                if (win.Title.StartsWith(title))
+                //if (win.Title.StartsWith(title))
+                if (win.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (win is MetroWindow) (win as MetroWindow).Active();
                     else win.Activate();
