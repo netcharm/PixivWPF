@@ -230,12 +230,16 @@ namespace PixivWPF.Pages
 
         private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            e.Handled = false;
             if (e.Device is MouseDevice)
             {
                 if (e.ChangedButton == MouseButton.Left)
                 {
                     if (e.ClickCount >= 2)
+                    {
                         ActionViewOriginalPage_Click(sender, e);
+                        e.Handled = true;
+                    }
                     else
                     {
                         start = e.GetPosition(PreviewScroll);
@@ -244,13 +248,20 @@ namespace PixivWPF.Pages
                 }
                 else if (e.ChangedButton == MouseButton.XButton1)
                 {
-                    Preview_MouseWheel(sender, new MouseWheelEventArgs(e.Device as MouseDevice, 0, -60));
+                    if (e.ClickCount == 1)
+                    {
+                        Preview_MouseWheel(sender, new MouseWheelEventArgs(e.Device as MouseDevice, 0, -60));
+                        e.Handled = true;
+                    }
                 }
                 else if (e.ChangedButton == MouseButton.XButton2)
                 {
-                    Preview_MouseWheel(sender, new MouseWheelEventArgs(e.Device as MouseDevice, 0, 60));
+                    if (e.ClickCount == 1)
+                    {
+                        Preview_MouseWheel(sender, new MouseWheelEventArgs(e.Device as MouseDevice, 0, 60));
+                        e.Handled = true;
+                    }
                 }
-                e.Handled = true;
             }
         }
 
