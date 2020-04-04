@@ -363,7 +363,7 @@ namespace PixivWPF.Common
                 item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
 
                 var suffix = item.Count > 1 ? $" - {item.BadgeValue}/{item.Count}" : string.Empty;
-                var title = $"ID: {item.ID}, {item.Subject}";
+                var title = $"Preview ID: {item.ID}, {item.Subject}";
                 if (!item.Subject.EndsWith(suffix, StringComparison.CurrentCultureIgnoreCase))
                     title = $"{title}{suffix}";
                 if (title.ActiveByTitle()) return;

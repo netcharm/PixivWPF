@@ -83,9 +83,9 @@ namespace PixivWPF.Pages
                     else
                     {
                         if (Regex.IsMatch(item.Subject, @" - \d+\/\d+$", RegexOptions.IgnoreCase))
-                            window.Title = $"ID: {item.ID}, {item.Subject}";
+                            window.Title = $"Preview ID: {item.ID}, {item.Subject}";
                         else
-                            window.Title = $"ID: {item.ID}, {item.Subject}";// - 1/1";
+                            window.Title = $"Preview ID: {item.ID}, {item.Subject}";// - 1/1";
                     }
                 }
             }
@@ -230,29 +230,40 @@ namespace PixivWPF.Pages
 
         private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount >= 2)
-                ActionViewOriginalPage_Click(sender, e);
-            else
+            if (e.Device is MouseDevice)
             {
-                start = e.GetPosition(PreviewScroll);
-                origin = new Point(PreviewScroll.HorizontalOffset, PreviewScroll.VerticalOffset);
+                if (e.ChangedButton == MouseButton.Left)
+                {
+                    if (e.ClickCount >= 2)
+                        ActionViewOriginalPage_Click(sender, e);
+                    else
+                    {
+                        start = e.GetPosition(PreviewScroll);
+                        origin = new Point(PreviewScroll.HorizontalOffset, PreviewScroll.VerticalOffset);
+                    }
+                }
+                else if (e.ChangedButton == MouseButton.XButton1)
+                {
+                    Preview_MouseWheel(sender, new MouseWheelEventArgs(e.Device as MouseDevice, 0, -60));
+                }
+                else if (e.ChangedButton == MouseButton.XButton2)
+                {
+                    Preview_MouseWheel(sender, new MouseWheelEventArgs(e.Device as MouseDevice, 0, 60));
+                }
+                e.Handled = true;
             }
-        }
-
-        private void Preview_MouseUp(object sender, MouseButtonEventArgs e)
-        {
         }
 
         private void Preview_MouseMove(object sender, MouseEventArgs e)
         {
-            if (PreviewBox.Stretch == Stretch.None)
+            if (e.LeftButton == MouseButtonState.Pressed)
             {
-                if (e.LeftButton == MouseButtonState.Pressed)
+                if (PreviewBox.Stretch == Stretch.None)
                 {
                     Point factor = new Point(PreviewScroll.ExtentWidth/PreviewScroll.ActualWidth, PreviewScroll.ExtentHeight/PreviewScroll.ActualHeight);
                     Vector v = start - e.GetPosition(PreviewScroll);
-                    PreviewScroll.ScrollToHorizontalOffset(origin.X + v.X*factor.X);
-                    PreviewScroll.ScrollToVerticalOffset(origin.Y + v.Y*factor.Y);
+                    PreviewScroll.ScrollToHorizontalOffset(origin.X + v.X * factor.X);
+                    PreviewScroll.ScrollToVerticalOffset(origin.Y + v.Y * factor.Y);
                 }
             }
         }

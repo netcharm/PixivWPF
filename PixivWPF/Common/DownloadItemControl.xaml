@@ -29,22 +29,22 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
-                <MenuItem x:Name="miStopDownload" x:Uid="ActionStop" Header="Stop Selected" Click="miActions_Click">
+                <MenuItem x:Name="miStopDownload" x:Uid="ActionStop" Header="Stop Download" Click="miActions_Click">
                     <MenuItem.Icon>
                         <iconPacks:PackIconModern Kind="Stop" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem x:Name="miRemove" x:Uid="ActionRemove" Header="Remove Selected" Click="miActions_Click">
+                <MenuItem x:Name="miRemove" x:Uid="ActionRemove" Header="Remove Item" Click="miActions_Click">
                     <MenuItem.Icon>
                         <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <Separator/>
                 <MenuItem x:Name="miDownload" x:Uid="Download" Header="Download" Click="miActions_Click">
                     <MenuItem.Icon>
                         <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <Separator/>
                 <MenuItem x:Name="miOpenImage" x:Uid="OpenFile" Header="View Image" Click="miActions_Click">
                     <MenuItem.Icon>
                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
