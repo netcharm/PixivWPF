@@ -38,7 +38,7 @@
                 </Viewbox>
                 <Rectangle Grid.Row="0" 
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 
-                           MouseWheel="Preview_MouseWheel" MouseUp="Preview_MouseUp" MouseDown="Preview_MouseDown" MouseMove="Preview_MouseMove">
+                           MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" MouseMove="Preview_MouseMove">
                     <Rectangle.ContextMenu>
                         <ContextMenu>
                             <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionIllustInfo_Click">
