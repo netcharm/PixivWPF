@@ -380,6 +380,7 @@ namespace PixivWPF.Pages
             try
             {
                 IllustDetailWait.Show();
+                GC.Collect();
 
                 DataObject = item;
 

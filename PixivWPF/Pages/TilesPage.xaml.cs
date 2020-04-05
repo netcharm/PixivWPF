@@ -154,6 +154,7 @@ namespace PixivWPF.Pages
                 ids.Clear();
                 ImageList.Clear();
             }
+            GC.Collect();
 
             switch (target)
             {

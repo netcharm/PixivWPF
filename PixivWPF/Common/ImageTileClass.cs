@@ -20,6 +20,11 @@ namespace PixivWPF.Common
 
     public class ImageItem : FrameworkElement, INotifyPropertyChanged
     {
+        ~ImageItem()
+        {
+            if (source is ImageSource) source = null;
+        }
+
         public ImageItemType ItemType { get; set; }
 
         private ImageSource source = null;
