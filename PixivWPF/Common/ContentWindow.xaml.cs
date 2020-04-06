@@ -78,6 +78,10 @@ namespace PixivWPF.Common
             {
                 (this.Content as DownloadManagerPage).Pos = new Point(this.Left, this.Top);
             }
+            else if(this.Content is IllustDetailPage)
+            {
+                (this.Content as IllustDetailPage).DeleteHtmlRender();
+            }
         }
 
         private void MetroWindow_DragOver(object sender, DragEventArgs e)

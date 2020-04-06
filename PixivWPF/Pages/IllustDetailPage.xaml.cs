@@ -380,7 +380,6 @@ namespace PixivWPF.Pages
             try
             {
                 IllustDetailWait.Show();
-                GC.Collect();
 
                 DataObject = item;
 
@@ -995,6 +994,16 @@ namespace PixivWPF.Pages
             IllustDescHost.Children.Add(descHost);
 
             this.UpdateLayout();
+        }
+
+        public void DeleteHtmlRender()
+        {
+            if (IllustTagsHtml is System.Windows.Forms.WebBrowser) IllustTagsHtml.Dispose();
+            if (IllustDescHtml is System.Windows.Forms.WebBrowser) IllustDescHtml.Dispose();
+            if (tagsHost is WindowsFormsHostEx) tagsHost.Dispose();
+            if (descHost is WindowsFormsHostEx) descHost.Dispose();
+
+            if (CommentsViewer is WebBrowser) CommentsViewer.Dispose();
         }
 
         public IllustDetailPage()
