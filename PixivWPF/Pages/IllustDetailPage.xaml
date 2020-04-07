@@ -8,6 +8,7 @@
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       xmlns:Common="clr-namespace:PixivWPF.Common"
       mc:Ignorable="d" 
+      d:DesignHeight="300" d:DesignWidth="300"
       VisualTextRenderingMode="Auto"
       RenderOptions.BitmapScalingMode="HighQuality"
       RenderOptions.CachingHint="Cache"
@@ -15,8 +16,9 @@
       RenderOptions.EdgeMode="Aliased"
       TextOptions.TextFormattingMode="Display"
       AllowDrop="True"
-      d:DesignHeight="300" d:DesignWidth="300"
-      Title="IllustDetailPage">
+      Title="IllustDetailPage"
+      Loaded="Page_Loaded"
+      Unloaded="Page_Unloaded">
 
     <Page.Resources>
         <ContextMenu x:Name="MenuGallaryAction" x:Key="MenuGallaryAction" Opened="ActionMenu_Opened">

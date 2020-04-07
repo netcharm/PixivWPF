@@ -108,10 +108,16 @@ namespace PixivWPF.Pages
 
         internal void UpdateTheme()
         {
-            var tagsTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustTagsHtml.Document.Title : string.Empty;
-            var descTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustDescHtml.Document.Title : string.Empty;
-            IllustTagsHtml.DocumentText = GetText(IllustTagsHtml, true).GetHtmlFromTemplate(tagsTitle);
-            IllustDescHtml.DocumentText = GetText(IllustDescHtml, true).GetHtmlFromTemplate(descTitle);
+            if (IllustTagsHtml is System.Windows.Forms.WebBrowser)
+            {
+                var tagsTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustTagsHtml.Document.Title : string.Empty;
+                IllustTagsHtml.DocumentText = GetText(IllustTagsHtml, true).GetHtmlFromTemplate(tagsTitle);
+            }
+            if (IllustDescHtml is System.Windows.Forms.WebBrowser)
+            {
+                var descTitle = IllustDescHtml.Document is System.Windows.Forms.HtmlDocument ? IllustDescHtml.Document.Title : string.Empty;
+                IllustDescHtml.DocumentText = GetText(IllustDescHtml, true).GetHtmlFromTemplate(descTitle);
+            }
 
             btnSubPagePrev.Foreground = Theme.AccentBrush;
             btnSubPageNext.Foreground = Theme.AccentBrush;
@@ -996,14 +1002,34 @@ namespace PixivWPF.Pages
             this.UpdateLayout();
         }
 
-        public void DeleteHtmlRender()
+        private void DeleteHtmlRender()
         {
-            if (IllustTagsHtml is System.Windows.Forms.WebBrowser) IllustTagsHtml.Dispose();
-            if (IllustDescHtml is System.Windows.Forms.WebBrowser) IllustDescHtml.Dispose();
-            if (tagsHost is WindowsFormsHostEx) tagsHost.Dispose();
-            if (descHost is WindowsFormsHostEx) descHost.Dispose();
+            try
+            {
+                if (IllustTagsHtml is System.Windows.Forms.WebBrowser) IllustTagsHtml.Dispose();
+            }
+            catch { }
+            try
+            {
+                if (IllustDescHtml is System.Windows.Forms.WebBrowser) IllustDescHtml.Dispose();
+            }
+            catch { }
+            try
+            {
+                if (tagsHost is WindowsFormsHostEx) tagsHost.Dispose();
+            }
+            catch { }
+            try
+            {
+                if (descHost is WindowsFormsHostEx) descHost.Dispose();
+            }
+            catch { }
 
-            if (CommentsViewer is WebBrowser) CommentsViewer.Dispose();
+            try
+            {
+                if (CommentsViewer is WebBrowser) CommentsViewer.Dispose();
+            }
+            catch { }
         }
 
         public IllustDetailPage()
@@ -1015,6 +1041,16 @@ namespace PixivWPF.Pages
             IllustDetailWait.Visibility = Visibility.Collapsed;
 
             CreateHtmlRender();
+        }
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            DeleteHtmlRender();
         }
 
         #region WebBrowser Events Handle
