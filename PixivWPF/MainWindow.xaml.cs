@@ -175,18 +175,29 @@ namespace PixivWPF
 
         private void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
         {
-            var title = pagetiles.TargetPage.ToString();
-            if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
+            try
             {
-                NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
-                CommandNavDate.IsEnabled = true;
+                if (sender == CommandNavRefresh)
+                {
+                    var title = pagetiles.TargetPage.ToString();
+                    if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
+                        CommandNavDate.IsEnabled = true;
+                    }
+                    else
+                    {
+                        NavPageTitle.Text = title;
+                        CommandNavDate.IsEnabled = false;
+                    }
+                    pagetiles.ShowImages(pagetiles.TargetPage, false, GetLastSelectedID());
+                }
+                else if (sender == CommandNavRefreshThumb)
+                {
+                    pagetiles.UpdateImageTiles();
+                }
             }
-            else
-            {
-                NavPageTitle.Text = title;
-                CommandNavDate.IsEnabled = false;
-            }
-            pagetiles.ShowImages(pagetiles.TargetPage, false, GetLastSelectedID());
+            catch { }
         }
 
         private void CommandNavDate_Click(object sender, RoutedEventArgs e)

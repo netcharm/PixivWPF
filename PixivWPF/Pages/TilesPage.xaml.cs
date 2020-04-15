@@ -111,7 +111,7 @@ namespace PixivWPF.Pages
             e.Accepted = true;
         }
 
-        internal async void UpdateImageTiles()
+        protected internal async void UpdateImageTiles()
         {
             CommonHelper.DoEvents();
             lastTask = await ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);

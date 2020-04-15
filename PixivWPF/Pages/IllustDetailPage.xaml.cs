@@ -480,6 +480,7 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
+                    IllustTagsHtml.DocumentText = string.Empty;
                     IllustTagExpander.Hide();
                 }
 
@@ -495,12 +496,13 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
+                    IllustDescHtml.DocumentText = string.Empty;
                     IllustDescExpander.Hide();
                 }
 
                 SubIllusts.Tag = 0;
-                SubIllusts.Items.Clear();
                 SubIllustsExpander.IsExpanded = false;
+                SubIllusts.Items.Clear();
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.Illust is Pixeez.Objects.Work && item.Illust.PageCount > 1)
                 {
@@ -516,7 +518,6 @@ namespace PixivWPF.Pages
                     btnSubPagePrev.Hide();
                     btnSubPageNext.Hide();
                     PreviewBadge.Hide();
-                    SubIllusts.Items.Clear();
                     SubIllustsExpander.Hide();
                 }
 
@@ -2626,6 +2627,21 @@ namespace PixivWPF.Pages
                             var user = DataObject as Pixeez.Objects.UserBase;
                             ShowFavoriteInlineAsunc(user, FavoriteIllustsExpander.Tag is string ? FavoriteIllustsExpander.Tag as string : string.Empty);
                         }
+                    }
+                }
+                else if (m.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (host == SubIllustsExpander || host == SubIllusts)
+                    {
+                        SubIllusts.UpdateTilesImage();
+                    }
+                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                    {
+                        RelativeIllusts.UpdateTilesImage();
+                    }
+                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                    {
+                        FavoriteIllusts.UpdateTilesImage();
                     }
                 }
             }

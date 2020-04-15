@@ -38,6 +38,21 @@ namespace PixivWPF.Common
                 CommonHelper.UpdateTheme();
         }
 
+        private void AdjustWindowPos()
+        {
+            //var dw = System.Windows.SystemParameters.MaximizedPrimaryScreenWidth;
+            //var dh = System.Windows.SystemParameters.MaximizedPrimaryScreenHeight;
+            //var dw = System.Windows.SystemParameters.WorkArea.Width;
+            //var dh = System.Windows.SystemParameters.WorkArea.Height;
+
+            var rect = System.Windows.Forms.Screen.GetWorkingArea(new System.Drawing.Point((int)this.Top, (int)this.Left));
+            var dw = rect.Width;
+            var dh = rect.Height;
+
+            if (this.Left + this.Width > dw) this.Left = this.Left + this.Width - dw;
+            if (this.Top + this.Height > dh) this.Top = this.Top + this.Height - dh;
+        }
+
         private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>();
         public ObservableCollection<string> AutoSuggestList
         {
@@ -70,6 +85,8 @@ namespace PixivWPF.Common
                 CommandToggleDropbox.IsChecked = false;
             else
                 CommandToggleDropbox.IsChecked = true;
+
+            AdjustWindowPos();
         }
 
         private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)

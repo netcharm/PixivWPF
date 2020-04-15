@@ -61,6 +61,11 @@
                     ToolTip="Refresh Current Page">
                 <iconPacks:PackIconModern Kind="Refresh" />
             </Button>
+            <Button x:Name="CommandNavRefreshThumb"
+                    Click="CommandNavRefresh_Click"
+                    ToolTip="Refresh Current Page Thumbnail">
+                <iconPacks:PackIconModern Kind="ImageMultiple" />
+            </Button>
             <Button x:Name="CommandNavDate"
                     Click="CommandNavDate_Click"                                
                     ToolTip="Date Selector">
