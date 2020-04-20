@@ -353,16 +353,40 @@ namespace PixivWPF.Common
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        private DateTime startTick = DateTime.Now;
+        private DateTime endTick = DateTime.Now;
         private DateTime lastTick = DateTime.Now;
+        private double lastRate = 0;
         private long lastReceived = 0;
         internal IProgress<Tuple<double, double>> progress = null;
+
+        private void InitProgress()
+        {
+            progress = new Progress<Tuple<double, double>>(i => {
+                if (State != DownloadState.Finished) endTick = DateTime.Now;
+                if (endTick.Ticks - lastTick.Ticks >= 10000000.0) lastTick = endTick;
+
+                var received = i.Item1 >= 0 ? i.Item1 : 0;
+                var total = i.Item2 >= 0 ? i.Item2 : 0;
+
+                var deltaA = (endTick.Ticks - startTick.Ticks) / 10000000.0;
+                var deltaC = (endTick.Ticks - lastTick.Ticks) / 10000000.0;
+                var rateA = deltaA > 0 ? received / deltaA / 1024.0 : 0;
+                var rateC = deltaC > 0 ? lastReceived / deltaC / 1024.0 : lastRate;
+                //if (rateC > 0) lastRate = rateC;
+
+                PART_DownloadProgress.Value = total > 0 ? received / total * 100 : 0;
+                PART_DownInfo.Text = $"Status : {received / 1024.0:0.} KB / {total / 1024.0:0.} KB, {rateC:0.00}({rateA:0.00}) KB/s";
+                PART_DownloadProgressPercent.Text = $"{PART_DownloadProgress.Value:0.0}%";
+            });
+        }
 
         private void CheckProperties()
         {
             if(Tag is DownloadInfo)
             {
                 Info = Tag as DownloadInfo;
-                progress.Report(Info.Progress);
+                //progress.Report(Info.Progress);
                 if (IsForceStart) State = DownloadState.Idle;
                 if(Info.State == DownloadState.Finished)
                 {
@@ -378,6 +402,7 @@ namespace PixivWPF.Common
                 {
                     miRemove.IsEnabled = false;
                     miStopDownload.IsEnabled = true;
+                    progress.Report(Info.Progress);
                 }
                 else
                 {
@@ -439,6 +464,7 @@ namespace PixivWPF.Common
                                     bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT);
                                     if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Info.Received < Info.Length)
                                     {
+                                        lastReceived = bytesread;
                                         Info.Received += bytesread;
                                         await ms.WriteAsync(bytes, 0, bytesread);
                                         progress.Report(Info.Progress);
@@ -492,7 +518,7 @@ namespace PixivWPF.Common
 
             this.Dispatcher.BeginInvoke((Action)(async () =>
             {
-                lastTick = DateTime.Now;
+                startTick = DateTime.Now;
                 var ret = await DownloadAsync();
                 if (!string.IsNullOrEmpty(ret))
                 {
@@ -507,15 +533,7 @@ namespace PixivWPF.Common
             InitializeComponent();
             Info = new DownloadInfo();
 
-            progress = new Progress<Tuple<double, double>>(i => {
-                var received = i.Item1 >= 0 ? i.Item1 : 0;
-                var total = i.Item2 >= 0 ? i.Item2 : 0;
-                var delta = (DateTime.Now.Ticks - lastTick.Ticks) / 10000000.0;
-                var rate = delta > 0 ? (received - lastReceived) / delta / 1024.0 : 0;
-                PART_DownloadProgress.Value = total > 0 ? received / total * 100 : 0;
-                PART_DownInfo.Text = $"Downloading : {received / 1024.0:0.} KB / {total / 1024.0:0.} KB, {rate:0.00} KB/s";
-                PART_DownloadProgressPercent.Text = $"{PART_DownloadProgress.Value:0.0}%";
-            });
+            InitProgress();
 
             CheckProperties();
         }
@@ -526,10 +544,7 @@ namespace PixivWPF.Common
 
             Info = new DownloadInfo();
 
-            progress = new Progress<Tuple<double, double>>(i => {
-                PART_DownloadProgress.Value = i.Item2 > 0 ? i.Item1 / i.Item2 * 100 : 0;
-                PART_DownInfo.Text = $"Downloading : {i.Item1 / 1024.0:0.} KB / {i.Item2 / 1024.0:0.} KB";
-            });
+            InitProgress();
 
             AutoStart = autostart;
             Info.Url = url;
@@ -546,10 +561,7 @@ namespace PixivWPF.Common
             else
                 Info = new DownloadInfo();
 
-            progress = new Progress<Tuple<double, double>>(i => {
-                PART_DownloadProgress.Value = i.Item2 > 0 ? i.Item1 / i.Item2 * 100 : 0;
-                PART_DownInfo.Text = $"Downloading : {i.Item1 / 1024.0:0.} KB / {i.Item2 / 1024.0:0.} KB";
-            });
+            InitProgress();
 
             CheckProperties();
         }

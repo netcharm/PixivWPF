@@ -2601,7 +2601,7 @@ namespace PixivWPF.Common
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
-                        var info = result.Item1 ? "Liked" : "Unliked";
+                        var info = "Liked";
                         var title = result.Item1 ? "Succeed" : "Failed";
                         var fail = result.Item1 ? "is" : "isn't";
                         $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl());
@@ -2634,7 +2634,7 @@ namespace PixivWPF.Common
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
-                        var info = result.Item1 ? "Liked" : "Unliked";
+                        var info = "Unliked";
                         var title = result.Item1 ? "Failed" : "Succeed";
                         var fail = result.Item1 ?  "isn't" : "is";
                         $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl());
@@ -2786,7 +2786,7 @@ namespace PixivWPF.Common
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
-                        var info = result.Item1 ? "Liked" : "Unliked";
+                        var info = "Liked";
                         var title = result.Item1 ? "Succeed" : "Failed";
                         var fail = result.Item1 ?  "is" : "isn't";
                         $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl());
@@ -2818,7 +2818,7 @@ namespace PixivWPF.Common
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
-                        var info = result.Item1 ? "Liked" : "Unliked";
+                        var info = "Unliked";
                         var title = result.Item1 ? "Failed" : "Succeed";
                         var fail = result.Item1 ?  "isn't" : "is";
                         $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl());
@@ -3657,22 +3657,28 @@ namespace PixivWPF.Common
 
     public static class Speech
     {
-        private static SpeechTTS t2s = new SpeechTTS()
-        {
-            IsCompleted = new Action(() =>
-            {
-                if (Application.Current.Dispatcher.CheckAccess())
-                {
+        private static SpeechTTS t2s = Init();
 
-                }
-            })
-        };
+        private static SpeechTTS Init()
+        {
+            var tts = new SpeechTTS()
+            {
+                IsCompleted = new Action(() =>
+                {
+                    if (Application.Current.Dispatcher.CheckAccess())
+                    {
+
+                    }
+                })
+            };
+            return (tts);
+        }
 
         public static void Play(this string text, CultureInfo culture)
         {
             if (!(t2s is SpeechTTS))
             {
-                t2s = new SpeechTTS();
+                t2s = Init();
             }
             if (t2s is SpeechTTS)
             {

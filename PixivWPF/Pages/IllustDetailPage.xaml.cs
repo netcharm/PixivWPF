@@ -1234,7 +1234,7 @@ namespace PixivWPF.Pages
                 //if (sender == btnIllustTagSpeech && !string.IsNullOrEmpty(IllustTags.Text))
                 //    text = GetText(IllustTags).Replace("#", " ");
                 if (sender == btnIllustTagSpeech)
-                    text = GetText(IllustTagsHtml).Replace("#", " ");
+                    text = string.Join(Environment.NewLine, GetText(IllustTagsHtml).Trim().Trim('#').Split('#'));// Replace("#", ", ");
                 //else if (sender == btnIllustDescSpeech && !string.IsNullOrEmpty(IllustDesc.Text))
                 //    text = GetText(IllustDesc);
                 else if (sender == btnIllustDescSpeech)
@@ -1249,7 +1249,7 @@ namespace PixivWPF.Pages
                     if (mi.Parent is ContextMenu)
                     {
                         var host = (mi.Parent as ContextMenu).PlacementTarget;
-                        if (host == btnIllustTagSpeech) text = GetText(IllustTagsHtml).Replace("#", " ");
+                        if (host == btnIllustTagSpeech) text = string.Join(Environment.NewLine, GetText(IllustTagsHtml).Trim().Trim('#').Split('#')); //.Replace("#", ", ");
                         else if (host == btnIllustDescSpeech) text = GetText(IllustDescHtml);
                         else if (host == IllustAuthor) text = IllustAuthor.Text;
                         else if (host == IllustTitle) text = IllustTitle.Text;
