@@ -1,25 +1,16 @@
-﻿using MahApps.Metro.Controls;
-using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Media;
-using System.Net;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
+
+using Microsoft.Win32;
 
 namespace PixivWPF.Common
 {
@@ -363,21 +354,35 @@ namespace PixivWPF.Common
         private void InitProgress()
         {
             progress = new Progress<Tuple<double, double>>(i => {
-                if (State != DownloadState.Finished) endTick = DateTime.Now;
-                if (endTick.Ticks - lastTick.Ticks >= 10000000.0) lastTick = endTick;
+                if (endTick.Ticks - lastTick.Ticks >= 10000000.0 || State == DownloadState.Finished)
+                {
+                    var received = i.Item1 >= 0 ? i.Item1 : 0;
+                    var total = i.Item2 >= 0 ? i.Item2 : 0;
 
-                var received = i.Item1 >= 0 ? i.Item1 : 0;
-                var total = i.Item2 >= 0 ? i.Item2 : 0;
+                    #region Update ProgressBar & Progress Info Text
+                    var deltaA = (endTick.Ticks - startTick.Ticks) / 10000000.0;
+                    var deltaC = (endTick.Ticks - lastTick.Ticks) / 10000000.0;
+                    var rateA = deltaA > 0 ? received / deltaA / 1024.0 : 0;
+                    var rateC = deltaC > 0 ? lastReceived / deltaC / 1024.0 : lastRate;
+                    if (rateC > 0 || deltaC >= 5) lastRate = rateC;
+                    var percent = total > 0 ? received / total : 0;
+                    PART_DownloadProgress.Value = percent * 100;
+                    PART_DownInfo.Text = $"Status : {received / 1024.0:0.} KB / {total / 1024.0:0.} KB, {lastRate:0.00} / {rateA:0.00} KB/s";
+                    PART_DownloadProgressPercent.Text = $"{PART_DownloadProgress.Value:0.0}%";
+                    #endregion
 
-                var deltaA = (endTick.Ticks - startTick.Ticks) / 10000000.0;
-                var deltaC = (endTick.Ticks - lastTick.Ticks) / 10000000.0;
-                var rateA = deltaA > 0 ? received / deltaA / 1024.0 : 0;
-                var rateC = deltaC > 0 ? lastReceived / deltaC / 1024.0 : lastRate;
-                //if (rateC > 0) lastRate = rateC;
+                    #region Update Progress Info Text Color Gradient
+                    var factor = PART_DownloadProgress.ActualWidth / PART_DownloadProgressPercent.ActualWidth;
+                    var offset = Math.Abs((factor - 1) / 2);
+                    PART_ProgressInfoLinear.StartPoint = new Point(0 - offset, 0);
+                    PART_ProgressInfoLinear.EndPoint = new Point(1 + offset, 0);
+                    PART_ProgressInfoLeft.Offset = percent;
+                    PART_ProgressInfoRight.Offset = percent;
+                    #endregion
 
-                PART_DownloadProgress.Value = total > 0 ? received / total * 100 : 0;
-                PART_DownInfo.Text = $"Status : {received / 1024.0:0.} KB / {total / 1024.0:0.} KB, {rateC:0.00}({rateA:0.00}) KB/s";
-                PART_DownloadProgressPercent.Text = $"{PART_DownloadProgress.Value:0.0}%";
+                    lastReceived = 0;
+                    lastTick = endTick;
+                }
             });
         }
 
@@ -442,6 +447,8 @@ namespace PixivWPF.Common
                 {
                     PART_DownloadProgress.IsIndeterminate = false;
                     PART_DownloadProgress.IsEnabled = true;
+                    endTick = DateTime.Now;
+                    lastReceived = 0;
                     Info.Received = 0;
                     Info.Length = (long)response.Source.Content.Headers.ContentLength;
 
@@ -464,7 +471,8 @@ namespace PixivWPF.Common
                                     bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT);
                                     if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Info.Received < Info.Length)
                                     {
-                                        lastReceived = bytesread;
+                                        endTick = DateTime.Now;
+                                        lastReceived += bytesread;
                                         Info.Received += bytesread;
                                         await ms.WriteAsync(bytes, 0, bytesread);
                                         progress.Report(Info.Progress);
@@ -592,11 +600,8 @@ namespace PixivWPF.Common
                 var btn = sender as Button;
                 if (btn.Tag is string)
                 {
-                    var image = Path.GetDirectoryName((string)btn.Tag);
-                    if (Directory.Exists(image))
-                    {
-                        System.Diagnostics.Process.Start(image);
-                    }
+                    var FileName = (string)btn.Tag;
+                    this.FileName.OpenImageWithShell(true);
                 }
             }
         }
@@ -608,11 +613,8 @@ namespace PixivWPF.Common
                 var btn = sender as Button;
                 if (btn.Tag is string)
                 {
-                    var image = (string)btn.Tag;
-                    if (File.Exists(image))
-                    {
-                        System.Diagnostics.Process.Start(image);
-                    }
+                    var FileName = (string)btn.Tag;
+                    this.FileName.OpenImageWithShell();
                 }
             }
         }
@@ -664,17 +666,11 @@ namespace PixivWPF.Common
             }
             else if (sender == miOpenImage || sender == PART_OpenFile)
             {
-                if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
-                {
-                    System.Diagnostics.Process.Start(FileName);
-                }
+                FileName.OpenImageWithShell();
             }
             else if (sender == miOpenFolder || sender == PART_OpenFolder)
             {
-                if (!string.IsNullOrEmpty(FolderName) && Directory.Exists(FolderName))
-                {
-                    System.Diagnostics.Process.Start(FolderName);
-                }
+                FileName.OpenImageWithShell(true);
             }
         }
     }

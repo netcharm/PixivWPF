@@ -323,7 +323,16 @@ namespace PixivWPF.Pages
 
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_CopyIllustIDs.Execute(DataType);
+            if (DataType is ImageItem)
+            {
+                var item = DataType as ImageItem;
+                if (sender == ActionCopyIllustID)
+                    CommonHelper.Cmd_CopyIllustIDs.Execute(item);
+                else if (sender == ActionOpenIllust)
+                    CommonHelper.Cmd_OpenIllust.Execute(item.Illust);
+                else if (sender == ActionOpenAuthor)
+                    CommonHelper.Cmd_OpenUser.Execute(item.User);
+            }
         }
 
         private void ActionViewPrevPage_Click(object sender, RoutedEventArgs e)

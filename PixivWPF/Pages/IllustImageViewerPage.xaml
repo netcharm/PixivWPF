@@ -46,6 +46,17 @@
                                     <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem x:Name="ActionOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionIllustInfo_Click">
+                                <MenuItem.Icon>
+                                    <iconPacks:PackIconModern Kind="NewWindow" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="ActionOpenAuthor" x:Uid="ActionOpenAuthor" Header="Open Author" Click="ActionIllustInfo_Click">
+                                <MenuItem.Icon>
+                                    <iconPacks:PackIconModern Kind="PeopleProfile" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator/>
                             <MenuItem x:Name="ActionViewPrevPage" x:Uid="ActionViewPrevPage" Header="Previous Page" Click="ActionViewPrevPage_Click">
                                 <MenuItem.Icon>
                                     <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0" />

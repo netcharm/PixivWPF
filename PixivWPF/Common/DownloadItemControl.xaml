@@ -90,13 +90,21 @@
         <mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
                               Foreground="{DynamicResource AccentColorBrush}"
                               Tag="{Binding Progress, Mode=OneWay}"
-                              Height="16" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
+                              Height="18" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
                               Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                               HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
         <TextBlock Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgressPercent" 
-                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2"
-                   Foreground="{DynamicResource LabelTextBrush}" 
-                   TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
+                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
+                   TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
+            <TextBlock.Foreground>
+                <LinearGradientBrush x:Name="PART_ProgressInfoLinear" StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="{DynamicResource IdealForegroundColor}" Offset="0"></GradientStop>
+                    <GradientStop Color="{DynamicResource IdealForegroundColor}" Offset="0" x:Name="PART_ProgressInfoLeft"></GradientStop>
+                    <GradientStop Color="{DynamicResource AccentColor}" Offset="0" x:Name="PART_ProgressInfoRight"></GradientStop>
+                    <GradientStop Color="{DynamicResource AccentColor}" Offset="1"></GradientStop>
+                </LinearGradientBrush>
+            </TextBlock.Foreground>
+        </TextBlock>
         <Grid Grid.Row="4" Grid.Column="1" Margin="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>

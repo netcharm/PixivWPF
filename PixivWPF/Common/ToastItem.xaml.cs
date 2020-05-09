@@ -1,18 +1,10 @@
-﻿using MahApps.Metro.IconPacks;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
+
+using MahApps.Metro.IconPacks;
 
 namespace PixivWPF.Common
 {
@@ -204,11 +196,8 @@ namespace PixivWPF.Common
                 var btn = sender as Button;
                 if (btn.Tag is string)
                 {
-                    var image = System.IO.Path.GetDirectoryName((string)btn.Tag);
-                    if (System.IO.Directory.Exists(image))
-                    {
-                        System.Diagnostics.Process.Start(image);
-                    }
+                    var FileName = (string)btn.Tag;
+                    FileName.OpenImageWithShell(true);
                 }
             }
         }
@@ -220,11 +209,8 @@ namespace PixivWPF.Common
                 var btn = sender as Button;
                 if(btn.Tag is string)
                 {
-                    var image = (string)btn.Tag;
-                    if (System.IO.File.Exists(image))
-                    {
-                        System.Diagnostics.Process.Start(image);
-                    }
+                    var FileName = (string)btn.Tag;
+                    FileName.OpenImageWithShell();
                 }
             }            
         }

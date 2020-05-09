@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Media;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -319,15 +317,10 @@ namespace PixivWPF.Pages
         {
             if (DataObject is ImageItem)
             {
-                //string fp = string.Empty;
-                //(DataObject as ImageItem).IsDownloaded = (DataObject as ImageItem).Illust.IsPartDownloaded(out fp);
                 if (IllustDownloaded.Tag is string)
                 {
                     var fp = IllustDownloaded.Tag as string;
-                    if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
-                    {
-                        System.Diagnostics.Process.Start(fp);
-                    }
+                    fp.OpenImageWithShell();
                 }
             }
         }
@@ -1312,10 +1305,7 @@ namespace PixivWPF.Pages
             if (IllustDownloaded.Tag is string)
             {
                 var fp = IllustDownloaded.Tag as string;
-                if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
-                {
-                    System.Diagnostics.Process.Start(fp);
-                }
+                fp.OpenImageWithShell();
             }
         }
 
@@ -1426,16 +1416,8 @@ namespace PixivWPF.Pages
                     var item = DataObject as ImageItem;
                     if (item.Illust is Pixeez.Objects.Work)
                     {
-                        //var href = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={item.ID}";
                         var href = $"https://www.pixiv.net/artworks/{item.ID}";
-                        try
-                        {
-                            System.Diagnostics.Process.Start(href);
-                        }
-                        catch (Exception ex)
-                        {
-                            ex.Message.ShowMessageBox("ERROR");
-                        }
+                        href.OpenUrlWithShell();
                     }
                 }
             }
@@ -1886,40 +1868,6 @@ namespace PixivWPF.Pages
 
                         ShowIllustPagesAsync(item, index);
                     }
-                }
-            }
-        }
-
-        private void ActionPrevSubIllustPage_Click(object sender, RoutedEventArgs e)
-        {
-            var btn = btnSubIllustPrevPages;
-            if (btn.Tag is int)
-            {
-                var start = (int)btn.Tag;
-                if (start < 0) return;
-
-                if (DataObject is ImageItem)
-                {
-                    var item = DataObject as ImageItem;
-                    if (start < item.Count)
-                        ShowIllustPagesAsync(item, 29, start);
-                }
-            }
-        }
-
-        private void ActionNextSubIllustPage_Click(object sender, RoutedEventArgs e)
-        {
-            var btn = btnSubIllustNextPages;
-            if (btn.Tag is int)
-            {
-                var start = (int)btn.Tag;
-                if (start < 0) return;
-
-                if (DataObject is ImageItem)
-                {
-                    var item = DataObject as ImageItem;
-                    if (start < item.Count)
-                        ShowIllustPagesAsync(item, 0, start);
                 }
             }
         }
@@ -2449,7 +2397,7 @@ namespace PixivWPF.Pages
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                 if (host == SubIllustsExpander || host == SubIllusts)
                 {
-                    ActionPrevSubIllustPage_Click(sender, e);
+                    SubIllustPagesNav_Click(btnSubIllustPrevPages, e);
                 }
                 else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                 {
@@ -2473,7 +2421,7 @@ namespace PixivWPF.Pages
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                 if (host == SubIllustsExpander || host == SubIllusts)
                 {
-                    ActionNextSubIllustPage_Click(sender, e);
+                    SubIllustPagesNav_Click(btnSubIllustNextPages, e);
                 }
                 else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                 {

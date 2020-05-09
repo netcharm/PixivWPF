@@ -517,19 +517,13 @@ namespace PixivWPF.Common
                 {
                     string fp = string.Empty;
                     item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
-                    if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
-                    {
-                        System.Diagnostics.Process.Start(fp);
-                    }
+                    fp.OpenImageWithShell();
                 }
                 else
                 {
                     string fp = string.Empty;
                     item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
-                    if (!string.IsNullOrEmpty(fp) && File.Exists(fp))
-                    {
-                        System.Diagnostics.Process.Start(fp);
-                    }
+                    fp.OpenImageWithShell();
                 }
             }
         });
@@ -2204,6 +2198,58 @@ namespace PixivWPF.Common
 #endif
             return (result);
         }
+
+        public static bool OpenUrlWithShell(this string url)
+        {
+            bool result = false;
+
+            try
+            {
+                System.Diagnostics.Process.Start(url);
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+
+            return (result);
+        }
+
+        public static bool OpenImageWithShell(this string FileName, bool ShowFolder=false)
+        {
+            bool result = false;
+
+            var WinDir = Environment.GetEnvironmentVariable("WinDir");
+
+            if (ShowFolder)
+            {
+                if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
+                {
+                    if (string.IsNullOrEmpty(WinDir))
+                        System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{FileName}\"");
+                    else
+                        System.Diagnostics.Process.Start(Path.Combine(WinDir, "explorer.exe"), $"/select,\"{FileName}\"");
+                    result = true;
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
+                {
+                    var UsingOpenWith = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
+                    var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
+                    var exists = File.Exists(OpenWith) ?  true : false;
+                    if (UsingOpenWith && exists)
+                        System.Diagnostics.Process.Start(OpenWith, FileName);
+                    else
+                        System.Diagnostics.Process.Start(FileName);
+                    result = true;
+                }
+            }
+
+            return (result);
+        }
         #endregion
 
         #region Illust Tile ListView routines
@@ -2413,7 +2459,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Like Helper routines
+        #region Like helper routines
         public static bool IsLiked(this Pixeez.Objects.Work illust)
         {
             bool result = false;
@@ -2475,6 +2521,7 @@ namespace PixivWPF.Common
             }
             else return false;
         }
+        #endregion
 
         #region Like/Unlike Illust helper routines
         public static async Task<bool> Like(this Pixeez.Objects.Work illust, bool pub = true)
@@ -2828,8 +2875,6 @@ namespace PixivWPF.Common
             }
             return (result);
         }
-        #endregion
-
         #endregion
 
         #region Update Illust/User info cache
@@ -3364,7 +3409,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Search Window routines
+        #region SearchBox common routines
         private static ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {};
         public static ObservableCollection<string> AutoSuggestList
         {
