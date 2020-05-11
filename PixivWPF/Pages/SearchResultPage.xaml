@@ -48,6 +48,11 @@
                     <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionRefreshThumb" Header="Refresh Thumbnails" Click="ActionRefreshResult_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="ImageMultiple" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>            
             <Separator/>
             <MenuItem x:Name="ActionNextResultPage" x:Uid="ActionNextResultPage" Header="Open Next Page" Click="ResultNextPage_Click">
                 <MenuItem.Icon>

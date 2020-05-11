@@ -332,7 +332,25 @@ namespace PixivWPF.Pages
 
         private void ActionRefreshResult_Click(object sender, RoutedEventArgs e)
         {
-            ResultExpander_Expanded(sender, e);
+            if (sender is MenuItem)
+            {
+                var m = sender as MenuItem;
+                var host = (m.Parent as ContextMenu).PlacementTarget;
+                if (m.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (host == ResultExpander || host == ResultIllusts)
+                    {
+                        ResultExpander_Expanded(sender, e);
+                    }
+                }
+                else if (m.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (host == ResultExpander || host == ResultIllusts)
+                    {
+                        ResultIllusts.UpdateTilesImage();
+                    }
+                }
+            }
         }
 
         private void ActionSaveResult_Click(object sender, RoutedEventArgs e)

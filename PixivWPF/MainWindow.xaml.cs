@@ -65,11 +65,11 @@ namespace PixivWPF
             if (ContentFrame.Content is Pages.TilesPage)
             {
                 var tiles = ContentFrame.Content as Pages.TilesPage;
-                tiles.UpdateLikeStateAsync(illustid);
+                tiles.UpdateLikeStateAsync(illustid, is_user);
                 if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
                 {
                     var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
-                    detail.UpdateLikeStateAsync(illustid);
+                    detail.UpdateLikeStateAsync(illustid, is_user);
                 }
             }
         }

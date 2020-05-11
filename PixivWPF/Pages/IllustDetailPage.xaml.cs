@@ -242,7 +242,7 @@ namespace PixivWPF.Pages
         {
             await new Action(() =>
             {
-                UpdateLikeState(illustid);
+                UpdateLikeState(illustid, is_user);
             }).InvokeAsync();
         }
 
@@ -257,6 +257,7 @@ namespace PixivWPF.Pages
             {
                 UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
             }
+
             if (RelativeIllustsExpander.IsExpanded)
             {
                 RelativeIllusts.UpdateLikeState(illustid, is_user);
@@ -937,7 +938,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ShowFavoriteInlineAsunc(Pixeez.Objects.UserBase user, string next_url = "")
+        private async void ShowFavoriteInlineAsync(Pixeez.Objects.UserBase user, string next_url = "")
         {
             await new Action(async () =>
             {
@@ -963,13 +964,19 @@ namespace PixivWPF.Pages
             if (browser is System.Windows.Forms.WebBrowser)
             {
                 browser.Dock = System.Windows.Forms.DockStyle.Fill;
-                //browser.AllowNavigation = false;
-                browser.AllowWebBrowserDrop = false;
-                browser.WebBrowserShortcutsEnabled = true;
-                browser.DocumentCompleted += WebBrowser_DocumentCompleted;
-                browser.Navigating += WebBrowser_Navigating;
-                browser.ProgressChanged += WebBrowser_ProgressChanged;
-                browser.PreviewKeyDown += WebBrowser_PreviewKeyDown;
+                try
+                {
+                    //browser.AllowNavigation = false;
+                    browser.AllowWebBrowserDrop = false;
+                    browser.WebBrowserShortcutsEnabled = true;
+                }
+                finally
+                {
+                    browser.DocumentCompleted += WebBrowser_DocumentCompleted;
+                    browser.Navigating += WebBrowser_Navigating;
+                    browser.ProgressChanged += WebBrowser_ProgressChanged;
+                    browser.PreviewKeyDown += WebBrowser_PreviewKeyDown;
+                }
             }
         }
 
@@ -1600,12 +1607,18 @@ namespace PixivWPF.Pages
         private void ActionIllust_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            UpdateLikeState();
+            bool is_user = false;
 
             if (sender == BookmarkIllust)
+            {
                 BookmarkIllust.ContextMenu.IsOpen = true;
+                is_user = true;
+            }
             else if (sender == FollowAuthor)
+            {
                 FollowAuthor.ContextMenu.IsOpen = true;
+                is_user = true;
+            }
             else if (sender == IllustActions)
             {
                 if (Window.GetWindow(this) is ContentWindow)
@@ -1614,6 +1627,7 @@ namespace PixivWPF.Pages
                     ActionIllustNewWindow.Visibility = Visibility.Visible;
                 IllustActions.ContextMenu.IsOpen = true;
             }
+            UpdateLikeState(-1, is_user);
         }
 
         private async void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
@@ -2067,12 +2081,12 @@ namespace PixivWPF.Pages
             if (DataObject is ImageItem)
             {
                 var user = (DataObject as ImageItem).User;
-                ShowFavoriteInlineAsunc(user);
+                ShowFavoriteInlineAsync(user);
             }
             else if (DataObject is Pixeez.Objects.UserBase)
             {
                 var user = DataObject as Pixeez.Objects.UserBase;
-                ShowFavoriteInlineAsunc(user);
+                ShowFavoriteInlineAsync(user);
             }
         }
 
@@ -2139,12 +2153,12 @@ namespace PixivWPF.Pages
             {
                 var item = DataObject as ImageItem;
                 var user = item.Illust.User;
-                ShowFavoriteInlineAsunc(user, next_url);
+                ShowFavoriteInlineAsync(user, next_url);
             }
             else if (DataObject is Pixeez.Objects.UserBase)
             {
                 var user = DataObject as Pixeez.Objects.UserBase;
-                ShowFavoriteInlineAsunc(user, next_url);
+                ShowFavoriteInlineAsync(user, next_url);
             }
         }
         #endregion
@@ -2568,12 +2582,12 @@ namespace PixivWPF.Pages
                         if (DataObject is ImageItem)
                         {
                             var user = (DataObject as ImageItem).User;
-                            ShowFavoriteInlineAsunc(user, FavoriteIllustsExpander.Tag is string ? FavoriteIllustsExpander.Tag as string : string.Empty);
+                            ShowFavoriteInlineAsync(user, FavoriteIllustsExpander.Tag is string ? FavoriteIllustsExpander.Tag as string : string.Empty);
                         }
                         else if (DataObject is Pixeez.Objects.UserBase)
                         {
                             var user = DataObject as Pixeez.Objects.UserBase;
-                            ShowFavoriteInlineAsunc(user, FavoriteIllustsExpander.Tag is string ? FavoriteIllustsExpander.Tag as string : string.Empty);
+                            ShowFavoriteInlineAsync(user, FavoriteIllustsExpander.Tag is string ? FavoriteIllustsExpander.Tag as string : string.Empty);
                         }
                     }
                 }

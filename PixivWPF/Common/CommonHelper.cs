@@ -2477,7 +2477,12 @@ namespace PixivWPF.Common
             user = UserCache.ContainsKey(user.Id) ? UserCache[user.Id] : user;
             if (user != null)
             {
-                result = user.is_followed ?? (user as Pixeez.Objects.User).IsFollowing ?? (user as Pixeez.Objects.User).IsFollowed ?? false;
+                var u = user as Pixeez.Objects.User;
+                var ue = u is Pixeez.Objects.User;
+                if (ue)
+                    result = user.is_followed ?? u.IsFollowing ?? u.IsFollowed ?? false;
+                else
+                    result = user.is_followed ?? false;
             }
             return (result);
         }
@@ -2924,41 +2929,72 @@ namespace PixivWPF.Common
         
         public static void UpdateLikeState(this ImageListGrid list, int illustid = -1, bool is_user = false)
         {
-            foreach (ImageItem item in list.Items)
-            {
-                if (illustid == -1 || illustid == item.Illust.Id || illustid == (int)item.User.Id)
-                {
-                    if (item.ItemType == ImageItemType.User)
-                    {
-                        item.IsFavorited = false;
-                        item.IsFollowed = item.User.IsLiked();
-                    }
-                    else
-                    {
-                        item.IsFavorited = item.Illust.IsLiked();
-                        item.IsFollowed = item.User.IsLiked();
-                    }
-                }
-            }
+            list.Items.UpdateLikeState(illustid, is_user);
+            //foreach (ImageItem item in list.Items)
+            //{
+            //    int item_id = -1;
+            //    int.TryParse(item.ID, out item_id);
+            //    int user_id = -1;
+            //    int.TryParse(item.UserID, out user_id);
+                
+            //    try
+            //    {
+            //        if (is_user)
+            //        {
+            //            if (illustid == -1 || illustid == user_id)
+            //            {
+            //                item.IsFavorited = item.Illust.IsLiked();
+            //                item.IsFollowed = item.User.IsLiked();
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if (illustid == -1 || illustid == item_id)
+            //            {
+            //                if (item.ItemType == ImageItemType.User)
+            //                {
+            //                    item.IsFavorited = false;
+            //                    item.IsFollowed = item.User.IsLiked();
+            //                }
+            //                else
+            //                {
+            //                    item.IsFavorited = item.Illust.IsLiked();
+            //                    item.IsFollowed = item.User.IsLiked();
+            //                }
+            //            }
+            //        }
+            //    }
+            //    catch { }
+            //}
         }
 
         public static void UpdateLikeState(this ObservableCollection<ImageItem> collection, int illustid = -1, bool is_user = false)
         {
             foreach (ImageItem item in collection)
             {
-                if (illustid == -1 || illustid == item.Illust.Id || illustid == (int)item.User.Id)
+                int item_id = -1;
+                int.TryParse(item.ID, out item_id);
+                int user_id = -1;
+                int.TryParse(item.UserID, out user_id);
+
+                try
                 {
-                    if (item.ItemType == ImageItemType.User)
+                    if (is_user) item_id = user_id;
+                    if (illustid == -1 || illustid == item_id)
                     {
-                        item.IsFavorited = false;
-                        item.IsFollowed = item.User.IsLiked();
-                    }
-                    else
-                    {
-                        item.IsFavorited = item.Illust.IsLiked();
-                        item.IsFollowed = item.User.IsLiked();
+                        if (item.ItemType == ImageItemType.User)
+                        {
+                            item.IsFavorited = false;
+                            item.IsFollowed = item.User.IsLiked();
+                        }
+                        else
+                        {
+                            item.IsFavorited = item.Illust.IsLiked();
+                            item.IsFollowed = item.User.IsLiked();
+                        }
                     }
                 }
+                catch { }
             }
         }
         #endregion

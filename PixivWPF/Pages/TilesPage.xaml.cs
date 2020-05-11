@@ -66,37 +66,11 @@ namespace PixivWPF.Pages
             });
         }
 
-        public void UpdateLikeState(int illustid = -1)
-        {
-            if (ImageList is ObservableCollection<ImageItem>)
-            {
-                foreach (var item in ImageList)
-                {
-                    if (item.Illust is Pixeez.Objects.Work)
-                    {
-                        if (illustid == -1 || illustid == (int)(item.Illust.Id) || illustid == (int)item.User.Id)
-                        {
-                            if (item.ItemType == ImageItemType.User)
-                            {
-                                item.IsFavorited = false;
-                                item.IsFollowed = item.User.IsLiked();
-                            }
-                            else
-                            {
-                                item.IsFavorited = item.Illust.IsLiked();
-                                item.IsFollowed = item.User.IsLiked();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public async void UpdateLikeStateAsync(int illustid = -1)
+        public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
         {
             await Task.Run(() =>
             {
-                ImageList.UpdateLikeState(illustid);
+                ImageList.UpdateLikeState(illustid, is_user);
                 //UpdateLikeState(illustid);
             });
         }
