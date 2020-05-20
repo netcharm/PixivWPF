@@ -278,39 +278,23 @@ namespace PixivWPF.Pages
             else if (DataObject is ImageItem)
             {
                 var item = DataObject as ImageItem;
-                if (item.Illust.PageCount > 1)
+
+                if (item.Count > 1)
                 {
-                    btnSubPageNext.Hide();
-                    btnSubPagePrev.Show();
-                }
-                if (SubIllusts.SelectedIndex <= 0)
-                {
-                    SubIllusts.SelectedIndex = 0;
-                    await Task.Delay(1);
-                }
-                if (SubIllusts.SelectedItem.Index <= 0)
-                {
-                    btnSubPagePrev.IsEnabled = false;
-                    btnSubPageNext.IsEnabled = true;
-                    btnSubPagePrev.Hide();
-                    btnSubPageNext.Show();
-                }
-                else if (SubIllusts.SelectedItem.Index >= SubIllusts.SelectedItem.Count - 1)
-                {
-                    btnSubPagePrev.IsEnabled = true;
-                    btnSubPageNext.IsEnabled = false;
-                    btnSubPagePrev.Show();
-                    btnSubPageNext.Hide();
+                    btnSubPagePrev.Enable(item.Index > 0);
+                    btnSubPageNext.Enable(item.Index < item.Count - 1);
+
+                    if (SubIllusts.SelectedIndex <= 0)
+                    {
+                        SubIllusts.SelectedIndex = 0;
+                        await Task.Delay(1);
+                    }
                 }
                 else
                 {
-                    btnSubPagePrev.IsEnabled = true;
-                    btnSubPageNext.IsEnabled = true;
-                    btnSubPagePrev.Show();
-                    btnSubPageNext.Show();
+                    btnSubPageNext.Hide();
+                    btnSubPagePrev.Hide();
                 }
-                btnSubPagePrev.Foreground = btnSubPagePrev.IsEnabled ? Theme.AccentBrush : Theme.GrayBrush;
-                btnSubPageNext.Foreground = btnSubPageNext.IsEnabled ? Theme.AccentBrush : Theme.GrayBrush;
             }
         }
 
@@ -500,9 +484,8 @@ namespace PixivWPF.Pages
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.Illust is Pixeez.Objects.Work && item.Illust.PageCount > 1)
                 {
-                    //btnSubPagePrev.Show();
-                    btnSubPagePrev.Hide();
-                    btnSubPageNext.Show();
+                    btnSubPagePrev.Disable();
+                    btnSubPageNext.Enable();
                     PreviewBadge.Show();
                     SubIllustsExpander.Show();
                     SubIllustsExpander.IsExpanded = true;
@@ -650,7 +633,7 @@ namespace PixivWPF.Pages
                     IllustDescHtml.DocumentText = contents.GetHtmlFromTemplate(IllustAuthor.Text);
                     AdjustBrowserSize(IllustDescHtml);
 
-                    if(!IllustDescExpander.IsExpanded) IllustDescExpander.IsExpanded = true;
+                    if (!IllustDescExpander.IsExpanded) IllustDescExpander.IsExpanded = true;
                     IllustDescExpander.Show();
                 }
                 else
@@ -768,7 +751,6 @@ namespace PixivWPF.Pages
                     }
                     SubIllusts.UpdateTilesImage();
                     this.DoEvents();
-                    UpdateSubPageNav();
 
                     if (index < 0) index = 0;
                     SubIllusts.SelectedIndex = index;
@@ -1831,6 +1813,13 @@ namespace PixivWPF.Pages
                 }
                 UpdateLikeState();
 
+                if (DataObject is ImageItem)
+                {
+                    int idx = -1;
+                    int.TryParse(SubIllusts.SelectedItem.BadgeValue, out idx);
+                    var item = DataObject as ImageItem;
+                    item.Index = idx - 1;
+                }
                 UpdateSubPageNav();
 
                 //IllustDetailViewer
@@ -1986,7 +1975,6 @@ namespace PixivWPF.Pages
                         SubIllustPagesNav_Click(btnSubIllustNextPages, e);
                     }
                 }
-                UpdateSubPageNav();
             }
         }
         #endregion

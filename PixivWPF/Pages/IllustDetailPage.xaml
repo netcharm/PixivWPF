@@ -599,6 +599,7 @@
                           IsExpanded="False" ExpandDirection="Down" 
                           Visibility="Collapsed" Header="Illust Sets Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
+                          MouseDown="Preview_MouseDown"
                           Expanded="SubIllustsExpander_Expanded" Collapsed="SubIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
                                           Columns="5" TileWidth="128" TileHeight="128"                                  

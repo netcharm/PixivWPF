@@ -3105,6 +3105,35 @@ namespace PixivWPF.Common
         {
             element.Show(false, parent);
         }
+
+        public static void Enable(this Control element, bool state)
+        {
+            element.IsEnabled = state;
+            element.Foreground = state ? Theme.AccentBrush : Theme.GrayBrush;
+            element.Visibility = Visibility.Visible;
+        }
+
+        public static void Enable(this Control element)
+        {
+            element.IsEnabled = true;
+            element.Foreground = Theme.AccentBrush;
+            element.Visibility = Visibility.Visible;
+        }
+
+        public static void Disable(this Control element, bool state)
+        {
+            element.IsEnabled = !state;
+            element.Foreground = state ? Theme.GrayBrush : Theme.AccentBrush;
+            element.Visibility = Visibility.Visible;
+        }
+
+        public static void Disable(this Control element)
+        {
+            element.IsEnabled = false;
+            element.Foreground = Theme.GrayBrush;
+            element.Visibility = Visibility.Visible;
+        }
+
         #endregion
 
         #region Window/Dialog/MessageBox routines

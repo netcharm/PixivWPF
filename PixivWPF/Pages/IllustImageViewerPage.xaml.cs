@@ -41,24 +41,22 @@ namespace PixivWPF.Pages
 
                     if(illust.PageCount > 1)
                     {
-                        btnViewNextPage.Visibility = Visibility.Visible;
-                        btnViewPrevPage.Visibility = Visibility.Visible;
-                        ActionViewPrevPage.Visibility = Visibility.Visible;
-                        ActionViewNextPage.Visibility = Visibility.Visible;
-                        ActionViewPageSep.Visibility = Visibility.Visible;
+                        btnViewNextPage.Show();
+                        btnViewPrevPage.Show();
+                        ActionViewPrevPage.Show();
+                        ActionViewNextPage.Show();
+                        ActionViewPageSep.Show();
 
-                        btnViewPrevPage.IsEnabled = item.Index > 0 ? true : false;
-                        btnViewNextPage.IsEnabled = item.Index < item.Count - 1 ? true : false;
-                        btnViewPrevPage.Foreground = btnViewPrevPage.IsEnabled ? Common.Theme.AccentBrush : Common.Theme.GrayBrush;
-                        btnViewNextPage.Foreground = btnViewNextPage.IsEnabled ? Common.Theme.AccentBrush : Common.Theme.GrayBrush;
+                        btnViewPrevPage.Enable(item.Index > 0);
+                        btnViewNextPage.Enable(item.Index < item.Count - 1);
                     }
                     else
                     {
-                        btnViewNextPage.Visibility = Visibility.Collapsed;
-                        btnViewPrevPage.Visibility = Visibility.Collapsed;
-                        ActionViewPrevPage.Visibility = Visibility.Collapsed;
-                        ActionViewNextPage.Visibility = Visibility.Collapsed;
-                        ActionViewPageSep.Visibility = Visibility.Collapsed;
+                        btnViewNextPage.Hide();
+                        btnViewPrevPage.Hide();
+                        ActionViewPrevPage.Hide();
+                        ActionViewNextPage.Hide();
+                        ActionViewPageSep.Hide();
                     }
 
                     var img = await illust.GetPreviewUrl(item.Index, true).LoadImageFromUrl();
