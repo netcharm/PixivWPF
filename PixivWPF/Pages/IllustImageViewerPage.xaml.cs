@@ -46,6 +46,11 @@ namespace PixivWPF.Pages
                         ActionViewPrevPage.Visibility = Visibility.Visible;
                         ActionViewNextPage.Visibility = Visibility.Visible;
                         ActionViewPageSep.Visibility = Visibility.Visible;
+
+                        btnViewPrevPage.IsEnabled = item.Index > 0 ? true : false;
+                        btnViewNextPage.IsEnabled = item.Index < item.Count - 1 ? true : false;
+                        btnViewPrevPage.Foreground = btnViewPrevPage.IsEnabled ? Common.Theme.AccentBrush : Common.Theme.GrayBrush;
+                        btnViewNextPage.Foreground = btnViewNextPage.IsEnabled ? Common.Theme.AccentBrush : Common.Theme.GrayBrush;
                     }
                     else
                     {
@@ -123,7 +128,6 @@ namespace PixivWPF.Pages
                     i.DisplayTitle = false;
                     i.Tag = item.Tag;
                 }
-
                 UpdateDetail(i);
             }
         }

@@ -309,8 +309,8 @@ namespace PixivWPF.Pages
                     btnSubPagePrev.Show();
                     btnSubPageNext.Show();
                 }
-                btnSubPagePrev.Foreground = btnSubPagePrev.IsEnabled ? Theme.AccentBrush : Theme.IdealForegroundDisableBrush;
-                btnSubPageNext.Foreground = btnSubPageNext.IsEnabled ? Theme.AccentBrush : Theme.IdealForegroundDisableBrush;
+                btnSubPagePrev.Foreground = btnSubPagePrev.IsEnabled ? Theme.AccentBrush : Theme.GrayBrush;
+                btnSubPageNext.Foreground = btnSubPageNext.IsEnabled ? Theme.AccentBrush : Theme.GrayBrush;
             }
         }
 
@@ -1546,11 +1546,13 @@ namespace PixivWPF.Pages
                         //PreviewWait.Show();
 
                         var idx = -1;
+                        var illust = DataObject as ImageItem;
                         var item = DataObject as ImageItem;
                         if (SubIllusts.SelectedItem is ImageItem)
                         {
                             idx = SubIllusts.SelectedIndex;
                             item = SubIllusts.SelectedItem as ImageItem;
+                            illust.Index = item.Index;
                         }
 
                         lastSelectionItem = item;

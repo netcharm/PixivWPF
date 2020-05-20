@@ -288,7 +288,7 @@ namespace PixivWPF.Common
                 foreach (var item in list.SelectedItems)
                 {
                     if (list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                        list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||                        
+                        list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
                         Cmd_OpenItem.Execute(item);
@@ -362,7 +362,8 @@ namespace PixivWPF.Common
                 var item = obj as ImageItem;
                 item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
 
-                var suffix = item.Count > 1 ? $" - {item.BadgeValue}/{item.Count}" : string.Empty;
+                var suffix = item.Count > 1 ? $" - {item.Index}/{item.Count}" : string.Empty;
+                //var suffix = item.Count > 1 ? $" - {item.BadgeValue}/{item.Count}" : string.Empty;
                 var title = $"Preview ID: {item.ID}, {item.Subject}";
                 if (!item.Subject.EndsWith(suffix, StringComparison.CurrentCultureIgnoreCase))
                     title = $"{title}{suffix}";
@@ -421,7 +422,7 @@ namespace PixivWPF.Common
                 var item = obj as ImageItem;
                 var illust = item.Illust;
                 var dt = illust.GetDateTime();
-                var is_meta_single_page = illust.PageCount==1 ? true : false;
+                var is_meta_single_page = illust.PageCount == 1 ? true : false;
                 if (item.Tag is Pixeez.Objects.MetaPages)
                 {
                     var pages = item.Tag as Pixeez.Objects.MetaPages;
@@ -442,10 +443,10 @@ namespace PixivWPF.Common
                 }
                 else if (item.Illust is Pixeez.Objects.Work)
                 {
-                    var url = illust.GetOriginalUrl();
+                    var url = illust.GetOriginalUrl(item.Index);
                     if (!string.IsNullOrEmpty(url))
                     {
-                        url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                        url.SaveImage(illust.GetThumbnailUrl(item.Index), dt, is_meta_single_page);
                     }
                 }
             }
@@ -842,7 +843,7 @@ namespace PixivWPF.Common
             else if (fmts.Contains("FileDrop"))
             {
                 var files = (string[])(e.Data.GetData("FileDrop"));
-                foreach(var file in files)
+                foreach (var file in files)
                 {
                     var id = Regex.Replace(Path.GetFileNameWithoutExtension(file), @"_((p)|(ugoira)){0,1}\d+", "", RegexOptions.IgnoreCase);
                     long idv;
@@ -2167,16 +2168,16 @@ namespace PixivWPF.Common
 
                 var img = new BitmapImage(uri);
                 var src = new Image() { Source = img, Width = img.Width, Height = img.Height, Opacity = 0.8 };
-                src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.AccentColor };
-                //img.Effect = new TranspranceEffect() { TransColor = Theme.AccentColor };
+                src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.WindowTitleColor };
+                //img.Effect = new TranspranceEffect() { TransColor = Theme.WindowTitleColor };
                 //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
                 //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.AccentColor };
                 //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Colors.Transparent };
-                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.AccentColor };
-                //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.AccentColor };
+                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.WindowTitleColor };
+                //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.WindowTitleColor };
 
                 Grid root = new Grid();
-                root.Background = Theme.AccentBrush;
+                root.Background = Theme.WindowTitleBrush;
                 Arrange(root, (int)src.Width, (int)src.Height);
                 root.Children.Add(src);
                 Arrange(src, (int)src.Width, (int)src.Height);
@@ -2216,7 +2217,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool OpenImageWithShell(this string FileName, bool ShowFolder=false)
+        public static bool OpenImageWithShell(this string FileName, bool ShowFolder = false)
         {
             bool result = false;
 
@@ -2926,7 +2927,7 @@ namespace PixivWPF.Common
                 }
             }).InvokeAsync();
         }
-        
+
         public static void UpdateLikeState(this ImageListGrid list, int illustid = -1, bool is_user = false)
         {
             list.Items.UpdateLikeState(illustid, is_user);
@@ -2936,7 +2937,7 @@ namespace PixivWPF.Common
             //    int.TryParse(item.ID, out item_id);
             //    int user_id = -1;
             //    int.TryParse(item.UserID, out user_id);
-                
+
             //    try
             //    {
             //        if (is_user)
@@ -3686,8 +3687,8 @@ namespace PixivWPF.Common
                 box.MaxWidth = 48;
                 box.MaxHeight = 48;
 
-                box.Background = new SolidColorBrush(Theme.AccentColor);
-                box.OverlayBrush = Theme.AccentBrush;
+                box.Background = Theme.WindowTitleBrush;
+                box.OverlayBrush = Theme.WindowTitleBrush;
                 //box.OverlayOpacity = 0.8;
 
                 box.Opacity = 0.85;
