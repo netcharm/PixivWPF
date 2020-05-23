@@ -37,7 +37,8 @@ namespace PixivWPF.Pages
 
         internal void UpdateTheme()
         {
-            detail_page.UpdateTheme();
+            if(detail_page is IllustDetailPage)
+                detail_page.UpdateTheme();
         }
 
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -52,7 +53,12 @@ namespace PixivWPF.Pages
                         if (id == -1)
                             item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
                         else if (id == (int)(item.Illust.Id))
-                            item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
+                        {
+                            if(item.Count > 1)
+                                item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                            else
+                                item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
+                        }
                     }
                 }
             }

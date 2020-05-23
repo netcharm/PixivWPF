@@ -79,6 +79,10 @@ namespace PixivWPF.Common
             //
             //var m_jp = Regex.Matches(text, @"([\u0800-\u4e00])", RegexOptions.Multiline | RegexOptions.IgnoreCase);
             //var m_zh = Regex.Matches(text, @"([\u4e00-\u9fbb])", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            var GBK = Encoding.GetEncoding("GBK");
+            var BIG5 = Encoding.GetEncoding("BIG5");
+            var JAP = Encoding.GetEncoding("Shift-JIS");
+            var UTF8 = Encoding.UTF8;
 
             if (Regex.Matches(text, @"[\u3041-\u31ff]", RegexOptions.Multiline).Count > 0)
             {
@@ -88,13 +92,17 @@ namespace PixivWPF.Common
             {
                 result = CultureInfo.GetCultureInfoByIetfLanguageTag("ko-KR");
             }
-            else if (Regex.Matches(text, @"[\ua140-\ua3bf\ua440-\uc67e\uc940-\uf9d5\ue000-\uf848]", RegexOptions.Multiline).Count > 0)
-            {
-                result = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-TW");
-            }
-            else if (Regex.Matches(text, @"[\u4e00-\u9fbb]", RegexOptions.Multiline).Count > 0)
+            else if (Regex.Matches(text, @"[\u3400-\u4dbf\u4e00-\u9fbb]", RegexOptions.Multiline).Count > 0)
             {
                 result = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-CN");
+            }
+            //else if (GBK.GetString(GBK.GetBytes(text)).Equals(text))
+            //{
+            //    result = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-CN");
+            //}
+            else if (Regex.Matches(text, @"[\u3000-\u3003\u3008-\u300F\u3010-\u3011\u3014-\u3015\u301C-\u301E\ua140-\ua3bf\ua440-\uc67e\uc940-\uf9d5\ue000-\uf848]", RegexOptions.Multiline).Count > 0)
+            {
+                result = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-TW");
             }
             else
             {

@@ -117,8 +117,8 @@ namespace PixivWPF.Pages
                 IllustDescHtml.DocumentText = GetText(IllustDescHtml, true).GetHtmlFromTemplate(descTitle);
             }
 
-            btnSubPagePrev.Foreground = Theme.AccentBrush;
-            btnSubPageNext.Foreground = Theme.AccentBrush;
+            btnSubPagePrev.Enable(btnSubPagePrev.IsEnabled, btnSubPagePrev.IsVisible);
+            btnSubPageNext.Enable(btnSubPageNext.IsEnabled, btnSubPageNext.IsVisible);
         }
 
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -137,7 +137,12 @@ namespace PixivWPF.Pages
                             if (illusts == SubIllusts)
                                 item.IsDownloaded = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
                             else
-                                item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
+                            {
+                                if (item.Count > 1)
+                                    item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                                else
+                                    item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
+                            }
                         }
                     }
                 }
@@ -284,7 +289,7 @@ namespace PixivWPF.Pages
                     btnSubPagePrev.Enable(item.Index > 0);
                     btnSubPageNext.Enable(item.Index < item.Count - 1);
 
-                    if (SubIllusts.SelectedIndex <= 0)
+                    if (SubIllusts.SelectedIndex < 0)
                     {
                         SubIllusts.SelectedIndex = 0;
                         await Task.Delay(1);
@@ -296,6 +301,12 @@ namespace PixivWPF.Pages
                     btnSubPagePrev.Hide();
                 }
             }
+            else
+            {
+                btnSubPageNext.Hide();
+                btnSubPagePrev.Hide();
+            }
+            await Task.Delay(1);
         }
 
         private void OpenDownloaded()
@@ -484,19 +495,17 @@ namespace PixivWPF.Pages
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.Illust is Pixeez.Objects.Work && item.Illust.PageCount > 1)
                 {
-                    btnSubPagePrev.Disable();
-                    btnSubPageNext.Enable();
+                    item.Index = 0;
                     PreviewBadge.Show();
                     SubIllustsExpander.Show();
                     SubIllustsExpander.IsExpanded = true;
                 }
                 else
                 {
-                    btnSubPagePrev.Hide();
-                    btnSubPageNext.Hide();
                     PreviewBadge.Hide();
                     SubIllustsExpander.Hide();
                 }
+                UpdateSubPageNav();
 
                 RelativeIllustsExpander.Header = "Related Illusts";
                 RelativeIllustsExpander.IsExpanded = false;
@@ -928,24 +937,34 @@ namespace PixivWPF.Pages
             }).InvokeAsync();
         }
 
-        private void SetupHtmlRenderHost(WindowsFormsHostEx host)
+        private void InitHtmlRenderHost(out WindowsFormsHostEx host, System.Windows.Forms.WebBrowser browser, Panel panel)
         {
-            if (host is WindowsFormsHostEx)
+            host = new WindowsFormsHostEx()
             {
-                //host.IsRedirected = true;
-                //host.CompositionMode = 
-                host.MinHeight = 24;
-                host.MaxHeight = 480;
-                host.HorizontalAlignment = HorizontalAlignment.Stretch;
-                host.VerticalAlignment = VerticalAlignment.Stretch;
-            }
+                //IsRedirected = true,
+                //CompositionMode = ,
+                AllowDrop = false,
+                MinHeight = 24,
+                MaxHeight = 480,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                Child = browser
+            };
+            panel.Children.Add(host);
         }
 
-        private void SetupHtmlRender(System.Windows.Forms.WebBrowser browser)
+        private void InitHtmlRender(out System.Windows.Forms.WebBrowser browser)
         {
+            browser = new System.Windows.Forms.WebBrowser()
+            {
+                DocumentText = string.Empty.GetHtmlFromTemplate(),
+                Dock = System.Windows.Forms.DockStyle.Fill,
+                WebBrowserShortcutsEnabled = true,
+                AllowWebBrowserDrop = false
+            };
+
             if (browser is System.Windows.Forms.WebBrowser)
             {
-                browser.Dock = System.Windows.Forms.DockStyle.Fill;
                 try
                 {
                     //browser.AllowNavigation = false;
@@ -964,24 +983,12 @@ namespace PixivWPF.Pages
 
         private void CreateHtmlRender()
         {
-            IllustTagsHtml = new System.Windows.Forms.WebBrowser() { DocumentText = string.Empty.GetHtmlFromTemplate() };
-            SetupHtmlRender(IllustTagsHtml);
-
-            IllustDescHtml = new System.Windows.Forms.WebBrowser() { DocumentText = string.Empty.GetHtmlFromTemplate() };
-            SetupHtmlRender(IllustDescHtml);
+            InitHtmlRender(out IllustTagsHtml);
+            InitHtmlRender(out IllustDescHtml);
+            InitHtmlRenderHost(out tagsHost, IllustTagsHtml, IllustTagsHost);
+            InitHtmlRenderHost(out descHost, IllustDescHtml, IllustDescHost);
 
             UpdateTheme();
-
-            tagsHost = new WindowsFormsHostEx();
-            SetupHtmlRenderHost(tagsHost);
-            tagsHost.Child = IllustTagsHtml;
-            IllustTagsHost.Children.Add(tagsHost);
-
-            descHost = new WindowsFormsHostEx();
-            SetupHtmlRenderHost(descHost);
-            descHost.Child = IllustDescHtml;
-            IllustDescHost.Children.Add(descHost);
-
             this.UpdateLayout();
         }
 
@@ -1022,6 +1029,8 @@ namespace PixivWPF.Pages
             RelativeIllusts.Columns = 5;
 
             IllustDetailWait.Visibility = Visibility.Collapsed;
+            btnSubPagePrev.Hide();
+            btnSubPageNext.Hide();
 
             CreateHtmlRender();
         }
@@ -1820,10 +1829,10 @@ namespace PixivWPF.Pages
                     var item = DataObject as ImageItem;
                     item.Index = idx - 1;
                 }
-                UpdateSubPageNav();
-
                 //IllustDetailViewer
                 e.Handled = true;
+
+                UpdateSubPageNav();
 
                 ActionRefreshPreview_Click(sender, e);
             }

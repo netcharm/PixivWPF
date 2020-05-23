@@ -1735,7 +1735,7 @@ namespace PixivWPF.Common
         internal static bool IsPartDownloadedAsync(this string url, out string filepath)
         {
             filepath = string.Empty;
-            var result =IsPartDownloadedFileFunc(url, filepath);
+            var result = IsPartDownloadedFileFunc(url, filepath);
             filepath = result.Path;
             return (result.Exists);
         }
@@ -1905,7 +1905,6 @@ namespace PixivWPF.Common
                     {
                         return (true);
                     }
-                    //using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
                     using (var response = await tokens.SendRequestToGetImageAsync(Pixeez.MethodType.GET, url))
                     {
                         if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
@@ -1917,13 +1916,6 @@ namespace PixivWPF.Common
                                 {
                                     Directory.CreateDirectory(dir);
                                 }
-                                //using (var sms = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.Read))
-                                //{
-                                //    ms.Seek(0, SeekOrigin.Begin);
-                                //    await sms.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
-                                //    result = true;
-                                //}
-                                //WaitForFile(file);
                                 File.WriteAllBytes(file, ms.ToArray());
                                 result = true;
                             }
@@ -3016,6 +3008,11 @@ namespace PixivWPF.Common
                     var page = win.Content as IllustDetailPage;
                     page.UpdateTheme();
                 }
+                else if(win.Content is IllustImageViewerPage)
+                {
+                    var page = win.Content as IllustImageViewerPage;
+                    page.UpdateTheme();
+                }
                 else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
                 {
                     win.Background = Theme.AccentBrush;
@@ -3106,11 +3103,14 @@ namespace PixivWPF.Common
             element.Show(false, parent);
         }
 
-        public static void Enable(this Control element, bool state)
+        public static void Enable(this Control element, bool state, bool show = true)
         {
             element.IsEnabled = state;
             element.Foreground = state ? Theme.AccentBrush : Theme.GrayBrush;
-            element.Visibility = Visibility.Visible;
+            if (show)
+                element.Visibility = Visibility.Visible;
+            else
+                element.Visibility = Visibility.Collapsed;
         }
 
         public static void Enable(this Control element)
@@ -3120,11 +3120,14 @@ namespace PixivWPF.Common
             element.Visibility = Visibility.Visible;
         }
 
-        public static void Disable(this Control element, bool state)
+        public static void Disable(this Control element, bool state, bool show = true)
         {
             element.IsEnabled = !state;
             element.Foreground = state ? Theme.GrayBrush : Theme.AccentBrush;
-            element.Visibility = Visibility.Visible;
+            if (show)
+                element.Visibility = Visibility.Visible;
+            else
+                element.Visibility = Visibility.Collapsed;
         }
 
         public static void Disable(this Control element)

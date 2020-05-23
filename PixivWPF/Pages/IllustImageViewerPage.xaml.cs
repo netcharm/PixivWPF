@@ -28,6 +28,12 @@ namespace PixivWPF.Pages
         private object DataType = null;
         private Window window = null;
 
+        internal void UpdateTheme()
+        {
+            btnViewPrevPage.Enable(btnViewPrevPage.IsEnabled, btnViewPrevPage.IsVisible);
+            btnViewNextPage.Enable(btnViewNextPage.IsEnabled, btnViewNextPage.IsVisible);
+        }
+
         internal async void UpdateDetail(ImageItem item)
         {
             try
@@ -41,8 +47,6 @@ namespace PixivWPF.Pages
 
                     if(illust.PageCount > 1)
                     {
-                        btnViewNextPage.Show();
-                        btnViewPrevPage.Show();
                         ActionViewPrevPage.Show();
                         ActionViewNextPage.Show();
                         ActionViewPageSep.Show();

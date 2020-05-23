@@ -548,7 +548,7 @@
                 <Expander Grid.Row="2" Margin="0,4,0,0" IsExpanded="True"
                           x:Name="IllustTagExpander" x:Uid="IllustTagExpander"
                           Header="Tags" Visibility="Collapsed" Expanded="IllustTagExpander_Expanded">
-                    <StackPanel x:Name="IllustTagsHost"  Orientation="Vertical">
+                    <StackPanel x:Name="IllustTagsHost"  Orientation="Vertical" AllowDrop="False">
                         <!--<WindowsFormsHost x:Name="IllustTagsHtmlHost" Visibility="Collapsed"
                                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                           MinHeight="24" MaxHeight="480" Height="auto" UseLayoutRounding="True"/>-->
@@ -573,7 +573,7 @@
                 <Expander Grid.Row="3" Margin="0,4,0,0" IsExpanded="True"
                           x:Name="IllustDescExpander" x:Uid="IllustDescExpander"
                           Header="Description" Visibility="Collapsed" Expanded="IllustDescExpander_Expanded">
-                    <StackPanel x:Name="IllustDescHost" Orientation="Vertical">
+                    <StackPanel x:Name="IllustDescHost" Orientation="Vertical" AllowDrop="False">
                         <!--<WindowsFormsHost x:Name="IllustDescHtmlHost" Visibility="Collapsed"
                                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                           MinHeight="72" MaxHeight="480" Height="auto" UseLayoutRounding="True"/>-->
