@@ -52,30 +52,33 @@
 
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands ShowLastSeparator="True">
-            <Button Click="CommandNav_Click"
+            <Button x:Name="CommandNav" x:Uid="CommandNav" 
+                    Click="CommandNav_Click"
                     ToolTip="Open Navigation Flyout">
                 <iconPacks:PackIconModern Kind="PageSearch" />
             </Button>
-            <Button x:Name="CommandNavRefresh"
+            <Button x:Name="CommandNavRefresh" x:Uid="CommandNavRefresh" 
                     Click="CommandNavRefresh_Click"
                     ToolTip="Refresh Current Page">
                 <iconPacks:PackIconModern Kind="Refresh" />
             </Button>
-            <Button x:Name="CommandNavRefreshThumb"
+            <Button x:Name="CommandNavRefreshThumb" x:Uid="CommandNavRefreshThumb" 
                     Click="CommandNavRefresh_Click"
                     ToolTip="Refresh Current Page Thumbnail">
                 <iconPacks:PackIconModern Kind="ImageMultiple" />
             </Button>
-            <Button x:Name="CommandNavDate"
+            <Button x:Name="CommandNavDate" x:Uid="CommandNavDate" 
                     Click="CommandNavDate_Click"                                
                     ToolTip="Date Selector">
                 <iconPacks:PackIconModern Kind="Calendar" />
             </Button>
-            <Button Click="CommandNavPrev_Click"
+            <Button x:Name="CommandNavPrev" x:Uid="CommandNavPrev" 
+                    Click="CommandNavPrev_Click"
                     ToolTip="Goto Prev Page" Visibility="Collapsed">
                 <iconPacks:PackIconModern Kind="NavigatePrevious" />
             </Button>
-            <Button Click="CommandNavNext_Click"
+            <Button x:Name="CommandNavNext" x:Uid="CommandNavNext" 
+                    Click="CommandNavNext_Click"
                     ToolTip="Goto Next Page">
                 <iconPacks:PackIconModern Kind="NavigateNext" />
             </Button>

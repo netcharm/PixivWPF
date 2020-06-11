@@ -119,7 +119,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                sender.WindowKeyUp(e);
+                if(!e.Handled) sender.WindowKeyUp(e);
             }
             catch (Exception) { }
         }

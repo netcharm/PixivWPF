@@ -3140,6 +3140,21 @@ namespace PixivWPF.Common
         #endregion
 
         #region Window/Dialog/MessageBox routines
+        public static MetroWindow GetMainWindow()
+        {
+            return (Application.Current.MainWindow as MetroWindow);
+        }
+
+        public static MetroWindow GetMainWindow(this MetroWindow win)
+        {
+            return (Application.Current.MainWindow as MetroWindow);
+        }
+
+        public static MetroWindow GetMainWindow(this Page page)
+        {
+            return (Application.Current.MainWindow as MetroWindow);
+        }
+
         public static MetroWindow GetActiveWindow()
         {
             MetroWindow window = Application.Current.Windows.OfType<MetroWindow>().SingleOrDefault(x => x.IsActive || x.IsFocused);

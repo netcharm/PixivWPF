@@ -29,6 +29,50 @@ namespace PixivWPF.Pages
         private System.Windows.Forms.WebBrowser IllustDescHtml;
         private System.Windows.Forms.WebBrowser IllustTagsHtml;
 
+        private List<DependencyObject> hitResultsList = new List<DependencyObject>();
+        // Return the result of the hit test to the callback.
+        private HitTestResultBehavior MyHitTestResult(HitTestResult result)
+        {
+            // Add the hit test result to the list that will be processed after the enumeration.
+            hitResultsList.Add(result.VisualHit);
+
+            // Set the behavior to return visuals at all z-order levels.
+            return HitTestResultBehavior.Continue;
+        }
+
+        private bool IsElement(FrameworkElement target, MouseEventArgs e)
+        {
+            bool result = false;
+
+            try
+            {
+                FrameworkElement sender = e.Source is FrameworkElement ? (FrameworkElement)e.Source : this;
+                var pt = e.GetPosition(sender);
+                hitResultsList.Clear();
+                // Perform the hit test against a given portion of the visual object tree.
+                VisualTreeHelper.HitTest(PreviewBox, null, new HitTestResultCallback(MyHitTestResult), new PointHitTestParameters(pt));
+                if (hitResultsList.Count > 1)
+                {
+                    // Perform action on hit visual object.
+                    foreach (var element in hitResultsList)
+                    {
+                        if (element is FrameworkElement)
+                        {
+                            FrameworkElement parent = (FrameworkElement)((FrameworkElement)element).TemplatedParent;
+                            if (parent == target || element == target)
+                            {
+                                result = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return (result);
+        }
+
         private WindowsFormsHostEx GetHostEx(System.Windows.Forms.WebBrowser browser)
         {
             if (browser == IllustDescHtml)
@@ -937,6 +981,11 @@ namespace PixivWPF.Pages
             }).InvokeAsync();
         }
 
+        internal void KeyAction(KeyEventArgs e)
+        {
+            Page_KeyUp(this, e);
+        }
+
         private void InitHtmlRenderHost(out WindowsFormsHostEx host, System.Windows.Forms.WebBrowser browser, Panel panel)
         {
             host = new WindowsFormsHostEx()
@@ -1043,6 +1092,51 @@ namespace PixivWPF.Pages
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             DeleteHtmlRender();
+        }
+
+        private async void Page_KeyUp(object sender, KeyEventArgs e)
+        {
+            e.Handled = false;
+            if (DataObject is ImageItem)
+            {
+                var item = DataObject as ImageItem;
+                if (e.Key == Key.F7 || e.SystemKey == Key.F7)
+                {
+                    var pub = Setting.Instance.PrivateFavPrefert ? false : true;
+                    if(Keyboard.Modifiers == ModifierKeys.None)
+                        await item.Illust.Like(pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        await item.Illust.Like(!pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        await item.Illust.UnLike(!pub);
+                }
+                else if (e.Key == Key.F8 || e.SystemKey == Key.F8)
+                {
+                    var pub = Setting.Instance.PrivateFavPrefert ? false : true;
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        await item.User.Like(pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        await item.User.Like(!pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        await item.User.UnLike(!pub);
+                }
+                e.Handled = true;
+            }
+            else if(DataObject is Pixeez.Objects.UserBase)
+            {
+                var item = DataObject as Pixeez.Objects.UserBase;
+                if (e.Key == Key.F8 || e.SystemKey == Key.F8)
+                {
+                    var pub = Setting.Instance.PrivateFavPrefert ? false : true;
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        await item.Like(pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        await item.Like(!pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        await item.UnLike();
+                }
+                e.Handled = true;
+            }
         }
 
         #region WebBrowser Events Handle
@@ -1307,32 +1401,23 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-#if DEBUG
-            if (SubIllusts.Items.Count > 0)
-            {
-                if (e.Delta > 0)
-                {
-                    SubPageNav_Clicked(btnSubPagePrev, e);
-                    e.Handled = true;
-                }
-                else if (e.Delta < 0)
-                {
-                    SubPageNav_Clicked(btnSubPageNext, e);
-                    e.Handled = true;
-                }
-            }
-#else
-
-#endif
-        }
-
         private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                if (e.ClickCount >= 2)
+                if (btnSubPagePrev.IsVisible && IsElement(btnSubPagePrev, e))
+                {
+                    if (btnSubPagePrev.IsEnabled)
+                        SubPageNav_Clicked(btnSubPagePrev, e);
+                    e.Handled = true;
+                }
+                else if (btnSubPageNext.IsVisible && IsElement(btnSubPageNext, e))
+                {
+                    if (btnSubPageNext.IsEnabled)
+                        SubPageNav_Clicked(btnSubPageNext, e);
+                    e.Handled = true;
+                }
+                else if (e.ClickCount >= 2)
                 {
                     if (SubIllusts.Items.Count() <= 0)
                     {
@@ -2608,6 +2693,7 @@ namespace PixivWPF.Pages
             }
         }
         #endregion
+
     }
 
 }

@@ -173,7 +173,7 @@ namespace PixivWPF
             NavFlyout.IsOpen = !NavFlyout.IsOpen;
         }
 
-        private void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
+        internal void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -225,7 +225,7 @@ namespace PixivWPF
         {
         }
 
-        private void CommandNavNext_Click(object sender, RoutedEventArgs e)
+        internal void CommandNavNext_Click(object sender, RoutedEventArgs e)
         {
             pagetiles.ShowImages(pagetiles.TargetPage, true, GetLastSelectedID());
         }
@@ -338,8 +338,34 @@ namespace PixivWPF
 
         private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
         {
-            var ret = sender.WindowKeyUp(e);
-            e.Handled = ret.Handled;
+            if (e.Key == Key.F5)
+            {
+                CommandNavRefresh_Click(CommandNavRefresh, new RoutedEventArgs());
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F3)
+            {
+                CommandNavNext_Click(CommandNavNext, new RoutedEventArgs());
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F6)
+            {
+                CommandNavRefresh_Click(CommandNavRefreshThumb, e);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)
+            {
+                if (pagetiles is Pages.TilesPage)
+                {
+                    pagetiles.KeyAction(e);
+                }
+                e.Handled = true;
+            }
+            else
+            {
+                var ret = sender.WindowKeyUp(e);
+                e.Handled = ret.Handled;
+            }
         }
 
         private void MetroWindow_StateChanged(object sender, EventArgs e)

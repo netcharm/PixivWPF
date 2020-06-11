@@ -98,6 +98,11 @@ namespace PixivWPF.Pages
             //ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);
         }
 
+        internal void KeyAction(KeyEventArgs e)
+        {
+            ListImageTiles_KeyDown(this, e);
+        }
+
         public TilesPage()
         {
             InitializeComponent();
@@ -807,7 +812,32 @@ namespace PixivWPF.Pages
         private void ListImageTiles_KeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = false;
-            if (e.Key == Key.Enter)
+            if(e.Key == Key.F5)
+            {
+                var main = this.GetMainWindow() as MainWindow;
+                main.CommandNavRefresh_Click(main.CommandNavRefresh, new RoutedEventArgs());
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F3)
+            {
+                var main = this.GetMainWindow() as MainWindow;
+                main.CommandNavNext_Click(main.CommandNavNext, new RoutedEventArgs());
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F6)
+            {
+                UpdateImageTiles();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)
+            {
+                if (detail_page is IllustDetailPage)
+                {
+                    detail_page.KeyAction(e);
+                }
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Enter)
             {
                 if (ListImageTiles.SelectedItem != null)
                 {

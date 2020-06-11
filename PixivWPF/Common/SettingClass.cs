@@ -169,6 +169,9 @@ namespace PixivWPF.Common
         private string accent = string.Empty;
         public string Accent { get; set; }
 
+        public bool PrivateFavPrefert { get; set; } = false;
+        public bool PrivateBookmarkPrefert { get; set; } = false;
+
         public DateTime ContentTemplateTime { get; set; } = new DateTime(0);
         public string ContentTemplateFile { get; } = "contents-template.html";
         public string ContentsTemplete { get; set; } = string.Empty;

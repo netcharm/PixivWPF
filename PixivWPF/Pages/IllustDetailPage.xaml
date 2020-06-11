@@ -17,6 +17,7 @@
       TextOptions.TextFormattingMode="Display"
       AllowDrop="True"
       Title="IllustDetailPage"
+      PreviewKeyUp="Page_KeyUp"
       Loaded="Page_Loaded"
       Unloaded="Page_Unloaded">
 
@@ -226,14 +227,10 @@
                     </ContentControl.ContextMenu>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width=".25*" MinWidth="32"/>
+                            <ColumnDefinition Width=".25*" />
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width=".25*" MinWidth="32"/>
+                            <ColumnDefinition Width=".25*" />
                         </Grid.ColumnDefinitions>
-                        <Rectangle
-                            Grid.Column="1"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 
-                            MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" />
                         <Button Grid.Column="0" x:Name="btnSubPagePrev" x:Uid="btnSubPagePrev"
                                 Width="auto" Visibility="Collapsed"
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
@@ -256,6 +253,9 @@
                                 <iconPacks:PackIconModern Kind="NavigateNext" Width="32" Height="32" />
                             </Button.Content>
                         </Button>
+                        <Rectangle Grid.Column="0" Grid.ColumnSpan="3" x:Name="PreviewRect" x:Uid="PreviewRect"
+                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 
+                                   MouseDown="Preview_MouseDown" />
                     </Grid>
                 </ContentControl>
                 <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge" 
