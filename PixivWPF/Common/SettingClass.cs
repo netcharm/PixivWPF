@@ -172,8 +172,8 @@ namespace PixivWPF.Common
         public bool PrivateFavPrefert { get; set; } = false;
         public bool PrivateBookmarkPrefert { get; set; } = false;
 
-        public DateTime ContentTemplateTime { get; set; } = new DateTime(0);
-        public string ContentTemplateFile { get; } = "contents-template.html";
+        public DateTime ContentsTemplateTime { get; set; } = new DateTime(0);
+        public string ContentsTemplateFile { get; } = "contents-template.html";
         public string ContentsTemplete { get; set; } = string.Empty;
         [JsonIgnore]
         public string CustomContentsTemplete { get; set; } = string.Empty;
@@ -253,16 +253,16 @@ namespace PixivWPF.Common
                             #endregion
 #endif
                             #region Update Contents Template
-                            if (File.Exists(Cache.ContentTemplateFile))
+                            if (File.Exists(Cache.ContentsTemplateFile))
                             {
-                                Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentTemplateFile);
-                                var ftc = File.GetCreationTime(Cache.ContentTemplateFile);
-                                var ftw = File.GetLastWriteTime(Cache.ContentTemplateFile);
-                                var fta = File.GetLastAccessTime(Cache.ContentTemplateFile);
-                                if (ftw > Cache.ContentTemplateTime || ftc > Cache.ContentTemplateTime || fta > Cache.ContentTemplateTime)
+                                Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentsTemplateFile);
+                                var ftc = File.GetCreationTime(Cache.ContentsTemplateFile);
+                                var ftw = File.GetLastWriteTime(Cache.ContentsTemplateFile);
+                                var fta = File.GetLastAccessTime(Cache.ContentsTemplateFile);
+                                if (ftw > Cache.ContentsTemplateTime || ftc > Cache.ContentsTemplateTime || fta > Cache.ContentsTemplateTime)
                                 {
                                     Cache.ContentsTemplete = Cache.CustomContentsTemplete;
-                                    Cache.ContentTemplateTime = DateTime.Now;
+                                    Cache.ContentsTemplateTime = DateTime.Now;
                                     Cache.Save();
                                 }
                             }

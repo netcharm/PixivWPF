@@ -505,10 +505,10 @@ namespace PixivWPF.Common
                                 var ret = ex.Message;
                                 State = DownloadState.Failed;
                                 PART_DownloadProgress.IsIndeterminate = true;
-                                PART_DownloadProgress.IsEnabled = false;
                             }
                             finally
                             {
+                                PART_DownloadProgress.IsEnabled = false;
                             }
                         }
                     }
@@ -644,7 +644,11 @@ namespace PixivWPF.Common
             }
             else if((sender == miOpenIllust || sender == PART_OpenIllust) && !string.IsNullOrEmpty(Url))
             {
-                CommonHelper.Cmd_OpenIllust.Execute(Url);
+                var illust = Url.GetIllustId().FindIllust();
+                if (illust is Pixeez.Objects.Work)
+                    CommonHelper.Cmd_OpenIllust.Execute(illust);
+                else
+                    CommonHelper.Cmd_OpenIllust.Execute(Url);
             }
             else if (sender == miDownload || sender == PART_Download)
             {

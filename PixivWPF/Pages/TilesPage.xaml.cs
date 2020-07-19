@@ -802,6 +802,7 @@ namespace PixivWPF.Pages
                     detail_page.Tag = item;
                     detail_page.UpdateDetail(item);
                 }
+                if (ListImageTiles.SelectedItem is ImageItem) (ListImageTiles.SelectedItem as ImageItem).Focus();
             }
             catch (Exception ex)
             {
@@ -834,24 +835,24 @@ namespace PixivWPF.Pages
                 if (detail_page is IllustDetailPage)
                 {
                     detail_page.KeyAction(e);
+                    e.Handled = true;
                 }
-                e.Handled = true;
             }
             else if (e.Key == Key.Enter)
             {
                 if (ListImageTiles.SelectedItem != null)
                 {
 
+                    e.Handled = true;
                 }
-                e.Handled = true;
             }
-            else if (e.Key == Key.Down || e.Key == Key.PageDown)
+            else if (e.Key == Key.Down || e.Key == Key.Next || e.Key == Key.PageDown)
             {
                 if (ListImageTiles.SelectedIndex >= ListImageTiles.Items.Count - 1)
                 {
                     ShowImages(TargetPage, true);
+                    e.Handled = true;
                 }
-                e.Handled = true;
             }
             else if (e.Key == Key.Home)
             {
@@ -859,17 +860,37 @@ namespace PixivWPF.Pages
                 {                   
                     ListImageTiles.Items.MoveCurrentToFirst();
                     ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                    e.Handled = true;
                 }
-                e.Handled = true;
             }
+            //else if (e.Key == Key.Left)
+            //{
+            //    if (ListImageTiles.Items.Count > 0 && ListImageTiles.SelectedIndex % 5 == 0)
+            //    {
+            //        ListImageTiles.Items.MoveCurrentToPrevious();
+            //        ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+            //        e.Handled = true;
+            //    }
+            //    else sender.WindowKeyUp(e);
+            //}
+            //else if (e.Key == Key.Right)
+            //{
+            //    if (ListImageTiles.Items.Count > 0 && ListImageTiles.SelectedIndex % 5 == 4)
+            //    {
+            //        ListImageTiles.Items.MoveCurrentToNext();
+            //        ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+            //        e.Handled = true;
+            //    }
+            //    else sender.WindowKeyUp(e);
+            //}
             else if (e.Key == Key.End)
             {
                 if (ListImageTiles.Items.Count > 0)
                 {
                     ListImageTiles.Items.MoveCurrentToLast();
                     ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                    e.Handled = true;
                 }
-                e.Handled = true;
             }
             else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
             {

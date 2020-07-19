@@ -1108,7 +1108,7 @@ namespace PixivWPF.Pages
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
                         await item.Illust.Like(!pub);
                     else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        await item.Illust.UnLike(!pub);
+                        await item.Illust.UnLike();
                 }
                 else if (e.Key == Key.F8 || e.SystemKey == Key.F8)
                 {
@@ -1118,7 +1118,7 @@ namespace PixivWPF.Pages
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
                         await item.User.Like(!pub);
                     else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        await item.User.UnLike(!pub);
+                        await item.User.UnLike();
                 }
                 e.Handled = true;
             }
@@ -1405,19 +1405,7 @@ namespace PixivWPF.Pages
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                if (btnSubPagePrev.IsVisible && IsElement(btnSubPagePrev, e))
-                {
-                    if (btnSubPagePrev.IsEnabled)
-                        SubPageNav_Clicked(btnSubPagePrev, e);
-                    e.Handled = true;
-                }
-                else if (btnSubPageNext.IsVisible && IsElement(btnSubPageNext, e))
-                {
-                    if (btnSubPageNext.IsEnabled)
-                        SubPageNav_Clicked(btnSubPageNext, e);
-                    e.Handled = true;
-                }
-                else if (e.ClickCount >= 2)
+                if (e.ClickCount >= 2)
                 {
                     if (SubIllusts.Items.Count() <= 0)
                     {
@@ -1433,6 +1421,16 @@ namespace PixivWPF.Pages
                             SubIllusts.SelectedIndex = 0;
                         CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
                     }
+                    e.Handled = true;
+                }
+                else if (IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
+                {
+                    SubPageNav_Clicked(btnSubPagePrev, e);
+                    e.Handled = true;
+                }
+                else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
+                {
+                    SubPageNav_Clicked(btnSubPageNext, e);
                     e.Handled = true;
                 }
             }
@@ -2069,6 +2067,7 @@ namespace PixivWPF.Pages
                         SubIllustPagesNav_Click(btnSubIllustNextPages, e);
                     }
                 }
+                if (SubIllusts.SelectedItem is ImageItem) SubIllusts.SelectedItem.Focus();
             }
         }
         #endregion
@@ -2108,6 +2107,7 @@ namespace PixivWPF.Pages
             e.Handled = false;
             RelativeIllusts.UpdateTilesState();
             UpdateLikeState();
+            if (RelativeIllusts.SelectedItem is ImageItem) RelativeIllusts.SelectedItem.Focus();
             e.Handled = true;
         }
 
@@ -2195,6 +2195,7 @@ namespace PixivWPF.Pages
             e.Handled = false;
             FavoriteIllusts.UpdateTilesState();
             UpdateLikeState();
+            if (FavoriteIllusts.SelectedItem is ImageItem) FavoriteIllusts.SelectedItem.Focus();
             e.Handled = true;
         }
 

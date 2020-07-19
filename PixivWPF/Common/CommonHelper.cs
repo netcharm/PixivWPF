@@ -1030,7 +1030,7 @@ namespace PixivWPF.Common
 
                         result = html.ToString();
 
-                        File.WriteAllText(setting.ContentTemplateFile, result);
+                        File.WriteAllText(setting.ContentsTemplateFile, result);
                     }
                     else
                     {
@@ -2529,7 +2529,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> UnLike(this Pixeez.Objects.Work illust, bool pub = true)
+        public static async Task<bool> UnLike(this Pixeez.Objects.Work illust)
         {
             var result = (await illust.UnLikeIllust()).Item1;
             UpdateLikeStateAsync((int)(illust.Id.Value), false);
@@ -2649,7 +2649,8 @@ namespace PixivWPF.Common
                         var info = "Liked";
                         var title = result.Item1 ? "Succeed" : "Failed";
                         var fail = result.Item1 ? "is" : "isn't";
-                        $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl());
+                        var pub_like = pub ? "Public" : "Private";
+                        $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl());
                     }
                 }
                 catch (Exception) { }
@@ -2700,7 +2701,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> UnLike(this Pixeez.Objects.UserBase user, bool pub = true)
+        public static async Task<bool> UnLike(this Pixeez.Objects.UserBase user)
         {
             var result = (await user.UnLikeUser()).Item1;
             UpdateLikeStateAsync((int)(user.Id.Value), true);
@@ -2834,7 +2835,8 @@ namespace PixivWPF.Common
                         var info = "Liked";
                         var title = result.Item1 ? "Succeed" : "Failed";
                         var fail = result.Item1 ?  "is" : "isn't";
-                        $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl());
+                        var pub_like = pub ? "Public" : "Private";
+                        $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".ShowToast(title, user.GetAvatarUrl());
                     }
                 }
                 catch (Exception) { }
@@ -2875,7 +2877,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Update Illust/User info cache
+        #region Update/Find Illust/User info cache
         public static void Cache(this Pixeez.Objects.UserBase user)
         {
             if (user is Pixeez.Objects.UserBase)
@@ -2886,6 +2888,25 @@ namespace PixivWPF.Common
         {
             if (illust is Pixeez.Objects.Work)
                 IllustCache[illust.Id] = illust;
+        }
+
+        public static Pixeez.Objects.Work FindIllust(this long id)
+        {
+            if (IllustCache.ContainsKey(id)) return (IllustCache[id]);
+            else return (null);
+        }
+
+        public static Pixeez.Objects.Work FindIllust(this long? id)
+        {
+            if (id != null && IllustCache.ContainsKey(id)) return (IllustCache[id]);
+            else return (null);
+        }
+
+        public static Pixeez.Objects.Work FindIllust(this string id)
+        {
+            long idv = 0;
+            if (long.TryParse(id, out idv)) return (FindIllust(idv));
+            else return (null);
         }
         #endregion
 
