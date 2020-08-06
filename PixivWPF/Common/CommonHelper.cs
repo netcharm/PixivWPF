@@ -756,16 +756,17 @@ namespace PixivWPF.Common
             {
                 using (var ms = (MemoryStream)e.Data.GetData("text/html"))
                 {
-
                     var html = Encoding.Unicode.GetString(ms.ToArray()).Trim().Trim('\0');
-
+                    links = html.ParseLinks(true).ToList();
+                    /*
                     var mr = new List<MatchCollection>();
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+.*?)"""));
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+.*?)"""));
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member_illust\.php\?mode=.*?illust_id=\d+.*?)"""));
                     mr.Add(Regex.Matches(html, @"href=""(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?"""));
-                    mr.Add(Regex.Matches(html, @"((src)|(href))=""(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"""));
                     mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?"));
+
+                    mr.Add(Regex.Matches(html, @"((src)|(href))=""(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"""));
                     mr.Add(Regex.Matches(html, @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"));
                     mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"));
 
@@ -789,10 +790,17 @@ namespace PixivWPF.Common
                             if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
                         }
                     }
+                    */
                 }
             }
             else if (fmts.Contains("Text"))
             {
+                using (var ms = (MemoryStream)e.Data.GetData("text/html"))
+                {
+                    var html = ((string)e.Data.GetData("Text")).Trim().Trim('\0');
+                    links = html.ParseLinks(false).ToList();
+                }
+                /*
                 var html = ((string)e.Data.GetData("Text")).Trim().Trim('\0');
 
                 var mr = new List<MatchCollection>();
@@ -800,7 +808,9 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?$"));
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?$"));
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?$"));
+
                 mr.Add(Regex.Matches(html, @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$"));
+                mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))"));
 
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?$"));
 
@@ -809,7 +819,7 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(html, @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)$"));
 
                 if (!html.StartsWith("http"))
-                    mr.Add(Regex.Matches(html, @"((\d+)(_((p)|(ugoira))*\d+)*)"));
+                    mr.Add(Regex.Matches(Path.GetFileNameWithoutExtension(html), @"((\d+)(_((p)|(ugoira))*\d+)*)"));
 
                 foreach (var mi in mr)
                 {
@@ -839,6 +849,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
+                */
             }
             else if (fmts.Contains("FileDrop"))
             {
@@ -902,14 +913,79 @@ namespace PixivWPF.Common
                 else if (Regex.IsMatch(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase);
 
-                else if (Regex.IsMatch(result, @"^((\d+)(_((p)|(ugoira))*\d+)*)"))
-                    result = Regex.Replace(result, @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(Path.GetFileNameWithoutExtension(result), @"^((\d+)(_((p)|(ugoira))*\d+)*)"))
+                    result = Regex.Replace(Path.GetFileNameWithoutExtension(result), @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
 
                 else if (!Regex.IsMatch(result, @"((UserID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
                     result = $"Caption: {result}";
             }
 
             return (result.Trim().Trim(trim_char).HtmlDecode());
+        }
+
+        public static IEnumerable<string> ParseLinks(this string html, bool is_src=false)
+        {
+            List<string> links = new List<string>();
+            var href_prefix_0 = is_src ? @"href=""" : string.Empty;
+            var href_prefix_1 = is_src ? @"src=""" : string.Empty;
+            var href_suffix = is_src ? @"""$" : @"$";
+
+            var mr = new List<MatchCollection>();
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"{href_prefix}(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?" + href_suffix));
+
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_1 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_1 + @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix));
+
+
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?" + href_suffix));
+
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/id\/\d+).*?" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/user\/\d+).*?" + href_suffix));
+            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix));
+
+            if (!html.StartsWith("http"))
+                mr.Add(Regex.Matches(Path.GetFileNameWithoutExtension(html), @"((\d+)(_((p)|(ugoira))*\d+)*)"));
+
+            foreach (var mi in mr)
+            {
+                if (mi.Count > 50)
+                {
+                    ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                    continue;
+                }
+                foreach (Match m in mi)
+                {
+                    var link = m.Groups[1].Value.Trim().Trim(trim_char);
+
+                    if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (!links.Contains(link)) links.Add(link);
+                        break;
+                    }
+
+                    if (m == mi[mi.Count])
+                    {
+                        long id;
+                        if (long.TryParse(link, out id))
+                        {
+                            var a_link = $"https://www.pixiv.net/artworks/{link}";
+                            var u_link = $"https://www.pixiv.net/users/{link}";
+                            if (!links.Contains(a_link)) links.Add(a_link);
+                            if (!links.Contains(u_link)) links.Add(u_link);
+                        }
+                    }
+                }
+            }
+            return (links);
         }
 
         public static string InsertLineBreak(this string text, int lineLength)
@@ -943,7 +1019,12 @@ namespace PixivWPF.Common
                     result = result.Replace(match.Value, char.ConvertFromUtf32(v));
             }
 
-            return (result);
+            return (result.HtmlFormatBreakLine());
+        }
+
+        public static string HtmlFormatBreakLine(this string text)
+        {
+            return (text.Replace("\r\n", "<br/>").Replace("\n\r", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>").Replace("<br/>", $"<br/>{Environment.NewLine}"));
         }
 
         /// <summary>
@@ -1055,15 +1136,15 @@ namespace PixivWPF.Common
             var accentcolor = Theme.AccentBaseColor.ToHtml(false);
             var textcolor = Theme.TextColor.ToHtml(false);
 
-            if (string.IsNullOrEmpty(contents)) contents = string.Empty;
-            if (string.IsNullOrEmpty(title)) title = string.Empty;
+            contents = string.IsNullOrEmpty(contents) ? string.Empty : contents.Trim();
+            title = string.IsNullOrEmpty(title) ? string.Empty : title.Trim();
 
             var template = GetDefaultTemplate();
             template = Regex.Replace(template, "{%title%}", title, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%backcolor%}", backcolor, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%accentcolor%}", accentcolor, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%textcolor%}", textcolor, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%contents%}", contents, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%contents%}", contents, RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
             return (template.ToString());
         }
@@ -2908,6 +2989,26 @@ namespace PixivWPF.Common
             if (long.TryParse(id, out idv)) return (FindIllust(idv));
             else return (null);
         }
+
+        public static Pixeez.Objects.UserBase FindUser(this long id)
+        {
+            if (UserCache.ContainsKey(id)) return (UserCache[id]);
+            else return (null);
+        }
+
+        public static Pixeez.Objects.UserBase FindUser(this long? id)
+        {
+            if (id != null && UserCache.ContainsKey(id)) return (UserCache[id]);
+            else return (null);
+        }
+
+        public static Pixeez.Objects.UserBase FindUser(this string id)
+        {
+            long idv = 0;
+            if (long.TryParse(id, out idv)) return (FindUser(idv));
+            else return (null);
+        }
+
         #endregion
 
         #region Sync Illust/User Like State
@@ -3349,6 +3450,7 @@ namespace PixivWPF.Common
             if (_dm is Window)
             {
                 _dm.Show();
+                if (_dm.WindowState == WindowState.Minimized) _dm.WindowState = WindowState.Normal;
                 if (active) _dm.Activate();
             }
             else

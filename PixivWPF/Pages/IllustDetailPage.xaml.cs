@@ -519,8 +519,8 @@ namespace PixivWPF.Pages
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
-                    var contents = item.Illust.Caption.HtmlDecode().Replace("\r\n", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>").Replace("<br/>", "<br/>\r\n");
-                    contents = $"<div class=\"desc\">\r\n{contents}\r\n</div>";
+                    var contents = item.Illust.Caption.HtmlDecode();
+                    contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
                     IllustDescHtml.DocumentText = contents.GetHtmlFromTemplate(IllustTitle.Text);
                     AdjustBrowserSize(IllustDescHtml);
 
@@ -646,8 +646,9 @@ namespace PixivWPF.Pages
                     desc.AppendLine($"<b>Profile:</b><br/>");
                     desc.AppendLine($"{nprof.gender} / {nprof.birth} / {nprof.region} / {nprof.job} <br/>");
                     desc.AppendLine($"<b>Contacts:</b><br/>");
-                    desc.AppendLine($"<i>twitter:</i><a href=\"{nprof.twitter_url}\">@{nprof.twitter_account}</a><br/>");
-                    desc.AppendLine($"<i>web:</i><a href=\"{nprof.webpage}\">{nprof.webpage}</a><br/>");
+                    desc.AppendLine($"<span class=\"twitter\" title=\"Twitter\"></span><a href=\"{nprof.twitter_url}\">@{nprof.twitter_account}</a><br/>");
+                    desc.AppendLine($"<span class=\"web\" title=\"Website\"></span><a href=\"{nprof.webpage}\">{nprof.webpage}</a><br/>");
+                    desc.AppendLine($"<span class=\"mail\" title=\"Email\"></span><a href=\"mailto:{nuser.Email}\">{nuser.Email}</a><br/>");
 
                     desc.AppendLine($"<hr/>");
                     desc.AppendLine($"<b>Workspace Device:</b><br/> ");
@@ -663,7 +664,7 @@ namespace PixivWPF.Pages
                     }
                     desc.AppendLine("</div>");
 
-                    IllustTagsHtml.DocumentText = desc.ToString().GetHtmlFromTemplate(IllustAuthor.Text);
+                    IllustTagsHtml.DocumentText = desc.ToString().Trim().GetHtmlFromTemplate(IllustAuthor.Text);
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "User Infomation";
@@ -681,8 +682,8 @@ namespace PixivWPF.Pages
                 if (!string.IsNullOrEmpty(nuser.comment) && nuser.comment.Length > 0)
                 {
                     var comment = nuser.comment;//.HtmlEncode();
-                    var contents = comment.HtmlDecode().Replace("\r\n", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>").Replace("<br/>", "<br/>\r\n");
-                    contents = $"<div class=\"desc\">\r\n{contents}\r\n</div>";
+                    var contents = comment.HtmlDecode();
+                    contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
                     IllustDescHtml.DocumentText = contents.GetHtmlFromTemplate(IllustAuthor.Text);
                     AdjustBrowserSize(IllustDescHtml);
 
@@ -2044,8 +2045,10 @@ namespace PixivWPF.Pages
 
         private void SubPageNav_Clicked(object sender, RoutedEventArgs e)
         {
+            //var count = DataObject is ImageItem ? (DataObject as ImageItem).Count : SubIllusts.Items.Count;
+            //var index = SubIllusts.SelectedItem is ImageItem ? (SubIllusts.SelectedItem as ImageItem).Index : 0;
             var count = SubIllusts.Items.Count;
-            if (count > 1)
+            if (count >= 1)
             {
                 if (sender == btnSubPagePrev)
                 {
@@ -2060,7 +2063,7 @@ namespace PixivWPF.Pages
                 {
                     if (SubIllusts.SelectedIndex <= 0)
                         SubIllusts.SelectedIndex = 1;
-                    else if (SubIllusts.SelectedIndex < count - 1)
+                    else if (SubIllusts.SelectedIndex < count - 1 && count > 1)
                         SubIllusts.SelectedIndex += 1;
                     else if (SubIllusts.SelectedIndex == count - 1 && btnSubIllustNextPages.IsShown())
                     {

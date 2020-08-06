@@ -11,6 +11,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 
 using Microsoft.Win32;
+using System.Threading;
 
 namespace PixivWPF.Common
 {
@@ -178,12 +179,19 @@ namespace PixivWPF.Common
         private const int HTTP_STREAM_READ_COUNT = 65536;
         private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
 
+        private CancellationTokenSource cancelSource = new CancellationTokenSource();
+        private CancellationToken cancelToken = new CancellationToken();
+
         private DownloadInfo Info { get; set; }
 
         public bool Canceled
         {
             get { return Info.Canceled; }
-            set { Info.Canceled = value; }
+            set
+            {
+                Info.Canceled = value;
+                if (value && !cancelSource.IsCancellationRequested) cancelSource.Cancel();
+            }
         }
 
         public string Url
@@ -436,6 +444,8 @@ namespace PixivWPF.Common
             string result = string.Empty;
             if (string.IsNullOrEmpty(Info.Url)) return (result);
 
+            cancelToken = cancelSource.Token;
+
             PART_OpenFile.IsEnabled = false;
             PART_OpenFolder.IsEnabled = false;
 
@@ -463,12 +473,17 @@ namespace PixivWPF.Common
                                 int bytesread = 0;
                                 do
                                 {
-                                    if (Canceled)
+                                    if (Canceled || cancelToken.IsCancellationRequested)
                                     {
                                         State = DownloadState.Failed;
                                         break;
                                     }
-                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT);
+                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
+                                    if (Canceled || cancelToken.IsCancellationRequested)
+                                    {
+                                        State = DownloadState.Failed;
+                                        break;
+                                    }
                                     if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Info.Received < Info.Length)
                                     {
                                         endTick = DateTime.Now;
@@ -503,8 +518,11 @@ namespace PixivWPF.Common
                             catch (Exception ex)
                             {
                                 var ret = ex.Message;
-                                State = DownloadState.Failed;
-                                PART_DownloadProgress.IsIndeterminate = true;
+                                if (State == DownloadState.Downloading)
+                                {
+                                    State = DownloadState.Failed;
+                                    PART_DownloadProgress.IsIndeterminate = true;
+                                }
                             }
                             finally
                             {
@@ -534,6 +552,11 @@ namespace PixivWPF.Common
                     PART_OpenFolder.IsEnabled = true;
                 }
             }));
+        }
+
+        private void Cancel()
+        {
+            Canceled = true;
         }
 
         public DownloadItem()
@@ -665,7 +688,7 @@ namespace PixivWPF.Common
             {
                 if (State == DownloadState.Downloading)
                 {
-                    Canceled = true;
+                    Cancel();
                 }
             }
             else if (sender == miOpenImage || sender == PART_OpenFile)

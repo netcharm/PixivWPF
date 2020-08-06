@@ -517,6 +517,30 @@ namespace PixivWPF.Common
             {
                 if (user is Pixeez.Objects.User && Collection is IList<ImageItem>)
                 {
+                    var contact = user.Profile is Pixeez.Objects.Profile ? user.Profile.Contacts : null;
+                    var twitter = contact is Pixeez.Objects.Contacts ? $"📧{contact.Twitter}" : string.Empty;
+                    var web = user.Profile is Pixeez.Objects.Profile ? $"🌐{user.Profile.Homepage}" : string.Empty;
+                    var mail = string.IsNullOrEmpty(user.Email) ? string.Empty : $"🖃{user.Email}";
+
+                    var info = new List<string>() { twitter, web, mail };
+                    var tooltip = string.Join("\r\n", info).Trim();
+                    if (string.IsNullOrEmpty(tooltip))
+                    {
+                        var cu = user.Id.FindUser();
+                        if(cu is Pixeez.Objects.User)
+                        {
+                            var u = cu as Pixeez.Objects.User;
+                            contact = u.Profile is Pixeez.Objects.Profile ? u.Profile.Contacts : null;
+                            twitter = contact is Pixeez.Objects.Contacts ? $"📧{contact.Twitter}" : string.Empty;
+                            web = u.Profile is Pixeez.Objects.Profile ? $"🌐{u.Profile.Homepage}" : string.Empty;
+                            mail = string.IsNullOrEmpty(u.Email) ? string.Empty : $"🖃{u.Email}";
+                            info = new List<string>() { twitter, web, mail };
+                            tooltip = string.Join("\r\n", info).Trim();
+                        }                           
+                    }
+
+                    if (string.IsNullOrEmpty(tooltip)) tooltip = null;
+
                     var url = user.GetAvatarUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
@@ -534,6 +558,7 @@ namespace PixivWPF.Common
                             UserID = user.Id.ToString(),
                             Subject = user.Profile == null ? $"{user.Name}" : $"{user.Name} - {user.Profile.Contacts.Twitter}",
                             DisplayTitle = true,
+                            ToolTip = tooltip,
                             Tag = user
                         };
                         Collection.Add(i);
