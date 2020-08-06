@@ -444,6 +444,7 @@ namespace PixivWPF.Common
             string result = string.Empty;
             if (string.IsNullOrEmpty(Info.Url)) return (result);
 
+            cancelSource = new CancellationTokenSource();
             cancelToken = cancelSource.Token;
 
             PART_OpenFile.IsEnabled = false;
@@ -527,6 +528,7 @@ namespace PixivWPF.Common
                             finally
                             {
                                 PART_DownloadProgress.IsEnabled = false;
+                                cancelSource.Dispose();
                             }
                         }
                     }
