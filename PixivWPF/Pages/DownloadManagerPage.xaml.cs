@@ -117,7 +117,7 @@ namespace PixivWPF.Pages
                         var finished = items.Where(o => o.State == DownloadState.Finished );
                         var nonexists = items.Where(o => o.State == DownloadState.NonExists );
 
-                        PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}";                        
+                        PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}";
                     }
                     catch (Exception) { }
                     finally { IsUpdating = false; }
@@ -153,7 +153,7 @@ namespace PixivWPF.Pages
 
         internal void Add(DownloadInfo item)
         {
-            if(item is DownloadInfo)
+            if (item is DownloadInfo)
             {
                 items.Add(item);
                 DownloadItems.ScrollIntoView(item);
@@ -208,7 +208,7 @@ namespace PixivWPF.Pages
 
         internal void Start()
         {
-            foreach(var item in items)
+            foreach (var item in items)
             {
                 //this.button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 //item.PART_Download.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -217,7 +217,28 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void DownloadAll_Click(object sender, RoutedEventArgs e)
+        private void DownloadItem_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            if (e.Property != null)
+            {
+                if (e.Property.Name == "Tag" || e.Property.Name == "Value" || e.Property.Name == "StateChanged")
+                {
+                    UpdateStateInfo();
+                    if (e.Source is DownloadItem)
+                    {
+                        (e.Source as DownloadItem).UpdateDownloadState();
+                    }
+                }
+            }
+        }
+
+        private void PART_MaxJobs_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            MaxJobs = Convert.ToUInt32(PART_MaxJobs.Value);
+            PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {MaxJobs}";
+        }
+
+        private async void PART_DownloadAll_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -262,7 +283,7 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
-        private async void RemoveAll_Click(object sender, RoutedEventArgs e)
+        private async void PART_RemoveAll_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -289,30 +310,10 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
-        private void DownloadItem_TargetUpdated(object sender, DataTransferEventArgs e)
+        private void PART_ChangeFolder_Click(object sender, RoutedEventArgs e)
         {
-            if (e.Property != null)
+            CommonOpenFileDialog dlg = new CommonOpenFileDialog()
             {
-                if (e.Property.Name == "Tag" || e.Property.Name == "Value" || e.Property.Name == "StateChanged")
-                {
-                    UpdateStateInfo();
-                    if(e.Source is DownloadItem)
-                    {
-                        (e.Source as DownloadItem).UpdateDownloadState();
-                    }
-                }
-            }
-        }
-
-        private void PART_MaxJobs_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            MaxJobs = Convert.ToUInt32(PART_MaxJobs.Value);
-            PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {MaxJobs}";
-        }
-
-        private void ChangeFolder_Click(object sender, RoutedEventArgs e)
-        {
-            CommonOpenFileDialog dlg = new CommonOpenFileDialog() {
                 Title = "Select Folder",
                 IsFolderPicker = true,
                 InitialDirectory = setting.LastFolder,
@@ -332,7 +333,46 @@ namespace PixivWPF.Pages
             {
                 setting.LastFolder = dlg.FileName;
                 // Do something with selected folder string
+                setting.LastFolder.AddDownloadedWatcher();
             }
+        }
+
+        private async void PART_CopyID_Click(object sender, RoutedEventArgs e)
+        {
+            await new Action(() =>
+            {
+                var targets = new List<string>();
+                var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
+                foreach (var item in items)
+                {
+                    if (item is DownloadInfo)
+                        targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
+                }
+                Clipboard.SetText(string.Join(Environment.NewLine, targets));
+            }).InvokeAsync();
+        }
+
+        private async void PART_CopyInfo_Click(object sender, RoutedEventArgs e)
+        {
+            await new Action(() =>
+            {
+                var targets = new List<string>();
+                var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
+                if (items.Count > 0)
+                    targets.Add(@"--------------------------------------------------------------------------------------------");
+                foreach (var item in items)
+                {
+                    if (item is DownloadInfo)
+                    {
+                        var di = item as DownloadInfo;
+                        targets.Add($"URL    : {di.Url}");
+                        targets.Add($"File   : {di.FileName}");
+                        targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes)");
+                        targets.Add(@"--------------------------------------------------------------------------------------------");
+                    }
+                }
+                Clipboard.SetText(string.Join(Environment.NewLine, targets));
+            }).InvokeAsync();
         }
     }
 }

@@ -35,7 +35,7 @@
         <StackPanel Grid.Row="0" Margin="2,4,2,4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
             <Slider x:Name="PART_MaxJobs" HorizontalAlignment="Right" VerticalAlignment="Center" Width="133" Margin="4,10" 
                     Minimum="1" SmallChange="1" LargeChange="5" Value="10" Maximum="25" ValueChanged="PART_MaxJobs_ValueChanged"/>
-            <Button x:Name="PART_ChangeFolder" x:Uid="ChangeFolder" Margin="2,0,2,0" Click="ChangeFolder_Click"
+            <Button x:Name="PART_ChangeFolder" x:Uid="ChangeFolder" Margin="2,0,2,0" Click="PART_ChangeFolder_Click"
                     ToolTip="Change Destination Save Folder"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -49,7 +49,40 @@
                     <!--<TextBlock Text="Remove All" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>-->
                 </StackPanel>
             </Button>
-            <Button x:Name="PART_RemoveAll" x:Uid="ClearAll" Margin="2,0,2,0" Click="RemoveAll_Click"
+            <Button x:Name="PART_CopyInfo" x:Uid="CopyInfo" Margin="2,0,2,0" Click="PART_CopyInfo_Click"
+                    ToolTip="Copy All/Selected Items Infomation To Clipboard"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                    BorderBrush="{DynamicResource AccentColorBrush}"
+                    Foreground="{DynamicResource LabelTextBrush}" 
+                    Background="Transparent"
+                    mah:ButtonHelper.PreserveTextCase="True">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <iconPacks:PackIconModern Kind="ClipboardPaper" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" Grid.Column="0" Grid.Row="0"/>
+                    <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource AccentColorBrush}" Width="8" Height="8" Margin="4,6,0,0" Grid.Column="0" Grid.Row="0"/>
+                </Grid>
+            </Button>            
+            <Button x:Name="PART_CopyID" x:Uid="CopyID" Margin="2,0,2,0" Click="PART_CopyID_Click"
+                    ToolTip="Copy All/Selected Items ID To Clipboard"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                    BorderBrush="{DynamicResource AccentColorBrush}"
+                    Foreground="{DynamicResource LabelTextBrush}" 
+                    Background="Transparent"
+                    mah:ButtonHelper.PreserveTextCase="True">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="PART_RemoveAll" x:Uid="ClearAll" Margin="2,0,2,0" Click="PART_RemoveAll_Click"
                     ToolTip="Remove All/Selected Items"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -60,10 +93,10 @@
                     mah:ButtonHelper.PreserveTextCase="True">
                 <StackPanel Orientation="Horizontal">
                     <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
-                    <TextBlock Text="Remove All" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <!--<TextBlock Text="Remove All" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>-->
                 </StackPanel>
             </Button>
-            <Button x:Name="PART_DownloadAll" x:Uid="DownloadAll" Margin="2,0,2,0" Click="DownloadAll_Click"
+            <Button x:Name="PART_DownloadAll" x:Uid="DownloadAll" Margin="2,0,2,0" Click="PART_DownloadAll_Click"
                     ToolTip="Download All/Selected Items"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -74,7 +107,7 @@
                     mah:ButtonHelper.PreserveTextCase="True">
                 <StackPanel Orientation="Horizontal">
                     <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
-                    <TextBlock Text="Download All" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <!--<TextBlock Text="Download All" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>-->
                 </StackPanel>
             </Button>
         </StackPanel>
@@ -83,11 +116,11 @@
                   Style="{DynamicResource VirtualisedMetroListView}"
                   BorderThickness="0"
                   VirtualizingPanel.IsVirtualizing="True"
-                  VirtualizingPanel.CacheLength ="15"
+                  VirtualizingPanel.CacheLength ="10"
                   VirtualizingPanel.IsContainerVirtualizable="True"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                   VirtualizingPanel.CacheLengthUnit="Item"
-                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  VirtualizingPanel.VirtualizationMode="Standard"
                   VirtualizingPanel.ScrollUnit="Item"                 
                   ScrollViewer.VerticalScrollBarVisibility="Auto"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"

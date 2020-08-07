@@ -12,6 +12,7 @@ using System.Windows.Media;
 
 using Microsoft.Win32;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace PixivWPF.Common
 {
@@ -63,6 +64,7 @@ namespace PixivWPF.Common
                     {
                         FileName = dlgSave.FileName;
                         setting.LastFolder = Path.GetDirectoryName(FileName);
+                        setting.LastFolder.AddDownloadedWatcher();
                     }
                     else
                     {
@@ -362,7 +364,7 @@ namespace PixivWPF.Common
         private void InitProgress()
         {
             progress = new Progress<Tuple<double, double>>(i => {
-                if (endTick.Ticks - lastTick.Ticks >= 10000000.0 || State == DownloadState.Finished)
+                if (endTick.Ticks - lastTick.Ticks >= 10000000.0 || State == DownloadState.Writing || State == DownloadState.Finished)
                 {
                     var received = i.Item1 >= 0 ? i.Item1 : 0;
                     var total = i.Item2 >= 0 ? i.Item2 : 0;
@@ -411,7 +413,7 @@ namespace PixivWPF.Common
                     miOpenImage.IsEnabled = false;
                 }
 
-                if (Info.State == DownloadState.Downloading)
+                if (Info.State == DownloadState.Downloading || Info.State == DownloadState.Writing)
                 {
                     miRemove.IsEnabled = false;
                     miStopDownload.IsEnabled = true;
@@ -444,9 +446,6 @@ namespace PixivWPF.Common
             string result = string.Empty;
             if (string.IsNullOrEmpty(Info.Url)) return (result);
 
-            cancelSource = new CancellationTokenSource();
-            cancelToken = cancelSource.Token;
-
             PART_OpenFile.IsEnabled = false;
             PART_OpenFolder.IsEnabled = false;
 
@@ -456,18 +455,21 @@ namespace PixivWPF.Common
             {
                 if (response != null && response.Source.IsSuccessStatusCode)// response.Source.StatusCode == HttpStatusCode.OK)
                 {
+                    cancelSource = new CancellationTokenSource();
+                    cancelToken = cancelSource.Token;
+
                     PART_DownloadProgress.IsIndeterminate = false;
                     PART_DownloadProgress.IsEnabled = true;
                     endTick = DateTime.Now;
                     lastReceived = 0;
                     Info.Received = 0;
                     Info.Length = (long)response.Source.Content.Headers.ContentLength;
+                    progress.Report(Info.Progress);
 
                     using (var cs = await response.Source.Content.ReadAsStreamAsync())
                     {
                         using (var ms = new MemoryStream())
                         {
-                            progress.Report(Info.Progress);
                             byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
                             try
                             {
@@ -479,7 +481,8 @@ namespace PixivWPF.Common
                                         State = DownloadState.Failed;
                                         break;
                                     }
-                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
+                                    //bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
+                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT);
                                     if (Canceled || cancelToken.IsCancellationRequested)
                                     {
                                         State = DownloadState.Failed;
@@ -497,18 +500,19 @@ namespace PixivWPF.Common
                                 //if (ms.Length == Info.Received && Info.Received == Info.Length)
                                 if (Info.Received == Info.Length)
                                 {
-                                    //State = DownloadState.Writing;
+                                    State = DownloadState.Writing;
+                                    progress.Report(Info.Progress);
                                     File.WriteAllBytes(Info.FileName, ms.ToArray());
-                                    State = DownloadState.Finished;
                                     IsStart = false;
                                     result = Info.FileName;
                                     File.SetCreationTime(FileName, FileTime);
                                     File.SetLastWriteTime(FileName, FileTime);
                                     File.SetLastAccessTime(FileName, FileTime);
-                                    progress.Report(Info.Progress);
                                     PART_OpenFile.IsEnabled = true;
                                     PART_OpenFolder.IsEnabled = true;
                                     $"{Path.GetFileName(Info.FileName)} is saved!".ShowDownloadToast("Succeed", Info.ThumbnailUrl, Info.FileName);
+                                    State = DownloadState.Finished;
+                                    progress.Report(Info.Progress);
                                     SystemSounds.Beep.Play();
                                 }
                                 else
@@ -666,6 +670,17 @@ namespace PixivWPF.Common
             if((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
             {
                 CommonHelper.Cmd_CopyIllustIDs.Execute(Url);
+            }
+            else if(sender == miCopyDonwnloadInfo)
+            {
+                var targets = new List<string>();
+                targets.Add(@"--------------------------------------------------------------------------------------------");
+                var di = Info ;
+                targets.Add($"URL    : {di.Url}");
+                targets.Add($"File   : {di.FileName}");
+                targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes)");
+                targets.Add(@"--------------------------------------------------------------------------------------------");
+                Clipboard.SetText(string.Join(Environment.NewLine, targets));
             }
             else if((sender == miOpenIllust || sender == PART_OpenIllust) && !string.IsNullOrEmpty(Url))
             {

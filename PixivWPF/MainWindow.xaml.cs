@@ -126,6 +126,7 @@ namespace PixivWPF
                 if (win == this) continue;
                 win.Close();
             }
+            CommonHelper.ReleaseDownloadedWatcher();
             if (Setting.Instance is Setting) Setting.Instance.Save();
         }
 #else
@@ -138,12 +139,95 @@ namespace PixivWPF
                     if (win is MainWindow) continue;
                     else win.Close();
                 }
+                CommonHelper.ReleaseDownloadedWatcher();
                 if (Setting.Instance is Setting) Setting.Instance.Save();
                 Application.Current.Shutdown();
             }
             else e.Cancel = true;
         }
 #endif
+
+        private void MainWindow_DragOver(object sender, DragEventArgs e)
+        {
+            var fmts = e.Data.GetFormats(true);
+            if (new List<string>(fmts).Contains("Text"))
+            {
+                e.Effects = DragDropEffects.Link;
+            }
+        }
+
+        private void MainWindow_Drop(object sender, DragEventArgs e)
+        {
+            var links = e.ParseDragContent();
+            foreach (var link in links)
+            {
+                CommonHelper.Cmd_Search.Execute(link);
+            }
+        }
+
+        private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.F5)
+            {
+                CommandNavRefresh_Click(CommandNavRefresh, new RoutedEventArgs());
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F3)
+            {
+                CommandNavNext_Click(CommandNavNext, new RoutedEventArgs());
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F6)
+            {
+                CommandNavRefresh_Click(CommandNavRefreshThumb, e);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)
+            {
+                if (pagetiles is Pages.TilesPage)
+                {
+                    pagetiles.KeyAction(e);
+                }
+                e.Handled = true;
+            }
+            else
+            {
+                var ret = sender.WindowKeyUp(e);
+                e.Handled = ret.Handled;
+            }
+        }
+
+        private void MetroWindow_StateChanged(object sender, EventArgs e)
+        {
+            LastWindowStates.Enqueue(this.WindowState);
+            if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
+        }
+
+        private async void MetroWindow_StylusUp(object sender, StylusEventArgs e)
+        {
+            //
+            await Task.Delay(1);
+            this.DoEvents();
+        }
+
+        private void NavFlyout_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue is PixivPage)
+            {
+                var title = e.NewValue.ToString();
+                if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
+                    CommandNavDate.IsEnabled = true;
+                }
+                else
+                {
+                    NavPageTitle.Text = title;
+                    CommandNavDate.IsEnabled = false;
+                }
+            }
+        }
+
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
             Common.Theme.Toggle();
@@ -230,24 +314,6 @@ namespace PixivWPF
             pagetiles.ShowImages(pagetiles.TargetPage, true, GetLastSelectedID());
         }
 
-        private void NavFlyout_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if(e.NewValue is PixivPage)
-            {
-                var title = e.NewValue.ToString();
-                if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
-                    CommandNavDate.IsEnabled = true;
-                }
-                else
-                {
-                    NavPageTitle.Text = title;
-                    CommandNavDate.IsEnabled = false;
-                }
-            }
-        }
-
         private void CommandSearch_Click(object sender, RoutedEventArgs e)
         {
             CommonHelper.Cmd_Search.Execute(SearchBox.Text);
@@ -318,68 +384,6 @@ namespace PixivWPF
             }            
         }
 
-        private void MainWindow_DragOver(object sender, DragEventArgs e)
-        {
-            var fmts = e.Data.GetFormats(true);
-            if ( new List<string>(fmts).Contains("Text"))
-            {
-                e.Effects = DragDropEffects.Link;
-            }               
-        }
-
-        private void MainWindow_Drop(object sender, DragEventArgs e)
-        {
-            var links = e.ParseDragContent();
-            foreach (var link in links)
-            {
-                CommonHelper.Cmd_Search.Execute(link);
-            }
-        }
-
-        private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.F5)
-            {
-                CommandNavRefresh_Click(CommandNavRefresh, new RoutedEventArgs());
-                e.Handled = true;
-            }
-            else if (e.Key == Key.F3)
-            {
-                CommandNavNext_Click(CommandNavNext, new RoutedEventArgs());
-                e.Handled = true;
-            }
-            else if (e.Key == Key.F6)
-            {
-                CommandNavRefresh_Click(CommandNavRefreshThumb, e);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)
-            {
-                if (pagetiles is Pages.TilesPage)
-                {
-                    pagetiles.KeyAction(e);
-                }
-                e.Handled = true;
-            }
-            else
-            {
-                var ret = sender.WindowKeyUp(e);
-                e.Handled = ret.Handled;
-            }
-        }
-
-        private void MetroWindow_StateChanged(object sender, EventArgs e)
-        {
-            LastWindowStates.Enqueue(this.WindowState);
-            if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
-        }
-
-        private async void MetroWindow_StylusUp(object sender, StylusEventArgs e)
-        {
-            //
-            await Task.Delay(1);
-            this.DoEvents();
-        }
     }
 
 

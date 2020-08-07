@@ -153,7 +153,7 @@
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                   VirtualizingPanel.CacheLength ="150"             
                   VirtualizingPanel.CacheLengthUnit="Item"
-                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  VirtualizingPanel.VirtualizationMode="Standard"
                   VirtualizingPanel.ScrollUnit="Item"
                   mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
                   KeyUp="PART_ImageTiles_KeyUp" 

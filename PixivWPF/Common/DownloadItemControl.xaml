@@ -23,6 +23,21 @@
                         <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem x:Name="miCopyDonwnloadInfo" x:Uid="ActionCopyDownloadInfo" Header="Copy Download Info" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <iconPacks:PackIconModern Kind="ClipboardPaper" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" Grid.Column="0" Grid.Row="0"/>
+                            <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource AccentColorBrush}" Width="8" Height="8" Margin="4,6,0,0" Grid.Column="0" Grid.Row="0"/>
+                        </Grid>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
                 <MenuItem x:Name="miOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="miActions_Click">
                     <MenuItem.Icon>
                         <iconPacks:PackIconModern Kind="PageImage" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
