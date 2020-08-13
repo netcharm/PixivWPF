@@ -85,7 +85,7 @@ namespace PixivWPF.Pages
         {
             //if (IsIdle) return;
             var jobs_count = items.Where(i => i.State == DownloadState.Downloading).Count();
-            var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);//|| item.State == DownloadState.Failed)
+            var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);//|| item.State == DownloadState.Failed);
             foreach (var item in pre_jobs)
             {
                 if (jobs_count < MaxJobs)
@@ -356,23 +356,19 @@ namespace PixivWPF.Pages
         {
             await new Action(() =>
             {
-                var targets = new List<string>();
                 var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
-                if (items.Count > 0)
-                    targets.Add(@"--------------------------------------------------------------------------------------------");
-                foreach (var item in items)
+                List<DownloadInfo> dis = new List<DownloadInfo>();
+                foreach (var item in DownloadItems.Items)
                 {
-                    if (item is DownloadInfo)
+                    if (items.Contains(item))
                     {
-                        var di = item as DownloadInfo;
-                        targets.Add($"URL    : {di.Url}");
-                        targets.Add($"File   : {di.FileName}");
-                        targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes)");
-                        targets.Add(@"--------------------------------------------------------------------------------------------");
+                        dis.Add(item as DownloadInfo);
                     }
                 }
-                Clipboard.SetText(string.Join(Environment.NewLine, targets));
+                CommonHelper.Cmd_CopyDownloadInfo.Execute(dis);
             }).InvokeAsync();
         }
+
+
     }
 }

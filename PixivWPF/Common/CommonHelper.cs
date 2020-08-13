@@ -533,6 +533,40 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_CopyDownloadInfo { get; } = new DelegateCommand<object>(obj =>
+        {
+            if (obj is IEnumerable)
+            {
+                var items = obj as IList;
+                if (items.Count <= 0) return;
+                var sep = @"--------------------------------------------------------------------------------------------";
+                var targets = new List<string>();
+                targets.Add(sep);
+                foreach (var item in items)
+                {
+                    if (item is DownloadInfo)
+                    {
+                        var di = item as DownloadInfo;
+                        targets.Add($"URL    : {di.Url}");
+                        targets.Add($"File   : {di.FileName}");
+                        targets.Add($"State  : {di.State}");
+                        targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes)");
+                        targets.Add(sep);
+                    }
+                }
+                targets.Add("");
+                Clipboard.SetText(string.Join(Environment.NewLine, targets));
+            }
+            else if (obj is DownloadInfo)
+            {
+                Cmd_CopyDownloadInfo.Execute(new List<DownloadInfo>() { obj as DownloadInfo });
+            }
+            else if (obj is ItemCollection)
+            {
+                Cmd_CopyDownloadInfo.Execute(obj as IList);
+            }
+        });
+
         public static ICommand Cmd_Search { get; } = new DelegateCommand<string>(async obj =>
         {
             if (obj is string && !string.IsNullOrEmpty(obj))
