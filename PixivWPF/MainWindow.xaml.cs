@@ -113,7 +113,6 @@ namespace PixivWPF
         {
             if (pipeServer is NamedPipeServerStream)
             {
-                pipeOnClosing = true;
                 try
                 {
                     if (pipeServer.IsConnected) pipeServer.Disconnect();
@@ -164,7 +163,7 @@ namespace PixivWPF
             }
             finally
             {
-                if(pipeServer is NamedPipeServerStream) CreateNamedPipeServer();
+                if(pipeServer is NamedPipeServerStream && !pipeOnClosing) CreateNamedPipeServer();
             }
         }
         #endregion
@@ -208,6 +207,7 @@ namespace PixivWPF
 #if DEBUG
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            pipeOnClosing = true;
             ReleaseNamedPipeServer();
 
             foreach (Window win in Application.Current.Windows)
@@ -223,6 +223,7 @@ namespace PixivWPF
         {
             if (MessageBox.Show("Continue Exit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes)
             {
+                pipeOnClosing = true;
                 ReleaseNamedPipeServer();
 
                 foreach (Window win in Application.Current.Windows)
