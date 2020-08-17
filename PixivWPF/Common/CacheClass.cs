@@ -149,6 +149,7 @@ namespace PixivWPF.Common
             var trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
             var file = Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
             file = file.Replace("/", "\\").TrimStart(trimchars);
+            file = Regex.Replace(file, @"(.*?)(([\?|\*].*)*)", "$1", RegexOptions.IgnoreCase);
             file = Path.Combine(_CacheFolder, file);
 
             if (_caches.ContainsKey(url))

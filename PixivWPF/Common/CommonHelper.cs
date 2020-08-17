@@ -298,6 +298,7 @@ namespace PixivWPF.Common
         private const int HEIGHT_MIN = 520;
         private const int HEIGHT_DEF = 900;
         private const int HEIGHT_MAX = 1008;
+        private const int WIDTH_DEF = 1280;
 
         private static Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
         private static CacheImage cache = new CacheImage();
@@ -672,6 +673,36 @@ namespace PixivWPF.Common
             else if (obj is ItemCollection)
             {
                 Cmd_CopyDownloadInfo.Execute(obj as IList);
+            }
+        });
+
+        public static ICommand Cmd_OpenPixivPedia { get; } = new DelegateCommand<object>(async obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
+                if (!string.IsNullOrEmpty(content))
+                {
+                    if (content.ToLower().Contains("://dic.pixiv.net/a/"))
+                        content = Uri.UnescapeDataString(content.Substring(content.IndexOf("/a/") + 3));
+                    var title = $"PixivPedia: {content} ...";
+                    if (title.ActiveByTitle()) return;
+
+                    var page = new BrowerPage ();
+                    page.UpdateDetail(content);
+
+                    var viewer = new ContentWindow()
+                    {
+                        Title = title,
+                        Width = WIDTH_DEF,
+                        Height = HEIGHT_DEF,
+                        FontFamily = setting.FontFamily,
+                        Content = page
+                    };
+                    viewer.Show();
+                    await Task.Delay(1);
+                    Application.Current.DoEvents();
+                }
             }
         });
 
@@ -1927,6 +1958,29 @@ namespace PixivWPF.Common
         #endregion
 
         #region Load/Save Image routines
+        public static string GetPixivLinkPattern(this string url)
+        {
+            return(@"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/");
+        }
+
+        public static bool IsPixivImage(this string url)
+        {
+            var pattern = @"http(s)*://.*?\.(pximg\.net/.*?)/";
+            if (Regex.IsMatch(url, pattern, RegexOptions.IgnoreCase))
+                return (true);
+            else
+                return (false);
+        }
+
+        public static bool IsPixivLink(this string url)
+        {
+            var pattern = url.GetPixivLinkPattern();
+            if (Regex.IsMatch(url, pattern, RegexOptions.IgnoreCase))
+                return (true);
+            else
+                return (false);
+        }
+
         internal static bool IsFileReady(this string filename)
         {
             // If the file can be opened for exclusive access it means that the file
@@ -2012,10 +2066,16 @@ namespace PixivWPF.Common
         public static async Task<bool> SaveImage(this string url, Pixeez.Tokens tokens, string file, bool overwrite = true)
         {
             bool result = false;
+            if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
+
             if (!string.IsNullOrEmpty(file))
             {
                 try
                 {
+                    var unc = file.IndexOf("file:\\\\\\");
+                    if (unc > 0) file = file.Substring(0, unc - 1);
+                    else if (unc == 0) file = file.Substring(8);
+
                     if (!overwrite && File.Exists(file) && new FileInfo(file).Length > 0)
                     {
                         return (true);
@@ -3483,12 +3543,12 @@ namespace PixivWPF.Common
 
         public static void ShowMessageBox(this string content, string title)
         {
-            ShowMessageDialog(title, content);
+            ShowMessageDialog(content, title);
         }
 
         public static async Task ShowMessageBoxAsync(this string content, string title)
         {
-            await ShowMessageDialogAsync(title, content);
+            await ShowMessageDialogAsync(content, title);
         }
 
         public static async void ShowMessageDialog(this string content, string title)
@@ -3502,7 +3562,7 @@ namespace PixivWPF.Common
         public static async Task ShowMessageDialogAsync(this string content, string title)
         {
             MetroWindow window = GetActiveWindow();
-            await window.ShowMessageAsync(title, content);
+            await window.ShowMessageAsync(content, title);
         }
 
         public static async void ShowProgressDialog(object sender, RoutedEventArgs e)

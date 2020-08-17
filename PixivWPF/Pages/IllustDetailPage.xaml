@@ -554,20 +554,38 @@
                                           MinHeight="24" MaxHeight="480" Height="auto" UseLayoutRounding="True"/>-->
                     </StackPanel>
                 </Expander>
-                <Button Grid.Row="2"
-                        x:Name="btnIllustTagSpeech" x:Uid="Speech"
+                <StackPanel Grid.Row="2" x:Name="TagPanel" 
+                            Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                            Orientation="Horizontal" Margin="0,0,0,0"
+                            HorizontalAlignment="Right" VerticalAlignment="Top">
+                    <Button
+                        x:Name="btnIllustTagPedia" x:Uid="PixivPedia" ToolTip="Query Tag in Pixiv Pedia"
+                        Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
+                        Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Click="ActionOpenPedia_Click">
+                        <Button.Content>
+                            <TextBlock Text="&#xE1D3;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource IdealForegroundColorBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
+                    </Button>
+                    <Button
+                        x:Name="btnIllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
                         Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                         ContextMenu="{DynamicResource MenuSpeech}"
                         Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
                         Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionSpeech_Click">
-                    <Button.Content>
-                        <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        <Button.Content>
+                            <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource IdealForegroundColorBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Button.Content>
-                </Button>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
 
                 <!-- Illust Info -->
                 <Expander Grid.Row="3" Margin="0,4,0,0" IsExpanded="True"

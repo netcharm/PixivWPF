@@ -88,8 +88,10 @@ namespace PixivWPF
             return (id);
         }
 
+        #region Named Pipe Heler
         private NamedPipeServerStream pipeServer;
         private string pipeName = "PixivWPF-Search";
+        private bool pipeOnClosing = false;
         private bool CreateNamedPipeServer()
         {
             try
@@ -111,6 +113,7 @@ namespace PixivWPF
         {
             if (pipeServer is NamedPipeServerStream)
             {
+                pipeOnClosing = true;
                 try
                 {
                     if (pipeServer.IsConnected) pipeServer.Disconnect();
@@ -126,6 +129,7 @@ namespace PixivWPF
                     pipeServer.Dispose();
                 }
                 catch { }
+                pipeServer = null;
             }
             return (true);
         }
@@ -134,10 +138,11 @@ namespace PixivWPF
         {
             try
             {
-                NamedPipeServerStream pipeServer = (NamedPipeServerStream)result.AsyncState;
-                pipeServer.EndWaitForConnection(result);
+                NamedPipeServerStream ps = (NamedPipeServerStream)result.AsyncState;
+                if (pipeOnClosing) return;
+                ps.EndWaitForConnection(result);
 
-                using (StreamReader sw = new StreamReader(pipeServer))
+                using (StreamReader sw = new StreamReader(ps))
                 {
                     //sw.ReadToEnd().ShowMessageDialog("RECEIVED!");
                     var contents = sw.ReadToEnd().Trim();
@@ -151,7 +156,7 @@ namespace PixivWPF
                     }
                 }
 
-                if(pipeServer.IsConnected) pipeServer.Disconnect();
+                if(ps.IsConnected) ps.Disconnect();
             }
             catch (Exception ex)
             {
@@ -159,9 +164,10 @@ namespace PixivWPF
             }
             finally
             {
-                CreateNamedPipeServer();
+                if(pipeServer is NamedPipeServerStream) CreateNamedPipeServer();
             }
         }
+        #endregion
 
         public MainWindow()
         {

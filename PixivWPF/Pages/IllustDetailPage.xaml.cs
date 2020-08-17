@@ -510,11 +510,13 @@ namespace PixivWPF.Pages
                     IllustTagExpander.Header = "Tags";
                     if (!IllustTagExpander.IsExpanded) IllustTagExpander.IsExpanded = true;
                     IllustTagExpander.Show();
+                    btnIllustTagPedia.Show();
                 }
                 else
                 {
                     IllustTagsHtml.DocumentText = string.Empty;
                     IllustTagExpander.Hide();
+                    btnIllustTagPedia.Hide();
                 }
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
@@ -631,6 +633,8 @@ namespace PixivWPF.Pages
 
                 BookmarkIllust.Hide();
                 IllustActions.Hide();
+
+                btnIllustTagPedia.Hide();
 
                 if (nuser != null && nprof != null && nworks != null)
                 {
@@ -1379,6 +1383,32 @@ namespace PixivWPF.Pages
             catch (Exception) { }
 #endif
             if (!string.IsNullOrEmpty(text)) text.Play(culture);
+        }
+
+        private async void ActionOpenPedia_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender == btnIllustTagPedia)
+                {
+                    var tags = GetText(IllustTagsHtml).Trim().Trim('#').Split('#');
+                    foreach(var tag in tags)
+                    {
+                        if (!string.IsNullOrEmpty(tag))
+                        {
+                            await new Action(() =>
+                            {
+                                CommonHelper.Cmd_OpenPixivPedia.Execute(tag);
+                            }).InvokeAsync();
+                        }
+                    }
+                }
+            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception) { }
+#endif
         }
 
         private void IllustInfo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
