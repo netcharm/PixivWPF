@@ -191,7 +191,7 @@ namespace PixivWPF.Common
                             collection.Remove(sub);
                             collection.Insert(idx, sub);
                         }
-                        CommonHelper.DoEvents();
+                        Application.Current.DoEvents();
                     }
                 }
                 else
@@ -217,7 +217,7 @@ namespace PixivWPF.Common
                         result |= download;
                     }
                     item.IsFavorited = item.IsLiked() && item.IsDisplayFavMark;
-                    CommonHelper.DoEvents();
+                    Application.Current.DoEvents();
                 }
             }
 #if DEBUG
@@ -266,7 +266,7 @@ namespace PixivWPF.Common
                                                 item.State = TaskStatus.RanToCompletion;
                                             else
                                                 item.State = TaskStatus.Faulted;
-                                            item.DoEvents();
+                                            Application.Current.DoEvents();
                                         }
                                     }
 #if DEBUG
@@ -289,7 +289,7 @@ namespace PixivWPF.Common
                 }
                 finally
                 {
-                    items.DoEvents();
+                    Application.Current.DoEvents();
                 }
             }
         }
@@ -305,7 +305,7 @@ namespace PixivWPF.Common
                     cancelSource.Cancel();
                     if (task is Task && task.Wait(5000, cancelSource.Token))
                     {
-                        items.DoEvents();
+                        Application.Current.DoEvents();
                     }
                 }
 
@@ -409,7 +409,7 @@ namespace PixivWPF.Common
             {
                 illust.AddTo(Collection, nexturl);
                 await Task.Delay(1);
-                illust.DoEvents();
+                Application.Current.DoEvents();
             }
         }
 

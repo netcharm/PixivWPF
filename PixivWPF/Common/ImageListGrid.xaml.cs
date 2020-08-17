@@ -226,7 +226,7 @@ namespace PixivWPF.Common
 
         public async void UpdateTilesImage(int parallel = 5)
         {
-            CommonHelper.DoEvents();
+            Application.Current.DoEvents();
             lastTask = await Items.UpdateTilesImage(lastTask, cancelTokenSource, parallel);
             //Items.UpdateTilesImage(lastTask, cancelTokenSource, parallel);
         }

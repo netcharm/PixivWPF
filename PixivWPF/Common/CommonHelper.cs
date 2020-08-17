@@ -184,6 +184,114 @@ namespace PixivWPF.Common
         }
     }
 
+    public static class ApplicationExtensions
+    {
+        #region Application Helper
+        public static string Root(this Application app)
+        {
+            return (Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", ""));
+        }
+
+        public static string Version(this Application app, bool alt = false)
+        {
+            var version = alt ? Assembly.GetCallingAssembly().GetName().Version : Assembly.GetExecutingAssembly().GetName().Version;
+            return (version.ToString());
+            //return (Application.ResourceAssembly.GetName().Version.ToString());
+        }
+        #endregion
+
+        #region Maybe reduce UI frozen
+        private static object ExitFrame(object state)
+        {
+            ((DispatcherFrame)state).Continue = false;
+            return null;
+        }
+
+        public static async void DoEvents()
+        {
+            try
+            {
+                if (Application.Current.Dispatcher.CheckAccess())
+                {
+                    await Dispatcher.Yield();
+                    //await System.Windows.Threading.Dispatcher.Yield();
+
+                    //DispatcherFrame frame = new DispatcherFrame();
+                    //await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                    //Dispatcher.PushFrame(frame);
+                }
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    if (Application.Current.Dispatcher.CheckAccess())
+                    {
+                        DispatcherFrame frame = new DispatcherFrame();
+                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
+                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
+
+                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                        await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
+                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
+                        Dispatcher.PushFrame(frame);
+                    }
+                }
+                catch (Exception)
+                {
+                    await Task.Delay(1);
+                }
+            }
+        }
+
+        public static void DoEvents(this object obj)
+        {
+            DoEvents();
+        }
+
+        public static void Sleep(int ms)
+        {
+            //Task.Delay(ms);
+            for (int i = 0; i < ms; i += 10)
+            {
+                //Task.Delay(5);
+                Thread.Sleep(5);
+                DoEvents();
+            }
+        }
+
+        public static void Sleep(this UIElement obj, int ms)
+        {
+            Sleep(ms);
+        }
+
+        public static async void Delay(int ms)
+        {
+            await Task.Delay(ms);
+        }
+
+        public static async Task DelayAsync(int ms)
+        {
+            await Task.Delay(ms);
+        }
+
+        public static void Delay(this object obj, int ms)
+        {
+            Delay(ms);
+        }
+
+        public static async Task DelayAsync(this object obj, int ms)
+        {
+            await DelayAsync(ms);
+        }
+        #endregion
+    }
+
+    public static class PixeezExtensions
+    {
+
+    }
+
     public static class CommonHelper
     {
         private const int WIDTH_MIN = 720;
@@ -302,7 +410,7 @@ namespace PixivWPF.Common
                         Cmd_OpenWorkPreview.Execute(item);
                     }
                     await Task.Delay(1);
-                    DoEvents();
+                    Application.Current.DoEvents();
                 }
             }
         });
@@ -354,7 +462,7 @@ namespace PixivWPF.Common
                     };
                     viewer.Show();
                     await Task.Delay(1);
-                    DoEvents();
+                    Application.Current.DoEvents();
                 }
             }
         });
@@ -388,7 +496,7 @@ namespace PixivWPF.Common
                 };
                 viewer.Show();
                 await Task.Delay(1);
-                DoEvents();
+                Application.Current.DoEvents();
             }
         });
 
@@ -415,7 +523,7 @@ namespace PixivWPF.Common
                 };
                 viewer.Show();
                 await Task.Delay(1);
-                DoEvents();
+                Application.Current.DoEvents();
             }
         });
 
@@ -593,7 +701,7 @@ namespace PixivWPF.Common
                     };
                     viewer.Show();
                     await Task.Delay(1);
-                    DoEvents();
+                    Application.Current.DoEvents();
                 }
             }
         });
@@ -612,93 +720,7 @@ namespace PixivWPF.Common
             }
         });
 
-        #region Maybe reduce UI frozen
-        private static object ExitFrame(object state)
-        {
-            ((DispatcherFrame)state).Continue = false;
-            return null;
-        }
-
-        public static async void DoEvents()
-        {
-            try
-            {
-                if (Application.Current.Dispatcher.CheckAccess())
-                {
-                    await Dispatcher.Yield();
-                    //await System.Windows.Threading.Dispatcher.Yield();
-
-                    //DispatcherFrame frame = new DispatcherFrame();
-                    //await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-                    //Dispatcher.PushFrame(frame);
-                }
-            }
-            catch (Exception)
-            {
-                try
-                {
-                    if (Application.Current.Dispatcher.CheckAccess())
-                    {
-                        DispatcherFrame frame = new DispatcherFrame();
-                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
-                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
-
-                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-                        await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
-                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
-                        Dispatcher.PushFrame(frame);
-                    }
-                }
-                catch (Exception)
-                {
-                    await Task.Delay(1);
-                }
-            }
-        }
-
-        public static void DoEvents(this object obj)
-        {
-            DoEvents();
-        }
-
-        public static void Sleep(int ms)
-        {
-            //Task.Delay(ms);
-            for (int i = 0; i < ms; i += 10)
-            {
-                //Task.Delay(5);
-                Thread.Sleep(5);
-                DoEvents();
-            }
-        }
-
-        public static void Sleep(this UIElement obj, int ms)
-        {
-            Sleep(ms);
-        }
-
-        public static async void Delay(int ms)
-        {
-            await Task.Delay(ms);
-        }
-
-        public static async Task DelayAsync(int ms)
-        {
-            await Task.Delay(ms);
-        }
-
-        public static void Delay(this object obj, int ms)
-        {
-            Delay(ms);
-        }
-
-        public static async Task DelayAsync(this object obj, int ms)
-        {
-            await DelayAsync(ms);
-        }
-
-        #endregion
-
+        #region Pixiv Token Helper
         private static async Task<Pixeez.Tokens> RefreshToken()
         {
             Pixeez.Tokens result = null;
@@ -782,6 +804,7 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+        #endregion
 
         #region Text process routines
         public static IEnumerable<string> ParseDragContent(this DragEventArgs e)
@@ -3067,42 +3090,6 @@ namespace PixivWPF.Common
         public static void UpdateLikeState(this ImageListGrid list, int illustid = -1, bool is_user = false)
         {
             list.Items.UpdateLikeState(illustid, is_user);
-            //foreach (ImageItem item in list.Items)
-            //{
-            //    int item_id = -1;
-            //    int.TryParse(item.ID, out item_id);
-            //    int user_id = -1;
-            //    int.TryParse(item.UserID, out user_id);
-
-            //    try
-            //    {
-            //        if (is_user)
-            //        {
-            //            if (illustid == -1 || illustid == user_id)
-            //            {
-            //                item.IsFavorited = item.Illust.IsLiked();
-            //                item.IsFollowed = item.User.IsLiked();
-            //            }
-            //        }
-            //        else
-            //        {
-            //            if (illustid == -1 || illustid == item_id)
-            //            {
-            //                if (item.ItemType == ImageItemType.User)
-            //                {
-            //                    item.IsFavorited = false;
-            //                    item.IsFollowed = item.User.IsLiked();
-            //                }
-            //                else
-            //                {
-            //                    item.IsFavorited = item.Illust.IsLiked();
-            //                    item.IsFollowed = item.User.IsLiked();
-            //                }
-            //            }
-            //        }
-            //    }
-            //    catch { }
-            //}
         }
 
         public static void UpdateLikeState(this ObservableCollection<ImageItem> collection, int illustid = -1, bool is_user = false)

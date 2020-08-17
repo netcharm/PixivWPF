@@ -854,9 +854,9 @@ namespace PixivWPF.Pages
                     {
                         illust.Cache();
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
-                        CommonHelper.DoEvents();
+                        this.DoEvents();
                     }
-                    CommonHelper.DoEvents();
+                    this.DoEvents();
                     RelativeIllusts.UpdateTilesImage();
                 }
             }
@@ -903,9 +903,9 @@ namespace PixivWPF.Pages
                     {
                         illust.Cache();
                         illust.AddTo(RelativeIllusts.Items, relatives.next_url);
-                        CommonHelper.DoEvents();
+                        this.DoEvents();
                     }
-                    CommonHelper.DoEvents();
+                    this.DoEvents();
                     RelativeIllusts.UpdateTilesImage();
                 }
             }
@@ -958,9 +958,9 @@ namespace PixivWPF.Pages
                     {
                         illust.Cache();
                         illust.AddTo(FavoriteIllusts.Items, favorites.next_url);
-                        CommonHelper.DoEvents();
+                        this.DoEvents();
                     }
-                    CommonHelper.DoEvents();
+                    this.DoEvents();
                     FavoriteIllusts.UpdateTilesImage();
                 }
             }

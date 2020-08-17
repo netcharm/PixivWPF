@@ -511,6 +511,7 @@ namespace PixivWPF.Common
                                     }
                                     bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
                                     //bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT);
+                                    endTick = DateTime.Now;
                                     if (Canceled || cancelSource.IsCancellationRequested)
                                     {
                                         State = DownloadState.Failed;
@@ -518,7 +519,6 @@ namespace PixivWPF.Common
                                     }
                                     if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Info.Received < Info.Length)
                                     {
-                                        endTick = DateTime.Now;
                                         lastReceived += bytesread;
                                         Info.Received += bytesread;
                                         await ms.WriteAsync(bytes, 0, bytesread);
@@ -554,14 +554,20 @@ namespace PixivWPF.Common
                                 var ret = ex.Message;
                                 if (State == DownloadState.Downloading)
                                 {
+
                                     State = DownloadState.Failed;
-                                    PART_DownloadProgress.IsIndeterminate = true;
                                 }
                             }
                             finally
                             {
+                                if (State == DownloadState.Failed)
+                                {
+                                    PART_DownloadProgress.IsIndeterminate = true;
+                                }
                                 PART_DownloadProgress.IsEnabled = false;
                                 cancelSource.Dispose();
+                                IsForceStart = false;
+                                IsStart = false;
                             }
                         }
                     }

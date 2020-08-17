@@ -25,7 +25,6 @@ namespace PixivWPF.Pages
     public partial class LoginPage : Page
     {
         private Window window = null;
-        private string AppPath = System.IO.Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString());
         private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
         private Pixeez.Tokens tokens = null;
 
@@ -63,7 +62,7 @@ namespace PixivWPF.Pages
             //chkUseProxy.Foreground = headerUser.Foreground;
 
 #if DEBUG
-            var logo = System.IO.Path.Combine(AppPath, "Assets", "pixiv-logo.png");
+            var logo = System.IO.Path.Combine(Application.Current.Root(), "Assets", "pixiv-logo.png");
             var uri = new Uri(logo);
             if (uri.IsAbsoluteUri && System.IO.File.Exists(uri.AbsolutePath))
             {

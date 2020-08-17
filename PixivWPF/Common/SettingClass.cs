@@ -15,7 +15,8 @@ namespace PixivWPF.Common
     [JsonObject(MemberSerialization.OptOut)]
     class Setting
     {
-        private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
+        //private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
+        private static string AppPath = Application.Current.Root();
         private static string config = Path.Combine(AppPath, "config.json");
 
         private static Setting Cache = null;// Load(config);

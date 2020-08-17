@@ -93,7 +93,7 @@ namespace PixivWPF.Pages
 
         protected internal async void UpdateImageTiles()
         {
-            CommonHelper.DoEvents();
+            this.DoEvents();
             lastTask = await ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);
             //ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);
         }

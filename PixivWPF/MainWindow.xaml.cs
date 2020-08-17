@@ -92,6 +92,8 @@ namespace PixivWPF
 
             this.FontFamily = Setting.Instance.FontFamily;
 
+            Title = $"{Title} [Version: {Application.Current.Version()}]";
+
             SearchBox.ItemsSource = AutoSuggestList;
 
             CommandToggleTheme.ItemsSource = Common.Theme.Accents;
@@ -103,7 +105,7 @@ namespace PixivWPF
             pagenav = new Pages.NavPage() { FontFamily = FontFamily, Tag = pagetiles, NavFlyout = NavFlyout };
 
             NavFlyout.Content = pagenav;
-            NavFlyout.Theme = FlyoutTheme.Adapt;
+            //NavFlyout.Theme = FlyoutTheme.Adapt;
             NavFlyout.Theme = FlyoutTheme.Accent;
             NavFlyout.Opacity = 0.95;
 

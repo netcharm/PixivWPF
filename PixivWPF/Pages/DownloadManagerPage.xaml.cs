@@ -139,7 +139,7 @@ namespace PixivWPF.Pages
                     if (item.Url.Equals(url, StringComparison.Ordinal))
                     {
                         result = true;
-                        if (item.State == DownloadState.Failed ||
+                        if (//item.State == DownloadState.Failed ||
                             item.State == DownloadState.Idle ||
                             item.State == DownloadState.Paused)
                             item.IsStart = true;
