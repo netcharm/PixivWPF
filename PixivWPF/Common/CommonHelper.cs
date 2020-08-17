@@ -3491,7 +3491,7 @@ namespace PixivWPF.Common
             await ShowMessageDialogAsync(title, content);
         }
 
-        public static async void ShowMessageDialog(this string title, string content)
+        public static async void ShowMessageDialog(this string content, string title)
         {
             //MetroWindow window = GetActiveWindow();
             //await window.ShowMessageAsync(title, content);
@@ -3499,7 +3499,7 @@ namespace PixivWPF.Common
             MessageBox.Show(content, title, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        public static async Task ShowMessageDialogAsync(this string title, string content)
+        public static async Task ShowMessageDialogAsync(this string content, string title)
         {
             MetroWindow window = GetActiveWindow();
             await window.ShowMessageAsync(title, content);

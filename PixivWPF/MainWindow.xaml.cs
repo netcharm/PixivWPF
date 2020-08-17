@@ -4,6 +4,8 @@ using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -86,6 +88,81 @@ namespace PixivWPF
             return (id);
         }
 
+        private NamedPipeServerStream pipeServer;
+        private string pipeName = "PixivWPF-Search";
+        private bool CreateNamedPipeServer()
+        {
+            try
+            {
+                ReleaseNamedPipeServer();
+                pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                //pipeServer.WaitForConnectionAsync();
+                pipeServer.BeginWaitForConnection(PipeReceiveData, pipeServer);
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageDialog("ERROR!");
+            }
+
+            return (true);
+        }
+
+        private bool ReleaseNamedPipeServer()
+        {
+            if (pipeServer is NamedPipeServerStream)
+            {
+                try
+                {
+                    if (pipeServer.IsConnected) pipeServer.Disconnect();
+                }
+                catch { }
+                try
+                {
+                    pipeServer.Close();
+                }
+                catch { }
+                try
+                {
+                    pipeServer.Dispose();
+                }
+                catch { }
+            }
+            return (true);
+        }
+
+        private async void PipeReceiveData(IAsyncResult result)
+        {
+            try
+            {
+                NamedPipeServerStream pipeServer = (NamedPipeServerStream)result.AsyncState;
+                pipeServer.EndWaitForConnection(result);
+
+                using (StreamReader sw = new StreamReader(pipeServer))
+                {
+                    //sw.ReadToEnd().ShowMessageDialog("RECEIVED!");
+                    var contents = sw.ReadToEnd().Trim();
+                    var links = contents.ParseLinks();
+                    foreach (var link in links)
+                    {
+                        await new Action(() =>
+                        {
+                            CommonHelper.Cmd_Search.Execute(link);
+                        }).InvokeAsync();                       
+                    }
+                }
+
+                if(pipeServer.IsConnected) pipeServer.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageDialog("ERROR!");
+            }
+            finally
+            {
+                CreateNamedPipeServer();
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -118,11 +195,15 @@ namespace PixivWPF
             NavPageTitle.Text = pagetiles.TargetPage.ToString();
 
             LastWindowStates.Enqueue(WindowState.Normal);
+
+            CreateNamedPipeServer();
         }
 
 #if DEBUG
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            ReleaseNamedPipeServer();
+
             foreach (Window win in Application.Current.Windows)
             {
                 if (win == this) continue;
@@ -136,6 +217,8 @@ namespace PixivWPF
         {
             if (MessageBox.Show("Continue Exit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes)
             {
+                ReleaseNamedPipeServer();
+
                 foreach (Window win in Application.Current.Windows)
                 {
                     if (win is MainWindow) continue;
