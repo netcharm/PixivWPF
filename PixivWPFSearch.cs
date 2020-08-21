@@ -28,7 +28,11 @@ namespace netcharm
     class PixivWPFSearch
     {
         private static NamedPipeClientStream pipeClient;
+#if DEBUG
+        private static string pipeName = "PixivWPF-Search-Debug";
+#else
         private static string pipeName = "PixivWPF-Search";
+#endif
 
         private static string[] ParseCommandLine(string cmdline)
         {
@@ -82,8 +86,9 @@ namespace netcharm
                 //var sendData = string.Join(Environment.NewLine, param);
 
                 var sendData = string.Join(Environment.NewLine, args);
-                //Console.WriteLine(sendData);
-
+#if DEBUG
+                Console.WriteLine(sendData);
+#endif
                 using (pipeClient = new NamedPipeClientStream(".", pipeName, 
                     PipeDirection.Out, PipeOptions.Asynchronous, 
                     System.Security.Principal.TokenImpersonationLevel.Impersonation))

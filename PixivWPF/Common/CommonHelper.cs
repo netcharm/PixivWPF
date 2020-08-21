@@ -993,7 +993,7 @@ namespace PixivWPF.Common
                     var fn = m.Value.Trim().Trim(trim_char);
                     try
                     {
-                        var sid = Path.GetFileNameWithoutExtension(fn);
+                        var sid = Regex.Replace(Path.GetFileNameWithoutExtension(fn), @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
                         var IsFile = string.IsNullOrEmpty(Path.GetExtension(fn)) ? false : true;
                         long id;
                         if (long.TryParse(sid, out id))
@@ -1202,17 +1202,6 @@ namespace PixivWPF.Common
             string uriString = $"pack://application:,,,/{assemblyShortName};component/{relativeFile}";
 
             return new Uri(uriString);
-        }
-
-        public static string GetImageName(this string url, bool is_meta_single_page)
-        {
-            string result = string.Empty;
-            if (!string.IsNullOrEmpty(url))
-            {
-                result = Path.GetFileName(url).Replace("_p", "_");
-                if (is_meta_single_page) result = result.Replace("_0.", ".");
-            }
-            return (result);
         }
 
         public static string GetIllustId(this string url)
@@ -2008,6 +1997,27 @@ namespace PixivWPF.Common
         public static string GetFilePath(this string url)
         {
             string result = url;
+            if (!string.IsNullOrEmpty(url) && cache is CacheImage)
+            {
+                result = cache.GetCacheFile(url);
+            }
+            return (result);
+        }
+
+        public static string GetImageName(this string url, bool is_meta_single_page)
+        {
+            string result = string.Empty;
+            if (!string.IsNullOrEmpty(url))
+            {
+                result = Path.GetFileName(url).Replace("_p", "_");
+                if (is_meta_single_page) result = result.Replace("_0.", ".");
+            }
+            return (result);
+        }
+
+        public static string GetImageCachePath(this string url)
+        {
+            string result = string.Empty;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
                 result = cache.GetCacheFile(url);
@@ -4065,10 +4075,61 @@ namespace PixivWPF.Common
 
     public static class ExtensionMethods
     {
-        public static void DEBUG(this string text)
+        public static async void Sound(this object obj, string mode = "")
+        {
+            try
+            {
+                await new Action(() =>
+                {
+                    Sound(mode);
+                }).InvokeAsync();
+            }
+            catch (Exception) { }
+        }
+
+        public static void Sound(string mode)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(mode))
+                {
+                    SystemSounds.Beep.Play();
+                }
+                else
+                {
+                    switch (mode.ToLower())
+                    {
+                        case "*":
+                            SystemSounds.Asterisk.Play();
+                            break;
+                        case "!":
+                            SystemSounds.Exclamation.Play();
+                            break;
+                        case "?":
+                            SystemSounds.Question.Play();
+                            break;
+                        case "d":
+                            SystemSounds.Hand.Play();
+                            break;
+                        case "h":
+                            SystemSounds.Hand.Play();
+                            break;
+                        case "b":
+                            SystemSounds.Beep.Play();
+                            break;
+                        default:
+                            SystemSounds.Beep.Play();
+                            break;
+                    }
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public static void DEBUG(this string contents)
         {
 #if DEBUG
-            Console.WriteLine(text);
+            Console.WriteLine(contents);
 #endif
         }
 

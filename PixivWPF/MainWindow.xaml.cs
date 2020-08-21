@@ -90,7 +90,11 @@ namespace PixivWPF
 
         #region Named Pipe Heler
         private NamedPipeServerStream pipeServer;
+#if DEBUG
+        private string pipeName = "PixivWPF-Search-Debug";
+#else
         private string pipeName = "PixivWPF-Search";
+#endif
         private bool pipeOnClosing = false;
         private bool CreateNamedPipeServer()
         {
@@ -166,7 +170,7 @@ namespace PixivWPF
                 if(pipeServer is NamedPipeServerStream && !pipeOnClosing) CreateNamedPipeServer();
             }
         }
-        #endregion
+#endregion
 
         public MainWindow()
         {
