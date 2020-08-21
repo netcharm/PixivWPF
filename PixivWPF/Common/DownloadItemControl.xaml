@@ -175,6 +175,20 @@
                         mah:ButtonHelper.PreserveTextCase="True">
                     <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
                 </Button>
+                <Button x:Name="PART_OpenFolder" x:Uid="OpenFolder" Margin="2,0,2,0" Click="OpenFolder_Click"
+                    ToolTip="Open Image Folder" Tag="{Binding FileName, Mode=OneWay}"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource SquareButtonStyle}"  BorderThickness="1"
+                    BorderBrush="{DynamicResource AccentColorBrush}"
+                    Foreground="{DynamicResource LabelTextBrush}"
+                    Background="Transparent" IsEnabled="False"
+                    mah:ButtonHelper.PreserveTextCase="True">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                        <!--<TextBlock Text="Open Folder" Margin="2,0,0,0" FontSize="10"/>-->
+                    </StackPanel>
+                </Button>
                 <Button x:Name="PART_OpenFile" x:Uid="OpenFile" Margin="2,0,2,0" Click="OpenFile_Click"
                     ToolTip="View Image With Default Application" Tag="{Binding FileName, Mode=OneWay}"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -187,20 +201,6 @@
                     <StackPanel Orientation="Horizontal">
                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
                         <TextBlock Text="View Image" Margin="2,0,0,0" FontSize="10"/>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="PART_OpenFolder" x:Uid="OpenFolder" Margin="2,0,2,0" Click="OpenFolder_Click"
-                    ToolTip="Open Image Folder" Tag="{Binding FileName, Mode=OneWay}"
-                    HorizontalAlignment="Right" VerticalAlignment="Center"
-                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Style="{DynamicResource SquareButtonStyle}"  BorderThickness="1"
-                    BorderBrush="{DynamicResource AccentColorBrush}"
-                    Foreground="{DynamicResource LabelTextBrush}"
-                    Background="Transparent" IsEnabled="False"
-                    mah:ButtonHelper.PreserveTextCase="True">
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
-                        <TextBlock Text="Open Folder" Margin="2,0,0,0" FontSize="10"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
