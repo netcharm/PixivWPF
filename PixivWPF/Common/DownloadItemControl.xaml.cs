@@ -158,7 +158,7 @@ namespace PixivWPF.Common
             {
                 if (FileName.IsDownloaded())
                     State = DownloadState.Finished;
-                else
+                else if (State == DownloadState.Finished)
                     State = DownloadState.NonExists;
                 NotifyPropertyChanged("StateChanged");
                 NotifyPropertyChanged();
@@ -573,6 +573,7 @@ namespace PixivWPF.Common
             string result = string.Empty;
             if (string.IsNullOrEmpty(Url)) return (result);
             if (cancelSource != null) return (result);
+            if (State == DownloadState.Downloading) return (result);
 
             IsForceStart = false;
             IsStart = false;
@@ -626,7 +627,7 @@ namespace PixivWPF.Common
 #if DEBUG
                                             bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
 #else
-                                            bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT);
+                                            bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
 #endif
                                             endTick = DateTime.Now;
 
@@ -733,6 +734,7 @@ namespace PixivWPF.Common
                     PART_DownloadProgress.IsEnabled = false;
                     if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
                     cancelSource = null;
+                    Canceled = false;
                 }
             }
             return (result);
@@ -825,45 +827,6 @@ namespace PixivWPF.Common
                     if (string.IsNullOrEmpty(Url) && !string.IsNullOrEmpty(PART_FileURL.Text)) Url = PART_FileURL.Text;
                     Start();
                 }
-            }
-        }
-
-        private void OpenFolder_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button)
-            {
-                CheckProperties();
-                var btn = sender as Button;
-                if (btn.Tag is string)
-                {
-                    var FileName = (string)btn.Tag;
-                    this.FileName.OpenImageWithShell(true);
-                }
-            }
-        }
-
-        private void OpenFile_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button)
-            {
-                CheckProperties();
-                var btn = sender as Button;
-                if (btn.Tag is string)
-                {
-                    var FileName = (string)btn.Tag;
-                    this.FileName.OpenImageWithShell();
-                }
-            }
-        }
-
-        private void Download_Click(object sender, RoutedEventArgs e)
-        {
-            CheckProperties();
-
-            if (sender == PART_Download)
-            {
-                State = DownloadState.Idle;
-                Start();
             }
         }
 

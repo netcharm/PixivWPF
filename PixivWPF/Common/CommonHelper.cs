@@ -944,35 +944,53 @@ namespace PixivWPF.Common
             var opt = RegexOptions.IgnoreCase;// | RegexOptions.Multiline;
 
             var mr = new List<MatchCollection>();
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
-
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_1 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_1 + @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-
-
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?" + href_suffix, opt));
-
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/id\/\d+).*?" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/user\/\d+).*?" + href_suffix, opt));
-            mr.Add(Regex.Matches(html, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix, opt));
-
-            if (!Regex.IsMatch(html, @"^((http)|(<a)|(href=)|(src=)).*?", opt))
+            foreach (var text in html.Split())
             {
-                mr.Add(Regex.Matches(html, @"((\d+)(_((p)|(ugoira))*\d+)*(\..+))", opt));
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
+
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_1 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_1 + @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+
+
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?" + href_suffix, opt));
+
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/id\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/user\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(text, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix, opt));
+
+                mr.Add(Regex.Matches(text, @"^(((id)|(uid)):(\d+)+)", opt));
+
+                if (!Regex.IsMatch(text, @"^((http)|(<a)|(href=)|(src=)).*?", opt))
+                {
+                    try
+                    {
+                        var ap = Path.GetFullPath(text);
+                        var root = Path.GetPathRoot(ap);
+                        var IsFile = root.Length == 3 && string.IsNullOrEmpty(Path.GetExtension(ap)) ? false : true;
+                        if (IsFile)
+                            mr.Add(Regex.Matches(Path.Combine(root, Path.GetFileName(text)), @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square)))*\d+)*(\..+)*)", opt));
+                        else
+                            mr.Add(Regex.Matches(text, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square)))*\d+)*(\..+)*)", opt));
+                    }
+                    catch (Exception)
+                    {
+                        mr.Add(Regex.Matches(text, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square)))*\d+)*(\..+)*)", opt));
+                    }
+                }
             }
 
             foreach (var mi in mr)
             {
-                if (mi.Count == 0) continue;
+                if (mi.Count <= 0) continue;
                 else if (mi.Count > 50)
                 {
                     ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
@@ -981,38 +999,52 @@ namespace PixivWPF.Common
 
                 foreach (Match m in mi)
                 {
+                    //var m = mi[mi.Count-1];
                     var link = m.Groups[1].Value.Trim().Trim(trim_char);
 
                     if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                     {
                         link = Uri.UnescapeDataString(WebUtility.HtmlDecode(link));
                         if (!links.Contains(link)) links.Add(link);
-                        continue;
                     }
-
-                    var fn = m.Value.Trim().Trim(trim_char);
-                    try
+                    else if (link.StartsWith("id:", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var sid = Regex.Replace(Path.GetFileNameWithoutExtension(fn), @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
-                        var IsFile = string.IsNullOrEmpty(Path.GetExtension(fn)) ? false : true;
-                        long id;
-                        if (long.TryParse(sid, out id))
+                        var id = link.Substring(3).Trim();
+                        var a_link = $"https://www.pixiv.net/artworks/{id}";
+                        var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
+                        if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
+                    }
+                    else if (link.StartsWith("uid:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var id = link.Substring(4).Trim();
+                        var u_link = $"https://www.pixiv.net/users/{id}";
+                        var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
+                        if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
+                    }
+                    else
+                    {
+                        var fn = m.Value.Trim().Trim(trim_char);
+                        try
                         {
-                            var a_link = $"https://www.pixiv.net/artworks/{id}";
-                            if (!links.Contains(a_link)) links.Add(a_link);
-                            var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
-                            if (links.Contains(a_link_o)) continue;
-
-                            if (!IsFile)
+                            var sid = Regex.Replace(Path.GetFileNameWithoutExtension(fn), @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
+                            var IsFile = string.IsNullOrEmpty(Path.GetExtension(fn)) ? false : true;
+                            long id;
+                            if (long.TryParse(sid, out id))
                             {
-                                var u_link = $"https://www.pixiv.net/users/{id}";
-                                if (!links.Contains(u_link)) links.Add(u_link);
-                                var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
-                                if (links.Contains(a_link_o)) continue;
+                                var a_link = $"https://www.pixiv.net/artworks/{id}";
+                                var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
+                                if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
+
+                                if (!IsFile)
+                                {
+                                    var u_link = $"https://www.pixiv.net/users/{id}";
+                                    var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
+                                    if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
+                                }
                             }
                         }
+                        catch { }
                     }
-                    catch { }
                 }
             }
             return (links);

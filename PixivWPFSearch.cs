@@ -27,78 +27,55 @@ namespace netcharm
 {
     class PixivWPFSearch
     {
-        private static NamedPipeClientStream pipeClient;
-#if DEBUG
-        private static string pipeName = "PixivWPF-Search-Debug";
-#else
-        private static string pipeName = "PixivWPF-Search";
-#endif
-
-        private static string[] ParseCommandLine(string cmdline)
-        {
-            List<string> args = new List<string>();
-
-            string[] cmds = cmdline.Split( new char[] { ' ' } );
-            string arg = "";
-            foreach (string cmd in cmds)
-            {
-                if (cmd.StartsWith("\"") && cmd.EndsWith("\""))
-                {
-                    args.Add(cmd.Trim(new char[] { '\"', ' ' }));
-                    arg = "";
-                }
-                else if (cmd.StartsWith("\""))
-                {
-                    arg = cmd + " ";
-                }
-                else if (cmd.EndsWith("\""))
-                {
-                    arg += cmd;
-                    args.Add(arg.Trim(new char[] { '\"', ' ' }));
-                    arg = "";
-                }
-                else if (!string.IsNullOrEmpty(arg))
-                {
-                    arg += cmd + " ";
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(cmd))
-                    {
-                        args.Add(cmd);
-                    }
-                    arg = "";
-                }
-#if DEBUG
-                Console.WriteLine( $"Curent ARG: {cmd}, Parsed ARG: {arg}" );
-#endif
-            }
-            return (args.GetRange(1, args.Count - 1).ToArray());
-        }
-
         public static void Main(string[] args)
         {
             try
             {
-                //var sendData = "83747757";
-                //Console.WriteLine(string.Join(Environment.NewLine, args));
-                //string[] param = ParseCommandLine(Environment.CommandLine);
-                //var sendData = string.Join(Environment.NewLine, param);
-
+                if (args.Length < 1) return;
                 var sendData = string.Join(Environment.NewLine, args);
+                if (string.IsNullOrEmpty(sendData.Trim())) return;
+
+                var pipes = System.IO.Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
 #if DEBUG
-                Console.WriteLine(sendData);
-#endif
-                using (pipeClient = new NamedPipeClientStream(".", pipeName, 
-                    PipeDirection.Out, PipeOptions.Asynchronous, 
-                    System.Security.Principal.TokenImpersonationLevel.Impersonation))
+                if (pipes.Length > 0)
                 {
-                    pipeClient.Connect(1000);
-                    using (StreamWriter sw = new StreamWriter(pipeClient))
+                    Console.WriteLine($"Found {pipes.Length} PixivWPF-Search Bridge(s):");
+                    foreach (var pipe in pipes)
                     {
-                        sw.WriteLine(sendData);
-                        sw.Flush();
+                        Console.WriteLine($"  {pipe}");
                     }
+                }
+                else return;
+#endif
+
+                foreach (var pipe in pipes)
+                {
+                    try
+                    {
+                        var pipeName = pipe.Substring(9);
+                        using (var pipeClient = new NamedPipeClientStream(".", pipeName,
+                            PipeDirection.Out, PipeOptions.Asynchronous,
+                            System.Security.Principal.TokenImpersonationLevel.Impersonation))
+                        {
+                            pipeClient.Connect(1000);
+                            using (StreamWriter sw = new StreamWriter(pipeClient))
+                            {
+#if DEBUG
+                                Console.WriteLine($"Sending [{sendData}] to {pipeName}");
+#endif
+                                sw.WriteLine(sendData);
+                                sw.Flush();
+                            }
+                        }
+                    }
+#if DEBUG
+                    catch(Exception ex)
+                    {
+                        MessageBox.Show(ex.ToString(), "ERROR!", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+#else
+                    catch (Exception) { }
+#endif
                 }
             }
             catch (Exception ex)

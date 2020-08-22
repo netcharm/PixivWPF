@@ -21,6 +21,8 @@ namespace PixivWPF
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
+        private static System.Diagnostics.Process CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
+
         public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
 
         public Frame MainContent = null;
@@ -91,9 +93,9 @@ namespace PixivWPF
         #region Named Pipe Heler
         private NamedPipeServerStream pipeServer;
 #if DEBUG
-        private string pipeName = "PixivWPF-Search-Debug";
+        private string pipeName = $"PixivWPF-Search-Debug-{CurrentProcess.Id}";
 #else
-        private string pipeName = "PixivWPF-Search";
+        private string pipeName = $"PixivWPF-Search-{CurrentProcess.Id}";
 #endif
         private bool pipeOnClosing = false;
         private bool CreateNamedPipeServer()
