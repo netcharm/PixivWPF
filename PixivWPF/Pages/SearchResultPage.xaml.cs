@@ -330,6 +330,14 @@ namespace PixivWPF.Pages
             CommonHelper.Cmd_OpenIllust.Execute(ResultIllusts);
         }
 
+        private void ActionIllustSendToOtherInstance_Click(object sender, RoutedEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.None)
+                CommonHelper.Cmd_SendToOtherInstance.Execute(ResultIllusts);
+            else
+                CommonHelper.Cmd_ShellSendToOtherInstance.Execute(ResultIllusts);
+        }
+
         private void ActionRefreshResult_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem)
@@ -595,5 +603,7 @@ namespace PixivWPF.Pages
         }
 
         #endregion
+
+
     }
 }

@@ -173,6 +173,10 @@ namespace PixivWPF.Common
         public bool PrivateFavPrefert { get; set; } = false;
         public bool PrivateBookmarkPrefert { get; set; } = false;
 
+        public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
+
+        public string ShellSearchBridgeApplication { get; set; } = "PixivWPFSearch.exe";
+
         public DateTime ContentsTemplateTime { get; set; } = new DateTime(0);
         public string ContentsTemplateFile { get; } = "contents-template.html";
         public string ContentsTemplete { get; set; } = string.Empty;

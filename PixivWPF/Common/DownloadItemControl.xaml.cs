@@ -195,6 +195,8 @@ namespace PixivWPF.Common
         private CancellationTokenSource cancelSource = null;
         private CancellationToken cancelToken;
 
+        private SemaphoreSlim Downloading = new SemaphoreSlim(1, 1);
+
         private DownloadInfo Info { get; set; }
 
         public bool Canceled
@@ -571,9 +573,15 @@ namespace PixivWPF.Common
         private async Task<string> DownloadAsync()
         {
             string result = string.Empty;
-            if (string.IsNullOrEmpty(Url)) return (result);
-            if (cancelSource != null) return (result);
-            if (State == DownloadState.Downloading) return (result);
+            if (string.IsNullOrEmpty(Url))
+            {
+                Downloading.Release();
+                return (result);
+            }
+            if (cancelSource != null || State == DownloadState.Downloading)
+            {
+                return (result);
+            }
 
             IsForceStart = false;
             IsStart = false;
@@ -604,124 +612,69 @@ namespace PixivWPF.Common
 
                         using (var cs = await response.Source.Content.ReadAsStreamAsync())
                         {
-                            try
+                            using (var ms = new MemoryStream())
                             {
-                                using (var ms = new MemoryStream())
+                                byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
+                                int bytesread = 0;
+                                do
                                 {
-                                    byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
-                                    try
+                                    if (Canceled || cancelSource.IsCancellationRequested || State == DownloadState.Failed)
                                     {
-                                        int bytesread = 0;
-                                        do
-                                        {
-                                            if (Canceled || cancelSource.IsCancellationRequested || State == DownloadState.Failed)
-                                            {
-                                                State = DownloadState.Failed;
-                                                break;
-                                            }
-                                            else if (State == DownloadState.Finished)
-                                            {
-                                                progress.Report(finishedProgress);
-                                                break;
-                                            }
+                                        State = DownloadState.Failed;
+                                        break;
+                                    }
+                                    else if (State == DownloadState.Finished)
+                                    {
+                                        progress.Report(finishedProgress);
+                                        break;
+                                    }
 #if DEBUG
-                                            bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
+                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
 #else
                                             bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
 #endif
-                                            endTick = DateTime.Now;
+                                    endTick = DateTime.Now;
 
-                                            if (Canceled || cancelSource.IsCancellationRequested || State == DownloadState.Failed)
-                                            {
-                                                State = DownloadState.Failed;
-                                                break;
-                                            }
-                                            else if (State == DownloadState.Finished)
-                                            {
-                                                progress.Report(finishedProgress);
-                                                break;
-                                            }
+                                    if (Canceled || cancelSource.IsCancellationRequested || State == DownloadState.Failed)
+                                    {
+                                        State = DownloadState.Failed;
+                                        break;
+                                    }
+                                    else if (State == DownloadState.Finished)
+                                    {
+                                        progress.Report(finishedProgress);
+                                        break;
+                                    }
 
-                                            if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
-                                            {
-                                                lastReceived += bytesread;
-                                                Received += bytesread;
-                                                await ms.WriteAsync(bytes, 0, bytesread);
-                                                progress.Report(Progress);
-                                            }
-                                        } while (bytesread > 0 && Received < Length);
-                                        //if (ms.Length == Received && Received == Length)
-                                        if (Received == Length && State == DownloadState.Downloading)
-                                        {
-                                            SaveFile(FileName, ms.ToArray());
-                                        }
-                                        else
-                                        {
-                                            State = DownloadState.Failed;
-                                            if (!Canceled) throw new Exception($"Download {Path.GetFileName(FileName)} Failed!");
-                                        }
-                                    }
-                                    catch (Exception ex)
+                                    if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
                                     {
-                                        var ret = ex.Message;
-                                        if (State == DownloadState.Downloading)
-                                        {
-                                            State = DownloadState.Failed;
-                                        }
-                                        else if (State == DownloadState.Finished)
-                                        {
-                                            progress.Report(finishedProgress);
-                                            result = FileName;
-                                        }
+                                        lastReceived += bytesread;
+                                        Received += bytesread;
+                                        await ms.WriteAsync(bytes, 0, bytesread);
+                                        progress.Report(Progress);
                                     }
-                                    finally
-                                    {
-                                        if (State == DownloadState.Finished)
-                                        {
-                                            progress.Report(finishedProgress);
-                                            result = FileName;
-                                        }
-                                        PART_DownloadProgress.IsEnabled = false;
-                                        if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
-                                        cancelSource = null;
-                                    }
+                                } while (bytesread > 0 && Received < Length);
+                                //if (ms.Length == Received && Received == Length)
+                                if (Received == Length && State == DownloadState.Downloading)
+                                {
+                                    SaveFile(FileName, ms.ToArray());
                                 }
-                            }
-                            catch (Exception)
-                            {
-                                if (State == DownloadState.Downloading)
+                                else
                                 {
                                     State = DownloadState.Failed;
+                                    if (!Canceled) throw new Exception($"Download {Path.GetFileName(FileName)} Failed!");
                                 }
-                                else if (State == DownloadState.Finished)
-                                {
-                                    progress.Report(finishedProgress);
-                                }
-                            }
-                            finally
-                            {
-                                if (State == DownloadState.Finished)
-                                {
-                                    progress.Report(finishedProgress);
-                                    result = FileName;
-                                }
-                                PART_DownloadProgress.IsEnabled = false;
-                                if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
-                                cancelSource = null;
                             }
                         }
                     }
                     else result = null;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    var ret = ex.Message;
                     if (State == DownloadState.Downloading)
                     {
                         State = DownloadState.Failed;
-                    }
-                    else if (State == DownloadState.Finished)
-                    {
-                        progress.Report(finishedProgress);
                     }
                 }
                 finally
@@ -735,30 +688,44 @@ namespace PixivWPF.Common
                     if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
                     cancelSource = null;
                     Canceled = false;
+                    if (Downloading is SemaphoreSlim) Downloading.Release();
                 }
             }
             return (result);
         }
 
-        private void Start()
+        private async void Start()
         {
+            if (State == DownloadState.Downloading)
+            {
+                Cancel();
+                //State = DownloadState.Idle;
+            }
             CheckProperties();
 
-            if (State != DownloadState.Idle && State != DownloadState.Failed) return;
+            if (await Downloading.WaitAsync(15000))
+            {
+                if (State != DownloadState.Idle && State != DownloadState.Failed) return;
 
-            string fc = Url.GetImageCachePath();
-            if (File.Exists(fc))
-            {
-                startTick = DateTime.Now;
-                SaveFile(FileName, fc);
-            }
-            else
-            {
-                this.Dispatcher.BeginInvoke((Action)(async () =>
+                string fc = Url.GetImageCachePath();
+                if (File.Exists(fc))
                 {
                     startTick = DateTime.Now;
-                    await DownloadAsync();
-                }));
+                    SaveFile(FileName, fc);
+                }
+                else
+                {
+                    //await Dispatcher.BeginInvoke((Action)(async () =>
+                    // {
+                    //     startTick = DateTime.Now;
+                    //     await DownloadAsync();
+                    // }));
+                    await new Action(async () =>
+                    {
+                        startTick = DateTime.Now;
+                        await DownloadAsync();
+                    }).InvokeAsync();
+                }
             }
         }
 
@@ -859,21 +826,15 @@ namespace PixivWPF.Common
             }
             else if (sender == miDownload || sender == PART_Download)
             {
-                CheckProperties();
-                State = DownloadState.Idle;
                 Start();
             }
             else if (sender == miRemove || sender == PART_Remove)
             {
-                if (State != DownloadState.Downloading)
-                    State = DownloadState.Remove;
+                if (State != DownloadState.Downloading) State = DownloadState.Remove;
             }
             else if (sender == miStopDownload || sender == PART_StopDownload)
             {
-                if (State == DownloadState.Downloading)
-                {
-                    Cancel();
-                }
+                if (State == DownloadState.Downloading) Cancel();
             }
             else if (sender == miOpenImage || sender == PART_OpenFile)
             {

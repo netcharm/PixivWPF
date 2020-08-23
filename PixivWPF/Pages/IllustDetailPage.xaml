@@ -41,6 +41,17 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />
+            <MenuItem x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionSendToOtherInstance_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionSendToOtherInstance_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator />
             <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="ActionRefreshIllusts_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
@@ -211,6 +222,17 @@
                                     <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <Separator/>
+                            <MenuItem x:Name="PreviewSendIllustToInstance" x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionSendToOtherInstance_Click">
+                                <MenuItem.Icon>
+                                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="PreviewSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionSendToOtherInstance_Click">
+                                <MenuItem.Icon>
+                                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                </MenuItem.Icon>
+                            </MenuItem>                            
                             <Separator/>
                             <MenuItem x:Name="PreviewRefresh" x:Uid="ActionRefreshPreview" Header="Refresh Illust Preview" Click="ActionRefreshPreview_Click">
                                 <MenuItem.Icon>
@@ -447,6 +469,19 @@
                                           Header="Copy Illust Weblink" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
                                             <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem x:Name="ActionSendIllustToInstance" x:Uid="ActionSendIllustToInstance" 
+                                          Header="Send Illust To Other Instance" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem x:Name="ActionSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" 
+                                          Header="Send Author To Other Instance" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>                                    
                                     <Separator />

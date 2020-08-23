@@ -11,6 +11,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Media;
 using System.Net;
@@ -70,6 +71,8 @@ namespace PixivWPF.Common
     }
 
     public enum ToastType { DOWNLOAD = 0, OK, OKCANCEL, YES, NO, YESNO };
+
+    public enum AutoExpandMode { OFF = 0, ON, AUTO, SINGLEPAGE };
 
     public class SimpleCommand : ICommand
     {
@@ -187,6 +190,8 @@ namespace PixivWPF.Common
     public static class ApplicationExtensions
     {
         #region Application Helper
+        private static System.Diagnostics.Process CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
+
         public static string Root(this Application app)
         {
             return (Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", ""));
@@ -197,6 +202,22 @@ namespace PixivWPF.Common
             var version = alt ? Assembly.GetCallingAssembly().GetName().Version : Assembly.GetExecutingAssembly().GetName().Version;
             return (version.ToString());
             //return (Application.ResourceAssembly.GetName().Version.ToString());
+        }
+        
+        public static System.Diagnostics.Process Process(this Application app)
+        {
+            if (!(CurrentProcess is System.Diagnostics.Process))
+                CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
+            return (CurrentProcess);
+        }
+
+        public static string PipeServerName(this Application app)
+        {
+#if DEBUG
+            return ($"PixivWPF-Search-Debug-{app.Process().Id}");
+#else
+            return ($"PixivWPF-Search-{app.Process().Id}");
+#endif
         }
         #endregion
 
@@ -404,11 +425,19 @@ namespace PixivWPF.Common
                         list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                         list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Cmd_OpenItem.Execute(item);
+                        //Cmd_OpenItem.Execute(item);
+                        await new Action(() =>
+                        {
+                            Cmd_OpenItem.Execute(item);
+                        }).InvokeAsync();
                     }
                     else if (list.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Cmd_OpenWorkPreview.Execute(item);
+                        //Cmd_OpenWorkPreview.Execute(item);
+                        await new Action(() =>
+                        {
+                            Cmd_OpenWorkPreview.Execute(item);
+                        }).InvokeAsync();
                     }
                     await Task.Delay(1);
                     Application.Current.DoEvents();
@@ -706,6 +735,162 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_SendToOtherInstance { get; } = new DelegateCommand<object>(async obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
+                if (!string.IsNullOrEmpty(content))
+                {
+                    await new Action(async () =>
+                    {
+                        SendToOtherInstance(content);
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+            }
+            else if (obj is IEnumerable<string>)
+            {
+                var content = (obj as IEnumerable<string>).ToArray();
+                if (content.Count() > 0)
+                {
+                    await new Action(async () =>
+                    {
+                        SendToOtherInstance(content);
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+            }
+            else if(obj is Pixeez.Objects.Work)
+            {
+                Cmd_SendToOtherInstance.Execute($"id:{(obj as Pixeez.Objects.Work).Id}");
+            }
+            else if (obj is Pixeez.Objects.UserBase)
+            {
+                Cmd_SendToOtherInstance.Execute($"uid:{(obj as Pixeez.Objects.UserBase).Id}");
+            }
+            else if (obj is ImageItem)
+            {
+                var item = obj as ImageItem;
+                switch (item.ItemType)
+                {
+                    case ImageItemType.Work:
+                        Cmd_SendToOtherInstance.Execute(item.Illust);
+                        break;
+                    case ImageItemType.User:
+                        Cmd_SendToOtherInstance.Execute(item.User);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if (obj is ImageListGrid)
+            {
+                var list = obj as ImageListGrid;
+                var ids = new  List<string>();
+                foreach (var item in list.SelectedItems)
+                {
+                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                        list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase)||
+                        list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        switch (item.ItemType)
+                        {
+                            case ImageItemType.Work:
+                                ids.Add($"id:{item.ID}");
+                                break;
+                            case ImageItemType.User:
+                                ids.Add($"uid:{item.ID}");
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                Cmd_SendToOtherInstance.Execute(ids);
+            }
+        });
+
+        public static ICommand Cmd_ShellSendToOtherInstance { get; } = new DelegateCommand<object>(async obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
+                if (!string.IsNullOrEmpty(content))
+                {
+                    await new Action(async () =>
+                    {
+                        ShellSendToOtherInstance(content);
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+            }
+            else if (obj is IEnumerable<string>)
+            {
+                var content = (obj as IEnumerable<string>).ToArray();
+                if (content.Count() > 0)
+                {
+                    await new Action(async () =>
+                    {
+                        ShellSendToOtherInstance(content);
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+            }
+            else if (obj is Pixeez.Objects.Work)
+            {
+                Cmd_ShellSendToOtherInstance.Execute($"id:{(obj as Pixeez.Objects.Work).Id}");
+            }
+            else if (obj is Pixeez.Objects.UserBase)
+            {
+                Cmd_ShellSendToOtherInstance.Execute($"uid:{(obj as Pixeez.Objects.UserBase).Id}");
+            }
+            else if (obj is ImageItem)
+            {
+                var item = obj as ImageItem;
+                switch (item.ItemType)
+                {
+                    case ImageItemType.Work:
+                        Cmd_ShellSendToOtherInstance.Execute(item.Illust);
+                        break;
+                    case ImageItemType.User:
+                        Cmd_ShellSendToOtherInstance.Execute(item.User);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if (obj is ImageListGrid)
+            {
+                var list = obj as ImageListGrid;
+                var ids = new  List<string>();
+                foreach (var item in list.SelectedItems)
+                {
+                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                        list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                        list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        switch (item.ItemType)
+                        {
+                            case ImageItemType.Work:
+                                ids.Add($"id:{item.ID}");
+                                break;
+                            case ImageItemType.User:
+                                ids.Add($"uid:{item.ID}");
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                Cmd_ShellSendToOtherInstance.Execute(ids);
+            }
+        });
+
         public static ICommand Cmd_Search { get; } = new DelegateCommand<string>(async obj =>
         {
             if (obj is string && !string.IsNullOrEmpty(obj))
@@ -713,6 +898,25 @@ namespace PixivWPF.Common
                 var content = ParseLink(obj);
                 if (!string.IsNullOrEmpty(content))
                 {
+                    if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var illust = content.ParseID().FindIllust();
+                        if (illust is Pixeez.Objects.Work)
+                        {
+                            Cmd_OpenIllust.Execute(illust);
+                            return;
+                        }
+                    }
+                    else if(content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var user = content.ParseID().FindUser();
+                        if (user is Pixeez.Objects.UserBase)
+                        {
+                            Cmd_OpenUser.Execute(user);
+                            return;
+                        }
+                    }
+
                     var title = $"Searching {content} ...";
                     if (title.ActiveByTitle()) return;
 
@@ -969,7 +1173,7 @@ namespace PixivWPF.Common
 
                 mr.Add(Regex.Matches(text, @"^(((id)|(uid)):(\d+)+)", opt));
 
-                if (!Regex.IsMatch(text, @"^((http)|(<a)|(href=)|(src=)).*?", opt))
+                if (!Regex.IsMatch(text, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)).*?", opt))
                 {
                     try
                     {
@@ -977,9 +1181,9 @@ namespace PixivWPF.Common
                         var root = Path.GetPathRoot(ap);
                         var IsFile = root.Length == 3 && string.IsNullOrEmpty(Path.GetExtension(ap)) ? false : true;
                         if (IsFile)
-                            mr.Add(Regex.Matches(Path.Combine(root, Path.GetFileName(text)), @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square)))*\d+)*(\..+)*)", opt));
+                            mr.Add(Regex.Matches(Path.Combine(root, Path.GetFileName(text)), @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
                         else
-                            mr.Add(Regex.Matches(text, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square)))*\d+)*(\..+)*)", opt));
+                            mr.Add(Regex.Matches(text, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
                     }
                     catch (Exception)
                     {
@@ -1319,6 +1523,93 @@ namespace PixivWPF.Common
         public static string MacroReplace(this string text, string macro, string target)
         {
             return (Regex.Replace(text, macro, target, RegexOptions.IgnoreCase));
+        }
+
+        public static void SendToOtherInstance(this IEnumerable<string> contents)
+        {
+            if (contents is IEnumerable<string> && contents.Count() > 0)
+            {
+                var sendData = string.Join(Environment.NewLine, contents.ToArray());
+                SendToOtherInstance(sendData);
+            }
+        }
+
+        public static void SendToOtherInstance(this string contents)
+        {
+            try
+            {
+                var sendData = contents.Trim();
+                if (string.IsNullOrEmpty(sendData)) return;
+
+                var pipes = System.IO.Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
+#if DEBUG
+                if (pipes.Length > 0)
+                {
+                    Console.WriteLine($"Found {pipes.Length} PixivWPF-Search Bridge(s):");
+                    foreach (var pipe in pipes)
+                    {
+                        Console.WriteLine($"  {pipe}");
+                    }
+                }
+                else return;
+#endif
+
+                var current = Application.Current.PipeServerName();
+                foreach (var pipe in pipes)
+                {
+                    try
+                    {
+                        var pipeName = pipe.Substring(9);
+#if !DEBUG
+                        if (pipeName.Equals(current, StringComparison.CurrentCultureIgnoreCase)) continue;
+#endif
+                        using (var pipeClient = new NamedPipeClientStream(".", pipeName,
+                            PipeDirection.Out, PipeOptions.Asynchronous,
+                            System.Security.Principal.TokenImpersonationLevel.Impersonation))
+                        {
+                            pipeClient.Connect(1000);
+                            using (StreamWriter sw = new StreamWriter(pipeClient))
+                            {
+#if DEBUG
+                                Console.WriteLine($"Sending [{sendData}] to {pipeName}");
+#endif
+                                sw.WriteLine(sendData);
+                                sw.Flush();
+                            }
+                        }
+                    }
+#if DEBUG
+                    catch (Exception ex)
+                    {
+                        ex.ToString().ShowMessageDialog("ERROR", MessageBoxImage.Error);
+                    }
+#else
+                    catch (Exception) { }
+#endif
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.ToString().ShowMessageDialog("ERROR", MessageBoxImage.Error);
+            }
+        }
+
+        public static void ShellSendToOtherInstance(this IEnumerable<string> contents)
+        {
+            if (contents is IEnumerable<string> && contents.Count() > 0)
+            {
+                var sendData = string.Join(Environment.NewLine, contents.ToArray());
+                ShellSendToOtherInstance(sendData);
+            }
+        }
+
+        public static void ShellSendToOtherInstance(this string contents)
+        {
+            var shell = Path.Combine(Application.Current.Root(), setting.ShellSearchBridgeApplication);
+            if (File.Exists(shell))
+            {
+                System.Diagnostics.Process.Start(shell, contents);
+            }
         }
         #endregion
 
@@ -3583,25 +3874,25 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ShowMessageBox(this string content, string title)
+        public static void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
-            ShowMessageDialog(content, title);
+            ShowMessageDialog(content, title, image);
         }
 
-        public static async Task ShowMessageBoxAsync(this string content, string title)
+        public static async Task ShowMessageBoxAsync(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
-            await ShowMessageDialogAsync(content, title);
+            await ShowMessageDialogAsync(content, title, image);
         }
 
-        public static async void ShowMessageDialog(this string content, string title)
+        public static async void ShowMessageDialog(this string content, string title, MessageBoxImage image= MessageBoxImage.Information)
         {
             //MetroWindow window = GetActiveWindow();
             //await window.ShowMessageAsync(title, content);
             await Task.Delay(1);
-            MessageBox.Show(content, title, MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(content, title, MessageBoxButton.OK, image);
         }
 
-        public static async Task ShowMessageDialogAsync(this string content, string title)
+        public static async Task ShowMessageDialogAsync(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             MetroWindow window = GetActiveWindow();
             await window.ShowMessageAsync(content, title);

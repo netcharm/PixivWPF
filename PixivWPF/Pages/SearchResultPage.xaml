@@ -35,6 +35,11 @@
                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionIllustSendToInstance" Header="Send Illust To Other Instance" Click="ActionIllustSendToOtherInstance_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>            
             <MenuItem x:Uid="ActionReadIllustTitle" Header="Read Selected Illusts Title" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 

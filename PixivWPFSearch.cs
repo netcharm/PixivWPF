@@ -1,4 +1,5 @@
-﻿//css_args /co:/win32icon:./PixivWPF/pixiv-logo.ico
+﻿//// /ew option for compiling to windows execution file
+//css_args /co:/win32icon:./PixivWPF/pixiv-logo.ico
 //css_co /win32icon:./PixivWPF/pixiv-logo.ico
 
 //css_reference PresentationFramework.dll
@@ -8,20 +9,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Windows;
-using System.Windows;
 
 using System.Reflection;
+using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("PixivWPF Search Bridge")]
-//[assembly: AssemblyDescription( "PixivWPF Search Bridge" )]
+[assembly: AssemblyTitle("PixivWPF Search Bridge Utility")]
+//[assembly: AssemblyDescription("PixivWPF Search Bridge Utility")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NetCharm")]
-[assembly: AssemblyProduct("PixivWPF Search")]
+[assembly: AssemblyProduct("PixivWPF Search Bridge Utility")]
 [assembly: AssemblyCopyright("Copyright NetCharm © 2020")]
 [assembly: AssemblyTrademark("NetCharm")]
 [assembly: AssemblyCulture("")]
+
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]
 
 namespace netcharm
 {

@@ -338,6 +338,21 @@ namespace PixivWPF.Pages
                     CommonHelper.Cmd_OpenIllust.Execute(item.Illust);
                 else if (sender == ActionOpenAuthor)
                     CommonHelper.Cmd_OpenUser.Execute(item.User);
+                else if (sender == ActionSendIllustToInstance)
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        CommonHelper.Cmd_SendToOtherInstance.Execute(item);
+                    else
+                        CommonHelper.Cmd_ShellSendToOtherInstance.Execute(item);
+                }
+                else if (sender == ActionSendAuthorToInstance)
+                {
+                    var id = $"uid:{item.UserID}";
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        CommonHelper.Cmd_SendToOtherInstance.Execute(id);
+                    else
+                        CommonHelper.Cmd_ShellSendToOtherInstance.Execute(id);
+                }
             }
         }
 

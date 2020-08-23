@@ -295,6 +295,7 @@ namespace PixivWPF.Pages
                 {
                     foreach (var illust in root.illusts)
                     {
+                        illust.Cache();
                         if (!ids.Contains(illust.Id.Value))
                         {
                             ids.Add(illust.Id.Value);
@@ -347,6 +348,7 @@ namespace PixivWPF.Pages
                 {
                     foreach (var illust in root)
                     {
+                        illust.Cache();
                         if (!ids.Contains(illust.Id.Value))
                         {
                             ids.Add(illust.Id.Value);
@@ -398,6 +400,7 @@ namespace PixivWPF.Pages
                 {
                     foreach (var tag in root.tags)
                     {
+                        tag.illust.Cache();
                         if (!ids.Contains(tag.illust.Id.Value))
                         {
                             ids.Add(tag.illust.Id.Value);
@@ -449,6 +452,7 @@ namespace PixivWPF.Pages
                 {
                     foreach (var feed in root)
                     {
+                        feed.User.Cache();
                         if (!ids.Contains(feed.User.Id.Value))
                         {
                             ids.Add(feed.User.Id.Value);
@@ -503,6 +507,7 @@ namespace PixivWPF.Pages
                 {
                     foreach (var feed in root)
                     {
+                        feed.User.Cache();
                         if (!ids.Contains(feed.User.Id.Value))
                         {
                             ids.Add(feed.User.Id.Value);
@@ -777,6 +782,7 @@ namespace PixivWPF.Pages
                 var user = await uid.RefreshUser();
                 if (user is Pixeez.Objects.User && uid == user.Id.Value)
                 {
+                    user.Cache();
                     CommonHelper.Cmd_OpenIllust.Execute(user);
                 }
             }
