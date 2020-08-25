@@ -13,11 +13,12 @@ using System.Windows.Media;
 namespace PixivWPF.Common
 {
     [JsonObject(MemberSerialization.OptOut)]
-    class Setting
+    public class Setting
     {
         //private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
         private static string AppPath = Application.Current.Root();
         private static string config = Path.Combine(AppPath, "config.json");
+        private static string tagsfile = Path.Combine(AppPath, "tags.json");
 
         private static Setting Cache = null;// Load(config);
         [JsonIgnore]
@@ -212,6 +213,8 @@ namespace PixivWPF.Common
 
                 var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
                 File.WriteAllText(configfile, text, new UTF8Encoding(true));
+
+                SaveTags();
             }
             catch (Exception ex)
             {
@@ -278,6 +281,8 @@ namespace PixivWPF.Common
                         catch (Exception) { }
                     }
                 }
+                LoadTags();
+
             }
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowToast("ERROR"); }
@@ -289,6 +294,32 @@ namespace PixivWPF.Common
                 //loading = false;
             }
             return (result);
+        }
+
+        public void SaveTags()
+        {
+            try
+            {
+                if (CommonHelper.TagsCache.Count > 0)
+                {
+                    var tags = JsonConvert.SerializeObject(CommonHelper.TagsCache, Formatting.Indented);
+                    File.WriteAllText(tagsfile, tags, new UTF8Encoding(true));
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public static void LoadTags()
+        {
+            if (File.Exists(tagsfile))
+            {
+                try
+                {
+                    var tags = File.ReadAllText(tagsfile);
+                    CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
+                }
+                catch (Exception) { }
+            }
         }
 
         public static string Token()

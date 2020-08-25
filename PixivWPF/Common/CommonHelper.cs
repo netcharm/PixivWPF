@@ -192,6 +192,16 @@ namespace PixivWPF.Common
         #region Application Helper
         private static System.Diagnostics.Process CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
 
+        public static Common.Setting Setting(this Application app)
+        {
+            return (Common.Setting.Instance == null ? Common.Setting.Load() : Common.Setting.Instance);
+        }
+
+        public static string RootPath {
+            get {
+                return (Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", ""));
+            }
+        }
         public static string Root(this Application app)
         {
             return (Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", ""));
@@ -325,6 +335,8 @@ namespace PixivWPF.Common
         private static CacheImage cache = new CacheImage();
         public static Dictionary<long?, Pixeez.Objects.Work> IllustCache = new Dictionary<long?, Pixeez.Objects.Work>();
         public static Dictionary<long?, Pixeez.Objects.UserBase> UserCache = new Dictionary<long?, Pixeez.Objects.UserBase>();
+
+        public static Dictionary<string, string> TagsCache = new Dictionary<string, string>();
 
         public static DateTime SelectedDate { get; set; } = DateTime.Now;
 
@@ -955,6 +967,11 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_SaveTags { get; } = new DelegateCommand(()=>
+        {
+            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+            setting.SaveTags();
+        });
         #region Pixiv Token Helper
         private static async Task<Pixeez.Tokens> RefreshToken()
         {
@@ -1007,6 +1024,7 @@ namespace PixivWPF.Common
             }
             try
             {
+                setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
                 if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
                 {
                     result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
@@ -1413,6 +1431,29 @@ namespace PixivWPF.Common
             template = Regex.Replace(template, "{%contents%}", contents, RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
             return (template.ToString());
+        }
+
+        public static string TranslatedTag(this string tag, string translated=default(string))
+        {
+            var result = tag;
+            if (TagsCache is Dictionary<string, string>)
+            {
+                if (string.IsNullOrEmpty(translated))
+                {
+                    if (TagsCache.ContainsKey(tag))
+                    {
+                        var tag_t = TagsCache[tag];
+                        if (!string.IsNullOrEmpty(tag_t)) result = tag_t;
+                    }
+                }
+                else
+                {
+                    TagsCache[tag] = translated;
+                    result = translated;
+                }
+
+            }
+            return (result);
         }
 
         // To return an array of strings instead:
@@ -4037,10 +4078,10 @@ namespace PixivWPF.Common
                     result.Add($"UserID: {text}");
                 }
                 result.Add($"User: {text}");
-                result.Add($"Fuzzy Tag: {text}");
                 result.Add($"Fuzzy: {text}");
                 result.Add($"Tag: {text}");
-                result.Add($"Caption: {text}");
+                result.Add($"Fuzzy Tag: {text}");
+                //result.Add($"Caption: {text}");
             }
 
             return (result);
@@ -4134,7 +4175,7 @@ namespace PixivWPF.Common
                     if (window.Left + window.Width > desktop.Left + desktop.Width) window.Left = desktop.Left + desktop.Width - window.Width;
                     if (window.Top + window.Height > desktop.Top + desktop.Height) window.Top = desktop.Top + desktop.Height - window.Height;
                     setting.DropBoxPosition = new Point(window.Left, window.Top);
-                    setting.Save();
+                    //setting.Save();
                 }
             }
             else if (e.ChangedButton == MouseButton.XButton1)
@@ -4144,6 +4185,25 @@ namespace PixivWPF.Common
                     //var window = sender as ContentWindow;
                     //window.Hide();
                     e.Handled = true;
+                }
+            }
+        }
+
+        private static void DropBox_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                if (sender is ContentWindow && e.ClickCount == 1)
+                {
+                    var window = sender as ContentWindow;
+
+                    var desktop = SystemParameters.WorkArea;
+                    if (window.Left < desktop.Left) window.Left = desktop.Left;
+                    if (window.Top < desktop.Top) window.Top = desktop.Top;
+                    if (window.Left + window.Width > desktop.Left + desktop.Width) window.Left = desktop.Left + desktop.Width - window.Width;
+                    if (window.Top + window.Height > desktop.Top + desktop.Height) window.Top = desktop.Top + desktop.Height - window.Height;
+                    setting.DropBoxPosition = new Point(window.Left, window.Top);
+                    setting.Save();
                 }
             }
         }
@@ -4249,6 +4309,7 @@ namespace PixivWPF.Common
             {
                 box = new ContentWindow();
                 box.MouseDown += DropBox_MouseDown;
+                box.MouseUp += DropBox_MouseUp;
                 ///box.MouseMove += DropBox_MouseMove;
                 //box.MouseDoubleClick += DropBox_MouseDoubleClick;
                 box.MouseLeftButtonDown += DropBox_MouseLeftButtonDown;

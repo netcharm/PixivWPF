@@ -498,10 +498,26 @@ namespace PixivWPF.Pages
                 if (item.Illust.Tags.Count > 0)
                 {
                     var html = new StringBuilder();
-                    foreach (var tag in item.Illust.Tags)
+                    if (item.Illust is Pixeez.Objects.IllustWork)
                     {
-                        //html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag)}/artworks?s_mode=s_tag_full\" class=\"tag\" data-tag=\"{tag}\">#{tag}</a>");
-                        html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag)}/artworks?s_mode=s_tag\" class=\"tag\" data-tag=\"{tag}\">#{tag}</a>");
+                        foreach (var tag in (item.Illust as Pixeez.Objects.IllustWork).MoreTags)
+                        {
+                            var trans = string.IsNullOrEmpty(tag.Translated) ? tag.Original : tag.Translated;
+                            tag.Original.TranslatedTag(tag.Translated);
+                            html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag.Original)}/artworks?s_mode=s_tag\" class=\"tag\" title=\"{trans}\" data-tag=\"{tag.Original}\" data-tooltip=\"{trans}\">#{tag.Original}</a>");
+                        }
+                        //CommonHelper.Cmd_SaveTags.Execute(null);
+                        //Application.Current.Setting().SaveTags();
+                    }
+                    else
+                    {
+                        foreach (var tag in item.Illust.Tags)
+                        {
+                            //html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag)}/artworks?s_mode=s_tag_full\" class=\"tag\" data-tag=\"{tag}\">#{tag}</a>");
+                            //html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag)}/artworks?s_mode=s_tag\" class=\"tag\" data-tag=\"{tag}\">#{tag}</a>");
+                            var trans = tag.TranslatedTag();
+                            html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag)}/artworks?s_mode=s_tag\" class=\"tag\" title=\"{trans}\" data-tag=\"{tag}\" data-tooltip=\"{trans}\">#{tag}</a>");
+                        }
                     }
                     html.AppendLine("<br/>");
                     IllustTagsHtml.DocumentText = html.ToString().Trim().GetHtmlFromTemplate(IllustTitle.Text);

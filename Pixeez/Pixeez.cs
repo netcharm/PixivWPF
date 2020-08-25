@@ -178,6 +178,12 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
             httpClient.DefaultRequestHeaders.Add("X-Client-Time", time);
             httpClient.DefaultRequestHeaders.Add("X-Client-Hash", $"{time}{PIXIV.HashSecret}".MD5Hash());
+
+            //httpClient.DefaultRequestHeaders.Add("Connection", "close");
+            //httpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
+            //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
+            httpClient.DefaultRequestHeaders.ConnectionClose = true;
+            
             //httpClient.Timeout = TimeSpan.FromSeconds(60);
 
             return (httpClient);

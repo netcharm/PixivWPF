@@ -68,7 +68,18 @@ namespace Pixeez.Objects
                 return tg;
             }
         }
-
+        public IList<MoreTag> MoreTags
+        {
+            get
+            {
+                List<MoreTag> tg = new List<MoreTag>();
+                foreach (var one in tags)
+                {
+                    tg.Add(new MoreTag() { Original = one.Name, Translated = string.IsNullOrEmpty(one.TranslatedName) ? string.Empty : one.TranslatedName });
+                }
+                return tg;
+            }
+        }
         public override UserBase User => user;
 
         public override bool IsBookMarked()
@@ -93,10 +104,19 @@ namespace Pixeez.Objects
         public string OriginalImageUrl { get; set; }
     }
 
+    public class MoreTag
+    {
+        public string Original { get; set; } = string.Empty;
+        public string Translated { get; set; } = string.Empty;
+    }
+
     public class Tag
     {
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        [JsonProperty("translated_name")]
+        public string TranslatedName { get; set; }
     }
 
     public class MetaPages
