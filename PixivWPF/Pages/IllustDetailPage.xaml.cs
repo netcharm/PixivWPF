@@ -510,7 +510,7 @@ namespace PixivWPF.Pages
                     IllustTagExpander.Header = "Tags";
                     if (Setting.Instance.AutoExpand == AutoExpandMode.AUTO ||
                         Setting.Instance.AutoExpand == AutoExpandMode.ON ||
-                        (Setting.Instance.AutoExpand == AutoExpandMode.SINGLEPAGE && item.Illust.PageCount <= 1))
+                        Setting.Instance.AutoExpand == AutoExpandMode.SINGLEPAGE)
                     {
                         if (!IllustTagExpander.IsExpanded) IllustTagExpander.IsExpanded = true;
                     }
@@ -1235,31 +1235,42 @@ namespace PixivWPF.Pages
         {
             if (sender is System.Windows.Forms.WebBrowser)
             {
-                var hp = sender as System.Windows.Forms.WebBrowser;
-
-                if (hp.Document != null)
+                try
                 {
-                    foreach (System.Windows.Forms.HtmlElement imgElemt in hp.Document.Images)
+                    var hp = sender as System.Windows.Forms.WebBrowser;
+
+                    if (hp.Document != null)
                     {
-                        var src = imgElemt.GetAttribute("src");
-                        if (!string.IsNullOrEmpty(src))
+                        foreach (System.Windows.Forms.HtmlElement imgElemt in hp.Document.Images)
                         {
-                            try
+                            var src = imgElemt.GetAttribute("src");
+                            if (!string.IsNullOrEmpty(src))
                             {
-                                var img = await src.GetImagePath();
-                                if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", img);
-                            }
+                                try
+                                {
+                                    var img = await src.GetImagePath();
+                                    if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", img);
+                                }
 #if DEBUG
-                            catch (Exception ex)
-                            {
-                                ex.Message.DEBUG();
-                            }
+                                catch (Exception ex)
+                                {
+                                    ex.Message.DEBUG();
+                                }
 #else
-                            catch (Exception) { }
+                                catch (Exception) { }
 #endif
+                            }
                         }
                     }
                 }
+#if DEBUG
+                catch (Exception ex)
+                {
+                    ex.Message.DEBUG();
+                }
+#else
+                catch (Exception) { }
+#endif
             }
         }
 
@@ -1267,8 +1278,12 @@ namespace PixivWPF.Pages
         {
             if (bCancel == true)
             {
-                e.Cancel = true;
-                bCancel = false;
+                try
+                {
+                    e.Cancel = true;
+                    bCancel = false;
+                }
+                catch (Exception) { }
             }
         }
 
@@ -1276,20 +1291,16 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (sender == IllustDescHtml)
+                if (sender == IllustDescHtml || sender == IllustTagsHtml)
                 {
-                    var document = IllustDescHtml.Document;
+                    var document = (sender as System.Windows.Forms.WebBrowser).Document;
                     foreach (System.Windows.Forms.HtmlElement link in document.Links)
                     {
-                        link.Click += WebBrowser_LinkClick;
-                    }
-                }
-                else if (sender == IllustTagsHtml)
-                {
-                    var document = IllustTagsHtml.Document;
-                    foreach (System.Windows.Forms.HtmlElement link in document.Links)
-                    {
-                        link.Click += WebBrowser_LinkClick;
+                        try
+                        {
+                            link.Click += WebBrowser_LinkClick;
+                        }
+                        catch (Exception) { continue; }
                     }
                 }
             }
