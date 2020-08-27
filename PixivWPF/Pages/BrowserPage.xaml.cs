@@ -106,24 +106,39 @@ namespace PixivWPF.Pages
 
         private bool TrySetSuppressScriptErrors(System.Windows.Forms.WebBrowser webBrowser, bool value)
         {
-            FieldInfo field = typeof(System.Windows.Forms.WebBrowser).GetField("_axIWebBrowser2", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (field != null)
+            try
             {
-                object axIWebBrowser2 = field.GetValue(webBrowser);
-                if (axIWebBrowser2 != null)
+                FieldInfo field = typeof(System.Windows.Forms.WebBrowser).GetField("_axIWebBrowser2", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (field != null)
                 {
-                    axIWebBrowser2.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, axIWebBrowser2, new object[] { value });
-                    return true;
+                    object axIWebBrowser2 = field.GetValue(webBrowser);
+                    if (axIWebBrowser2 != null)
+                    {
+                        axIWebBrowser2.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, axIWebBrowser2, new object[] { value });
+                        return true;
+                    }
                 }
             }
-
+            catch (Exception) { }
             return false;
+        }
+
+        private bool IsSkip(string url)
+        {
+            var result = false;
+            var ul = url.ToLower();
+            if (ul.Contains("/plugins/like.php")) result = true;
+            else if (ul.Contains("/dnserrordiagoff.htm")) result = true;
+            else if (ul.Contains("/embed/")) result = true;
+            return (result);
         }
 
         private async void GetHtmlContents(string url)
         {
             await new Action(() =>
             {
+                if (IsSkip(url)) return;
+
                 currentUri = new Uri(currentUri, url);
                 GetHtmlContents(currentUri);
             }).InvokeAsync();
@@ -133,18 +148,21 @@ namespace PixivWPF.Pages
         {
             try
             {
+                if (IsSkip(url.AbsolutePath)) return;
+
                 webHtml.Stop();
                 HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(currentUri);
                 if (setting.UsingProxy) myRequest.Proxy = new WebProxy(setting.Proxy);
 
-                using (HttpWebResponse myResponse = (HttpWebResponse)myRequest.GetResponse())
-                {
-                    //webHtml.DocumentStream = myResponse.GetResponseStream();
-                    using (StreamReader sr = new StreamReader(myResponse.GetResponseStream()))
-                    {
-                        webHtml.DocumentText = await sr.ReadToEndAsync();
-                    }
-                }
+                //using (HttpWebResponse myResponse = (HttpWebResponse)await myRequest.GetResponseAsync())
+                //{
+                //    using (StreamReader sr = new StreamReader(myResponse.GetResponseStream()))
+                //    {
+                //        webHtml.DocumentText = await sr.ReadToEndAsync();
+                //    }
+                //}
+                HttpWebResponse myResponse = (HttpWebResponse)await myRequest.GetResponseAsync();
+                webHtml.DocumentStream = myResponse.GetResponseStream();
             }
             catch(Exception ex)
             {
@@ -299,23 +317,25 @@ namespace PixivWPF.Pages
 
                 if (hp.Document != null)
                 {
-                    foreach (System.Windows.Forms.HtmlElement imgElemt in hp.Document.Images)
+                    try
                     {
-                        try
+                        foreach (System.Windows.Forms.HtmlElement imgElemt in hp.Document.Images)
                         {
                             var src = imgElemt.GetAttribute("src");
                             if (!string.IsNullOrEmpty(src))
                             {
                                 try
                                 {
-                                    if (src.IsPixivImage())
+                                    await new Action(async () =>
                                     {
-                                        await new Action(async () =>
+                                        if (src.ToLower().Contains("no_image_p.svg"))
+                                            imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.Root(), "no_image.png")).AbsoluteUri);
+                                        else if (src.IsPixivImage())
                                         {
                                             var img = await src.GetImagePath();
-                                            if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", img);
-                                        }).InvokeAsync();
-                                    }
+                                            if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", new Uri(img).AbsoluteUri);
+                                        }
+                                    }).InvokeAsync();
                                 }
 #if DEBUG
                                 catch (Exception ex)
@@ -323,35 +343,41 @@ namespace PixivWPF.Pages
                                     ex.Message.DEBUG();
                                 }
 #else
-                            catch (Exception) { }
+                                catch (Exception) { }
 #endif
                             }
                         }
-                        catch { }
                     }
+                    catch (Exception) { }
                 }
             }
         }
 
         private async void WebBrowser_Navigating(object sender, System.Windows.Forms.WebBrowserNavigatingEventArgs e)
         {
-            if (bCancel == true)
+            try
             {
-                e.Cancel = true;
-                bCancel = false;
-            }
-            else
-            {
-                if (e.Url.AbsolutePath != "blank")
+                if (bCancel == true)
                 {
-                    await new Action(() =>
-                    {
-                        currentUri = new Uri(currentUri, e.Url.AbsolutePath);
-                        GetHtmlContents(currentUri);
-                    }).InvokeAsync();
                     e.Cancel = true;
+                    bCancel = false;
+                }
+                else
+                {
+                    if (e.Url.AbsolutePath != "blank")
+                    {
+                        await new Action(() =>
+                        {
+                            if (IsSkip(e.Url.AbsolutePath)) return;
+
+                            currentUri = new Uri(currentUri, e.Url.AbsolutePath);
+                            GetHtmlContents(currentUri);
+                        }).InvokeAsync();
+                        e.Cancel = true;
+                    }
                 }
             }
+            catch (Exception) { }
         }
 
         private void WebBrowser_DocumentCompleted(object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e)
