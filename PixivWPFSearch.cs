@@ -36,6 +36,7 @@ namespace netcharm
             try
             {
                 if (args.Length < 1) return;
+                //args = Environment.GetCommandLineArgs();
                 var sendData = string.Join(Environment.NewLine, args);
                 if (string.IsNullOrEmpty(sendData.Trim())) return;
 

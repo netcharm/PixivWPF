@@ -1205,20 +1205,48 @@ namespace PixivWPF.Pages
                                 var illust_id = Regex.Replace(href, @"pixiv://illusts/(\d+)", "$1", RegexOptions.IgnoreCase);
                                 if (!string.IsNullOrEmpty(illust_id))
                                 {
-                                    var illust = await illust_id.RefreshIllust();
+                                    var illust = illust_id.FindIllust();
                                     if (illust is Pixeez.Objects.Work)
                                     {
-                                        CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                        await new Action(() =>
+                                        {
+                                            CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                        }).InvokeAsync();
+                                    }
+                                    else
+                                    {
+                                        illust = await illust_id.RefreshIllust();
+                                        if (illust is Pixeez.Objects.Work)
+                                        {
+                                            await new Action(() =>
+                                            {
+                                                CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                            }).InvokeAsync();
+                                        }
                                     }
                                 }
                             }
                             else if (href.StartsWith("pixiv://users/", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 var user_id = Regex.Replace(href, @"pixiv://users/(\d+)", "$1", RegexOptions.IgnoreCase);
-                                var user = await user_id.RefreshUser();
+                                var user = user_id.FindUser();
                                 if (user is Pixeez.Objects.User)
                                 {
-                                    CommonHelper.Cmd_OpenUser.Execute(user);
+                                    await new Action(() =>
+                                    {
+                                        CommonHelper.Cmd_OpenIllust.Execute(user);
+                                    }).InvokeAsync();
+                                }
+                                else
+                                {
+                                    user = await user_id.RefreshUser();
+                                    if (user is Pixeez.Objects.User)
+                                    {
+                                        await new Action(() =>
+                                        {
+                                            CommonHelper.Cmd_OpenIllust.Execute(user);
+                                        }).InvokeAsync();
+                                    }
                                 }
                             }
                             else
@@ -1445,7 +1473,10 @@ namespace PixivWPF.Pages
                         {
                             await new Action(() =>
                             {
-                                CommonHelper.Cmd_OpenPixivPedia.Execute(tag);
+                                if(Keyboard.Modifiers == ModifierKeys.None)
+                                    CommonHelper.Cmd_OpenPixivPedia.Execute(tag);
+                                else
+                                    CommonHelper.Cmd_ShellOpenPixivPedia.Execute(tag);
                             }).InvokeAsync();
                         }
                     }

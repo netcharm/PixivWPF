@@ -84,7 +84,7 @@ namespace PixivWPF.Pages
         private void timerCallback(object stateInfo)
         {
             //if (IsIdle) return;
-            var jobs_count = items.Where(i => i.State == DownloadState.Downloading).Count();
+            var jobs_count = items.Where(i => i.State == DownloadState.Downloading || i.State == DownloadState.Writing).Count();
             var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);//|| item.State == DownloadState.Failed);
             foreach (var item in pre_jobs)
             {

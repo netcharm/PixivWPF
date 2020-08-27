@@ -177,6 +177,8 @@ namespace PixivWPF.Common
         public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
 
         public string ShellSearchBridgeApplication { get; set; } = "PixivWPFSearch.exe";
+        public string ShellPixivPediaApplication { get; set; } = "nw.exe";
+        public string ShellPixivPediaApplicationArgs { get; set; } = "--single-process --enable-node-worker --app-shell-host-window-size=1280x720";
 
         public DateTime ContentsTemplateTime { get; set; } = new DateTime(0);
         public string ContentsTemplateFile { get; } = "contents-template.html";
@@ -214,11 +216,30 @@ namespace PixivWPF.Common
                 var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
                 File.WriteAllText(configfile, text, new UTF8Encoding(true));
 
+                UpdateContentsTemplete();
+
                 SaveTags();
             }
             catch (Exception ex)
             {
                 ex.Message.ShowMessageDialog("ERROR");
+            }
+        }
+
+        private static void UpdateContentsTemplete()
+        {
+            if (File.Exists(Cache.ContentsTemplateFile))
+            {
+                Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentsTemplateFile);
+                var ftc = File.GetCreationTime(Cache.ContentsTemplateFile);
+                var ftw = File.GetLastWriteTime(Cache.ContentsTemplateFile);
+                var fta = File.GetLastAccessTime(Cache.ContentsTemplateFile);
+                if (ftw > Cache.ContentsTemplateTime || ftc > Cache.ContentsTemplateTime || fta > Cache.ContentsTemplateTime)
+                {
+                    Cache.ContentsTemplete = Cache.CustomContentsTemplete;
+                    Cache.ContentsTemplateTime = DateTime.Now;
+                    Cache.Save();
+                }
             }
         }
 
@@ -261,19 +282,7 @@ namespace PixivWPF.Common
                             #endregion
 #endif
                             #region Update Contents Template
-                            if (File.Exists(Cache.ContentsTemplateFile))
-                            {
-                                Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentsTemplateFile);
-                                var ftc = File.GetCreationTime(Cache.ContentsTemplateFile);
-                                var ftw = File.GetLastWriteTime(Cache.ContentsTemplateFile);
-                                var fta = File.GetLastAccessTime(Cache.ContentsTemplateFile);
-                                if (ftw > Cache.ContentsTemplateTime || ftc > Cache.ContentsTemplateTime || fta > Cache.ContentsTemplateTime)
-                                {
-                                    Cache.ContentsTemplete = Cache.CustomContentsTemplete;
-                                    Cache.ContentsTemplateTime = DateTime.Now;
-                                    Cache.Save();
-                                }
-                            }
+                            UpdateContentsTemplete();
                             #endregion
 
                             result = Cache;

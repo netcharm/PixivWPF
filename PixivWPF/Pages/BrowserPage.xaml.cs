@@ -31,6 +31,7 @@ namespace PixivWPF.Pages
         private WindowsFormsHostEx webHost;
         private System.Windows.Forms.WebBrowser webHtml;
         private Uri currentUri = null;
+        private string titleWord = string.Empty;
 
         private const int HTTP_STREAM_READ_COUNT = 65536;
         private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
@@ -147,8 +148,12 @@ namespace PixivWPF.Pages
             }
             catch(Exception ex)
             {
-                if (!ex.Message.Contains("404"))
-                    ex.Message.ShowMessageBox("ERROR!");
+                if (ex.Message.Contains("404"))
+                {
+                    webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
+                }
+                else ex.Message.ShowMessageBox("ERROR!");
+                
             }
         }
 
@@ -156,6 +161,7 @@ namespace PixivWPF.Pages
         {
             if (webHtml is System.Windows.Forms.WebBrowser)
             {
+                titleWord = content;
                 await new Action(() =>
                 {
                     if(content.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
@@ -192,7 +198,7 @@ namespace PixivWPF.Pages
                                 var illust_id = Regex.Replace(href, @"pixiv://illusts/(\d+)", "$1", RegexOptions.IgnoreCase);
                                 if (!string.IsNullOrEmpty(illust_id))
                                 {
-                                    var illust = await illust_id.RefreshIllust();
+                                    var illust = illust_id.FindIllust();
                                     if (illust is Pixeez.Objects.Work)
                                     {
                                         await new Action(() =>
@@ -200,18 +206,37 @@ namespace PixivWPF.Pages
                                             CommonHelper.Cmd_OpenIllust.Execute(illust);
                                         }).InvokeAsync();
                                     }
+                                    else
+                                    {
+                                        illust = await illust_id.RefreshIllust();
+                                        if (illust is Pixeez.Objects.Work)
+                                        {
+                                            await new Action(() =>
+                                            {
+                                                CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                            }).InvokeAsync();
+                                        }
+                                    }
                                 }
                             }
                             else if (href.StartsWith("pixiv://users/", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 var user_id = Regex.Replace(href, @"pixiv://users/(\d+)", "$1", RegexOptions.IgnoreCase);
-                                var user = await user_id.RefreshUser();
+                                var user = user_id.FindUser();
                                 if (user is Pixeez.Objects.User)
                                 {
                                     await new Action(() =>
                                     {
                                         CommonHelper.Cmd_OpenUser.Execute(user);
                                     }).InvokeAsync();
+                                }
+                                else
+                                {
+                                    user = await user_id.RefreshUser();
+                                    if (user is Pixeez.Objects.User)
+                                    {
+                                        CommonHelper.Cmd_OpenUser.Execute(user);
+                                    }
                                 }
                             }
                             else if (href.StartsWith("http", StringComparison.CurrentCultureIgnoreCase) && href_lower.Contains("dic.pixiv.net/"))

@@ -722,27 +722,23 @@ namespace PixivWPF.Common
             if (obj is string)
             {
                 var content = obj as string;
+                await new Action(() =>
+                {
+                    OpenPixivPedia(content);
+                }).InvokeAsync();
+            }
+        });
+
+        public static ICommand Cmd_ShellOpenPixivPedia { get; } = new DelegateCommand<object>(async obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
                 if (!string.IsNullOrEmpty(content))
                 {
-                    if (content.ToLower().Contains("://dic.pixiv.net/a/"))
-                        content = Uri.UnescapeDataString(content.Substring(content.IndexOf("/a/") + 3));
-                    var title = $"PixivPedia: {content} ...";
-                    if (title.ActiveByTitle()) return;
-
-                    var page = new BrowerPage ();
-                    page.UpdateDetail(content);
-
-                    var viewer = new ContentWindow()
-                    {
-                        Title = title,
-                        Width = WIDTH_DEF,
-                        Height = HEIGHT_DEF,
-                        FontFamily = setting.FontFamily,
-                        Content = page
-                    };
-                    viewer.Show();
-                    await Task.Delay(1);
-                    Application.Current.DoEvents();
+                    await new Action(() => {
+                        content.ShellOpenPixivPedia();
+                    }).InvokeAsync();
                 }
             }
         });
@@ -1150,7 +1146,7 @@ namespace PixivWPF.Common
                     result = Regex.Replace(Path.GetFileNameWithoutExtension(result), @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
 
                 else if (!Regex.IsMatch(result, @"((UserID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
-                    result = $"Caption: {result}";
+                    result = $"Fuzzy: {result}";
             }
 
             return (result.Trim().Trim(trim_char).HtmlDecode());
@@ -1190,6 +1186,7 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(text, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix, opt));
 
                 mr.Add(Regex.Matches(text, @"^(((id)|(uid)):(\d+)+)", opt));
+                mr.Add(Regex.Matches(text, @"^(((user)|(fuzzy)|(tag)):(.+)+)", opt));
 
                 if (!Regex.IsMatch(text, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)).*?", opt))
                 {
@@ -1242,6 +1239,25 @@ namespace PixivWPF.Common
                         var u_link = $"https://www.pixiv.net/users/{id}";
                         var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
                         if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
+                    }
+                    //(UserID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)
+                    else if (link.StartsWith("tag:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var tag = link.Substring(4).Trim();
+                        var u_link = $"Tag:{tag}";
+                        if (!links.Contains(u_link)) links.Add(u_link);
+                    }
+                    else if (link.StartsWith("user:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var user = link.Substring(5).Trim();
+                        var u_link = $"User:{user}";
+                        if (!links.Contains(u_link)) links.Add(u_link);
+                    }
+                    else if (link.StartsWith("fuzzy:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var fuzzy = link.Substring(6).Trim();
+                        var u_link = $"Fuzzy:{fuzzy}";
+                        if (!links.Contains(u_link)) links.Add(u_link);
                     }
                     else
                     {
@@ -1386,6 +1402,11 @@ namespace PixivWPF.Common
                         html.AppendLine("      img{width:auto!important;height:auto!important;max-width:100%!important;max-height:100% !important;}");
                         html.AppendLine("      .tag{color:{%accentcolor%} !important;margin:4px;text-decoration:none;}");
                         html.AppendLine("      .desc{color:{%textcolor%} !important;text-decoration:none !important;width: 99% !important;word-wrap: break-word !important;overflow-wrap: break-word !important;white-space:normal !important;}");
+                        html.AppendLine("      .twitter::before{font-family:FontAwesome; content:''; margin-left:3px; padding-right:4px; color: #1da1f2;}");
+                        html.AppendLine("      .web::before{content:'🌐'; padding-right:3px; margin-left:-0px;}");
+                        html.AppendLine("      .mail::before{content:'🖃'; padding-right:4px; margin-left:2px;}");
+                        html.AppendLine("      .E404{display:block; min-height:calc(95vh); background-image:url('{%site%}/404.jpg'); background-position: center; background-attachment: fixed; background-repeat: no-repeat;}");
+                        html.AppendLine("      .E404T{font-size:calc(2.5vw); color:gray; position:fixed; margin-left:calc(50vw); margin-top:calc(50vh);}");
                         html.AppendLine("    </STYLE>");
                         html.AppendLine("  </HEAD>");
                         html.AppendLine("<BODY>");
@@ -1424,6 +1445,7 @@ namespace PixivWPF.Common
             title = string.IsNullOrEmpty(title) ? string.Empty : title.Trim();
 
             var template = GetDefaultTemplate();
+            template = Regex.Replace(template, "{%site%}", new Uri(Application.Current.Root()).AbsoluteUri, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%title%}", title, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%backcolor%}", backcolor, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%accentcolor%}", accentcolor, RegexOptions.IgnoreCase);
@@ -1479,6 +1501,19 @@ namespace PixivWPF.Common
             string uriString = $"pack://application:,,,/{assemblyShortName};component/{relativeFile}";
 
             return new Uri(uriString);
+        }
+
+        public static string[] Where(this string cmd)
+        {
+            var result = new List<string>();
+
+            foreach(var p in Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator))
+            {
+                var c = Path.Combine(p, cmd);
+                if (File.Exists(c)) result.Add(c);
+            }
+
+            return (result.ToArray());
         }
 
         public static string GetIllustId(this string url)
@@ -1650,6 +1685,58 @@ namespace PixivWPF.Common
             if (File.Exists(shell))
             {
                 System.Diagnostics.Process.Start(shell, contents);
+            }
+        }
+
+        public static async void OpenPixivPedia(this string contents)
+        {
+            if (!string.IsNullOrEmpty(contents))
+            {
+                if (contents.ToLower().Contains("://dic.pixiv.net/a/"))
+                    contents = Uri.UnescapeDataString(contents.Substring(contents.IndexOf("/a/") + 3));
+                var title = $"PixivPedia: {contents} ...";
+                if (title.ActiveByTitle()) return;
+
+                var page = new BrowerPage ();
+                page.UpdateDetail(contents);
+
+                var viewer = new ContentWindow()
+                {
+                    Title = title,
+                    Width = WIDTH_DEF,
+                    Height = HEIGHT_DEF,
+                    FontFamily = setting.FontFamily,
+                    Content = page
+                };
+                viewer.Show();
+                await Task.Delay(1);
+                Application.Current.DoEvents();
+            }
+        }
+
+        public static void ShellOpenPixivPedia(this string contents)
+        {
+            if (string.IsNullOrEmpty(contents)) return;
+
+            var currentUri = contents.StartsWith("http", StringComparison.CurrentCultureIgnoreCase) ? Uri.EscapeUriString(contents.Replace("http://", "https://")) : Uri.EscapeUriString($"https://dic.pixiv.net/a/{contents}/");
+
+            var all = setting.ShellPixivPediaApplication.Where();
+            var shell = all.Length > 0 ? all.First() : string.Empty;
+
+            if (File.Exists(shell) && shell.EndsWith("\\nw.exe", StringComparison.CurrentCultureIgnoreCase))
+            {
+                var args = new List<string>() {
+                    setting.ShellPixivPediaApplicationArgs,
+                    $"--app=\"PixivPedia-{contents}\"",
+                    $"--app-id=\"PixivPedia-{contents}\"",
+                    $"--user-data-dir=\"{Path.Combine(Application.Current.Root(), ".web")}\"",
+                    $"--url=\"{currentUri}\""
+                };
+                System.Diagnostics.Process.Start(shell, string.Join(" ", args));
+            }
+            else
+            {
+                System.Diagnostics.Process.Start(currentUri);
             }
         }
         #endregion
@@ -3985,8 +4072,15 @@ namespace PixivWPF.Common
             }
         }
 
+        private static string lastToastTitle = string.Empty;
+        private static string lastToastContent = string.Empty;
         public static void ShowDownloadToast(this string content, string title = "Pixiv", string imgsrc = "", object tag = null)
         {
+            if (title.Equals(lastToastTitle) && content.Equals(lastToastContent)) return;
+
+            lastToastTitle = title;
+            lastToastContent = content;
+
             INotificationDialogService _dialogService = new NotificationDialogService();
             NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
             NotificationConfiguration cfg = new NotificationConfiguration(

@@ -480,8 +480,6 @@ namespace PixivWPF.Common
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //PART_DownloadProgress.IsIndeterminate = true;
-                        //PART_DownloadProgressPercent.Foreground = Theme.AccentBrush;
                     }
                     else
                     {
@@ -524,9 +522,9 @@ namespace PixivWPF.Common
                 File.SetLastAccessTime(FileName, FileTime);
                 PART_OpenFile.IsEnabled = true;
                 PART_OpenFolder.IsEnabled = true;
-                $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
                 State = DownloadState.Finished;
                 progress.Report(finishedProgress);
+                $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
                 this.Sound();
             }
             catch (Exception)
@@ -541,7 +539,7 @@ namespace PixivWPF.Common
 
                 if (State == DownloadState.Finished)
                 {
-                    progress.Report(finishedProgress);
+                    //progress.Report(finishedProgress);
                     result = FileName;
                 }
                 PART_DownloadProgress.IsEnabled = false;
@@ -556,12 +554,11 @@ namespace PixivWPF.Common
             var result = FileName;
             try
             {
-                if (File.Exists(source))
+                if (File.Exists(source))// && State != DownloadState.Writing && State != DownloadState.Finished)
                 {
                     State = DownloadState.Writing;
                     var fi = new FileInfo(source);
                     Length = Received = fi.Length;
-                    progress.Report(Progress);
                     finishedProgress = new Tuple<double, double>(Received, Length);
                     File.Copy(source, FileName, true);
                     File.SetCreationTime(FileName, FileTime);
@@ -569,9 +566,9 @@ namespace PixivWPF.Common
                     File.SetLastAccessTime(FileName, FileTime);
                     PART_OpenFile.IsEnabled = true;
                     PART_OpenFolder.IsEnabled = true;
-                    $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
                     State = DownloadState.Finished;
                     progress.Report(finishedProgress);
+                    $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
                     this.Sound();
                 }
             }
@@ -587,7 +584,7 @@ namespace PixivWPF.Common
 
                 if (State == DownloadState.Finished)
                 {
-                    progress.Report(finishedProgress);
+                    //progress.Report(finishedProgress);
                     result = FileName;
                 }
                 PART_DownloadProgress.IsEnabled = false;
@@ -603,10 +600,15 @@ namespace PixivWPF.Common
             if (string.IsNullOrEmpty(Url))  return (result);
             if (!CanDownload) return(result);
 
+            await Task.Delay(1000);
+            Application.Current.DoEvents();
+
             if (await Downloading.WaitAsync(15000))
             {
                 try
                 {
+                    startTick = DateTime.Now;
+
                     IsForceStart = false;
                     IsStart = false;
 
@@ -662,7 +664,7 @@ namespace PixivWPF.Common
 
                                     if (Received == Length && State == DownloadState.Downloading)
                                     {
-                                        SaveFile(FileName, ms.ToArray());
+                                        result = SaveFile(FileName, ms.ToArray());
                                     }
                                     else
                                     {
@@ -703,15 +705,24 @@ namespace PixivWPF.Common
             string fc = Url.GetImageCachePath();
             if (File.Exists(fc))
             {
-                startTick = DateTime.Now;
-                SaveFile(FileName, fc);
+                await new Action(async () =>
+                {
+                    if (await Downloading.WaitAsync(15000))
+                    {
+                        IsForceStart = false;
+                        IsStart = false;
+                        State = DownloadState.Downloading;
+                        startTick = DateTime.Now;
+                        var ret = SaveFile(FileName, fc);
+                        Downloading.Release();
+                    }
+                }).InvokeAsync();                
             }
             else
             {
                 await new Action(async () =>
                 {
-                    startTick = DateTime.Now;
-                    await DownloadAsync();
+                    var ret = await DownloadAsync();
                 }).InvokeAsync();
             }
         }
