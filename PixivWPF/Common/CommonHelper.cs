@@ -368,6 +368,7 @@ namespace PixivWPF.Common
 
         public static ICommand Cmd_CopyIllustIDs { get; } = new DelegateCommand<object>(obj =>
         {
+            var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "id:" : string.Empty;
             if (obj is ImageListGrid)
             {
                 var list = obj as ImageListGrid;
@@ -378,7 +379,7 @@ namespace PixivWPF.Common
                     var ids = new  List<string>();
                     foreach (var item in list.SelectedItems)
                     {
-                        var id = $"id:{item.ID}";
+                        var id = $"{prefix}{item.ID}";
                         if (!id.Contains(id)) ids.Add(id);
                     }
                     Clipboard.SetText(string.Join(Environment.NewLine, ids));
@@ -390,7 +391,7 @@ namespace PixivWPF.Common
                 var item = obj as ImageItem;
                 if (item.Illust is Pixeez.Objects.Work)
                 {
-                    Clipboard.SetText($"id:{item.ID}");
+                    Clipboard.SetText($"{prefix}{item.ID}");
                 }
             }
             else if (obj is IEnumerable<string>)
@@ -398,7 +399,7 @@ namespace PixivWPF.Common
                 var ids = new List<string>();
                 foreach (var s in (obj as IEnumerable<string>))
                 {
-                    var id = $"id:{s}";
+                    var id = $"{prefix}{s}";
                     if (!ids.Contains(id)) ids.Add(id);
                 }
                 Clipboard.SetText(string.Join(Environment.NewLine, ids));
@@ -406,12 +407,13 @@ namespace PixivWPF.Common
             else if (obj is string)
             {
                 var id = (obj as string).ParseLink().ParseID();
-                if (!string.IsNullOrEmpty(id)) Clipboard.SetText($"id:{id}");
+                if (!string.IsNullOrEmpty(id)) Clipboard.SetText($"{prefix}{id}");
             }
         });
 
         public static ICommand Cmd_CopyUserIDs { get; } = new DelegateCommand<object>(obj =>
         {
+            var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "uid:" : string.Empty;
             if (obj is ImageListGrid)
             {
                 var list = obj as ImageListGrid;
@@ -422,7 +424,7 @@ namespace PixivWPF.Common
                     var ids = new  List<string>();
                     foreach (var item in list.SelectedItems)
                     {
-                        var uid = $"uid:{item.UserID}";
+                        var uid = $"{prefix}{item.UserID}";
                         if (!ids.Contains(uid)) ids.Add(uid);
                     }
                     Clipboard.SetText(string.Join(Environment.NewLine, ids));
@@ -433,7 +435,7 @@ namespace PixivWPF.Common
                 var item = obj as ImageItem;
                 if (item.Illust is Pixeez.Objects.Work)
                 {
-                    Clipboard.SetText($"uid:{item.UserID}");
+                    Clipboard.SetText($"{prefix}{item.UserID}");
                 }
             }
             else if (obj is IEnumerable<string>)
@@ -441,7 +443,7 @@ namespace PixivWPF.Common
                 var ids = new List<string>();
                 foreach (var s in (obj as IEnumerable<string>))
                 {
-                    var uid = $"uid:{s}";
+                    var uid = $"{prefix}{s}";
                     if (!ids.Contains(uid)) ids.Add(uid);
                 }
                 Clipboard.SetText(string.Join(Environment.NewLine, ids));
@@ -449,7 +451,7 @@ namespace PixivWPF.Common
             else if (obj is string)
             {
                 var id = (obj as string).ParseLink().ParseID();
-                if (!string.IsNullOrEmpty(id)) Clipboard.SetText($"uid:{id}");
+                if (!string.IsNullOrEmpty(id)) Clipboard.SetText($"{prefix}{id}");
             }
         });
 
@@ -1125,21 +1127,48 @@ namespace PixivWPF.Common
 
             var fmts = new List<string>(e.Data.GetFormats(true));
 
+            var str = fmts.Contains("System.String") ? (string)e.Data.GetData("System.String") : string.Empty;
+            var text = fmts.Contains("Text") ? (string)e.Data.GetData("Text") : string.Empty;
+            var unicode = fmts.Contains("UnicodeText") ? (string)e.Data.GetData("UnicodeText") : string.Empty;
+
             if (fmts.Contains("text/html"))
             {
                 using (var ms = (MemoryStream)e.Data.GetData("text/html"))
                 {
-                    var html = Encoding.Unicode.GetString(ms.ToArray()).Trim().Trim('\0');
-                    links = html.ParseLinks(true).ToList();
+                    var bytes = ms.ToArray();
+                    var IsUnicode = bytes.Length>=4 && bytes[1] == 0x00 && bytes[3] == 0x00;
+                    if (IsUnicode)
+                    {
+                        var html = Encoding.Unicode.GetString(bytes).Trim().Trim('\0');
+                        links = html.ParseLinks(true).ToList();
+                    }
+                    else
+                    {
+                        var html = Encoding.Unicode.GetString(bytes).Trim().Trim('\0');
+                        if (!string.IsNullOrEmpty(text) && html.Contains(text))
+                            links = html.ParseLinks(true).ToList();
+                        else
+                        {
+                            html = Encoding.UTF8.GetString(ms.ToArray()).Trim().Trim('\0');
+                            links = html.ParseLinks(true).ToList();
+                        }
+                    }
                 }
+            }
+            else if (fmts.Contains("System.String"))
+            {
+                var html = ((string)e.Data.GetData("System.String")).Trim().Trim('\0');
+                links = html.ParseLinks(false).ToList();
+            }
+            else if (fmts.Contains("UnicodeText"))
+            {
+                var html = ((string)e.Data.GetData("UnicodeText")).Trim().Trim('\0');
+                links = html.ParseLinks(false).ToList();
             }
             else if (fmts.Contains("Text"))
             {
-                using (var ms = (MemoryStream)e.Data.GetData("text/html"))
-                {
-                    var html = ((string)e.Data.GetData("Text")).Trim().Trim('\0');
-                    links = html.ParseLinks(false).ToList();
-                }
+                var html = ((string)e.Data.GetData("Text")).Trim().Trim('\0');
+                links = html.ParseLinks(false).ToList();
             }
             else if (fmts.Contains("FileDrop"))
             {
@@ -1204,6 +1233,9 @@ namespace PixivWPF.Common
 
                 else if (Regex.IsMatch(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"^(.*?)\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+).*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp))$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?)\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+).*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp))$", "IllustID: $2", RegexOptions.IgnoreCase);
+
 
                 else if (Regex.IsMatch(Path.GetFileNameWithoutExtension(result), @"^((\d+)(_((p)|(ugoira))*\d+)*)"))
                     result = Regex.Replace(Path.GetFileNameWithoutExtension(result), @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
@@ -1227,7 +1259,7 @@ namespace PixivWPF.Common
             var mr = new List<MatchCollection>();
             foreach (var text in html.Split())
             {
-                var content = text.Trim('"');
+                var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim('"') : text;
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
@@ -1337,7 +1369,7 @@ namespace PixivWPF.Common
                             var sid = Regex.Replace(Path.GetFileNameWithoutExtension(fn), @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
                             var IsFile = string.IsNullOrEmpty(Path.GetExtension(fn)) ? false : true;
                             long id;
-                            if (long.TryParse(sid, out id))
+                            if (long.TryParse(sid, out id) && id > 100)
                             {
                                 var a_link = $"https://www.pixiv.net/artworks/{id}";
                                 var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
