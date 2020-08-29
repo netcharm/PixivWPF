@@ -139,10 +139,10 @@ namespace PixivWPF.Pages
                     if (item.Url.Equals(url, StringComparison.Ordinal))
                     {
                         result = true;
-                        if (//item.State == DownloadState.Failed ||
-                            item.State == DownloadState.Idle ||
-                            item.State == DownloadState.Paused)
-                            item.IsStart = true;
+                        //if (//item.State == DownloadState.Failed ||
+                        //    item.State == DownloadState.Idle ||
+                        //    item.State == DownloadState.Paused)
+                        //    item.IsStart = true;
                         break;
                     }
                 }
@@ -256,7 +256,7 @@ namespace PixivWPF.Pages
                         if (needUpdate.Count() > 0)
                         {
                             var opt = new ParallelOptions();
-                            opt.MaxDegreeOfParallelism = 5;
+                            opt.MaxDegreeOfParallelism = (int)MaxJobs;
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
                                 item.IsStart = true;
@@ -270,7 +270,7 @@ namespace PixivWPF.Pages
                         if (needUpdate.Count() > 0)
                         {
                             var opt = new ParallelOptions();
-                            opt.MaxDegreeOfParallelism = 5;
+                            opt.MaxDegreeOfParallelism = (int)MaxJobs;
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
                                 item.IsStart = true;

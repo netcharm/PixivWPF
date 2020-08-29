@@ -371,34 +371,85 @@ namespace PixivWPF.Common
             if (obj is ImageListGrid)
             {
                 var list = obj as ImageListGrid;
-                var ids = new  List<string>();
-                foreach (var item in list.SelectedItems)
+                if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                        list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                        list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    var ids = new  List<string>();
+                    foreach (var item in list.SelectedItems)
                     {
-                        ids.Add($"{item.ID}");
+                        var id = $"id:{item.ID}";
+                        if (!id.Contains(id)) ids.Add(id);
                     }
+                    Clipboard.SetText(string.Join(Environment.NewLine, ids));
+                    //Clipboard.SetDataObject(string.Join(Environment.NewLine, ids));
                 }
-                Clipboard.SetText(string.Join(Environment.NewLine, ids));
             }
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
                 if (item.Illust is Pixeez.Objects.Work)
                 {
-                    Clipboard.SetText(item.ID);
+                    Clipboard.SetText($"id:{item.ID}");
                 }
             }
             else if (obj is IEnumerable<string>)
             {
-                Clipboard.SetText(string.Join(Environment.NewLine, obj as IEnumerable<string>));
+                var ids = new List<string>();
+                foreach (var s in (obj as IEnumerable<string>))
+                {
+                    var id = $"id:{s}";
+                    if (!ids.Contains(id)) ids.Add(id);
+                }
+                Clipboard.SetText(string.Join(Environment.NewLine, ids));
             }
             else if (obj is string)
             {
                 var id = (obj as string).ParseLink().ParseID();
-                if (!string.IsNullOrEmpty(id)) Clipboard.SetText(id);
+                if (!string.IsNullOrEmpty(id)) Clipboard.SetText($"id:{id}");
+            }
+        });
+
+        public static ICommand Cmd_CopyUserIDs { get; } = new DelegateCommand<object>(obj =>
+        {
+            if (obj is ImageListGrid)
+            {
+                var list = obj as ImageListGrid;
+                if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var ids = new  List<string>();
+                    foreach (var item in list.SelectedItems)
+                    {
+                        var uid = $"uid:{item.UserID}";
+                        if (!ids.Contains(uid)) ids.Add(uid);
+                    }
+                    Clipboard.SetText(string.Join(Environment.NewLine, ids));
+                }
+            }
+            else if (obj is ImageItem)
+            {
+                var item = obj as ImageItem;
+                if (item.Illust is Pixeez.Objects.Work)
+                {
+                    Clipboard.SetText($"uid:{item.UserID}");
+                }
+            }
+            else if (obj is IEnumerable<string>)
+            {
+                var ids = new List<string>();
+                foreach (var s in (obj as IEnumerable<string>))
+                {
+                    var uid = $"uid:{s}";
+                    if (!ids.Contains(uid)) ids.Add(uid);
+                }
+                Clipboard.SetText(string.Join(Environment.NewLine, ids));
+            }
+            else if (obj is string)
+            {
+                var id = (obj as string).ParseLink().ParseID();
+                if (!string.IsNullOrEmpty(id)) Clipboard.SetText($"uid:{id}");
             }
         });
 
@@ -426,38 +477,25 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_OpenItems { get; } = new DelegateCommand<dynamic>(async obj =>
+        public static ICommand Cmd_OpenItems { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is ImageListGrid)
             {
                 var list = obj as ImageListGrid;
-                foreach (var item in list.SelectedItems)
+                if (list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                        list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                        list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        //Cmd_OpenItem.Execute(item);
-                        await new Action(() =>
-                        {
-                            Cmd_OpenItem.Execute(item);
-                        }).InvokeAsync();
-                    }
-                    else if (list.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        //Cmd_OpenWorkPreview.Execute(item);
-                        await new Action(() =>
-                        {
-                            Cmd_OpenWorkPreview.Execute(item);
-                        }).InvokeAsync();
-                    }
-                    await Task.Delay(1);
-                    Application.Current.DoEvents();
+                    Cmd_OpenItem.Execute(list);
+                }
+                else if (list.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Cmd_OpenWorkPreview.Execute(list);
                 }
             }
         });
 
-        public static ICommand Cmd_OpenItem { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand Cmd_OpenItem { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is ImageItem)
             {
@@ -474,6 +512,17 @@ namespace PixivWPF.Common
                     default:
                         Cmd_OpenIllust.Execute(item.Illust);
                         break;
+                }
+            }
+            else if (obj is ImageListGrid)
+            {
+                var list = obj as ImageListGrid;
+                foreach (var item in list.SelectedItems)
+                {
+                    await new Action(() =>
+                    {
+                        Cmd_OpenItem.Execute(item);
+                    }).InvokeAsync();
                 }
             }
         });
@@ -539,6 +588,19 @@ namespace PixivWPF.Common
                 viewer.Show();
                 await Task.Delay(1);
                 Application.Current.DoEvents();
+            }
+            else if(obj is ImageListGrid)
+            {
+                var list = obj as ImageListGrid;
+                foreach (var item in list.SelectedItems)
+                {
+                    //Cmd_OpenItem.Execute(item);
+                    await new Action(() =>
+                    {
+                        Cmd_OpenWorkPreview.Execute(item);
+                    }).InvokeAsync();
+                }
+
             }
         });
 
@@ -697,9 +759,10 @@ namespace PixivWPF.Common
                     if (item is DownloadInfo)
                     {
                         var di = item as DownloadInfo;
+                        var fail = string.IsNullOrEmpty(di.FailReason) ? $", Reason:{di.FailReason}" : string.Empty;
                         targets.Add($"URL    : {di.Url}");
                         targets.Add($"File   : {di.FileName}");
-                        targets.Add($"State  : {di.State}");
+                        targets.Add($"State  : {di.State}{fail}");
                         targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes)");
                         targets.Add(sep);
                     }
@@ -797,12 +860,12 @@ namespace PixivWPF.Common
             else if (obj is ImageListGrid)
             {
                 var list = obj as ImageListGrid;
-                var ids = new  List<string>();
-                foreach (var item in list.SelectedItems)
+                if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                        list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase)||
-                        list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    var ids = new  List<string>();
+                    foreach (var item in list.SelectedItems)
                     {
                         switch (item.ItemType)
                         {
@@ -816,8 +879,8 @@ namespace PixivWPF.Common
                                 break;
                         }
                     }
+                    Cmd_SendToOtherInstance.Execute(ids);
                 }
-                Cmd_SendToOtherInstance.Execute(ids);
             }
         });
 
@@ -875,12 +938,12 @@ namespace PixivWPF.Common
             else if (obj is ImageListGrid)
             {
                 var list = obj as ImageListGrid;
-                var ids = new  List<string>();
-                foreach (var item in list.SelectedItems)
+                if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (list.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                        list.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                        list.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    var ids = new  List<string>();
+                    foreach (var item in list.SelectedItems)
                     {
                         switch (item.ItemType)
                         {
@@ -894,8 +957,8 @@ namespace PixivWPF.Common
                                 break;
                         }
                     }
+                    Cmd_ShellSendToOtherInstance.Execute(ids);
                 }
-                Cmd_ShellSendToOtherInstance.Execute(ids);
             }
         });
 
@@ -1674,8 +1737,8 @@ namespace PixivWPF.Common
         {
             if (contents is IEnumerable<string> && contents.Count() > 0)
             {
-                var sendData = string.Join(Environment.NewLine, contents.ToArray());
-                ShellSendToOtherInstance(sendData);
+                var sendData = string.Join("\" \"", contents.ToArray());
+                ShellSendToOtherInstance($"\"{sendData}\"");
             }
         }
 

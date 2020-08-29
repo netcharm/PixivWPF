@@ -104,7 +104,7 @@
                    Text="{Binding FolderName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
                               Foreground="{DynamicResource AccentColorBrush}"
-                              Tag="{Binding Progress, Mode=OneWay}"
+                              Tag="{Binding Progress, Mode=OneWay}" IsEnabled="True"
                               Height="18" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
                               Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                               HorizontalAlignment="Stretch" VerticalAlignment="Center"/>

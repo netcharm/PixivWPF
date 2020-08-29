@@ -371,15 +371,25 @@ namespace PixivWPF.Pages
             {
                 if (item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Manga)
                 {
-                    await new Action(() =>
+                    await new Action(async () =>
                     {
+                        if (Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            item.Illust = await item.ID.RefreshIllust();
+                            item.Illust.Cache();
+                        }
                         UpdateDetailIllust(item);
                     }).InvokeAsync();
                 }
                 else if (item.ItemType == ImageItemType.User)
                 {
-                    await new Action(() =>
+                    await new Action(async () =>
                     {
+                        if (Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            item.User = await item.UserID.RefreshUser();
+                            item.User.Cache();
+                        }
                         UpdateDetailUser(item.User);
                     }).InvokeAsync();
                 }
@@ -1573,26 +1583,24 @@ namespace PixivWPF.Pages
 
             if (sender == ActionCopyIllustTitle || sender == IllustTitle)
             {
-                Clipboard.SetDataObject(IllustTitle.Text);
+                Clipboard.SetDataObject($"title:{IllustTitle.Text}");
             }
             else if (sender == ActionCopyIllustAuthor || sender == IllustAuthor)
             {
-                Clipboard.SetDataObject(IllustAuthor.Text);
+                Clipboard.SetDataObject($"user:{IllustAuthor.Text}");
             }
             else if (sender == ActionCopyAuthorID)
             {
                 if (DataObject is ImageItem)
                 {
-                    var item = DataObject as ImageItem;
-                    Clipboard.SetDataObject(item.UserID);
+                    CommonHelper.Cmd_CopyUserIDs.Execute(DataObject);
                 }
             }
             else if (sender == ActionCopyIllustID || sender == PreviewCopyIllustID)
             {
                 if (DataObject is ImageItem)
                 {
-                    var item = DataObject as ImageItem;
-                    Clipboard.SetDataObject(item.ID);
+                    CommonHelper.Cmd_CopyIllustIDs.Execute(DataObject);
                 }
             }
             else if (sender == ActionCopyIllustDate || sender == IllustDate)
@@ -2604,8 +2612,7 @@ namespace PixivWPF.Pages
                 {
                     if (DataObject is ImageItem)
                     {
-                        var item = DataObject as ImageItem;
-                        Clipboard.SetText(item.ID);
+                        CommonHelper.Cmd_CopyIllustIDs.Execute(DataObject);
                     }
                 }
                 else if (host == RelativeIllustsExpander || host == RelativeIllusts)

@@ -35,7 +35,7 @@
                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionIllustSendToInstance" Header="Send Illust To Other Instance" Click="ActionIllustSendToOtherInstance_Click">
+            <MenuItem x:Uid="ActionIllustSendToInstance" Header="Send Selected Items Other Instance" Click="ActionSendToOtherInstance_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>

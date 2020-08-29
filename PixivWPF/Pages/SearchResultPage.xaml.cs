@@ -344,7 +344,7 @@ namespace PixivWPF.Pages
             CommonHelper.Cmd_OpenIllust.Execute(ResultIllusts);
         }
 
-        private void ActionIllustSendToOtherInstance_Click(object sender, RoutedEventArgs e)
+        private void ActionSendToOtherInstance_Click(object sender, RoutedEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.None)
                 CommonHelper.Cmd_SendToOtherInstance.Execute(ResultIllusts);
