@@ -1406,12 +1406,8 @@ namespace PixivWPF.Pages
             CultureInfo culture = null;
             try
             {
-                //if (sender == btnIllustTagSpeech && !string.IsNullOrEmpty(IllustTags.Text))
-                //    text = GetText(IllustTags).Replace("#", " ");
                 if (sender == btnIllustTagSpeech)
                     text = string.Join(Environment.NewLine, GetText(IllustTagsHtml).Trim().Trim('#').Split('#'));// Replace("#", ", ");
-                //else if (sender == btnIllustDescSpeech && !string.IsNullOrEmpty(IllustDesc.Text))
-                //    text = GetText(IllustDesc);
                 else if (sender == btnIllustDescSpeech)
                     text = GetText(IllustDescHtml);
                 else if (sender == IllustTitle)
@@ -1468,6 +1464,41 @@ namespace PixivWPF.Pages
             catch (Exception) { }
 #endif
             if (!string.IsNullOrEmpty(text)) text.Play(culture);
+        }
+
+        private void ActionSendToInstance_Click(object sender, RoutedEventArgs e)
+        {
+            var text = string.Empty;
+            try
+            {
+                if (sender is MenuItem)
+                {
+                    var mi = sender as MenuItem;
+                    if (mi.Parent is ContextMenu)
+                    {
+                        var host = (mi.Parent as ContextMenu).PlacementTarget;
+                        if (host == btnIllustTagSpeech)
+                        {
+                            text = $"\"tag:{string.Join($"\"{Environment.NewLine}\"tag:", GetText(IllustTagsHtml).Trim().Trim('#').Split('#'))}\"";
+                        }
+                        else if (host == btnIllustDescSpeech) text = $"\"fuzzy:{GetText(IllustDescHtml)}\"";
+                        else if (host == IllustAuthor) text = $"\"user:{IllustAuthor.Text}\"";
+                        else if (host == IllustTitle) text = $"\"title:{IllustTitle.Text}\"";
+                    }
+                }
+            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception) { }
+#endif
+            if (!string.IsNullOrEmpty(text))
+            {
+                if (Keyboard.Modifiers == ModifierKeys.None)
+                    CommonHelper.Cmd_SendToOtherInstance.Execute(text);
+                else
+                    CommonHelper.Cmd_ShellSendToOtherInstance.Execute(text);
+            }
         }
 
         private async void ActionOpenPedia_Click(object sender, RoutedEventArgs e)
@@ -1583,11 +1614,17 @@ namespace PixivWPF.Pages
 
             if (sender == ActionCopyIllustTitle || sender == IllustTitle)
             {
-                Clipboard.SetDataObject($"title:{IllustTitle.Text}");
+                if (Keyboard.Modifiers == ModifierKeys.None)
+                    Clipboard.SetDataObject($"{IllustTitle.Text}");
+                else
+                    Clipboard.SetDataObject($"title:{IllustTitle.Text}");
             }
             else if (sender == ActionCopyIllustAuthor || sender == IllustAuthor)
             {
-                Clipboard.SetDataObject($"user:{IllustAuthor.Text}");
+                if (Keyboard.Modifiers == ModifierKeys.None)
+                    Clipboard.SetDataObject($"{IllustAuthor.Text}");
+                else
+                    Clipboard.SetDataObject($"user:{IllustAuthor.Text}");
             }
             else if (sender == ActionCopyAuthorID)
             {
@@ -1625,7 +1662,7 @@ namespace PixivWPF.Pages
                 {
                     var item = DataObject as ImageItem;
                     if (item.Illust is Pixeez.Objects.Work)
-                    {                        
+                    {
                         await new Action(() =>
                         {
                             CommonHelper.Cmd_OpenIllust.Execute(item.Illust);
@@ -2945,8 +2982,8 @@ namespace PixivWPF.Pages
                 }
             }
         }
-        #endregion
 
+        #endregion
 
     }
 

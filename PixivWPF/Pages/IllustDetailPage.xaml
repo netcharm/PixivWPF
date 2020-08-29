@@ -166,6 +166,14 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <Separator/>
+            <MenuItem x:Name="miSendToInstance" x:Uid="SendToInstance" Header="Send Selected" ToolTip="Send Selected To Other Instance" Click="ActionSendToInstance_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE1D7;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource AccentColorBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>            
         </ContextMenu>
     </Page.Resources>
     
@@ -466,7 +474,7 @@
                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
                                                                           Foreground="{DynamicResource AccentColorBrush}"/>
                                                 <iconPacks:PackIconModern 
-                                                                          Kind="Lock" Width="8" Height="8" Margin="14,8,0,0"
+                                                                          Kind="Lock" Width="8" Height="8" Margin="14,12,0,0"
                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
                                                                           Foreground="{DynamicResource AccentColorBrush}"/>
                                             </Grid>
