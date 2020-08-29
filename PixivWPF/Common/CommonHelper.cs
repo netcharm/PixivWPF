@@ -380,7 +380,7 @@ namespace PixivWPF.Common
                     foreach (var item in list.SelectedItems)
                     {
                         var id = $"{prefix}{item.ID}";
-                        if (!id.Contains(id)) ids.Add(id);
+                        if (!ids.Contains(id)) ids.Add(id);
                     }
                     Clipboard.SetText(string.Join(Environment.NewLine, ids));
                     //Clipboard.SetDataObject(string.Join(Environment.NewLine, ids));
