@@ -1481,7 +1481,13 @@ namespace PixivWPF.Pages
                         {
                             text = $"\"tag:{string.Join($"\"{Environment.NewLine}\"tag:", GetText(IllustTagsHtml).Trim().Trim('#').Split('#'))}\"";
                         }
-                        else if (host == btnIllustDescSpeech) text = $"\"fuzzy:{GetText(IllustDescHtml)}\"";
+                        else if (host == btnIllustDescSpeech)
+                        {
+                            //var t = GetText(IllustDescHtml);
+                            //var links = t.ParseLinks();
+                            //var links = GetText(IllustDescHtml).ParseLinks();
+                            text = $"\"{string.Join("\" \"", GetText(IllustDescHtml).ParseLinks().ToArray())}\"";
+                        }
                         else if (host == IllustAuthor) text = $"\"user:{IllustAuthor.Text}\"";
                         else if (host == IllustTitle) text = $"\"title:{IllustTitle.Text}\"";
                     }

@@ -1274,17 +1274,19 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_1 + @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
 
-
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?" + href_suffix, opt));
 
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/id\/\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/user\/\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix, opt));
 
+                mr.Add(Regex.Matches(content, @"^(((illust)|(illusts)|(artworks))/(\d+))", opt));
+                mr.Add(Regex.Matches(content, @"^(((user)|(users))/(\d+))", opt));
+
                 mr.Add(Regex.Matches(content, @"^(((id)|(uid)):(\d+)+)", opt));
                 mr.Add(Regex.Matches(content, @"^(((user)|(fuzzy)|(tag)|(title)):(.+)+)", opt));
 
-                if (!Regex.IsMatch(content, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)).*?", opt))
+                if (!Regex.IsMatch(content, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
                 {
                     try
                     {
@@ -1314,7 +1316,6 @@ namespace PixivWPF.Common
 
                 foreach (Match m in mi)
                 {
-                    //var m = mi[mi.Count-1];
                     var link = m.Groups[1].Value.Trim().Trim(trim_char);
 
                     if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
@@ -1322,9 +1323,18 @@ namespace PixivWPF.Common
                         link = Uri.UnescapeDataString(WebUtility.HtmlDecode(link));
                         if (!links.Contains(link)) links.Add(link);
                     }
-                    else if (link.StartsWith("id:", StringComparison.CurrentCultureIgnoreCase))
+                    else if (link.StartsWith("id:", StringComparison.CurrentCultureIgnoreCase)) 
                     {
                         var id = link.Substring(3).Trim();
+                        var a_link = $"https://www.pixiv.net/artworks/{id}";
+                        var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
+                        if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
+                    }
+                    else if (link.StartsWith("illust/", StringComparison.CurrentCultureIgnoreCase) ||
+                             link.StartsWith("illusts/", StringComparison.CurrentCultureIgnoreCase) ||
+                             link.StartsWith("artworks/", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var id = Regex.Replace(link, @"(((illust)|(illusts)|(artworks))/(\d+))", "$6", RegexOptions.IgnoreCase).Trim();
                         var a_link = $"https://www.pixiv.net/artworks/{id}";
                         var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
                         if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
@@ -1332,6 +1342,14 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("uid:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var id = link.Substring(4).Trim();
+                        var u_link = $"https://www.pixiv.net/users/{id}";
+                        var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
+                        if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
+                    }
+                    else if (link.StartsWith("user/", StringComparison.CurrentCultureIgnoreCase) ||
+                             link.StartsWith("users/", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var id = Regex.Replace(link, @"(((user)|(users))/(\d+))", "$5", RegexOptions.IgnoreCase).Trim();
                         var u_link = $"https://www.pixiv.net/users/{id}";
                         var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
                         if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);

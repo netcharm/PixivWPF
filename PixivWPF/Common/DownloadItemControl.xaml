@@ -132,7 +132,7 @@
             <StackPanel Grid.Column="1" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,0,2"
                     Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Button x:Name="PART_CopyIllustID" x:Uid="ActionCopyIllustID" Margin="2,0,2,0" Click="miActions_Click"
-                        ToolTip="Open Illust ID" 
+                        ToolTip="Copy Illust ID" 
                         Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
                         BorderBrush="{DynamicResource AccentColorBrush}"
                         Foreground="{DynamicResource LabelTextBrush}" 
@@ -186,7 +186,7 @@
                     mah:ButtonHelper.PreserveTextCase="True">
                     <StackPanel Orientation="Horizontal">
                         <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
-                        <!--<TextBlock Text="Open Folder" Margin="2,0,0,0" FontSize="10"/>-->
+                        <!--<TextBlock Text="Open Folder" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource AccentColorBrush}"/>-->
                     </StackPanel>
                 </Button>
                 <Button x:Name="PART_OpenFile" x:Uid="OpenFile" Margin="2,0,2,0" Click="miActions_Click"
@@ -200,7 +200,7 @@
                     mah:ButtonHelper.PreserveTextCase="True">
                     <StackPanel Orientation="Horizontal">
                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
-                        <TextBlock Text="View Image" Margin="2,0,0,0" FontSize="10"/>
+                        <TextBlock Text="View Image" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource AccentColorBrush}"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
