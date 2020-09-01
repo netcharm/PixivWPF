@@ -35,7 +35,8 @@ namespace PixivWPF.Pages
         {
             ToggleButton[] btns = new ToggleButton[] {
                 btnGotoRecommended, btnGotoLatest, btnGotoTrendingTags,
-                btnGotoMy, btnGotoFeeds, btnGotoFollowing, btnGotoFollowingPrivate,
+                btnGotoMy, btnGotoMyFollowerUser, btnGotoMyFollowingUser, btnGotoMyFollowingUserPrivate, btnGotoMyPixivUser, btnGotoBlacklistUser,
+                btnGotoFeeds, btnGotoFollowing, btnGotoFollowingPrivate,
                 btnGotoFavorite, btnGotoFavoritePrivate,
                 btnGotoRankingDay, btnGotoRankingDayMale, btnGotoRankingDayFemale, btnGotoRankingDayR18, btnGotoRankingDayMaleR18, btnGotoRankingDayFemaleR18,
                 btnGotoRankingWeek, btnGotoRankingWeekOriginal, btnGotoRankingWeekRookie, btnGotoRankingWeekR18, btnGotoRankingWeekR18G,
@@ -55,6 +56,26 @@ namespace PixivWPF.Pages
             else if (page == PixivPage.My)
             {
                 sender = btnGotoMy;
+            }
+            else if (page == PixivPage.MyFollowerUser)
+            {
+                sender = btnGotoMyFollowerUser;
+            }
+            else if (page == PixivPage.MyFollowingUser)
+            {
+                sender = btnGotoMyFollowingUser;
+            }
+            else if (page == PixivPage.MyFollowingUserPrivate)
+            {
+                sender = btnGotoMyFollowingUserPrivate;
+            }
+            else if (page == PixivPage.MyPixivUser)
+            {
+                sender = btnGotoMyPixivUser;
+            }
+            else if (page == PixivPage.MyBlacklistUser)
+            {
+                sender = btnGotoBlacklistUser;
             }
             else if (page == PixivPage.Feeds)
             {
@@ -201,6 +222,26 @@ namespace PixivWPF.Pages
             else if (sender == btnGotoMy)
             {
                 page = PixivPage.My;
+            }
+            else if (sender == btnGotoMyFollowerUser)
+            {
+                page = PixivPage.MyFollowerUser;
+            }
+            else if (sender == btnGotoMyFollowingUser)
+            {
+                page = PixivPage.MyFollowingUser;
+            }
+            else if (sender == btnGotoMyFollowingUserPrivate)
+            {
+                page = PixivPage.MyFollowingUserPrivate;
+            }
+            else if (sender == btnGotoMyPixivUser)
+            {
+                page = PixivPage.MyPixivUser;
+            }
+            else if (sender == btnGotoBlacklistUser)
+            {
+                page = PixivPage.MyBlacklistUser;
             }
             else if (sender == btnGotoFeeds)
             {

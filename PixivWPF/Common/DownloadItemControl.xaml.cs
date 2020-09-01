@@ -137,6 +137,11 @@ namespace PixivWPF.Common
 
         public string FailReason { get; set; } = string.Empty;
 
+        public DownloadInfo()
+        {
+            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+        }
+
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
             if (ProgressPercent == 100)
@@ -706,6 +711,8 @@ namespace PixivWPF.Common
         public DownloadItem()
         {
             InitializeComponent();
+            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+
             Info = new DownloadInfo();
 
             InitProgress();
@@ -716,6 +723,7 @@ namespace PixivWPF.Common
         public DownloadItem(string url, bool autostart=true)
         {
             InitializeComponent();
+            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
 
             Info = new DownloadInfo();
 
@@ -730,6 +738,7 @@ namespace PixivWPF.Common
         public DownloadItem(DownloadInfo info)
         {
             InitializeComponent();
+            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
 
             if (info is DownloadInfo)
                 Info = info;

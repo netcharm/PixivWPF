@@ -24,9 +24,10 @@ namespace PixivWPF.Common
 
         public CacheImage()
         {
+            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+
             _CacheFolder = Path.Combine(setting.APP_PATH, "cache");
             _CacheDB = Path.Combine(setting.APP_PATH, "cache.json");
-
             Load();
         }
 

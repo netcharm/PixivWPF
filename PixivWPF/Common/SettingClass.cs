@@ -62,8 +62,47 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public Pixeez.Objects.User MyInfo
         {
-            get { return myinfo; }
-            set { myinfo = value; }
+            get
+            {
+                return myinfo;
+            }
+            set
+            {
+                myinfo = value;
+                if (value is Pixeez.Objects.User)
+                {
+                    UID = myinfo.Id.Value.ToString().Encrypt(accesstoken);
+                }
+            }
+        }
+
+        public string UID { get; set; } = string.Empty;
+        [JsonIgnore]
+        public long MyID
+        {
+            get
+            {
+                if (myinfo is Pixeez.Objects.User)
+                    return (myinfo.Id.Value);
+                else
+                    return (GetMyId());
+            }
+        }
+
+        private long GetMyId()
+        {
+            long luid = 0;
+            var suid = UID.Decrypt(accesstoken);
+            var ret = long.TryParse(suid, out luid);
+            if (!ret)
+            {
+                new Action(async () =>
+                {
+                    myinfo = await luid.RefreshUser();
+                }).Invoke();
+                return (myinfo.Id.Value);
+            }
+            else return (luid);
         }
 
         private long update = 0;

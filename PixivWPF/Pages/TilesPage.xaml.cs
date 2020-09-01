@@ -107,6 +107,8 @@ namespace PixivWPF.Pages
         {
             InitializeComponent();
 
+            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+
             window = this.GetActiveWindow();
 
             cancelTokenSource = new CancellationTokenSource();
@@ -174,6 +176,23 @@ namespace PixivWPF.Pages
                 case PixivPage.My:
                     ShowUser(0, true);
                     break;
+
+                case PixivPage.MyFollowerUser:
+                    ShowMyFollower(0, NextURL);
+                    break;
+                case PixivPage.MyFollowingUser:
+                    ShowMyFollowing(0, NextURL, false);
+                    break;
+                case PixivPage.MyFollowingUserPrivate:
+                    ShowMyFollowing(0, NextURL, true);
+                    break;
+                case PixivPage.MyPixivUser:
+                    ShowMyPixiv(0, NextURL);
+                    break;
+                case PixivPage.MyBlacklistUser:
+                    ShowMyBlacklist(0, NextURL);
+                    break;
+
                 case PixivPage.MyWork:
                     //ShowFavorite(NextURL, true);
                     break;
@@ -550,9 +569,8 @@ namespace PixivWPF.Pages
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
-                long uid = 0;
+                long uid = setting.MyID;
                 var condition = IsPrivate ? "private" : "public";
-                if (setting.MyInfo != null && uid == 0) uid = setting.MyInfo.Id.Value;
 
                 if (uid > 0)
                 {
@@ -771,20 +789,251 @@ namespace PixivWPF.Pages
 
         private async void ShowUser(long uid, bool IsPrivate = false)
         {
-            var force = uid == 0 && setting.MyInfo is Pixeez.Objects.User ? false : true;
-
             if ((IsPrivate || uid == 0) && setting.MyInfo is Pixeez.Objects.User)
             {
                 CommonHelper.Cmd_OpenIllust.Execute(setting.MyInfo);
             }
             else
             {
-                var user = await uid.RefreshUser();
-                if (user is Pixeez.Objects.User && uid == user.Id.Value)
+                Pixeez.Objects.User user = null;
+                if (uid == 0)
                 {
-                    user.Cache();
-                    CommonHelper.Cmd_OpenIllust.Execute(user);
+                    uid = setting.MyID;
+                    user = setting.MyInfo;
                 }
+                else
+                {
+                    user = (Pixeez.Objects.User)uid.FindUser();
+                }
+
+                if (Keyboard.Modifiers == ModifierKeys.Control || !(user is Pixeez.Objects.User))
+                    user = await uid.RefreshUser();
+                CommonHelper.Cmd_OpenIllust.Execute(user);
+            }
+        }
+
+        private async void ShowMyFollower(long uid, string nexturl = null)
+        {
+            ImageTilesWait.Show();
+            var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Hide();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTilesWait.Show();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                if (uid == 0) uid = setting.MyID;
+                Pixeez.Objects.UsersSearchResult root = null;
+                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetFollowerUsers(uid.ToString()) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(nexturl);
+
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.Users != null)
+                {
+                    foreach (var up in root.Users)
+                    {
+                        var user = up.User;
+                        user.Cache();
+                        if (!ids.Contains(user.Id.Value))
+                        {
+                            ids.Add(user.Id.Value);
+                            user.AddTo(ImageList, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    this.DoEvents();
+                    KeepLastSelected(lastSelectedId);
+                    UpdateImageTiles();
+                    this.DoEvents();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowMessageBox("INFO");
+                }
+                else
+                {
+                    ex.Message.ShowMessageBox("ERROR");
+                }
+            }
+            finally
+            {
+                ImageTilesWait.Hide();
+            }
+        }
+
+        private async void ShowMyFollowing(long uid, string nexturl = null, bool IsPrivate = false)
+        {
+            ImageTilesWait.Show();
+            var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Hide();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTilesWait.Show();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                if (uid == 0) uid = setting.MyID;
+                var condition = IsPrivate ? "private" : "public";
+                Pixeez.Objects.UsersSearchResult root = null;
+                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetFollowingUsers(uid.ToString(), condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(nexturl);
+
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.Users != null)
+                {
+                    foreach (var up in root.Users)
+                    {
+                        var user = up.User;
+                        user.Cache();
+                        if (!ids.Contains(user.Id.Value))
+                        {
+                            ids.Add(user.Id.Value);
+                            user.AddTo(ImageList, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    this.DoEvents();
+                    KeepLastSelected(lastSelectedId);
+                    UpdateImageTiles();
+                    this.DoEvents();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowMessageBox("INFO");
+                }
+                else
+                {
+                    ex.Message.ShowMessageBox("ERROR");
+                }
+            }
+            finally
+            {
+                ImageTilesWait.Hide();
+            }
+        }
+
+        private async void ShowMyPixiv(long uid, string nexturl = null)
+        {
+            ImageTilesWait.Show();
+            var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Hide();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTilesWait.Show();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                if (uid == 0) uid = setting.MyID;
+                Pixeez.Objects.UsersSearchResult root = null;
+                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetMyPixiv(uid.ToString()) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(nexturl);
+
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.Users != null)
+                {
+                    foreach (var up in root.Users)
+                    {
+                        var user = up.User;
+                        user.Cache();
+                        if (!ids.Contains(user.Id.Value))
+                        {
+                            ids.Add(user.Id.Value);
+                            user.AddTo(ImageList, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    this.DoEvents();
+                    KeepLastSelected(lastSelectedId);
+                    UpdateImageTiles();
+                    this.DoEvents();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowMessageBox("INFO");
+                }
+                else
+                {
+                    ex.Message.ShowMessageBox("ERROR");
+                }
+            }
+            finally
+            {
+                ImageTilesWait.Hide();
+            }
+        }
+
+        private async void ShowMyBlacklist(long uid, string nexturl = null)
+        {
+            ImageTilesWait.Show();
+            var tokens = await CommonHelper.ShowLogin();
+            ImageTilesWait.Hide();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTilesWait.Show();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                if (uid == 0) uid = setting.MyID;
+                Pixeez.Objects.UsersSearchResultAlt root = null;
+                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetBlackListUsers(uid.ToString()) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResultAlt>(nexturl);
+
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.Users != null)
+                {
+                    foreach (var up in root.Users)
+                    {
+                        var user = up.User;
+                        user.Cache();
+                        if (!ids.Contains(user.Id.Value))
+                        {
+                            ids.Add(user.Id.Value);
+                            user.AddTo(ImageList, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    this.DoEvents();
+                    KeepLastSelected(lastSelectedId);
+                    UpdateImageTiles();
+                    this.DoEvents();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowMessageBox("INFO");
+                }
+                else
+                {
+                    ex.Message.ShowMessageBox("ERROR");
+                }
+            }
+            finally
+            {
+                ImageTilesWait.Hide();
             }
         }
 
@@ -797,13 +1046,23 @@ namespace PixivWPF.Pages
 
                 var item = ImageList[idx];
 
-                item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
-                item.IsFavorited = item.IsLiked();
+                if (item.ItemType == ImageItemType.User)
+                {
+                    item.IsDownloaded = false;
+                    item.IsFavorited = false;
+                    item.IsFollowed = item.User.IsLiked();
+                }
+                else
+                {
+                    item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                    item.IsFavorited = item.IsLiked();
+                    item.IsFollowed = item.User.IsLiked();
+                }
 
                 var ID_O = detail_page.Tag is ImageItem ? (detail_page.Tag as ImageItem).ID : string.Empty;
                 var ID_N = item is ImageItem ? item.ID : string.Empty;
 
-                if (string.IsNullOrEmpty(ID_O) || !ID_O.Equals(ID_N, StringComparison.CurrentCultureIgnoreCase))
+                if (string.IsNullOrEmpty(ID_O) || !ID_O.Equals(ID_N, StringComparison.CurrentCultureIgnoreCase))// || detail_page.Tag != item)
                 {
                     detail_page.Tag = item;
                     detail_page.UpdateDetail(item);

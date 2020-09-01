@@ -65,6 +65,8 @@ namespace PixivWPF.Pages
         public DownloadManagerPage()
         {
             InitializeComponent();
+            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+
             DataContext = this;
 
             tcb = timerCallback;

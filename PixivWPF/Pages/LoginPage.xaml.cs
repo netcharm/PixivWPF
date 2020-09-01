@@ -50,6 +50,8 @@ namespace PixivWPF.Pages
         {
             InitializeComponent();
 
+            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+
             window = this.GetActiveWindow();
 
             Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);

@@ -30,4 +30,13 @@ namespace Pixeez.Objects
         [JsonProperty("next_url")]
         public string next_url;
     }
+
+    public class UsersSearchResultAlt
+    {
+        [JsonProperty("users")]
+        public List<UserSearchResult> Users;
+
+        [JsonProperty("next_url")]
+        public string next_url;
+    }
 }

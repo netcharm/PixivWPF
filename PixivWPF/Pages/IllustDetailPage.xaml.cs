@@ -373,24 +373,28 @@ namespace PixivWPF.Pages
                 {
                     await new Action(async () =>
                     {
+                        IllustDetailWait.Show();
                         if (Keyboard.Modifiers == ModifierKeys.Control)
                         {
                             item.Illust = await item.ID.RefreshIllust();
                             item.Illust.Cache();
                         }
                         UpdateDetailIllust(item);
+                        IllustDetailWait.Hide();
                     }).InvokeAsync();
                 }
                 else if (item.ItemType == ImageItemType.User)
                 {
                     await new Action(async () =>
                     {
+                        IllustDetailWait.Show();
                         if (Keyboard.Modifiers == ModifierKeys.Control)
                         {
                             item.User = await item.UserID.RefreshUser();
                             item.User.Cache();
                         }
                         UpdateDetailUser(item.User);
+                        IllustDetailWait.Hide();
                     }).InvokeAsync();
                 }
                 IllustDetailViewer.ScrollToTop();
@@ -429,6 +433,7 @@ namespace PixivWPF.Pages
             try
             {
                 IllustDetailWait.Show();
+                this.DoEvents();
 
                 DataObject = item;
 
@@ -629,6 +634,7 @@ namespace PixivWPF.Pages
             try
             {
                 IllustDetailWait.Show();
+                this.DoEvents();
 
                 var tokens = await CommonHelper.ShowLogin();
 

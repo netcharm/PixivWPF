@@ -198,6 +198,31 @@
                     Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
                     Content="My Infomation" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoMyFollowerUser" x:Uid="btnGotoMyFollowerUser" Margin="0,1,0,0"
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="My Follower Users" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoMyFollowingUser" x:Uid="btnGotoMyFollowingUser" Margin="0,1,0,0"
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="My Following Users" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoMyFollowingUserPrivate" x:Uid="btnGotoMyFollowingUserPrivate" Margin="0,1,0,0"
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="My Following Users Privat" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoMyPixivUser" x:Uid="btnGotoMyPixivUser" Margin="0,1,0,0"
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="My Pixiv Users" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
+            <ToggleButton x:Name="btnGotoBlacklistUser" x:Uid="btnGotoBlacklistUser" Margin="0,1,0,0"
+                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Content="My Blacklist Users" Click="NavItem_Click"
+                    mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
         </StackPanel>
     </Grid>
 </Page>

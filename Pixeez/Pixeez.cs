@@ -747,7 +747,13 @@ namespace Pixeez
         /// <returns></returns>
         public async Task AddFavouriteUser(long user_id, string publicity = "public")
         {
-            using (var res = await SendRequestAsync(MethodType.POST, "https://public-api.secure.pixiv.net/v1/me/favorite-users.json", new Dictionary<string, string> { { "target_user_id", user_id.ToString() }, { "publicity", publicity } }))
+            var url = "https://public-api.secure.pixiv.net/v1/me/favorite-users.json";
+            var param = new Dictionary<string, string>
+            {
+                { "target_user_id", user_id.ToString() },
+                { "publicity", publicity }
+            };
+            using (var res = await SendRequestAsync(MethodType.POST, url, param ))
             {
                 var code = res.Source.EnsureSuccessStatusCode();
                 var result = await res.GetResponseStringAsync();
@@ -763,12 +769,88 @@ namespace Pixeez
         /// <returns></returns>
         public async Task DeleteFavouriteUser(string user_id, string publicity = "public")
         {
-            using (var res = await SendRequestAsync(MethodType.DELETE, "https://public-api.secure.pixiv.net/v1/me/favorite-users.json", new Dictionary<string, string> { { "delete_ids", user_id.ToString() }, { "publicity", publicity } }))
+            var url = "https://public-api.secure.pixiv.net/v1/me/favorite-users.json";
+            var param = new Dictionary<string, string> {
+                { "delete_ids", user_id.ToString() },
+                { "publicity", publicity }
+            };
+            using (var res = await SendRequestAsync(MethodType.DELETE, url, param))
             {
                 var code = res.Source.EnsureSuccessStatusCode();
                 var result = await res.GetResponseStringAsync();
             }
         }
+
+        /// <summary>
+        /// Following用户列表
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <param name="publicity"></param>
+        /// <param name="offset"></param>
+        /// <param name="req_auth"></param>
+        /// <returns></returns>
+        public async Task<UsersSearchResult> GetFollowingUsers(string user_id, string publicity = "public", int offset = 0, bool req_auth = true)
+        {
+            var url = "https://app-api.pixiv.net/v1/user/following";
+            var param = new Dictionary<string, string>
+            {
+                { "user_id", user_id.ToString() },
+                { "restrict", publicity }
+            };
+            return await AccessNewApiAsync<UsersSearchResult>(url, true, param);
+        }
+
+        /// <summary>
+        /// Followers用户列表
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <param name="filter"></param>
+        /// <param name="offset"></param>
+        /// <param name="req_auth"></param>
+        /// <returns></returns>
+        public async Task<UsersSearchResult> GetFollowerUsers(string user_id, string filter = "for_ios", int offset = 0, bool req_auth = true)
+        {
+            var url = "https://app-api.pixiv.net/v1/user/follower";
+            var param = new Dictionary<string, string>
+            {
+                { "user_id", user_id.ToString() },
+                { "filter", filter }
+            };
+            if (offset >= 0) param["offset"] = offset.ToString();
+            return await AccessNewApiAsync<UsersSearchResult>(url, true, param);
+        }
+
+        /// <summary>
+        /// 好P友
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <param name="offset"></param>
+        /// <param name="req_auth"></param>
+        /// <returns></returns>
+        public async Task<UsersSearchResult> GetMyPixiv(string user_id, int offset = 0, bool req_auth = true)
+        {
+            var url = "https://app-api.pixiv.net/v1/user/mypixiv";
+            var param = new Dictionary<string, string>
+            {
+                { "user_id", user_id.ToString() },
+            };
+            if (offset >= 0) param["offset"] = offset.ToString();
+            return await AccessNewApiAsync<UsersSearchResult>(url, true, param);
+        }
+
+        public async Task<UsersSearchResultAlt> GetBlackListUsers(string user_id, string filter = "for_ios", int offset = 0, bool req_auth = true)
+        {
+            var url = "https://app-api.pixiv.net/v2/user/list";
+            var param = new Dictionary<string, string>
+            {
+                { "user_id", user_id.ToString() },
+                { "filter", filter }
+            };
+            if (offset >= 0) param["offset"] = offset.ToString();
+            return await AccessNewApiAsync<UsersSearchResultAlt>(url, true, param);
+        }
+
+
         #endregion
 
         #region Bookmark / Favorite related

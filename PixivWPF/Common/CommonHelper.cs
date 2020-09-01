@@ -17,6 +17,7 @@ using System.Media;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Security.Permissions;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -44,6 +45,11 @@ namespace PixivWPF.Common
         Recommanded,
         Latest,
         My,
+        MyFollowerUser,
+        MyFollowingUser,
+        MyFollowingUserPrivate,
+        MyPixivUser,
+        MyBlacklistUser,
         MyWork,
         User,
         UserWork,
@@ -1334,7 +1340,7 @@ namespace PixivWPF.Common
                              link.StartsWith("illusts/", StringComparison.CurrentCultureIgnoreCase) ||
                              link.StartsWith("artworks/", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var id = Regex.Replace(link, @"(((illust)|(illusts)|(artworks))/(\d+))", "$6", RegexOptions.IgnoreCase).Trim();
+                        var id = Regex.Replace(link, @"(((illust)|(illusts)|(artworks))/(\d+))", "$6", opt).Trim();
                         var a_link = $"https://www.pixiv.net/artworks/{id}";
                         var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
                         if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
@@ -1349,7 +1355,7 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("user/", StringComparison.CurrentCultureIgnoreCase) ||
                              link.StartsWith("users/", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var id = Regex.Replace(link, @"(((user)|(users))/(\d+))", "$5", RegexOptions.IgnoreCase).Trim();
+                        var id = Regex.Replace(link, @"(((user)|(users))/(\d+))", "$5", opt).Trim();
                         var u_link = $"https://www.pixiv.net/users/{id}";
                         var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
                         if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
@@ -1405,6 +1411,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
+            if (links.Count <= 0) links.Add($"Fuzzy:{html}");
             return (links);
         }
 
@@ -1858,6 +1865,72 @@ namespace PixivWPF.Common
             {
                 System.Diagnostics.Process.Start(currentUri);
             }
+        }
+
+        public static string Encrypt(this string text, string skey)
+        {
+            string encrypt = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
+                {
+                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
+                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(skey));
+                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(skey));
+                    aes.Key = key;
+                    aes.IV = iv;
+
+                    byte[] dataByteArray = Encoding.UTF8.GetBytes(text);
+                    using (MemoryStream ms = new MemoryStream())
+                    using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(dataByteArray, 0, dataByteArray.Length);
+                        cs.FlushFinalBlock();
+                        encrypt = Convert.ToBase64String(ms.ToArray());
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.Message);
+            }
+            return encrypt;
+        }
+
+        public static string Decrypt(this string text, string skey)
+        {
+            string decrypt = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
+                {
+                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
+                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(skey));
+                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(skey));
+                    aes.Key = key;
+                    aes.IV = iv;
+
+                    byte[] dataByteArray = Convert.FromBase64String(text);
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                        {
+                            cs.Write(dataByteArray, 0, dataByteArray.Length);
+                            cs.FlushFinalBlock();
+                            decrypt = Encoding.UTF8.GetString(ms.ToArray());
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.Message);
+            }
+            return decrypt;
         }
         #endregion
 
@@ -3189,7 +3262,9 @@ namespace PixivWPF.Common
         {
             Pixeez.Objects.User result = null;
             if (UserID < 0) return (result);
-            if (tokens == null) tokens = await ShowLogin();
+            var force = UserID == 0 && setting.MyInfo is Pixeez.Objects.User ? false : true;
+            if (tokens == null) tokens = await ShowLogin(force);
+            //if (tokens == null) tokens = await ShowLogin();
             if (tokens == null) return (result);
             try
             {

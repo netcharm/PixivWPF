@@ -415,6 +415,7 @@ namespace PixivWPF.Pages
         {
             InitializeComponent();
 
+            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
             CreateHtmlRender();
         }
 
