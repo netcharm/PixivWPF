@@ -45,6 +45,29 @@ namespace PixivWPF.Common
             set { password = value.AesEncrypt(accesstoken); }
         }
 
+        public bool SaveUserPass { get; set; } = false;
+        [JsonProperty(nameof(User))]
+        public string Username
+        {
+            get
+            {
+                if (SaveUserPass) return username;
+                else return (string.Empty);
+            }
+            set { if(SaveUserPass) username = value; }
+        }
+
+        [JsonProperty(nameof(Pass))]
+        public string Password
+        {
+            get
+            {
+                if (SaveUserPass) return password;
+                else return (string.Empty);
+            }
+            set { if (SaveUserPass) password = value; }
+        }
+
         [JsonIgnore]
         private Pixeez.Objects.User myinfo = null;
         [JsonIgnore]
@@ -218,13 +241,18 @@ namespace PixivWPF.Common
         public Point DropBoxPosition { get; set; } = new Point(0, 0);
 
         [JsonIgnore]
-        public bool IsLoading { get; set; } = false;
+        public static bool IsLoading { get; set; } = false;
+        [JsonIgnore]
+        private static bool IsSaving { get; set; } = false;
+
         public void Save(string configfile = "")
         {
             try
             {
                 if (IsLoading) return;
+                if (IsSaving) return;
 
+                IsSaving = true;
                 if (string.IsNullOrEmpty(configfile)) configfile = config;
 
                 if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.SaveFolder)) < 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
@@ -237,16 +265,20 @@ namespace PixivWPF.Common
                     Cache.LocalStorage.Add(new StorageType(Cache.LastFolder, true));
                 }
 
+                UpdateContentsTemplete();
+
                 var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
                 File.WriteAllText(configfile, text, new UTF8Encoding(true));
-
-                UpdateContentsTemplete();
 
                 SaveTags();
             }
             catch (Exception ex)
             {
                 ex.Message.ShowMessageDialog("ERROR");
+            }
+            finally
+            {
+                IsSaving = false;
             }
         }
 
@@ -262,7 +294,7 @@ namespace PixivWPF.Common
                 {
                     Cache.ContentsTemplete = Cache.CustomContentsTemplete;
                     Cache.ContentsTemplateTime = DateTime.Now;
-                    Cache.Save();
+                    if (!IsSaving && !IsLoading) Cache.Save();
                 }
             }
         }
@@ -315,7 +347,6 @@ namespace PixivWPF.Common
                     }
                 }
                 LoadTags();
-
             }
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowToast("ERROR"); }
