@@ -356,7 +356,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (State == DownloadState.Idle || State == DownloadState.Failed || State == DownloadState.NonExists);
+                return (State == DownloadState.Idle || State == DownloadState.Failed || State == DownloadState.Finished || State == DownloadState.NonExists);
             }
         }
 

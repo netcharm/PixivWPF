@@ -32,14 +32,8 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public string User
         {
-            get
-            {
-                return (username);
-            }
-            set
-            {
-                username = value;
-            }
+            get { return (username.AesDecrypt(accesstoken)); }
+            set { username = value.AesEncrypt(accesstoken); }
         }
 
         [JsonIgnore]
@@ -47,14 +41,8 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public string Pass
         {
-            get
-            {
-                return (password);
-            }
-            set
-            {
-                password = value;
-            }
+            get { return (password.AesDecrypt(accesstoken)); }
+            set { password = value.AesEncrypt(accesstoken); }
         }
 
         [JsonIgnore]
@@ -62,16 +50,13 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public Pixeez.Objects.User MyInfo
         {
-            get
-            {
-                return myinfo;
-            }
+            get { return myinfo; }
             set
             {
                 myinfo = value;
                 if (value is Pixeez.Objects.User)
                 {
-                    UID = myinfo.Id.Value.ToString().Encrypt(accesstoken);
+                    UID = myinfo.Id.Value.ToString().AesEncrypt(accesstoken);
                 }
             }
         }
@@ -92,7 +77,7 @@ namespace PixivWPF.Common
         private long GetMyId()
         {
             long luid = 0;
-            var suid = UID.Decrypt(accesstoken);
+            var suid = UID.AesDecrypt(accesstoken);
             var ret = long.TryParse(suid, out luid);
             if (!ret)
             {

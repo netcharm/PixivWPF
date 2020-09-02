@@ -13,6 +13,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
+using System.Management;
 using System.Media;
 using System.Net;
 using System.Net.Http;
@@ -219,7 +220,45 @@ namespace PixivWPF.Common
             return (version.ToString());
             //return (Application.ResourceAssembly.GetName().Version.ToString());
         }
-        
+
+        private static string processor_id = string.Empty;
+        public static string ProcessorID
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(processor_id)) processor_id = GetProcessorID(Application.Current);
+                return (processor_id);
+            }
+        }
+
+        public static string GetProcessorID(this Application app)
+        {
+            string result = string.Empty;
+
+            ManagementObjectSearcher mos = new ManagementObjectSearcher("select * from Win32_Processor");
+            foreach (ManagementObject mo in mos.Get())
+            {
+                try
+                {
+                    result = mo["ProcessorId"].ToString();
+                    break;
+                }
+                catch (Exception) { continue; }
+
+                //foreach (PropertyData p in mo.Properties)
+                //{
+                //    if(p.Name.Equals("ProcessorId", StringComparison.CurrentCultureIgnoreCase))
+                //    {
+                //        result = p.Value.ToString();
+                //        break;
+                //    }
+                //}
+                //if (string.IsNullOrEmpty(result)) break;
+            }
+
+            return (result);
+        }
+
         public static System.Diagnostics.Process Process(this Application app)
         {
             if (!(CurrentProcess is System.Diagnostics.Process))
@@ -769,7 +808,7 @@ namespace PixivWPF.Common
                         var di = item as DownloadInfo;
                         var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason:{di.FailReason}";
                         targets.Add($"URL    : {di.Url}");
-                        targets.Add($"File   : {di.FileName}");
+                        targets.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
                         targets.Add($"State  : {di.State}{fail}");
                         targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes)");
                         targets.Add(sep);
@@ -796,6 +835,38 @@ namespace PixivWPF.Common
                 await new Action(() =>
                 {
                     OpenPixivPedia(content);
+                }).InvokeAsync();
+            }
+        });
+
+        public static ICommand Cmd_OpenDropBox { get; } = new DelegateCommand<object>(async obj =>
+        {
+            if (obj is System.Windows.Controls.Primitives.ToggleButton)
+            {
+                var sender = obj as System.Windows.Controls.Primitives.ToggleButton;
+                await new Action(() =>
+                {
+                    if (sender is System.Windows.Controls.Primitives.ToggleButton)
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            List<string> titles = new List<string>();
+                            foreach (Window win in Application.Current.Windows)
+                            {
+                                if (win is MainWindow) continue;
+                                else if (win is MetroWindow)
+                                {
+                                    if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase)) continue;
+                                    else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
+                                    titles.Add(win.Title);
+                                }
+                                else continue;
+                            }
+                            if (titles.Count > 0) Clipboard.SetText($"{string.Join(Environment.NewLine, titles)}{Environment.NewLine}");
+                        }
+                        else
+                            SetDropBoxState(true.ShowDropBox());
+                    }
                 }).InvokeAsync();
             }
         });
@@ -1867,22 +1938,25 @@ namespace PixivWPF.Common
             }
         }
 
-        public static string Encrypt(this string text, string skey)
+        public static string AesEncrypt(this string text, string skey)
         {
             string encrypt = string.Empty;
             try
             {
                 if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
                 {
+                    var uni_skey = $"{ApplicationExtensions.ProcessorID}{skey}";
+                    var uni_text = $"{ApplicationExtensions.ProcessorID}{text}";
+
                     AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
                     SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
-                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(skey));
-                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(skey));
+                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
                     aes.Key = key;
                     aes.IV = iv;
 
-                    byte[] dataByteArray = Encoding.UTF8.GetBytes(text);
+                    byte[] dataByteArray = Encoding.UTF8.GetBytes(uni_text);
                     using (MemoryStream ms = new MemoryStream())
                     using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
                     {
@@ -1892,25 +1966,27 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(e.Message);
+                ex.Message.ShowMessageBox("ERROR");
             }
             return encrypt;
         }
 
-        public static string Decrypt(this string text, string skey)
+        public static string AesDecrypt(this string text, string skey)
         {
             string decrypt = string.Empty;
             try
             {
                 if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
                 {
+                    var uni_skey = $"{ApplicationExtensions.ProcessorID}{skey}";
+
                     AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
                     SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
-                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(skey));
-                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(skey));
+                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
                     aes.Key = key;
                     aes.IV = iv;
 
@@ -1921,16 +1997,70 @@ namespace PixivWPF.Common
                         {
                             cs.Write(dataByteArray, 0, dataByteArray.Length);
                             cs.FlushFinalBlock();
-                            decrypt = Encoding.UTF8.GetString(ms.ToArray());
+                            var uni_text = Encoding.UTF8.GetString(ms.ToArray());
+                            if (uni_text.StartsWith(ApplicationExtensions.ProcessorID))
+                                decrypt = uni_text.Replace($"{ApplicationExtensions.ProcessorID}", "");
                         }
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(e.Message);
+                ex.Message.ShowMessageBox("ERROR");
             }
             return decrypt;
+        }
+        #endregion
+
+        #region Get Illust Work DateTime
+        private static TimeZoneInfo TokoyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+        private static TimeZoneInfo LocalTimeZone = TimeZoneInfo.Local;
+        private static DateTime ParseDateTime(this string url)
+        {
+            var result = DateTime.FromFileTime(0);
+            //https://i.pximg.net/img-original/img/2010/11/16/22/34/05/14611687_p0.png
+            var ds = Regex.Replace(url, @"http(s){0,1}://i\.pximg\.net/.*?/(\d{4})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/\d+.*?\.((png)|(jpg)|(gif)|(zip))", "$2-$3-$4T$5:$6:$7+09:00", RegexOptions.IgnoreCase);
+            DateTime.TryParse(ds, out result);
+            //result = Convert.ToDateTime(ds);
+            return (result);
+        }
+
+        public static DateTime GetDateTime(this Pixeez.Objects.Work Illust, bool local = false)
+        {
+            var dt = DateTime.Now;
+            if (Illust is Pixeez.Objects.IllustWork)
+            {
+                var illustset = Illust as Pixeez.Objects.IllustWork;
+                dt = illustset.GetOriginalUrl().ParseDateTime();
+                if(dt.Year == 1601) dt = illustset.CreatedTime;
+            }
+            else if (Illust is Pixeez.Objects.NormalWork)
+            {
+                var illustset = Illust as Pixeez.Objects.NormalWork;
+                dt = illustset.GetOriginalUrl().ParseDateTime();
+                if (dt.Year == 1601) dt = illustset.CreatedTime.LocalDateTime;
+            }
+            else if (!string.IsNullOrEmpty(Illust.ReuploadedTime))
+            {
+                dt = DateTime.Parse($"{Illust.ReuploadedTime}+09:00");
+            }
+            dt = new DateTime(dt.Ticks, DateTimeKind.Unspecified);
+            if (local) return (TimeZoneInfo.ConvertTimeBySystemTimeZoneId(dt, TokoyTimeZone.Id, LocalTimeZone.Id));
+            else return (dt);
+        }
+
+        public static void Touch(this string file, string url, bool local = false)
+        {
+            FileInfo fi = new FileInfo(file);
+            var fdt = url.ParseDateTime();
+            if (fi.CreationTime.Ticks != fdt.Ticks) fi.CreationTime = fdt;
+            if (fi.LastWriteTime.Ticks != fdt.Ticks) fi.LastWriteTime = fdt;
+            if (fi.LastAccessTime.Ticks != fdt.Ticks) fi.LastAccessTime = fdt;
+        }
+
+        public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false)
+        {
+            file.Touch(Illust.GetOriginalUrl(), local);
         }
         #endregion
 
@@ -2400,6 +2530,7 @@ namespace PixivWPF.Common
                     if (f.DownoadedCacheExistsAsync())
                     {
                         filepath = f;
+                        f.Touch(url);
                         result = true;
                         break;
                     }
@@ -2409,6 +2540,7 @@ namespace PixivWPF.Common
                     if (File.Exists(f))
                     {
                         filepath = f;
+                        f.Touch(url);
                         result = true;
                         break;
                     }
@@ -2539,6 +2671,7 @@ namespace PixivWPF.Common
                     if (f.DownoadedCacheExistsAsync())
                     {
                         filepath = f;
+                        f.Touch(url);
                         result = true;
                         break;
                     }
@@ -2548,6 +2681,7 @@ namespace PixivWPF.Common
                     if (File.Exists(f))
                     {
                         filepath = f;
+                        f.Touch(url);
                         result = true;
                         break;
                     }
@@ -2563,6 +2697,7 @@ namespace PixivWPF.Common
                         if (fp.DownoadedCacheExistsAsync())
                         {
                             filepath = fp;
+                            fp.Touch(url);
                             result = true;
                             break;
                         }
@@ -2572,6 +2707,7 @@ namespace PixivWPF.Common
                         if (File.Exists(fp))
                         {
                             filepath = fp;
+                            fp.Touch(url);
                             result = true;
                             break;
                         }

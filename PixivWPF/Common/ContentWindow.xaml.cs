@@ -205,10 +205,7 @@ namespace PixivWPF.Common
 
         private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is System.Windows.Controls.Primitives.ToggleButton)
-            {
-                SetDropBoxState(true.ShowDropBox());
-            }
+            CommonHelper.Cmd_OpenDropBox.Execute(sender);
         }
 
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
