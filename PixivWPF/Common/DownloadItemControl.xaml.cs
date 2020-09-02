@@ -466,6 +466,7 @@ namespace PixivWPF.Common
                         miStopDownload.IsEnabled = false;
                     }
                     miOpenImage.IsEnabled = FileName.IsDownloaded();
+                    //miOpenImage.IsEnabled = Url.IsDownloaded();
                     miOpenFolder.IsEnabled = true;
 
                     PART_DownloadProgressPercent.Text = $"{State.ToString()}: {PART_DownloadProgress.Value:0.0}%";
@@ -530,7 +531,6 @@ namespace PixivWPF.Common
             {
                 IsStart = false;
                 if (State == DownloadState.Finished) result = FileName;
-                //PART_DownloadProgress.IsEnabled = false;
                 if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
                 cancelSource = null;
             }
@@ -542,8 +542,10 @@ namespace PixivWPF.Common
             var result = FileName;
             try
             {
-                if (File.Exists(source))// && State != DownloadState.Writing && State != DownloadState.Finished)
+                if (File.Exists(source))
                 {
+                    startTick = DateTime.Now;
+                    FailReason = string.Empty;
                     State = DownloadState.Writing;
                     var fi = new FileInfo(source);
                     Length = Received = fi.Length;
@@ -570,7 +572,6 @@ namespace PixivWPF.Common
             {
                 IsStart = false;
                 if (State == DownloadState.Finished) result = FileName;
-                //PART_DownloadProgress.IsEnabled = false;
                 if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
                 cancelSource = null;
             }
@@ -590,9 +591,6 @@ namespace PixivWPF.Common
 
                     IsStart = false;
                     Canceling = false;
-
-                    //await Task.Delay(250);
-                    //Application.Current.DoEvents();
 
                     startTick = DateTime.Now;
                     FailReason = string.Empty;
@@ -693,7 +691,6 @@ namespace PixivWPF.Common
                     {
                         IsStart = false;
                         State = DownloadState.Downloading;
-                        startTick = DateTime.Now;
                         SaveFile(FileName, fc);
                         Downloading.Release();
                     }

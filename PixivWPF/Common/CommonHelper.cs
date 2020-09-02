@@ -2032,13 +2032,13 @@ namespace PixivWPF.Common
             {
                 var illustset = Illust as Pixeez.Objects.IllustWork;
                 dt = illustset.GetOriginalUrl().ParseDateTime();
-                if(dt.Year == 1601) dt = illustset.CreatedTime;
+                if(dt.Year <= 1601 ) dt = illustset.CreatedTime;
             }
             else if (Illust is Pixeez.Objects.NormalWork)
             {
                 var illustset = Illust as Pixeez.Objects.NormalWork;
                 dt = illustset.GetOriginalUrl().ParseDateTime();
-                if (dt.Year == 1601) dt = illustset.CreatedTime.LocalDateTime;
+                if (dt.Year <= 1601) dt = illustset.CreatedTime.LocalDateTime;
             }
             else if (!string.IsNullOrEmpty(Illust.ReuploadedTime))
             {
@@ -2049,13 +2049,30 @@ namespace PixivWPF.Common
             else return (dt);
         }
 
+        public static void Touch(this FileInfo fileinfo, string url, bool local = false)
+        {
+            try
+            {
+                if (url.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var fdt = url.ParseDateTime();
+                    if (fdt.Year <= 1601) return;
+                    if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
+                    if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
+                    if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
+                }
+            }
+            catch (Exception) { }
+        }
+
         public static void Touch(this string file, string url, bool local = false)
         {
-            FileInfo fi = new FileInfo(file);
-            var fdt = url.ParseDateTime();
-            if (fi.CreationTime.Ticks != fdt.Ticks) fi.CreationTime = fdt;
-            if (fi.LastWriteTime.Ticks != fdt.Ticks) fi.LastWriteTime = fdt;
-            if (fi.LastAccessTime.Ticks != fdt.Ticks) fi.LastAccessTime = fdt;
+            try
+            {
+                FileInfo fi = new FileInfo(file);
+                fi.Touch(url, local);
+            }
+            catch (Exception) { }
         }
 
         public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false)
