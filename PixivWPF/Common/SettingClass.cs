@@ -54,7 +54,7 @@ namespace PixivWPF.Common
                 if (SaveUserPass) return username;
                 else return (string.Empty);
             }
-            set { if(SaveUserPass) username = value; }
+            set { if (SaveUserPass) username = value; }
         }
 
         [JsonProperty(nameof(Pass))]
@@ -163,6 +163,12 @@ namespace PixivWPF.Common
             }
             set
             {
+                username = User.AesEncrypt(value);
+                password = Pass.AesEncrypt(value);
+                if (myinfo is Pixeez.Objects.User)
+                {
+                    UID = myinfo.Id.Value.ToString().AesEncrypt(value);
+                }
                 accesstoken = value;
             }
         }
@@ -439,5 +445,4 @@ namespace PixivWPF.Common
             }
         }
     }
-
 }
