@@ -205,21 +205,6 @@ namespace PixivWPF.Pages
                 {
                     var query = Regex.Replace(content, @"^Fuzzy:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
                     query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
-                    //var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchWorksAsync(query) : 
-                    //    await tokens.AccessNewApiAsync<Pixeez.Objects.Paginated<Pixeez.Objects.NormalWork>>(next_url);
-                    //if (relatives is Pixeez.Objects.Paginated<Pixeez.Objects.NormalWork>)
-                    //{
-                    //    ResultExpander.Tag = next_url;
-                    //    foreach (var illust in relatives)
-                    //    {
-                    //        if (id_illust.Contains(illust.Id)) continue;
-                    //        illust.Cache();
-                    //        illust.AddTo(ResultIllusts.Items, next_url);
-                    //        id_illust.Add(illust.Id);
-                    //        this.DoEvents();
-                    //    }
-                    //    this.DoEvents();
-                    //}
                     var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "title_and_caption") :
                         await tokens.AccessNewApiAsync<Pixeez.Objects.Illusts>(next_url);
                     if (relatives is Pixeez.Objects.Illusts)

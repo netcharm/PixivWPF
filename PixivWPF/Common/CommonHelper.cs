@@ -1305,6 +1305,8 @@ namespace PixivWPF.Common
 
                 else if (Regex.IsMatch(result, @"^(.*?tag_full&word=)(.*)$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"(.*?\.pixiv\.net\/tags\/)(.*?){1}(/.*?)*$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"(.*?\/tags\/)(.*?){1}(/.*?)*", "Tag: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"(.*?\/pixiv\.navirank\.com\/tag\/)(.*?)", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"(.*?\/tag\/)(.*?)", "Tag: $2", RegexOptions.IgnoreCase);
 
@@ -1337,25 +1339,27 @@ namespace PixivWPF.Common
             foreach (var text in html.Split())
             {
                 var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim('"') : text;
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
 
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(http(s{0,1}):\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(http[s{0,1}]:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/id\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/user\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http(s{0,1}):\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"http[s{0,1}]://.*?\.pixiv\.net/(tags/(.*?){1})(/.*?)*$" + href_suffix, opt));
+
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/pixiv\.navirank\.com\/id\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/pixiv\.navirank\.com\/user\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix, opt));
 
                 mr.Add(Regex.Matches(content, @"^(((illust)|(illusts)|(artworks))/(\d+))", opt));
                 mr.Add(Regex.Matches(content, @"^(((user)|(users))/(\d+))", opt));
@@ -1435,7 +1439,13 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("tag:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var tag = link.Substring(4).Trim();
-                        var u_link = $"Tag:{tag}";
+                        var u_link = $"Tag:{Uri.UnescapeDataString(tag)}";
+                        if (!links.Contains(u_link)) links.Add(u_link);
+                    }
+                    else if (link.StartsWith("tags/", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var tag = link.Substring(5).Trim();
+                        var u_link = $"Tag:{Uri.UnescapeDataString(tag)}";
                         if (!links.Contains(u_link)) links.Add(u_link);
                     }
                     else if (link.StartsWith("user:", StringComparison.CurrentCultureIgnoreCase))
