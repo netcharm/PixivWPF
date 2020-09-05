@@ -51,12 +51,19 @@ namespace PixivWPF.Common
 #endif
         }
 
-        public async Task<ImageSource> GetImage(string url)
+        public async Task<ImageSource> GetImage(string url, bool login = false)
         {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return null;
+            if (login)
+            {
+                var tokens = await CommonHelper.ShowLogin();
+                if (tokens == null) return null;
 
-            return (await GetImage(url));
+                return (await GetImageLogin(url, tokens));
+            }
+            else
+            {
+                return (await GetImageDirect(url));
+            }
         }
 
         public string GetCacheFile(string url)
@@ -67,7 +74,67 @@ namespace PixivWPF.Common
             return (file);
         }
 
-        public async Task<ImageSource> GetImage(string url, Pixeez.Tokens tokens)
+        public async Task<ImageSource> GetImageDirect(string url)
+        {
+            ImageSource result = null;
+            var file = GetCacheFile(url);
+            var fp = string.Empty;
+            var id = url.GetIllustId();
+            var fn = url.GetImageId();
+
+            if (_caches.ContainsKey(url))
+            {
+                var fcache = _caches[url].TrimStart(trimchars);
+                file = Path.Combine(_CacheFolder, fcache);
+                if (File.Exists(file))
+                {
+                    result = await file.LoadImageFromFile();
+                }
+                else
+                {
+                    var success = await url.SaveImage(file, false);
+                    if (success)
+                    {
+                        result = await file.LoadImageFromFile();
+                    }
+                }
+            }
+            else if (File.Exists(file))
+            {
+                result = await file.LoadImageFromFile();
+                if (result is ImageSource)
+                {
+                    _caches[url] = file.Replace(_CacheFolder, "");
+                    //Save();
+                }
+            }
+            else if (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp))
+            {
+                result = await fp.LoadImageFromFile();
+                if (result is ImageSource)
+                {
+                    _caches[url] = fp;
+                }
+            }
+            else
+            {
+                var success = await url.SaveImage(file, false);
+                if (success)
+                {
+                    result = await file.LoadImageFromFile();
+                    _caches[url] = file.Replace(_CacheFolder, "");
+                    //Save();
+                }
+            }
+            if (result is ImageSource && !string.IsNullOrEmpty(id))
+            {
+                loadedImageHashTable[result.GetHashCode()] = id;
+                loadedImageFileTable[result.GetHashCode()] = fn;
+            }
+            return (result);
+        }
+
+        public async Task<ImageSource> GetImageLogin(string url, Pixeez.Tokens tokens)
         {
             ImageSource result = null;
             var file = GetCacheFile(url);

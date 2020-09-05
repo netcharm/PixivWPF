@@ -361,6 +361,81 @@ namespace PixivWPF.Common
             await DelayAsync(ms);
         }
         #endregion
+
+        #region AES Encrypt/Decrypt helper
+        public static string AesEncrypt(this string text, string skey)
+        {
+            string encrypt = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
+                {
+                    var uni_skey = $"{ApplicationExtensions.ProcessorID}{skey}";
+                    var uni_text = $"{ApplicationExtensions.ProcessorID}{text}";
+
+                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
+                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    aes.Key = key;
+                    aes.IV = iv;
+
+                    byte[] dataByteArray = Encoding.UTF8.GetBytes(uni_text);
+                    using (MemoryStream ms = new MemoryStream())
+                    using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(dataByteArray, 0, dataByteArray.Length);
+                        cs.FlushFinalBlock();
+                        encrypt = Convert.ToBase64String(ms.ToArray());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            return encrypt;
+        }
+
+        public static string AesDecrypt(this string text, string skey)
+        {
+            string decrypt = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
+                {
+                    var uni_skey = $"{ApplicationExtensions.ProcessorID}{skey}";
+
+                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
+                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    aes.Key = key;
+                    aes.IV = iv;
+
+                    byte[] dataByteArray = Convert.FromBase64String(text);
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                        {
+                            cs.Write(dataByteArray, 0, dataByteArray.Length);
+                            cs.FlushFinalBlock();
+                            var uni_text = Encoding.UTF8.GetString(ms.ToArray());
+                            if (uni_text.StartsWith(ApplicationExtensions.ProcessorID))
+                                decrypt = uni_text.Replace($"{ApplicationExtensions.ProcessorID}", "");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            return decrypt;
+        }
+        #endregion
     }
 
     public static class PixeezExtensions
@@ -1344,14 +1419,14 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(http[s{0,1}]:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(http[s{0,1}]:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
 
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?" + href_suffix, opt));
 
@@ -1401,7 +1476,7 @@ namespace PixivWPF.Common
 
                     if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        link = Uri.UnescapeDataString(WebUtility.HtmlDecode(link));
+                        //link = Uri.UnescapeDataString(WebUtility.HtmlDecode(link));
                         if (!links.Contains(link)) links.Add(link);
                     }
                     else if (link.StartsWith("id:", StringComparison.CurrentCultureIgnoreCase)) 
@@ -1439,7 +1514,7 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("tag:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var tag = link.Substring(4).Trim();
-                        var u_link = $"Tag:{Uri.UnescapeDataString(tag)}";
+                        var u_link = $"Tag:{tag}";
                         if (!links.Contains(u_link)) links.Add(u_link);
                     }
                     else if (link.StartsWith("tags/", StringComparison.CurrentCultureIgnoreCase))
@@ -1946,79 +2021,6 @@ namespace PixivWPF.Common
             {
                 System.Diagnostics.Process.Start(currentUri);
             }
-        }
-
-        public static string AesEncrypt(this string text, string skey)
-        {
-            string encrypt = string.Empty;
-            try
-            {
-                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
-                {
-                    var uni_skey = $"{ApplicationExtensions.ProcessorID}{skey}";
-                    var uni_text = $"{ApplicationExtensions.ProcessorID}{text}";
-
-                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
-                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
-                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    aes.Key = key;
-                    aes.IV = iv;
-
-                    byte[] dataByteArray = Encoding.UTF8.GetBytes(uni_text);
-                    using (MemoryStream ms = new MemoryStream())
-                    using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
-                    {
-                        cs.Write(dataByteArray, 0, dataByteArray.Length);
-                        cs.FlushFinalBlock();
-                        encrypt = Convert.ToBase64String(ms.ToArray());
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR");
-            }
-            return encrypt;
-        }
-
-        public static string AesDecrypt(this string text, string skey)
-        {
-            string decrypt = string.Empty;
-            try
-            {
-                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
-                {
-                    var uni_skey = $"{ApplicationExtensions.ProcessorID}{skey}";
-
-                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
-                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
-                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    aes.Key = key;
-                    aes.IV = iv;
-
-                    byte[] dataByteArray = Convert.FromBase64String(text);
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
-                        {
-                            cs.Write(dataByteArray, 0, dataByteArray.Length);
-                            cs.FlushFinalBlock();
-                            var uni_text = Encoding.UTF8.GetString(ms.ToArray());
-                            if (uni_text.StartsWith(ApplicationExtensions.ProcessorID))
-                                decrypt = uni_text.Replace($"{ApplicationExtensions.ProcessorID}", "");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR");
-            }
-            return decrypt;
         }
         #endregion
 
@@ -2848,13 +2850,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> LoadImageFromUrl(this string url, Pixeez.Tokens tokens = null)
+        public static async Task<ImageSource> LoadImageFromUrl(this string url, bool login = false)
         {
             ImageSource result = null;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
-                if (tokens == null) tokens = await ShowLogin();
-                result = await cache.GetImage(url, tokens);
+                result = await cache.GetImage(url, login);
             }
             return (result);
         }
@@ -2865,7 +2866,7 @@ namespace PixivWPF.Common
             if (uri.IsUnc || uri.IsFile)
                 result = await LoadImageFromFile(uri.LocalPath);
             else
-                result = await LoadImageFromUrl(uri.OriginalString, tokens);
+                result = await LoadImageFromUrl(uri.OriginalString, false);
             return (result);
         }
 
@@ -2876,6 +2877,103 @@ namespace PixivWPF.Common
             {
                 if (tokens == null) tokens = await ShowLogin();
                 result = await cache.GetImagePath(url, tokens);
+            }
+            return (result);
+        }
+
+        public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true)
+        {
+            var result = string.Empty;
+            if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
+            {
+                HttpClientHandler handler = new HttpClientHandler()
+                {
+                    AllowAutoRedirect = true,
+                    MaxAutomaticRedirections = 15,
+                    //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
+                    Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
+                    UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.UsingProxy ? false : true
+                };
+
+                using (var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(30) })
+                {
+                    try
+                    {
+                        httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+                        httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+                        var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                        response.EnsureSuccessStatusCode();
+                        string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+
+                        using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                        {
+                            using (var ms = new MemoryStream())
+                            {
+                                var target = Path.GetDirectoryName(file);
+                                if (!Directory.Exists(target)) Directory.CreateDirectory(target);
+                                await sr.CopyToAsync(ms);
+                                File.WriteAllBytes(file, ms.ToArray());
+                                result = file;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        var r = ex.Message;
+                    }
+                }                
+            }
+            return (result);
+        }
+
+        public static async Task<string> DownloadImage(this string url, string file, Pixeez.Tokens tokens,  bool overwrite=true)
+        {
+            var result = string.Empty;
+            if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
+            {
+                using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                {
+                    if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
+                    {
+                        using (var ms = await response.ToMemoryStream())
+                        {
+                            file = Path.Combine(setting.LastFolder, Path.GetFileName(file));
+                            File.WriteAllBytes(file, ms.ToArray());
+                            result = file;
+                        }
+                    }
+                    else result = string.Empty;
+                }
+            }
+            return (result);
+        }
+
+        public static async Task<bool> SaveImage(this string url, string file, bool overwrite = true)
+        {
+            bool result = false;
+            if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
+
+            if (!string.IsNullOrEmpty(file))
+            {
+                try
+                {
+                    var unc = file.IndexOf("file:\\\\\\");
+                    if (unc > 0) file = file.Substring(0, unc - 1);
+                    else if (unc == 0) file = file.Substring(8);
+
+                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, overwrite));
+                }
+                catch (Exception ex)
+                {
+                    if (ex is IOException)
+                    {
+
+                    }
+                    else
+                    {
+                        ex.Message.ShowMessageBox("ERROR");
+                    }
+                }
             }
             return (result);
         }
@@ -2893,26 +2991,8 @@ namespace PixivWPF.Common
                     if (unc > 0) file = file.Substring(0, unc - 1);
                     else if (unc == 0) file = file.Substring(8);
 
-                    if (!overwrite && File.Exists(file) && new FileInfo(file).Length > 0)
-                    {
-                        return (true);
-                    }
-                    using (var response = await tokens.SendRequestToGetImageAsync(Pixeez.MethodType.GET, url))
-                    {
-                        if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
-                        {
-                            using (var ms = await response.ToMemoryStream())
-                            {
-                                var dir = Path.GetDirectoryName(file);
-                                if (!Directory.Exists(dir))
-                                {
-                                    Directory.CreateDirectory(dir);
-                                }
-                                File.WriteAllBytes(file, ms.ToArray());
-                                result = true;
-                            }
-                        }
-                    }
+                    if(string.IsNullOrEmpty(await url.DownloadImage(file, overwrite)))
+                        result = !string.IsNullOrEmpty(await url.DownloadImage(file, tokens, overwrite));                    
                 }
                 catch (Exception ex)
                 {
@@ -2951,24 +3031,7 @@ namespace PixivWPF.Common
             {
                 if (!string.IsNullOrEmpty(file))
                 {
-                    if (!overwrite && File.Exists(file) && new FileInfo(file).Length > 0)
-                    {
-                        return (file);
-                    }
-
-                    using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
-                    {
-                        if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
-                        {
-                            using (var ms = await response.ToMemoryStream())
-                            {
-                                file = Path.Combine(setting.LastFolder, Path.GetFileName(file));
-                                File.WriteAllBytes(file, ms.ToArray());
-                                result = file;
-                            }
-                        }
-                        else result = null;
-                    }
+                    result = await url.DownloadImage(file, tokens, overwrite);
                 }
             }
             catch (Exception ex)
