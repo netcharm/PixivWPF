@@ -457,6 +457,7 @@ namespace PixivWPF.Common
         public static Dictionary<long?, Pixeez.Objects.UserBase> UserCache = new Dictionary<long?, Pixeez.Objects.UserBase>();
 
         public static Dictionary<string, string> TagsCache = new Dictionary<string, string>();
+        public static Dictionary<string, string> TagsT2S = new Dictionary<string, string>();
 
         public static DateTime SelectedDate { get; set; } = DateTime.Now;
 
@@ -1575,12 +1576,18 @@ namespace PixivWPF.Common
         {
             if (string.IsNullOrEmpty(text)) return (string.Empty);
             //return Regex.Replace(text, @"(.{" + lineLength + @"})", "$1" + Environment.NewLine);
-            var t = Regex.Replace(text, @"[\n\r]", "", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            var t = text.HtmlFormatBreakLine(false);// Regex.Replace(text, @"[\n\r]", "", RegexOptions.IgnoreCase | RegexOptions.Multiline);
             //t = Regex.Replace(t, @"<[^>]*>", "$1", RegexOptions.IgnoreCase | RegexOptions.Multiline);
             t = Regex.Replace(t, @"(<br *?/>)", Environment.NewLine, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             t = Regex.Replace(t, @"(<a .*?>(.*?)</a>)|(<strong>(.*?)</strong>)", "$2", RegexOptions.IgnoreCase | RegexOptions.Multiline);
             t = Regex.Replace(t, @"<.*?>(.*?)</.*?>", "$1", RegexOptions.IgnoreCase | RegexOptions.Multiline);
-            return Regex.Replace(t, @"(.{" + lineLength + @"})", "$1" + Environment.NewLine, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            //return Regex.Replace(t, @"(.{" + lineLength + @"})", "$1" + Environment.NewLine, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            var ts = t.Split(new string[]{Environment.NewLine}, StringSplitOptions.None);
+            for (var i = 0; i < ts.Length; i++)
+            {
+                if (ts[i].Length > lineLength) ts[i] = Regex.Replace(ts[i], @"(.{" + lineLength + @"})", "$1" + Environment.NewLine, RegexOptions.IgnoreCase);
+            }
+            return (string.Join(Environment.NewLine, ts));
         }
 
         public static string HtmlEncode(this string text)
@@ -1588,7 +1595,7 @@ namespace PixivWPF.Common
             return (WebUtility.HtmlEncode(text));
         }
 
-        public static string HtmlDecode(this string text)
+        public static string HtmlDecode(this string text, bool br = true)
         {
             string result = text;
 
@@ -1602,12 +1609,15 @@ namespace PixivWPF.Common
                     result = result.Replace(match.Value, char.ConvertFromUtf32(v));
             }
 
-            return (result.HtmlFormatBreakLine());
+            return (result.HtmlFormatBreakLine(br));
         }
 
-        public static string HtmlFormatBreakLine(this string text)
+        public static string HtmlFormatBreakLine(this string text, bool br = true)
         {
-            return (text.Replace("\r\n", "<br/>").Replace("\n\r", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>").Replace("<br/>", $"<br/>{Environment.NewLine}"));
+            var result = text.Replace("\r\n", "<br/>").Replace("\n\r", "<br/>").Replace("\r", "<br/>").Replace("\n", "<br/>");
+            if (br) result = result.Replace("<br/>", $"<br/>{Environment.NewLine}");
+            else result = result.Replace("<br/>", Environment.NewLine);
+            return (result);
         }
 
         /// <summary>
@@ -1622,13 +1632,13 @@ namespace PixivWPF.Common
             try
             {
                 // Remove new lines since they are not visible in HTML
-                result = result.Replace("\n", " ");
+                result = result.HtmlFormatBreakLine(false);//.Replace("\n", " ");
 
                 // Remove tab spaces
                 result = result.Replace("\t", " ");
 
                 // Remove multiple white spaces from HTML
-                result = Regex.Replace(result, "\\s+", " ");
+                result = Regex.Replace(result, " +", " ");
 
                 // Remove HEAD tag
                 result = Regex.Replace(result, "<head.*?</head>", "", RegexOptions.IgnoreCase | RegexOptions.Singleline);
@@ -1653,7 +1663,7 @@ namespace PixivWPF.Common
                 sb.Replace("<p ", "\n<p ");
                 result = Regex.Replace(sb.ToString(), "<[^>]*>", "");
             }
-            catch (Exception) { result = html.HtmlDecode(); }
+            catch (Exception) { result = html.HtmlDecode(false); }
             return result;
         }
 
@@ -1756,8 +1766,8 @@ namespace PixivWPF.Common
                     TagsCache[tag] = translated;
                     result = translated;
                 }
-
             }
+            if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
             return (result);
         }
 

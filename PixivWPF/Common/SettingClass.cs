@@ -19,6 +19,7 @@ namespace PixivWPF.Common
         private static string AppPath = Application.Current.Root();
         private static string config = Path.Combine(AppPath, "config.json");
         private static string tagsfile = Path.Combine(AppPath, "tags.json");
+        private static string tagsfile_t2s = Path.Combine(AppPath, "tags_t2s.json");
 
         [JsonIgnore]
         public string APP_PATH
@@ -369,6 +370,15 @@ namespace PixivWPF.Common
                 {
                     var tags = File.ReadAllText(tagsfile);
                     CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
+                }
+                catch (Exception) { }
+            }
+            if (File.Exists(tagsfile_t2s))
+            {
+                try
+                {
+                    var tags_t2s = File.ReadAllText(tagsfile_t2s);
+                    CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
                 }
                 catch (Exception) { }
             }

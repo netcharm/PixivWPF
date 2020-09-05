@@ -344,7 +344,7 @@ namespace PixivWPF.Common
 
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().HtmlToText().HtmlDecode().InsertLineBreak(64).Take(512));
+                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().HtmlToText().HtmlDecode(false).InsertLineBreak(64).Take(512));
                         var tags = illust.Tags.Count>0 ? $"\r\n🔖[#{string.Join(", #", illust.Tags.Take(5))} ...]" : string.Empty;
                         var age = string.Empty;
                         var userliked = illust.User.IsLiked() ? $"✔/" : string.Empty;
