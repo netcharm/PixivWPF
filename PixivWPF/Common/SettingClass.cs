@@ -20,29 +20,57 @@ namespace PixivWPF.Common
         private static string config = Path.Combine(AppPath, "config.json");
         private static string tagsfile = Path.Combine(AppPath, "tags.json");
 
+        [JsonIgnore]
+        public string APP_PATH
+        {
+            get { return AppPath; }
+        }
+
+        private string accesstoken = string.Empty;
+        public string AccessToken
+        {
+            get { return (accesstoken); }
+            set
+            {
+                if (!IsLoading)
+                {
+                    username = User.AesEncrypt(value);
+                    password = Pass.AesEncrypt(value);
+                }
+                if (myinfo is Pixeez.Objects.User)
+                {
+                    UID = myinfo.Id.Value.ToString().AesEncrypt(value);
+                }
+                accesstoken = value;
+            }
+        }
+
+        private string refreshtoken = string.Empty;
+        public string RefreshToken
+        {
+            get { return (refreshtoken); }
+            set { refreshtoken = value; }
+        }
+
+        private string proxy = string.Empty;
+        public string Proxy
+        {
+            get { return (proxy); }
+            set { proxy = value; }
+        }
+
+        private bool useproxy = false;
+        public bool UsingProxy
+        {
+            get { return (useproxy); }
+            set { useproxy = value; }
+        }
+
         private static Setting Cache = null;// Load(config);
         [JsonIgnore]
         public static Setting Instance
         {
             get { return (Cache); }
-        }
-
-        [JsonIgnore]
-        private string username = string.Empty;
-        [JsonIgnore]
-        public string User
-        {
-            get { return (username.AesDecrypt(accesstoken)); }
-            set { username = value.AesEncrypt(accesstoken); }
-        }
-
-        [JsonIgnore]
-        private string password = string.Empty;
-        [JsonIgnore]
-        public string Pass
-        {
-            get { return (password.AesDecrypt(accesstoken)); }
-            set { password = value.AesEncrypt(accesstoken); }
         }
 
         public bool SaveUserPass { get; set; } = false;
@@ -51,7 +79,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (SaveUserPass) return username;
+                if (SaveUserPass && !IsLoading) return username;
                 else return (string.Empty);
             }
             set { if (SaveUserPass) username = value; }
@@ -62,10 +90,28 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (SaveUserPass) return password;
+                if (SaveUserPass && !IsLoading) return password;
                 else return (string.Empty);
             }
             set { if (SaveUserPass) password = value; }
+        }
+
+        [JsonIgnore]
+        private string username = string.Empty;
+        [JsonIgnore]
+        public string User
+        {
+            get { return (IsLoading ? string.Empty : username.AesDecrypt(accesstoken)); }
+            set { username = value.AesEncrypt(accesstoken); }
+        }
+
+        [JsonIgnore]
+        private string password = string.Empty;
+        [JsonIgnore]
+        public string Pass
+        {
+            get { return (IsLoading ? string.Empty : password.AesDecrypt(accesstoken)); }
+            set { password = value.AesEncrypt(accesstoken); }
         }
 
         [JsonIgnore]
@@ -145,70 +191,6 @@ namespace PixivWPF.Common
                 lastfolder = value;
                 if (LocalStorage.Count(o => o.Folder.Equals(lastfolder)) <= 0)
                     LocalStorage.Add(new StorageType(lastfolder, true));
-            }
-        }
-
-        [JsonIgnore]
-        public string APP_PATH
-        {
-            get { return AppPath; }
-        }
-
-        private string accesstoken = string.Empty;
-        public string AccessToken
-        {
-            get
-            {
-                return (accesstoken);
-            }
-            set
-            {
-                username = User.AesEncrypt(value);
-                password = Pass.AesEncrypt(value);
-                if (myinfo is Pixeez.Objects.User)
-                {
-                    UID = myinfo.Id.Value.ToString().AesEncrypt(value);
-                }
-                accesstoken = value;
-            }
-        }
-
-        private string refreshtoken = string.Empty;
-        public string RefreshToken
-        {
-            get
-            {
-                return (refreshtoken);
-            }
-            set
-            {
-                refreshtoken = value;
-            }
-        }
-
-        private string proxy = string.Empty;
-        public string Proxy
-        {
-            get
-            {
-                return (proxy);
-            }
-            set
-            {
-                proxy = value;
-            }
-        }
-
-        private bool useproxy = false;
-        public bool UsingProxy
-        {
-            get
-            {
-                return (useproxy);
-            }
-            set
-            {
-                useproxy = value;
             }
         }
 

@@ -342,8 +342,11 @@ namespace PixivWPF
             var accesstoken = Setting.Token();
             var dlgLogin = new PixivLoginDialog() { AccessToken = accesstoken };
             var ret = dlgLogin.ShowDialog();
-            accesstoken = dlgLogin.AccessToken;
-            Setting.Token(accesstoken);
+            if (ret ?? false)
+            {
+                accesstoken = dlgLogin.AccessToken;
+                Setting.Token(accesstoken);
+            }
         }
 
         private void CommandNav_Click(object sender, RoutedEventArgs e)

@@ -98,21 +98,7 @@
                            TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                 <StackPanel Grid.Row="2" Grid.Column="1" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,4,4"
                             Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                    <Button x:Name="OpenFile" x:Uid="OpenFile" Margin="0,0,2,0" Click="OpenFile_Click"
-                            ToolTip="Open File With Default Application" Tag="{Binding Tag, Mode=OneWay}"
-                            HorizontalAlignment="Right" VerticalAlignment="Center"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                            BorderBrush="{DynamicResource AccentColorBrush}"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" 
-                            Background="Transparent"
-                            mah:ButtonHelper.PreserveTextCase="True">
-                        <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconModern x:Name="ButtonOpenFileIcon" Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
-                            <TextBlock x:Name="ButtonOpenFileLabel" Text="View File" Margin="8,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button x:Name="OpenFolder" x:Uid="OpenFolder" Margin="4,0,0,0" Click="OpenFolder_Click"
+                    <Button x:Name="OpenFolder" x:Uid="OpenFolder" Margin="0,0,2,0" Click="OpenFolder_Click"
                             ToolTip="Open File Folder" Tag="{Binding Tag, Mode=OneWay}"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -124,6 +110,20 @@
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconModern x:Name="ButtonOpenFolderIcon" Kind="FolderOpen" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
                             <TextBlock x:Name="ButtonOpenFolderLabel" Text="Open Folder" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="OpenFile" x:Uid="OpenFile" Margin="4,0,0,0" Click="OpenFile_Click"
+                            ToolTip="Open File With Default Application" Tag="{Binding Tag, Mode=OneWay}"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
+                            BorderBrush="{DynamicResource AccentColorBrush}"
+                            Foreground="{DynamicResource IdealForegroundColorBrush}" 
+                            Background="Transparent"
+                            mah:ButtonHelper.PreserveTextCase="True">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconModern x:Name="ButtonOpenFileIcon" Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                            <TextBlock x:Name="ButtonOpenFileLabel" Text="View File" Margin="8,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     <Button x:Name="OK" x:Uid="OK" Margin="4,0,0,0" Click="OK_Click"
