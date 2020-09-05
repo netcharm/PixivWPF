@@ -2091,8 +2091,11 @@ namespace PixivWPF.Common
         {
             try
             {
-                FileInfo fi = new FileInfo(file);
-                fi.Touch(url, local);
+                if (File.Exists(file))
+                {
+                    FileInfo fi = new FileInfo(file);
+                    fi.Touch(url, local);
+                }
             }
             catch (Exception) { }
         }
@@ -2823,6 +2826,16 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static long GetFileLength(this string filename)
+        {
+            long result = -1;
+            if (File.Exists(filename))
+            {
+                result = new FileInfo(filename).Length;
+            }
+            return (result);
+        }
+
         public static string GetImageName(this string url, bool is_meta_single_page)
         {
             string result = string.Empty;
@@ -2921,6 +2934,9 @@ namespace PixivWPF.Common
                             {
                                 var target = Path.GetDirectoryName(file);
                                 if (!Directory.Exists(target)) Directory.CreateDirectory(target);
+                                Random rnd = new Random();
+                                await Task.Delay(rnd.Next(5, 100));
+                                Application.Current.DoEvents();
                                 await sr.CopyToAsync(ms);
                                 File.WriteAllBytes(file, ms.ToArray());
                                 result = file;

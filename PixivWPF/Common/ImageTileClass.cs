@@ -260,6 +260,10 @@ namespace PixivWPF.Common
                                     {
                                         if (item.Source == null)
                                         {
+                                            Random rnd = new Random();
+                                            await Task.Delay(rnd.Next(20, 200));
+                                            Application.Current.DoEvents();
+
                                             if (item.Count <= 1) item.BadgeValue = string.Empty;
                                             item.Source = await item.Thumb.LoadImageFromUrl();
                                             if(item.Source is ImageSource)

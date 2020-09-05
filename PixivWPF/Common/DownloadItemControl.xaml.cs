@@ -13,6 +13,9 @@ using System.Windows.Media;
 using Microsoft.Win32;
 using System.Threading;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net;
+using System.Linq;
 
 namespace PixivWPF.Common
 {
@@ -578,6 +581,127 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private async Task<string> DownloadDirectAsync()
+        {
+            string result = string.Empty;
+
+            if (await Downloading.WaitAsync(15000))
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(Url)) throw new Exception($"Download URL is unknown!");
+                    if (!CanDownload) throw new Exception($"Download task can't start now!");
+
+                    IsStart = false;
+                    Canceling = false;
+
+                    startTick = DateTime.Now;
+                    FailReason = string.Empty;
+                    State = DownloadState.Downloading;
+                    HttpClientHandler handler = new HttpClientHandler()
+                    {
+                        AllowAutoRedirect = true,
+                        MaxAutomaticRedirections = 15,
+                        //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
+                        Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
+                        UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.UsingProxy ? false : true
+                    };
+
+                    using (var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(30) })
+                    {
+                        try
+                        {
+                            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+                            httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+                            var response = await httpClient.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
+                            response.EnsureSuccessStatusCode();
+                            string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                            Length = response.Content.Headers.ContentLength ?? 0;
+                            if (Length > 0)
+                            {
+                                progress.Report(Progress);
+                                finishedProgress = new Tuple<double, double>(Length, Length);
+
+                                using (var cs = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                                {
+                                    using (var ms = new MemoryStream())
+                                    {
+                                        byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
+                                        int bytesread = 0;
+                                        do
+                                        {
+                                            if (IsCanceling || State == DownloadState.Failed)
+                                            {
+                                                throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
+                                            }
+
+#if DEBUG
+                                            bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
+#else
+                                            bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
+#endif
+                                            endTick = DateTime.Now;
+
+                                            if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
+                                            {
+                                                lastReceived += bytesread;
+                                                Received += bytesread;
+                                                await ms.WriteAsync(bytes, 0, bytesread);
+                                                progress.Report(Progress);
+                                            }
+                                        } while (bytesread > 0 && Received < Length);
+
+                                        if (Received == Length && State == DownloadState.Downloading)
+                                        {
+                                            result = SaveFile(FileName, ms.ToArray());
+                                        }
+                                        else
+                                        {
+                                            throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size not matched with server's size.");
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                result = await Url.DownloadImage(FileName);
+                                result.Touch(Url);
+                                Length = result.GetFileLength();
+                                if (Length < 0) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File not exists.");
+                                Received = Length;
+                                State = DownloadState.Finished;
+                                progress.Report(Progress);
+                                $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
+                                this.Sound();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            var r = ex.Message;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    FailReason = ex.Message;
+                    if (State == DownloadState.Downloading) State = DownloadState.Failed;
+                }
+                finally
+                {
+                    IsStart = false;
+                    Canceling = false;
+
+                    if (State == DownloadState.Finished) result = FileName;
+                    progress.Report(Progress);
+
+                    if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
+                    cancelSource = null;
+                    if (Downloading is SemaphoreSlim) Downloading.Release();
+                }
+            }
+            return (result);
+        }
+
         private async Task<string> DownloadAsync()
         {
             string result = string.Empty;
@@ -694,13 +818,21 @@ namespace PixivWPF.Common
                         SaveFile(FileName, fc);
                         Downloading.Release();
                     }
-                }).InvokeAsync();                
+                }).InvokeAsync();
             }
             else
             {
                 await new Action(async () =>
                 {
-                    await DownloadAsync();
+                    Random rnd = new Random();
+                    await Task.Delay(rnd.Next(20, 200));
+                    Application.Current.DoEvents();
+
+                    if (string.IsNullOrEmpty(setting.AccessToken) ||
+                        setting.ExpTime.Ticks <= DateTime.Now.Ticks)
+                        await DownloadDirectAsync();
+                    else
+                        await DownloadAsync();
                 }).InvokeAsync();
             }
         }
