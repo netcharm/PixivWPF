@@ -168,7 +168,7 @@ namespace PixivWPF
                 if(pipeServer is NamedPipeServerStream && !pipeOnClosing) CreateNamedPipeServer();
             }
         }
-#endregion
+        #endregion
 
         public MainWindow()
         {
@@ -203,6 +203,8 @@ namespace PixivWPF
 
             LastWindowStates.Enqueue(WindowState.Normal);
 
+            Application.Current.InitAppWatcher(Application.Current.Root());
+
             CreateNamedPipeServer();
         }
 
@@ -211,14 +213,17 @@ namespace PixivWPF
         {
             pipeOnClosing = true;
             ReleaseNamedPipeServer();
+            Application.Current.ReleaseAppWatcher();
+            CommonHelper.ReleaseDownloadedWatcher();
 
             foreach (Window win in Application.Current.Windows)
             {
                 if (win == this) continue;
                 win.Close();
             }
-            CommonHelper.ReleaseDownloadedWatcher();
+
             if (Setting.Instance is Setting) Setting.Instance.Save();
+            Application.Current.Shutdown();
         }
 #else
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -227,13 +232,15 @@ namespace PixivWPF
             {
                 pipeOnClosing = true;
                 ReleaseNamedPipeServer();
+                Application.Current.ReleaseAppWatcher();
+                CommonHelper.ReleaseDownloadedWatcher();
 
                 foreach (Window win in Application.Current.Windows)
                 {
                     if (win is MainWindow) continue;
                     else win.Close();
                 }
-                CommonHelper.ReleaseDownloadedWatcher();
+
                 if (Setting.Instance is Setting) Setting.Instance.Save();
                 Application.Current.Shutdown();
             }

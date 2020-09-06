@@ -276,6 +276,151 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region Config files Watchdog
+        private static Dictionary<string, FileSystemWatcher> _watchers = new Dictionary<string, FileSystemWatcher>();
+        private static void OnConfigChanged(object source, FileSystemEventArgs e)
+        {
+#if DEBUG
+            // Specify what is done when a file is changed, created, or deleted.
+            $"File: {e.FullPath} {e.ChangeType}".DEBUG();
+#endif
+            if (e.ChangeType == WatcherChangeTypes.Created)
+            {
+                //if (File.Exists(e.FullPath))
+                //{
+                //    var fn = e.Name.ToLower();
+                //    if (fn.Equals("config.json"))
+                //    {
+                //
+                //    }
+                //    else if (fn.Equals("tags_t2s.json"))
+                //    {
+                //        Common.Setting.LoadTags(false);
+                //    }
+                //    else if (fn.Equals("contents-template.html"))
+                //    {
+                //        Common.Setting.UpdateContentsTemplete();
+                //    }
+                //}
+            }
+            else if (e.ChangeType == WatcherChangeTypes.Changed)
+            {
+                if (File.Exists(e.FullPath))
+                {
+                    var fn = e.Name.ToLower();
+                    if (fn.Equals("config.json"))
+                    {
+
+                    }
+                    else if (fn.Equals("tags_t2s.json"))
+                    {
+                        Common.Setting.LoadTags(false);
+                    }
+                    else if (fn.Equals("contents-template.html"))
+                    {
+                        Common.Setting.UpdateContentsTemplete();
+                    }
+                }
+            }
+            else if (e.ChangeType == WatcherChangeTypes.Deleted)
+            {
+                var fn = e.Name.ToLower();
+                if (fn.Equals("config.json"))
+                {
+
+                }
+                else if (fn.Equals("tags_t2s.json"))
+                {
+                    Common.Setting.LoadTags(false);
+                }
+                else if (fn.Equals("contents-template.html"))
+                {
+                    Common.Setting.UpdateContentsTemplete();
+                }
+            }
+        }
+
+        private static void OnConfigRenamed(object source, RenamedEventArgs e)
+        {
+#if DEBUG
+            // Specify what is done when a file is renamed.
+            $"File: {e.OldFullPath} renamed to {e.FullPath}".DEBUG();
+#endif
+            if (e.ChangeType == WatcherChangeTypes.Renamed)
+            {
+                var fn = e.OldName.ToLower();
+                if (fn.Equals("config.json"))
+                {
+
+                }
+                else if (fn.Equals("tags_t2s.json"))
+                {
+                    Common.Setting.LoadTags(false);
+                }
+                else if (fn.Equals("contents-template.html"))
+                {
+                    Common.Setting.UpdateContentsTemplete();
+                }
+            }
+        }
+
+        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+        public static void InitAppWatcher(this Application app, string folder)
+        {
+            var watcher = new FileSystemWatcher(folder, "*.*")
+            {
+                NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
+                IncludeSubdirectories = false
+            };
+            watcher.Changed += new FileSystemEventHandler(OnConfigChanged);
+            watcher.Created += new FileSystemEventHandler(OnConfigChanged);
+            watcher.Deleted += new FileSystemEventHandler(OnConfigChanged);
+            watcher.Renamed += new RenamedEventHandler(OnConfigRenamed);
+            // Begin watching.
+            watcher.EnableRaisingEvents = true;
+            _watchers[folder] = watcher;
+        }
+
+        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+        public static void AddAppWatcher(this Application app, string folder, string filter="*.*", bool IncludeSubFolder = false)
+        {
+            if (Directory.Exists(folder) && !_watchers.ContainsKey(folder))
+            {
+                folder.UpdateDownloadedListCacheAsync();
+                var watcher = new FileSystemWatcher(folder, filter)
+                {
+                    NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
+                    IncludeSubdirectories = IncludeSubFolder
+                };
+                watcher.Changed += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Created += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Deleted += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Renamed += new RenamedEventHandler(OnConfigRenamed);
+                // Begin watching.
+                watcher.EnableRaisingEvents = true;
+
+                _watchers[folder] = watcher;
+            }
+        }
+
+        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+        public static void ReleaseAppWatcher(this Application app)
+        {
+            foreach (var w in _watchers)
+            {
+                try
+                {
+                    if (w.Value is FileSystemWatcher)
+                    {
+                        //_watchers[w.Key].Dispose();
+                        w.Value.Dispose();
+                    }
+                }
+                catch { }
+            }
+        }
+        #endregion
+
         #region Maybe reduce UI frozen
         private static object ExitFrame(object state)
         {
@@ -1667,7 +1812,7 @@ namespace PixivWPF.Common
             return result;
         }
 
-        private static string GetDefaultTemplate()
+        public static string GetDefaultTemplate()
         {
             var result = string.Empty;
             if (Setting.Instance is Setting)
@@ -1767,7 +1912,11 @@ namespace PixivWPF.Common
                     result = translated;
                 }
             }
-            if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
+            if (TagsT2S is Dictionary<string, string>)
+            {
+                if(TagsT2S.ContainsKey(tag)) result = TagsT2S[tag];
+                else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
+            }
             return (result);
         }
 
@@ -2277,7 +2426,7 @@ namespace PixivWPF.Common
         }
 
         // Define the event handlers.
-        private static void OnChanged(object source, FileSystemEventArgs e)
+        private static void OnDownloadChanged(object source, FileSystemEventArgs e)
         {
 #if DEBUG
             // Specify what is done when a file is changed, created, or deleted.
@@ -2312,7 +2461,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static void OnRenamed(object source, RenamedEventArgs e)
+        private static void OnDownloadRenamed(object source, RenamedEventArgs e)
         {
 #if DEBUG
             // Specify what is done when a file is renamed.
@@ -2360,10 +2509,10 @@ namespace PixivWPF.Common
                         NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
                         IncludeSubdirectories = storage is StorageType ? storage.IncludeSubFolder : false
                     };
-                    watcher.Changed += OnChanged;
-                    watcher.Created += OnChanged;
-                    watcher.Deleted += OnChanged;
-                    watcher.Renamed += OnRenamed;
+                    watcher.Changed += new FileSystemEventHandler(OnDownloadChanged);
+                    watcher.Created += new FileSystemEventHandler(OnDownloadChanged);
+                    watcher.Deleted += new FileSystemEventHandler(OnDownloadChanged);
+                    watcher.Renamed += new RenamedEventHandler(OnDownloadRenamed);
                     // Begin watching.
                     watcher.EnableRaisingEvents = true;
 
@@ -2383,10 +2532,10 @@ namespace PixivWPF.Common
                     NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
                     IncludeSubdirectories = IncludeSubFolder
                 };
-                watcher.Changed += OnChanged;
-                watcher.Created += OnChanged;
-                watcher.Deleted += OnChanged;
-                watcher.Renamed += OnRenamed;
+                watcher.Changed += new FileSystemEventHandler(OnDownloadChanged);
+                watcher.Created += new FileSystemEventHandler(OnDownloadChanged);
+                watcher.Deleted += new FileSystemEventHandler(OnDownloadChanged);
+                watcher.Renamed += new RenamedEventHandler(OnDownloadRenamed);
                 // Begin watching.
                 watcher.EnableRaisingEvents = true;
 
@@ -2401,7 +2550,12 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    _watchers[w.Key].Dispose();
+                    if (w.Value is FileSystemWatcher)
+                    {
+                        //_watchers[w.Key].Dispose();
+                        w.Value.Dispose();
+                    }
+                    
                 }
                 catch { }
             }

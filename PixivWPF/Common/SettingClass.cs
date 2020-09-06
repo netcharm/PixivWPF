@@ -271,7 +271,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static void UpdateContentsTemplete()
+        public static void UpdateContentsTemplete()
         {
             if (File.Exists(Cache.ContentsTemplateFile))
             {
@@ -283,6 +283,15 @@ namespace PixivWPF.Common
                 {
                     Cache.ContentsTemplete = Cache.CustomContentsTemplete;
                     Cache.ContentsTemplateTime = DateTime.Now;
+                    if (!IsSaving && !IsLoading) Cache.Save();
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(Cache.CustomContentsTemplete))
+                {
+                    Cache.ContentsTemplete = CommonHelper.GetDefaultTemplate();
+                    Cache.CustomContentsTemplete = string.Empty;
                     if (!IsSaving && !IsLoading) Cache.Save();
                 }
             }
@@ -355,16 +364,29 @@ namespace PixivWPF.Common
             {
                 if (CommonHelper.TagsCache.Count > 0)
                 {
-                    var tags = JsonConvert.SerializeObject(CommonHelper.TagsCache, Formatting.Indented);
-                    File.WriteAllText(tagsfile, tags, new UTF8Encoding(true));
+                    try
+                    {
+                        var tags = JsonConvert.SerializeObject(CommonHelper.TagsCache, Formatting.Indented);
+                        File.WriteAllText(tagsfile, tags, new UTF8Encoding(true));
+                    }
+                    catch (Exception) { }
+                }
+                if (File.Exists(tagsfile_t2s))
+                {
+                    try
+                    {
+                        var tags_t2s = File.ReadAllText(tagsfile_t2s);
+                        CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
+                    }
+                    catch (Exception) { }
                 }
             }
             catch (Exception) { }
         }
 
-        public static void LoadTags()
+        public static void LoadTags(bool all = true)
         {
-            if (File.Exists(tagsfile))
+            if (all && File.Exists(tagsfile))
             {
                 try
                 {
@@ -373,6 +395,7 @@ namespace PixivWPF.Common
                 }
                 catch (Exception) { }
             }
+
             if (File.Exists(tagsfile_t2s))
             {
                 try
@@ -381,6 +404,17 @@ namespace PixivWPF.Common
                     CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
                 }
                 catch (Exception) { }
+            }
+            else
+            {
+                try
+                {
+                    if (CommonHelper.TagsT2S is Dictionary<string, string>)
+                    {
+                        CommonHelper.TagsT2S.Clear();
+                    }
+                }
+                catch(Exception) { }
             }
         }
 
