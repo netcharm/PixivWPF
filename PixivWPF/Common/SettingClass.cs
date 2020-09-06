@@ -238,8 +238,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (IsLoading) return;
-                if (IsSaving) return;
+                if (IsLoading || IsSaving) return;
 
                 IsSaving = true;
                 if (string.IsNullOrEmpty(configfile)) configfile = config;
@@ -362,6 +361,8 @@ namespace PixivWPF.Common
         {
             try
             {
+                if (IsLoading || IsSaving) return;
+
                 if (CommonHelper.TagsCache.Count > 0)
                 {
                     try
@@ -386,6 +387,8 @@ namespace PixivWPF.Common
 
         public static void LoadTags(bool all = true)
         {
+            if (IsLoading || IsSaving) return;
+
             if (all && File.Exists(tagsfile))
             {
                 try

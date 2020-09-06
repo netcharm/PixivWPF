@@ -367,18 +367,23 @@ namespace PixivWPF.Common
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static void InitAppWatcher(this Application app, string folder)
         {
-            var watcher = new FileSystemWatcher(folder, "*.*")
+            try
             {
-                NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
-                IncludeSubdirectories = false
-            };
-            watcher.Changed += new FileSystemEventHandler(OnConfigChanged);
-            watcher.Created += new FileSystemEventHandler(OnConfigChanged);
-            watcher.Deleted += new FileSystemEventHandler(OnConfigChanged);
-            watcher.Renamed += new RenamedEventHandler(OnConfigRenamed);
-            // Begin watching.
-            watcher.EnableRaisingEvents = true;
-            _watchers[folder] = watcher;
+                var watcher = new FileSystemWatcher(folder, "*.*")
+                {
+                    //NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.DirectoryName,
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName, //| NotifyFilters.Size | NotifyFilters.DirectoryName,
+                    IncludeSubdirectories = false
+                };
+                watcher.Changed += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Created += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Deleted += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Renamed += new RenamedEventHandler(OnConfigRenamed);
+                // Begin watching.
+                watcher.EnableRaisingEvents = true;
+                _watchers[folder] = watcher;
+            }
+            catch (Exception) { }
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
@@ -389,7 +394,8 @@ namespace PixivWPF.Common
                 folder.UpdateDownloadedListCacheAsync();
                 var watcher = new FileSystemWatcher(folder, filter)
                 {
-                    NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
+                    //NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
                     IncludeSubdirectories = IncludeSubFolder
                 };
                 watcher.Changed += new FileSystemEventHandler(OnConfigChanged);

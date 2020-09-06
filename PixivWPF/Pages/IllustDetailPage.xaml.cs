@@ -148,6 +148,125 @@ namespace PixivWPF.Pages
             return (result);
         }
 
+        private string MakeIllustTagsHtml(ImageItem item)
+        {
+            var result = string.Empty;
+            try
+            {
+                if (item.ItemType == ImageItemType.Work && item.Illust is Pixeez.Objects.Work)
+                {
+
+                    if (item.Illust.Tags.Count > 0)
+                    {
+                        var html = new StringBuilder();
+                        if (item.Illust is Pixeez.Objects.IllustWork)
+                        {
+                            foreach (var tag in (item.Illust as Pixeez.Objects.IllustWork).MoreTags)
+                            {
+                                var trans = string.IsNullOrEmpty(tag.Translated) ? tag.Original : tag.Translated;
+                                tag.Original.TranslatedTag(tag.Translated);
+                                html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag.Original)}/artworks?s_mode=s_tag\" class=\"tag\" title=\"{trans}\" data-tag=\"{tag.Original}\" data-tooltip=\"{trans}\">#{tag.Original}</a>");
+                            }
+                        }
+                        else
+                        {
+                            foreach (var tag in item.Illust.Tags)
+                            {
+                                var trans = tag.TranslatedTag();
+                                html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag)}/artworks?s_mode=s_tag\" class=\"tag\" title=\"{trans}\" data-tag=\"{tag}\" data-tooltip=\"{trans}\">#{tag}</a>");
+                            }
+                        }
+                        html.AppendLine("<br/>");
+                        result = html.ToString().Trim().GetHtmlFromTemplate(item.Illust.Title);
+                    }
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        private string MakeIllustDescHtml(ImageItem item)
+        {
+            var result = string.Empty;
+            try
+            {
+                if (item.ItemType == ImageItemType.Work && item.Illust is Pixeez.Objects.Work)
+                {
+                    var contents = item.Illust.Caption.HtmlDecode();
+                    contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
+                    result = contents.GetHtmlFromTemplate(item.Illust.Title);
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        private string MakeUserInfoHtml(Pixeez.Objects.UserInfo info)
+        {
+            var result = string.Empty;
+            try
+            {
+                var nuser = info.user;
+                var nprof = info.profile;
+                var nworks = info.workspace;
+
+                if (nuser != null && nprof != null && nworks != null)
+                {
+                    StringBuilder desc = new StringBuilder();
+                    desc.AppendLine("<div class=\"desc\">");
+                    desc.AppendLine($"<b>Account:</b><br/> ");
+                    desc.AppendLine($"{nuser.Account} / {nuser.Id} / {nuser.Name} / {nuser.Email} <br/>");
+                    desc.AppendLine($"<b>Stat:</b><br/> ");
+                    desc.AppendLine($"{nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follower} Following / {nprof.total_follow_users} Follower /<br/>");
+                    desc.AppendLine($"{nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels /<br/> {nprof.total_mypixiv_users} MyPixiv User <br/>");
+
+                    desc.AppendLine($"<hr/>");
+                    desc.AppendLine($"<b>Profile:</b><br/>");
+                    desc.AppendLine($"{nprof.gender} / {nprof.birth} / {nprof.region} / {nprof.job} <br/>");
+                    desc.AppendLine($"<b>Contacts:</b><br/>");
+                    desc.AppendLine($"<span class=\"twitter\" title=\"Twitter\"></span><a href=\"{nprof.twitter_url}\">@{nprof.twitter_account}</a><br/>");
+                    desc.AppendLine($"<span class=\"web\" title=\"Website\"></span><a href=\"{nprof.webpage}\">{nprof.webpage}</a><br/>");
+                    desc.AppendLine($"<span class=\"mail\" title=\"Email\"></span><a href=\"mailto:{nuser.Email}\">{nuser.Email}</a><br/>");
+
+                    desc.AppendLine($"<hr/>");
+                    desc.AppendLine($"<b>Workspace Device:</b><br/> ");
+                    desc.AppendLine($"{nworks.pc} / {nworks.monitor} / {nworks.tablet} / {nworks.mouse} / {nworks.printer} / {nworks.scanner} / {nworks.tool} <br/>");
+                    desc.AppendLine($"<b>Workspace Environment:</b><br/>");
+                    desc.AppendLine($"{nworks.desk} / {nworks.chair} / {nworks.desktop} / {nworks.music} / {nworks.comment} <br/>");
+
+                    if (!string.IsNullOrEmpty(nworks.workspace_image_url))
+                    {
+                        desc.AppendLine($"<hr/>");
+                        desc.AppendLine($"<br/><b>Workspace Images:</b><br/>");
+                        desc.AppendLine($"<img src=\"{nworks.workspace_image_url}\"/>");
+                    }
+                    desc.AppendLine("</div>");
+
+                    result = desc.ToString().Trim().GetHtmlFromTemplate(nuser.Name);
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        private string MakeUserCommentHtml(Pixeez.Objects.UserInfo info)
+        {
+            var result = string.Empty;
+            try
+            {
+                var nuser = info.user;
+                var nprof = info.profile;
+                var nworks = info.workspace;
+
+                var comment = nuser.comment;//.HtmlEncode();
+                var contents = comment.HtmlDecode();
+                contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
+                result = contents.GetHtmlFromTemplate(IllustAuthor.Text);
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
         internal void UpdateTheme()
         {
             if (IllustTagsHtml is System.Windows.Forms.WebBrowser)
@@ -512,30 +631,7 @@ namespace PixivWPF.Pages
 
                 if (item.Illust.Tags.Count > 0)
                 {
-                    var html = new StringBuilder();
-                    if (item.Illust is Pixeez.Objects.IllustWork)
-                    {
-                        foreach (var tag in (item.Illust as Pixeez.Objects.IllustWork).MoreTags)
-                        {
-                            var trans = string.IsNullOrEmpty(tag.Translated) ? tag.Original : tag.Translated;
-                            tag.Original.TranslatedTag(tag.Translated);
-                            html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag.Original)}/artworks?s_mode=s_tag\" class=\"tag\" title=\"{trans}\" data-tag=\"{tag.Original}\" data-tooltip=\"{trans}\">#{tag.Original}</a>");
-                        }
-                        //CommonHelper.Cmd_SaveTags.Execute(null);
-                        //Application.Current.Setting().SaveTags();
-                    }
-                    else
-                    {
-                        foreach (var tag in item.Illust.Tags)
-                        {
-                            //html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag)}/artworks?s_mode=s_tag_full\" class=\"tag\" data-tag=\"{tag}\">#{tag}</a>");
-                            //html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag)}/artworks?s_mode=s_tag\" class=\"tag\" data-tag=\"{tag}\">#{tag}</a>");
-                            var trans = tag.TranslatedTag();
-                            html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag)}/artworks?s_mode=s_tag\" class=\"tag\" title=\"{trans}\" data-tag=\"{tag}\" data-tooltip=\"{trans}\">#{tag}</a>");
-                        }
-                    }
-                    html.AppendLine("<br/>");
-                    IllustTagsHtml.DocumentText = html.ToString().Trim().GetHtmlFromTemplate(IllustTitle.Text);
+                    IllustTagsHtml.DocumentText = MakeIllustTagsHtml(item);
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "Tags";
@@ -558,9 +654,7 @@ namespace PixivWPF.Pages
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
-                    var contents = item.Illust.Caption.HtmlDecode();
-                    contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
-                    IllustDescHtml.DocumentText = contents.GetHtmlFromTemplate(IllustTitle.Text);
+                    IllustDescHtml.DocumentText = MakeIllustDescHtml(item);
                     AdjustBrowserSize(IllustDescHtml);
 
                     if (Setting.Instance.AutoExpand == AutoExpandMode.AUTO ||
@@ -629,6 +723,7 @@ namespace PixivWPF.Pages
             }
         }
 
+        private Pixeez.Objects.UserInfo UserInfo = null;
         private async void UpdateDetailUser(Pixeez.Objects.UserBase user)
         {
             try
@@ -638,7 +733,7 @@ namespace PixivWPF.Pages
 
                 var tokens = await CommonHelper.ShowLogin();
 
-                var UserInfo = await tokens.GetUserInfoAsync(user.Id.Value.ToString());
+                UserInfo = await tokens.GetUserInfoAsync(user.Id.Value.ToString());
                 var nuser = UserInfo.user;
                 var nprof = UserInfo.profile;
                 var nworks = UserInfo.workspace;
@@ -682,37 +777,7 @@ namespace PixivWPF.Pages
 
                 if (nuser != null && nprof != null && nworks != null)
                 {
-                    StringBuilder desc = new StringBuilder();
-                    desc.AppendLine("<div class=\"desc\">");
-                    desc.AppendLine($"<b>Account:</b><br/> ");
-                    desc.AppendLine($"{nuser.Account} / {nuser.Id} / {nuser.Name} / {nuser.Email} <br/>");
-                    desc.AppendLine($"<b>Stat:</b><br/> ");
-                    desc.AppendLine($"{nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follower} Following / {nprof.total_follow_users} Follower /<br/>");
-                    desc.AppendLine($"{nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels /<br/> {nprof.total_mypixiv_users} MyPixiv User <br/>");
-
-                    desc.AppendLine($"<hr/>");
-                    desc.AppendLine($"<b>Profile:</b><br/>");
-                    desc.AppendLine($"{nprof.gender} / {nprof.birth} / {nprof.region} / {nprof.job} <br/>");
-                    desc.AppendLine($"<b>Contacts:</b><br/>");
-                    desc.AppendLine($"<span class=\"twitter\" title=\"Twitter\"></span><a href=\"{nprof.twitter_url}\">@{nprof.twitter_account}</a><br/>");
-                    desc.AppendLine($"<span class=\"web\" title=\"Website\"></span><a href=\"{nprof.webpage}\">{nprof.webpage}</a><br/>");
-                    desc.AppendLine($"<span class=\"mail\" title=\"Email\"></span><a href=\"mailto:{nuser.Email}\">{nuser.Email}</a><br/>");
-
-                    desc.AppendLine($"<hr/>");
-                    desc.AppendLine($"<b>Workspace Device:</b><br/> ");
-                    desc.AppendLine($"{nworks.pc} / {nworks.monitor} / {nworks.tablet} / {nworks.mouse} / {nworks.printer} / {nworks.scanner} / {nworks.tool} <br/>");
-                    desc.AppendLine($"<b>Workspace Environment:</b><br/>");
-                    desc.AppendLine($"{nworks.desk} / {nworks.chair} / {nworks.desktop} / {nworks.music} / {nworks.comment} <br/>");
-
-                    if (!string.IsNullOrEmpty(nworks.workspace_image_url))
-                    {
-                        desc.AppendLine($"<hr/>");
-                        desc.AppendLine($"<br/><b>Workspace Images:</b><br/>");
-                        desc.AppendLine($"<img src=\"{nworks.workspace_image_url}\"/>");
-                    }
-                    desc.AppendLine("</div>");
-
-                    IllustTagsHtml.DocumentText = desc.ToString().Trim().GetHtmlFromTemplate(IllustAuthor.Text);
+                    IllustTagsHtml.DocumentText = MakeUserInfoHtml(UserInfo);
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "User Infomation";
@@ -730,12 +795,9 @@ namespace PixivWPF.Pages
                 CommentsExpander.Hide();
                 CommentsNavigator.Hide();
 
-                if (!string.IsNullOrEmpty(nuser.comment) && nuser.comment.Length > 0)
+                if (nuser != null && !string.IsNullOrEmpty(nuser.comment) && nuser.comment.Length > 0)
                 {
-                    var comment = nuser.comment;//.HtmlEncode();
-                    var contents = comment.HtmlDecode();
-                    contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
-                    IllustDescHtml.DocumentText = contents.GetHtmlFromTemplate(IllustAuthor.Text);
+                    IllustDescHtml.DocumentText = MakeUserCommentHtml(UserInfo);
                     AdjustBrowserSize(IllustDescHtml);
 
                     if (Setting.Instance.AutoExpand == AutoExpandMode.ON ||
@@ -1065,6 +1127,7 @@ namespace PixivWPF.Pages
             {
                 DocumentText = string.Empty.GetHtmlFromTemplate(),
                 Dock = System.Windows.Forms.DockStyle.Fill,
+                ScriptErrorsSuppressed = true,
                 WebBrowserShortcutsEnabled = true,
                 AllowWebBrowserDrop = false
             };
@@ -1079,10 +1142,11 @@ namespace PixivWPF.Pages
                 }
                 finally
                 {
-                    browser.DocumentCompleted += WebBrowser_DocumentCompleted;
-                    browser.Navigating += WebBrowser_Navigating;
-                    browser.ProgressChanged += WebBrowser_ProgressChanged;
-                    browser.PreviewKeyDown += WebBrowser_PreviewKeyDown;
+                    browser.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(WebBrowser_DocumentCompleted);
+                    browser.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(WebBrowser_Navigating);
+                    browser.Navigated += new System.Windows.Forms.WebBrowserNavigatedEventHandler(WebBrowser_Navigated);
+                    browser.ProgressChanged += new System.Windows.Forms.WebBrowserProgressChangedEventHandler(WebBrowser_ProgressChanged);
+                    browser.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(WebBrowser_PreviewKeyDown);
                 }
             }
         }
@@ -1197,6 +1261,43 @@ namespace PixivWPF.Pages
         }
 
         #region WebBrowser Events Handle
+        private void WebBrowserRefresh(System.Windows.Forms.WebBrowser browser)
+        {
+            try
+            {
+                //browser.Stop();
+                if (DataObject is ImageItem)
+                {
+                    var item = DataObject as ImageItem;
+                    if (browser == IllustTagsHtml)
+                    {
+                        if (item.ItemType == ImageItemType.User)
+                        {
+                            IllustTagsHtml.DocumentText = MakeUserInfoHtml(UserInfo);
+                        }
+                        else
+                        {
+                            IllustTagsHtml.DocumentText = MakeIllustTagsHtml(item);
+                        }
+                    }
+                    else if (browser == IllustDescHtml)
+                    {
+                        if (item.ItemType == ImageItemType.User)
+                        {
+                            IllustDescHtml.DocumentText = MakeUserCommentHtml(UserInfo);
+                        }
+                        else
+                        {
+                            IllustDescHtml.DocumentText = MakeIllustDescHtml(item);
+                        }
+                    }
+                    browser.Document.Write("");
+                    //AdjustBrowserSize(browser);
+                }
+            }
+            catch (Exception) { }
+        }
+
         private async void WebBrowser_LinkClick(object sender, System.Windows.Forms.HtmlElementEventArgs e)
         {
             bCancel = true;
@@ -1291,35 +1392,19 @@ namespace PixivWPF.Pages
 #endif
         }
 
-        private async void WebBrowser_ProgressChanged(object sender, System.Windows.Forms.WebBrowserProgressChangedEventArgs e)
+        private void WebBrowser_ProgressChanged(object sender, System.Windows.Forms.WebBrowserProgressChangedEventArgs e)
         {
             if (sender is System.Windows.Forms.WebBrowser)
             {
                 try
                 {
-                    var hp = sender as System.Windows.Forms.WebBrowser;
+                    var browser = sender as System.Windows.Forms.WebBrowser;
 
-                    if (hp.Document != null)
+                    if (browser.Document != null)
                     {
-                        foreach (System.Windows.Forms.HtmlElement imgElemt in hp.Document.Images)
+                        if(browser.ReadyState == System.Windows.Forms.WebBrowserReadyState.Complete)
                         {
-                            var src = imgElemt.GetAttribute("src");
-                            if (!string.IsNullOrEmpty(src))
-                            {
-                                try
-                                {
-                                    var img = await src.GetImagePath();
-                                    if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", img);
-                                }
-#if DEBUG
-                                catch (Exception ex)
-                                {
-                                    ex.Message.DEBUG();
-                                }
-#else
-                                catch (Exception) { }
-#endif
-                            }
+                            //if (browser.DocumentText.Length < 64) WebBrowserRefresh(browser);
                         }
                     }
                 }
@@ -1347,13 +1432,20 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void WebBrowser_DocumentCompleted(object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e)
+        private void WebBrowser_Navigated(object sender, System.Windows.Forms.WebBrowserNavigatedEventArgs e)
+        {
+
+        }
+
+        private async void WebBrowser_DocumentCompleted(object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e)
         {
             try
             {
                 if (sender == IllustDescHtml || sender == IllustTagsHtml)
                 {
-                    var document = (sender as System.Windows.Forms.WebBrowser).Document;
+                    var browser = sender as System.Windows.Forms.WebBrowser;
+
+                    var document = browser.Document;
                     foreach (System.Windows.Forms.HtmlElement link in document.Links)
                     {
                         try
@@ -1361,6 +1453,27 @@ namespace PixivWPF.Pages
                             link.Click += WebBrowser_LinkClick;
                         }
                         catch (Exception) { continue; }
+                    }
+
+                    foreach (System.Windows.Forms.HtmlElement imgElemt in browser.Document.Images)
+                    {
+                        var src = imgElemt.GetAttribute("src");
+                        if (!string.IsNullOrEmpty(src))
+                        {
+                            try
+                            {
+                                var img = await src.GetImagePath();
+                                if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", img);
+                            }
+#if DEBUG
+                            catch (Exception ex)
+                            {
+                                ex.Message.DEBUG();
+                            }
+#else
+                                catch (Exception) { }
+#endif
+                        }
                     }
                 }
             }
@@ -1394,6 +1507,10 @@ namespace PixivWPF.Pages
                         var text = GetText(browser, false);
                         var data = ClipboardHelper.CreateDataObject(html, text);
                         Clipboard.SetDataObject(data, true);
+                    }
+                    else if (e.KeyCode == System.Windows.Forms.Keys.F5)
+                    {
+                        WebBrowserRefresh(browser);
                     }
                 }
 #if DEBUG

@@ -73,7 +73,7 @@ namespace PixivWPF.Common
             //Activate();
 
             LastWindowStates.Enqueue(WindowState.Normal);
-            UpdateTheme();
+            UpdateTheme(this);
         }
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)

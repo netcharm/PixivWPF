@@ -215,10 +215,12 @@ namespace PixivWPF.Common
         {
             string result = null;
             var trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
-            var file = Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
+
+            var unc = new Uri(url);           
+            var file = unc.IsFile ? unc.AbsolutePath : Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
             file = file.Replace("/", "\\").TrimStart(trimchars);
             file = Regex.Replace(file, @"(.*?)(([\?|\*].*)*)", "$1", RegexOptions.IgnoreCase);
-            file = Path.Combine(_CacheFolder, file);
+            if(!Path.IsPathRooted(file)) file = Path.Combine(_CacheFolder, file);
 
             if (_caches.ContainsKey(url))
             {
