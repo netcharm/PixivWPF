@@ -70,15 +70,17 @@ namespace PixivWPF.Pages
                 AllowWebBrowserDrop = false
             };
 
-            if (browser is System.Windows.Forms.WebBrowser)
+            try
             {
-                browser.DocumentCompleted += WebBrowser_DocumentCompleted;
-                browser.Navigating += WebBrowser_Navigating;
-                browser.ProgressChanged += WebBrowser_ProgressChanged;
-                //browser.PreviewKeyDown += WebBrowser_PreviewKeyDown;
-
-                TrySetSuppressScriptErrors(webHtml, true);
+                if (browser is System.Windows.Forms.WebBrowser)
+                {
+                    browser.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(WebBrowser_DocumentCompleted);
+                    browser.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(WebBrowser_Navigating);
+                    browser.ProgressChanged += new System.Windows.Forms.WebBrowserProgressChangedEventHandler(WebBrowser_ProgressChanged);
+                    TrySetSuppressScriptErrors(webHtml, true);
+                }
             }
+            catch (Exception) { }
         }
 
         private void CreateHtmlRender()
@@ -313,13 +315,13 @@ namespace PixivWPF.Pages
             //return;
             if (sender is System.Windows.Forms.WebBrowser)
             {
-                var hp = sender as System.Windows.Forms.WebBrowser;
+                var browser = sender as System.Windows.Forms.WebBrowser;
 
-                if (hp.Document != null)
+                if (browser.Document != null)
                 {
                     try
                     {
-                        foreach (System.Windows.Forms.HtmlElement imgElemt in hp.Document.Images)
+                        foreach (System.Windows.Forms.HtmlElement imgElemt in browser.Document.Images)
                         {
                             var src = imgElemt.GetAttribute("src");
                             if (!string.IsNullOrEmpty(src))
@@ -328,13 +330,17 @@ namespace PixivWPF.Pages
                                 {
                                     await new Action(async () =>
                                     {
-                                        if (src.ToLower().Contains("no_image_p.svg"))
-                                            imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.Root(), "no_image.png")).AbsoluteUri);
-                                        else if (src.IsPixivImage())
+                                        try
                                         {
-                                            var img = await src.GetImagePath();
-                                            if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", new Uri(img).AbsoluteUri);
+                                            if (src.ToLower().Contains("no_image_p.svg"))
+                                                imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.Root(), "no_image.png")).AbsoluteUri);
+                                            else if (src.IsPixivImage())
+                                            {
+                                                var img = await src.GetImagePath();
+                                                if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", new Uri(img).AbsoluteUri);
+                                            }
                                         }
+                                        catch (Exception) { }
                                     }).InvokeAsync();
                                 }
 #if DEBUG
@@ -386,13 +392,17 @@ namespace PixivWPF.Pages
             {
                 if (sender == webHtml)
                 {
-                    ((System.Windows.Forms.WebBrowser)sender).Document.Window.Error += new System.Windows.Forms.HtmlElementErrorEventHandler(Window_Error);
-
-                    var document = webHtml.Document;
-                    foreach (System.Windows.Forms.HtmlElement link in document.Links)
+                    try
                     {
-                        link.Click += WebBrowser_LinkClick;
+                        ((System.Windows.Forms.WebBrowser)sender).Document.Window.Error += new System.Windows.Forms.HtmlElementErrorEventHandler(Window_Error);
+
+                        var browser = sender as System.Windows.Forms.WebBrowser;
+                        foreach (System.Windows.Forms.HtmlElement link in browser.Document.Links)
+                        {
+                            link.Click += WebBrowser_LinkClick;
+                        }
                     }
+                    catch (Exception) { }
                 }
             }
 #if DEBUG

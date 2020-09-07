@@ -780,7 +780,7 @@ namespace PixivWPF.Pages
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "User Infomation";
-                    if (Setting.Instance.AutoExpand == AutoExpandMode.ON )
+                    if (Setting.Instance.AutoExpand == AutoExpandMode.ON)
                         IllustTagExpander.IsExpanded = true;
                     else
                         IllustTagExpander.IsExpanded = false;
@@ -1131,15 +1131,9 @@ namespace PixivWPF.Pages
                 AllowWebBrowserDrop = false
             };
 
-            if (browser is System.Windows.Forms.WebBrowser)
+            try
             {
-                try
-                {
-                    //browser.AllowNavigation = false;
-                    browser.AllowWebBrowserDrop = false;
-                    browser.WebBrowserShortcutsEnabled = true;
-                }
-                finally
+                if (browser is System.Windows.Forms.WebBrowser)
                 {
                     browser.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(WebBrowser_DocumentCompleted);
                     browser.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(WebBrowser_Navigating);
@@ -1148,6 +1142,7 @@ namespace PixivWPF.Pages
                     browser.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(WebBrowser_PreviewKeyDown);
                 }
             }
+            catch (Exception) { }
         }
 
         private void CreateHtmlRender()
@@ -1223,7 +1218,7 @@ namespace PixivWPF.Pages
                 if (e.Key == Key.F7 || e.SystemKey == Key.F7)
                 {
                     var pub = Setting.Instance.PrivateFavPrefert ? false : true;
-                    if(Keyboard.Modifiers == ModifierKeys.None)
+                    if (Keyboard.Modifiers == ModifierKeys.None)
                         await item.Illust.Like(pub);
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
                         await item.Illust.Like(!pub);
@@ -1242,7 +1237,7 @@ namespace PixivWPF.Pages
                 }
                 e.Handled = true;
             }
-            else if(DataObject is Pixeez.Objects.UserBase)
+            else if (DataObject is Pixeez.Objects.UserBase)
             {
                 var item = DataObject as Pixeez.Objects.UserBase;
                 if (e.Key == Key.F8 || e.SystemKey == Key.F8)
@@ -1391,7 +1386,7 @@ namespace PixivWPF.Pages
 #endif
         }
 
-        private void WebBrowser_ProgressChanged(object sender, System.Windows.Forms.WebBrowserProgressChangedEventArgs e)
+        private async void WebBrowser_ProgressChanged(object sender, System.Windows.Forms.WebBrowserProgressChangedEventArgs e)
         {
             if (sender is System.Windows.Forms.WebBrowser)
             {
@@ -1401,9 +1396,33 @@ namespace PixivWPF.Pages
 
                     if (browser.Document != null)
                     {
-                        if(browser.ReadyState == System.Windows.Forms.WebBrowserReadyState.Complete)
+                        foreach (System.Windows.Forms.HtmlElement imgElemt in browser.Document.Images)
                         {
-                            //if (browser.DocumentText.Length < 64) WebBrowserRefresh(browser);
+                            var src = imgElemt.GetAttribute("src");
+                            if (!string.IsNullOrEmpty(src))
+                            {
+                                await new Action(async () =>
+                                {
+                                    try
+                                    {
+                                        if (src.ToLower().Contains("no_image_p.svg"))
+                                            imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.Root(), "no_image.png")).AbsoluteUri);
+                                        else if (src.IsPixivImage())
+                                        {
+                                            var img = await src.GetImagePath();
+                                            if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", new Uri(img).AbsoluteUri);
+                                        }
+                                    }
+#if DEBUG
+                                    catch (Exception ex)
+                                    {
+                                        ex.Message.DEBUG();
+                                    }
+#else
+                                    catch (Exception) { }
+#endif
+                                }).InvokeAsync();
+                            }
                         }
                     }
                 }
@@ -1436,7 +1455,7 @@ namespace PixivWPF.Pages
 
         }
 
-        private async void WebBrowser_DocumentCompleted(object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e)
+        private void WebBrowser_DocumentCompleted(object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e)
         {
             try
             {
@@ -1452,27 +1471,6 @@ namespace PixivWPF.Pages
                             link.Click += WebBrowser_LinkClick;
                         }
                         catch (Exception) { continue; }
-                    }
-
-                    foreach (System.Windows.Forms.HtmlElement imgElemt in browser.Document.Images)
-                    {
-                        var src = imgElemt.GetAttribute("src");
-                        if (!string.IsNullOrEmpty(src))
-                        {
-                            try
-                            {
-                                var img = await src.GetImagePath();
-                                if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", img);
-                            }
-#if DEBUG
-                            catch (Exception ex)
-                            {
-                                ex.Message.DEBUG();
-                            }
-#else
-                                catch (Exception) { }
-#endif
-                        }
                     }
                 }
             }
