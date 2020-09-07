@@ -43,6 +43,22 @@ namespace PixivWPF
             CommandToggleDropbox.IsChecked = state;
         }
 
+        public async void UpdateIllustTagsAsync()
+        {
+            if (ContentFrame.Content is Pages.TilesPage)
+            {
+                var tiles = ContentFrame.Content as Pages.TilesPage;
+                if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
+                {
+                    await new Action(() =>
+                    {
+                        var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
+                        detail.UpdateIllustTagsAsync();
+                    }).InvokeAsync();
+                }
+            }
+        }
+
         public void UpdateTheme()
         {
             if (pagenav is Pages.NavPage) pagenav.CheckPage();

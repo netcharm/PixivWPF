@@ -395,6 +395,7 @@ namespace PixivWPF.Common
                 {
                     var tags = File.ReadAllText(tagsfile);
                     CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
+                    CommonHelper.UpdateIllustTagsAsync();
                 }
                 catch (Exception) { }
             }
@@ -405,6 +406,7 @@ namespace PixivWPF.Common
                 {
                     var tags_t2s = File.ReadAllText(tagsfile_t2s);
                     CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
+                    CommonHelper.UpdateIllustTagsAsync();
                 }
                 catch (Exception) { }
             }
@@ -415,6 +417,7 @@ namespace PixivWPF.Common
                     if (CommonHelper.TagsT2S is Dictionary<string, string>)
                     {
                         CommonHelper.TagsT2S.Clear();
+                        CommonHelper.UpdateIllustTagsAsync();
                     }
                 }
                 catch(Exception) { }

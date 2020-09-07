@@ -278,34 +278,62 @@ namespace PixivWPF.Common
 
         #region Config files Watchdog
         private static Dictionary<string, FileSystemWatcher> _watchers = new Dictionary<string, FileSystemWatcher>();
+        private static DateTime lastConfigEventTick = DateTime.Now;
+        private static string lastConfigEventFile = string.Empty;
+        private static WatcherChangeTypes lastConfigEventType = WatcherChangeTypes.All;
+
         private static void OnConfigChanged(object source, FileSystemEventArgs e)
         {
 #if DEBUG
             // Specify what is done when a file is changed, created, or deleted.
             $"File: {e.FullPath} {e.ChangeType}".DEBUG();
 #endif
-            if (e.ChangeType == WatcherChangeTypes.Created)
+            try
             {
-                //if (File.Exists(e.FullPath))
-                //{
-                //    var fn = e.Name.ToLower();
-                //    if (fn.Equals("config.json"))
-                //    {
-                //
-                //    }
-                //    else if (fn.Equals("tags_t2s.json"))
-                //    {
-                //        Common.Setting.LoadTags(false);
-                //    }
-                //    else if (fn.Equals("contents-template.html"))
-                //    {
-                //        Common.Setting.UpdateContentsTemplete();
-                //    }
-                //}
-            }
-            else if (e.ChangeType == WatcherChangeTypes.Changed)
-            {
-                if (File.Exists(e.FullPath))
+                var now = DateTime.Now;
+                if (e.ChangeType == lastConfigEventType &&
+                    e.FullPath == lastConfigEventFile &&
+                    now.Ticks - lastConfigEventTick.Ticks < 10000) throw new Exception("Same config change event!");
+
+                if (e.ChangeType == WatcherChangeTypes.Created)
+                {
+                    //if (File.Exists(e.FullPath))
+                    //{
+                    //    var fn = e.Name.ToLower();
+                    //    if (fn.Equals("config.json"))
+                    //    {
+                    //
+                    //    }
+                    //    else if (fn.Equals("tags_t2s.json"))
+                    //    {
+                    //        Common.Setting.LoadTags(false);
+                    //    }
+                    //    else if (fn.Equals("contents-template.html"))
+                    //    {
+                    //        Common.Setting.UpdateContentsTemplete();
+                    //    }
+                    //}
+                }
+                else if (e.ChangeType == WatcherChangeTypes.Changed)
+                {
+                    if (File.Exists(e.FullPath))
+                    {
+                        var fn = e.Name.ToLower();
+                        if (fn.Equals("config.json"))
+                        {
+
+                        }
+                        else if (fn.Equals("tags_t2s.json"))
+                        {
+                            Common.Setting.LoadTags(false);
+                        }
+                        else if (fn.Equals("contents-template.html"))
+                        {
+                            Common.Setting.UpdateContentsTemplete();
+                        }
+                    }
+                }
+                else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
                     var fn = e.Name.ToLower();
                     if (fn.Equals("config.json"))
@@ -322,21 +350,12 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            else if (e.ChangeType == WatcherChangeTypes.Deleted)
+            catch (Exception) { }
+            finally
             {
-                var fn = e.Name.ToLower();
-                if (fn.Equals("config.json"))
-                {
-
-                }
-                else if (fn.Equals("tags_t2s.json"))
-                {
-                    Common.Setting.LoadTags(false);
-                }
-                else if (fn.Equals("contents-template.html"))
-                {
-                    Common.Setting.UpdateContentsTemplete();
-                }
+                lastConfigEventTick = DateTime.Now;
+                lastConfigEventFile = e.FullPath;
+                lastConfigEventType = e.ChangeType;
             }
         }
 
@@ -346,21 +365,36 @@ namespace PixivWPF.Common
             // Specify what is done when a file is renamed.
             $"File: {e.OldFullPath} renamed to {e.FullPath}".DEBUG();
 #endif
-            if (e.ChangeType == WatcherChangeTypes.Renamed)
+            try
             {
-                var fn = e.OldName.ToLower();
-                if (fn.Equals("config.json"))
-                {
+                var now = DateTime.Now;
+                if (e.ChangeType == lastConfigEventType &&
+                    e.FullPath == lastConfigEventFile &&
+                    now.Ticks - lastConfigEventTick.Ticks < 10000) throw new Exception("Same config change event!");
 
-                }
-                else if (fn.Equals("tags_t2s.json"))
+                if (e.ChangeType == WatcherChangeTypes.Renamed)
                 {
-                    Common.Setting.LoadTags(false);
+                    var fn = e.OldName.ToLower();
+                    if (fn.Equals("config.json"))
+                    {
+
+                    }
+                    else if (fn.Equals("tags_t2s.json"))
+                    {
+                        Common.Setting.LoadTags(false);
+                    }
+                    else if (fn.Equals("contents-template.html"))
+                    {
+                        Common.Setting.UpdateContentsTemplete();
+                    }
                 }
-                else if (fn.Equals("contents-template.html"))
-                {
-                    Common.Setting.UpdateContentsTemplete();
-                }
+            }
+            catch (Exception) { }
+            finally
+            {
+                lastConfigEventTick = DateTime.Now;
+                lastConfigEventFile = e.FullPath;
+                lastConfigEventType = e.ChangeType;
             }
         }
 
@@ -379,6 +413,11 @@ namespace PixivWPF.Common
                 watcher.Created += new FileSystemEventHandler(OnConfigChanged);
                 watcher.Deleted += new FileSystemEventHandler(OnConfigChanged);
                 watcher.Renamed += new RenamedEventHandler(OnConfigRenamed);
+                //watcher.Changed += OnConfigChanged;
+                //watcher.Created += OnConfigChanged;
+                //watcher.Deleted += OnConfigChanged;
+                //watcher.Renamed += OnConfigRenamed;
+
                 // Begin watching.
                 watcher.EnableRaisingEvents = true;
                 _watchers[folder] = watcher;
@@ -863,7 +902,7 @@ namespace PixivWPF.Common
                 await Task.Delay(1);
                 Application.Current.DoEvents();
             }
-            else if(obj is ImageListGrid)
+            else if (obj is ImageListGrid)
             {
                 var list = obj as ImageListGrid;
                 foreach (var item in list.SelectedItems)
@@ -1140,7 +1179,7 @@ namespace PixivWPF.Common
                     }).InvokeAsync();
                 }
             }
-            else if(obj is Pixeez.Objects.Work)
+            else if (obj is Pixeez.Objects.Work)
             {
                 Cmd_SendToOtherInstance.Execute($"id:{(obj as Pixeez.Objects.Work).Id}");
             }
@@ -1284,7 +1323,7 @@ namespace PixivWPF.Common
                             return;
                         }
                     }
-                    else if(content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
+                    else if (content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var user = content.ParseID().FindUser();
                         if (user is Pixeez.Objects.UserBase)
@@ -1332,7 +1371,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_SaveTags { get; } = new DelegateCommand(()=>
+        public static ICommand Cmd_SaveTags { get; } = new DelegateCommand(() =>
         {
             setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
             setting.SaveTags();
@@ -1553,7 +1592,7 @@ namespace PixivWPF.Common
             return (result.Trim().Trim(trim_char).HtmlDecode());
         }
 
-        public static IEnumerable<string> ParseLinks(this string html, bool is_src=false)
+        public static IEnumerable<string> ParseLinks(this string html, bool is_src = false)
         {
             List<string> links = new List<string>();
             var href_prefix_0 = is_src ? @"href=""" : string.Empty;
@@ -1631,7 +1670,7 @@ namespace PixivWPF.Common
                         //link = Uri.UnescapeDataString(WebUtility.HtmlDecode(link));
                         if (!links.Contains(link)) links.Add(link);
                     }
-                    else if (link.StartsWith("id:", StringComparison.CurrentCultureIgnoreCase)) 
+                    else if (link.StartsWith("id:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var id = link.Substring(3).Trim();
                         var a_link = $"https://www.pixiv.net/artworks/{id}";
@@ -1899,31 +1938,69 @@ namespace PixivWPF.Common
             return (template.ToString());
         }
 
-        public static string TranslatedTag(this string tag, string translated=default(string))
+        public static string TranslatedTag(this string tag, string translated = default(string))
         {
             var result = tag;
-            if (TagsCache is Dictionary<string, string>)
+            try
             {
-                if (string.IsNullOrEmpty(translated) || tag.Equals(translated))
+                tag = string.IsNullOrEmpty(tag) ? string.Empty : tag.Trim();
+                translated = string.IsNullOrEmpty(translated) ? string.Empty : translated.Trim();
+                if (string.IsNullOrEmpty(tag)) return (string.Empty);
+
+                result = tag;
+                if (TagsCache is Dictionary<string, string>)
                 {
-                    if (TagsCache.ContainsKey(tag))
+                    if (string.IsNullOrEmpty(translated) || tag.Equals(translated, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var tag_t = TagsCache[tag];
-                        if (!string.IsNullOrEmpty(tag_t)) result = tag_t;
+                        if (TagsCache.ContainsKey(tag))
+                        {
+                            var tag_t = TagsCache[tag];
+                            if (!string.IsNullOrEmpty(tag_t)) result = tag_t;
+                        }
+                    }
+                    else
+                    {
+                        TagsCache[tag] = translated;
+                        result = translated;
                     }
                 }
-                else
+                if (TagsT2S is Dictionary<string, string>)
                 {
-                    TagsCache[tag] = translated;
-                    result = translated;
+                    if (TagsT2S.ContainsKey(tag)) result = TagsT2S[tag];
+                    else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
                 }
             }
-            if (TagsT2S is Dictionary<string, string>)
-            {
-                if(TagsT2S.ContainsKey(tag)) result = TagsT2S[tag];
-                else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
-            }
+            catch (Exception) { }
             return (result);
+        }
+
+        public static async void UpdateIllustTagsAsync()
+        {
+            await new Action(() =>
+            {
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win is MainWindow)
+                    {
+                        var mw = win as MainWindow;
+                        mw.UpdateIllustTagsAsync();
+                    }
+                    else if (win is ContentWindow)
+                    {
+                        var w = win as ContentWindow;
+                        if (w.Content is IllustDetailPage)
+                        {
+                            (w.Content as IllustDetailPage).UpdateIllustTagsAsync();
+                        }
+                    }
+                    else continue;
+                }
+            }).InvokeAsync();
+        }
+
+        public static void UpdateIllustTags(this Dictionary<string, string> tags)
+        {
+            UpdateIllustTagsAsync();
         }
 
         // To return an array of strings instead:
@@ -1955,7 +2032,7 @@ namespace PixivWPF.Common
         {
             var result = new List<string>();
 
-            foreach(var p in Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator))
+            foreach (var p in Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator))
             {
                 var c = Path.Combine(p, cmd);
                 if (File.Exists(c)) result.Add(c);
@@ -2209,7 +2286,7 @@ namespace PixivWPF.Common
             {
                 var illustset = Illust as Pixeez.Objects.IllustWork;
                 dt = illustset.GetOriginalUrl().ParseDateTime();
-                if(dt.Year <= 1601 ) dt = illustset.CreatedTime;
+                if (dt.Year <= 1601) dt = illustset.CreatedTime;
             }
             else if (Illust is Pixeez.Objects.NormalWork)
             {
@@ -2432,38 +2509,58 @@ namespace PixivWPF.Common
         }
 
         // Define the event handlers.
+        private static Dictionary<string, FileSystemWatcher> _watchers = new Dictionary<string, FileSystemWatcher>();
+        private static DateTime lastDownloadEventTick = DateTime.Now;
+        private static string lastDownloadEventFile = string.Empty;
+        private static WatcherChangeTypes lastDownloadEventType = WatcherChangeTypes.All;
+
         private static void OnDownloadChanged(object source, FileSystemEventArgs e)
         {
 #if DEBUG
             // Specify what is done when a file is changed, created, or deleted.
             $"File: {e.FullPath} {e.ChangeType}".DEBUG();
 #endif
-            if (e.ChangeType == WatcherChangeTypes.Created)
+            try
             {
-                if (File.Exists(e.FullPath))
+                var now = DateTime.Now;
+                if (e.ChangeType == lastDownloadEventType &&
+                    e.FullPath.Equals(lastDownloadEventFile, StringComparison.CurrentCultureIgnoreCase) &&
+                    now.Ticks - lastDownloadEventTick.Ticks < 10000) throw new Exception("Same download event!");
+
+                if (e.ChangeType == WatcherChangeTypes.Created)
+                {
+                    if (File.Exists(e.FullPath))
+                    {
+                        if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
+                        {
+                            e.FullPath.DownloadedCacheAdd();
+                            UpdateDownloadStateAsync(GetIllustId(e.Name), true);
+                        }
+                    }
+                }
+                else if (e.ChangeType == WatcherChangeTypes.Changed)
+                {
+                    //if (File.Exists(e.FullPath))
+                    //{
+                    //    e.FullPath.DownloadedCacheAdd();
+                    //    UpdateDownloadStateAsync(GetIllustId(e.FullPath));
+                    //}
+                }
+                else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
                     if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
                     {
-                        e.FullPath.DownloadedCacheAdd();
-                        UpdateDownloadStateAsync(GetIllustId(e.Name), true);
+                        e.FullPath.DownloadedCacheRemove();
+                        UpdateDownloadStateAsync(GetIllustId(e.Name), false);
                     }
                 }
             }
-            else if (e.ChangeType == WatcherChangeTypes.Changed)
+            catch (Exception) { }
+            finally
             {
-                //if (File.Exists(e.FullPath))
-                //{
-                //    e.FullPath.DownloadedCacheAdd();
-                //    UpdateDownloadStateAsync(GetIllustId(e.FullPath));
-                //}
-            }
-            else if (e.ChangeType == WatcherChangeTypes.Deleted)
-            {
-                if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
-                {
-                    e.FullPath.DownloadedCacheRemove();
-                    UpdateDownloadStateAsync(GetIllustId(e.Name), false);
-                }
+                lastDownloadEventTick = DateTime.Now;
+                lastDownloadEventFile = e.FullPath;
+                lastDownloadEventType = e.ChangeType;
             }
         }
 
@@ -2473,17 +2570,29 @@ namespace PixivWPF.Common
             // Specify what is done when a file is renamed.
             $"File: {e.OldFullPath} renamed to {e.FullPath}".DEBUG();
 #endif
-            if (e.ChangeType == WatcherChangeTypes.Renamed)
+            try
             {
-                e.OldFullPath.DownloadedCacheUpdate(e.FullPath);
-                if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
+                var now = DateTime.Now;
+                if (e.ChangeType == lastDownloadEventType &&
+                    e.FullPath.Equals(lastDownloadEventFile, StringComparison.CurrentCultureIgnoreCase) &&
+                    now.Ticks - lastDownloadEventTick.Ticks < 10000) throw new Exception("Same download event!");
+                if (e.ChangeType == WatcherChangeTypes.Renamed)
                 {
-                    UpdateDownloadStateAsync(GetIllustId(e.Name));
+                    e.OldFullPath.DownloadedCacheUpdate(e.FullPath);
+                    if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
+                    {
+                        UpdateDownloadStateAsync(GetIllustId(e.Name));
+                    }
                 }
             }
-        }
-
-        private static Dictionary<string, FileSystemWatcher> _watchers = new Dictionary<string, FileSystemWatcher>();
+            catch (Exception) { }
+            finally
+            {
+                lastDownloadEventTick = DateTime.Now;
+                lastDownloadEventFile = e.FullPath;
+                lastDownloadEventType = e.ChangeType;
+            }
+        }    
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static void InitDownloadedWatcher(this IEnumerable<StorageType> storages)

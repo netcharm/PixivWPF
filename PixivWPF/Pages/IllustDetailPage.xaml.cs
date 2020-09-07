@@ -266,6 +266,21 @@ namespace PixivWPF.Pages
             return (result);
         }
 
+        public async void UpdateIllustTagsAsync()
+        {
+            if(DataObject is ImageItem)
+            {
+                var item = DataObject as ImageItem;
+                if(item.ItemType != ImageItemType.User)
+                {
+                    await new Action(() =>
+                    {
+                        WebBrowserRefresh(IllustTagsHtml);
+                    }).InvokeAsync();
+                }
+            }
+        }
+
         internal void UpdateTheme()
         {
             if (IllustTagsHtml is System.Windows.Forms.WebBrowser)
