@@ -173,7 +173,15 @@
                                Foreground="{DynamicResource AccentColorBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>            
+            </MenuItem>
+            <Separator/>
+            <MenuItem x:Name="miRefresh" x:Uid="Refresh" Header="Refresh" ToolTip="Refresh It!" Click="ActionRefresh_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource AccentColorBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
         </ContextMenu>
     </Page.Resources>
     
@@ -607,6 +615,15 @@
                                           Header="Show Favorite Illusts" Click="ActionShowFavorite_Click">
                                         <MenuItem.Icon>
                                             <iconPacks:PackIconModern Kind="ImageGallery" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem x:Name="ActionRefresh" x:Uid="Refresh Illust" Header="Refresh Illust" ToolTip="Refresh Illust" Click="ActionRefresh_Click" >
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <!--<TextBlock Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                                                       Foreground="{DynamicResource AccentColorBrush}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator />

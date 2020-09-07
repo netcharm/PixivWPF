@@ -155,7 +155,6 @@ namespace PixivWPF.Pages
             {
                 if (item.ItemType == ImageItemType.Work && item.Illust is Pixeez.Objects.Work)
                 {
-
                     if (item.Illust.Tags.Count > 0)
                     {
                         var html = new StringBuilder();
@@ -164,7 +163,7 @@ namespace PixivWPF.Pages
                             foreach (var tag in (item.Illust as Pixeez.Objects.IllustWork).MoreTags)
                             {
                                 var trans = string.IsNullOrEmpty(tag.Translated) ? tag.Original : tag.Translated;
-                                tag.Original.TranslatedTag(tag.Translated);
+                                trans = tag.Original.TranslatedTag(tag.Translated);
                                 html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag.Original)}/artworks?s_mode=s_tag\" class=\"tag\" title=\"{trans}\" data-tag=\"{tag.Original}\" data-tooltip=\"{trans}\">#{tag.Original}</a>");
                             }
                         }
@@ -1628,6 +1627,48 @@ namespace PixivWPF.Pages
                 else
                     CommonHelper.Cmd_ShellSendToOtherInstance.Execute(text);
             }
+        }
+
+        private void ActionRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            var text = string.Empty;
+            try
+            {
+                if (sender is MenuItem)
+                {
+                    var mi = sender as MenuItem;
+                    if (mi.Parent is ContextMenu)
+                    {
+                        var host = (mi.Parent as ContextMenu).PlacementTarget;
+                        if (host == btnIllustTagSpeech)
+                        {
+                            WebBrowserRefresh(IllustTagsHtml);
+                        }
+                        else if (host == btnIllustDescSpeech)
+                        {
+                            WebBrowserRefresh(IllustDescHtml);
+                        }
+                        else if (host == IllustAuthor) text = $"\"user:{IllustAuthor.Text}\"";
+                        else if (host == IllustTitle) text = $"\"title:{IllustTitle.Text}\"";
+                        else if(mi == ActionRefresh)
+                        {
+                            if (this is IllustDetailPage)
+                            {
+                                var page = this as IllustDetailPage;
+                                if (page.Tag is ImageItem)
+                                    page.UpdateDetail(page.Tag as ImageItem);
+                                else if (page.Tag is Pixeez.Objects.UserBase)
+                                    page.UpdateDetail(page.Tag as Pixeez.Objects.UserBase);
+                            }
+                        }
+                    }
+                }
+            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception) { }
+#endif                   
         }
 
         private async void ActionOpenPedia_Click(object sender, RoutedEventArgs e)

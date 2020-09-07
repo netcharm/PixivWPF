@@ -1904,7 +1904,7 @@ namespace PixivWPF.Common
             var result = tag;
             if (TagsCache is Dictionary<string, string>)
             {
-                if (string.IsNullOrEmpty(translated))
+                if (string.IsNullOrEmpty(translated) || tag.Equals(translated))
                 {
                     if (TagsCache.ContainsKey(tag))
                     {
