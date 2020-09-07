@@ -1908,6 +1908,8 @@ namespace PixivWPF.Pages
                 if (DataObject is ImageItem)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.Control)
+                        CommonHelper.Cmd_ShellSendToOtherInstance.Execute((DataObject as ImageItem).User);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
                         ActionRefreshAvator(DataObject as ImageItem);
                     else
                         CommonHelper.Cmd_OpenUser.Execute((DataObject as ImageItem).User);
@@ -1916,10 +1918,13 @@ namespace PixivWPF.Pages
                 {
                     await new Action(() =>
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.None)
-                            CommonHelper.Cmd_SendToOtherInstance.Execute(DataObject);
-                        else
+                        if (Keyboard.Modifiers == ModifierKeys.Control)
                             CommonHelper.Cmd_ShellSendToOtherInstance.Execute(DataObject);
+                        else if(Keyboard.Modifiers == ModifierKeys.Alt)
+                            ActionRefreshAvator(DataObject as Pixeez.Objects.UserBase);
+                        else
+                            CommonHelper.Cmd_SendToOtherInstance.Execute(DataObject);
+
                     }).InvokeAsync();
                 }
             }
@@ -2051,9 +2056,26 @@ namespace PixivWPF.Pages
         {
             var ua = new Action(async () =>
              {
-                 IllustAuthorAvator.Source = await item.User.GetAvatarUrl().LoadImageFromUrl();
-                 if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
+                 try
+                 {
+                     IllustAuthorAvator.Source = await item.User.GetAvatarUrl().LoadImageFromUrl();
+                     if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
+                 }
+                 catch(Exception) { }
              }).InvokeAsync();
+        }
+
+        private void ActionRefreshAvator(Pixeez.Objects.UserBase user)
+        {
+            var ua = new Action(async () =>
+            {
+                try
+                {
+                    IllustAuthorAvator.Source = await user.GetAvatarUrl().LoadImageFromUrl();
+                    if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
+                }
+                catch(Exception) { }
+            }).InvokeAsync();
         }
         #endregion
 
