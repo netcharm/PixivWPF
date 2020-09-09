@@ -197,21 +197,29 @@ namespace PixivWPF.Common
     public static class ApplicationExtensions
     {
         #region Application Helper
-        private static System.Diagnostics.Process CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
-
         public static Common.Setting Setting(this Application app)
         {
             return (Common.Setting.Instance == null ? Common.Setting.Load() : Common.Setting.Instance);
         }
 
-        public static string RootPath {
-            get {
-                return (Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", ""));
+        private static string root = string.Empty;
+        public static string Root
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(root)) root = GetRoot();
+                return (root);
             }
         }
-        public static string Root(this Application app)
+
+        public static string GetRoot()
         {
             return (Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", ""));
+        }
+
+        public static string GetRoot(this Application app)
+        {
+            return (Root);
         }
 
         public static string Version(this Application app, bool alt = false)
@@ -226,12 +234,12 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (string.IsNullOrEmpty(processor_id)) processor_id = GetProcessorID(Application.Current);
+                if (string.IsNullOrEmpty(processor_id)) processor_id = GetProcessorID();
                 return (processor_id);
             }
         }
 
-        public static string GetProcessorID(this Application app)
+        public static string GetProcessorID()
         {
             string result = string.Empty;
 
@@ -259,6 +267,56 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static string GetProcessorID(this Application app)
+        {
+            return (ProcessorID);
+        }
+
+        private static string machine_id = string.Empty;
+        public static string MachineID
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(machine_id)) machine_id = GetDeviceId();
+                return (machine_id);
+            }
+        }
+
+        public static string GetDeviceId()
+        {
+            var result = ProcessorID;
+            try
+            {
+                string location = @"SOFTWARE\Microsoft\Cryptography";
+                string name = "MachineGuid";
+
+                var view = Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32;
+                using (RegistryKey localMachineX64View = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view))
+                {
+                    using (RegistryKey rk = localMachineX64View.OpenSubKey(location))
+                    {
+                        if (rk == null)
+                            throw new KeyNotFoundException(string.Format("Key Not Found: {0}", location));
+
+                        object machineGuid = rk.GetValue(name);
+                        if (machineGuid == null)
+                            throw new IndexOutOfRangeException(string.Format("Index Not Found: {0}", name));
+
+                        result = machineGuid.ToString().Replace("-", "");
+                    }
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static string GetDeviceId(this Application app)
+        {
+            return (MachineID);
+        }
+
+        private static System.Diagnostics.Process CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
+
         public static System.Diagnostics.Process Process(this Application app)
         {
             if (!(CurrentProcess is System.Diagnostics.Process))
@@ -266,13 +324,28 @@ namespace PixivWPF.Common
             return (CurrentProcess);
         }
 
-        public static string PipeServerName(this Application app)
+        private static string pipe_name = string.Empty;
+        public static string PipeName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(pipe_name)) pipe_name = PipeServerName();
+                return (pipe_name);
+            }
+        }
+
+        public static string PipeServerName()
         {
 #if DEBUG
-            return ($"PixivWPF-Search-Debug-{app.Process().Id}");
+            return ($"PixivWPF-Search-Debug-{Application.Current.Process().Id}");
 #else
-            return ($"PixivWPF-Search-{app.Process().Id}");
+            return ($"PixivWPF-Search-{Application.Current.Process().Id}");
 #endif
+        }
+
+        public static string PipeServerName(this Application app)
+        {
+            return (PipeName);
         }
         #endregion
 
@@ -295,20 +368,21 @@ namespace PixivWPF.Common
                     e.FullPath == lastConfigEventFile &&
                     now.Ticks - lastConfigEventTick.Ticks < 10000) throw new Exception("Same config change event!");
 
+                var fn = e.FullPath;
                 if (e.ChangeType == WatcherChangeTypes.Created)
                 {
                     //if (File.Exists(e.FullPath))
                     //{
-                    //    var fn = e.Name.ToLower();
-                    //    if (fn.Equals("config.json"))
+                    //    
+                    //    if (fn.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     //    {
                     //
                     //    }
-                    //    else if (fn.Equals("tags_t2s.json"))
+                    //    else if (fn.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     //    {
                     //        Common.Setting.LoadTags(false);
                     //    }
-                    //    else if (fn.Equals("contents-template.html"))
+                    //    else if (fn.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     //    {
                     //        Common.Setting.UpdateContentsTemplete();
                     //    }
@@ -318,16 +392,17 @@ namespace PixivWPF.Common
                 {
                     if (File.Exists(e.FullPath))
                     {
-                        var fn = e.Name.ToLower();
-                        if (fn.Equals("config.json"))
+                        if (fn.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                         {
-
+                            Common.Setting.IsLoading = true;
+                            Common.Setting.Load(true);
+                            Common.Setting.IsLoading = false;
                         }
-                        else if (fn.Equals("tags_t2s.json"))
+                        else if (fn.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Common.Setting.LoadTags(false);
                         }
-                        else if (fn.Equals("contents-template.html"))
+                        else if (fn.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Common.Setting.UpdateContentsTemplete();
                         }
@@ -335,16 +410,15 @@ namespace PixivWPF.Common
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
-                    var fn = e.Name.ToLower();
-                    if (fn.Equals("config.json"))
+                    if (fn.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     {
 
                     }
-                    else if (fn.Equals("tags_t2s.json"))
+                    else if (fn.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Common.Setting.LoadTags(false);
                     }
-                    else if (fn.Equals("contents-template.html"))
+                    else if (fn.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Common.Setting.UpdateContentsTemplete();
                     }
@@ -372,18 +446,22 @@ namespace PixivWPF.Common
                     e.FullPath == lastConfigEventFile &&
                     now.Ticks - lastConfigEventTick.Ticks < 10000) throw new Exception("Same config change event!");
 
+                var fn_o = e.OldFullPath;
+                var fn_n = e.FullPath;
                 if (e.ChangeType == WatcherChangeTypes.Renamed)
                 {
-                    var fn = e.OldName.ToLower();
-                    if (fn.Equals("config.json"))
+                    if (fn_o.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase) || 
+                        fn_n.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     {
 
                     }
-                    else if (fn.Equals("tags_t2s.json"))
+                    else if (fn_o.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) || 
+                        fn_n.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Common.Setting.LoadTags(false);
                     }
-                    else if (fn.Equals("contents-template.html"))
+                    else if (fn_o.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) || 
+                        fn_n.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Common.Setting.UpdateContentsTemplete();
                     }
@@ -426,7 +504,7 @@ namespace PixivWPF.Common
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void AddAppWatcher(this Application app, string folder, string filter="*.*", bool IncludeSubFolder = false)
+        public static void AddAppWatcher(this Application app, string folder, string filter = "*.*", bool IncludeSubFolder = false)
         {
             if (Directory.Exists(folder) && !_watchers.ContainsKey(folder))
             {
@@ -1047,13 +1125,13 @@ namespace PixivWPF.Common
                 {
                     string fp = string.Empty;
                     item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
-                    fp.OpenImageWithShell();
+                    fp.OpenFileWithShell();
                 }
                 else
                 {
                     string fp = string.Empty;
                     item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
-                    fp.OpenImageWithShell();
+                    fp.OpenFileWithShell();
                 }
             }
         });
@@ -1124,6 +1202,8 @@ namespace PixivWPF.Common
                                 {
                                     if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase)) continue;
                                     else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
+                                    else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
+                                    else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
                                     titles.Add(win.Title);
                                 }
                                 else continue;
@@ -1464,6 +1544,18 @@ namespace PixivWPF.Common
         #endregion
 
         #region Text process routines
+        public static bool IsFile(this string text)
+        {
+            var result = false;
+            try
+            {
+                var unc = new Uri(text);
+                result = unc.IsFile;
+            }
+            catch(Exception) { }
+            return (result);
+        }
+
         public static IEnumerable<string> ParseDragContent(this DragEventArgs e)
         {
             List<string> links = new List<string>();
@@ -1516,19 +1608,7 @@ namespace PixivWPF.Common
             else if (fmts.Contains("FileDrop"))
             {
                 var files = (string[])(e.Data.GetData("FileDrop"));
-                foreach (var file in files)
-                {
-                    var id = Regex.Replace(Path.GetFileNameWithoutExtension(file), @"_((p)|(ugoira)){0,1}\d+", "", RegexOptions.IgnoreCase);
-                    long idv;
-                    if (long.TryParse(id, out idv))
-                    {
-                        var link = $"https://www.pixiv.net/artworks/{id}";
-                        if (links.Contains(link)) continue;
-                        var link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
-                        if (links.Contains(link_o)) continue;
-                        links.Add(link);
-                    }
-                }
+                links = string.Join(Environment.NewLine, files).ParseLinks(false).ToList();
             }
             return (links);
         }
@@ -1605,6 +1685,10 @@ namespace PixivWPF.Common
             foreach (var text in html.Split())
             {
                 var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim('"') : text;
+                if (content.Equals("<a", StringComparison.CurrentCultureIgnoreCase)) continue;
+                else if (content.Equals("<img", StringComparison.CurrentCultureIgnoreCase)) continue;
+                else if (content.Equals(">", StringComparison.CurrentCultureIgnoreCase)) continue;
+
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
@@ -1627,6 +1711,8 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/pixiv\.navirank\.com\/user\/\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix, opt));
 
+                mr.Add(Regex.Matches(content, @"[\\|/]((background)|(workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip))))", opt));
+
                 mr.Add(Regex.Matches(content, @"^(((illust)|(illusts)|(artworks))/(\d+))", opt));
                 mr.Add(Regex.Matches(content, @"^(((user)|(users))/(\d+))", opt));
 
@@ -1637,13 +1723,21 @@ namespace PixivWPF.Common
                 {
                     try
                     {
-                        var ap = Path.GetFullPath(content);
-                        var root = Path.GetPathRoot(ap);
-                        var IsFile = root.Length == 3 && string.IsNullOrEmpty(Path.GetExtension(ap)) ? false : true;
-                        if (IsFile)
-                            mr.Add(Regex.Matches(Path.Combine(root, Path.GetFileName(content)), @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
-                        else
-                            mr.Add(Regex.Matches(content, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
+                        if (content.IsFile())
+                        {
+                            var ap = Path.GetFullPath(content).Replace('\\', '/');
+                            var root = Path.GetPathRoot(ap);
+                            var IsFile = root.Length == 3 && string.IsNullOrEmpty(Path.GetExtension(ap)) ? false : true;
+                            if (IsFile)
+                            {
+                                if(Regex.IsMatch(ap, @"[\\|/]((background)(workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip))))", opt))
+                                    mr.Add(Regex.Matches(ap, @"[\\|/]((workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip))))", opt));
+                                else
+                                    mr.Add(Regex.Matches(Path.Combine(root, Path.GetFileName(content)), @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
+                            }
+                            else
+                                mr.Add(Regex.Matches(content, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
+                        }
                     }
                     catch (Exception)
                     {
@@ -1664,6 +1758,9 @@ namespace PixivWPF.Common
                 foreach (Match m in mi)
                 {
                     var link = m.Groups[1].Value.Trim().Trim(trim_char);
+                    if (link.Equals("user-profile", StringComparison.CurrentCultureIgnoreCase)) break;
+                    if (link.Equals("background", StringComparison.CurrentCultureIgnoreCase) || link.Equals("workspace", StringComparison.CurrentCultureIgnoreCase))
+                        link = $"uid:{m.Groups[5].Value.Trim().Trim(trim_char)}";
 
                     if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -1758,7 +1855,10 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            if (links.Count <= 0) links.Add($"Fuzzy:{html}");
+            if (links.Count <= 0)
+            {
+                if (html.Split(Path.GetInvalidPathChars()).Length <= 1) links.Add($"Fuzzy:{html}");
+            }
             return (links);
         }
 
@@ -1876,6 +1976,7 @@ namespace PixivWPF.Common
                         html.AppendLine("    <META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
                         html.AppendLine("    <META http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />");
                         html.AppendLine("    <STYLE>");
+                        html.AppendLine("      :root { --accent: {% accentcolor_rgb %}; --text: {% textcolor_rgb %} }");                        
                         html.AppendLine("      *{font-family:\"等距更纱黑体 SC\", FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", Iosevka, \"Sarasa Mono J\", \"Sarasa Term J\", \"Sarasa Gothic J\", \"更纱黑体 SC\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif !important;}");
                         html.AppendLine("      body{background-color: {%backcolor%} !important;}");
                         html.AppendLine("      a:link{color:{%accentcolor%} !important;text-decoration:none !important;}");
@@ -1883,7 +1984,8 @@ namespace PixivWPF.Common
                         html.AppendLine("      a:active{color:{%accentcolor%} !important;text-decoration:none !important;}");
                         html.AppendLine("      a:visited{color:{%accentcolor%} !important;text-decoration:none !important;}");
                         html.AppendLine("      img{width:auto!important;height:auto!important;max-width:100%!important;max-height:100% !important;}");
-                        html.AppendLine("      .tag{color:{%accentcolor%} !important;margin:4px;text-decoration:none;}");
+                        html.AppendLine("      .tag{color:{%accentcolor%} !important;background-color:rgba(var(--accent), 10%);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {%accentcolor%};border-left-width:5px;overflow-wrap:break-word;}");
+                        html.AppendLine("      .tag.::before{ content: '#'; }");
                         html.AppendLine("      .desc{color:{%textcolor%} !important;text-decoration:none !important;width: 99% !important;word-wrap: break-word !important;overflow-wrap: break-word !important;white-space:normal !important;}");
                         html.AppendLine("      .twitter::before{font-family:FontAwesome; content:''; margin-left:3px; padding-right:4px; color: #1da1f2;}");
                         html.AppendLine("      .web::before{content:'🌐'; padding-right:3px; margin-left:-0px;}");
@@ -1922,17 +2024,21 @@ namespace PixivWPF.Common
             if (backcolor.StartsWith("#FF") && backcolor.Length > 6) backcolor = backcolor.Replace("#FF", "#");
             else if (backcolor.StartsWith("#00") && backcolor.Length > 6) backcolor = backcolor.Replace("#00", "#");
             var accentcolor = Theme.AccentBaseColor.ToHtml(false);
+            var accentcolor_rgb = Theme.AccentBaseColor.ToRGB(false, false);
             var textcolor = Theme.TextColor.ToHtml(false);
+            var textcolor_rgb = Theme.TextColor.ToRGB(false, false);
 
             contents = string.IsNullOrEmpty(contents) ? string.Empty : contents.Trim();
             title = string.IsNullOrEmpty(title) ? string.Empty : title.Trim();
 
             var template = GetDefaultTemplate();
-            template = Regex.Replace(template, "{%site%}", new Uri(Application.Current.Root()).AbsoluteUri, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%site%}", new Uri(Application.Current.GetRoot()).AbsoluteUri, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%title%}", title, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%backcolor%}", backcolor, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%accentcolor%}", accentcolor, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%accentcolor_rgb%}", accentcolor_rgb, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%textcolor%}", textcolor, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%textcolor_rgb%}", textcolor_rgb, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%contents%}", contents, RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
             return (template.ToString());
@@ -2001,6 +2107,64 @@ namespace PixivWPF.Common
         public static void UpdateIllustTags(this Dictionary<string, string> tags)
         {
             UpdateIllustTagsAsync();
+        }
+
+        public static async void UpdateIllustDescAsync()
+        {
+            await new Action(() =>
+            {
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win is MainWindow)
+                    {
+                        var mw = win as MainWindow;
+                        mw.UpdateIllustTagsAsync();
+                    }
+                    else if (win is ContentWindow)
+                    {
+                        var w = win as ContentWindow;
+                        if (w.Content is IllustDetailPage)
+                        {
+                            (w.Content as IllustDetailPage).UpdateIllustDescAsync();
+                        }
+                    }
+                    else continue;
+                }
+            }).InvokeAsync();
+        }
+
+        public static void UpdateIllustDesc(this Dictionary<string, string> tags)
+        {
+            UpdateIllustDescAsync();
+        }
+
+        public static async void UpdateWebContentAsync()
+        {
+            await new Action(() =>
+            {
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win is MainWindow)
+                    {
+                        var mw = win as MainWindow;
+                        mw.UpdateIllustTagsAsync();
+                    }
+                    else if (win is ContentWindow)
+                    {
+                        var w = win as ContentWindow;
+                        if (w.Content is IllustDetailPage)
+                        {
+                            (w.Content as IllustDetailPage).UpdateWebContentAsync();
+                        }
+                    }
+                    else continue;
+                }
+            }).InvokeAsync();
+        }
+
+        public static void UpdateWebContentTags(this Dictionary<string, string> tags)
+        {
+            UpdateWebContentAsync();
         }
 
         // To return an array of strings instead:
@@ -2206,7 +2370,7 @@ namespace PixivWPF.Common
 
         public static void ShellSendToOtherInstance(this string contents)
         {
-            var shell = Path.Combine(Application.Current.Root(), setting.ShellSearchBridgeApplication);
+            var shell = Path.Combine(Application.Current.GetRoot(), setting.ShellSearchBridgeApplication);
             if (File.Exists(shell))
             {
                 System.Diagnostics.Process.Start(shell, contents);
@@ -2254,7 +2418,7 @@ namespace PixivWPF.Common
                     setting.ShellPixivPediaApplicationArgs,
                     $"--app=\"PixivPedia-{contents}\"",
                     $"--app-id=\"PixivPedia-{contents}\"",
-                    $"--user-data-dir=\"{Path.Combine(Application.Current.Root(), ".web")}\"",
+                    $"--user-data-dir=\"{Path.Combine(Application.Current.GetRoot(), ".web")}\"",
                     $"--url=\"{currentUri}\""
                 };
                 System.Diagnostics.Process.Start(shell, string.Join(" ", args));
@@ -2264,11 +2428,74 @@ namespace PixivWPF.Common
                 System.Diagnostics.Process.Start(currentUri);
             }
         }
+
+        public static bool OpenUrlWithShell(this string url)
+        {
+            bool result = false;
+
+            try
+            {
+                System.Diagnostics.Process.Start(url);
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+
+            return (result);
+        }
+
+        public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false)
+        {
+            bool result = false;
+
+            var WinDir = Environment.GetEnvironmentVariable("WinDir");
+
+            if (ShowFolder)
+            {
+                if (!string.IsNullOrEmpty(FileName))
+                {
+                    var shell = string.IsNullOrEmpty(WinDir) ? "explorer.exe" : Path.Combine(WinDir, "explorer.exe");
+                    if (File.Exists(FileName))
+                    {
+                        System.Diagnostics.Process.Start(shell, $"/select,\"{FileName}\"");
+                        result = true;
+                    }
+                    else
+                    {
+                        var folder = Path.GetDirectoryName(FileName);
+                        if (Directory.Exists(folder))
+                        {
+                            System.Diagnostics.Process.Start(shell, $"\"{folder}\"");
+                            result = true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
+                {
+                    var UsingOpenWith = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false;
+                    var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
+                    var exists = File.Exists(OpenWith) ?  true : false;
+                    if (UsingOpenWith && exists)
+                        System.Diagnostics.Process.Start(OpenWith, FileName);
+                    else
+                        System.Diagnostics.Process.Start(FileName);
+                    result = true;
+                }
+            }
+
+            return (result);
+        }
         #endregion
 
         #region Get Illust Work DateTime
         private static TimeZoneInfo TokoyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
         private static TimeZoneInfo LocalTimeZone = TimeZoneInfo.Local;
+
         private static DateTime ParseDateTime(this string url)
         {
             var result = DateTime.FromFileTime(0);
@@ -3085,12 +3312,12 @@ namespace PixivWPF.Common
             while (!IsFileReady(filename)) { }
         }
 
-        public static string GetFilePath(this string url)
+        public static bool IsCached(this string url)
         {
-            string result = url;
+            bool result = false;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
-                result = cache.GetCacheFile(url);
+                result = cache.IsCached(url);
             }
             return (result);
         }
@@ -3540,68 +3767,6 @@ namespace PixivWPF.Common
 #else
             catch (Exception) { }
 #endif
-            return (result);
-        }
-
-        public static bool OpenUrlWithShell(this string url)
-        {
-            bool result = false;
-
-            try
-            {
-                System.Diagnostics.Process.Start(url);
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR");
-            }
-
-            return (result);
-        }
-
-        public static bool OpenImageWithShell(this string FileName, bool ShowFolder = false)
-        {
-            bool result = false;
-
-            var WinDir = Environment.GetEnvironmentVariable("WinDir");
-
-            if (ShowFolder)
-            {
-                if (!string.IsNullOrEmpty(FileName))
-                {
-                    var shell = string.IsNullOrEmpty(WinDir) ? "explorer.exe" : Path.Combine(WinDir, "explorer.exe");
-                    if (File.Exists(FileName))
-                    {
-                        System.Diagnostics.Process.Start(shell, $"/select,\"{FileName}\"");
-                        result = true;
-                    }
-                    else
-                    {
-                        var folder = Path.GetDirectoryName(FileName);
-                        if (Directory.Exists(folder))
-                        {
-                            System.Diagnostics.Process.Start(shell, $"\"{folder}\"");
-                            result = true;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
-                {
-                    var UsingOpenWith = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
-                    var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
-                    var exists = File.Exists(OpenWith) ?  true : false;
-                    if (UsingOpenWith && exists)
-                        System.Diagnostics.Process.Start(OpenWith, FileName);
-                    else
-                        System.Diagnostics.Process.Start(FileName);
-                    result = true;
-                }
-            }
-
             return (result);
         }
         #endregion

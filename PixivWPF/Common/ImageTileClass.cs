@@ -282,6 +282,10 @@ namespace PixivWPF.Common
 #else
                                     catch(Exception){ }
 #endif
+                                    finally
+                                    {
+                                        if (item.Thumb.IsCached()) item.Source = await item.Thumb.GetImageCachePath().LoadImageFromFile();
+                                    }
                                 }
                             }).InvokeAsync();
                         });

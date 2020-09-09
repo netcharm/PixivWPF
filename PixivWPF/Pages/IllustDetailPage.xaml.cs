@@ -281,6 +281,37 @@ namespace PixivWPF.Pages
             }
         }
 
+        public async void UpdateIllustDescAsync()
+        {
+            if (DataObject is ImageItem)
+            {
+                var item = DataObject as ImageItem;
+                if (item.ItemType != ImageItemType.User)
+                {
+                    await new Action(() =>
+                    {
+                        WebBrowserRefresh(IllustDescHtml);
+                    }).InvokeAsync();
+                }
+            }
+        }
+
+        public async void UpdateWebContentAsync()
+        {
+            if (DataObject is ImageItem)
+            {
+                var item = DataObject as ImageItem;
+                if (item.ItemType != ImageItemType.User)
+                {
+                    await new Action(() =>
+                    {
+                        WebBrowserRefresh(IllustTagsHtml);
+                        WebBrowserRefresh(IllustDescHtml);
+                    }).InvokeAsync();
+                }
+            }
+        }
+
         internal void UpdateTheme()
         {
             if (IllustTagsHtml is System.Windows.Forms.WebBrowser)
@@ -493,7 +524,7 @@ namespace PixivWPF.Pages
                 if (IllustDownloaded.Tag is string)
                 {
                     var fp = IllustDownloaded.Tag as string;
-                    fp.OpenImageWithShell();
+                    fp.OpenFileWithShell();
                 }
             }
         }
@@ -1232,7 +1263,7 @@ namespace PixivWPF.Pages
                 var item = DataObject as ImageItem;
                 if (e.Key == Key.F7 || e.SystemKey == Key.F7)
                 {
-                    var pub = Setting.Instance.PrivateFavPrefert ? false : true;
+                    var pub = Setting.Instance.PrivateFavPrefer ? false : true;
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         await item.Illust.Like(pub);
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
@@ -1242,7 +1273,7 @@ namespace PixivWPF.Pages
                 }
                 else if (e.Key == Key.F8 || e.SystemKey == Key.F8)
                 {
-                    var pub = Setting.Instance.PrivateFavPrefert ? false : true;
+                    var pub = Setting.Instance.PrivateFavPrefer ? false : true;
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         await item.User.Like(pub);
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
@@ -1257,7 +1288,7 @@ namespace PixivWPF.Pages
                 var item = DataObject as Pixeez.Objects.UserBase;
                 if (e.Key == Key.F8 || e.SystemKey == Key.F8)
                 {
-                    var pub = Setting.Instance.PrivateFavPrefert ? false : true;
+                    var pub = Setting.Instance.PrivateFavPrefer ? false : true;
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         await item.Like(pub);
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
@@ -1421,7 +1452,7 @@ namespace PixivWPF.Pages
                                     try
                                     {
                                         if (src.ToLower().Contains("no_image_p.svg"))
-                                            imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.Root(), "no_image.png")).AbsoluteUri);
+                                            imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.GetRoot(), "no_image.png")).AbsoluteUri);
                                         else if (src.IsPixivImage())
                                         {
                                             var img = await src.GetImagePath();
@@ -1655,14 +1686,18 @@ namespace PixivWPF.Pages
                         var host = (mi.Parent as ContextMenu).PlacementTarget;
                         if (host == btnIllustTagSpeech)
                         {
-                            WebBrowserRefresh(IllustTagsHtml);
+                            if (Keyboard.Modifiers == ModifierKeys.None)
+                                WebBrowserRefresh(IllustTagsHtml);
+                            else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                                Application.Current.Setting().CustomTagsFile.OpenFileWithShell();
                         }
                         else if (host == btnIllustDescSpeech)
                         {
-                            WebBrowserRefresh(IllustDescHtml);
+                            if (Keyboard.Modifiers == ModifierKeys.None)
+                                WebBrowserRefresh(IllustDescHtml);
+                            else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                                Application.Current.Setting().ContentsTemplateFile.OpenFileWithShell();
                         }
-                        else if (host == IllustAuthor) text = $"\"user:{IllustAuthor.Text}\"";
-                        else if (host == IllustTitle) text = $"\"title:{IllustTitle.Text}\"";
                         else if(mi == ActionRefresh)
                         {
                             if (this is IllustDetailPage)
@@ -1730,7 +1765,7 @@ namespace PixivWPF.Pages
             if (IllustDownloaded.Tag is string)
             {
                 var fp = IllustDownloaded.Tag as string;
-                fp.OpenImageWithShell();
+                fp.OpenFileWithShell();
             }
         }
 

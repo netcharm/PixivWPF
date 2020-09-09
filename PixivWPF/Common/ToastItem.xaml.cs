@@ -146,13 +146,13 @@ namespace PixivWPF.Common
         {
             if (Preview.Tag is string)
             {
-                var file = (string)(Preview.Tag);
-                if (!string.IsNullOrEmpty(file))
+                var url = (string)(Preview.Tag);
+                if (!string.IsNullOrEmpty(url))
                 {
                     if (Preview.Source == null)
-                        Preview.Source = await file.GetFilePath().LoadImageFromFile();
+                        Preview.Source = await url.GetImageCachePath().LoadImageFromFile();
                     if (Preview.Source == null)
-                        Preview.Source = await file.LoadImageFromUrl();
+                        Preview.Source = await url.LoadImageFromUrl();
                     if (Preview.Source == null)
                     {
                         Preview.Visibility = Visibility.Collapsed;
@@ -197,7 +197,7 @@ namespace PixivWPF.Common
                 if (btn.Tag is string)
                 {
                     var FileName = (string)btn.Tag;
-                    FileName.OpenImageWithShell(true);
+                    FileName.OpenFileWithShell(true);
                 }
             }
         }
@@ -210,7 +210,7 @@ namespace PixivWPF.Common
                 if(btn.Tag is string)
                 {
                     var FileName = (string)btn.Tag;
-                    FileName.OpenImageWithShell();
+                    FileName.OpenFileWithShell();
                 }
             }            
         }

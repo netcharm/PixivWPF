@@ -333,7 +333,7 @@ namespace PixivWPF.Pages
                                         try
                                         {
                                             if (src.ToLower().Contains("no_image_p.svg"))
-                                                imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.Root(), "no_image.png")).AbsoluteUri);
+                                                imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.GetRoot(), "no_image.png")).AbsoluteUri);
                                             else if (src.IsPixivImage())
                                             {
                                                 var img = await src.GetImagePath();

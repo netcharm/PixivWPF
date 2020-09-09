@@ -64,6 +64,24 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static string ToRGB(this Color c, bool alpha = true, bool prefix = true)
+        {
+            string result = string.Empty;
+
+            if (alpha)
+                result = string.Format("{1}, {2}, {3}, {0}", c.A, c.R, c.G, c.B);
+            else
+                result = string.Format("{0}, {1}, {2}", c.R, c.G, c.B);
+
+            if (prefix)
+            {
+                var func = alpha ? "rgba" : "rgb";
+                result = $"{func}({result})";
+            }
+
+            return (result);
+        }
+
         public static IList<string> Accents
         {
             get { return accents; }

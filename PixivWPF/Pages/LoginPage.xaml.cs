@@ -30,60 +30,72 @@ namespace PixivWPF.Pages
 
         private void CloseWindow()
         {
-            if (Tag is Frame)
+            try
             {
-                var frame = Tag as Frame;
-                if (frame.Tag is PixivLoginDialog)
+                if (Tag is Frame)
                 {
-                    var win = frame.Tag as PixivLoginDialog;
-                    win.Close();
+                    var frame = Tag as Frame;
+                    if (frame.Tag is PixivLoginDialog)
+                    {
+                        var win = frame.Tag as PixivLoginDialog;
+                        win.Close();
+                    }
+                }
+                else
+                {
+                    //Application.Current.MainWindow.Close();
+                    Application.Current.Shutdown();
                 }
             }
-            else
-            {
-                //Application.Current.MainWindow.Close();
-                Application.Current.Shutdown();
-            }
+            catch (Exception) { }
         }
 
         public LoginPage()
         {
             InitializeComponent();
 
-            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+            try
+            {
+                setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
 
-            window = this.GetActiveWindow();
+                window = this.GetActiveWindow();
 
-            Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-            var appTheme = appStyle.Item1;
-            var appAccent = appStyle.Item2;
+                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
+                var appTheme = appStyle.Item1;
+                var appAccent = appStyle.Item2;
 
-            //headerUser.Foreground = appAccent.Resources["AccentColorBrush"] as Brush;
-            //headerPass.Foreground = headerUser.Foreground;
-            //headerProxy.Foreground = headerUser.Foreground;
-            //chkUseProxy.Foreground = headerUser.Foreground;
+                //headerUser.Foreground = appAccent.Resources["AccentColorBrush"] as Brush;
+                //headerPass.Foreground = headerUser.Foreground;
+                //headerProxy.Foreground = headerUser.Foreground;
+                //chkUseProxy.Foreground = headerUser.Foreground;
 
 #if DEBUG
-            var logo = System.IO.Path.Combine(Application.Current.Root(), "Assets", "pixiv-logo.png");
+            var logo = System.IO.Path.Combine(Application.Current.GetRoot(), "Assets", "pixiv-logo.png");
             var uri = new Uri(logo);
             if (uri.IsAbsoluteUri && System.IO.File.Exists(uri.AbsolutePath))
             {
                 Logo.Source = new BitmapImage(uri);
             }
 #else
-            var uri = new Uri(@"pack://application:,,,/PixivWPF;component/Resources/pixiv-logo.png");
-            if (uri.IsAbsoluteUri && System.IO.File.Exists(uri.AbsolutePath))
-            {
-                if(Logo.Source == null) Logo.Source = new BitmapImage(uri);
-            }
+                var uri = new Uri(@"pack://application:,,,/PixivWPF;component/Resources/pixiv-logo.png");
+                if (uri.IsAbsoluteUri && System.IO.File.Exists(uri.AbsolutePath))
+                {
+                    if (Logo.Source == null) Logo.Source = new BitmapImage(uri);
+                }
 
 #endif
-            edUser.Focus();
+                edUser.Focus();
 
-            edUser.Text = setting.User;
-            edPass.Password = setting.Pass;
-            edProxy.Text = setting.Proxy;
-            chkUseProxy.IsChecked = setting.UsingProxy;
+                edUser.Text = setting.User;
+                edPass.Password = setting.Pass;
+                edProxy.Text = setting.Proxy;
+                chkUseProxy.IsChecked = setting.UsingProxy;
+            }
+            catch (Exception) { }
+            finally
+            {
+
+            }
         }
 
         private async void Login_Click(object sender, RoutedEventArgs e)
@@ -114,7 +126,7 @@ namespace PixivWPF.Pages
                     var accesstoken = Setting.Token();
 
                     tokens = Pixeez.Auth.AuthorizeWithAccessToken(accesstoken, proxy, useproxy);
-                    var deviceId = Setting.GetDeviceId();
+                    var deviceId = Application.Current.GetDeviceId();
                     var result = await Pixeez.Auth.AuthorizeAsync(user, pass, null, proxyserver, useproxy);
                     //var result = await Auth.AuthorizeAsync(user, pass, accesstoken, deviceId, proxyserver, useproxy);
                     if (!string.IsNullOrEmpty(result.Authorize.AccessToken))

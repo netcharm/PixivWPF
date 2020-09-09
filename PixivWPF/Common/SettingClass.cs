@@ -16,10 +16,36 @@ namespace PixivWPF.Common
     public class Setting
     {
         //private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
-        private static string AppPath = Application.Current.Root();
-        private static string config = Path.Combine(AppPath, "config.json");
-        private static string tagsfile = Path.Combine(AppPath, "tags.json");
-        private static string tagsfile_t2s = Path.Combine(AppPath, "tags_t2s.json");
+        private static string AppPath = Application.Current.GetRoot();
+
+        private static string config = "config.json";
+        [JsonIgnore]
+        public string ConfigFile
+        {
+            get { return (Path.IsPathRooted(config) ? config : Path.Combine(AppPath, config)); }
+        }
+
+        private static string tagsfile = "tags.json";
+        public string TagsFile
+        {
+            get
+            {
+                if (IsSaving) return (tagsfile);
+                else return (Path.IsPathRooted(tagsfile) ? tagsfile : Path.Combine(AppPath, tagsfile));
+            }
+            set { tagsfile = Path.GetFileName(value); }
+        }
+
+        private static string tagsfile_t2s = "tags_t2s.json";
+        public string CustomTagsFile
+        {
+            get
+            {
+                if (IsSaving) return (tagsfile_t2s);
+                else return (Path.IsPathRooted(tagsfile_t2s) ? tagsfile_t2s : Path.Combine(AppPath, tagsfile_t2s));
+            }
+            set { tagsfile_t2s = Path.GetFileName(value); }
+        }
 
         [JsonIgnore]
         public string APP_PATH
@@ -207,8 +233,8 @@ namespace PixivWPF.Common
         private string accent = string.Empty;
         public string Accent { get; set; }
 
-        public bool PrivateFavPrefert { get; set; } = false;
-        public bool PrivateBookmarkPrefert { get; set; } = false;
+        public bool PrivateFavPrefer { get; set; } = false;
+        public bool PrivateBookmarkPrefer { get; set; } = false;
 
         public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
 
@@ -216,8 +242,18 @@ namespace PixivWPF.Common
         public string ShellPixivPediaApplication { get; set; } = "nw.exe";
         public string ShellPixivPediaApplicationArgs { get; set; } = "--single-process --enable-node-worker --app-shell-host-window-size=1280x720";
 
+        private static string custom_template_file = "contents-template.html";
+        public string ContentsTemplateFile
+        {
+            get
+            {
+                if (IsSaving) return (custom_template_file);
+                else return (Path.IsPathRooted(custom_template_file) ? custom_template_file : Path.Combine(AppPath, custom_template_file));
+            }
+            set { custom_template_file = Path.GetFileName(value); }
+        }
+
         public DateTime ContentsTemplateTime { get; set; } = new DateTime(0);
-        public string ContentsTemplateFile { get; } = "contents-template.html";
         public string ContentsTemplete { get; set; } = string.Empty;
         [JsonIgnore]
         public string CustomContentsTemplete { get; set; } = string.Empty;
@@ -294,14 +330,15 @@ namespace PixivWPF.Common
                     if (!IsSaving && !IsLoading) Cache.Save();
                 }
             }
+            CommonHelper.UpdateWebContentAsync();
         }
 
-        public static Setting Load(string configfile = "")
+        public static Setting Load(bool force = false, string configfile = "")
         {
             Setting result = new Setting();
             try
             {
-                if (Cache is Setting) result = Cache;
+                if (Cache is Setting && force == false) result = Cache;
                 else
                 {
                     if (string.IsNullOrEmpty(configfile)) configfile = config;
@@ -406,6 +443,18 @@ namespace PixivWPF.Common
                 {
                     var tags_t2s = File.ReadAllText(tagsfile_t2s);
                     CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
+                    //foreach(var t in CommonHelper.TagsT2S)
+                    //{
+                    //    var k = t.Key.Trim();
+                    //    var v = t.Value.Trim();
+                    //    if (CommonHelper.TagsT2S.ContainsKey(k)) continue;
+                    //    CommonHelper.TagsT2S[k] = v;
+                    //}
+                    var keys = CommonHelper.TagsT2S.Keys.ToList();
+                    foreach (var k in keys)
+                    {
+                        CommonHelper.TagsT2S[k.Trim()] = CommonHelper.TagsT2S[k].Trim();
+                    }
                     CommonHelper.UpdateIllustTagsAsync();
                 }
                 catch (Exception) { }
@@ -456,25 +505,5 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static string GetDeviceId()
-        {
-            string location = @"SOFTWARE\Microsoft\Cryptography";
-            string name = "MachineGuid";
-
-            using (RegistryKey localMachineX64View = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
-            {
-                using (RegistryKey rk = localMachineX64View.OpenSubKey(location))
-                {
-                    if (rk == null)
-                        throw new KeyNotFoundException(string.Format("Key Not Found: {0}", location));
-
-                    object machineGuid = rk.GetValue(name);
-                    if (machineGuid == null)
-                        throw new IndexOutOfRangeException(string.Format("Index Not Found: {0}", name));
-
-                    return machineGuid.ToString().Replace("-", "");
-                }
-            }
-        }
     }
 }

@@ -51,6 +51,15 @@ namespace PixivWPF.Common
 #endif
         }
 
+        public bool IsCached(string url)
+        {
+            bool result = false;
+
+            result = _caches.ContainsKey(url) && File.Exists(Path.Combine(_CacheFolder, _caches[url]));
+
+            return (result);
+        }
+
         public async Task<ImageSource> GetImage(string url, bool login = false)
         {
             if (login)

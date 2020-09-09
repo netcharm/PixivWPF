@@ -937,11 +937,11 @@ namespace PixivWPF.Common
             }
             else if (sender == miOpenImage || sender == PART_OpenFile)
             {
-                FileName.OpenImageWithShell();
+                FileName.OpenFileWithShell();
             }
             else if (sender == miOpenFolder || sender == PART_OpenFolder)
             {
-                FileName.OpenImageWithShell(true);
+                FileName.OpenFileWithShell(true);
             }
         }
     }
