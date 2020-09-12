@@ -363,10 +363,9 @@ namespace PixivWPF.Common
 #endif
             try
             {
-                var now = DateTime.Now;
                 if (e.ChangeType == lastConfigEventType &&
                     e.FullPath == lastConfigEventFile &&
-                    now.Ticks - lastConfigEventTick.Ticks < 10000) throw new Exception("Same config change event!");
+                    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
 
                 var fn = e.FullPath;
                 if (e.ChangeType == WatcherChangeTypes.Created)
@@ -441,10 +440,9 @@ namespace PixivWPF.Common
 #endif
             try
             {
-                var now = DateTime.Now;
                 if (e.ChangeType == lastConfigEventType &&
                     e.FullPath == lastConfigEventFile &&
-                    now.Ticks - lastConfigEventTick.Ticks < 10000) throw new Exception("Same config change event!");
+                    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
 
                 var fn_o = e.OldFullPath;
                 var fn_n = e.FullPath;
@@ -2752,7 +2750,7 @@ namespace PixivWPF.Common
                 var now = DateTime.Now;
                 if (e.ChangeType == lastDownloadEventType &&
                     e.FullPath.Equals(lastDownloadEventFile, StringComparison.CurrentCultureIgnoreCase) &&
-                    now.Ticks - lastDownloadEventTick.Ticks < 10000) throw new Exception("Same download event!");
+                    lastDownloadEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same download event!");
 
                 if (e.ChangeType == WatcherChangeTypes.Created)
                 {
@@ -2799,10 +2797,9 @@ namespace PixivWPF.Common
 #endif
             try
             {
-                var now = DateTime.Now;
                 if (e.ChangeType == lastDownloadEventType &&
                     e.FullPath.Equals(lastDownloadEventFile, StringComparison.CurrentCultureIgnoreCase) &&
-                    now.Ticks - lastDownloadEventTick.Ticks < 10000) throw new Exception("Same download event!");
+                    lastDownloadEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same download event!");
                 if (e.ChangeType == WatcherChangeTypes.Renamed)
                 {
                     e.OldFullPath.DownloadedCacheUpdate(e.FullPath);
@@ -5434,6 +5431,61 @@ namespace PixivWPF.Common
 
     public static class ExtensionMethods
     {
+        public static long Ticks(this int msec)
+        {
+            long result = 0;
+            try
+            {
+                result = TimeSpan.TicksPerMillisecond * msec;
+            }
+            catch(Exception) { }
+            return (result);
+        }
+
+        public static bool DeltaNow(this long ticks, int millisecond)
+        {
+            bool result = true;
+            try
+            {
+                result = DateTime.Now.Ticks - ticks >= TimeSpan.TicksPerMillisecond * millisecond;
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static long DeltaTicks(this long ticks1, long ticks2)
+        {
+            long result = 0;
+            try
+            {
+                result = ticks1 - ticks2;
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static int DeltaMillisecond(this long ticks1, long ticks2)
+        {
+            int result = 0;
+            try
+            {
+                result = (int)(DeltaTicks(ticks1, ticks2) / TimeSpan.TicksPerMillisecond);
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static int DeltaNowMillisecond(this long ticks)
+        {
+            int result = 0;
+            try
+            {
+                result = (int)(DeltaTicks(DateTime.Now.Ticks, ticks) / TimeSpan.TicksPerMillisecond);
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
         public static async void Sound(this object obj, string mode = "")
         {
             try

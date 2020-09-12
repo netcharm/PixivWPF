@@ -424,24 +424,26 @@ namespace PixivWPF.Common
 
         public static void LoadTags(bool all = true)
         {
-            if (IsLoading || IsSaving) return;
+            var force = CommonHelper.TagsCache.Count <= 0 && CommonHelper.TagsT2S.Count <= 0;
 
-            if (all && File.Exists(tagsfile))
+            if ((IsLoading || IsSaving) && !force) return;
+
+            if (all && File.Exists(Instance.TagsFile))
             {
                 try
                 {
-                    var tags = File.ReadAllText(tagsfile);
+                    var tags = File.ReadAllText(Instance.TagsFile);
                     CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
                     CommonHelper.UpdateIllustTagsAsync();
                 }
                 catch (Exception) { }
             }
 
-            if (File.Exists(tagsfile_t2s))
+            if (File.Exists(Instance.CustomTagsFile))
             {
                 try
                 {
-                    var tags_t2s = File.ReadAllText(tagsfile_t2s);
+                    var tags_t2s = File.ReadAllText(Instance.CustomTagsFile);
                     CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
                     //foreach(var t in CommonHelper.TagsT2S)
                     //{
@@ -469,7 +471,7 @@ namespace PixivWPF.Common
                         CommonHelper.UpdateIllustTagsAsync();
                     }
                 }
-                catch(Exception) { }
+                catch (Exception) { }
             }
         }
 
