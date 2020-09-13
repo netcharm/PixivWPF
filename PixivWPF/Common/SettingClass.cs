@@ -217,7 +217,10 @@ namespace PixivWPF.Common
             {
                 lastfolder = value;
                 if (LocalStorage.Count(o => o.Folder.Equals(lastfolder)) <= 0)
+                {
                     LocalStorage.Add(new StorageType(lastfolder, true));
+                    lastfolder.AddDownloadedWatcher();
+                }
             }
         }
 

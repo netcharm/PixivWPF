@@ -1673,7 +1673,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ActionRefresh_Click(object sender, RoutedEventArgs e)
+        private async void ActionRefresh_Click(object sender, RoutedEventArgs e)
         {
             var text = string.Empty;
             try
@@ -1687,9 +1687,14 @@ namespace PixivWPF.Pages
                         if (host == btnIllustTagSpeech)
                         {
                             if (Keyboard.Modifiers == ModifierKeys.None)
+                            {
+                                await new Action(() =>
+                                {
+                                    Setting.LoadTags();
+                                }).InvokeAsync();
+                            }
+                            else if (Keyboard.Modifiers == ModifierKeys.Shift)
                                 WebBrowserRefresh(IllustTagsHtml);
-                            else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                                Setting.LoadTags();
                             else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                                 Application.Current.Setting().CustomTagsFile.OpenFileWithShell();
                         }
@@ -1700,7 +1705,7 @@ namespace PixivWPF.Pages
                             else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                                 Application.Current.Setting().ContentsTemplateFile.OpenFileWithShell();
                         }
-                        else if(mi == ActionRefresh)
+                        else if (mi == ActionRefresh)
                         {
                             if (this is IllustDetailPage)
                             {

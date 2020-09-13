@@ -363,10 +363,9 @@ namespace PixivWPF.Common
 #endif
             try
             {
-                if (e.ChangeType == lastConfigEventType &&
-                    e.FullPath == lastConfigEventFile &&
-                    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
-
+                //if (e.ChangeType == lastConfigEventType &&
+                //    e.FullPath == lastConfigEventFile &&
+                //    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
                 var fn = e.FullPath;
                 if (e.ChangeType == WatcherChangeTypes.Created)
                 {
@@ -396,14 +395,17 @@ namespace PixivWPF.Common
                             Common.Setting.IsLoading = true;
                             Common.Setting.Load(true);
                             Common.Setting.IsLoading = false;
+                            lastConfigEventTick = DateTime.Now;
                         }
                         else if (fn.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Common.Setting.LoadTags(false);
+                            lastConfigEventTick = DateTime.Now;
                         }
                         else if (fn.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Common.Setting.UpdateContentsTemplete();
+                            lastConfigEventTick = DateTime.Now;
                         }
                     }
                 }
@@ -411,22 +413,24 @@ namespace PixivWPF.Common
                 {
                     if (fn.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-
+                        lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Common.Setting.LoadTags(false);
+                        lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Common.Setting.UpdateContentsTemplete();
+                        lastConfigEventTick = DateTime.Now;
                     }
                 }
             }
             catch (Exception) { }
             finally
             {
-                lastConfigEventTick = DateTime.Now;
+                //lastConfigEventTick = DateTime.Now;
                 lastConfigEventFile = e.FullPath;
                 lastConfigEventType = e.ChangeType;
             }
@@ -440,9 +444,9 @@ namespace PixivWPF.Common
 #endif
             try
             {
-                if (e.ChangeType == lastConfigEventType &&
-                    e.FullPath == lastConfigEventFile &&
-                    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
+                //if (e.ChangeType == lastConfigEventType &&
+                //    e.FullPath == lastConfigEventFile &&
+                //    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
 
                 var fn_o = e.OldFullPath;
                 var fn_n = e.FullPath;
@@ -451,24 +455,26 @@ namespace PixivWPF.Common
                     if (fn_o.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase) || 
                         fn_n.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-
+                        lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn_o.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) || 
                         fn_n.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Common.Setting.LoadTags(false);
+                        lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn_o.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) || 
                         fn_n.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Common.Setting.UpdateContentsTemplete();
+                        lastConfigEventTick = DateTime.Now;
                     }
                 }
             }
             catch (Exception) { }
             finally
             {
-                lastConfigEventTick = DateTime.Now;
+                //lastConfigEventTick = DateTime.Now;
                 lastConfigEventFile = e.FullPath;
                 lastConfigEventType = e.ChangeType;
             }
@@ -2747,11 +2753,9 @@ namespace PixivWPF.Common
 #endif
             try
             {
-                var now = DateTime.Now;
-                if (e.ChangeType == lastDownloadEventType &&
-                    e.FullPath.Equals(lastDownloadEventFile, StringComparison.CurrentCultureIgnoreCase) &&
-                    lastDownloadEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same download event!");
-
+                //if (e.ChangeType == lastDownloadEventType &&
+                //    e.FullPath.Equals(lastDownloadEventFile, StringComparison.CurrentCultureIgnoreCase) &&
+                //    lastDownloadEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same download event!");
                 if (e.ChangeType == WatcherChangeTypes.Created)
                 {
                     if (File.Exists(e.FullPath))
@@ -2760,6 +2764,7 @@ namespace PixivWPF.Common
                         {
                             e.FullPath.DownloadedCacheAdd();
                             UpdateDownloadStateAsync(GetIllustId(e.Name), true);
+                            lastDownloadEventTick = DateTime.Now;
                         }
                     }
                 }
@@ -2769,6 +2774,7 @@ namespace PixivWPF.Common
                     //{
                     //    e.FullPath.DownloadedCacheAdd();
                     //    UpdateDownloadStateAsync(GetIllustId(e.FullPath));
+                    //    lastDownloadEventTick = DateTime.Now;
                     //}
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Deleted)
@@ -2777,13 +2783,14 @@ namespace PixivWPF.Common
                     {
                         e.FullPath.DownloadedCacheRemove();
                         UpdateDownloadStateAsync(GetIllustId(e.Name), false);
+                        lastDownloadEventTick = DateTime.Now;
                     }
                 }
             }
             catch (Exception) { }
             finally
             {
-                lastDownloadEventTick = DateTime.Now;
+                //lastDownloadEventTick = DateTime.Now;
                 lastDownloadEventFile = e.FullPath;
                 lastDownloadEventType = e.ChangeType;
             }
@@ -2797,22 +2804,23 @@ namespace PixivWPF.Common
 #endif
             try
             {
-                if (e.ChangeType == lastDownloadEventType &&
-                    e.FullPath.Equals(lastDownloadEventFile, StringComparison.CurrentCultureIgnoreCase) &&
-                    lastDownloadEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same download event!");
+                //if (e.ChangeType == lastDownloadEventType &&
+                //    e.FullPath.Equals(lastDownloadEventFile, StringComparison.CurrentCultureIgnoreCase) &&
+                //    lastDownloadEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same download event!");
                 if (e.ChangeType == WatcherChangeTypes.Renamed)
                 {
                     e.OldFullPath.DownloadedCacheUpdate(e.FullPath);
                     if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
                     {
                         UpdateDownloadStateAsync(GetIllustId(e.Name));
+                        lastDownloadEventTick = DateTime.Now;
                     }
                 }
             }
             catch (Exception) { }
             finally
             {
-                lastDownloadEventTick = DateTime.Now;
+                //lastDownloadEventTick = DateTime.Now;
                 lastDownloadEventFile = e.FullPath;
                 lastDownloadEventType = e.ChangeType;
             }
@@ -3541,7 +3549,6 @@ namespace PixivWPF.Common
                 {
                     file = dlgSave.FileName;
                     setting.LastFolder = Path.GetDirectoryName(file);
-                    setting.LastFolder.AddDownloadedWatcher();
                 }
                 else file = string.Empty;
             }

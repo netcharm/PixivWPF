@@ -335,7 +335,6 @@ namespace PixivWPF.Pages
             {
                 setting.LastFolder = dlg.FileName;
                 // Do something with selected folder string
-                setting.LastFolder.AddDownloadedWatcher();
             }
         }
 

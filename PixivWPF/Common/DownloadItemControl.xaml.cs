@@ -69,7 +69,6 @@ namespace PixivWPF.Common
                     {
                         FileName = dlgSave.FileName;
                         setting.LastFolder = Path.GetDirectoryName(FileName);
-                        setting.LastFolder.AddDownloadedWatcher();
                     }
                     else
                     {
