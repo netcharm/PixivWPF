@@ -445,13 +445,6 @@ namespace PixivWPF.Common
                 {
                     var tags_t2s = File.ReadAllText(Instance.CustomTagsFile);
                     CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
-                    //foreach(var t in CommonHelper.TagsT2S)
-                    //{
-                    //    var k = t.Key.Trim();
-                    //    var v = t.Value.Trim();
-                    //    if (CommonHelper.TagsT2S.ContainsKey(k)) continue;
-                    //    CommonHelper.TagsT2S[k] = v;
-                    //}
                     var keys = CommonHelper.TagsT2S.Keys.ToList();
                     foreach (var k in keys)
                     {

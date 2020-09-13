@@ -1688,6 +1688,8 @@ namespace PixivWPF.Pages
                         {
                             if (Keyboard.Modifiers == ModifierKeys.None)
                                 WebBrowserRefresh(IllustTagsHtml);
+                            else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                                Setting.LoadTags();
                             else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                                 Application.Current.Setting().CustomTagsFile.OpenFileWithShell();
                         }
