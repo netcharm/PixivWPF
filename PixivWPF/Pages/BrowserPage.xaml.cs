@@ -34,7 +34,7 @@ namespace PixivWPF.Pages
         private string titleWord = string.Empty;
 
         private const int HTTP_STREAM_READ_COUNT = 65536;
-        private Setting setting = Application.Current.Setting();
+        private Setting setting = Application.Current.LoadSetting();
 
         internal void UpdateTheme()
         {
@@ -425,7 +425,7 @@ namespace PixivWPF.Pages
         {
             InitializeComponent();
 
-            setting = Application.Current.Setting();
+            setting = Application.Current.LoadSetting();
             CreateHtmlRender();
         }
 

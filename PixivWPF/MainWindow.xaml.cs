@@ -23,7 +23,7 @@ namespace PixivWPF
     {
         private static System.Diagnostics.Process CurrentProcess = Application.Current.Process();
 
-        private Setting setting = Application.Current.Setting();
+        private Setting setting = Application.Current.LoadSetting();
         public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
 
         public Frame MainContent = null;
@@ -231,7 +231,7 @@ namespace PixivWPF
             pipeOnClosing = true;
             ReleaseNamedPipeServer();
             Application.Current.ReleaseAppWatcher();
-            Application.Current.Setting().LocalStorage.ReleaseDownloadedWatcher();
+            Application.Current.LoadSetting().LocalStorage.ReleaseDownloadedWatcher();
 
             foreach (Window win in Application.Current.Windows)
             {
@@ -250,7 +250,7 @@ namespace PixivWPF
                 pipeOnClosing = true;
                 ReleaseNamedPipeServer();
                 Application.Current.ReleaseAppWatcher();
-                Application.Current.Setting().LocalStorage.ReleaseDownloadedWatcher();
+                Application.Current.LoadSetting().LocalStorage.ReleaseDownloadedWatcher();
 
                 foreach (Window win in Application.Current.Windows)
                 {

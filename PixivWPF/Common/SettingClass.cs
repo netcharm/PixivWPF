@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -17,6 +18,20 @@ namespace PixivWPF.Common
     {
         //private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
         private static string AppPath = Application.Current.GetRoot();
+
+        private static SemaphoreSlim ConfigReadWrite = new SemaphoreSlim(1, 1);
+        [JsonIgnore]
+        public bool ConfigBusy
+        {
+            get { return (ConfigReadWrite.CurrentCount <= 0 ? true : false); }
+        }
+
+        private static SemaphoreSlim TagsReadWrite = new SemaphoreSlim(1, 1);
+        [JsonIgnore]
+        public bool TagsBusy
+        {
+            get { return (TagsReadWrite.CurrentCount <= 0 ? true : false); }
+        }
 
         private static string config = "config.json";
         [JsonIgnore]
@@ -30,7 +45,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (IsSaving) return (tagsfile);
+                if (ConfigBusy) return (tagsfile);
                 else return (Path.IsPathRooted(tagsfile) ? tagsfile : Path.Combine(AppPath, tagsfile));
             }
             set { tagsfile = Path.GetFileName(value); }
@@ -41,7 +56,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (IsSaving) return (tagsfile_t2s);
+                if (ConfigBusy) return (tagsfile_t2s);
                 else return (Path.IsPathRooted(tagsfile_t2s) ? tagsfile_t2s : Path.Combine(AppPath, tagsfile_t2s));
             }
             set { tagsfile_t2s = Path.GetFileName(value); }
@@ -59,7 +74,7 @@ namespace PixivWPF.Common
             get { return (accesstoken); }
             set
             {
-                if (!IsLoading)
+                if (!ConfigBusy)
                 {
                     username = User.AesEncrypt(value);
                     password = Pass.AesEncrypt(value);
@@ -106,7 +121,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (SaveUserPass && !IsLoading) return username;
+                if (SaveUserPass && !ConfigBusy) return username;
                 else return (string.Empty);
             }
             set { if (SaveUserPass) username = value; }
@@ -117,7 +132,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (SaveUserPass && !IsLoading) return password;
+                if (SaveUserPass && !ConfigBusy) return password;
                 else return (string.Empty);
             }
             set { if (SaveUserPass) password = value; }
@@ -128,7 +143,7 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public string User
         {
-            get { return (IsLoading ? string.Empty : username.AesDecrypt(accesstoken)); }
+            get { return (ConfigBusy ? string.Empty : username.AesDecrypt(accesstoken)); }
             set { username = value.AesEncrypt(accesstoken); }
         }
 
@@ -137,7 +152,7 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public string Pass
         {
-            get { return (IsLoading ? string.Empty : password.AesDecrypt(accesstoken)); }
+            get { return (ConfigBusy ? string.Empty : password.AesDecrypt(accesstoken)); }
             set { password = value.AesEncrypt(accesstoken); }
         }
 
@@ -231,10 +246,12 @@ namespace PixivWPF.Common
         public FontFamily FontFamily { get { return (fontfamily); } }
 
         private string theme = string.Empty;
-        public string Theme { get; set; }
+        [JsonProperty("Theme")]
+        public string CurrentTheme { get; set; }
 
         private string accent = string.Empty;
-        public string Accent { get; set; }
+        [JsonProperty("Accent")]
+        public string CurrentAccent { get; set; }
 
         public bool PrivateFavPrefer { get; set; } = false;
         public bool PrivateBookmarkPrefer { get; set; } = false;
@@ -250,7 +267,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (IsSaving) return (custom_template_file);
+                if (ConfigBusy) return (custom_template_file);
                 else return (Path.IsPathRooted(custom_template_file) ? custom_template_file : Path.Combine(AppPath, custom_template_file));
             }
             set { custom_template_file = Path.GetFileName(value); }
@@ -268,47 +285,6 @@ namespace PixivWPF.Common
 
         public Point DropBoxPosition { get; set; } = new Point(0, 0);
 
-        [JsonIgnore]
-        public static bool IsLoading { get; set; } = false;
-        [JsonIgnore]
-        private static bool IsSaving { get; set; } = false;
-
-        public void Save(string configfile = "")
-        {
-            try
-            {
-                if (IsLoading || IsSaving) return;
-
-                IsSaving = true;
-                if (string.IsNullOrEmpty(configfile)) configfile = config;
-
-                if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.SaveFolder)) < 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
-                {
-                    Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
-                }
-
-                if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.LastFolder)) < 0 && !string.IsNullOrEmpty(Cache.LastFolder))
-                {
-                    Cache.LocalStorage.Add(new StorageType(Cache.LastFolder, true));
-                }
-
-                UpdateContentsTemplete();
-
-                var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
-                File.WriteAllText(configfile, text, new UTF8Encoding(true));
-
-                SaveTags();
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageDialog("ERROR");
-            }
-            finally
-            {
-                IsSaving = false;
-            }
-        }
-
         public static void UpdateContentsTemplete()
         {
             if (File.Exists(Cache.ContentsTemplateFile))
@@ -321,7 +297,7 @@ namespace PixivWPF.Common
                 {
                     Cache.ContentsTemplete = Cache.CustomContentsTemplete;
                     Cache.ContentsTemplateTime = DateTime.Now;
-                    if (!IsSaving && !IsLoading) Cache.Save();
+                    Cache.Save();
                 }
             }
             else
@@ -330,161 +306,222 @@ namespace PixivWPF.Common
                 {
                     Cache.ContentsTemplete = CommonHelper.GetDefaultTemplate();
                     Cache.CustomContentsTemplete = string.Empty;
-                    if (!IsSaving && !IsLoading) Cache.Save();
+                    Cache.Save();
                 }
             }
             CommonHelper.UpdateWebContentAsync();
         }
 
-        public static Setting Load(bool force = false, string configfile = "")
+        public async void Save(string configfile = "")
         {
-            Setting result = new Setting();
-            try
+            if (await ConfigReadWrite.WaitAsync(1))
             {
-                if (Cache is Setting && force == false || IsSaving) result = Cache;
-                else
+                try
                 {
                     if (string.IsNullOrEmpty(configfile)) configfile = config;
-                    if (File.Exists(config))
+
+                    if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.SaveFolder)) < 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
                     {
-                        var text = File.ReadAllText(configfile);
-                        if (Cache is Setting && text.Length > 20)
-                        {
-                            var cache = JsonConvert.DeserializeObject<Setting>(text);
-                            Cache.SaveUserPass = cache.SaveUserPass;
-                            Cache.Proxy = cache.Proxy;
-                            Cache.UsingProxy = cache.UsingProxy;
-                            Cache.FontName = cache.FontName;
-                            Cache.Theme = cache.Theme;
-                            Cache.Accent = cache.Accent;
-                            Cache.PrivateFavPrefer = cache.PrivateFavPrefer;
-                            Cache.PrivateBookmarkPrefer = cache.PrivateBookmarkPrefer;
-                            Cache.AutoExpand = cache.AutoExpand;
-                            Cache.ShellSearchBridgeApplication = cache.ShellSearchBridgeApplication;
-                            Cache.ShellPixivPediaApplication = cache.ShellPixivPediaApplication;
-                            Cache.ShellPixivPediaApplicationArgs = cache.ShellPixivPediaApplicationArgs;
-                            Cache.ContentsTemplateFile = cache.ContentsTemplateFile;
-                            Cache.LocalStorage = cache.LocalStorage;
-                        }
-                        else
-                        {
-                            if (text.Length < 20)
-                                Cache = new Setting();
-                            else
-                                Cache = JsonConvert.DeserializeObject<Setting>(text);
-                        }
-
-                        if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
-                            Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
-
-                        Cache.LocalStorage.InitDownloadedWatcher();
-#if DEBUG
-                        #region Setup UI font
-                        if (!string.IsNullOrEmpty(Cache.FontName))
-                        {
-                            try
-                            {
-                                Cache.fontfamily = new FontFamily(Cache.FontName);
-                            }
-                            catch (Exception)
-                            {
-                                Cache.fontfamily = SystemFonts.MessageFontFamily;
-                            }
-                        }
-                        #endregion
-#endif
-                        #region Update Contents Template
-                        UpdateContentsTemplete();
-                        #endregion
-
-                        result = Cache;
+                        Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
                     }
+
+                    if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.LastFolder)) < 0 && !string.IsNullOrEmpty(Cache.LastFolder))
+                    {
+                        Cache.LocalStorage.Add(new StorageType(Cache.LastFolder, true));
+                    }
+
+                    UpdateContentsTemplete();
+
+                    var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
+                    File.WriteAllText(configfile, text, new UTF8Encoding(true));
+
+                    SaveTags();
                 }
-                LoadTags();
+                catch (Exception ex)
+                {
+                    ex.Message.ShowMessageDialog("ERROR");
+                }
+                finally
+                {
+                    ConfigReadWrite.Release();
+                }
             }
-#if DEBUG
-            catch (Exception ex) { ex.Message.ShowToast("ERROR"); }
-#else
-            catch (Exception) { }
-#endif
-            finally
+        }
+
+        public static Setting Load(bool force = false, string configfile = "")
+        {
+            Setting result = Cache is Setting ? Cache : new Setting();
+            if (ConfigReadWrite.Wait(1))
             {
-                //loading = false;
+                try
+                {
+                    if (Cache is Setting && force == false) throw new Exception("Config Busy!");
+                    else
+                    {
+                        if (string.IsNullOrEmpty(configfile)) configfile = config;
+                        if (File.Exists(config))
+                        {
+                            var text = File.ReadAllText(configfile);
+                            if (Cache is Setting && text.Length > 20)
+                            {
+                                var cache = JsonConvert.DeserializeObject<Setting>(text);
+                                Cache.SaveUserPass = cache.SaveUserPass;
+                                Cache.Proxy = cache.Proxy;
+                                Cache.UsingProxy = cache.UsingProxy;
+                                Cache.FontName = cache.FontName;
+                                Cache.CurrentTheme = cache.CurrentTheme;
+                                Cache.CurrentAccent = cache.CurrentAccent;
+                                Cache.PrivateFavPrefer = cache.PrivateFavPrefer;
+                                Cache.PrivateBookmarkPrefer = cache.PrivateBookmarkPrefer;
+                                Cache.AutoExpand = cache.AutoExpand;
+                                Cache.ShellSearchBridgeApplication = cache.ShellSearchBridgeApplication;
+                                Cache.ShellPixivPediaApplication = cache.ShellPixivPediaApplication;
+                                Cache.ShellPixivPediaApplicationArgs = cache.ShellPixivPediaApplicationArgs;
+                                Cache.ContentsTemplateFile = cache.ContentsTemplateFile;
+                                Cache.LocalStorage = cache.LocalStorage;
+                            }
+                            else
+                            {
+                                if (text.Length < 20)
+                                    Cache = new Setting();
+                                else
+                                    Cache = JsonConvert.DeserializeObject<Setting>(text);
+                            }
+
+                            if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
+                                Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
+
+                            Cache.LocalStorage.InitDownloadedWatcher();
+#if DEBUG
+                            #region Setup UI font
+                            if (!string.IsNullOrEmpty(Cache.FontName))
+                            {
+                                try
+                                {
+                                    Cache.fontfamily = new FontFamily(Cache.FontName);
+                                }
+                                catch (Exception)
+                                {
+                                    Cache.fontfamily = SystemFonts.MessageFontFamily;
+                                }
+                            }
+                            #endregion
+#endif
+                            #region Update Contents Template
+                            UpdateContentsTemplete();
+                            #endregion
+
+                            #region Update Theme
+                            if (!string.IsNullOrEmpty(Cache.CurrentTheme))
+                                Theme.CurrentTheme = Cache.CurrentTheme;
+                            if (!string.IsNullOrEmpty(Cache.CurrentAccent))
+                                Theme.CurrentAccent = Cache.CurrentAccent;
+                            #endregion
+                            result = Cache;
+                        }
+                    }
+                    LoadTags();
+                }
+#if DEBUG
+                catch (Exception ex) { ex.Message.ShowToast("ERROR"); }
+#else
+                catch (Exception) { }
+#endif
+                finally
+                {
+                    ConfigReadWrite.Release();
+                }
             }
             return (result);
         }
 
         public void SaveTags()
         {
-            try
+            if (TagsReadWrite.Wait(1))
             {
-                if (IsLoading || IsSaving) return;
-
-                if (CommonHelper.TagsCache.Count > 0)
+                try
                 {
-                    try
+                    if (CommonHelper.TagsCache.Count > 0)
                     {
-                        var tags = JsonConvert.SerializeObject(CommonHelper.TagsCache, Formatting.Indented);
-                        File.WriteAllText(tagsfile, tags, new UTF8Encoding(true));
+                        try
+                        {
+                            var tags = JsonConvert.SerializeObject(CommonHelper.TagsCache, Formatting.Indented);
+                            File.WriteAllText(tagsfile, tags, new UTF8Encoding(true));
+                        }
+                        catch (Exception) { }
                     }
-                    catch (Exception) { }
+                    if (File.Exists(tagsfile_t2s))
+                    {
+                        try
+                        {
+                            var tags_t2s = File.ReadAllText(tagsfile_t2s);
+                            CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
+                        }
+                        catch (Exception) { }
+                    }
                 }
-                if (File.Exists(tagsfile_t2s))
+                catch (Exception) { }
+                finally
                 {
-                    try
-                    {
-                        var tags_t2s = File.ReadAllText(tagsfile_t2s);
-                        CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
-                    }
-                    catch (Exception) { }
+                    TagsReadWrite.Release();
                 }
             }
-            catch (Exception) { }
         }
 
         public static void LoadTags(bool all = true)
         {
-            var force = CommonHelper.TagsCache.Count <= 0 && CommonHelper.TagsT2S.Count <= 0;
-
-            if ((IsLoading || IsSaving) && !force) return;
-
-            if (all && File.Exists(Instance.TagsFile))
+            if (TagsReadWrite.Wait(1))
             {
                 try
                 {
-                    var tags = File.ReadAllText(Instance.TagsFile);
-                    CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
-                    CommonHelper.UpdateIllustTagsAsync();
-                }
-                catch (Exception) { }
-            }
+                    var force = CommonHelper.TagsCache.Count <= 0 && CommonHelper.TagsT2S.Count <= 0;
 
-            if (File.Exists(Instance.CustomTagsFile))
-            {
-                try
-                {
-                    var tags_t2s = File.ReadAllText(Instance.CustomTagsFile);
-                    CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
-                    var keys = CommonHelper.TagsT2S.Keys.ToList();
-                    foreach (var k in keys)
+                    if (!force) return;
+
+                    if (all && File.Exists(Instance.TagsFile))
                     {
-                        CommonHelper.TagsT2S[k.Trim()] = CommonHelper.TagsT2S[k].Trim();
+                        try
+                        {
+                            var tags = File.ReadAllText(Instance.TagsFile);
+                            CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
+                            CommonHelper.UpdateIllustTagsAsync();
+                        }
+                        catch (Exception) { }
                     }
-                    CommonHelper.UpdateIllustTagsAsync();
-                }
-                catch (Exception) { }
-            }
-            else
-            {
-                try
-                {
-                    if (CommonHelper.TagsT2S is Dictionary<string, string>)
+
+                    if (File.Exists(Instance.CustomTagsFile))
                     {
-                        CommonHelper.TagsT2S.Clear();
-                        CommonHelper.UpdateIllustTagsAsync();
+                        try
+                        {
+                            var tags_t2s = File.ReadAllText(Instance.CustomTagsFile);
+                            CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
+                            var keys = CommonHelper.TagsT2S.Keys.ToList();
+                            foreach (var k in keys)
+                            {
+                                CommonHelper.TagsT2S[k.Trim()] = CommonHelper.TagsT2S[k].Trim();
+                            }
+                            CommonHelper.UpdateIllustTagsAsync();
+                        }
+                        catch (Exception) { }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            if (CommonHelper.TagsT2S is Dictionary<string, string>)
+                            {
+                                CommonHelper.TagsT2S.Clear();
+                                CommonHelper.UpdateIllustTagsAsync();
+                            }
+                        }
+                        catch (Exception) { }
                     }
                 }
                 catch (Exception) { }
+                finally
+                {
+                    TagsReadWrite.Release();
+                }
             }
         }
 

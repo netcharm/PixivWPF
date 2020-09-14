@@ -15,7 +15,7 @@ namespace PixivWPF.Common
                 "Purple","Red","Sienna","Steel","Taupe","Teal","Violet","Yellow"
         };
 
-        private static Setting setting = Application.Current.Setting();
+        private static Setting setting = Application.Current.LoadSetting();
 
         public static Color ToColor(this Brush b, bool prefixsharp = true)
         {
@@ -95,9 +95,9 @@ namespace PixivWPF.Common
 
             var target = ThemeManager.GetInverseAppTheme(appTheme);
             ThemeManager.ChangeAppStyle(Application.Current, appAccent, target);
-            if (setting.Theme != target.Name)
+            if (setting.CurrentTheme != target.Name)
             {
-                setting.Theme = target.Name;
+                setting.CurrentTheme = target.Name;
                 setting.Save();
             }
         }
@@ -117,9 +117,9 @@ namespace PixivWPF.Common
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
                 ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent(value), appTheme);
-                if (setting.Accent != value)
+                if (setting.CurrentAccent != value)
                 {
-                    setting.Accent = value;
+                    setting.CurrentAccent = value;
                     setting.Save();
                 }
             }
@@ -140,9 +140,9 @@ namespace PixivWPF.Common
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
                 ThemeManager.ChangeAppStyle(Application.Current, appAccent, ThemeManager.GetAppTheme(value));
-                if (setting.Theme != value)
+                if (setting.CurrentTheme != value)
                 {
-                    setting.Theme = value;
+                    setting.CurrentTheme = value;
                     setting.Save();
                 }
             }

@@ -23,7 +23,7 @@ namespace PixivWPF.Common
 
     public class DownloadInfo: INotifyPropertyChanged
     {
-        private Setting setting = Application.Current.Setting();
+        private Setting setting = Application.Current.LoadSetting();
 
         public DateTime AddedTimeStamp { get; set; } = DateTime.Now;
 
@@ -141,7 +141,7 @@ namespace PixivWPF.Common
 
         public DownloadInfo()
         {
-            setting = Application.Current.Setting();
+            setting = Application.Current.LoadSetting();
         }
 
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -180,7 +180,7 @@ namespace PixivWPF.Common
     public partial class DownloadItem : UserControl, INotifyPropertyChanged
     {
         private const int HTTP_STREAM_READ_COUNT = 65536;
-        private Setting setting = Application.Current.Setting();
+        private Setting setting = Application.Current.LoadSetting();
 
         private Tuple<double, double> finishedProgress;
 
@@ -839,7 +839,7 @@ namespace PixivWPF.Common
         public DownloadItem()
         {
             InitializeComponent();
-            setting = Application.Current.Setting();
+            setting = Application.Current.LoadSetting();
 
             Info = new DownloadInfo();
 
@@ -851,7 +851,7 @@ namespace PixivWPF.Common
         public DownloadItem(string url, bool autostart=true)
         {
             InitializeComponent();
-            setting = Application.Current.Setting();
+            setting = Application.Current.LoadSetting();
 
             Info = new DownloadInfo();
 
@@ -866,7 +866,7 @@ namespace PixivWPF.Common
         public DownloadItem(DownloadInfo info)
         {
             InitializeComponent();
-            setting = Application.Current.Setting();
+            setting = Application.Current.LoadSetting();
 
             if (info is DownloadInfo)
                 Info = info;

@@ -22,7 +22,7 @@ namespace PixivWPF.Pages
     public partial class DownloadManagerPage : Page
     {
         private Window window = null;
-        private Setting setting = Application.Current.Setting();
+        private Setting setting = Application.Current.LoadSetting();
 
         [DefaultValue(true)]
         public bool AutoStart { get; set; }
@@ -65,7 +65,7 @@ namespace PixivWPF.Pages
         public DownloadManagerPage()
         {
             InitializeComponent();
-            setting = Application.Current.Setting();
+            setting = Application.Current.LoadSetting();
 
             DataContext = this;
 

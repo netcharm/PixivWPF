@@ -21,7 +21,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class IllustDetailPage : Page
     {
-        private Setting setting = Application.Current.Setting();
+        private Setting setting = Application.Current.LoadSetting();
 
         private object DataObject = null;
 
@@ -1692,20 +1692,20 @@ namespace PixivWPF.Pages
                             {
                                 await new Action(() =>
                                 {
-                                    Setting.LoadTags();
+                                    Application.Current.LoadTags();
                                 }).InvokeAsync();
                             }
                             else if (Keyboard.Modifiers == ModifierKeys.Shift)
                                 WebBrowserRefresh(IllustTagsHtml);
                             else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-                                Application.Current.Setting().CustomTagsFile.OpenFileWithShell();
+                                Application.Current.LoadSetting().CustomTagsFile.OpenFileWithShell();
                         }
                         else if (host == btnIllustDescSpeech)
                         {
                             if (Keyboard.Modifiers == ModifierKeys.None)
                                 WebBrowserRefresh(IllustDescHtml);
                             else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-                                Application.Current.Setting().ContentsTemplateFile.OpenFileWithShell();
+                                Application.Current.LoadSetting().ContentsTemplateFile.OpenFileWithShell();
                         }
                         else if (mi == ActionRefresh)
                         {

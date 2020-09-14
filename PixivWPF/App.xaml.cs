@@ -16,13 +16,7 @@ namespace PixivWPF
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            Setting.IsLoading = true;
-            var setting = Application.Current.Setting();
-            if (!string.IsNullOrEmpty(setting.Theme))
-                Theme.CurrentTheme = setting.Theme;
-            if (!string.IsNullOrEmpty(setting.Accent))
-                Theme.CurrentAccent = setting.Accent;
-            Setting.IsLoading = false;
+            var setting = Application.Current.LoadSetting();
         }
     }
 }

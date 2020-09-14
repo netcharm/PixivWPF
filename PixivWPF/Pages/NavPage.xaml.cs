@@ -23,7 +23,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class NavPage : Page
     {
-        private Setting setting = Application.Current.Setting();
+        private Setting setting = Application.Current.LoadSetting();
         private PixivPage page = PixivPage.Recommanded;
 
         internal MahApps.Metro.Controls.Flyout NavFlyout = null;

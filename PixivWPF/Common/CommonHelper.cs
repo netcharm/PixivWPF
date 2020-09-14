@@ -197,9 +197,27 @@ namespace PixivWPF.Common
     public static class ApplicationExtensions
     {
         #region Application Helper
-        public static Common.Setting Setting(this Application app)
+        public static Setting LoadSetting(this Application app, bool force = false)
         {
-            return (Common.Setting.Instance == null ? Common.Setting.Load() : Common.Setting.Instance);
+            return (Setting.Load(force));
+        }
+
+        public static void SaveSetting(this Application app)
+        {
+            if(Setting.Instance is Setting) Setting.Instance.Save();
+            return;
+        }
+
+        public static void LoadTags(this Application app)
+        {
+            Setting.LoadTags();
+            return;
+        }
+
+        public static void SaveTags(this Application app)
+        {
+            if (Setting.Instance is Setting) Setting.Instance.SaveTags();
+            return;
         }
 
         private static string root = string.Empty;
@@ -390,39 +408,37 @@ namespace PixivWPF.Common
                 {
                     if (File.Exists(e.FullPath))
                     {
-                        if (fn.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                        if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Common.Setting.IsLoading = true;
-                            Common.Setting.Load(true);
-                            Common.Setting.IsLoading = false;
+                            Setting.Load(true);
                             lastConfigEventTick = DateTime.Now;
                         }
-                        else if (fn.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Common.Setting.LoadTags(false);
+                            Setting.LoadTags(false);
                             lastConfigEventTick = DateTime.Now;
                         }
-                        else if (fn.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                        else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Common.Setting.UpdateContentsTemplete();
+                            Setting.UpdateContentsTemplete();
                             lastConfigEventTick = DateTime.Now;
                         }
                     }
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
-                    if (fn.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                    if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         lastConfigEventTick = DateTime.Now;
                     }
-                    else if (fn.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Common.Setting.LoadTags(false);
+                        Setting.LoadTags(false);
                         lastConfigEventTick = DateTime.Now;
                     }
-                    else if (fn.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                    else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Common.Setting.UpdateContentsTemplete();
+                        Setting.UpdateContentsTemplete();
                         lastConfigEventTick = DateTime.Now;
                     }
                 }
@@ -452,21 +468,21 @@ namespace PixivWPF.Common
                 var fn_n = e.FullPath;
                 if (e.ChangeType == WatcherChangeTypes.Renamed)
                 {
-                    if (fn_o.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase) || 
-                        fn_n.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                    if (fn_o.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase) || 
+                        fn_n.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         lastConfigEventTick = DateTime.Now;
                     }
-                    else if (fn_o.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) || 
-                        fn_n.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    else if (fn_o.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) || 
+                        fn_n.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Common.Setting.LoadTags(false);
+                        Setting.LoadTags(false);
                         lastConfigEventTick = DateTime.Now;
                     }
-                    else if (fn_o.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) || 
-                        fn_n.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                    else if (fn_o.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) || 
+                        fn_n.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Common.Setting.UpdateContentsTemplete();
+                        Setting.UpdateContentsTemplete();
                         lastConfigEventTick = DateTime.Now;
                     }
                 }
@@ -727,7 +743,7 @@ namespace PixivWPF.Common
         private const int HEIGHT_MAX = 1008;
         private const int WIDTH_DEF = 1280;
 
-        private static Setting setting = Application.Current.Setting();
+        private static Setting setting = Application.Current.LoadSetting();
         private static CacheImage cache = new CacheImage();
         public static Dictionary<long?, Pixeez.Objects.Work> IllustCache = new Dictionary<long?, Pixeez.Objects.Work>();
         public static Dictionary<long?, Pixeez.Objects.UserBase> UserCache = new Dictionary<long?, Pixeez.Objects.UserBase>();
@@ -1461,8 +1477,7 @@ namespace PixivWPF.Common
 
         public static ICommand Cmd_SaveTags { get; } = new DelegateCommand(() =>
         {
-            setting = Application.Current.Setting();
-            setting.SaveTags();
+            Application.Current.SaveTags();
         });
         #region Pixiv Token Helper
         private static async Task<Pixeez.Tokens> RefreshToken()
@@ -1516,7 +1531,7 @@ namespace PixivWPF.Common
             }
             try
             {
-                setting = Application.Current.Setting();
+                setting = Application.Current.LoadSetting();
                 if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
                 {
                     result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);

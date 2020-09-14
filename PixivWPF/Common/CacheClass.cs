@@ -14,7 +14,7 @@ namespace PixivWPF.Common
 {
     class CacheImage
     {
-        private Setting setting = Application.Current.Setting();
+        private Setting setting = Application.Current.LoadSetting();
         private char[] trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
         private Dictionary<int, string> loadedImageHashTable = new Dictionary<int, string>();
         private Dictionary<int, string> loadedImageFileTable = new Dictionary<int, string>();
@@ -25,7 +25,7 @@ namespace PixivWPF.Common
 
         public CacheImage()
         {
-            setting = Application.Current.Setting();
+            setting = Application.Current.LoadSetting();
 
             _CacheFolder = Path.Combine(setting.APP_PATH, "cache");
             _CacheDB = Path.Combine(setting.APP_PATH, "cache.json");
