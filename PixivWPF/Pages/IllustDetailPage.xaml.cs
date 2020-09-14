@@ -21,6 +21,8 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class IllustDetailPage : Page
     {
+        private Setting setting = Application.Current.Setting();
+
         private object DataObject = null;
 
         private bool bCancel = false;
@@ -680,9 +682,9 @@ namespace PixivWPF.Pages
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "Tags";
-                    if (Setting.Instance.AutoExpand == AutoExpandMode.AUTO ||
-                        Setting.Instance.AutoExpand == AutoExpandMode.ON ||
-                        Setting.Instance.AutoExpand == AutoExpandMode.SINGLEPAGE)
+                    if (setting.AutoExpand == AutoExpandMode.AUTO ||
+                        setting.AutoExpand == AutoExpandMode.ON ||
+                        setting.AutoExpand == AutoExpandMode.SINGLEPAGE)
                     {
                         if (!IllustTagExpander.IsExpanded) IllustTagExpander.IsExpanded = true;
                     }
@@ -702,9 +704,9 @@ namespace PixivWPF.Pages
                     IllustDescHtml.DocumentText = MakeIllustDescHtml(item);
                     AdjustBrowserSize(IllustDescHtml);
 
-                    if (Setting.Instance.AutoExpand == AutoExpandMode.AUTO ||
-                        Setting.Instance.AutoExpand == AutoExpandMode.ON ||
-                        (Setting.Instance.AutoExpand == AutoExpandMode.SINGLEPAGE && item.Illust.PageCount <= 1))
+                    if (setting.AutoExpand == AutoExpandMode.AUTO ||
+                        setting.AutoExpand == AutoExpandMode.ON ||
+                        (setting.AutoExpand == AutoExpandMode.SINGLEPAGE && item.Illust.PageCount <= 1))
                     {
                         if (!IllustDescExpander.IsExpanded) IllustDescExpander.IsExpanded = true;
                     }
@@ -826,7 +828,7 @@ namespace PixivWPF.Pages
                     AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "User Infomation";
-                    if (Setting.Instance.AutoExpand == AutoExpandMode.ON)
+                    if (setting.AutoExpand == AutoExpandMode.ON)
                         IllustTagExpander.IsExpanded = true;
                     else
                         IllustTagExpander.IsExpanded = false;
@@ -845,8 +847,8 @@ namespace PixivWPF.Pages
                     IllustDescHtml.DocumentText = MakeUserCommentHtml(UserInfo);
                     AdjustBrowserSize(IllustDescHtml);
 
-                    if (Setting.Instance.AutoExpand == AutoExpandMode.ON ||
-                        Setting.Instance.AutoExpand == AutoExpandMode.AUTO)
+                    if (setting.AutoExpand == AutoExpandMode.ON ||
+                        setting.AutoExpand == AutoExpandMode.AUTO)
                     {
                         if (!IllustDescExpander.IsExpanded) IllustDescExpander.IsExpanded = true;
                     }
@@ -1263,7 +1265,7 @@ namespace PixivWPF.Pages
                 var item = DataObject as ImageItem;
                 if (e.Key == Key.F7 || e.SystemKey == Key.F7)
                 {
-                    var pub = Setting.Instance.PrivateFavPrefer ? false : true;
+                    var pub = setting.PrivateFavPrefer ? false : true;
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         await item.Illust.Like(pub);
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
@@ -1273,7 +1275,7 @@ namespace PixivWPF.Pages
                 }
                 else if (e.Key == Key.F8 || e.SystemKey == Key.F8)
                 {
-                    var pub = Setting.Instance.PrivateFavPrefer ? false : true;
+                    var pub = setting.PrivateFavPrefer ? false : true;
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         await item.User.Like(pub);
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
@@ -1288,7 +1290,7 @@ namespace PixivWPF.Pages
                 var item = DataObject as Pixeez.Objects.UserBase;
                 if (e.Key == Key.F8 || e.SystemKey == Key.F8)
                 {
-                    var pub = Setting.Instance.PrivateFavPrefer ? false : true;
+                    var pub = setting.PrivateFavPrefer ? false : true;
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         await item.Like(pub);
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)

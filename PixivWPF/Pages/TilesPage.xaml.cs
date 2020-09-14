@@ -26,7 +26,7 @@ namespace PixivWPF.Pages
         internal List<long> ids = new List<long>();
         internal ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
 
-        private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+        private Setting setting = Application.Current.Setting();
         public PixivPage TargetPage = PixivPage.Recommanded;
         private string NextURL = null;
 
@@ -107,7 +107,7 @@ namespace PixivWPF.Pages
         {
             InitializeComponent();
 
-            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+            setting = Application.Current.Setting();
 
             window = this.GetActiveWindow();
 

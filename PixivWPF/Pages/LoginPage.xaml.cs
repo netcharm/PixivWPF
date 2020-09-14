@@ -25,7 +25,7 @@ namespace PixivWPF.Pages
     public partial class LoginPage : Page
     {
         private Window window = null;
-        private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+        private Setting setting = Application.Current.Setting();
         private Pixeez.Tokens tokens = null;
 
         private void CloseWindow()
@@ -56,7 +56,7 @@ namespace PixivWPF.Pages
 
             try
             {
-                setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+                setting = Application.Current.Setting();
 
                 window = this.GetActiveWindow();
 

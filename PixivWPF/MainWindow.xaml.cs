@@ -23,6 +23,7 @@ namespace PixivWPF
     {
         private static System.Diagnostics.Process CurrentProcess = Application.Current.Process();
 
+        private Setting setting = Application.Current.Setting();
         public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
 
         public Frame MainContent = null;
@@ -190,7 +191,7 @@ namespace PixivWPF
         {
             InitializeComponent();
 
-            this.FontFamily = Setting.Instance.FontFamily;
+            this.FontFamily = setting.FontFamily;
 
             Title = $"{Title} [Version: {Application.Current.Version()}]";
 
@@ -230,7 +231,7 @@ namespace PixivWPF
             pipeOnClosing = true;
             ReleaseNamedPipeServer();
             Application.Current.ReleaseAppWatcher();
-            CommonHelper.ReleaseDownloadedWatcher();
+            Application.Current.Setting().LocalStorage.ReleaseDownloadedWatcher();
 
             foreach (Window win in Application.Current.Windows)
             {
@@ -238,7 +239,7 @@ namespace PixivWPF
                 win.Close();
             }
 
-            if (Setting.Instance is Setting) Setting.Instance.Save();
+            if (setting is Setting) setting.Save();
             Application.Current.Shutdown();
         }
 #else
@@ -249,7 +250,7 @@ namespace PixivWPF
                 pipeOnClosing = true;
                 ReleaseNamedPipeServer();
                 Application.Current.ReleaseAppWatcher();
-                CommonHelper.ReleaseDownloadedWatcher();
+                Application.Current.Setting().LocalStorage.ReleaseDownloadedWatcher();
 
                 foreach (Window win in Application.Current.Windows)
                 {
@@ -257,7 +258,7 @@ namespace PixivWPF
                     else win.Close();
                 }
 
-                if (Setting.Instance is Setting) Setting.Instance.Save();
+                if (setting is Setting) setting.Save();
                 Application.Current.Shutdown();
             }
             else e.Cancel = true;

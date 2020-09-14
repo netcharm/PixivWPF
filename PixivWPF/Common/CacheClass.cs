@@ -7,13 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 
 namespace PixivWPF.Common
 {
     class CacheImage
     {
-        private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+        private Setting setting = Application.Current.Setting();
         private char[] trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
         private Dictionary<int, string> loadedImageHashTable = new Dictionary<int, string>();
         private Dictionary<int, string> loadedImageFileTable = new Dictionary<int, string>();
@@ -24,7 +25,7 @@ namespace PixivWPF.Common
 
         public CacheImage()
         {
-            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+            setting = Application.Current.Setting();
 
             _CacheFolder = Path.Combine(setting.APP_PATH, "cache");
             _CacheDB = Path.Combine(setting.APP_PATH, "cache.json");

@@ -15,7 +15,7 @@ namespace PixivWPF.Common
                 "Purple","Red","Sienna","Steel","Taupe","Teal","Violet","Yellow"
         };
 
-        private static Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+        private static Setting setting = Application.Current.Setting();
 
         public static Color ToColor(this Brush b, bool prefixsharp = true)
         {

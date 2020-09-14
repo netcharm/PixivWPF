@@ -341,46 +341,63 @@ namespace PixivWPF.Common
             Setting result = new Setting();
             try
             {
-                if (Cache is Setting && force == false) result = Cache;
+                if (Cache is Setting && force == false || IsSaving) result = Cache;
                 else
                 {
                     if (string.IsNullOrEmpty(configfile)) configfile = config;
                     if (File.Exists(config))
                     {
-                        try
+                        var text = File.ReadAllText(configfile);
+                        if (Cache is Setting && text.Length > 20)
                         {
-                            var text = File.ReadAllText(configfile);
+                            var cache = JsonConvert.DeserializeObject<Setting>(text);
+                            Cache.SaveUserPass = cache.SaveUserPass;
+                            Cache.Proxy = cache.Proxy;
+                            Cache.UsingProxy = cache.UsingProxy;
+                            Cache.FontName = cache.FontName;
+                            Cache.Theme = cache.Theme;
+                            Cache.Accent = cache.Accent;
+                            Cache.PrivateFavPrefer = cache.PrivateFavPrefer;
+                            Cache.PrivateBookmarkPrefer = cache.PrivateBookmarkPrefer;
+                            Cache.AutoExpand = cache.AutoExpand;
+                            Cache.ShellSearchBridgeApplication = cache.ShellSearchBridgeApplication;
+                            Cache.ShellPixivPediaApplication = cache.ShellPixivPediaApplication;
+                            Cache.ShellPixivPediaApplicationArgs = cache.ShellPixivPediaApplicationArgs;
+                            Cache.ContentsTemplateFile = cache.ContentsTemplateFile;
+                            Cache.LocalStorage = cache.LocalStorage;
+                        }
+                        else
+                        {
                             if (text.Length < 20)
                                 Cache = new Setting();
                             else
                                 Cache = JsonConvert.DeserializeObject<Setting>(text);
-
-                            if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
-                                Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
-
-                            Cache.LocalStorage.InitDownloadedWatcher();
-#if DEBUG
-                            #region Setup UI font
-                            if (!string.IsNullOrEmpty(Cache.FontName))
-                            {
-                                try
-                                {
-                                    Cache.fontfamily = new FontFamily(Cache.FontName);
-                                }
-                                catch (Exception)
-                                {
-                                    Cache.fontfamily = SystemFonts.MessageFontFamily;
-                                }
-                            }
-                            #endregion
-#endif
-                            #region Update Contents Template
-                            UpdateContentsTemplete();
-                            #endregion
-
-                            result = Cache;
                         }
-                        catch (Exception) { }
+
+                        if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
+                            Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
+
+                        Cache.LocalStorage.InitDownloadedWatcher();
+#if DEBUG
+                        #region Setup UI font
+                        if (!string.IsNullOrEmpty(Cache.FontName))
+                        {
+                            try
+                            {
+                                Cache.fontfamily = new FontFamily(Cache.FontName);
+                            }
+                            catch (Exception)
+                            {
+                                Cache.fontfamily = SystemFonts.MessageFontFamily;
+                            }
+                        }
+                        #endregion
+#endif
+                        #region Update Contents Template
+                        UpdateContentsTemplete();
+                        #endregion
+
+                        result = Cache;
                     }
                 }
                 LoadTags();

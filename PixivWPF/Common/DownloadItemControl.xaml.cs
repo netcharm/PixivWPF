@@ -23,7 +23,7 @@ namespace PixivWPF.Common
 
     public class DownloadInfo: INotifyPropertyChanged
     {
-        private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+        private Setting setting = Application.Current.Setting();
 
         public DateTime AddedTimeStamp { get; set; } = DateTime.Now;
 
@@ -141,7 +141,7 @@ namespace PixivWPF.Common
 
         public DownloadInfo()
         {
-            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+            setting = Application.Current.Setting();
         }
 
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -180,7 +180,7 @@ namespace PixivWPF.Common
     public partial class DownloadItem : UserControl, INotifyPropertyChanged
     {
         private const int HTTP_STREAM_READ_COUNT = 65536;
-        private Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+        private Setting setting = Application.Current.Setting();
 
         private Tuple<double, double> finishedProgress;
 
@@ -839,7 +839,7 @@ namespace PixivWPF.Common
         public DownloadItem()
         {
             InitializeComponent();
-            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+            setting = Application.Current.Setting();
 
             Info = new DownloadInfo();
 
@@ -851,7 +851,7 @@ namespace PixivWPF.Common
         public DownloadItem(string url, bool autostart=true)
         {
             InitializeComponent();
-            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+            setting = Application.Current.Setting();
 
             Info = new DownloadInfo();
 
@@ -866,7 +866,7 @@ namespace PixivWPF.Common
         public DownloadItem(DownloadInfo info)
         {
             InitializeComponent();
-            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+            setting = Application.Current.Setting();
 
             if (info is DownloadInfo)
                 Info = info;

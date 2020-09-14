@@ -485,6 +485,7 @@ namespace PixivWPF.Common
         {
             try
             {
+                Application.Current.ReleaseAppWatcher();
                 var watcher = new FileSystemWatcher(folder, "*.*")
                 {
                     //NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.DirectoryName,
@@ -533,17 +534,20 @@ namespace PixivWPF.Common
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static void ReleaseAppWatcher(this Application app)
         {
-            foreach (var w in _watchers)
+            if (_watchers is Dictionary<string, FileSystemWatcher>)
             {
-                try
+                foreach (var w in _watchers)
                 {
-                    if (w.Value is FileSystemWatcher)
+                    try
                     {
-                        //_watchers[w.Key].Dispose();
-                        w.Value.Dispose();
+                        if (w.Value is FileSystemWatcher)
+                        {
+                            w.Value.Dispose();
+                        }
                     }
+                    catch { }
                 }
-                catch { }
+                _watchers.Clear();
             }
         }
         #endregion
@@ -723,7 +727,7 @@ namespace PixivWPF.Common
         private const int HEIGHT_MAX = 1008;
         private const int WIDTH_DEF = 1280;
 
-        private static Setting setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+        private static Setting setting = Application.Current.Setting();
         private static CacheImage cache = new CacheImage();
         public static Dictionary<long?, Pixeez.Objects.Work> IllustCache = new Dictionary<long?, Pixeez.Objects.Work>();
         public static Dictionary<long?, Pixeez.Objects.UserBase> UserCache = new Dictionary<long?, Pixeez.Objects.UserBase>();
@@ -1457,7 +1461,7 @@ namespace PixivWPF.Common
 
         public static ICommand Cmd_SaveTags { get; } = new DelegateCommand(() =>
         {
-            setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+            setting = Application.Current.Setting();
             setting.SaveTags();
         });
         #region Pixiv Token Helper
@@ -1512,7 +1516,7 @@ namespace PixivWPF.Common
             }
             try
             {
-                setting = Setting.Instance == null ? Setting.Load() : Setting.Instance;
+                setting = Application.Current.Setting();
                 if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
                 {
                     result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
@@ -1693,27 +1697,27 @@ namespace PixivWPF.Common
                 else if (content.Equals("<img", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals(">", StringComparison.CurrentCultureIgnoreCase)) continue;
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
 
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(http[s{0,1}]:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(http[s]{0,1}:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"http[s{0,1}]://.*?\.pixiv\.net/(tags/(.*?){1})(/.*?)*$" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"http[s]{0,1}://.*?\.pixiv\.net/(tags/(.*?){1})(/.*?)*$" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/pixiv\.navirank\.com\/id\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/pixiv\.navirank\.com\/user\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s{0,1}]:\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/pixiv\.navirank\.com\/id\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/pixiv\.navirank\.com\/user\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix, opt));
 
                 mr.Add(Regex.Matches(content, @"[\\|/]((background)|(workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip))))", opt));
 
@@ -1964,9 +1968,8 @@ namespace PixivWPF.Common
         public static string GetDefaultTemplate()
         {
             var result = string.Empty;
-            if (Setting.Instance is Setting)
+            if (setting is Setting)
             {
-                var setting = Setting.Instance;
                 var template = string.IsNullOrEmpty(setting.ContentsTemplete) ? string.Empty : setting.ContentsTemplete;
                 if (string.IsNullOrEmpty(template))
                 {
@@ -2011,8 +2014,12 @@ namespace PixivWPF.Common
                     {
                         result = setting.CustomContentsTemplete;
                     }
-                    setting.ContentsTemplete = result;
-                    setting.Save();
+
+                    if (!setting.ContentsTemplete.Equals(result))
+                    {
+                        setting.ContentsTemplete = result;
+                        setting.Save();
+                    }
                 }
                 else
                 {
@@ -2830,19 +2837,20 @@ namespace PixivWPF.Common
         public static void InitDownloadedWatcher(this IEnumerable<StorageType> storages)
         {
             Dictionary<string, StorageType> items = new Dictionary<string, StorageType>();
-            foreach (var l in storages)
+            foreach (var ls in storages)
             {
-                var folder = Path.GetFullPath(l.Folder.MacroReplace("%ID%", "")).TrimEnd('\\');
+                var folder = Path.GetFullPath(ls.Folder.MacroReplace("%ID%", "")).TrimEnd('\\');
                 var parent = storages.Where(o => folder.StartsWith(o.Folder, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
                 if (items.ContainsKey(folder))
                 {
-                    if (parent is StorageType && parent.IncludeSubFolder) l.Cached = true;
+                    if (parent is StorageType && parent.IncludeSubFolder) ls.Cached = true;
                     continue;
                 }
-                items.Add(l.Folder.TrimEnd('\\'), l);
+                items.Add(ls.Folder.TrimEnd('\\'), ls);
             }
 
-            _watchers.Clear();
+            storages.ReleaseDownloadedWatcher();
+
             foreach (var i in items)
             {
                 var folder = i.Key;
@@ -2891,20 +2899,22 @@ namespace PixivWPF.Common
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void ReleaseDownloadedWatcher()
+        public static void ReleaseDownloadedWatcher(this IEnumerable<StorageType> storages)
         {
-            foreach (var w in _watchers)
+            if (_watchers is Dictionary<string, FileSystemWatcher>)
             {
-                try
+                foreach (var w in _watchers)
                 {
-                    if (w.Value is FileSystemWatcher)
+                    try
                     {
-                        //_watchers[w.Key].Dispose();
-                        w.Value.Dispose();
+                        if (w.Value is FileSystemWatcher)
+                        {
+                            w.Value.Dispose();
+                        }
                     }
-                    
+                    catch { }
                 }
-                catch { }
+                _watchers.Clear();
             }
         }
 
