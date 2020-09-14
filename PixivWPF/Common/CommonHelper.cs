@@ -208,9 +208,13 @@ namespace PixivWPF.Common
             return;
         }
 
-        public static void LoadTags(this Application app)
+        public static async void LoadTags(this Application app, bool all = false, bool force = false)
         {
-            Setting.LoadTags();
+            //Setting.LoadTags(all, force);
+            await new Action(() =>
+            {
+                Setting.LoadTags(all, force);
+            }).InvokeAsync();
             return;
         }
 
@@ -415,7 +419,7 @@ namespace PixivWPF.Common
                         }
                         else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Setting.LoadTags(false);
+                            Setting.LoadTags(false, true);
                             lastConfigEventTick = DateTime.Now;
                         }
                         else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
@@ -433,7 +437,7 @@ namespace PixivWPF.Common
                     }
                     else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Setting.LoadTags(false);
+                        Setting.LoadTags(false, true);
                         lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
@@ -476,7 +480,7 @@ namespace PixivWPF.Common
                     else if (fn_o.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) || 
                         fn_n.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Setting.LoadTags(false);
+                        Setting.LoadTags(false, true);
                         lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn_o.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) || 
@@ -4986,14 +4990,16 @@ namespace PixivWPF.Common
         private static string lastToastContent = string.Empty;
         public static void ShowDownloadToast(this string content, string title = "Pixiv", string imgsrc = "", object tag = null)
         {
-            if (title.Equals(lastToastTitle) && content.Equals(lastToastContent)) return;
+            try
+            {
+                if (title.Equals(lastToastTitle) && content.Equals(lastToastContent)) return;
 
-            lastToastTitle = title;
-            lastToastContent = content;
+                lastToastTitle = title;
+                lastToastContent = content;
 
-            INotificationDialogService _dialogService = new NotificationDialogService();
-            NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-            NotificationConfiguration cfg = new NotificationConfiguration(
+                INotificationDialogService _dialogService = new NotificationDialogService();
+                NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                NotificationConfiguration cfg = new NotificationConfiguration(
                 //new TimeSpan(0, 0, 30), 
                 TimeSpan.FromSeconds(3),
                 cfgDefault.Width+32, cfgDefault.Height,
@@ -5002,23 +5008,27 @@ namespace PixivWPF.Common
                 cfgDefault.NotificationFlowDirection
             );
 
-            var newNotification = new DownloadToast()
-            {
-                Title = title,
-                ImgURL = imgsrc,
-                Message = content,
-                Tag = tag
-            };
+                var newNotification = new DownloadToast()
+                {
+                    Title = title,
+                    ImgURL = imgsrc,
+                    Message = content,
+                    Tag = tag
+                };
 
-            _dialogService.ClearNotifications();
-            _dialogService.ShowNotificationWindow(newNotification, cfg);
+                _dialogService.ClearNotifications();
+                _dialogService.ShowNotificationWindow(newNotification, cfg);
+            }
+            catch (Exception) { }
         }
 
         public static void ShowToast(this string content, string title, string imgsrc)
         {
-            INotificationDialogService _dialogService = new NotificationDialogService();
-            NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-            NotificationConfiguration cfg = new NotificationConfiguration(
+            try
+            {
+                INotificationDialogService _dialogService = new NotificationDialogService();
+                NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                NotificationConfiguration cfg = new NotificationConfiguration(
                 //new TimeSpan(0, 0, 30), 
                 TimeSpan.FromSeconds(3),
                 cfgDefault.Width + 32, cfgDefault.Height,
@@ -5027,39 +5037,43 @@ namespace PixivWPF.Common
                 cfgDefault.NotificationFlowDirection
             );
 
-            var newNotification = new InfoToast()
-            {
-                Title = title,
-                ImgURL = imgsrc,
-                Message = content,
-                Tag = null
-            };
+                var newNotification = new InfoToast()
+                {
+                    Title = title,
+                    ImgURL = imgsrc,
+                    Message = content,
+                    Tag = null
+                };
 
-            _dialogService.ClearNotifications();
-            _dialogService.ShowNotificationWindow(newNotification, cfg);
+                _dialogService.ClearNotifications();
+                _dialogService.ShowNotificationWindow(newNotification, cfg);
+            }
+            catch (Exception) { }
         }
 
         public static void ShowToast(this string content, string title)
         {
-            INotificationDialogService _dialogService = new NotificationDialogService();
-            NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-            NotificationConfiguration cfg = new NotificationConfiguration(
-                //new TimeSpan(0, 0, 30), 
-                TimeSpan.FromSeconds(3),
-                cfgDefault.Width + 32, cfgDefault.Height,
-                "ToastTemplate",
-                //cfgDefault.TemplateName, 
-                cfgDefault.NotificationFlowDirection
-            );
-
-            var newNotification = new Notification()
+            try
             {
-                Title = title,
-                Message = content
-            };
+                INotificationDialogService _dialogService = new NotificationDialogService();
+                NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                NotificationConfiguration cfg = new NotificationConfiguration(
+                    TimeSpan.FromSeconds(3),
+                    cfgDefault.Width + 32, cfgDefault.Height,
+                    "ToastTemplate",
+                    //cfgDefault.TemplateName, 
+                    cfgDefault.NotificationFlowDirection);
 
-            _dialogService.ClearNotifications();
-            _dialogService.ShowNotificationWindow(newNotification, cfg);
+                var newNotification = new Notification()
+                {
+                    Title = title,
+                    Message = content
+                };
+
+                _dialogService.ClearNotifications();
+                _dialogService.ShowNotificationWindow(newNotification, cfg);
+            }
+            catch (Exception) { }
         }
         #endregion
 
@@ -5490,29 +5504,53 @@ namespace PixivWPF.Common
             long result = 0;
             try
             {
-                result = ticks1 - ticks2;
+                result = ticks2 - ticks1;
             }
             catch (Exception) { }
             return (result);
         }
 
-        public static int DeltaMillisecond(this long ticks1, long ticks2)
+        public static int DeltaMillisecond(this long ticks1, long ticks2, bool abs = true)
         {
             int result = 0;
             try
             {
                 result = (int)(DeltaTicks(ticks1, ticks2) / TimeSpan.TicksPerMillisecond);
+                if (abs) result = Math.Abs(result);
             }
             catch (Exception) { }
             return (result);
         }
 
-        public static int DeltaNowMillisecond(this long ticks)
+        public static int DeltaMillisecond(this DateTime dt1, DateTime dt2, bool abs = true)
         {
             int result = 0;
             try
             {
-                result = (int)(DeltaTicks(DateTime.Now.Ticks, ticks) / TimeSpan.TicksPerMillisecond);
+                result = DeltaMillisecond(dt1.Ticks, dt2.Ticks, abs);
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static int DeltaNowMillisecond(this long ticks, bool abs=true)
+        {
+            int result = 0;
+            try
+            {
+                result = (int)(DeltaTicks(ticks, DateTime.Now.Ticks) / TimeSpan.TicksPerMillisecond);
+                if (abs) result = Math.Abs(result);
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static int DeltaNowMillisecond(this DateTime dt, bool abs = true)
+        {
+            int result = 0;
+            try
+            {
+                result = DeltaNowMillisecond(dt.Ticks, abs);
             }
             catch (Exception) { }
             return (result);

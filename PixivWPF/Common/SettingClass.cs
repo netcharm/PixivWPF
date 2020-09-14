@@ -450,15 +450,15 @@ namespace PixivWPF.Common
                         }
                         catch (Exception) { }
                     }
-                    if (File.Exists(tagsfile_t2s))
-                    {
-                        try
-                        {
-                            var tags_t2s = File.ReadAllText(tagsfile_t2s);
-                            CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
-                        }
-                        catch (Exception) { }
-                    }
+                    //if (File.Exists(tagsfile_t2s))
+                    //{
+                    //    try
+                    //    {
+                    //        var tags_t2s = File.ReadAllText(tagsfile_t2s);
+                    //        CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
+                    //    }
+                    //    catch (Exception) { }
+                    //}
                 }
                 catch (Exception) { }
                 finally
@@ -468,15 +468,17 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void LoadTags(bool all = true)
+        private static DateTime lastTagsUpdate = DateTime.Now;
+        public static void LoadTags(bool all = true, bool force = false)
         {
             if (TagsReadWrite.Wait(1))
             {
                 try
                 {
-                    var force = CommonHelper.TagsCache.Count <= 0 && CommonHelper.TagsT2S.Count <= 0;
+                    force = force || CommonHelper.TagsCache.Count <= 0 && CommonHelper.TagsT2S.Count <= 0;
 
                     if (!force) return;
+                    if (lastTagsUpdate.DeltaNowMillisecond() < 10) return;
 
                     if (all && File.Exists(Instance.TagsFile))
                     {
@@ -516,6 +518,7 @@ namespace PixivWPF.Common
                         }
                         catch (Exception) { }
                     }
+                    lastTagsUpdate = DateTime.Now;
                 }
                 catch (Exception) { }
                 finally

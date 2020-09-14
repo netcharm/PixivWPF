@@ -1675,7 +1675,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ActionRefresh_Click(object sender, RoutedEventArgs e)
+        private void ActionRefresh_Click(object sender, RoutedEventArgs e)
         {
             var text = string.Empty;
             try
@@ -1689,12 +1689,7 @@ namespace PixivWPF.Pages
                         if (host == btnIllustTagSpeech)
                         {
                             if (Keyboard.Modifiers == ModifierKeys.None)
-                            {
-                                await new Action(() =>
-                                {
-                                    Application.Current.LoadTags();
-                                }).InvokeAsync();
-                            }
+                                Application.Current.LoadTags(false, true);
                             else if (Keyboard.Modifiers == ModifierKeys.Shift)
                                 WebBrowserRefresh(IllustTagsHtml);
                             else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
