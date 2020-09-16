@@ -1489,6 +1489,7 @@ namespace PixivWPF.Common
             Pixeez.Tokens result = null;
             try
             {
+                setting = Application.Current.LoadSetting();
                 var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
                 setting.AccessToken = authResult.Authorize.AccessToken;
                 setting.RefreshToken = authResult.Authorize.RefreshToken;
@@ -1505,6 +1506,7 @@ namespace PixivWPF.Common
                 {
                     try
                     {
+                        setting = Application.Current.LoadSetting();
                         var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
                         setting.AccessToken = authResult.Authorize.AccessToken;
                         setting.RefreshToken = authResult.Authorize.RefreshToken;
@@ -1538,7 +1540,7 @@ namespace PixivWPF.Common
                 setting = Application.Current.LoadSetting();
                 if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
                 {
-                    result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
+                    result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
                 }
                 else
                 {
@@ -1550,7 +1552,7 @@ namespace PixivWPF.Common
                         }
                         catch (Exception)
                         {
-                            result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.Proxy, setting.UsingProxy);
+                            result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
                         }
                     }
                     else
@@ -1709,7 +1711,7 @@ namespace PixivWPF.Common
             var opt = RegexOptions.IgnoreCase;// | RegexOptions.Multiline;
 
             var mr = new List<MatchCollection>();
-            foreach (var text in html.Split())
+            foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />" }, StringSplitOptions.RemoveEmptyEntries))
             {
                 var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim('"') : text;
                 if (content.Equals("<a", StringComparison.CurrentCultureIgnoreCase)) continue;
@@ -5213,6 +5215,8 @@ namespace PixivWPF.Common
             {
                 if (sender is ContentWindow && e.ClickCount == 1)
                 {
+                    setting = Application.Current.LoadSetting();
+
                     var window = sender as ContentWindow;
 
                     var desktop = SystemParameters.WorkArea;
@@ -5477,7 +5481,8 @@ namespace PixivWPF.Common
 
     public static class ExtensionMethods
     {
-        public static long Ticks(this int msec)
+        #region Time Calc Helper
+        public static long ToTicks(this int msec)
         {
             long result = 0;
             try
@@ -5488,23 +5493,24 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool DeltaNow(this long ticks, int millisecond)
+        public static int ToMillisecond(this long ticks)
         {
-            bool result = true;
+            int result = 0;
             try
             {
-                result = DateTime.Now.Ticks - ticks >= TimeSpan.TicksPerMillisecond * millisecond;
+                result = (int)(ticks / TimeSpan.TicksPerMillisecond);
             }
             catch (Exception) { }
             return (result);
         }
 
-        public static long DeltaTicks(this long ticks1, long ticks2)
+        public static long DeltaTicks(this long ticks1, long ticks2, bool abs = true)
         {
             long result = 0;
             try
             {
                 result = ticks2 - ticks1;
+                if (abs) result = Math.Abs(result);
             }
             catch (Exception) { }
             return (result);
@@ -5515,8 +5521,7 @@ namespace PixivWPF.Common
             int result = 0;
             try
             {
-                result = (int)(DeltaTicks(ticks1, ticks2) / TimeSpan.TicksPerMillisecond);
-                if (abs) result = Math.Abs(result);
+                result = DeltaTicks(ticks1, ticks2, abs).ToMillisecond();
             }
             catch (Exception) { }
             return (result);
@@ -5533,13 +5538,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static int DeltaNowMillisecond(this long ticks, bool abs=true)
+        public static int DeltaNowMillisecond(this long ticks, bool abs = true)
         {
             int result = 0;
             try
             {
-                result = (int)(DeltaTicks(ticks, DateTime.Now.Ticks) / TimeSpan.TicksPerMillisecond);
-                if (abs) result = Math.Abs(result);
+                result = DeltaMillisecond(ticks, DateTime.Now.Ticks, abs);
             }
             catch (Exception) { }
             return (result);
@@ -5556,6 +5560,30 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static bool DeltaNowMillisecond(this long ticks, int millisecond, bool abs = true)
+        {
+            bool result = true;
+            try
+            {
+                result = DeltaNowMillisecond(ticks, abs) > millisecond;
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool DeltaNowMillisecond(this DateTime dt, int millisecond, bool abs = true)
+        {
+            bool result = true;
+            try
+            {
+                result = DeltaNowMillisecond(dt, abs) > millisecond;
+            }
+            catch (Exception) { }
+            return (result);
+        }
+        #endregion
+
+        #region Media Play
         public static async void Sound(this object obj, string mode = "")
         {
             try
@@ -5606,14 +5634,41 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
         }
+        #endregion
+
+        #region Misc Helper
+        public static bool IsConsole
+        {
+            get
+            {
+                try
+                {
+                    return (Environment.UserInteractive && Console.Title.Length > 0);
+                }
+                catch (Exception) { return (false); }
+            }
+        }
 
         public static void DEBUG(this string contents)
         {
 #if DEBUG
             Console.WriteLine(contents);
+#else
+            if(IsConsole) Console.WriteLine(contents);
 #endif
         }
 
+        public static void LOG(this string contents)
+        {
+#if DEBUG
+            Console.WriteLine(contents);
+#else
+            if (IsConsole) Console.WriteLine(contents);
+#endif
+        }
+        #endregion
+
+        #region WPF UI Helper
         public static DependencyObject GetVisualChildFromTreePath(this DependencyObject dpo, int[] path)
         {
             if (path.Length == 0) return dpo;
@@ -5678,7 +5733,9 @@ namespace PixivWPF.Common
 
             return null;
         }
+        #endregion
 
+        #region Graphic Helper
         public static Tuple<double, double> AspectRatio(this ImageSource image)
         {
             double bestDelta = double.MaxValue;
@@ -5712,6 +5769,7 @@ namespace PixivWPF.Common
             }
             return (new Tuple<double, double>(bestI, bestJ));
         }
+        #endregion
     }
 
 }

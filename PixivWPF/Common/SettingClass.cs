@@ -143,7 +143,7 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public string User
         {
-            get { return (ConfigBusy ? string.Empty : username.AesDecrypt(accesstoken)); }
+            get { return (username.AesDecrypt(accesstoken)); }
             set { username = value.AesEncrypt(accesstoken); }
         }
 
@@ -152,7 +152,7 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public string Pass
         {
-            get { return (ConfigBusy ? string.Empty : password.AesDecrypt(accesstoken)); }
+            get { return (password.AesDecrypt(accesstoken)); }
             set { password = value.AesEncrypt(accesstoken); }
         }
 
@@ -287,55 +287,61 @@ namespace PixivWPF.Common
 
         public static void UpdateContentsTemplete()
         {
-            if (File.Exists(Cache.ContentsTemplateFile))
+            if (Cache is Setting)
             {
-                Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentsTemplateFile);
-                var ftc = File.GetCreationTime(Cache.ContentsTemplateFile);
-                var ftw = File.GetLastWriteTime(Cache.ContentsTemplateFile);
-                var fta = File.GetLastAccessTime(Cache.ContentsTemplateFile);
-                if (ftw > Cache.ContentsTemplateTime || ftc > Cache.ContentsTemplateTime || fta > Cache.ContentsTemplateTime)
+                if (File.Exists(Cache.ContentsTemplateFile))
                 {
-                    Cache.ContentsTemplete = Cache.CustomContentsTemplete;
-                    Cache.ContentsTemplateTime = DateTime.Now;
-                    Cache.Save();
+                    Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentsTemplateFile);
+                    var ftc = File.GetCreationTime(Cache.ContentsTemplateFile);
+                    var ftw = File.GetLastWriteTime(Cache.ContentsTemplateFile);
+                    var fta = File.GetLastAccessTime(Cache.ContentsTemplateFile);
+                    if (ftw > Cache.ContentsTemplateTime || ftc > Cache.ContentsTemplateTime || fta > Cache.ContentsTemplateTime)
+                    {
+                        Cache.ContentsTemplete = Cache.CustomContentsTemplete;
+                        Cache.ContentsTemplateTime = DateTime.Now;
+                        Cache.Save();
+                    }
                 }
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(Cache.CustomContentsTemplete))
+                else
                 {
-                    Cache.ContentsTemplete = CommonHelper.GetDefaultTemplate();
-                    Cache.CustomContentsTemplete = string.Empty;
-                    Cache.Save();
+                    if (!string.IsNullOrEmpty(Cache.CustomContentsTemplete))
+                    {
+                        Cache.ContentsTemplete = CommonHelper.GetDefaultTemplate();
+                        Cache.CustomContentsTemplete = string.Empty;
+                        Cache.Save();
+                    }
                 }
+                CommonHelper.UpdateWebContentAsync();
             }
-            CommonHelper.UpdateWebContentAsync();
         }
 
-        public async void Save(string configfile = "")
+        public void Save(string configfile = "")
         {
-            if (await ConfigReadWrite.WaitAsync(1))
+            if (ConfigReadWrite.Wait(1))
             {
                 try
                 {
-                    if (string.IsNullOrEmpty(configfile)) configfile = config;
-
-                    if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.SaveFolder)) < 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
+                    if (Cache is Setting)
                     {
-                        Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
+                        if (string.IsNullOrEmpty(configfile)) configfile = config;
+
+                        if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.SaveFolder)) < 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
+                        {
+                            Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
+                        }
+
+                        if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.LastFolder)) < 0 && !string.IsNullOrEmpty(Cache.LastFolder))
+                        {
+                            Cache.LocalStorage.Add(new StorageType(Cache.LastFolder, true));
+                        }
+
+                        UpdateContentsTemplete();
+
+                        var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
+                        File.WriteAllText(configfile, text, new UTF8Encoding(true));
+
+                        SaveTags();
                     }
-
-                    if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.LastFolder)) < 0 && !string.IsNullOrEmpty(Cache.LastFolder))
-                    {
-                        Cache.LocalStorage.Add(new StorageType(Cache.LastFolder, true));
-                    }
-
-                    UpdateContentsTemplete();
-
-                    var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
-                    File.WriteAllText(configfile, text, new UTF8Encoding(true));
-
-                    SaveTags();
                 }
                 catch (Exception ex)
                 {
@@ -348,6 +354,7 @@ namespace PixivWPF.Common
             }
         }
 
+        private static DateTime lastConfigUpdate = DateTime.Now;
         public static Setting Load(bool force = false, string configfile = "")
         {
             Setting result = Cache is Setting ? Cache : new Setting();
@@ -355,9 +362,9 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    if (Cache is Setting && force == false) throw new Exception("Config Busy!");
-                    else
+                    if (!(Cache is Setting) || (force && lastConfigUpdate.DeltaNowMillisecond() > 250))
                     {
+                        lastConfigUpdate = DateTime.Now;
                         if (string.IsNullOrEmpty(configfile)) configfile = config;
                         if (File.Exists(config))
                         {
@@ -419,8 +426,9 @@ namespace PixivWPF.Common
                             #endregion
                             result = Cache;
                         }
+                        LoadTags();
+                        lastConfigUpdate = DateTime.Now;
                     }
-                    LoadTags();
                 }
 #if DEBUG
                 catch (Exception ex) { ex.Message.ShowToast("ERROR"); }
@@ -475,10 +483,8 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    force = force || CommonHelper.TagsCache.Count <= 0 && CommonHelper.TagsT2S.Count <= 0;
-
-                    if (!force) return;
-                    if (lastTagsUpdate.DeltaNowMillisecond() < 10) return;
+                    force = force || (CommonHelper.TagsCache.Count <= 0 && CommonHelper.TagsT2S.Count <= 0);
+                    if (!force || lastTagsUpdate.DeltaNowMillisecond() < 10) return;
 
                     if (all && File.Exists(Instance.TagsFile))
                     {
@@ -518,11 +524,11 @@ namespace PixivWPF.Common
                         }
                         catch (Exception) { }
                     }
-                    lastTagsUpdate = DateTime.Now;
                 }
                 catch (Exception) { }
                 finally
                 {
+                    lastTagsUpdate = DateTime.Now;
                     TagsReadWrite.Release();
                 }
             }

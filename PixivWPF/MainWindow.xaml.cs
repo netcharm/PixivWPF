@@ -191,6 +191,8 @@ namespace PixivWPF
         {
             InitializeComponent();
 
+            setting = Application.Current.LoadSetting();
+
             this.FontFamily = setting.FontFamily;
 
             Title = $"{Title} [Version: {Application.Current.Version()}]";

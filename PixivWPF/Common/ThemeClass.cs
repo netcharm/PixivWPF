@@ -95,6 +95,7 @@ namespace PixivWPF.Common
 
             var target = ThemeManager.GetInverseAppTheme(appTheme);
             ThemeManager.ChangeAppStyle(Application.Current, appAccent, target);
+            setting = Application.Current.LoadSetting();
             if (setting.CurrentTheme != target.Name)
             {
                 setting.CurrentTheme = target.Name;
@@ -117,6 +118,7 @@ namespace PixivWPF.Common
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
                 ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent(value), appTheme);
+                setting = Application.Current.LoadSetting();
                 if (setting.CurrentAccent != value)
                 {
                     setting.CurrentAccent = value;
@@ -140,6 +142,7 @@ namespace PixivWPF.Common
                 AppTheme appTheme = appStyle.Item1;
                 Accent appAccent = appStyle.Item2;
                 ThemeManager.ChangeAppStyle(Application.Current, appAccent, ThemeManager.GetAppTheme(value));
+                setting = Application.Current.LoadSetting();
                 if (setting.CurrentTheme != value)
                 {
                     setting.CurrentTheme = value;
