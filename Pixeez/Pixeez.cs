@@ -366,6 +366,13 @@ namespace Pixeez
             UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
             return new Tokens(accessToken);
         }
+
+        public static Tokens AuthorizeWithAccessToken(string accessToken, string refreshToken, string proxy, bool useproxy = false)
+        {
+            Proxy = proxy;
+            UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
+            return new Tokens(accessToken, refreshToken);
+        }
     }
 
     public class Tokens
@@ -384,6 +391,14 @@ namespace Pixeez
             Proxy = Auth.Proxy;
             UsingProxy = Auth.UsingProxy;
             this.AccessToken = accessToken;
+        }
+
+        internal Tokens(string accessToken, string refreshToken)
+        {
+            Proxy = Auth.Proxy;
+            UsingProxy = Auth.UsingProxy;
+            this.AccessToken = accessToken;
+            this.RefreshToken = refreshToken;
         }
 
         #region Request API related
