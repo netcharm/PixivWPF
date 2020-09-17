@@ -39,8 +39,8 @@ using System.Text;
 
 namespace netcharm
 {
-	static class MyScript
-	{
+    static class MyScript
+    {
         //public static void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         //{
         //    ShowMessageDialog(content, title, image);
@@ -52,25 +52,26 @@ namespace netcharm
         //    MessageBox.Show(content, title, MessageBoxButton.OK, image);
         //}	
 
-       	public static void LOG(this string content)
-       	{
+        public static void LOG(this string content)
+        {
             try
             {
                 Console.WriteLine(content);
             }
             catch(Exception) {}            
-       	}
-       	       	
-       	public static void ERR(this string content)
-       	{
+        }
+                
+        public static void ERR(this string content, string title="")
+        {
             try
             {
-                Console.Error.WriteLine(content);
+                if(string.IsNullOrEmpty(title)) title = "ERROR";
+                Console.Error.WriteLine($"{title}:{content}");
             }
             catch(Exception) {}            
-       	}
-       	
-		public static string ProcessorID { get; set; } = string.Empty;
+        }
+        
+        public static string ProcessorID { get; set; } = string.Empty;
         public static string GetProcessorID()
         {
             string result = string.Empty;
@@ -98,8 +99,9 @@ namespace netcharm
 
             return (result);
         }
-        	
-        public static string AesEncrypt(this string text, string skey)
+
+        #region AES Encrypt/Decrypt helper
+        public static string AesEncrypt(this string text, string skey, bool auto = true)
         {
             string encrypt = string.Empty;
             try
@@ -112,29 +114,46 @@ namespace netcharm
                     AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
                     SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
-                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    aes.Key = key;
-                    aes.IV = iv;
+                    aes.Key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    aes.IV = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
 
                     byte[] dataByteArray = Encoding.UTF8.GetBytes(uni_text);
-                    using (MemoryStream ms = new MemoryStream())
-                    using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    if (auto)
                     {
-                        cs.Write(dataByteArray, 0, dataByteArray.Length);
-                        cs.FlushFinalBlock();
-                        encrypt = Convert.ToBase64String(ms.ToArray());
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
+                            {
+                                using (StreamWriter sw = new StreamWriter(cs))
+                                {
+                                    sw.Write(uni_text);
+                                }
+                                encrypt = Convert.ToBase64String(ms.ToArray());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
+                            {
+                                cs.Write(dataByteArray, 0, dataByteArray.Length);
+                                cs.FlushFinalBlock();
+                            }
+                            encrypt = Convert.ToBase64String(ms.ToArray());
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                ex.Message.ERR();//ShowMessageBox("ERROR");
+                ex.Message.ERR("ERROR[AES]");
             }
             return encrypt;
         }
 
-        public static string AesDecrypt(this string text, string skey)
+        public static string AesDecrypt(this string text, string skey, bool auto = true)
         {
             string decrypt = string.Empty;
             try
@@ -142,59 +161,86 @@ namespace netcharm
                 if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
                 {
                     var uni_skey = $"{ProcessorID}{skey}";
+                    var uni_text = string.Empty;
 
                     AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
                     SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
-                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    aes.Key = key;
-                    aes.IV = iv;
+                    aes.Key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    aes.IV = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
 
                     byte[] dataByteArray = Convert.FromBase64String(text);
-                    using (MemoryStream ms = new MemoryStream())
+                    if (auto)
                     {
-                        using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                        using (MemoryStream ms = new MemoryStream(dataByteArray))
                         {
-                            cs.Write(dataByteArray, 0, dataByteArray.Length);
-                            cs.FlushFinalBlock();
-                            var uni_text = Encoding.UTF8.GetString(ms.ToArray());
-                            if (uni_text.StartsWith(ProcessorID))
-                                decrypt = uni_text.Replace($"{ProcessorID}", "");
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(aes.Key, aes.IV), CryptoStreamMode.Read))
+                            {
+                                using (StreamReader sr = new StreamReader(cs))
+                                {
+                                    uni_text = sr.ReadToEnd();
+                                }
+                            }
                         }
                     }
+                    else
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
+                            {
+                                cs.Write(dataByteArray, 0, dataByteArray.Length);
+                                cs.FlushFinalBlock();
+                            }
+                            uni_text = Encoding.UTF8.GetString(ms.ToArray());
+                        }
+                    }
+                    if (uni_text.StartsWith(ProcessorID)) decrypt = uni_text.Replace($"{ProcessorID}", "");
                 }
             }
             catch (Exception ex)
             {
-                ex.Message.ERR();//ShowMessageBox("ERROR");
+                ex.Message.ERR("ERROR[AES]");
             }
             return decrypt;
-        }  
-  
-		public static void Main(string[] args)
-		{
+        }
+        #endregion
+          
+        public static void Main(string[] args)
+        {
             var title = Console.Title;
-			//LOG(args.Length);
-			if (args.Length < 3) return;
-			
-			ProcessorID = GetProcessorID();
-			
-			var cmd = args[0].ToLower();
-			if(cmd.Equals("-e")) 
-			{ 
-				var u = args[2].AesEncrypt(args[1]);
-				LOG($"PID: {ProcessorID}, KEY: {args[1]}, TEXT: {args[2]}");
-				LOG($"AES: {u}");
-			}
-			else if(cmd.Equals("-d"))
-			{
-				var u = args[2].AesDecrypt(args[1]);
-				LOG($"PID: {ProcessorID}, KEY: {args[1]}, AES: {args[2]}");
-				LOG($"Text: {u}");			
-			}
-			
-			Console.Title = title;
-		}
-	}
+            //LOG(args.Length);
+            if (args.Length < 3) return;
+            
+            ProcessorID = GetProcessorID();
+            
+            var cmd = args[0].ToLower();
+            if(cmd.Equals("-e")) 
+            { 
+                var u = args[2].AesEncrypt(args[1], false);
+                LOG($"PID: {ProcessorID}, KEY: {args[1]}, TEXT: {args[2]}");
+                LOG($"AES: {u}");
+            }
+            else if(cmd.Equals("-ea")) 
+            { 
+                var u = args[2].AesEncrypt(args[1], true);
+                LOG($"PID: {ProcessorID}, KEY: {args[1]}, TEXT: {args[2]}");
+                LOG($"AES: {u}");
+            }
+            else if(cmd.Equals("-d"))
+            {
+                var u = args[2].AesDecrypt(args[1], false);
+                LOG($"PID: {ProcessorID}, KEY: {args[1]}, AES: {args[2]}");
+                LOG($"Text: {u}");			
+            }
+            else if(cmd.Equals("-da"))
+            {
+                var u = args[2].AesDecrypt(args[1], true);
+                LOG($"PID: {ProcessorID}, KEY: {args[1]}, AES: {args[2]}");
+                LOG($"Text: {u}");			
+            }
+            
+            Console.Title = title;
+        }
+    }
 }  

@@ -354,19 +354,22 @@ namespace PixivWPF.Common
             }
         }
 
-        private static DateTime lastConfigUpdate = DateTime.Now;
+        private static DateTime lastConfigUpdate = default(DateTime);
         public static Setting Load(bool force = false, string configfile = "")
         {
             Setting result = Cache is Setting ? Cache : new Setting();
-            if (ConfigReadWrite.Wait(1))
+            if (ConfigReadWrite.Wait(0))
             {
                 try
                 {
-                    if (!(Cache is Setting) || (force && lastConfigUpdate.DeltaNowMillisecond() > 250))
+                    if (string.IsNullOrEmpty(configfile)) configfile = Cache is Setting ? Instance.ConfigFile : config;
+                    var filetime = configfile.GetFileTime("m");
+                    if (!File.Exists(configfile)) filetime = lastConfigUpdate + TimeSpan.FromSeconds(1);
+
+                    if (!(Cache is Setting) || (force && lastConfigUpdate.DeltaMillisecond(filetime) > 250))
                     {
-                        lastConfigUpdate = DateTime.Now;
-                        if (string.IsNullOrEmpty(configfile)) configfile = config;
-                        if (File.Exists(config))
+                        lastConfigUpdate = filetime;
+                        if (File.Exists(configfile))
                         {
                             var text = File.ReadAllText(configfile);
                             if (Cache is Setting && text.Length > 20)
@@ -426,8 +429,7 @@ namespace PixivWPF.Common
                             #endregion
                             result = Cache;
                         }
-                        LoadTags();
-                        lastConfigUpdate = DateTime.Now;
+                        LoadTags(true, true);
                     }
                 }
 #if DEBUG
@@ -476,69 +478,69 @@ namespace PixivWPF.Common
             }
         }
 
-        private static DateTime lastTagsUpdate = DateTime.Now;
-        public static void LoadTags(bool all = true, bool force = false)
+        private static DateTime lastTagsUpdate = default(DateTime);
+        public static void LoadTags(bool all = false, bool force = false)
         {
-            if (TagsReadWrite.Wait(1))
+            if (TagsReadWrite.Wait(0))
             {
                 try
                 {
+                    var default_tags = Cache is Setting ? Cache.TagsFile : tagsfile;
+                    var custom_tags = Cache is Setting ? Cache.CustomTagsFile : tagsfile_t2s;
                     force = force || (CommonHelper.TagsCache.Count <= 0 && CommonHelper.TagsT2S.Count <= 0);
-                    if (!force || lastTagsUpdate.DeltaNowMillisecond() < 10) return;
+                    var filetime = custom_tags.GetFileTime("m");
+                    if (!File.Exists(custom_tags)) filetime = lastTagsUpdate + TimeSpan.FromSeconds(1);
 
-                    if (all && File.Exists(Instance.TagsFile))
+                    if (force && lastTagsUpdate.DeltaMillisecond(filetime) > 5)
                     {
-                        try
-                        {
-                            var tags = File.ReadAllText(Instance.TagsFile);
-                            CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
-                            CommonHelper.UpdateIllustTagsAsync();
-                        }
-                        catch (Exception) { }
-                    }
+                        lastTagsUpdate = filetime;
 
-                    if (File.Exists(Instance.CustomTagsFile))
-                    {
-                        try
+                        if (all && File.Exists(default_tags))
                         {
-                            var tags_t2s = File.ReadAllText(Instance.CustomTagsFile);
-                            CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
-                            var keys = CommonHelper.TagsT2S.Keys.ToList();
-                            foreach (var k in keys)
+                            try
                             {
-                                CommonHelper.TagsT2S[k.Trim()] = CommonHelper.TagsT2S[k].Trim();
-                            }
-                            CommonHelper.UpdateIllustTagsAsync();
-                        }
-                        catch (Exception) { }
-                    }
-                    else
-                    {
-                        try
-                        {
-                            if (CommonHelper.TagsT2S is Dictionary<string, string>)
-                            {
-                                CommonHelper.TagsT2S.Clear();
+                                var tags = File.ReadAllText(default_tags);
+                                CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
                                 CommonHelper.UpdateIllustTagsAsync();
                             }
+                            catch (Exception) { }
                         }
-                        catch (Exception) { }
+
+                        if (File.Exists(custom_tags))
+                        {
+                            try
+                            {
+                                var tags_t2s = File.ReadAllText(custom_tags);
+                                CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
+                                var keys = CommonHelper.TagsT2S.Keys.ToList();
+                                foreach (var k in keys)
+                                {
+                                    CommonHelper.TagsT2S[k.Trim()] = CommonHelper.TagsT2S[k].Trim();
+                                }
+                                CommonHelper.UpdateIllustTagsAsync();
+                            }
+                            catch (Exception) { }
+                        }
+                        else
+                        {
+                            try
+                            {
+                                if (CommonHelper.TagsT2S is Dictionary<string, string>)
+                                {
+                                    CommonHelper.TagsT2S.Clear();
+                                    CommonHelper.UpdateIllustTagsAsync();
+                                }
+                            }
+                            catch (Exception) { }
+                        }
                     }
                 }
                 catch (Exception) { }
                 finally
                 {
-                    lastTagsUpdate = DateTime.Now;
                     TagsReadWrite.Release();
                 }
             }
-        }
-
-        public static string Token()
-        {
-            string result = null;
-            if (Cache is Setting) result = Cache.AccessToken;
-            return (result);
         }
 
         public static string ProxyServer()
@@ -555,16 +557,34 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool Token(string token)
+        public static string Token()
+        {
+            string result = string.Empty;
+            if (Cache is Setting) result = Cache.AccessToken;
+            return (result);
+        }
+
+        public static bool Token(string accesstoken)
         {
             bool result = false;
             if (Cache is Setting)
             {
-                Cache.AccessToken = token;
+                Cache.AccessToken = accesstoken;
                 result = true;
             }
             return (result);
         }
 
+        public static bool Token(string accesstoken, string refreshtoken)
+        {
+            bool result = false;
+            if (Cache is Setting)
+            {
+                Cache.AccessToken = accesstoken;
+                Cache.RefreshToken = refreshtoken;
+                result = true;
+            }
+            return (result);
+        }
     }
 }

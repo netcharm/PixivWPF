@@ -1758,7 +1758,7 @@ namespace PixivWPF.Pages
             {
                 ActionIllustInfo_Click(sender, e);
             }
-            else if (e.ClickCount >= 1)
+            else if (e.ClickCount == 1)
             {
                 ActionSpeech_Click(sender, e);
             }
@@ -1873,7 +1873,7 @@ namespace PixivWPF.Pages
                     var item = DataObject as ImageItem;
                     if (item.Illust is Pixeez.Objects.Work)
                     {
-                        var href = $"https://www.pixiv.net/artworks/{item.ID}";
+                        var href = item.ID.ArtworkLink();
                         href.OpenUrlWithShell();
                     }
                 }
@@ -1899,7 +1899,7 @@ namespace PixivWPF.Pages
                     var item = DataObject as ImageItem;
                     if (item.Illust is Pixeez.Objects.Work)
                     {
-                        var href = $"https://www.pixiv.net/artworks/{item.ID}";
+                        var href = item.ID.ArtworkLink();
                         Clipboard.SetDataObject(href);
                     }
                 }
@@ -1938,6 +1938,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
+            e.Handled = true;
         }
 
         private async void ActionIllustAuthourInfo_Click(object sender, RoutedEventArgs e)
@@ -2045,8 +2046,6 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        //PreviewWait.Show();
-
                         var idx = -1;
                         var illust = DataObject as ImageItem;
                         var item = DataObject as ImageItem;

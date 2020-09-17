@@ -199,7 +199,7 @@ namespace PixivWPF.Common
         #region Application Helper
         public static Setting LoadSetting(this Application app, bool force = false)
         {
-            return (Setting.Load(force));
+            return (!force && Setting.Instance is Setting ? Setting.Instance : Setting.Load(force));
         }
 
         public static void SaveSetting(this Application app)
@@ -369,13 +369,68 @@ namespace PixivWPF.Common
         {
             return (PipeName);
         }
+
+        private static string[] r18 = new string[] { "r18", "r15", "xxx" };
+
+        private static void MinimizedWindow(MetroWindow win, ImageItem item, string condition)
+        {
+            if (item.ItemType != ImageItemType.User)
+            {
+                if (r18.Contains(condition))
+                {
+                    if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
+                    else if (item.Sanity.Equals("17+")) win.WindowState = WindowState.Minimized;
+                    else if (item.Sanity.Equals("15+")) win.WindowState = WindowState.Minimized;
+                }
+            }
+        }
+
+        public static async void MinimizedWindows(this Application app, string condition = "")
+        {
+            if (string.IsNullOrEmpty(condition)) return;
+            await new Action(async () =>
+            {
+                condition = condition.ToLower();
+                foreach (Window win in Application.Current.Windows)
+                {
+                    try
+                    {
+                        if (win is ContentWindow)
+                        {
+                            if (win.Content is IllustDetailPage)
+                            {
+                                var page = win.Content as IllustDetailPage;
+                                if (page.Tag is ImageItem)
+                                {
+                                    MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
+                                }
+                            }
+                            else if (win.Content is IllustImageViewerPage)
+                            {
+                                var page = win.Content as IllustImageViewerPage;
+                                if (page.Tag is ImageItem)
+                                {
+                                    MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception) { }
+                    finally
+                    {
+                        await Task.Delay(1);
+                        DoEvents();
+                    }
+                }
+            }).InvokeAsync();
+        }
         #endregion
 
         #region Config files Watchdog
         private static Dictionary<string, FileSystemWatcher> _watchers = new Dictionary<string, FileSystemWatcher>();
-        private static DateTime lastConfigEventTick = DateTime.Now;
-        private static string lastConfigEventFile = string.Empty;
-        private static WatcherChangeTypes lastConfigEventType = WatcherChangeTypes.All;
+        //private static DateTime lastConfigEventTick = DateTime.Now;
+        //private static string lastConfigEventFile = string.Empty;
+        //private static WatcherChangeTypes lastConfigEventType = WatcherChangeTypes.All;
 
         private static void OnConfigChanged(object source, FileSystemEventArgs e)
         {
@@ -391,22 +446,24 @@ namespace PixivWPF.Common
                 var fn = e.FullPath;
                 if (e.ChangeType == WatcherChangeTypes.Created)
                 {
-                    //if (File.Exists(e.FullPath))
-                    //{
-                    //    
-                    //    if (fn.Equals(Application.Current.Setting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
-                    //    {
-                    //
-                    //    }
-                    //    else if (fn.Equals(Application.Current.Setting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
-                    //    {
-                    //        Common.Setting.LoadTags(false);
-                    //    }
-                    //    else if (fn.Equals(Application.Current.Setting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
-                    //    {
-                    //        Common.Setting.UpdateContentsTemplete();
-                    //    }
-                    //}
+                    if (File.Exists(e.FullPath))
+                    {
+                        if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            //Setting.Load(true);
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Setting.LoadTags(false, true);
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Setting.UpdateContentsTemplete();
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                    }
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Changed)
                 {
@@ -415,17 +472,17 @@ namespace PixivWPF.Common
                         if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Setting.Load(true);
-                            lastConfigEventTick = DateTime.Now;
+                            //lastConfigEventTick = DateTime.Now;
                         }
                         else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Setting.LoadTags(false, true);
-                            lastConfigEventTick = DateTime.Now;
+                            //lastConfigEventTick = DateTime.Now;
                         }
                         else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Setting.UpdateContentsTemplete();
-                            lastConfigEventTick = DateTime.Now;
+                            //lastConfigEventTick = DateTime.Now;
                         }
                     }
                 }
@@ -433,17 +490,17 @@ namespace PixivWPF.Common
                 {
                     if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        lastConfigEventTick = DateTime.Now;
+                        //lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Setting.LoadTags(false, true);
-                        lastConfigEventTick = DateTime.Now;
+                        //lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Setting.UpdateContentsTemplete();
-                        lastConfigEventTick = DateTime.Now;
+                        //lastConfigEventTick = DateTime.Now;
                     }
                 }
             }
@@ -451,8 +508,8 @@ namespace PixivWPF.Common
             finally
             {
                 //lastConfigEventTick = DateTime.Now;
-                lastConfigEventFile = e.FullPath;
-                lastConfigEventType = e.ChangeType;
+                //lastConfigEventFile = e.FullPath;
+                //lastConfigEventType = e.ChangeType;
             }
         }
 
@@ -475,19 +532,19 @@ namespace PixivWPF.Common
                     if (fn_o.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase) || 
                         fn_n.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        lastConfigEventTick = DateTime.Now;
+                        //lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn_o.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) || 
                         fn_n.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Setting.LoadTags(false, true);
-                        lastConfigEventTick = DateTime.Now;
+                        //lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn_o.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) || 
                         fn_n.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Setting.UpdateContentsTemplete();
-                        lastConfigEventTick = DateTime.Now;
+                        //lastConfigEventTick = DateTime.Now;
                     }
                 }
             }
@@ -495,8 +552,8 @@ namespace PixivWPF.Common
             finally
             {
                 //lastConfigEventTick = DateTime.Now;
-                lastConfigEventFile = e.FullPath;
-                lastConfigEventType = e.ChangeType;
+                //lastConfigEventFile = e.FullPath;
+                //lastConfigEventType = e.ChangeType;
             }
         }
 
@@ -659,75 +716,106 @@ namespace PixivWPF.Common
         #endregion
 
         #region AES Encrypt/Decrypt helper
-        public static string AesEncrypt(this string text, string skey)
+        public static string AesEncrypt(this string text, string skey, bool auto = true)
         {
             string encrypt = string.Empty;
             try
             {
                 if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
                 {
-                    var uni_skey = $"{ApplicationExtensions.ProcessorID}{skey}";
-                    var uni_text = $"{ApplicationExtensions.ProcessorID}{text}";
+                    var uni_skey = $"{ProcessorID}{skey}";
+                    var uni_text = $"{ProcessorID}{text}";
 
                     AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
                     SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
-                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    aes.Key = key;
-                    aes.IV = iv;
+                    aes.Key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    aes.IV = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
 
                     byte[] dataByteArray = Encoding.UTF8.GetBytes(uni_text);
-                    using (MemoryStream ms = new MemoryStream())
-                    using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    if (auto)
                     {
-                        cs.Write(dataByteArray, 0, dataByteArray.Length);
-                        cs.FlushFinalBlock();
-                        encrypt = Convert.ToBase64String(ms.ToArray());
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR");
-            }
-            return encrypt;
-        }
-
-        public static string AesDecrypt(this string text, string skey)
-        {
-            string decrypt = string.Empty;
-            try
-            {
-                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
-                {
-                    var uni_skey = $"{ApplicationExtensions.ProcessorID}{skey}";
-
-                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
-                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
-                    byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    byte[] iv = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    aes.Key = key;
-                    aes.IV = iv;
-
-                    byte[] dataByteArray = Convert.FromBase64String(text);
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                        using (MemoryStream ms = new MemoryStream())
                         {
-                            cs.Write(dataByteArray, 0, dataByteArray.Length);
-                            cs.FlushFinalBlock();
-                            var uni_text = Encoding.UTF8.GetString(ms.ToArray());
-                            if (uni_text.StartsWith(ApplicationExtensions.ProcessorID))
-                                decrypt = uni_text.Replace($"{ApplicationExtensions.ProcessorID}", "");
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
+                            {
+                                using (StreamWriter sw = new StreamWriter(cs))
+                                {
+                                    sw.Write(uni_text);
+                                }
+                                encrypt = Convert.ToBase64String(ms.ToArray());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
+                            {
+                                cs.Write(dataByteArray, 0, dataByteArray.Length);
+                                cs.FlushFinalBlock();
+                            }
+                            encrypt = Convert.ToBase64String(ms.ToArray());
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR");
+                ex.Message.ShowMessageBox("ERROR[AES]");
+            }
+            return encrypt;
+        }
+
+        public static string AesDecrypt(this string text, string skey, bool auto = true)
+        {
+            string decrypt = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
+                {
+                    var uni_skey = $"{ProcessorID}{skey}";
+                    var uni_text = string.Empty;
+
+                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
+                    aes.Key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    aes.IV = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+
+                    byte[] dataByteArray = Convert.FromBase64String(text);
+                    if (auto)
+                    {
+                        using (MemoryStream ms = new MemoryStream(dataByteArray))
+                        {
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(aes.Key, aes.IV), CryptoStreamMode.Read))
+                            {
+                                using (StreamReader sr = new StreamReader(cs))
+                                {
+                                    uni_text = sr.ReadToEnd();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
+                            {
+                                cs.Write(dataByteArray, 0, dataByteArray.Length);
+                                cs.FlushFinalBlock();
+                            }
+                            uni_text = Encoding.UTF8.GetString(ms.ToArray());
+                        }
+                    }
+                    if (uni_text.StartsWith(ProcessorID)) decrypt = uni_text.Replace($"{ProcessorID}", "");
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[AES]");
             }
             return decrypt;
         }
@@ -1495,7 +1583,7 @@ namespace PixivWPF.Common
                 setting.RefreshToken = authResult.Authorize.RefreshToken;
                 setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
                 setting.ExpiresIn = authResult.Authorize.ExpiresIn.Value;
-                setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
+                setting.Update = DateTime.Now.ToFileTime().FileTimeToSecond();
                 setting.MyInfo = authResult.Authorize.User;
                 setting.Save();
                 result = authResult.Tokens;
@@ -1512,7 +1600,7 @@ namespace PixivWPF.Common
                         setting.RefreshToken = authResult.Authorize.RefreshToken;
                         setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
                         setting.ExpiresIn = authResult.Authorize.ExpiresIn.Value;
-                        setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
+                        setting.Update = DateTime.Now.ToFileTime().FileTimeToSecond();
                         setting.MyInfo = authResult.Authorize.User;
                         setting.Save();
                         result = authResult.Tokens;
@@ -1568,6 +1656,30 @@ namespace PixivWPF.Common
                 //await ex.Message.ShowMessageBoxAsync("ERROR");
                 ex.Message.ShowMessageBox("ERROR");
             }
+            return (result);
+        }
+
+        public static string AccessToken(this Application app)
+        {
+            var result = string.Empty;
+            try
+            {
+                setting = app.LoadSetting();
+                result = Setting.Token();
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static string RefreshToken(this Application app)
+        {
+            var result = string.Empty;
+            try
+            {
+                setting = app.LoadSetting();
+                result = setting.RefreshToken;
+            }
+            catch (Exception) { }
             return (result);
         }
         #endregion
@@ -1745,8 +1857,8 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(content, @"^(((illust)|(illusts)|(artworks))/(\d+))", opt));
                 mr.Add(Regex.Matches(content, @"^(((user)|(users))/(\d+))", opt));
 
-                mr.Add(Regex.Matches(content, @"^(((id)|(uid)):(\d+)+)", opt));
-                mr.Add(Regex.Matches(content, @"^(((user)|(fuzzy)|(tag)|(title)):(.+)+)", opt));
+                mr.Add(Regex.Matches(content, @"^(((id)|(uid)):[ ]*(\d+)+)", opt));
+                mr.Add(Regex.Matches(content, @"^(((user)|(fuzzy)|(tag)|(title)):[ ]*(.+)+)", opt));
 
                 if (!Regex.IsMatch(content, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
                 {
@@ -1799,7 +1911,7 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("id:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var id = link.Substring(3).Trim();
-                        var a_link = $"https://www.pixiv.net/artworks/{id}";
+                        var a_link = id.ArtworkLink();
                         var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
                         if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
                     }
@@ -1808,14 +1920,14 @@ namespace PixivWPF.Common
                              link.StartsWith("artworks/", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var id = Regex.Replace(link, @"(((illust)|(illusts)|(artworks))/(\d+))", "$6", opt).Trim();
-                        var a_link = $"https://www.pixiv.net/artworks/{id}";
+                        var a_link = id.ArtworkLink();
                         var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
                         if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
                     }
                     else if (link.StartsWith("uid:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var id = link.Substring(4).Trim();
-                        var u_link = $"https://www.pixiv.net/users/{id}";
+                        var u_link = id.UserLink();
                         var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
                         if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
                     }
@@ -1823,7 +1935,7 @@ namespace PixivWPF.Common
                              link.StartsWith("users/", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var id = Regex.Replace(link, @"(((user)|(users))/(\d+))", "$5", opt).Trim();
-                        var u_link = $"https://www.pixiv.net/users/{id}";
+                        var u_link = id.UserLink();
                         var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
                         if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
                     }
@@ -1868,13 +1980,13 @@ namespace PixivWPF.Common
                             long id;
                             if (long.TryParse(sid, out id) && id > 100)
                             {
-                                var a_link = $"https://www.pixiv.net/artworks/{id}";
+                                var a_link = id.ArtworkLink();
                                 var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
                                 if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
 
                                 if (!IsFile)
                                 {
-                                    var u_link = $"https://www.pixiv.net/users/{id}";
+                                    var u_link = id.UserLink();
                                     var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
                                     if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
                                 }
@@ -1889,6 +2001,31 @@ namespace PixivWPF.Common
                 if (html.Split(Path.GetInvalidPathChars()).Length <= 1) links.Add($"Fuzzy:{html}");
             }
             return (links);
+        }
+
+        public static string ArtworkLink(this string id)
+        {
+            return (string.IsNullOrEmpty(id) ? string.Empty : $"https://www.pixiv.net/artworks/{id}");
+        }
+
+        public static string ArtworkLink(this long id)
+        {
+            return (id < 0 ? string.Empty : $"https://www.pixiv.net/artworks/{id}");
+        }
+
+        public static string UserLink(this string uid)
+        {
+            return (string.IsNullOrEmpty(uid) ? string.Empty : $"https://www.pixiv.net/users/{uid}");
+        }
+
+        public static string UserLink(this long uid)
+        {
+            return (uid < 0 ? string.Empty : $"https://www.pixiv.net/users/{uid}");
+        }
+
+        public static string TagLink(this string tag)
+        {
+            return (string.IsNullOrEmpty(tag) ? string.Empty : Uri.EscapeUriString($"https://www.pixiv.net/tags/{tag}"));
         }
 
         public static string InsertLineBreak(this string text, int lineLength)
@@ -2132,6 +2269,8 @@ namespace PixivWPF.Common
                         }
                     }
                     else continue;
+                    Task.Delay(1);
+                    Application.Current.DoEvents();
                 }
             }).InvokeAsync();
         }
@@ -2272,7 +2411,7 @@ namespace PixivWPF.Common
 
         public static string SanityAge(this string sanity)
         {
-            string age = "all-age";
+            string age = "all";
 
             int san = 2;
             if (int.TryParse(sanity, out san))
@@ -2555,7 +2694,7 @@ namespace PixivWPF.Common
             }
             else if (!string.IsNullOrEmpty(Illust.ReuploadedTime))
             {
-                dt = DateTime.Parse($"{Illust.ReuploadedTime}+09:00");
+                DateTime.TryParse($"{Illust.ReuploadedTime}+09:00", out dt);
             }
             dt = new DateTime(dt.Ticks, DateTimeKind.Unspecified);
             if (local) return (TimeZoneInfo.ConvertTimeBySystemTimeZoneId(dt, TokoyTimeZone.Id, LocalTimeZone.Id));
@@ -3368,6 +3507,22 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static DateTime GetFileTime(this string filename, string mode="m")
+        {
+            DateTime result = default(DateTime);
+            if (File.Exists(filename))
+            {
+                mode = mode.ToLower();
+                if (mode.Equals("c"))
+                    result = new FileInfo(filename).CreationTime;
+                else if (mode.Equals("m"))
+                    result = new FileInfo(filename).LastWriteTime;
+                else if (mode.Equals("a"))
+                    result = new FileInfo(filename).LastAccessTime;
+            }
+            return (result);
+        }
+
         public static string GetImageName(this string url, bool is_meta_single_page)
         {
             string result = string.Empty;
@@ -3858,14 +4013,6 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
 
-            //long id_s = -1;
-            //long.TryParse(item.ID, out id_s);
-            //if (id_s == id.Value) result = true;
-            //if(string.Equals(item.ID, id.ToString(), StringComparison.CurrentCultureIgnoreCase))
-            //{
-            //    result = true;
-            //}
-
             return (result);
         }
 
@@ -3878,12 +4025,6 @@ namespace PixivWPF.Common
                 if (long.Parse(item.ID) == long.Parse(item_now.ID)) result = true;
             }
             catch (Exception) { }
-
-            //long id_s = -1;
-            //long.TryParse(item.ID, out id_s);
-            //long id_t = -1;
-            //long.TryParse(item_now.ID, out id_t);
-            //if (id_s == id_t) result = true;
 
             return (result);
         }
@@ -4704,7 +4845,6 @@ namespace PixivWPF.Common
             element.Foreground = Theme.GrayBrush;
             element.Visibility = Visibility.Visible;
         }
-
         #endregion
 
         #region Window/Dialog/MessageBox routines
@@ -5482,26 +5622,46 @@ namespace PixivWPF.Common
     public static class ExtensionMethods
     {
         #region Time Calc Helper
-        public static long ToTicks(this int msec)
+        public static long MillisecondToTicks(this int millisecond)
         {
             long result = 0;
             try
             {
-                result = TimeSpan.TicksPerMillisecond * msec;
+                result = TimeSpan.TicksPerMillisecond * millisecond;
             }
             catch(Exception) { }
             return (result);
         }
 
-        public static int ToMillisecond(this long ticks)
+        public static long TicksToMillisecond(this long ticks)
         {
-            int result = 0;
+            long result = 0;
             try
             {
-                result = (int)(ticks / TimeSpan.TicksPerMillisecond);
+                result = ticks / TimeSpan.TicksPerMillisecond;
             }
             catch (Exception) { }
             return (result);
+        }
+
+        public static long TicksToSecond(this long ticks)
+        {
+            return (ticks / TimeSpan.TicksPerSecond);
+        }
+
+        public static long SecondToTicks(this long second)
+        {
+            return (second * TimeSpan.TicksPerSecond);
+        }
+
+        public static long FileTimeToSecond(this long filetime)
+        {
+            return (TicksToSecond(filetime));
+        }
+
+        public static long SecondToFileTime(this long second)
+        {
+            return (SecondToTicks(second));
         }
 
         public static long DeltaTicks(this long ticks1, long ticks2, bool abs = true)
@@ -5516,20 +5676,20 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static int DeltaMillisecond(this long ticks1, long ticks2, bool abs = true)
+        public static long DeltaMillisecond(this long ticks1, long ticks2, bool abs = true)
         {
-            int result = 0;
+            long result = 0;
             try
             {
-                result = DeltaTicks(ticks1, ticks2, abs).ToMillisecond();
+                result = DeltaTicks(ticks1, ticks2, abs).TicksToMillisecond();
             }
             catch (Exception) { }
             return (result);
         }
 
-        public static int DeltaMillisecond(this DateTime dt1, DateTime dt2, bool abs = true)
+        public static long DeltaMillisecond(this DateTime dt1, DateTime dt2, bool abs = true)
         {
-            int result = 0;
+            long result = 0;
             try
             {
                 result = DeltaMillisecond(dt1.Ticks, dt2.Ticks, abs);
@@ -5538,9 +5698,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static int DeltaNowMillisecond(this long ticks, bool abs = true)
+        public static long DeltaNowMillisecond(this long ticks, bool abs = true)
         {
-            int result = 0;
+            long result = 0;
             try
             {
                 result = DeltaMillisecond(ticks, DateTime.Now.Ticks, abs);
@@ -5549,9 +5709,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static int DeltaNowMillisecond(this DateTime dt, bool abs = true)
+        public static long DeltaNowMillisecond(this DateTime dt, bool abs = true)
         {
-            int result = 0;
+            long result = 0;
             try
             {
                 result = DeltaNowMillisecond(dt.Ticks, abs);

@@ -164,13 +164,18 @@ namespace PixivWPF
                 {
                     //sw.ReadToEnd().ShowMessageDialog("RECEIVED!");
                     var contents = sw.ReadToEnd().Trim();
-                    var links = contents.ParseLinks();
-                    foreach (var link in links)
+                    if (contents.Equals("cmd:min_r18", StringComparison.CurrentCultureIgnoreCase))
+                        Application.Current.MinimizedWindows("r18");
+                    else
                     {
-                        await new Action(() =>
+                        var links = contents.ParseLinks();
+                        foreach (var link in links)
                         {
-                            CommonHelper.Cmd_Search.Execute(link);
-                        }).InvokeAsync();                       
+                            await new Action(() =>
+                            {
+                                CommonHelper.Cmd_Search.Execute(link);
+                            }).InvokeAsync();
+                        }
                     }
                 }
 
@@ -365,7 +370,7 @@ namespace PixivWPF
 
         private void CommandLogin_Click(object sender, RoutedEventArgs e)
         {
-            var accesstoken = Setting.Token();
+            var accesstoken = Application.Current.AccessToken();
             var dlgLogin = new PixivLoginDialog() { AccessToken = accesstoken };
             var ret = dlgLogin.ShowDialog();
             if (ret ?? false)

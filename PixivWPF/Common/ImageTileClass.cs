@@ -130,16 +130,19 @@ namespace PixivWPF.Common
             set
             {
                 if (value) IsDownloadedVisibility = Visibility.Visible;
-                else       IsDownloadedVisibility = Visibility.Collapsed;
+                else IsDownloadedVisibility = Visibility.Collapsed;
                 NotifyPropertyChanged("IsDownloadedVisibility");
 
                 if (DisplayTitle) IsDownloadedVisibilityAlt = Visibility.Collapsed;
-                else              IsDownloadedVisibilityAlt = IsDownloadedVisibility;
+                else IsDownloadedVisibilityAlt = IsDownloadedVisibility;
                 NotifyPropertyChanged("IsDownloadedVisibilityAlt");
 
                 NotifyPropertyChanged("IsDownloaded");
             }
         }
+
+        public string Sanity { get; set; } = "all";
+        public bool IsR18 { get { return (Sanity.Equals("18+")); } }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -354,6 +357,7 @@ namespace PixivWPF.Common
                     {
                         var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().HtmlToText().HtmlDecode(false).InsertLineBreak(64).Take(512));
                         var tags = illust.Tags.Count>0 ? $"\r\n🔖[#{string.Join(", #", illust.Tags.Take(5))} ...]" : string.Empty;
+                        var sanity = string.Empty;
                         var age = string.Empty;
                         var userliked = illust.User.IsLiked() ? $"✔/" : string.Empty;
                         var state = string.Empty;
@@ -361,7 +365,8 @@ namespace PixivWPF.Common
                         {
                             var work = illust as Pixeez.Objects.IllustWork;
                             var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
-                            age = $"R[{work.SanityLevel.SanityAge()}]";
+                            sanity = string.IsNullOrEmpty(work.SanityLevel) ? string.Empty : work.SanityLevel.SanityAge();
+                            age = string.IsNullOrEmpty(sanity) ? string.Empty : $"R[{sanity}]";
                             state = $", 🔞{age}, {userliked}♥[{work.total_bookmarks}]{like}, 🖼[{work.Width}x{work.Height}]";
                         }
                         else if (illust is Pixeez.Objects.NormalWork)
@@ -369,7 +374,8 @@ namespace PixivWPF.Common
                             var work = illust as Pixeez.Objects.NormalWork;
                             var like = work.Stats != null ? $", 👍[{work.Stats.ScoredCount}]" : string.Empty;
                             var stats = work.Stats != null ? $"♥[{work.Stats.FavoritedCount.Public}/{work.Stats.FavoritedCount.Private}]" : string.Empty;
-                            age = illust.AgeLimit != null ? $"R[{illust.AgeLimit.SanityAge()}]" : string.Empty;
+                            sanity = work.AgeLimit != null ? work.AgeLimit.SanityAge() : string.Empty;
+                            age = string.IsNullOrEmpty(sanity) ? string.Empty : $"R[{sanity}]";
                             state = $", 🔞{age}, {userliked}{stats}{like}, 🖼[{work.Width}x{work.Height}]";
                         }
                         var uname = illust.User is Pixeez.Objects.UserBase ? $"\r\n🎨[{illust.User.Name}]" : string.Empty;
@@ -388,6 +394,7 @@ namespace PixivWPF.Common
                             IsDisplayFavMark = true,
                             IsFavorited = illust.IsLiked(),
                             IsFollowed = illust.User.IsLiked(),
+                            Sanity = sanity,
                             DisplayBadge = illust.PageCount > 1 ? true : false,
                             Illust = illust,
                             ID = illust.Id.ToString(),

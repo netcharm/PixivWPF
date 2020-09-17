@@ -123,27 +123,29 @@ namespace PixivWPF.Pages
                     // Create Tokens
                     var proxyserver = proxy;
                     if (!useproxy) proxyserver = string.Empty;
-                    var accesstoken = Setting.Token();
+                    var accesstoken = Application.Current.AccessToken();
+                    var refreshtoken = Application.Current.RefreshToken();
 
+                    //var deviceId = Application.Current.GetDeviceId();
                     tokens = Pixeez.Auth.AuthorizeWithAccessToken(accesstoken, proxy, useproxy);
-                    var deviceId = Application.Current.GetDeviceId();
-                    var result = await Pixeez.Auth.AuthorizeAsync(user, pass, null, proxyserver, useproxy);
-                    //var result = await Auth.AuthorizeAsync(user, pass, accesstoken, deviceId, proxyserver, useproxy);
+                    var result = await Pixeez.Auth.AuthorizeAsync(user, pass, refreshtoken, proxyserver, useproxy);
                     if (!string.IsNullOrEmpty(result.Authorize.AccessToken))
                     {
                         accesstoken = result.Authorize.AccessToken;
                         tokens = result.Tokens;
 
-                        setting.User = user;
-                        setting.Pass = pass;
                         setting.AccessToken = tokens.AccessToken;
                         setting.RefreshToken = tokens.RefreshToken;
                         setting.ExpTime = result.Key.KeyExpTime.ToLocalTime();
                         setting.ExpiresIn = result.Authorize.ExpiresIn.Value;
-                        setting.Proxy = proxy;
+                        setting.Update = DateTime.Now.ToFileTime().FileTimeToSecond();
                         setting.UsingProxy = useproxy;
+                        setting.Proxy = proxy;
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                        setting.User = user;
+                        setting.Pass = pass;
                         setting.MyInfo = result.Authorize.User;
-                        setting.Update = Convert.ToInt64(DateTime.Now.ToFileTime() / 10000000);
                         setting.Save();
                     }
 
@@ -156,6 +158,7 @@ namespace PixivWPF.Pages
                             {
                                 var win = frame.Tag as PixivLoginDialog;
                                 win.AccessToken = tokens.AccessToken;
+                                win.RefreshToken = tokens.RefreshToken;
                                 win.Tokens = tokens;
                                 win.Close();
                             }

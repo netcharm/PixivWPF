@@ -340,18 +340,16 @@ namespace PixivWPF.Pages
 
         private void NavLogin_Click(object sender, RoutedEventArgs e)
         {
-            var accesstoken = Setting.Token();
-            //if (string.IsNullOrEmpty(accesstoken))
-            //{
-                var dlgLogin = new PixivLoginDialog() { AccessToken=string.Empty};
-                var ret = dlgLogin.ShowDialog();
-                //if (ret == true)
-                {
-                    //var value = dlgLogin.Value
-                    accesstoken = dlgLogin.AccessToken;
-                    Setting.Token(accesstoken);
-                }
-            //}
+            var accesstoken = Application.Current.AccessToken();
+            var refreshtoken = Application.Current.RefreshToken();
+
+            var dlgLogin = new PixivLoginDialog() { AccessToken=accesstoken, RefreshToken=refreshtoken };
+            var ret = dlgLogin.ShowDialog();
+            {
+                accesstoken = dlgLogin.AccessToken;
+                refreshtoken = dlgLogin.RefreshToken;
+                Setting.Token(accesstoken, refreshtoken);
+            }
         }
 
         private void Accent_SelectionChanged(object sender, SelectionChangedEventArgs e)
