@@ -219,15 +219,11 @@ namespace PixivWPF
             Title = $"{Title} [Version: {Application.Current.Version()}]";
 
             SearchBox.ItemsSource = AutoSuggestList;
-
-            Application.Current.SetThemeSync();
-
+#if DEBUG
+            //Application.Current.SetThemeSync();
+#endif
             CommandToggleTheme.ItemsSource = Application.Current.GetAccentColorList();
-            var acl = Application.Current.GetAccentColorList().Where(a => a.AccentName.Equals(Application.Current.CurrentAccent()));
-            if (acl.Count() > 0)
-                CommandToggleTheme.SelectedIndex = CommandToggleTheme.Items.IndexOf(acl.First());
-            else
-                CommandToggleTheme.SelectedIndex = 0;
+            CommandToggleTheme.SelectedIndex = Application.Current.GetAccentIndex();
 
             MainContent = ContentFrame;
 

@@ -422,7 +422,12 @@ namespace PixivWPF.Common
                             #endregion
 
                             #region Update Theme
+#if DEBUG
                             Application.Current.SetTheme(Cache.CurrentTheme, Cache.CurrentAccent);
+#else
+                            Application.Current.SetAccent(Cache.CurrentAccent);
+                            Application.Current.SetStyle(Cache.CurrentTheme);
+#endif
                             #endregion
                             result = Cache;
                         }

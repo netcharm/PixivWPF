@@ -36,12 +36,7 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-
     </mah:MetroWindow.Resources>
-
-    <mah:MetroWindow.WindowButtonCommands>
-        <mah:WindowButtonCommands Style="{DynamicResource MahApps.Metro.Styles.WindowButtonCommands.Win10}" />
-    </mah:MetroWindow.WindowButtonCommands>
 
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands ShowLastSeparator="True">
@@ -56,10 +51,10 @@
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands ShowLastSeparator="False">
             <ComboBox x:Name="SearchBox" x:Uid="SearchBox" 
-                      Width="160" Height="16"
+                      Width="160" Height="24"
                       IsEditable="True" 
                       ItemsSource="{Binding Path=AutoSuggestList}"
-                      Style="{DynamicResource MetroComboBox}"
+                      Style="{DynamicResource MahApps.Styles.ComboBox.Virtualized}"
                       mah:TextBoxHelper.ClearTextButton="True"
                       mah:TextBoxHelper.Watermark="Searching ..." 
                       IsTextSearchEnabled="False"

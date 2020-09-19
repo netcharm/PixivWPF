@@ -210,18 +210,24 @@ namespace PixivWPF.Common
 
         public static async void LoadTags(this Application app, bool all = false, bool force = false)
         {
-            //Setting.LoadTags(all, force);
             await new Action(() =>
             {
                 Setting.LoadTags(all, force);
             }).InvokeAsync();
-            return;
         }
 
         public static void SaveTags(this Application app)
         {
             if (Setting.Instance is Setting) Setting.Instance.SaveTags();
             return;
+        }
+        
+        public static async void LoadCustomTemplate(this Application app)
+        {
+            await new Action(() =>
+            {
+                Setting.UpdateContentsTemplete();
+            }).InvokeAsync();
         }
         #endregion
 
@@ -264,6 +270,23 @@ namespace PixivWPF.Common
         public static string GetTheme(this Application app)
         {
             return (Theme.CurrentTheme);
+        }
+
+        public static int GetAccentIndex(this Application app, string accent="")
+        {
+            var result = 0;
+            try
+            {
+                var acls = Application.Current.GetAccentColorList();
+                var ca = string.IsNullOrEmpty(accent) ? Application.Current.CurrentAccent() : accent;
+                var acl = acls.Where(a => a.AccentName.Equals(ca));
+                if (acl.Count() > 0)
+                    result = acls.IndexOf(acl.First());
+                else
+                    result = 0;
+            }
+            catch (Exception) { }
+            return (result);
         }
 
         public static void SetAccent(this Application app, string accent)
@@ -2310,15 +2333,15 @@ namespace PixivWPF.Common
                         html.AppendLine("    <META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
                         html.AppendLine("    <META http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />");
                         html.AppendLine("    <STYLE>");
-                        html.AppendLine("      :root { --accent: {% MahApps.Colors.Accent_rgb %}; --text: {% textcolor_rgb %} }");                        
+                        html.AppendLine("      :root { --accent: {% accentcolor_rgb %}; --text: {% textcolor_rgb %} }");                        
                         html.AppendLine("      *{font-family:\"等距更纱黑体 SC\", FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", Iosevka, \"Sarasa Mono J\", \"Sarasa Term J\", \"Sarasa Gothic J\", \"更纱黑体 SC\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif !important;}");
                         html.AppendLine("      body{background-color: {%backcolor%} !important;}");
-                        html.AppendLine("      a:link{color:{%MahApps.Colors.Accent%} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:hover{color:{%MahApps.Colors.Accent%} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:active{color:{%MahApps.Colors.Accent%} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:visited{color:{%MahApps.Colors.Accent%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:link{color:{%accentcolor%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:hover{color:{%accentcolor%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:active{color:{%accentcolor%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:visited{color:{%accentcolor%} !important;text-decoration:none !important;}");
                         html.AppendLine("      img{width:auto!important;height:auto!important;max-width:100%!important;max-height:100% !important;}");
-                        html.AppendLine("      .tag{color:{%MahApps.Colors.Accent%} !important;background-color:rgba(var(--accent), 10%);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {%MahApps.Colors.Accent%};border-left-width:5px;overflow-wrap:break-word;}");
+                        html.AppendLine("      .tag{color:{%accentcolor%} !important;background-color:rgba(var(--accent), 10%);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {%accentcolor%};border-left-width:5px;overflow-wrap:break-word;}");
                         html.AppendLine("      .tag.::before{ content: '#'; }");
                         html.AppendLine("      .desc{color:{%textcolor%} !important;text-decoration:none !important;width: 99% !important;word-wrap: break-word !important;overflow-wrap: break-word !important;white-space:normal !important;}");
                         html.AppendLine("      .twitter::before{font-family:FontAwesome; content:''; margin-left:3px; padding-right:4px; color: #1da1f2;}");
@@ -2361,8 +2384,8 @@ namespace PixivWPF.Common
             var backcolor = Theme.WhiteColor.ToHtml();
             if (backcolor.StartsWith("#FF") && backcolor.Length > 6) backcolor = backcolor.Replace("#FF", "#");
             else if (backcolor.StartsWith("#00") && backcolor.Length > 6) backcolor = backcolor.Replace("#00", "#");
-            var Accent = Theme.AccentBaseColor.ToHtml(false);
-            var Accent_rgb = Theme.AccentBaseColor.ToRGB(false, false);
+            var accentcolor = Theme.AccentBaseColor.ToHtml(false);
+            var accentcolor_rgb = Theme.AccentBaseColor.ToRGB(false, false);
             var textcolor = Theme.TextColor.ToHtml(false);
             var textcolor_rgb = Theme.TextColor.ToRGB(false, false);
 
@@ -2373,8 +2396,8 @@ namespace PixivWPF.Common
             template = Regex.Replace(template, "{%site%}", new Uri(Application.Current.GetRoot()).AbsoluteUri, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%title%}", title, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%backcolor%}", backcolor, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%MahApps.Colors.Accent%}", Accent, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%MahApps.Colors.Accent_rgb%}", Accent_rgb, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%accentcolor%}", accentcolor, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%accentcolor_rgb%}", accentcolor_rgb, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%textcolor%}", textcolor, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%textcolor_rgb%}", textcolor_rgb, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%contents%}", contents, RegexOptions.IgnoreCase | RegexOptions.Singleline);

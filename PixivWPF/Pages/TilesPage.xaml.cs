@@ -1311,6 +1311,8 @@ namespace PixivWPF.Pages
             //return;
             var item = args.InvokedItem;
             var idx = PixivCatgoryMenu.SelectedIndex;
+            if(PixivCatgoryMenu.IsPaneOpen) PixivCatgoryMenu.IsPaneOpen = false;
+
             if (item == miAbout)
             {
                 args.Handled = true;

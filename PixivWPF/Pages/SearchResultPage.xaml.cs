@@ -359,6 +359,10 @@ namespace PixivWPF.Pages
                     }
                 }
             }
+            else if(sender == btnSearchRefresh)
+            {
+                ResultIllusts.UpdateTilesImage();
+            }
         }
 
         private void ActionSaveResult_Click(object sender, RoutedEventArgs e)
@@ -615,7 +619,5 @@ namespace PixivWPF.Pages
         }
 
         #endregion
-
-
     }
 }

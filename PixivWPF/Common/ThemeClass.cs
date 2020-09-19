@@ -11,10 +11,10 @@ namespace PixivWPF.Common
 {
     public class SimpleAccent
     {
-        public string AccentName { get; set; } = Theme.CurrentAccent;
-        public string AccentStyle { get; set; } = Theme.CurrentStyle;
-        public Color AccentColor { get; set; } = Theme.AccentColor;
-        public Brush AccentBrush { get; set; } = Theme.AccentBrush;
+        public string AccentName { get; set; } //= Theme.CurrentAccent;
+        public string AccentStyle { get; set; } //= Theme.CurrentStyle;
+        public Color AccentColor { get; set; } //= Theme.AccentColor;
+        public Brush AccentBrush { get; set; } //= Theme.AccentBrush;
     }
 
     public static class Theme
@@ -138,7 +138,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (accent_color_list.Count != ThemeManager.Current.Themes.Count)
+                if (accent_color_list.Count == 0)
                 {
                     accent_color_list.Clear();
                     foreach (var theme in ThemeManager.Current.Themes)
