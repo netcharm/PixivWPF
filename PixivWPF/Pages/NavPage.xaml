@@ -1,5 +1,4 @@
-﻿<Page
-      x:Class="PixivWPF.Pages.NavPage"
+﻿<Page x:Class="PixivWPF.Pages.NavPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -25,145 +24,145 @@
         <StackPanel Grid.Row="0" VerticalAlignment="Top">
             <!-- Recommended/Latest/TrendingTag -->
             <ToggleButton x:Name="btnGotoRecommended" x:Uid="btnGotoRecommended" 
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Recommended" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoLatest" x:Uid="btnGotoLatest" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Latest" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoTrendingTags" x:Uid="btnGotoTrendingTags" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Trending Tags" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
             <!-- User Following -->
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,2"/>
+            <Line Stroke="{DynamicResource MahApps.Brushes.Accent}" StrokeThickness="2" Margin="0,2"/>
             <ToggleButton x:Name="btnGotoFeeds" x:Uid="btnGotoFeeds" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="My Feeds" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoFollowing" x:Uid="btnGotoFollowing" 
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Following" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoFollowingPrivate" x:Uid="btnGotoFollowingPrivate" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Following Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             
             <!-- User Bookmarked -->
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,2"/>
+            <Line Stroke="{DynamicResource MahApps.Brushes.Accent}" StrokeThickness="2" Margin="0,2"/>
             <ToggleButton x:Name="btnGotoFavorite" x:Uid="btnGotoFavorite" 
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Favorite" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoFavoritePrivate" x:Uid="btnGotoFavoritePrivate" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Favorite Private" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
             <!-- Ranking Day -->
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
+            <Line Stroke="{DynamicResource MahApps.Brushes.Accent}" StrokeThickness="2" Margin="0,4"/>
             <ToggleButton x:Name="btnGotoRankingDay" x:Uid="btnGotoRankingDay" 
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Ranking By Day" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingDayR18" x:Uid="btnGotoRankingDayR18" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Ranking By Day R18" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingDayMale" x:Uid="btnGotoRankingDayMale" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Ranking By Day Male" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingDayFemale" x:Uid="btnGotoRankingDayFemale" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Ranking By Day Female" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingDayMaleR18" x:Uid="btnGotoRankingDayMaleR18" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Ranking By Day Male R18" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingDayFemaleR18" x:Uid="btnGotoRankingDayFemaleR18" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Ranking By Day Female R18" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
             <!-- Ranking Week -->
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
+            <Line Stroke="{DynamicResource MahApps.Brushes.Accent}" StrokeThickness="2" Margin="0,4"/>
             <ToggleButton x:Name="btnGotoRankingWeek" x:Uid="btnGotoRankingWeek" 
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left"
                     Content="Ranking By Week" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingWeekOriginal" x:Uid="btnGotoRankingWeekOriginal" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left"
                     Content="Ranking By Week Original" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingWeekRookie" x:Uid="btnGotoRankingWeekRookie" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left"
                     Content="Ranking By Week Rookie" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingWeekR18" x:Uid="btnGotoRankingWeekR18" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left"
                     Content="Ranking By Week R18" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoRankingWeekR18G" x:Uid="btnGotoRankingWeekR18G" Margin="0,1,0,0" Visibility="Collapsed"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left"
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left"
                     Content="Ranking By Week R18G" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
             <!-- Ranking Month -->
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,4"/>
+            <Line Stroke="{DynamicResource MahApps.Brushes.Accent}" StrokeThickness="2" Margin="0,4"/>
             <ToggleButton x:Name="btnGotoRankingMonth" x:Uid="btnGotoRankingMonth" 
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Ranking By Month" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
 
             <!-- Ranking Year -->
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8" Visibility="Collapsed"/>
+            <Line Stroke="{DynamicResource MahApps.Brushes.Accent}" StrokeThickness="2" Margin="0,8" Visibility="Collapsed"/>
             <ToggleButton x:Name="btnGotoRankingYear" x:Uid="btnGotoRankingYear" Visibility="Collapsed"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Ranking By Year" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
         </StackPanel>
 
         <StackPanel Grid.Row="1" >
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
+            <Line Stroke="{DynamicResource MahApps.Brushes.Accent}" StrokeThickness="2" Margin="0,8"/>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width=".5*"/>
                     <ColumnDefinition Width=".5*"/>
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" x:Name="btnGotoPrevPage" x:Uid="btnGotoPrevPage" Margin="0,0,1,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Prev Page" Click="NavPage_Click" IsEnabled="False"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
                 <Button Grid.Column="1" x:Name="btnGotoNextPage" x:Uid="btnGotoNextPage" Margin="1,0,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Right"
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Right"
                     Content="Next Page" Click="NavPage_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             </Grid>
@@ -171,56 +170,55 @@
 
         <StackPanel Grid.Row="3"  VerticalAlignment="Bottom" Visibility="Collapsed">
             <Button x:Name="btnGotoLogin" x:Uid="btnGotoLogin" Visibility="Collapsed"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="Login" Click="NavLogin_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
-            <Line Stroke="{DynamicResource AccentColorBrush}" StrokeThickness="2" Margin="0,8"/>
+            <Line Stroke="{DynamicResource MahApps.Brushes.Accent}" StrokeThickness="2" Margin="0,8"/>
             <TextBlock x:Name="lbAccent" x:Uid="lbAccent" Text="Accent Select" Margin="0,0,0,4"
-                       Foreground="{DynamicResource IdealForegroundColorBrush}"/>
+                       Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
             <ComboBox x:Name="cbAccent" x:Uid="cbAccent" Margin="0,0,0,4" 
                       IsEditable="False" 
-                      Foreground="{DynamicResource IdealForegroundColorBrush}"
+                      Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                       SelectionChanged="Accent_SelectionChanged" />
             <Button x:Name="ToggleTheme" x:Uid="ToggleTheme" Content="Toggle Theme" 
-                    Style="{DynamicResource SquareButtonStyle}" 
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                     Margin="0,4,0,0"
                     HorizontalContentAlignment="Left" BorderThickness="1"
                     Click="ToggleTheme_Click" 
-                    mah:ControlsHelper.ContentCharacterCasing="Normal"
-                    mah:ButtonHelper.PreserveTextCase="True"/>
+                    mah:ControlsHelper.ContentCharacterCasing="Normal"/>
         </StackPanel>
 
         <StackPanel Grid.Row="5" >
             <ToggleButton x:Name="btnGotoMy" x:Uid="btnGotoMy" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="My Infomation" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoMyFollowerUser" x:Uid="btnGotoMyFollowerUser" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="My Follower Users" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoMyFollowingUser" x:Uid="btnGotoMyFollowingUser" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="My Following Users" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoMyFollowingUserPrivate" x:Uid="btnGotoMyFollowingUserPrivate" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="My Following Users Privat" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoMyPixivUser" x:Uid="btnGotoMyPixivUser" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="My Pixiv Users" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
             <ToggleButton x:Name="btnGotoBlacklistUser" x:Uid="btnGotoBlacklistUser" Margin="0,1,0,0"
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
-                    Style="{DynamicResource SquareButtonStyle}" HorizontalContentAlignment="Left" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" HorizontalContentAlignment="Left" 
                     Content="My Blacklist Users" Click="NavItem_Click"
                     mah:ControlsHelper.ContentCharacterCasing="Normal" BorderThickness="1"/>
         </StackPanel>

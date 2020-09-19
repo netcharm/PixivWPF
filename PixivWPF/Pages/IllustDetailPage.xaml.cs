@@ -1417,8 +1417,16 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Control)
+                        var tag_tooltip = link.GetAttribute("data-tooltip");
+                        if (Keyboard.Modifiers == ModifierKeys.Alt)
                             CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            CommonHelper.Cmd_OpenPixivPedia.Execute(tag);
+                        else if (Keyboard.Modifiers == ModifierKeys.Control)
+                            CommonHelper.Cmd_Speech.Execute(tag);
+                        else if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) &&
+                                 (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)))
+                            CommonHelper.Cmd_Speech.Execute(tag_tooltip);
                         else
                             CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
                     }
@@ -2309,13 +2317,13 @@ namespace PixivWPF.Pages
         #region Illust Multi-Pages related routines
         private void SubIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
-            if (SubIllusts.Items.Count() <= 0)
+            if (DataObject is ImageItem)
             {
-                if (DataObject is ImageItem)
-                {
-                    var item = DataObject as ImageItem;
+                var item = DataObject as ImageItem;
+                if (SubIllusts.Items.Count() <= 0)
                     ShowIllustPagesAsync(item);
-                }
+                else
+                    SubIllusts.UpdateTilesImage();
             }
         }
 

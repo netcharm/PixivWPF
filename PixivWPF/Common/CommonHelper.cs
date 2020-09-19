@@ -196,7 +196,7 @@ namespace PixivWPF.Common
 
     public static class ApplicationExtensions
     {
-        #region Application Helper
+        #region Application Setting Helper
         public static Setting LoadSetting(this Application app, bool force = false)
         {
             return (!force && Setting.Instance is Setting ? Setting.Instance : Setting.Load(force));
@@ -223,6 +223,127 @@ namespace PixivWPF.Common
             if (Setting.Instance is Setting) Setting.Instance.SaveTags();
             return;
         }
+        #endregion
+
+        #region Theme Helper
+        public static IList<string> GetAccents(this Application app)
+        {
+            return (Theme.Accents);
+        }
+
+        public static string CurrentAccent(this Application app)
+        {
+            return (Theme.CurrentAccent);
+        }
+
+        public static string CurrentStyle(this Application app)
+        {
+            return (Theme.CurrentStyle);
+        }
+
+        public static string CurrentTheme(this Application app)
+        {
+            return (Theme.CurrentTheme);
+        }
+
+        public static string GetAccent(this Application app)
+        {
+            return (Theme.CurrentAccent);
+        }
+
+        public static string GetStyle(this Application app)
+        {
+            return (Theme.CurrentStyle);
+        }
+
+        public static string GetTheme(this Application app)
+        {
+            return (Theme.CurrentTheme);
+        }
+
+        public static void SetAccent(this Application app, string accent)
+        {
+            try
+            {
+                Theme.CurrentAccent = accent;
+                app.UpdateTheme();
+            }
+            catch (Exception) { }
+        }
+
+        public static void SetStyle(this Application app, string style)
+        {
+            try
+            {
+                Theme.CurrentStyle = style;
+                app.UpdateTheme();
+            }
+            catch (Exception) { }
+        }
+
+        public static void SetTheme(this Application app, string theme)
+        {
+            try
+            {
+                Theme.Change(theme);
+                app.UpdateTheme();
+            }
+            catch (Exception) { }
+        }
+
+        public static void SetTheme(this Application app, string style, string accent)
+        {
+            try
+            {
+                Theme.Change(style, accent);
+                app.UpdateTheme();
+            }
+            catch (Exception) { }
+        }
+
+        public static void ToggleTheme(this Application app)
+        {
+            try
+            {
+                Theme.Toggle();
+                app.UpdateTheme();
+            }
+            catch (Exception) { }
+        }
+
+        public static void UpdateTheme(this Application app)
+        {
+            try
+            {
+                CommonHelper.UpdateTheme();
+            }
+            catch (Exception) { }
+        }
+
+        public static void SetThemeSync(this Application app, string mode="")
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(mode)) mode = "app";
+                else mode = mode.ToLower();
+
+                ControlzEx.Theming.ThemeSyncMode sync = ControlzEx.Theming.ThemeSyncMode.DoNotSync;
+                if (mode.Equals("app"))
+                    sync = ControlzEx.Theming.ThemeSyncMode.SyncWithAppMode;
+                else if (mode.Equals("all"))
+                    sync = ControlzEx.Theming.ThemeSyncMode.SyncAll;
+                else if (mode.Equals("accent"))
+                    sync = ControlzEx.Theming.ThemeSyncMode.SyncWithAccent;
+                else if (mode.Equals("highcontrast"))
+                    sync = ControlzEx.Theming.ThemeSyncMode.SyncWithHighContrast;
+                else
+                    sync = ControlzEx.Theming.ThemeSyncMode.DoNotSync;
+
+                Theme.SetSyncMode(sync);
+            }
+            catch (Exception) { }
+        }
+        #endregion
 
         private static string root = string.Empty;
         public static string Root
@@ -371,6 +492,19 @@ namespace PixivWPF.Common
         }
 
         private static string[] r18 = new string[] { "r18", "r15", "xxx" };
+
+        #region Window Helper
+        public static MainWindow GetMainWindow(this Application app)
+        {
+            MainWindow result = null;
+            try
+            {
+                if (app.MainWindow is MainWindow)
+                    result = app.MainWindow as MainWindow;
+            }
+            catch (Exception) { }
+            return (result);
+        }
 
         private static void MinimizedWindow(MetroWindow win, ImageItem item, string condition)
         {
@@ -1333,6 +1467,18 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_Speech { get; } = new DelegateCommand<object>(obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
+                if (!string.IsNullOrEmpty(content))
+                {
+                    content.Play(null);
+                }
+            }
+        });
+
         public static ICommand Cmd_ShellOpenPixivPedia { get; } = new DelegateCommand<object>(async obj =>
         {
             if (obj is string)
@@ -1572,89 +1718,107 @@ namespace PixivWPF.Common
             Application.Current.SaveTags();
         });
         #region Pixiv Token Helper
+
+        private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
         private static async Task<Pixeez.Tokens> RefreshToken()
         {
             Pixeez.Tokens result = null;
-            try
+            if (await CanRefreshToken.WaitAsync(TimeSpan.FromSeconds(30)))
             {
-                setting = Application.Current.LoadSetting();
-                var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
-                setting.AccessToken = authResult.Authorize.AccessToken;
-                setting.RefreshToken = authResult.Authorize.RefreshToken;
-                setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
-                setting.ExpiresIn = authResult.Authorize.ExpiresIn.Value;
-                setting.Update = DateTime.Now.ToFileTime().FileTimeToSecond();
-                setting.MyInfo = authResult.Authorize.User;
-                setting.Save();
-                result = authResult.Tokens;
-            }
-            catch (Exception ex)
-            {
-                if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass))
+                try
                 {
-                    try
-                    {
-                        setting = Application.Current.LoadSetting();
-                        var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
-                        setting.AccessToken = authResult.Authorize.AccessToken;
-                        setting.RefreshToken = authResult.Authorize.RefreshToken;
-                        setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
-                        setting.ExpiresIn = authResult.Authorize.ExpiresIn.Value;
-                        setting.Update = DateTime.Now.ToFileTime().FileTimeToSecond();
-                        setting.MyInfo = authResult.Authorize.User;
-                        setting.Save();
-                        result = authResult.Tokens;
-                    }
-                    catch (Exception exx)
-                    {
-                        var ret = exx.Message;
-                        var tokens = await ShowLogin();
-                    }
+                    setting = Application.Current.LoadSetting();
+                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
+                    setting.AccessToken = authResult.Authorize.AccessToken;
+                    setting.RefreshToken = authResult.Authorize.RefreshToken;
+                    setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
+                    setting.ExpiresIn = authResult.Authorize.ExpiresIn.Value;
+                    setting.Update = DateTime.Now.ToFileTime().FileTimeToSecond();
+                    setting.MyInfo = authResult.Authorize.User;
+                    setting.Save();
+                    result = authResult.Tokens;
                 }
-                var rt = ex.Message;
+                catch (Exception ex)
+                {
+                    if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass))
+                    {
+                        try
+                        {
+                            setting = Application.Current.LoadSetting();
+                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
+                            setting.AccessToken = authResult.Authorize.AccessToken;
+                            setting.RefreshToken = authResult.Authorize.RefreshToken;
+                            setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
+                            setting.ExpiresIn = authResult.Authorize.ExpiresIn.Value;
+                            setting.Update = DateTime.Now.ToFileTime().FileTimeToSecond();
+                            setting.MyInfo = authResult.Authorize.User;
+                            setting.Save();
+                            result = authResult.Tokens;
+                        }
+                        catch (Exception exx)
+                        {
+                            var ret = exx.Message;
+                            var tokens = await ShowLogin();
+                        }
+                    }
+                    var rt = ex.Message;
+                }
+                finally
+                {
+                    CanRefreshToken.Release();
+                }
             }
             return (result);
         }
 
+        private static SemaphoreSlim CanShowLogin = new SemaphoreSlim(1, 1);
         public static async Task<Pixeez.Tokens> ShowLogin(bool force = false)
         {
             Pixeez.Tokens result = null;
-            foreach (Window win in Application.Current.Windows)
+            if (await CanShowLogin.WaitAsync(TimeSpan.FromSeconds(30)))
             {
-                if (win is PixivLoginDialog) return (result);
-            }
-            try
-            {
-                setting = Application.Current.LoadSetting();
-                if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
+                try
                 {
-                    result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
+                    foreach (Window win in Application.Current.Windows)
                     {
-                        try
-                        {
-                            result = await RefreshToken();
-                        }
-                        catch (Exception)
-                        {
-                            result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
-                        }
+                        if (win is PixivLoginDialog) return (result);
+                    }
+
+                    setting = Application.Current.LoadSetting();
+                    if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
+                    {
+                        result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
                     }
                     else
                     {
-                        var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
-                        var ret = dlgLogin.ShowDialog();
-                        result = dlgLogin.Tokens;
+                        if (!string.IsNullOrEmpty(setting.User) && !string.IsNullOrEmpty(setting.Pass) && !string.IsNullOrEmpty(setting.RefreshToken))
+                        {
+                            try
+                            {
+                                result = await RefreshToken();
+                            }
+                            catch (Exception)
+                            {
+                                result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
+                            }
+                        }
+                        else
+                        {
+                            var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
+                            var ret = dlgLogin.ShowDialog();
+                            result = dlgLogin.Tokens;
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                //await ex.Message.ShowMessageBoxAsync("ERROR");
-                ex.Message.ShowMessageBox("ERROR");
+                catch (Exception ex)
+                {
+                    //await ex.Message.ShowMessageBoxAsync("ERROR");
+                    ex.Message.ShowMessageBox("ERROR");
+                }
+                finally
+                {
+                    CanShowLogin.Release();
+                }
             }
             return (result);
         }
@@ -2141,15 +2305,15 @@ namespace PixivWPF.Common
                         html.AppendLine("    <META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
                         html.AppendLine("    <META http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />");
                         html.AppendLine("    <STYLE>");
-                        html.AppendLine("      :root { --accent: {% accentcolor_rgb %}; --text: {% textcolor_rgb %} }");                        
+                        html.AppendLine("      :root { --accent: {% MahApps.Colors.Accent_rgb %}; --text: {% textcolor_rgb %} }");                        
                         html.AppendLine("      *{font-family:\"等距更纱黑体 SC\", FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", Iosevka, \"Sarasa Mono J\", \"Sarasa Term J\", \"Sarasa Gothic J\", \"更纱黑体 SC\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif !important;}");
                         html.AppendLine("      body{background-color: {%backcolor%} !important;}");
-                        html.AppendLine("      a:link{color:{%accentcolor%} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:hover{color:{%accentcolor%} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:active{color:{%accentcolor%} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:visited{color:{%accentcolor%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:link{color:{%MahApps.Colors.Accent%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:hover{color:{%MahApps.Colors.Accent%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:active{color:{%MahApps.Colors.Accent%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:visited{color:{%MahApps.Colors.Accent%} !important;text-decoration:none !important;}");
                         html.AppendLine("      img{width:auto!important;height:auto!important;max-width:100%!important;max-height:100% !important;}");
-                        html.AppendLine("      .tag{color:{%accentcolor%} !important;background-color:rgba(var(--accent), 10%);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {%accentcolor%};border-left-width:5px;overflow-wrap:break-word;}");
+                        html.AppendLine("      .tag{color:{%MahApps.Colors.Accent%} !important;background-color:rgba(var(--accent), 10%);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {%MahApps.Colors.Accent%};border-left-width:5px;overflow-wrap:break-word;}");
                         html.AppendLine("      .tag.::before{ content: '#'; }");
                         html.AppendLine("      .desc{color:{%textcolor%} !important;text-decoration:none !important;width: 99% !important;word-wrap: break-word !important;overflow-wrap: break-word !important;white-space:normal !important;}");
                         html.AppendLine("      .twitter::before{font-family:FontAwesome; content:''; margin-left:3px; padding-right:4px; color: #1da1f2;}");
@@ -2192,8 +2356,8 @@ namespace PixivWPF.Common
             var backcolor = Theme.WhiteColor.ToHtml();
             if (backcolor.StartsWith("#FF") && backcolor.Length > 6) backcolor = backcolor.Replace("#FF", "#");
             else if (backcolor.StartsWith("#00") && backcolor.Length > 6) backcolor = backcolor.Replace("#00", "#");
-            var accentcolor = Theme.AccentBaseColor.ToHtml(false);
-            var accentcolor_rgb = Theme.AccentBaseColor.ToRGB(false, false);
+            var Accent = Theme.AccentBaseColor.ToHtml(false);
+            var Accent_rgb = Theme.AccentBaseColor.ToRGB(false, false);
             var textcolor = Theme.TextColor.ToHtml(false);
             var textcolor_rgb = Theme.TextColor.ToRGB(false, false);
 
@@ -2204,8 +2368,8 @@ namespace PixivWPF.Common
             template = Regex.Replace(template, "{%site%}", new Uri(Application.Current.GetRoot()).AbsoluteUri, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%title%}", title, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%backcolor%}", backcolor, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%accentcolor%}", accentcolor, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%accentcolor_rgb%}", accentcolor_rgb, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%MahApps.Colors.Accent%}", Accent, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, "{%MahApps.Colors.Accent_rgb%}", Accent_rgb, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%textcolor%}", textcolor, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%textcolor_rgb%}", textcolor_rgb, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, "{%contents%}", contents, RegexOptions.IgnoreCase | RegexOptions.Singleline);
@@ -3931,7 +4095,7 @@ namespace PixivWPF.Common
                 src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.WindowTitleColor };
                 //img.Effect = new TranspranceEffect() { TransColor = Theme.WindowTitleColor };
                 //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
-                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.AccentColor };
+                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.MahApps.Colors.Accent };
                 //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Colors.Transparent };
                 //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.WindowTitleColor };
                 //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.WindowTitleColor };
@@ -4712,20 +4876,27 @@ namespace PixivWPF.Common
                     icon = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
                 win.Icon = icon.Source;
 
-                if (win.Content is IllustDetailPage)
+                if (win is MainWindow)
                 {
-                    var page = win.Content as IllustDetailPage;
-                    page.UpdateTheme();
+                    (win as MainWindow).UpdateTheme();
                 }
-                else if(win.Content is IllustImageViewerPage)
+                else if (win is ContentWindow)
                 {
-                    var page = win.Content as IllustImageViewerPage;
-                    page.UpdateTheme();
-                }
-                else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    win.Background = Theme.AccentBrush;
-                    win.Content = icon;
+                    if (win.Content is IllustDetailPage)
+                    {
+                        var page = win.Content as IllustDetailPage;
+                        page.UpdateTheme();
+                    }
+                    else if (win.Content is IllustImageViewerPage)
+                    {
+                        var page = win.Content as IllustImageViewerPage;
+                        page.UpdateTheme();
+                    }
+                    else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        win.Background = Theme.AccentBrush;
+                        win.Content = icon;
+                    }
                 }
             }
             catch (Exception) { }
@@ -5693,6 +5864,17 @@ namespace PixivWPF.Common
             try
             {
                 result = DeltaMillisecond(dt1.Ticks, dt2.Ticks, abs);
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static TimeSpan Delta(this DateTime dt1, DateTime dt2)
+        {
+            TimeSpan result = TimeSpan.FromTicks(0);
+            try
+            {
+                result = dt2 - dt1;
             }
             catch (Exception) { }
             return (result);

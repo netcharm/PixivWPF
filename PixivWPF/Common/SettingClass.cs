@@ -422,10 +422,7 @@ namespace PixivWPF.Common
                             #endregion
 
                             #region Update Theme
-                            if (!string.IsNullOrEmpty(Cache.CurrentTheme))
-                                Theme.CurrentTheme = Cache.CurrentTheme;
-                            if (!string.IsNullOrEmpty(Cache.CurrentAccent))
-                                Theme.CurrentAccent = Cache.CurrentAccent;
+                            Application.Current.SetTheme(Cache.CurrentTheme, Cache.CurrentAccent);
                             #endregion
                             result = Cache;
                         }

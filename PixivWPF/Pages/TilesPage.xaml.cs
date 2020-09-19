@@ -28,6 +28,7 @@ namespace PixivWPF.Pages
 
         private Setting setting = Application.Current.LoadSetting();
         public PixivPage TargetPage = PixivPage.Recommanded;
+        private PixivPage LastPage = PixivPage.Recommanded;
         private string NextURL = null;
 
         public DateTime SelectedDate { get; set; } = DateTime.Now;
@@ -37,7 +38,7 @@ namespace PixivWPF.Pages
 
         internal void UpdateTheme()
         {
-            if(detail_page is IllustDetailPage)
+            if (detail_page is IllustDetailPage)
                 detail_page.UpdateTheme();
         }
 
@@ -54,7 +55,7 @@ namespace PixivWPF.Pages
                             item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
                         else if (id == (int)(item.Illust.Id))
                         {
-                            if(item.Count > 1)
+                            if (item.Count > 1)
                                 item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
                             else
                                 item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
@@ -121,7 +122,9 @@ namespace PixivWPF.Pages
             ImageList.Clear();
             ListImageTiles.ItemsSource = ImageList;
 
-            ShowImages();
+            PixivCatgoryMenu.IsPaneOpen = false;
+            PixivCatgoryMenu.SelectedIndex = 0;
+            //ShowImages();
         }
 
         internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
@@ -143,6 +146,10 @@ namespace PixivWPF.Pages
             }
             GC.Collect();
 
+            var win = Application.Current.GetMainWindow();
+            if (win is MainWindow && target != PixivPage.None) win.UpdateTitle(target.ToString());
+
+            LastPage = target;
             switch (target)
             {
                 case PixivPage.None:
@@ -242,7 +249,7 @@ namespace PixivWPF.Pages
                     ShowRanking(NextURL, "month");
                     break;
             }
-            if(!string.IsNullOrEmpty(id)) lastSelectedId = id;
+            if (!string.IsNullOrEmpty(id)) lastSelectedId = id;
         }
 
         private void KeepLastSelected(string id)
@@ -1078,7 +1085,7 @@ namespace PixivWPF.Pages
         private void ListImageTiles_KeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = false;
-            if(e.Key == Key.F5)
+            if (e.Key == Key.F5)
             {
                 var main = this.GetMainWindow() as MainWindow;
                 main.CommandNavRefresh_Click(main.CommandNavRefresh, new RoutedEventArgs());
@@ -1122,7 +1129,7 @@ namespace PixivWPF.Pages
             else if (e.Key == Key.Home)
             {
                 if (ListImageTiles.Items.Count > 0)
-                {                   
+                {
                     ListImageTiles.Items.MoveCurrentToFirst();
                     ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
                     e.Handled = true;
@@ -1269,11 +1276,11 @@ namespace PixivWPF.Pages
                             follow_mark.Height = 16;
                             follow_mark.Width = 16;
                             follow_mark.Margin = new Thickness(0, 0, 12, 12);
-                            follow_mark.Foreground = Common.Theme.WhiteBrush;
+                            follow_mark.Foreground = Theme.WhiteBrush;
                             if (follow_effect is System.Windows.Media.Effects.DropShadowEffect)
                             {
                                 var shadow = follow_effect as System.Windows.Media.Effects.DropShadowEffect;
-                                shadow.Color = Common.Theme.AccentColor;
+                                shadow.Color = Theme.AccentColor;
                             }
                         }
                         else
@@ -1281,11 +1288,11 @@ namespace PixivWPF.Pages
                             follow_mark.Height = 24;
                             follow_mark.Width = 24;
                             follow_mark.Margin = new Thickness(0, 0, 8, 8);
-                            follow_mark.Foreground = Common.Theme.AccentBrush;
+                            follow_mark.Foreground = Theme.AccentBrush;
                             if (follow_effect is System.Windows.Media.Effects.DropShadowEffect)
                             {
                                 var shadow = follow_effect as System.Windows.Media.Effects.DropShadowEffect;
-                                shadow.Color = Common.Theme.WhiteColor;
+                                shadow.Color = Theme.WhiteColor;
                             }
                         }
                     }
@@ -1299,5 +1306,128 @@ namespace PixivWPF.Pages
 
         }
 
+        private void PixivCatgoryMenu_ItemInvoked(object sender, HamburgerMenuItemInvokedEventArgs args)
+        {
+            //return;
+            var item = args.InvokedItem;
+            var idx = PixivCatgoryMenu.SelectedIndex;
+            if (item == miAbout)
+            {
+                args.Handled = true;
+                PixivCatgoryMenu.SelectedIndex = idx;
+            }
+            #region Common
+            else if (item == miPixivRecommanded)
+            {
+                ShowImages(PixivPage.Recommanded, false);
+            }
+            else if (item == miPixivLatest)
+            {
+                ShowImages(PixivPage.Latest, false);
+            }
+            else if (item == miPixivTrendingTags)
+            {
+                ShowImages(PixivPage.TrendingTags, false);
+            }
+            #endregion
+            #region Following
+            else if (item == miPixivFollowing)
+            {
+                ShowImages(PixivPage.Follow, false);
+            }
+            else if (item == miPixivFollowingPrivate)
+            {
+                ShowImages(PixivPage.FollowPrivate, false);
+            }
+            #endregion
+            #region Favorite
+            else if (item == miPixivFavorite)
+            {
+                ShowImages(PixivPage.Favorite, false);
+            }
+            else if (item == miPixivFavoritePrivate)
+            {
+                ShowImages(PixivPage.FavoritePrivate, false);
+            }
+            #endregion
+            #region Ranking Day
+            else if (item == miPixivRankingDay)
+            {
+                ShowImages(PixivPage.RankingDay, false);
+            }
+            else if (item == miPixivRankingDayR18)
+            {
+                ShowImages(PixivPage.RankingDayR18, false);
+            }
+            else if (item == miPixivRankingDayMale)
+            {
+                ShowImages(PixivPage.RankingDayMale, false);
+            }
+            else if (item == miPixivRankingDayMaleR18)
+            {
+                ShowImages(PixivPage.RankingDayMaleR18, false);
+            }
+            else if (item == miPixivRankingDayFemale)
+            {
+                ShowImages(PixivPage.RankingDayFemale, false);
+            }
+            else if (item == miPixivRankingDayFemaleR18)
+            {
+                ShowImages(PixivPage.RankingDayFemaleR18, false);
+            }
+            #endregion
+            #region Ranking Day
+            else if (item == miPixivRankingWeek)
+            {
+                ShowImages(PixivPage.RankingWeek, false);
+            }
+            else if (item == miPixivRankingWeekOriginal)
+            {
+                ShowImages(PixivPage.RankingWeekOriginal, false);
+            }
+            else if (item == miPixivRankingWeekRookie)
+            {
+                ShowImages(PixivPage.RankingWeekRookie, false);
+            }
+            else if (item == miPixivRankingWeekR18)
+            {
+                ShowImages(PixivPage.RankingWeekR18, false);
+            }
+            #endregion
+            #region Ranking Month
+            else if (item == miPixivRankingMonth)
+            {
+                ShowImages(PixivPage.RankingMonth, false);
+            }
+            #endregion
+            #region Pixiv Mine
+            else if (item == miPixivMine)
+            {
+                args.Handled = true;
+                PixivCatgoryMenu.SelectedIndex = idx;
+                ShowImages(PixivPage.My, false);
+            }
+            else if (item == miPixivMyFollower)
+            {
+                ShowImages(PixivPage.MyFollowerUser, false);
+            }
+            else if (item == miPixivMyFollowing)
+            {
+                ShowImages(PixivPage.MyFollowingUser, false);
+            }
+            else if (item == miPixivMyFollowingPrivate)
+            {
+                ShowImages(PixivPage.MyFollowingUserPrivate, false);
+            }
+            else if (item == miPixivMyUsers)
+            {
+                ShowImages(PixivPage.MyPixivUser, false);
+            }
+            else if (item == miPixivMyBlacklis)
+            {
+                ShowImages(PixivPage.MyBlacklistUser, false);
+            }
+            #endregion
+        }
     }
 }

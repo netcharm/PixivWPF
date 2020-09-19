@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -476,18 +477,30 @@ namespace PixivWPF.Pages
             }
         }
 
+        private SemaphoreSlim CanExpanding = new SemaphoreSlim(1, 1);
         private async void ResultExpander_Expanded(object sender, RoutedEventArgs e)
         {
-            var tokens = await CommonHelper.ShowLogin();
-            if (tokens == null) return;
-
-            if (DataType is string)
+            if (CanExpanding.Wait(0))
             {
-                var tag = (string)DataType;
-                ShowResultInline(tokens, tag, result_filter);
+                try
+                {
+                    var tokens = await CommonHelper.ShowLogin();
+                    if (tokens == null) return;
+
+                    if (DataType is string)
+                    {
+                        var tag = (string)DataType;
+                        ShowResultInline(tokens, tag, result_filter);
+                    }
+                    if (ResultNextPage is Button)
+                        ResultNextPage.Visibility = Visibility.Visible;
+                }
+                catch (Exception) { }
+                finally
+                {
+                    CanExpanding.Release();
+                }
             }
-            if (ResultNextPage is Button)
-                ResultNextPage.Visibility = Visibility.Visible;
         }
 
         private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)

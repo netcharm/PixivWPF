@@ -60,14 +60,9 @@ namespace PixivWPF.Pages
 
                 window = this.GetActiveWindow();
 
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                var appTheme = appStyle.Item1;
-                var appAccent = appStyle.Item2;
-
-                //headerUser.Foreground = appAccent.Resources["AccentColorBrush"] as Brush;
-                //headerPass.Foreground = headerUser.Foreground;
-                //headerProxy.Foreground = headerUser.Foreground;
-                //chkUseProxy.Foreground = headerUser.Foreground;
+                //var appStyle = ThemeManager.Current.DetectTheme(Application.Current);
+                //var appTheme = appStyle.Item1;
+                //var appAccent = appStyle.Item2;
 
 #if DEBUG
             var logo = System.IO.Path.Combine(Application.Current.GetRoot(), "Assets", "pixiv-logo.png");

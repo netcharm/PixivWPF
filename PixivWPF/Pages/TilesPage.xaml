@@ -23,7 +23,7 @@
         
         <DataTemplate x:Key="ImageTileTemplate" x:Name="ImageTile" x:Uid="ImageTile">
             <StackPanel>
-                <Grid Background="{DynamicResource AccentColorBrush}" 
+                <Grid Background="{DynamicResource MahApps.Brushes.Accent}" 
                       ToolTip="{Binding ToolTip, Mode=OneWay}"
                       Width="128" Tag="{Binding Path='', Mode=OneWay}" Margin="0,4,0,4">
                     <Grid.RowDefinitions>
@@ -32,11 +32,11 @@
                     </Grid.RowDefinitions>
                     <Border Grid.Row="0" x:Name="PART_Mask" Opacity="0.67"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                            Background="{DynamicResource IdealForegroundColorBrush}" BorderBrush="{DynamicResource AccentColorBrush}"/>
+                            Background="{DynamicResource MahApps.Brushes.IdealForeground}" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"/>
                     <mah:ProgressRing Grid.Row="0" x:Name="PART_Progress"
                                       Width="72" Height="72" Opacity="0.67" 
                                       HorizontalAlignment="Center" VerticalAlignment="Center"                         
-                                      Foreground="{DynamicResource AccentColorBrush}"/>
+                                      Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                     <Image Grid.Row="0" x:Name="PART_Thumbnail"
                            Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
                            TargetUpdated="TileImage_TargetUpdated"
@@ -48,23 +48,23 @@
                         Grid.Row="0"
                         Kind="Heart" 
                         Width="28" Height="24" Margin="0,0,6,8" 
-                        Foreground="{DynamicResource IdealForegroundColorBrush}" 
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
                         HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                         Visibility="{Binding FavMarkVisibility, Mode=OneWay}" >
                         <iconPacks:PackIconModern.Effect>
-                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource IdealForegroundColor}" Opacity="1" BlurRadius="9"/>
+                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="9"/>
                         </iconPacks:PackIconModern.Effect>
                     </iconPacks:PackIconModern>
                     <iconPacks:PackIconModern 
                         Grid.Row="0" x:Name="PART_Favorite" 
                         Kind="Heart" 
                         Width="24" Height="24" Margin="0,0,8,8" 
-                        Foreground="{DynamicResource AccentColorBrush}" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                         HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                         Visibility="{Binding FavMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}"
                         TargetUpdated="TileImage_TargetUpdated">
                         <iconPacks:PackIconModern.Effect>
-                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource IdealForegroundColor}" Opacity="1" BlurRadius="5"/>
+                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
                         </iconPacks:PackIconModern.Effect>
                     </iconPacks:PackIconModern>
                     <iconPacks:PackIconModern 
@@ -72,11 +72,11 @@
                         Kind="Check"
                         Width="16" Height="16" Margin="0,0,12,12" 
                         HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                        Foreground="{DynamicResource IdealForegroundColorBrush}"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                         Visibility="{Binding FollowMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}" 
                         TargetUpdated="TileImage_TargetUpdated">
                         <iconPacks:PackIconModern.Effect>
-                            <DropShadowEffect x:Name="PART_Follow_Shadow" ShadowDepth="0" Color="{DynamicResource AccentColor}" Opacity="1" BlurRadius="10"/>
+                            <DropShadowEffect x:Name="PART_Follow_Shadow" ShadowDepth="0" Color="{DynamicResource MahApps.Colors.Accent}" Opacity="1" BlurRadius="10"/>
                         </iconPacks:PackIconModern.Effect>
                     </iconPacks:PackIconModern>
                     <mah:Badged Grid.Row="0" 
@@ -84,7 +84,7 @@
                                 BadgePlacementMode="TopRight" Margin="0,16,16,0"
                                 FontSize="16" FontFamily="Consolas" 
                                 Visibility="{Binding BadgeVisibility, Mode=OneWay}"
-                                BadgeBackground="{DynamicResource AccentColorBrush}" />
+                                BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -92,15 +92,15 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" 
                                    Text="{Binding Subject, Mode=OneWay}" 
-                                   Background="{DynamicResource AccentColorBrush}"
-                                   Foreground="{DynamicResource IdealForegroundColorBrush}"/>
+                                   Background="{DynamicResource MahApps.Brushes.Accent}"
+                                   Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
                         <iconPacks:PackIconModern Grid.Column="1" 
                                                   Kind="Download" x:Name="PART_IllustDownloaded" 
                                                   Width="16" Height="16"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
                                                   SourceUpdated="TileImage_TargetUpdated"
-                                                  Background="{DynamicResource AccentColorBrush}"
-                                                  Foreground="{DynamicResource IdealForegroundColorBrush}"
+                                                  Background="{DynamicResource MahApps.Brushes.Accent}"
+                                                  Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                                   Tag="{Binding IsDownloaded, Mode=OneWay, NotifyOnSourceUpdated=True}"
                                                   Visibility="{Binding IsDownloadedVisibility, Mode=OneWay}"/>
                     </Grid>
@@ -115,11 +115,55 @@
             <Separator />
             <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
         </ContextMenu>-->
+
+        <!--  This is the template for all menu items. In this sample we use the glyph items.  -->
+        <DataTemplate x:Key="HamburgerMenuGlyphItem" DataType="{x:Type mah:HamburgerMenuGlyphItem}">
+            <DockPanel Height="30" LastChildFill="True">
+                <Grid x:Name="IconPart" DockPanel.Dock="Left" Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=CompactPaneLength}">
+                    <Image Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Source="{Binding Glyph}" />
+                </Grid>
+                <TextBlock x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Text="{Binding Label}" />
+            </DockPanel>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=PanePlacement}" Value="Right">
+                    <Setter TargetName="IconPart" Property="DockPanel.Dock" Value="Right" />
+                    <Setter TargetName="TextPart" Property="Margin" Value="8 0 0 0" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+        
+        <!--  This is the template for the option menu item  -->
+        <DataTemplate x:Key="HamburgerMenuIconItem" DataType="{x:Type mah:HamburgerMenuIconItem}">
+            <DockPanel Height="30" LastChildFill="True" ToolTip="{Binding Label}">
+                <ContentControl x:Name="IconPart" DockPanel.Dock="Left" Focusable="True" IsTabStop="False" Content="{Binding Icon}"
+                                Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=CompactPaneLength}" />
+                <TextBlock x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Margin="8,0,0,0" Text="{Binding Label}" />
+            </DockPanel>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=PanePlacement}" Value="Right">
+                    <Setter TargetName="IconPart" Property="DockPanel.Dock" Value="Right" />
+                    <Setter TargetName="TextPart" Property="Margin" Value="8 0 0 0" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!--  This is the template for all menu items. In this sample we use the glyph items.  -->
+        <DataTemplate x:Key="HamburgerMenuItem" DataType="{x:Type mah:HamburgerMenuItem}">
+            <DockPanel Height="30" LastChildFill="True">
+                <TextBlock x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Text="{Binding Label}" />
+            </DockPanel>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=PanePlacement}" Value="Right">
+                    <Setter TargetName="TextPart" Property="Margin" Value="8 0 0 0" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
     </Page.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="694"/>
+            <ColumnDefinition Width="Auto" MinWidth="742"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <!-- Illust List Viewport -->
@@ -128,13 +172,13 @@
             <ListView Grid.Column="0"
                       x:Name="ListImageTiles" x:Uid="ImageTiles"
                       BorderBrush="Transparent"
-                      HorizontalAlignment="Center" VerticalAlignment="Top" Margin="4"
+                      HorizontalAlignment="Center" VerticalAlignment="Top" Margin="48,0,4,0"
                       IsSynchronizedWithCurrentItem="true"
                       ItemsSource="{Binding Source={StaticResource ActiveImageTiles}, IsAsync=True, NotifyOnTargetUpdated=True}" 
                       ItemTemplate="{DynamicResource ImageTileTemplate}"
                       ScrollViewer.IsDeferredScrollingEnabled="False"
                       SelectionMode="Single"
-                      Style="{DynamicResource VirtualisedMetroListView}"
+                      Style="{DynamicResource MahApps.Styles.ListView}"
                       VirtualizingPanel.IsVirtualizing="True"
                       VirtualizingPanel.IsContainerVirtualizable="True"
                       VirtualizingPanel.IsVirtualizingWhenGrouping="True"
@@ -177,13 +221,192 @@
         <mah:ProgressRing Grid.Column="0" 
                           x:Name="ImageTilesWait" 
                           Width="128" Height="128" 
-                          Foreground="{DynamicResource AccentColorBrush}"
+                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
                           Opacity="0.9" Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-        <!-- Illust Preview Viewport -->
-        <Frame Grid.Column="1" Margin="4" x:Name="IllustDetail" x:Uid="IllustDetail"/>
         
+        <!-- Pixiv Catgory Menu -->
+        <mah:HamburgerMenu Grid.Column="0" x:Name="PixivCatgoryMenu"
+                           PanePlacement="Left" DisplayMode="CompactOverlay"
+                           IsPaneOpen="True" ShowSelectionIndicator="True" OpenPaneLength="280"
+                           CanResizeOpenPane="False" VerticalScrollBarOnLeftSide="False"
+                           Foreground="{DynamicResource MahApps.HamburgerMenu.Pane.Foreground}"
+                           Background="{DynamicResource MahApps.HamburgerMenu.Pane.Background}"
+                           PaneBackground="{DynamicResource MahApps.Brushes.Accent}"                           
+                           ItemTemplate="{StaticResource HamburgerMenuIconItem}"
+                           OptionsItemTemplate="{StaticResource HamburgerMenuIconItem}"
+                           ItemInvoked="PixivCatgoryMenu_ItemInvoked">
+            <!--  Header  -->
+            <mah:HamburgerMenu.HamburgerMenuHeaderTemplate>
+                <DataTemplate>
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource MahApps.HamburgerMenu.Pane.Foreground}" Text="Pixiv" />
+                </DataTemplate>
+            </mah:HamburgerMenu.HamburgerMenuHeaderTemplate>
+            <!--  Items  -->
+            <mah:HamburgerMenu.ItemsSource>
+                <mah:HamburgerMenuItemCollection>
+                    <!-- Common -->
+                    <mah:HamburgerMenuIconItem Label="Recommanded" x:Name="miPixivRecommanded" x:Uid="miPixivRecommanded" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Home" />-->
+                            <TextBlock Text="&#xE10F;" FontSize="22" FontFamily="Segoe UI Symbol" 
+                               Foreground="{DynamicResource MahApps.HamburgerMenu.Pane.Foreground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </mah:HamburgerMenuIconItem.Icon>
+                        <mah:HamburgerMenuIconItem.Tag>
+                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="28" FontWeight="Bold">Recommanded</TextBlock>
+                        </mah:HamburgerMenuIconItem.Tag>                        
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Latest" x:Name="miPixivLatest" x:Uid="miPixivLatest" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="ImageMultiple" />
+                        </mah:HamburgerMenuIconItem.Icon>                        
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Trending Tags" x:Name="miPixivTrendingTags" x:Uid="miPixivTrendingTags" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="GraphLineUp" />
+                        </mah:HamburgerMenuIconItem.Icon>                        
+                    </mah:HamburgerMenuIconItem>
+                    <!-- Follwing -->
+                    <mah:HamburgerMenuSeparatorItem />
+                    <mah:HamburgerMenuIconItem Label="Following" x:Name="miPixivFollowing" x:Uid="miPixivFollowing" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Heart" />
+                        </mah:HamburgerMenuIconItem.Icon>                        
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Following Private" x:Name="miPixivFollowingPrivate" x:Uid="miPixivFollowingPrivate" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PageHeart" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <!-- Favorite -->
+                    <mah:HamburgerMenuSeparatorItem />
+                    <mah:HamburgerMenuIconItem Label="Favorite" x:Name="miPixivFavorite" x:Uid="miPixivFavorite" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Check" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Favorite Private" x:Name="miPixivFavoritePrivate" x:Uid="miPixivFavoritePrivate" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PageCheck" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <!-- Ranking Day -->
+                    <mah:HamburgerMenuSeparatorItem />
+                    <mah:HamburgerMenuIconItem Label="Ranking Day" x:Name="miPixivRankingDay" x:Uid="miPixivRankingDay" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Ranking Day R18" x:Name="miPixivRankingDayR18" x:Uid="miPixivRankingDayR18" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Ranking Day Male" x:Name="miPixivRankingDayMale" x:Uid="miPixivRankingDayMale" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Ranking Day Male R18" x:Name="miPixivRankingDayMaleR18" x:Uid="miPixivRankingDayMaleR18" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Ranking Day Female" x:Name="miPixivRankingDayFemale" x:Uid="miPixivRankingDayFemale" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Ranking Day Female R18" x:Name="miPixivRankingDayFemaleR18" x:Uid="miPixivRankingDayFemaleR18" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <!-- Ranking Week -->
+                    <mah:HamburgerMenuSeparatorItem />
+                    <mah:HamburgerMenuIconItem Label="Ranking Week" x:Name="miPixivRankingWeek" x:Uid="miPixivRankingWeek" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Ranking Week Original" x:Name="miPixivRankingWeekOriginal" x:Uid="miPixivRankingWeekOriginal" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Ranking Week Rookie" x:Name="miPixivRankingWeekRookie" x:Uid="miPixivRankingWeekRookie" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Ranking Week R18" x:Name="miPixivRankingWeekR18" x:Uid="miPixivRankingWeekR18" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <!-- Ranking Month -->
+                    <mah:HamburgerMenuSeparatorItem />
+                    <mah:HamburgerMenuIconItem Label="Ranking Month" x:Name="miPixivRankingMonth" x:Uid="miPixivRankingMonth" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarMonth" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                </mah:HamburgerMenuItemCollection>
+            </mah:HamburgerMenu.ItemsSource>
+
+            <!--  Options  -->
+            <mah:HamburgerMenu.OptionsItemsSource>
+                <mah:HamburgerMenuItemCollection>
+                    <mah:HamburgerMenuSeparatorItem />
+                    <mah:HamburgerMenuIconItem Label="My Information" x:Name="miPixivMine" x:Uid="miPixivMine" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="User" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="My Follower Users" x:Name="miPixivMyFollower" x:Uid="miPixivMyFollower" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PeopleMultiple" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="My Following Users" x:Name="miPixivMyFollowing" x:Uid="miPixivMyFollowing" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PeopleMultiple" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="My Following Users Private" x:Name="miPixivMyFollowingPrivate" x:Uid="miPixivMyFollowingPrivate" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PeopleMultiple" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="My Pixiv Users" x:Name="miPixivMyUsers" x:Uid="miPixivMyUsers" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PeopleMultiple" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="My Blacklist Users" x:Name="miPixivMyBlacklis" x:Uid="miPixivMyBlacklis" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PeopleMultiple" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuSeparatorItem />
+                    <mah:HamburgerMenuIconItem Label="About" x:Name="miAbout" x:Uid="miAbout" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Information" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                        <mah:HamburgerMenuIconItem.Tag>
+                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="28" FontWeight="Bold">About</TextBlock>
+                        </mah:HamburgerMenuIconItem.Tag>
+                    </mah:HamburgerMenuIconItem>
+                </mah:HamburgerMenuItemCollection>
+            </mah:HamburgerMenu.OptionsItemsSource>
+        </mah:HamburgerMenu>
+
+
+        <!-- Illust Preview Viewport -->
+        <Frame Grid.Column="1" Margin="0" x:Name="IllustDetail" x:Uid="IllustDetail"/>
+
     </Grid>
 
 </Page>

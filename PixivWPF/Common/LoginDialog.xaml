@@ -14,8 +14,8 @@
     ShowMaxRestoreButton="False"
     ShowMinButton="False"
     MaxWidth="400" MaxHeight="550"
-    BorderBrush="{DynamicResource AccentColorBrush}"
-    GlowBrush="{DynamicResource AccentColorBrush}"
+    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+    GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
     BorderThickness="1"
     WindowStartupLocation="CenterScreen">
     

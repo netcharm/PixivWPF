@@ -29,7 +29,7 @@ namespace PixivWPF
         public Frame MainContent = null;
 
         private Pages.TilesPage pagetiles = null;
-        private Pages.NavPage pagenav = null;
+        //private Pages.NavPage pagenav = null;
 
         private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {"a", "b" };
         public ObservableCollection<string> AutoSuggestList
@@ -62,9 +62,26 @@ namespace PixivWPF
 
         public void UpdateTheme()
         {
-            if (pagenav is Pages.NavPage) pagenav.CheckPage();
+            //if (pagenav is Pages.NavPage) pagenav.CheckPage();
             if (pagetiles is Pages.TilesPage) pagetiles.UpdateTheme();
-            CommonHelper.UpdateTheme();
+        }
+
+        public void UpdateTitle(string title)
+        {
+            if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
+            {
+                NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
+                CommandNavDate.IsEnabled = true;
+            }
+            else if( title.Equals("My"))
+            {
+
+            }
+            else
+            {
+                NavPageTitle.Text = title;
+                CommandNavDate.IsEnabled = false;
+            }
         }
 
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -204,26 +221,29 @@ namespace PixivWPF
 
             SearchBox.ItemsSource = AutoSuggestList;
 
-            CommandToggleTheme.ItemsSource = Common.Theme.Accents;
-            CommandToggleTheme.SelectedIndex = Common.Theme.Accents.IndexOf(Common.Theme.CurrentAccent);
+            Application.Current.SetThemeSync();
+            CommandToggleTheme.ItemsSource = Application.Current.GetAccents();
+            CommandToggleTheme.SelectedIndex = CommandToggleTheme.Items.IndexOf(Application.Current.CurrentAccent());
 
             MainContent = ContentFrame;
 
             pagetiles = new Pages.TilesPage() { FontFamily = FontFamily, Tag = ContentFrame };
-            pagenav = new Pages.NavPage() { FontFamily = FontFamily, Tag = pagetiles, NavFlyout = NavFlyout };
+            //pagenav = new Pages.NavPage() { FontFamily = FontFamily, Tag = pagetiles, NavFlyout = NavFlyout };
 
-            NavFlyout.Content = pagenav;
+            //NavFlyout.Content = pagenav;
             //NavFlyout.Theme = FlyoutTheme.Adapt;
-            NavFlyout.Theme = FlyoutTheme.Accent;
-            NavFlyout.Opacity = 0.95;
+            //NavFlyout.Theme = FlyoutTheme.Accent;
+            //NavFlyout.Opacity = 0.95;
 
             ContentFrame.Content = pagetiles;
-            NavFrame.Content = pagenav;
+            //NavFrame.Content = pagenav;
 
             ContentFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
-            NavFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
+            //NavFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
 
             NavPageTitle.Text = pagetiles.TargetPage.ToString();
+
+            //PixivCatgoryMenu.Content = pagenav;
 
             LastWindowStates.Enqueue(WindowState.Normal);
 
@@ -339,32 +359,20 @@ namespace PixivWPF
         {
             if (e.NewValue is PixivPage)
             {
-                var title = e.NewValue.ToString();
-                if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
-                    CommandNavDate.IsEnabled = true;
-                }
-                else
-                {
-                    NavPageTitle.Text = title;
-                    CommandNavDate.IsEnabled = false;
-                }
+                UpdateTitle(e.NewValue.ToString());
             }
         }
 
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
-            Common.Theme.Toggle();
-            UpdateTheme();
+            Application.Current.ToggleTheme();
         }
 
         private void CommandToggleTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if(CommandToggleTheme.SelectedIndex>=0 && CommandToggleTheme.SelectedIndex< CommandToggleTheme.Items.Count)
             {
-                Common.Theme.CurrentAccent = Common.Theme.Accents[CommandToggleTheme.SelectedIndex];
-                UpdateTheme();
+                Application.Current.SetAccent(CommandToggleTheme.SelectedValue.ToString());
             }
         }
 
@@ -382,7 +390,7 @@ namespace PixivWPF
 
         private void CommandNav_Click(object sender, RoutedEventArgs e)
         {
-            NavFlyout.IsOpen = !NavFlyout.IsOpen;
+            //NavFlyout.IsOpen = !NavFlyout.IsOpen;
         }
 
         internal void CommandNavRefresh_Click(object sender, RoutedEventArgs e)

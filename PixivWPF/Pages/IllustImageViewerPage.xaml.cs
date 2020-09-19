@@ -173,7 +173,7 @@ namespace PixivWPF.Pages
             window = Window.GetWindow(this);
             if (window is Window)
             {
-                var titleheight = window is MetroWindow ? (window as MetroWindow).TitlebarHeight : 0;
+                var titleheight = window is MetroWindow ? (window as MetroWindow).TitleBarHeight : 0;
                 window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
                 window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom + (32 - titleheight % 32);
             }

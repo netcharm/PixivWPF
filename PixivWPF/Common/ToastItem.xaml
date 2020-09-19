@@ -11,10 +11,10 @@
              xmlns:local="clr-namespace:PixivWPF.Common"
              x:Name="ToastWindow"
              Loaded="Toast_Loaded"
-             BorderBrush="{DynamicResource AccentColorBrush}"
+             BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
              BorderThickness="1"
              mc:Ignorable="d"
-             Background="{DynamicResource AccentColorBrush}"
+             Background="{DynamicResource MahApps.Brushes.Accent}"
              VisualTextRenderingMode="Auto"
              RenderOptions.BitmapScalingMode="HighQuality"
              RenderOptions.CachingHint="Cache"
@@ -92,7 +92,7 @@
                 </Button>
                 <TextBlock Grid.Row="1" Grid.Column="1" Margin="5"
                            Text="{Binding Path=Message}"
-                           Foreground="{DynamicResource IdealForegroundColorBrush}"
+                           Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                            TextOptions.TextFormattingMode="Display"
                            VerticalAlignment="Stretch"                             
                            TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
@@ -102,13 +102,12 @@
                             ToolTip="Open File Folder" Tag="{Binding Tag, Mode=OneWay}"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Style="{DynamicResource SquareButtonStyle}"  BorderThickness="1"
-                            BorderBrush="{DynamicResource AccentColorBrush}"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}"
-                            Background="Transparent"
-                            mah:ButtonHelper.PreserveTextCase="True">
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"  BorderThickness="1"
+                            BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                            Background="Transparent">
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconModern x:Name="ButtonOpenFolderIcon" Kind="FolderOpen" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                            <iconPacks:PackIconModern x:Name="ButtonOpenFolderIcon" Kind="FolderOpen" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
                             <TextBlock x:Name="ButtonOpenFolderLabel" Text="Open Folder" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -116,13 +115,12 @@
                             ToolTip="Open File With Default Application" Tag="{Binding Tag, Mode=OneWay}"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                            BorderBrush="{DynamicResource AccentColorBrush}"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" 
-                            Background="Transparent"
-                            mah:ButtonHelper.PreserveTextCase="True">
+                            Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                            BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
+                            Background="Transparent">
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconModern x:Name="ButtonOpenFileIcon" Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                            <iconPacks:PackIconModern x:Name="ButtonOpenFileIcon" Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
                             <TextBlock x:Name="ButtonOpenFileLabel" Text="View File" Margin="8,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -130,13 +128,12 @@
                             ToolTip="Confirm It!"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Style="{DynamicResource SquareButtonStyle}"  BorderThickness="1"
-                            BorderBrush="{DynamicResource AccentColorBrush}"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}"
-                            Background="Transparent"
-                            mah:ButtonHelper.PreserveTextCase="True">
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"  BorderThickness="1"
+                            BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                            Background="Transparent">
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconModern x:Name="ButtonOKIcon" Kind="Check" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                            <iconPacks:PackIconModern x:Name="ButtonOKIcon" Kind="Check" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
                             <TextBlock x:Name="ButtonOKLabel" Text="OK" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -144,13 +141,12 @@
                             ToolTip="Cancel It!"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Style="{DynamicResource SquareButtonStyle}"  BorderThickness="1"
-                            BorderBrush="{DynamicResource AccentColorBrush}"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}"
-                            Background="Transparent"
-                            mah:ButtonHelper.PreserveTextCase="True">
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"  BorderThickness="1"
+                            BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                            Background="Transparent">
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconModern x:Name="ButtonCancelIcon" Kind="Cancel" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                            <iconPacks:PackIconModern x:Name="ButtonCancelIcon" Kind="Cancel" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
                             <TextBlock x:Name="ButtonCancelLabel" Text="Cancel" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>

@@ -65,8 +65,8 @@ namespace PixivWPF.Common
 
             SearchBox.ItemsSource = AutoSuggestList;
 
-            CommandToggleTheme.ItemsSource = Theme.Accents;
-            CommandToggleTheme.SelectedIndex = Theme.Accents.IndexOf(Theme.CurrentAccent);
+            CommandToggleTheme.ItemsSource = Application.Current.GetAccents();
+            CommandToggleTheme.SelectedIndex = CommandToggleTheme.Items.IndexOf(Application.Current.CurrentAccent());
 
             //Topmost = true;
             ShowActivated = true;
@@ -218,7 +218,7 @@ namespace PixivWPF.Common
         {
             if (CommandToggleTheme.SelectedIndex >= 0 && CommandToggleTheme.SelectedIndex < CommandToggleTheme.Items.Count)
             {
-                Theme.CurrentAccent = Theme.Accents[CommandToggleTheme.SelectedIndex];
+                Application.Current.SetAccent(CommandToggleTheme.SelectedValue.ToString());
             }
         }
 

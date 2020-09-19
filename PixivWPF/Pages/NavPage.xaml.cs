@@ -173,8 +173,9 @@ namespace PixivWPF.Pages
 
             if (NavFlyout is MahApps.Metro.Controls.Flyout)
             {
-                NavFlyout.Theme = MahApps.Metro.Controls.FlyoutTheme.Adapt;
-                NavFlyout.Theme = MahApps.Metro.Controls.FlyoutTheme.Accent;
+                //NavFlyout.Theme = MahApps.Metro.Controls.FlyoutTheme.Adapt;
+                //NavFlyout.Theme = MahApps.Metro.Controls.FlyoutTheme.Accent;
+                //NavFlyout.bac
                 NavFlyout.DataContext = page;
                 //NavFlyout.Opacity = 0.95;
             }
@@ -358,8 +359,7 @@ namespace PixivWPF.Pages
             {
                 if(cbAccent.SelectedValue is string)
                 {
-                    var accent = cbAccent.SelectedValue as string;
-                    Theme.CurrentAccent = accent;
+                    Theme.CurrentAccent = cbAccent.SelectedValue.ToString();
                     CheckPage();
                 }
             }

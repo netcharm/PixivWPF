@@ -1,8 +1,8 @@
 ﻿<Page x:Class="PixivWPF.Pages.IllustDetailPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:local="clr-namespace:PixivWPF.Pages"
       xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
@@ -25,100 +25,100 @@
         <ContextMenu x:Name="MenuGallaryAction" x:Key="MenuGallaryAction" Opened="ActionMenu_Opened">
             <MenuItem x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionCopyIllustID_Click" >
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionOpenIllust" Header="Open Selected Illusts" Click="ActionOpenSelectedIllust_Click" >
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionReadIllustTitle" Header="Read Selected Illusts Title" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource AccentColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />
             <MenuItem x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionSendToOtherInstance_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionSendToOtherInstance_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />
             <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="ActionRefreshIllusts_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionRefreshThumb" Header="Refresh Thumbnails" Click="ActionRefreshIllusts_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="ImageMultiple" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="ImageMultiple" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionNavPageSeparator"/>
             <MenuItem x:Uid="ActionPrevPage" Header="Open Previous Page" Click="ActionPrevPage_Click" >
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>                        
             <MenuItem x:Uid="ActionNextPage" Header="Open Next Page" Click="ActionNextPage_Click" >
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />
             <MenuItem x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="ActionSaveIllusts_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionSaveIllustsAll" Header="Save Selected Illusts (All Pages)" Click="ActionSaveIllustsAll_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illusts" Click="ActionOpenDownloaded_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionLikeIllustSeparator" />
             <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>                
             </MenuItem>
             <MenuItem x:Uid="ActionLikeIllustPrivate" Header="Bookmark Selected Private" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionUnLikeIllust" Header="Un-Bookmark Selected" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="HeartOutline" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="HeartOutline" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Uid="ActionLikeUserSeparator" />
             <MenuItem x:Uid="ActionLikeUser" Header="Follow Selected" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionLikeUserPrivate" Header="Follow Selected Private" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionUnLikeUser" Header="Un-Follow Selected" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Add" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Add" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
@@ -126,7 +126,7 @@
             <MenuItem x:Name="miSpeechAuto" x:Uid="SpeechAuto" Header="Auto Detect" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE164;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource AccentColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
@@ -134,35 +134,35 @@
             <MenuItem x:Name="miSpeechChineseS" x:Uid="SpeechChineseS" Header="ChineseS" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE88D;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource AccentColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Name="miSpeechChineseT" x:Uid="SpeechChineseT" Header="ChineseT" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE88C;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource AccentColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Name="miSpeechJapaness" x:Uid="SpeechJapaness" Header="Japanese" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE986;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource AccentColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Name="miSpeechKorean" x:Uid="SpeechKorean" Header="Korean" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE97D;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource AccentColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Name="miSpeechEnglish" x:Uid="SpeechEnglish" Header="English" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE97E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource AccentColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
@@ -170,7 +170,7 @@
             <MenuItem x:Name="miSendToInstance" x:Uid="SendToInstance" Header="Send Selected" ToolTip="Send Selected To Other Instance" Click="ActionSendToInstance_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE1D7;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource AccentColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
@@ -178,7 +178,7 @@
             <MenuItem x:Name="miRefresh" x:Uid="Refresh" Header="Refresh" ToolTip="Refresh It!" Click="ActionRefresh_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource AccentColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
@@ -225,40 +225,40 @@
                             <MenuItem x:Name="PreviewCopyIllustID" x:Uid="ActionCopyIllustID" 
                                           Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
                                 <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                             <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
                                 <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                             <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
                                 <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator/>
                             <MenuItem x:Name="PreviewSendIllustToInstance" x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionSendToOtherInstance_Click">
                                 <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                             <MenuItem x:Name="PreviewSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionSendToOtherInstance_Click">
                                 <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>                            
                             <Separator/>
                             <MenuItem x:Name="PreviewRefresh" x:Uid="ActionRefreshPreview" Header="Refresh Illust Preview" Click="ActionRefreshPreview_Click">
                                 <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator/>
                             <MenuItem x:Name="PreviewOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illust" Click="ActionOpenIllust_Click">
                                 <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                         </ContextMenu>
@@ -273,8 +273,8 @@
                                 Width="auto" Visibility="Collapsed"
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                 HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
-                                Background="Transparent" Foreground="{DynamicResource AccentColorBrush}" 
-                                BorderThickness="0" BorderBrush="{DynamicResource AccentColorBrush}"
+                                Background="Transparent" Foreground="{DynamicResource MahApps.Brushes.Accent}" 
+                                BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                                 Click="SubPageNav_Clicked">
                             <Button.Content>
                                 <iconPacks:PackIconModern Kind="NavigatePrevious" Width="32" Height="32" />
@@ -284,13 +284,18 @@
                                 Width="auto" Visibility="Collapsed"
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                 HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                                Background="Transparent" Foreground="{DynamicResource AccentColorBrush}" 
-                                BorderThickness="0" BorderBrush="{DynamicResource AccentColorBrush}"
+                                Background="Transparent" Foreground="{DynamicResource MahApps.Brushes.Accent}" 
+                                BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                                 Click="SubPageNav_Clicked">
                             <Button.Content>
                                 <iconPacks:PackIconModern Kind="NavigateNext" Width="32" Height="32" />
                             </Button.Content>
                         </Button>
+                        <mah:ProgressRing Grid.Column="1" x:Name="PreviewWait"
+                                          Width="64" Height="64" Opacity="0.67" 
+                                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                          Visibility="Hidden"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         <Rectangle Grid.Column="0" Grid.ColumnSpan="3" x:Name="PreviewRect" x:Uid="PreviewRect"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 
                                    MouseDown="Preview_MouseDown" />
@@ -300,12 +305,7 @@
                             BadgePlacementMode="BottomRight" Margin="0,0,16,16" 
                             FontSize="16" FontFamily="Consolas" 
                             Visibility="{Binding Badge}" 
-                            BadgeBackground="{DynamicResource AccentColorBrush}" />
-                <mah:ProgressRing Grid.Row="0" x:Name="PreviewWait"
-                          Width="64" Height="64" Opacity="0.67" 
-                          Foreground="{DynamicResource AccentColorBrush}"
-                          Visibility="Hidden"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
 
                 <!-- Illust Author Info -->
                 <Grid Grid.Row="1" Margin="0,8,0,0">
@@ -323,7 +323,7 @@
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <mah:ProgressRing Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvatorWait"
                           Width="48" Height="48" Opacity="0.67" 
-                          Foreground="{DynamicResource AccentColorBrush}"
+                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInfo" x:Uid="btnAuthorInto"
@@ -338,7 +338,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,0,0"
                                    ContextMenu="{DynamicResource MenuSpeech}" MouseLeftButtonDown="IllustInfo_MouseLeftButtonDown"
-                               Foreground="{DynamicResource LabelTextBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Text}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustDateInfo" Visibility="Collapsed"
                                     MinWidth="24"
@@ -346,10 +346,10 @@
                             <iconPacks:PackIconModern 
                                 Kind="CalendarDay" x:Name="IllustDateIcon"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
-                                Foreground="{DynamicResource AccentColorBrush}" 
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                                 Width="16" Height="16"/>
                             <TextBlock x:Name="IllustDate" Margin="2,0,4,0" 
-                               Foreground="{DynamicResource LabelTextBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Text}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>
@@ -361,8 +361,8 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
                                    ContextMenu="{DynamicResource MenuSpeech}" MouseLeftButtonDown="IllustInfo_MouseLeftButtonDown"
-                               Foreground="{DynamicResource LabelTextBrush}"
-                               HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                   Foreground="{DynamicResource MahApps.Brushes.Text}"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
                             <iconPacks:PackIconModern 
@@ -370,32 +370,32 @@
                                 MouseDoubleClick="IllustDownloaded_MouseDoubleClick"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 Background="Transparent"
-                                Foreground="{DynamicResource AccentColorBrush}" 
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                                 Margin="2,0,4,0" 
                                 Width="16" Height="16"/>
                             <iconPacks:PackIconModern 
                                 Kind="ImageAnts" x:Name="IllustSizeIcon"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
-                                Foreground="{DynamicResource AccentColorBrush}" 
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                                 Width="16" Height="16"/>
                             <TextBlock x:Name="IllustSize" Margin="2,0,4,0" 
-                               Foreground="{DynamicResource LabelTextBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Text}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             <iconPacks:PackIconModern 
                                 Kind="Eye" x:Name="IllustViewedIcon"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
-                                Foreground="{DynamicResource AccentColorBrush}" 
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                                 Width="16" Height="16"/>
                             <TextBlock x:Name="IllustViewed" Margin="2,0,4,0" 
-                               Foreground="{DynamicResource LabelTextBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Text}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             <iconPacks:PackIconModern 
                                 Kind="Heart" x:Name="IllustFavoritedIcon"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
-                                Foreground="{DynamicResource AccentColorBrush}" 
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                                 Width="16" Height="16"/>
                             <TextBlock x:Name="IllustFavorited" Margin="2,0,4,0" 
-                               Foreground="{DynamicResource LabelTextBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.Text}"
                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>
@@ -409,15 +409,15 @@
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Tag="{x:Static iconPacks:PackIconModernKind.HeartOutline}"
-                                Style="{DynamicResource MetroCircleButtonStyle}"
-                                BorderBrush="{DynamicResource AccentColorBrush}"
-                                Foreground="{DynamicResource LabelTextBrush}">
+                                Style="{DynamicResource MahApps.Styles.Button.Circle}"
+                                BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                                Foreground="{DynamicResource MahApps.Brushes.Text}">
                             <Button.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem x:Name="ActionBookmarkIllustPublic" x:Uid="ActionPublic" 
                                           Header="Public" Click="ActionBookmarkIllust_Click" >
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource AccentColorBrush}" Width="22" Height="22" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="22" Height="22" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>                                        
                                     </MenuItem>
                                     <MenuItem x:Name="ActionBookmarkIllustPrivate" x:Uid="ActionPrivate" 
@@ -427,11 +427,11 @@
                                                 <iconPacks:PackIconModern 
                                                                           Kind="Heart" Width="22" Height="22" 
                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                          Foreground="{DynamicResource AccentColorBrush}"/>
+                                                                          Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                                                 <iconPacks:PackIconModern 
                                                                           Kind="Lock" Width="8" Height="8"
                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                          Foreground="{DynamicResource IdealForegroundColorBrush}"/>
+                                                                          Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
                                             </Grid>
                                         </MenuItem.Icon>
                                     </MenuItem>                                        
@@ -439,7 +439,7 @@
                                     <MenuItem x:Name="ActionBookmarkIllustRemove" x:Uid="ActionRemove" 
                                           Header="Remove" Click="ActionBookmarkIllust_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="HeartOutline" Foreground="{DynamicResource AccentColorBrush}" Width="22" Height="22"  Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="HeartOutline" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="22" Height="22"  Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                 </ContextMenu>
@@ -447,11 +447,11 @@
                             <Grid>
                                 <iconPacks:PackIconModern x:Name="IsBookmarked" Width="32" Height="32" 
                                     Kind="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}"
-                                    Foreground="{DynamicResource AccentColorBrush}"/>
+                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                                 <iconPacks:PackIconModern x:Name="IsPrivateBookmarked" Width="16" Height="16"
                                     Visibility="Collapsed"
                                     Kind="Lock" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                    Foreground="{DynamicResource AccentColorBrush}" 
+                                    Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                                     Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" />
                             </Grid>
                         </Button>
@@ -462,15 +462,15 @@
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Tag="{x:Static iconPacks:PackIconModernKind.Add}"
-                                Style="{DynamicResource MetroCircleButtonStyle}"
-                                BorderBrush="{DynamicResource AccentColorBrush}"
-                                Foreground="{DynamicResource LabelTextBrush}">
+                                Style="{DynamicResource MahApps.Styles.Button.Circle}"
+                                BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                                Foreground="{DynamicResource MahApps.Brushes.Text}">
                             <Button.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem x:Name="ActionFollowAuthorPublic" x:Uid="ActionPublic" 
                                           Header="Public" Click="ActionFollowAuthor_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource AccentColorBrush}" Width="22" Height="22" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="22" Height="22" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionFollowAuthorPrivate" x:Uid="ActionPrivate" 
@@ -480,11 +480,11 @@
                                                 <iconPacks:PackIconModern 
                                                                           Kind="Check" Width="22" Height="22" 
                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                          Foreground="{DynamicResource AccentColorBrush}"/>
+                                                                          Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                                                 <iconPacks:PackIconModern 
                                                                           Kind="Lock" Width="8" Height="8" Margin="14,12,0,0"
                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                          Foreground="{DynamicResource AccentColorBrush}"/>
+                                                                          Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                                             </Grid>
                                         </MenuItem.Icon>
                                     </MenuItem>
@@ -492,137 +492,140 @@
                                     <MenuItem x:Name="ActionFollowAuthorRemove" x:Uid="ActionRemove" 
                                           Header="Remove" Click="ActionFollowAuthor_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="Add" Foreground="{DynamicResource AccentColorBrush}" Width="22" Height="22" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Add" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="22" Height="22" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                 </ContextMenu>
                             </Button.ContextMenu>
                             <iconPacks:PackIconModern Kind="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}" 
-                                                      Foreground="{DynamicResource AccentColorBrush}" Width="32" Height="32"/>
+                                                      Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="32" Height="32"/>
                         </Button>
+                        <mah:DropDownButton Visibility="Collapsed">
+                            
+                        </mah:DropDownButton>
                         <Button x:Name="IllustActions" x:Uid="IllustActions" Margin="4,0,0,0" Click="ActionIllust_Click"
                                 ToolTip="Illust Actions"
                                 ContextMenuOpening="IllustActions_ContextMenuOpening"
                                 Visibility="Hidden" Width="64" Height="64"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                Style="{DynamicResource MetroCircleButtonStyle}"
-                                BorderBrush="{DynamicResource AccentColorBrush}"
-                                Foreground="{DynamicResource LabelTextBrush}">
+                                Style="{DynamicResource MahApps.Styles.Button.Circle}"
+                                BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                                Foreground="{DynamicResource MahApps.Brushes.Text}">
                             <Button.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem x:Name="ActionIllustNewWindow" x:Uid="ActionIllustNewWindow" 
                                           Header="Open Illust in New Window" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="NewWindow" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="NewWindow" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionIllustWebPage" x:Uid="ActionIllustWebPage" 
                                           Header="Open Illust in Browser" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="BrowserWire" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="BrowserWire" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionIllustWebLink" x:Uid="ActionIllustWebLink" 
                                           Header="Copy Illust Weblink" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator />
                                     <MenuItem x:Name="ActionSendIllustToInstance" x:Uid="ActionSendIllustToInstance" 
                                           Header="Send Illust To Other Instance" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" 
                                           Header="Send Author To Other Instance" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>                                    
                                     <Separator />
                                     <MenuItem x:Name="ActionCopyIllustTitle" x:Uid="ActionCopyIllustTitle"
                                           Header="Copy Illust Title" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionCopyIllustAuthor" x:Uid="ActionCopyIllustAuthor" 
                                           Header="Copy Author Name" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" 
                                           Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionCopyAuthorID" x:Uid="ActionCopyIllustID" 
                                           Header="Copy Author ID" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator />
                                     <MenuItem x:Name="ActionIllustAuthorInfo" x:Uid="ActionIllustAuthorInfo" 
                                           Header="Author Detail" Visibility="Visible" Click="ActionIllustAuthourInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="PeopleProfile" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="PeopleProfile" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionIllustAuthorFollowing" x:Uid="ActionIllustAuthorFollowing" 
                                           Header="Author Following" Visibility="Collapsed" Click="ActionIllustAuthourInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionIllustAuthorFollowed" x:Uid="ActionIllustAuthorFollowed"
                                           Header="Author Followed" Visibility="Collapsed" Click="ActionIllustAuthourInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="Checkmark" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Checkmark" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionIllustAuthorFavorite" x:Uid="ActionIllustAuthorFavorite"
                                           Header="Author Favorites" Visibility="Collapsed" Click="ActionIllustAuthourInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionCopyIllustDate" x:Uid="ActionCopyIllustDate"
                                           Header="Illust Date" Visibility="Visible" Click="ActionIllustInfo_Click" ToolTip="Click to copy illust date">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="CalendarDay" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="CalendarDay" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator />
                                     <MenuItem x:Name="ActionIllustSet" x:Uid="ActionIllustPages" 
                                           Header="Show Illust Pages" Click="ActionShowIllustPages_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="ImageMultiple" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="ImageMultiple" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" 
                                           Header="Show Relative Illusts" Click="ActionShowRelative_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="ImageGallery" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="ImageGallery" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionIllustFavorite" x:Uid="ActionIllustFavorite" 
                                           Header="Show Favorite Illusts" Click="ActionShowFavorite_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="ImageGallery" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="ImageGallery" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator/>
                                     <MenuItem x:Name="ActionRefresh" x:Uid="Refresh Illust" Header="Refresh Illust" ToolTip="Refresh Illust" Click="ActionRefresh_Click" >
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                             <!--<TextBlock Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                                                       Foreground="{DynamicResource AccentColorBrush}"
+                                                       Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
                                         </MenuItem.Icon>
                                     </MenuItem>
@@ -630,18 +633,18 @@
                                     <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" 
                                           Header="Save Selected Illust Pages" Click="ActionSaveIllust_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionSaveAllIllust" x:Uid="ActionSaveAllIllust" 
                                           Header="Save All Illust Pages" Click="ActionSaveAllIllust_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                                            <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                 </ContextMenu>
                             </Button.ContextMenu>
-                            <iconPacks:PackIconModern Kind="List" Foreground="{DynamicResource AccentColorBrush}" Width="32" Height="32"/>
+                            <iconPacks:PackIconModern Kind="List" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="32" Height="32"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -663,13 +666,13 @@
                     <Button
                         x:Name="btnIllustTagPedia" x:Uid="PixivPedia" ToolTip="Query Tag in Pixiv Pedia"
                         Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
-                        Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                        Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionOpenPedia_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE1D3;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource IdealForegroundColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>
                     </Button>
@@ -677,13 +680,13 @@
                         x:Name="btnIllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
                         Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                         ContextMenu="{DynamicResource MenuSpeech}"
-                        Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                        Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                        Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionSpeech_Click">
                         <Button.Content>
                             <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource IdealForegroundColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>
                     </Button>
@@ -703,13 +706,13 @@
                         x:Name="btnIllustDescSpeech" x:Uid="Speech"
                         Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                         ContextMenu="{DynamicResource MenuSpeech}"
-                        Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                        Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                        Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionSpeech_Click">
                     <Button.Content>
                         <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource IdealForegroundColorBrush}"
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button.Content>
                 </Button>
@@ -736,16 +739,16 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="btnSubIllustPrevPages" x:Uid="SubIllustPrevPages"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="SubIllustPagesNav_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
                     <Button x:Name="btnSubIllustNextPages" x:Uid="SubIllustNextPages"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="SubIllustPagesNav_Click">
                         <iconPacks:PackIconModern Kind="NavigateNext" />
@@ -769,16 +772,16 @@
                 <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="RelativePrevPage" x:Uid="RelativePrevPage"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="RelativePrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
                     <Button x:Name="RelativeNextPage" x:Uid="RelativeNextPage"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="RelativeNextPage_Click">
                         <iconPacks:PackIconModern Kind="NavigateNext" />
@@ -803,16 +806,16 @@
                 <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="FavoritePrevPage" x:Uid="FavoritePrevPage"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="FavoritePrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
                     <Button x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="FavoriteNextPage_Click">
                         <iconPacks:PackIconModern Kind="NavigateNext" />
@@ -834,16 +837,16 @@
                             Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="CommentsPrevPage" x:Uid="CommentsPrevPage" 
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="CommentsPrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
                     <Button x:Name="CommentsNextPage" x:Uid="CommentsNextPage" 
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MetroCircleButtonStyle}" Background="Transparent"
-                            Foreground="{DynamicResource IdealForegroundColorBrush}" BorderThickness="0"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="CommentsNextPage_Click">
                         <iconPacks:PackIconModern Kind="NavigateNext" />
@@ -856,7 +859,7 @@
         <!-- Illust Open Progress Prompt -->
         <mah:ProgressRing Grid.Column="0" x:Name="IllustDetailWait"
                           Width="128" Height="128" Opacity="0.62" 
-                          Foreground="{DynamicResource AccentColorBrush}"
+                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>

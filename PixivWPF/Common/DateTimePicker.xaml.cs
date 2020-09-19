@@ -55,7 +55,7 @@ namespace PixivWPF.Common
                 CommonHelper.SelectedDate = DatePicker.SelectedDate.Value;
         }
 
-        private void DatePicker_SelectedDateChanged(object sender, MahApps.Metro.Controls.TimePickerBaseSelectionChangedEventArgs<DateTime?> e)
+        private void DatePicker_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
         {
             if (DatePicker.SelectedDate.HasValue && DatePicker.SelectedDate.Value <= DateTime.Now)
                 CommonHelper.SelectedDate = DatePicker.SelectedDate.Value;
@@ -97,5 +97,7 @@ namespace PixivWPF.Common
                 this.GetActiveWindow().Close();
             }
         }
+
+
     }
 }

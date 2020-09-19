@@ -20,7 +20,7 @@
             <ContextMenu>
                 <MenuItem x:Name="miCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                        <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miCopyDonwnloadInfo" x:Uid="ActionCopyDownloadInfo" Header="Copy Download Info" Click="miActions_Click">
@@ -32,42 +32,42 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto"/>
                             </Grid.RowDefinitions>
-                            <iconPacks:PackIconModern Kind="ClipboardPaper" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" Grid.Column="0" Grid.Row="0"/>
-                            <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource AccentColorBrush}" Width="8" Height="8" Margin="4,6,0,0" Grid.Column="0" Grid.Row="0"/>
+                            <iconPacks:PackIconModern Kind="ClipboardPaper" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" Grid.Column="0" Grid.Row="0"/>
+                            <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="8" Height="8" Margin="4,6,0,0" Grid.Column="0" Grid.Row="0"/>
                         </Grid>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="miOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="PageImage" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                        <iconPacks:PackIconModern Kind="PageImage" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="miStopDownload" x:Uid="ActionStop" Header="Stop Download" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Stop" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                        <iconPacks:PackIconModern Kind="Stop" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miRemove" x:Uid="ActionRemove" Header="Remove Item" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                        <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miDownload" x:Uid="Download" Header="Download" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="miOpenImage" x:Uid="OpenFile" Header="View Image" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miOpenFolder" x:Uid="OpenFolder" Header="Open Image Folder" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource AccentColorBrush}" Margin="4,0,0,0"/>
+                        <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
             </ContextMenu>
@@ -91,19 +91,19 @@
         <TextBlock Grid.Row="0" Grid.Column="1" x:Name="PART_FileURL" 
                    HorizontalAlignment="Stretch" Margin="2"
                    Tag="{Binding FileTime, Mode=OneWay}"
-                   Foreground="{DynamicResource LabelTextBrush}" 
+                   Foreground="{DynamicResource MahApps.Brushes.Text}" 
                    Text="{Binding Url, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PART_FileName" 
                    HorizontalAlignment="Stretch" Margin="2"
                    Tag="{Binding Url, Mode=OneWay}"
-                   Foreground="{DynamicResource LabelTextBrush}" 
+                   Foreground="{DynamicResource MahApps.Brushes.Text}" 
                    Text="{Binding FileName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <TextBlock Grid.Row="2" Grid.Column="1" x:Name="PART_FileFolder" 
                    HorizontalAlignment="Stretch" Margin="2"
-                   Foreground="{DynamicResource LabelTextBrush}" 
+                   Foreground="{DynamicResource MahApps.Brushes.Text}" 
                    Text="{Binding FolderName, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"/>
         <mah:MetroProgressBar Grid.Row="3" Grid.Column="1" x:Name="PART_DownloadProgress" x:Uid="DownloadProgress"
-                              Foreground="{DynamicResource AccentColorBrush}"
+                              Foreground="{DynamicResource MahApps.Brushes.Accent}"
                               Tag="{Binding Progress, Mode=OneWay}" IsEnabled="True"
                               Height="18" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="2"
                               Value="{Binding ProgressPercent, Mode=OneWay, IsAsync=True, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
@@ -113,10 +113,10 @@
                    TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
             <TextBlock.Foreground>
                 <LinearGradientBrush x:Name="PART_ProgressInfoLinear" StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="{DynamicResource IdealForegroundColor}" Offset="0"></GradientStop>
-                    <GradientStop Color="{DynamicResource IdealForegroundColor}" Offset="0" x:Name="PART_ProgressInfoLeft"></GradientStop>
-                    <GradientStop Color="{DynamicResource AccentColor}" Offset="0" x:Name="PART_ProgressInfoRight"></GradientStop>
-                    <GradientStop Color="{DynamicResource AccentColor}" Offset="1"></GradientStop>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0"></GradientStop>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0" x:Name="PART_ProgressInfoLeft"></GradientStop>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="0" x:Name="PART_ProgressInfoRight"></GradientStop>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="1"></GradientStop>
                 </LinearGradientBrush>
             </TextBlock.Foreground>
         </TextBlock>
@@ -133,74 +133,71 @@
                     Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Button x:Name="PART_CopyIllustID" x:Uid="ActionCopyIllustID" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Copy Illust ID" 
-                        Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                        BorderBrush="{DynamicResource AccentColorBrush}"
-                        Foreground="{DynamicResource LabelTextBrush}" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
                         Background="Transparent">
-                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" />
+                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" />
                 </Button>
                 <Button x:Name="PART_OpenIllust" x:Uid="ActionOpenIllust" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Open Illust" 
-                        Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                        BorderBrush="{DynamicResource AccentColorBrush}"
-                        Foreground="{DynamicResource LabelTextBrush}" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
                         Background="Transparent">
-                    <iconPacks:PackIconModern Kind="PageImage" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" />
+                    <iconPacks:PackIconModern Kind="PageImage" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" />
                 </Button>
                 <Button x:Name="PART_StopDownload" x:Uid="ActionStop" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Stop Downloading" 
-                        Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                        BorderBrush="{DynamicResource AccentColorBrush}"
-                        Foreground="{DynamicResource LabelTextBrush}" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
                         Background="Transparent">
-                    <iconPacks:PackIconModern Kind="Stop" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" />
+                    <iconPacks:PackIconModern Kind="Stop" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" />
                 </Button>
                 <Button x:Name="PART_Remove" x:Uid="ActionRemove" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Remove Item" 
-                        Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                        BorderBrush="{DynamicResource AccentColorBrush}"
-                        Foreground="{DynamicResource LabelTextBrush}" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
                         Background="Transparent">
-                    <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" />
+                    <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" />
                 </Button>
                 <Button x:Name="PART_Download" x:Uid="Download" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Download File" Tag="{Binding IsStart, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
                         TargetUpdated="PART_Download_TargetUpdated"
                         HorizontalAlignment="Right" VerticalAlignment="Center"
                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                        Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                        BorderBrush="{DynamicResource AccentColorBrush}"
-                        Foreground="{DynamicResource LabelTextBrush}" 
-                        Background="Transparent"
-                        mah:ButtonHelper.PreserveTextCase="True">
-                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                        Background="Transparent">
+                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
                 </Button>
                 <Button x:Name="PART_OpenFolder" x:Uid="OpenFolder" Margin="2,0,2,0" Click="miActions_Click"
                     ToolTip="Open Image Folder" Tag="{Binding FileName, Mode=OneWay}"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Style="{DynamicResource SquareButtonStyle}"  BorderThickness="1"
-                    BorderBrush="{DynamicResource AccentColorBrush}"
-                    Foreground="{DynamicResource LabelTextBrush}"
-                    Background="Transparent" IsEnabled="False"
-                    mah:ButtonHelper.PreserveTextCase="True">
+                    Style="{DynamicResource MahApps.Styles.Button.Square}"  BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}"
+                    Background="Transparent" IsEnabled="False">
                     <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
-                        <!--<TextBlock Text="Open Folder" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource AccentColorBrush}"/>-->
+                        <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
+                        <!--<TextBlock Text="Open Folder" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>-->
                     </StackPanel>
                 </Button>
                 <Button x:Name="PART_OpenFile" x:Uid="OpenFile" Margin="2,0,2,0" Click="miActions_Click"
                     ToolTip="View Image With Default Application" Tag="{Binding FileName, Mode=OneWay}"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                    BorderBrush="{DynamicResource AccentColorBrush}"
-                    Foreground="{DynamicResource LabelTextBrush}" 
-                    Background="Transparent" IsEnabled="False"
-                    mah:ButtonHelper.PreserveTextCase="True">
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                    Background="Transparent" IsEnabled="False">
                     <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
-                        <TextBlock Text="View Image" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource AccentColorBrush}"/>
+                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
+                        <TextBlock Text="View Image" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                     </StackPanel>
                 </Button>
             </StackPanel>

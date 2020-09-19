@@ -19,7 +19,7 @@
                 Tag="{Binding Path=., Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True, NotifyOnSourceUpdated=True}"
                 TargetUpdated="DownloadItem_TargetUpdated"
                 Background="Transparent"
-                BorderBrush="{DynamicResource AccentColorBrush}"                
+                BorderBrush="{DynamicResource MahApps.Brushes.Accent}"                
                 BorderThickness="1"/>
         </DataTemplate>
     </Page.Resources>
@@ -40,13 +40,12 @@
                     ToolTip="Change Destination Save Folder"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                    BorderBrush="{DynamicResource AccentColorBrush}"
-                    Foreground="{DynamicResource LabelTextBrush}" 
-                    Background="Transparent"
-                    mah:ButtonHelper.PreserveTextCase="True">
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                    Background="Transparent">
                 <StackPanel Orientation="Horizontal">
-                    <iconPacks:PackIconModern Kind="Folder" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                    <iconPacks:PackIconModern Kind="Folder" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
                     <!--<TextBlock Text="Remove All" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>-->
                 </StackPanel>
             </Button>
@@ -54,11 +53,10 @@
                     ToolTip="Copy All/Selected Items Infomation To Clipboard"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                    BorderBrush="{DynamicResource AccentColorBrush}"
-                    Foreground="{DynamicResource LabelTextBrush}" 
-                    Background="Transparent"
-                    mah:ButtonHelper.PreserveTextCase="True">
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                    Background="Transparent">
                 <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto"/>
@@ -66,34 +64,32 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
-                    <iconPacks:PackIconModern Kind="ClipboardPaper" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16" Grid.Column="0" Grid.Row="0"/>
-                    <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource AccentColorBrush}" Width="8" Height="8" Margin="4,6,0,0" Grid.Column="0" Grid.Row="0"/>
+                    <iconPacks:PackIconModern Kind="ClipboardPaper" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" Grid.Column="0" Grid.Row="0"/>
+                    <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="8" Height="8" Margin="4,6,0,0" Grid.Column="0" Grid.Row="0"/>
                 </Grid>
             </Button>            
             <Button x:Name="PART_CopyID" x:Uid="CopyID" Margin="2,0,2,0" Click="PART_CopyID_Click"
                     ToolTip="Copy All/Selected Items ID To Clipboard"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                    BorderBrush="{DynamicResource AccentColorBrush}"
-                    Foreground="{DynamicResource LabelTextBrush}" 
-                    Background="Transparent"
-                    mah:ButtonHelper.PreserveTextCase="True">
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                    Background="Transparent">
                 <StackPanel Orientation="Horizontal">
-                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
                 </StackPanel>
             </Button>
             <Button x:Name="PART_RemoveAll" x:Uid="ClearAll" Margin="2,0,2,0" Click="PART_RemoveAll_Click"
                     ToolTip="Remove All/Selected Items"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                    BorderBrush="{DynamicResource AccentColorBrush}"
-                    Foreground="{DynamicResource LabelTextBrush}" 
-                    Background="Transparent"
-                    mah:ButtonHelper.PreserveTextCase="True">
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                    Background="Transparent">
                 <StackPanel Orientation="Horizontal">
-                    <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                    <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
                     <!--<TextBlock Text="Remove All" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>-->
                 </StackPanel>
             </Button>
@@ -101,13 +97,12 @@
                     ToolTip="Download All/Selected Items"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Style="{DynamicResource SquareButtonStyle}" BorderThickness="1"
-                    BorderBrush="{DynamicResource AccentColorBrush}"
-                    Foreground="{DynamicResource LabelTextBrush}" 
-                    Background="Transparent"
-                    mah:ButtonHelper.PreserveTextCase="True">
+                    Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                    Background="Transparent">
                 <StackPanel Orientation="Horizontal">
-                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource AccentColorBrush}" Width="16" Height="16"/>
+                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
                     <!--<TextBlock Text="Download All" Margin="2,0,0,0" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>-->
                 </StackPanel>
             </Button>

@@ -3,13 +3,13 @@
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-                 xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                  xmlns:local="clr-namespace:PixivWPF"
+                 xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+                 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
                  mc:Ignorable="d"
                  Icon="pack://application:,,,/PixivWPF;component/Resources/pixiv-icon.ico"
-                 BorderBrush="{DynamicResource AccentColorBrush}"
-                 GlowBrush="{DynamicResource AccentColorBrush}"
+                 BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                 GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
                  BorderThickness="1"                 
                  Title="Pixiv" 
                  VisualTextRenderingMode="Auto"
@@ -19,20 +19,19 @@
                  RenderOptions.EdgeMode="Aliased"
                  TextOptions.TextFormattingMode="Display"
                  AllowDrop="True"
-                 WindowStartupLocation="CenterScreen" MinWidth="1440" MinHeight="720" Width="1440" Height="972"
+                 WindowStartupLocation="CenterScreen" MinWidth="1484" MinHeight="720" Width="1484" Height="968"
                  KeyUp="MetroWindow_KeyUp"
                  PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
                  StateChanged="MetroWindow_StateChanged" 
                  StylusUp="MetroWindow_StylusUp"
                  Closing="MainWindow_Closing" >
 
-
     <mah:MetroWindow.Resources>
         <Style x:Key="MetroSplitButton" TargetType="{x:Type mah:SplitButton}">
             <Setter Property="Background" Value="Transparent" />
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="BorderBrush" Value="{DynamicResource AccentColorBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}" />
                     <Setter Property="BorderThickness" Value="1" />
                 </Trigger>
             </Style.Triggers>
@@ -45,10 +44,6 @@
 
         </mah:FlyoutsControl>
     </mah:MetroWindow.Flyouts>
-
-    <mah:MetroWindow.WindowButtonCommands>
-        <mah:WindowButtonCommands Style="{DynamicResource MahApps.Metro.Styles.WindowButtonCommands.Win10}" />
-    </mah:MetroWindow.WindowButtonCommands>
 
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands ShowLastSeparator="True">
@@ -84,7 +79,7 @@
             </Button>
             <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" 
                        HorizontalAlignment="Left" VerticalAlignment="Center"
-                       Foreground="{DynamicResource IdealForegroundColorBrush}"/>
+                       Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
 
@@ -94,7 +89,7 @@
                       Width="160" Height="16"
                       IsEditable="True" 
                       ItemsSource="{Binding Path=AutoSuggestList}"
-                      Style="{DynamicResource MetroComboBox}"
+                      Style="{DynamicResource MahApps.Styles.ComboBox}"
                       mah:TextBoxHelper.ClearTextButton="True"
                       mah:TextBoxHelper.Watermark="Searching ..." 
                       IsTextSearchEnabled="False"
@@ -116,7 +111,7 @@
             <Button Click="CommandLogin_Click"
                     ToolTip="Open Login Dialog">
                 <iconPacks:PackIconModern Kind="User" />
-                <!--<Rectangle Width="16" Height="16" Fill="{DynamicResource IdealForegroundColorBrush}">
+                <!--<Rectangle Width="16" Height="16" Fill="{DynamicResource MahApps.Brushes.IdealForeground}">
                     <Rectangle.OpacityMask>
                         <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_user}"/>
                     </Rectangle.OpacityMask>
@@ -130,7 +125,7 @@
                              MinWidth="96"
                              Background="Transparent"
                              AlternationCount="2"
-                             BorderBrush="{DynamicResource WindowTitleColorBrush}"
+                             BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                              Click="CommandToggleTheme_Click" 
                              SelectionChanged="CommandToggleTheme_SelectionChanged">
 
@@ -152,25 +147,27 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Frame Grid.Column="0" x:Name="NavFrame" NavigationUIVisibility="Visible">
+        
+        <!--<Frame Grid.Column="0" x:Name="NavFrame" NavigationUIVisibility="Visible">
             <Frame.CacheMode>
                 <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
             </Frame.CacheMode>
-        </Frame>
+        </Frame>-->
+        
         <Frame Grid.Column="1" x:Name="ContentFrame">
             <Frame.CacheMode>
                 <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
             </Frame.CacheMode>
         </Frame>
-        <mah:Flyout Grid.Column="0" Grid.ColumnSpan="2" 
-                         x:Name="NavFlyout" x:Uid="NavFlyout" Header="Navigation" 
-                         Position="Left" Width="Auto" 
-                         IsAutoCloseEnabled="True" AutoCloseInterval="5000"
-                         CloseButtonVisibility="Visible" ExternalCloseButton="Left"
-                         Theme="Accent" Opacity="0.95"
-                         Foreground="{DynamicResource LabelTextBrush}" Background="{DynamicResource WhiteColorBrush}" DataContextChanged="NavFlyout_DataContextChanged">
-            <!-- Your custom content here -->
-            
-        </mah:Flyout>
+        <!--<mah:Flyout Grid.Column="0" Grid.ColumnSpan="2" 
+                    x:Name="NavFlyout" x:Uid="NavFlyout" Header="Navigation" 
+                    Position="Left" Width="Auto" 
+                    IsAutoCloseEnabled="True" AutoCloseInterval="5000"
+                    CloseButtonVisibility="Visible" ExternalCloseButton="Left"
+                    Theme="Adapt" Opacity="0.95"
+                    Foreground="{DynamicResource MahApps.Brushes.Flyout.Foreground}" 
+                    Background="{DynamicResource MahApps.Brushes.Flyout.Background}"
+                    DataContextChanged="NavFlyout_DataContextChanged">
+        </mah:Flyout>-->
     </Grid>
 </mah:MetroWindow>

@@ -1,8 +1,10 @@
-﻿using MahApps.Metro;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
+
+using MahApps.Metro;
+using ControlzEx.Theming;
 
 namespace PixivWPF.Common
 {
@@ -84,69 +86,118 @@ namespace PixivWPF.Common
 
         public static IList<string> Accents
         {
-            get { return accents; }
+            get { return ThemeManager.Current.ColorSchemes; }
+        }
+
+        public static IList<string> Styles
+        {
+            get { return ThemeManager.Current.BaseColors; }
+        }
+
+        public static IList<string> Themes
+        {
+            get
+            {
+                var themes = new List<string>();
+                foreach(var theme in ThemeManager.Current.Themes)
+                {
+                    themes.Add(theme.Name);
+                }
+                return (themes);
+            }
+        }
+
+        public static void SetSyncMode(ThemeSyncMode mode = ThemeSyncMode.SyncWithAppMode)
+        {
+            ThemeManager.Current.ThemeSyncMode = mode;
+        }
+
+        public static async void Sync(ThemeSyncMode mode = ThemeSyncMode.SyncWithAppMode)
+        {
+            await new Action(() =>
+            {
+                ThemeManager.Current.ThemeSyncMode = mode;
+                ThemeManager.Current.SyncTheme(mode);
+            }).InvokeAsync();
         }
 
         public static void Toggle()
         {
-            Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-            var appTheme = appStyle.Item1;
-            var appAccent = appStyle.Item2;
-
-            var target = ThemeManager.GetInverseAppTheme(appTheme);
-            ThemeManager.ChangeAppStyle(Application.Current, appAccent, target);
+            var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+            var target = ThemeManager.Current.GetInverseTheme(appTheme);
+            ThemeManager.Current.ChangeTheme(Application.Current, target);
             setting = Application.Current.LoadSetting();
-            if (setting.CurrentTheme != target.Name)
+            if (setting.CurrentTheme != target.BaseColorScheme || setting.CurrentAccent != target.ColorScheme)
             {
-                setting.CurrentTheme = target.Name;
+                setting.CurrentTheme = target.BaseColorScheme;
+                setting.CurrentAccent = target.ColorScheme;
                 setting.Save();
             }
         }
 
-        public static string CurrentAccent
+        public static void Change(string style = "", string accent = "")
         {
-            get
+            if (string.IsNullOrEmpty(style)) style = CurrentStyle;
+            if (string.IsNullOrEmpty(accent)) accent = CurrentAccent;
+            if (!style.Equals(CurrentStyle, StringComparison.CurrentCultureIgnoreCase) || 
+                !accent.Equals(CurrentAccent, StringComparison.CurrentCultureIgnoreCase))
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return appAccent.Name;
+                ThemeManager.Current.ChangeTheme(Application.Current, style, accent);
             }
-            set
+        }
+
+        public static void Change(string theme = "")
+        {
+            if(!string.IsNullOrEmpty(theme))
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent(value), appTheme);
-                setting = Application.Current.LoadSetting();
-                if (setting.CurrentAccent != value)
-                {
-                    setting.CurrentAccent = value;
-                    setting.Save();
-                }
+                ThemeManager.Current.ChangeTheme(Application.Current, theme);
             }
         }
 
         public static string CurrentTheme
         {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return appTheme.Name;
-            }
+            get { return(ThemeManager.Current.DetectTheme(Application.Current).Name); }
             set
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                ThemeManager.ChangeAppStyle(Application.Current, appAccent, ThemeManager.GetAppTheme(value));
-                setting = Application.Current.LoadSetting();
-                if (setting.CurrentTheme != value)
+                if (Themes.Contains(value))
                 {
-                    setting.CurrentTheme = value;
-                    setting.Save();
+                    ThemeManager.Current.ChangeTheme(Application.Current, value);
+                }
+            }
+        }
+
+        public static string CurrentAccent
+        {
+            get { return (ThemeManager.Current.DetectTheme(Application.Current).ColorScheme); }
+            set
+            {
+                if (Accents.Contains(value))
+                {
+                    ThemeManager.Current.ChangeThemeColorScheme(Application.Current, value);
+                    setting = Application.Current.LoadSetting();
+                    if (setting.CurrentAccent != value)
+                    {
+                        setting.CurrentAccent = value;
+                        setting.Save();
+                    }
+                }
+            }
+        }
+
+        public static string CurrentStyle
+        {
+            get { return (ThemeManager.Current.DetectTheme(Application.Current).BaseColorScheme); }
+            set
+            {
+                if (Styles.Contains(value))
+                {
+                    ThemeManager.Current.ChangeThemeBaseColor(Application.Current, value);
+                    setting = Application.Current.LoadSetting();
+                    if (setting.CurrentTheme != value)
+                    {
+                        setting.CurrentTheme = value;
+                        setting.Save();
+                    }
                 }
             }
         }
@@ -190,7 +241,7 @@ namespace PixivWPF.Common
         /// "GrayHoverBrush"
         /// "GrayNormal"
         /// "GrayNormalBrush"
-        /// "LabelTextBrush"
+        /// "MahApps.Brushes.Text"
         /// "MahApps.Metro.Brushes.Badged.DisabledBackgroundBrush"
         /// "MahApps.Metro.Brushes.ToggleSwitchButton.OffBorderBrush.Win10"
         /// "MahApps.Metro.Brushes.ToggleSwitchButton.OffDisabledBorderBrush.Win10"
@@ -233,20 +284,20 @@ namespace PixivWPF.Common
         /// ===================================================================
         /// "AccentBaseColor"
         /// "AccentBaseColorBrush"
-        /// "AccentColor"
-        /// "AccentColor2"
-        /// "AccentColor3"
-        /// "AccentColor4"
-        /// "AccentColorBrush"
-        /// "AccentColorBrush2"
-        /// "AccentColorBrush3"
-        /// "AccentColorBrush4"
+        /// "MahApps.Colors.Accent"
+        /// "MahApps.Colors.Accent2"
+        /// "MahApps.Colors.Accent3"
+        /// "MahApps.Colors.Accent4"
+        /// "MahApps.Brushes.Accent"
+        /// "MahApps.Brushes.Accent2"
+        /// "MahApps.Brushes.Accent3"
+        /// "MahApps.Brushes.Accent4"
         /// "AccentSelectedColorBrush"
         /// "CheckmarkFill"
         /// "HighlightBrush"
         /// "HighlightColor"
-        /// "IdealForegroundColor"
-        /// "IdealForegroundColorBrush"
+        /// "MahApps.Colors.IdealForeground"
+        /// "MahApps.Brushes.IdealForeground"
         /// "IdealForegroundDisabledBrush"
         /// "MahApps.Metro.Brushes.ToggleSwitchButton.OnSwitchBrush.Win10"
         /// "MahApps.Metro.Brushes.ToggleSwitchButton.OnSwitchMouseOverBrush.Win10"
@@ -263,157 +314,13 @@ namespace PixivWPF.Common
         /// ===================================================================
         #endregion
 
-        public static Color TransparentColor
+        #region ACCENT COLORS
+        public static Color HighlightColor
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["WhiteColorBrush"] as Brush).ToColor();
-            }
-        }
-
-        public static Brush TransparentBrush
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["TransparentBrush"] as Brush);
-            }
-        }
-
-        public static Color WhiteColor
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["WhiteColorBrush"] as Brush).ToColor();
-            }
-        }
-
-        public static Brush WhiteBrush
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["WhiteBrush"] as Brush);
-            }
-        }
-
-        public static Color BlackColor
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["BlackColorBrush"] as Brush).ToColor();
-            }
-        }
-
-        public static Brush BlackBrush
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["BlackBrush"] as Brush);
-            }
-        }
-
-        public static Color AccentColor
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (Color)appAccent.Resources["AccentColor"];
-            }
-        }
-
-        public static Brush AccentBrush
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return appAccent.Resources["AccentColorBrush"] as Brush;
-            }
-        }
-
-        public static Color AccentColor2
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (Color)appAccent.Resources["AccentColor2"];
-            }
-        }
-
-        public static Brush AccentBrush2
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return appAccent.Resources["AccentColorBrush2"] as Brush;
-            }
-        }
-
-        public static Color AccentColor3
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (Color)appAccent.Resources["AccentColor3"];
-            }
-        }
-        
-        public static Brush AccentBrush3
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return appAccent.Resources["AccentColorBrush3"] as Brush;
-            }
-        }
-
-        public static Color AccentColor4
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (Color)appAccent.Resources["AccentColor4"];
-            }
-        }
-
-        public static Brush AccentBrush4
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return appAccent.Resources["AccentColorBrush4"] as Brush;
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Color)appTheme.Resources["MahApps.Colors.Highlight"];
             }
         }
 
@@ -421,21 +328,322 @@ namespace PixivWPF.Common
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appAccent.Resources["AccentBaseColorBrush"] as Brush).ToColor();
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Color)appTheme.Resources["MahApps.Colors.AccentBase"];
             }
         }
 
-        public static Brush AccentBaseBrush
+        public static Color AccentColor
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return appAccent.Resources["AccentBaseColorBrush"] as Brush;
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Color)appTheme.Resources["MahApps.Colors.Accent"];
+            }
+        }
+
+        public static Color Accent2Color
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Color)appTheme.Resources["MahApps.Colors.Accent2"];
+            }
+        }
+
+        public static Color Accent3Color
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Color)appTheme.Resources["MahApps.Colors.Accent3"];
+            }
+        }
+        
+        public static Color Accent4Color
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Color)appTheme.Resources["MahApps.Colors.Accent4"];
+            }
+        }
+
+        public static Color AccentColors(int index)
+        {
+            var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+            if (index < 1) index = 1;
+            else if (index > 4) index = 4;
+            if (index == 1)
+                return (Color)appTheme.Resources["MahApps.Colors.Accent"];
+            else
+                return (Color)appTheme.Resources[$"MahApps.Colors.Accent{index}"];
+        }
+        #endregion
+
+        #region BASE COLORS
+        public static Color ThemeForegroundColor
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Color)appTheme.Resources["MahApps.Colors.ThemeForeground"];
+            }
+        }
+
+        public static Color ThemeBackgroundColor
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Color)appTheme.Resources["MahApps.Colors.ThemeBackground"];
+            }
+        }
+
+        public static Color IdealForeground
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Color)appTheme.Resources["MahApps.Colors.IdealForeground"];
+            }
+        }
+
+        public static Color GrayColors(int index)
+        {
+            var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+            if (index < 0) index = 0;
+            else if (index > 10) index = 10;
+            if (index == 0)
+                return (Color)appTheme.Resources["MahApps.Colors.Gray"];
+            else
+                return (Color)appTheme.Resources[$"MahApps.Colors.Gray{index}"];
+        }
+
+        public static Color Gray1Color
+        {
+            get
+            {
+                return (GrayColors(1));
+            }
+        }
+
+        public static Color Gray2Color
+        {
+            get
+            {
+                return (GrayColors(2));
+            }
+        }
+
+        public static Color Gray3Color
+        {
+            get
+            {
+                return (GrayColors(3));
+            }
+        }
+
+        public static Color Gray4Color
+        {
+            get
+            {
+                return (GrayColors(4));
+            }
+        }
+
+        public static Color Gray5Color
+        {
+            get
+            {
+                return (GrayColors(5));
+            }
+        }
+
+        public static Color Gray6Color
+        {
+            get
+            {
+                return (GrayColors(6));
+            }
+        }
+
+        public static Color Gray7Color
+        {
+            get
+            {
+                return (GrayColors(7));
+            }
+        }
+
+        public static Color Gray8Color
+        {
+            get
+            {
+                return (GrayColors(8));
+            }
+        }
+
+        public static Color Gray9Color
+        {
+            get
+            {
+                return (GrayColors(9));
+            }
+        }
+
+        public static Color Gray10Color
+        {
+            get
+            {
+                return (GrayColors(10));
+            }
+        }
+
+        public static Color GrayColor
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Colors.Gray"] as Brush).ToColor();
+            }
+        }
+
+        public static Color GrayMouseOverColor
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Colors.Gray.MouseOver"] as Brush).ToColor();
+            }
+        }
+
+        public static Color GraySemiTransparentColor
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Colors.Gray.SemiTransparent"] as Brush).ToColor();
+            }
+        }
+
+        public static Color FlyoutColor
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Colors.Flyout"] as Brush).ToColor();
+            }
+        }
+
+        public static Brush FlyoutBrush
+        {
+            get
+            {
+                return (FlyoutColor.ToBrush());
+            }
+        }
+        #endregion
+
+        #region CORE CONTROL COLORS
+        public static Color ProgressIndeterminateColors(int index)
+        {
+            var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+            if (index < 1) index = 1;
+            else if (index > 4) index = 4;
+            return (Color)appTheme.Resources[$"MahApps.Colors.ProgressIndeterminate{index}"];
+        }
+
+        public static Brush ProgressIndeterminateBrushs(int index)
+        {
+            return ProgressIndeterminateColors(index).ToBrush();
+        }
+
+        public static Color ProgressIndeterminate1Color
+        {
+            get
+            {
+                return (ProgressIndeterminateColors(1));
+            }
+        }
+
+        public static Brush ProgressIndeterminate1Brush
+        {
+            get
+            {
+                return (ProgressIndeterminateBrushs(1));
+            }
+        }
+
+        public static Color ProgressIndeterminate2Color
+        {
+            get
+            {
+                return (ProgressIndeterminateColors(2));
+            }
+        }
+
+        public static Brush ProgressIndeterminate2Brush
+        {
+            get
+            {
+                return (ProgressIndeterminateBrushs(2));
+            }
+        }
+
+        public static Color ProgressIndeterminate3Color
+        {
+            get
+            {
+                return (ProgressIndeterminateColors(3));
+            }
+        }
+
+        public static Brush ProgressIndeterminate3Brush
+        {
+            get
+            {
+                return (ProgressIndeterminateBrushs(3));
+            }
+        }
+
+        public static Color ProgressIndeterminate4Color
+        {
+            get
+            {
+                return (ProgressIndeterminateColors(4));
+            }
+        }
+
+        public static Brush ProgressIndeterminate4Brush
+        {
+            get
+            {
+                return (ProgressIndeterminateBrushs(4));
+            }
+        }
+        #endregion
+
+        #region PROJECT TEMPLATE BRUSHES
+
+        #endregion
+
+        #region  UNIVERSAL CONTROL BRUSHES
+        public static Brush ThemeForegroundBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Brush)appTheme.Resources["MahApps.Brushes.ThemeForeground"];
+            }
+        }
+
+        public static Brush ThemeBackgroundBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Brush)appTheme.Resources["MahApps.Brushes.ThemeBackground"];
             }
         }
 
@@ -443,10 +651,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["TextBrush"] as Brush).ToColor();
+                return TextBrush.ToColor();
             }
         }
 
@@ -454,43 +659,8 @@ namespace PixivWPF.Common
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["TextBrush"] as Brush);
-            }
-        }
-
-        public static Color LabelTextColor
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["LabelTextBrush"] as Brush).ToColor();
-            }
-        }
-
-        public static Brush LabelTextBrush
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["LabelTextBrush"] as Brush);
-            }
-        }
-
-        public static Color IdealForegroundColor
-        {
-            get
-            {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (Color)appAccent.Resources["IdealForegroundColor"];
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Brush)appTheme.Resources["MahApps.Brushes.Text"];
             }
         }
 
@@ -498,10 +668,9 @@ namespace PixivWPF.Common
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return appAccent.Resources["IdealForegroundColorBrush"] as Brush;
+                //return (MahApps.Colors.IdealForeground.ToBrush());
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Brush)appTheme.Resources["MahApps.Brushes.IdealForeground"];
             }
         }
 
@@ -509,7 +678,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return(IdealForegroundDisableBrush.ToColor());
+                return (IdealForegroundDisableBrush.ToColor());
             }
         }
 
@@ -517,32 +686,25 @@ namespace PixivWPF.Common
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return appAccent.Resources["IdealForegroundDisabledBrush"] as Brush;
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return appTheme.Resources["MahApps.Brushes.IdealForegroundDisabled"] as Brush;
             }
         }
 
-        public static Color WindowColor
+        public static Color SelectedForegroundColor
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["WindowBrush"] as Brush).ToColor();
+                return (SelectedForegroundBrush.ToColor());
             }
         }
 
-        public static Brush WindowBrush
+        public static Brush SelectedForegroundBrush
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["WindowBrush"] as Brush);
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return appTheme.Resources["MahApps.Brushes.Selected.Foreground"] as Brush;
             }
         }
 
@@ -558,36 +720,228 @@ namespace PixivWPF.Common
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appAccent.Resources["WindowTitleColorBrush"] as Brush);
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.WindowTitle"] as Brush);
             }
         }
 
-        public static Color GrayColors(int index)
+        public static Color WindowTitleNonActiveColor
         {
-            Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-            AppTheme appTheme = appStyle.Item1;
-            Accent appAccent = appStyle.Item2;
+            get
+            {
+                return WindowTitleNonActiveBrush.ToColor();
+            }
+        }
+
+        public static Brush WindowTitleNonActiveBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.WindowTitle.NonActive"] as Brush);
+            }
+        }
+
+        public static Color BorderNonActiveColor
+        {
+            get
+            {
+                return BorderNonActiveBrush.ToColor();
+            }
+        }
+
+        public static Brush BorderNonActiveBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Border.NonActive"] as Brush);
+            }
+        }
+
+        public static Brush HighlightBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Highlight"] as Brush);
+            }
+        }
+
+        public static Color TransparentColor
+        {
+            get
+            {
+                return (TransparentBrush.ToColor());
+            }
+        }
+
+        public static Brush TransparentBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Transparent"] as Brush);
+            }
+        }
+
+        public static Color SemiTransparentColor
+        {
+            get
+            {
+                return (SemiTransparentBrush.ToColor());
+            }
+        }
+
+        public static Brush SemiTransparentBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.SemiTransparent"] as Brush);
+            }
+        }
+
+        public static Brush AccentBaseBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.AccentBase"] as Brush);
+            }
+        }
+
+        public static Brush AccentBrush
+        {
+            get
+            {
+                return (AccentBrushs(1));
+            }
+        }
+
+        public static Brush Accent2Brush
+        {
+            get
+            {
+                return (AccentBrushs(2));
+            }
+        }
+
+        public static Brush Accent3Brush
+        {
+            get
+            {
+                return (AccentBrushs(3));
+            }
+        }
+
+        public static Brush Accent4Brush
+        {
+            get
+            {
+                return (AccentBrushs(4));
+            }
+        }
+
+        public static Brush AccentBrushs(int index)
+        {
             if (index < 1) index = 1;
-            else if (index > 10) index = 10;
-            return (Color)appTheme.Resources[$"Gray{index}"];
+            else if (index > 4) index = 4;
+            var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+            if (index == 1)
+                return (appTheme.Resources["MahApps.Brushes.Accent"] as Brush);
+            else
+                return (appTheme.Resources[$"MahApps.Brushes.Accent{index}"] as Brush);
         }
 
         public static Brush GrayBrushs(int index)
         {
-            return GrayColors(index).ToBrush();
+            if (index < 0) index = 0;
+            else if (index > 10) index = 10;
+            var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+            if (index == 0)
+                return (appTheme.Resources["MahApps.Brushes.Gray"] as Brush);
+            else
+                return (appTheme.Resources[$"MahApps.Brushes.Gray{index}"] as Brush);
         }
 
-        public static Color GrayColor
+        public static Brush Gray1Brush
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["GrayNormal"] as Brush).ToColor();
+                return (GrayBrushs(1));
+            }
+        }
+
+        public static Brush Gray2Brush
+        {
+            get
+            {
+                return (GrayBrushs(2));
+            }
+        }
+
+        public static Brush Gray3Brush
+        {
+            get
+            {
+                return (GrayBrushs(3));
+            }
+        }
+
+        public static Brush Gray4Brush
+        {
+            get
+            {
+                return (GrayBrushs(4));
+            }
+        }
+
+        public static Brush Gray5Brush
+        {
+            get
+            {
+                return (GrayBrushs(5));
+            }
+        }
+
+        public static Brush Gray6Brush
+        {
+            get
+            {
+                return (GrayBrushs(6));
+            }
+        }
+
+        public static Brush Gray7Brush
+        {
+            get
+            {
+                return (GrayBrushs(7));
+            }
+        }
+
+        public static Brush Gray8Brush
+        {
+            get
+            {
+                return (GrayBrushs(8));
+            }
+        }
+
+        public static Brush Gray9Brush
+        {
+            get
+            {
+                return (GrayBrushs(9));
+            }
+        }
+
+        public static Brush Gray10Brush
+        {
+            get
+            {
+                return (GrayBrushs(10));
             }
         }
 
@@ -595,54 +949,262 @@ namespace PixivWPF.Common
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["GrayNormalBrush"] as Brush);
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Gray"] as Brush);
             }
         }
 
-        public static Color SemiTransparentGreyColor
+        public static Brush GrayMouseOverBrush
         {
             get
             {
-                return(SemiTransparentGreyBrush.ToColor());
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Gray.MouseOver"] as Brush);
             }
         }
 
-        public static Brush SemiTransparentGreyBrush
+        public static Brush GraySemiTransparentBrush
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["SemiTransparentGreyBrush"] as Brush);
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Gray.SemiTransparent"] as Brush);
             }
         }
 
-        public static Color SemiTransparentWhiteColor
+        public static Color TextBoxBorderColor
+        {
+            get { return (TextBoxBorderBrush.ToColor()); }
+        }
+
+        public static Brush TextBoxBorderBrush
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["SemiTransparentWhiteBrush"] as Brush).ToColor();
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.TextBox.Border"] as Brush);
             }
         }
 
-        public static Brush SemiTransparentWhiteBrush
+        public static Color TextBoxBorderFocusColor
+        {
+            get { return (TextBoxBorderFocusBrush.ToColor()); }
+        }
+
+        public static Brush TextBoxBorderFocusBrush
         {
             get
             {
-                Tuple<AppTheme, Accent> appStyle = ThemeManager.DetectAppStyle(Application.Current);
-                AppTheme appTheme = appStyle.Item1;
-                Accent appAccent = appStyle.Item2;
-                return (appTheme.Resources["SemiTransparentWhiteBrush"] as Brush);
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.TextBox.Border.Focus"] as Brush);
             }
         }
 
+        public static Color TextBoxBorderMouseOverColor
+        {
+            get { return (TextBoxBorderMouseOverBrush.ToColor()); }
+        }
+
+        public static Brush TextBoxBorderMouseOverBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.TextBox.Border.MouseOver"] as Brush);
+            }
+        }
+
+        public static Color ControlBackgroundColor
+        {
+            get { return (ControlBackgroundBrush.ToColor()); }
+        }
+
+        public static Brush ControlBackgroundBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Control.Background"] as Brush);
+            }
+        }
+
+        public static Color ControlBorderColor
+        {
+            get { return (ControlBorderBrush.ToColor()); }
+        }
+
+        public static Brush ControlBorderBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Control.Border"] as Brush);
+            }
+        }
+
+        public static Color ControlDisabledColor
+        {
+            get { return (ControlDisabledBrush.ToColor()); }
+        }
+
+        public static Brush ControlDisabledBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Control.Disabled"] as Brush);
+            }
+        }
+
+        public static Color ControlValidationColor
+        {
+            get { return (ControlValidationBrush.ToColor()); }
+        }
+
+        public static Brush ControlValidationBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Control.Validation"] as Brush);
+            }
+        }
+
+        public static Color ButtonBorderColor
+        {
+            get { return (ButtonBorderBrush.ToColor()); }
+        }
+
+        public static Brush ButtonBorderBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Button.Border"] as Brush);
+            }
+        }
+
+        public static Color ButtonBorderFocusColor
+        {
+            get { return (ButtonBorderFocusBrush.ToColor()); }
+        }
+
+        public static Brush ButtonBorderFocusBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Button.Border.Focus"] as Brush);
+            }
+        }
+
+        public static Color ButtonBorderMouseOverColor
+        {
+            get { return (ButtonBorderMouseOverBrush.ToColor()); }
+        }
+
+        public static Brush ButtonBorderMouseOverBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Button.Border.MouseOver"] as Brush);
+            }
+        }
+
+        public static Color ComboBoxPopupBorderColor
+        {
+            get { return (ComboBoxPopupBorderBrush.ToColor()); }
+        }
+
+        public static Brush ComboBoxPopupBorderBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Button.Border"] as Brush);
+            }
+        }
+
+        public static Color ComboBoxBorderFocusColor
+        {
+            get { return (ComboBoxBorderFocusBrush.ToColor()); }
+        }
+
+        public static Brush ComboBoxBorderFocusBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.ComboBox.Border.Focus"] as Brush);
+            }
+        }
+
+        public static Color ComboBoxBorderMouseOverColor
+        {
+            get { return (ComboBoxBorderMouseOverBrush.ToColor()); }
+        }
+
+        public static Brush ComboBoxBorderMouseOverBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.ComboBox.Border.MouseOver"] as Brush);
+            }
+        }
+
+
+        #endregion
+
+        public static Color WindowBackgroundColor
+        {
+            get
+            {
+                return (WindowBackgroundBrush.ToColor());
+            }
+        }
+
+        public static Brush WindowBackgroundBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.WindowBackground"] as Brush);
+            }
+        }
+
+        public static Color WhiteColor
+        {
+            get
+            {
+                return (ThemeBackgroundColor);
+            }
+        }
+
+        public static Brush WhiteBrush
+        {
+            get
+            {
+                return (ThemeBackgroundBrush);
+            }
+        }
+
+        public static Color BlackColor
+        {
+            get
+            {
+                return (ThemeForegroundColor);
+            }
+        }
+
+        public static Brush BlackBrush
+        {
+            get
+            {
+                return (ThemeForegroundBrush);
+            }
+        }
 
     }
 

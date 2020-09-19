@@ -22,7 +22,7 @@
         
         <DataTemplate x:Key="PART_ImageTileTemplate" x:Name="PART_ImageTile" x:Uid="ImageTile">
             <!--Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"-->
-            <Grid x:Name="PART_Tile" Background="{DynamicResource AccentColorBrush}"
+            <Grid x:Name="PART_Tile" Background="{DynamicResource MahApps.Brushes.Accent}"
                   Margin="0,4,0,4"
                   Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"                                          
                   ToolTip="{Binding ToolTip, Mode=OneWay}"
@@ -33,11 +33,11 @@
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" x:Name="PART_Mask" Opacity="0.67"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                        Background="{DynamicResource IdealForegroundColorBrush}" BorderBrush="{DynamicResource AccentColorBrush}" />
+                        Background="{DynamicResource MahApps.Brushes.IdealForeground}" BorderBrush="{DynamicResource MahApps.Brushes.Accent}" />
                 <mah:ProgressRing Grid.Row="0" x:Name="PART_Progress"
                                   Width="72" Height="72" Opacity="0.67" 
                                   HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                  Foreground="{DynamicResource AccentColorBrush}"/>
+                                  Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                 <Image Grid.Row="0" x:Name="PART_Thumbnail"                       
                        Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
                        TargetUpdated="TileImage_TargetUpdated"
@@ -50,11 +50,11 @@
                     Grid.Row="0"
                     Kind="Heart" 
                     Width="28" Height="24" Margin="0,0,6,8" 
-                    Foreground="{DynamicResource IdealForegroundColorBrush}" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Visibility="{Binding FavMarkVisibility, Mode=OneWay}" >
                     <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource IdealForegroundColor}" Opacity="1" BlurRadius="9"/>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="9"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>
                 <iconPacks:PackIconModern 
@@ -62,11 +62,11 @@
                     Kind="Heart"
                     Width="24" Height="24" Margin="0,0,8,8" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                    Foreground="{DynamicResource AccentColorBrush}"
+                    Foreground="{DynamicResource MahApps.Brushes.Accent}"
                     Visibility="{Binding FavMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}" 
                     TargetUpdated="TileImage_TargetUpdated">
                     <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource IdealForegroundColor}" Opacity="1" BlurRadius="5"/>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>
                 <iconPacks:PackIconModern 
@@ -74,22 +74,22 @@
                     Kind="Check"
                     Width="16" Height="16" Margin="0,0,12,12" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                    Foreground="{DynamicResource IdealForegroundColorBrush}"
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                     Visibility="{Binding FollowMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}" 
                     TargetUpdated="TileImage_TargetUpdated">
                     <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect x:Name="PART_Follow_Shadow" ShadowDepth="0" Color="{DynamicResource AccentColor}" Opacity="1" BlurRadius="10"/>
+                        <DropShadowEffect x:Name="PART_Follow_Shadow" ShadowDepth="0" Color="{DynamicResource MahApps.Colors.Accent}" Opacity="1" BlurRadius="10"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>                
                 <iconPacks:PackIconModern 
                     Grid.Row="0"
                     Kind="Download" 
                     Width="28" Height="28" Margin="0,0,6,6" 
-                    Foreground="{DynamicResource IdealForegroundColorBrush}" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Visibility="{Binding IsDownloadedVisibilityAlt, Mode=OneWay}" >
                     <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource IdealForegroundColor}" Opacity="1" BlurRadius="9"/>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="9"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>                
                 <iconPacks:PackIconModern 
@@ -97,10 +97,10 @@
                     Kind="Download" 
                     Width="24" Height="24" Margin="0,0,8,8" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                    Foreground="{DynamicResource AccentColorBrush}"
+                    Foreground="{DynamicResource MahApps.Brushes.Accent}"
                     Visibility="{Binding IsDownloadedVisibilityAlt, Mode=OneWay}">
                     <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource IdealForegroundColor}" Opacity="1" BlurRadius="5"/>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>
                 <mah:Badged Grid.Row="0"
@@ -110,7 +110,7 @@
                             TargetUpdated="TileBadge_TargetUpdated"
                             Tag="{Binding DisplayBadge, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
                             Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
-                            BadgeBackground="{DynamicResource AccentColorBrush}" />
+                            BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
                 <Grid Grid.Row="1"
                       Visibility="{Binding Path=TitleVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}">
                     <Grid.ColumnDefinitions>
@@ -119,14 +119,14 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" 
                                Text="{Binding Subject, Mode=OneWay}" 
-                               Background="{DynamicResource AccentColorBrush}"
-                               Foreground="{DynamicResource IdealForegroundColorBrush}"/>
+                               Background="{DynamicResource MahApps.Brushes.Accent}"
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
                     <iconPacks:PackIconModern Grid.Column="1" 
                                               Kind="Download" x:Name="PART_IllustDownloaded" 
                                               Width="16" Height="16"
                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Background="{DynamicResource AccentColorBrush}"
-                                              Foreground="{DynamicResource IdealForegroundColorBrush}"
+                                              Background="{DynamicResource MahApps.Brushes.Accent}"
+                                              Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                               Visibility="{Binding IsDownloadedVisibility, Mode=OneWay}"/>
                 </Grid>
             </Grid>
@@ -174,7 +174,7 @@
         <mah:ProgressRing Grid.Row="0" 
                           x:Name="PART_ImageTilesWait" 
                           Width="128" Height="128" 
-                          Foreground="{DynamicResource AccentColorBrush}"
+                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
                           Opacity="0.9" Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>

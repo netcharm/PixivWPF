@@ -17,7 +17,7 @@
                   HorizontalAlignment="Center" VerticalAlignment="Center"
                   VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                   SelectionMode="SingleDate"
-                  SelectedDatesChanged="CommandDatePicker_SelectedDatesChanged" 
+                  SelectedDatesChanged="DatePicker_SelectedDatesChanged" 
                   MouseWheel="DatePicker_MouseWheel" MouseDoubleClick="DatePicker_MouseDoubleClick">
             <Calendar.RenderTransform>
                 <TransformGroup>
