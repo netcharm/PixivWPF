@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 
@@ -8,6 +9,14 @@ using ControlzEx.Theming;
 
 namespace PixivWPF.Common
 {
+    public class SimpleAccent
+    {
+        public string AccentName { get; set; } = Theme.CurrentAccent;
+        public string AccentStyle { get; set; } = Theme.CurrentStyle;
+        public Color AccentColor { get; set; } = Theme.AccentColor;
+        public Brush AccentBrush { get; set; } = Theme.AccentBrush;
+    }
+
     public static class Theme
     {
         private static List<string> accents = new List<string>() {
@@ -104,6 +113,49 @@ namespace PixivWPF.Common
                     themes.Add(theme.Name);
                 }
                 return (themes);
+            }
+        }
+
+        private static Dictionary<string, Color> accent_colors = new Dictionary<string, Color>();
+        public static Dictionary<string, Color> AllAccentColors
+        {
+            get
+            {
+                if (accent_colors.Count != ThemeManager.Current.Themes.Count)
+                {
+                    accent_colors.Clear();
+                    foreach (var theme in ThemeManager.Current.Themes)
+                    {
+                        accent_colors[theme.ColorScheme] = theme.PrimaryAccentColor;
+                    }
+                }
+                return (accent_colors);
+            }
+        }
+
+        private static List<SimpleAccent> accent_color_list = new List<SimpleAccent>();
+        public static IList<SimpleAccent> AccentColorList
+        {
+            get
+            {
+                if (accent_color_list.Count != ThemeManager.Current.Themes.Count)
+                {
+                    accent_color_list.Clear();
+                    foreach (var theme in ThemeManager.Current.Themes)
+                    {
+                        if (accent_color_list.Where(a => a.AccentName.Equals(theme.ColorScheme)).Count() <= 0)
+                        {
+                            accent_color_list.Add(new SimpleAccent()
+                            {
+                                AccentName = theme.ColorScheme,
+                                AccentStyle = theme.BaseColorScheme,
+                                AccentColor = theme.PrimaryAccentColor,
+                                AccentBrush = theme.PrimaryAccentColor.ToBrush()
+                            });
+                        }
+                    }
+                }
+                return (accent_color_list);
             }
         }
 
@@ -369,7 +421,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static Color AccentColors(int index)
+        public static Color IndexOfAccentColor(int index)
         {
             var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
             if (index < 1) index = 1;

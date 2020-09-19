@@ -29,7 +29,6 @@ namespace PixivWPF
         public Frame MainContent = null;
 
         private Pages.TilesPage pagetiles = null;
-        //private Pages.NavPage pagenav = null;
 
         private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {"a", "b" };
         public ObservableCollection<string> AutoSuggestList
@@ -222,28 +221,23 @@ namespace PixivWPF
             SearchBox.ItemsSource = AutoSuggestList;
 
             Application.Current.SetThemeSync();
-            CommandToggleTheme.ItemsSource = Application.Current.GetAccents();
-            CommandToggleTheme.SelectedIndex = CommandToggleTheme.Items.IndexOf(Application.Current.CurrentAccent());
+
+            CommandToggleTheme.ItemsSource = Application.Current.GetAccentColorList();
+            var acl = Application.Current.GetAccentColorList().Where(a => a.AccentName.Equals(Application.Current.CurrentAccent()));
+            if (acl.Count() > 0)
+                CommandToggleTheme.SelectedIndex = CommandToggleTheme.Items.IndexOf(acl.First());
+            else
+                CommandToggleTheme.SelectedIndex = 0;
 
             MainContent = ContentFrame;
 
             pagetiles = new Pages.TilesPage() { FontFamily = FontFamily, Tag = ContentFrame };
-            //pagenav = new Pages.NavPage() { FontFamily = FontFamily, Tag = pagetiles, NavFlyout = NavFlyout };
-
-            //NavFlyout.Content = pagenav;
-            //NavFlyout.Theme = FlyoutTheme.Adapt;
-            //NavFlyout.Theme = FlyoutTheme.Accent;
-            //NavFlyout.Opacity = 0.95;
 
             ContentFrame.Content = pagetiles;
-            //NavFrame.Content = pagenav;
 
             ContentFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
-            //NavFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
 
             NavPageTitle.Text = pagetiles.TargetPage.ToString();
-
-            //PixivCatgoryMenu.Content = pagenav;
 
             LastWindowStates.Enqueue(WindowState.Normal);
 
@@ -355,14 +349,6 @@ namespace PixivWPF
             this.DoEvents();
         }
 
-        private void NavFlyout_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (e.NewValue is PixivPage)
-            {
-                UpdateTitle(e.NewValue.ToString());
-            }
-        }
-
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.ToggleTheme();
@@ -372,7 +358,9 @@ namespace PixivWPF
         {
             if(CommandToggleTheme.SelectedIndex>=0 && CommandToggleTheme.SelectedIndex< CommandToggleTheme.Items.Count)
             {
-                Application.Current.SetAccent(CommandToggleTheme.SelectedValue.ToString());
+                var item = CommandToggleTheme.SelectedItem;
+                if(item is SimpleAccent)
+                    Application.Current.SetAccent((item as SimpleAccent).AccentName);
             }
         }
 
@@ -388,28 +376,13 @@ namespace PixivWPF
             }
         }
 
-        private void CommandNav_Click(object sender, RoutedEventArgs e)
-        {
-            //NavFlyout.IsOpen = !NavFlyout.IsOpen;
-        }
-
         internal void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 if (sender == CommandNavRefresh)
                 {
-                    var title = pagetiles.TargetPage.ToString();
-                    if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
-                        CommandNavDate.IsEnabled = true;
-                    }
-                    else
-                    {
-                        NavPageTitle.Text = title;
-                        CommandNavDate.IsEnabled = false;
-                    }
+                    UpdateTitle(pagetiles.TargetPage.ToString());
                     pagetiles.ShowImages(pagetiles.TargetPage, false, GetLastSelectedID());
                 }
                 else if (sender == CommandNavRefreshThumb)

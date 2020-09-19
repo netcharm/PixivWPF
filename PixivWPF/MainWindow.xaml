@@ -3,7 +3,7 @@
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 xmlns:local="clr-namespace:PixivWPF"
+                 xmlns:local="clr-namespace:PixivWPF.Common"
                  xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                  xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
                  mc:Ignorable="d"
@@ -47,11 +47,6 @@
 
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands ShowLastSeparator="True">
-            <Button x:Name="CommandNav" x:Uid="CommandNav" 
-                    Click="CommandNav_Click"
-                    ToolTip="Open Navigation Flyout">
-                <iconPacks:PackIconModern Kind="PageSearch" />
-            </Button>
             <Button x:Name="CommandNavRefresh" x:Uid="CommandNavRefresh" 
                     Click="CommandNavRefresh_Click"
                     ToolTip="Refresh Current Page">
@@ -129,12 +124,29 @@
                              Click="CommandToggleTheme_Click" 
                              SelectionChanged="CommandToggleTheme_SelectionChanged">
 
-                              <!--ArrowBrush="{DynamicResource IdealForegroundDisabledBrush}"
-                                  Foreground="{DynamicResource IdealForegroundDisabledBrush}"
-                                  Background="Transparent" 
-                                  Style="{DynamicResource MetroSplitButton}"
-                                  BorderThickness="1" BorderBrush="{Binding Path=WindowTitleBrush, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Controls:MetroWindow}}}"-->
-
+                        <!--ArrowBrush="{DynamicResource IdealForegroundDisabledBrush}"
+                            Foreground="{DynamicResource IdealForegroundDisabledBrush}"
+                            Background="Transparent" 
+                            Style="{DynamicResource MetroSplitButton}"
+                            BorderThickness="1" BorderBrush="{Binding Path=WindowTitleBrush, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Controls:MetroWindow}}}"-->
+                <mah:SplitButton.ItemTemplate >
+                    <DataTemplate DataType="{x:Type local:SimpleAccent}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="20"/>
+                            </Grid.RowDefinitions>
+                            <Rectangle Grid.Column="0" Grid.Row="0" Fill="{Binding AccentBrush}" Stroke="{DynamicResource MahApps.Brushes.IdealForeground}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center" Width="16" Height="16"/>
+                            <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding AccentName}" 
+                                       VerticalAlignment="Center" HorizontalAlignment="Stretch" Width="auto" Height="16" Margin="4,0,0,0"/>
+                        </Grid>
+                    </DataTemplate>
+                </mah:SplitButton.ItemTemplate>
+                
                 <mah:SplitButton.Icon>
                     <iconPacks:PackIconModern Kind="ClothesShirt" />
                 </mah:SplitButton.Icon>
@@ -144,30 +156,13 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        
-        <!--<Frame Grid.Column="0" x:Name="NavFrame" NavigationUIVisibility="Visible">
-            <Frame.CacheMode>
-                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
-            </Frame.CacheMode>
-        </Frame>-->
-        
-        <Frame Grid.Column="1" x:Name="ContentFrame">
+
+        <Frame Grid.Column="0" x:Name="ContentFrame">
             <Frame.CacheMode>
                 <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
             </Frame.CacheMode>
         </Frame>
-        <!--<mah:Flyout Grid.Column="0" Grid.ColumnSpan="2" 
-                    x:Name="NavFlyout" x:Uid="NavFlyout" Header="Navigation" 
-                    Position="Left" Width="Auto" 
-                    IsAutoCloseEnabled="True" AutoCloseInterval="5000"
-                    CloseButtonVisibility="Visible" ExternalCloseButton="Left"
-                    Theme="Adapt" Opacity="0.95"
-                    Foreground="{DynamicResource MahApps.Brushes.Flyout.Foreground}" 
-                    Background="{DynamicResource MahApps.Brushes.Flyout.Background}"
-                    DataContextChanged="NavFlyout_DataContextChanged">
-        </mah:Flyout>-->
     </Grid>
 </mah:MetroWindow>

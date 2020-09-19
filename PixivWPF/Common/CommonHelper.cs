@@ -231,6 +231,11 @@ namespace PixivWPF.Common
             return (Theme.Accents);
         }
 
+        public static IList<SimpleAccent> GetAccentColorList(this Application app)
+        {
+            return (Theme.AccentColorList);
+        }
+
         public static string CurrentAccent(this Application app)
         {
             return (Theme.CurrentAccent);

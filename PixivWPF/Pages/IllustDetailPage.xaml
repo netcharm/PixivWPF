@@ -680,7 +680,7 @@
                         x:Name="btnIllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
                         Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                         ContextMenu="{DynamicResource MenuSpeech}"
-                        Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionSpeech_Click">
@@ -706,7 +706,7 @@
                         x:Name="btnIllustDescSpeech" x:Uid="Speech"
                         Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                         ContextMenu="{DynamicResource MenuSpeech}"
-                        Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionSpeech_Click">
@@ -739,7 +739,7 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="btnSubIllustPrevPages" x:Uid="SubIllustPrevPages"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="SubIllustPagesNav_Click">
@@ -747,7 +747,7 @@
                     </Button>
                     <Button x:Name="btnSubIllustNextPages" x:Uid="SubIllustNextPages"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="SubIllustPagesNav_Click">
@@ -772,7 +772,7 @@
                 <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="RelativePrevPage" x:Uid="RelativePrevPage"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="RelativePrevPage_Click">
@@ -780,7 +780,7 @@
                     </Button>
                     <Button x:Name="RelativeNextPage" x:Uid="RelativeNextPage"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="RelativeNextPage_Click">
@@ -806,7 +806,7 @@
                 <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="FavoritePrevPage" x:Uid="FavoritePrevPage"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="FavoritePrevPage_Click">
@@ -814,7 +814,7 @@
                     </Button>
                     <Button x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage"
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="FavoriteNextPage_Click">
@@ -837,7 +837,7 @@
                             Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
                     <Button x:Name="CommentsPrevPage" x:Uid="CommentsPrevPage" 
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="CommentsPrevPage_Click">
@@ -845,7 +845,7 @@
                     </Button>
                     <Button x:Name="CommentsNextPage" x:Uid="CommentsNextPage" 
                             Visibility="Collapsed" Margin="0,2,0,0"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="28" Height="28" HorizontalAlignment="Right"
                             Click="CommentsNextPage_Click">

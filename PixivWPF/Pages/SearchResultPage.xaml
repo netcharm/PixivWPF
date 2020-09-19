@@ -153,14 +153,14 @@
                 </Expander>
                 <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0">
                     <Button x:Name="RelativePrevPage" Visibility="Collapsed"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="24" Height="24" HorizontalAlignment="Right"
                             Click="SearchResultPrevPage_Click">
                         <iconPacks:PackIconModern Kind="NavigatePrevious" />
                     </Button>
                     <Button x:Name="SearchFilter"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="24" Height="24" HorizontalAlignment="Right"
                             Margin="0,0,4,0"
@@ -169,7 +169,7 @@
                         <iconPacks:PackIconModern Kind="Filter" />
                     </Button>
                     <Button x:Name="ResultNextPage"
-                            Style="{DynamicResource MahApps.Styles.Button.Circle}"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"
                             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                             Width="24" Height="24" HorizontalAlignment="Right"
                             Click="ResultNextPage_Click">

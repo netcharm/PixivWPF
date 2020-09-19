@@ -146,7 +146,7 @@
                   ItemTemplate="{DynamicResource PART_ImageTileTemplate}"
                   ScrollViewer.IsDeferredScrollingEnabled="False"
                   SelectionMode="{Binding SelectionMode, Mode=OneWay}"                  
-                  Style="{DynamicResource VirtualisedMetroListView}"
+                  Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
                   Template="{StaticResource PART_NoScroll}"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.IsContainerVirtualizable="True"

@@ -136,8 +136,9 @@
         <DataTemplate x:Key="HamburgerMenuIconItem" DataType="{x:Type mah:HamburgerMenuIconItem}">
             <DockPanel Height="30" LastChildFill="True" ToolTip="{Binding Label}">
                 <ContentControl x:Name="IconPart" DockPanel.Dock="Left" Focusable="True" IsTabStop="False" Content="{Binding Icon}"
+                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                 Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=CompactPaneLength}" />
-                <TextBlock x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Margin="8,0,0,0" Text="{Binding Label}" />
+                <TextBlock x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Margin="8,0,0,0" Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" Text="{Binding Label}" />
             </DockPanel>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=PanePlacement}" Value="Right">
@@ -178,7 +179,7 @@
                       ItemTemplate="{DynamicResource ImageTileTemplate}"
                       ScrollViewer.IsDeferredScrollingEnabled="False"
                       SelectionMode="Single"
-                      Style="{DynamicResource MahApps.Styles.ListView}"
+                      Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
                       VirtualizingPanel.IsVirtualizing="True"
                       VirtualizingPanel.IsContainerVirtualizable="True"
                       VirtualizingPanel.IsVirtualizingWhenGrouping="True"
@@ -231,16 +232,17 @@
                            PanePlacement="Left" DisplayMode="CompactOverlay"
                            IsPaneOpen="True" ShowSelectionIndicator="True" OpenPaneLength="280"
                            CanResizeOpenPane="False" VerticalScrollBarOnLeftSide="False"
-                           Foreground="{DynamicResource MahApps.HamburgerMenu.Pane.Foreground}"
+                           Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                            Background="{DynamicResource MahApps.HamburgerMenu.Pane.Background}"
-                           PaneBackground="{DynamicResource MahApps.Brushes.Accent}"                           
+                           PaneBackground="{DynamicResource MahApps.Brushes.Accent}"
+                           HamburgerButtonHelpText="Change Pixiv Category"
                            ItemTemplate="{StaticResource HamburgerMenuIconItem}"
                            OptionsItemTemplate="{StaticResource HamburgerMenuIconItem}"
                            ItemInvoked="PixivCatgoryMenu_ItemInvoked">
             <!--  Header  -->
             <mah:HamburgerMenu.HamburgerMenuHeaderTemplate>
                 <DataTemplate>
-                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource MahApps.HamburgerMenu.Pane.Foreground}" Text="Pixiv" />
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" Text="Pixiv" Margin="4,0,0,0"/>
                 </DataTemplate>
             </mah:HamburgerMenu.HamburgerMenuHeaderTemplate>
             <!--  Items  -->
@@ -249,10 +251,10 @@
                     <!-- Common -->
                     <mah:HamburgerMenuIconItem Label="Recommanded" x:Name="miPixivRecommanded" x:Uid="miPixivRecommanded" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Home" />-->
-                            <TextBlock Text="&#xE10F;" FontSize="22" FontFamily="Segoe UI Symbol" 
-                               Foreground="{DynamicResource MahApps.HamburgerMenu.Pane.Foreground}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Home" />
+                            <!--<TextBlock Text="&#xE10F;" FontSize="22" FontFamily="Segoe UI Symbol" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
                         </mah:HamburgerMenuIconItem.Icon>
                         <mah:HamburgerMenuIconItem.Tag>
                             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="28" FontWeight="Bold">Recommanded</TextBlock>
