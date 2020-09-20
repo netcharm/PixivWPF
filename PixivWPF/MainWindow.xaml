@@ -44,7 +44,7 @@
             <Button 
                 x:Name="CommandNavRefresh" x:Uid="CommandNavRefresh" 
                 Click="CommandNavRefresh_Click"
-                ToolTip="Refresh Current Page">
+                ToolTip="Refresh">
                 <TextBlock 
                     Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
@@ -53,7 +53,7 @@
             <Button 
                 x:Name="CommandNavRefreshThumb" x:Uid="CommandNavRefreshThumb" 
                 Click="CommandNavRefresh_Click"
-                ToolTip="Refresh Current Page Thumbnail">
+                ToolTip="Refresh Thumbnails">
                 <TextBlock 
                     Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"

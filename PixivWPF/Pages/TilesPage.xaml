@@ -122,7 +122,10 @@
                 <Grid x:Name="IconPart" DockPanel.Dock="Left" Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=CompactPaneLength}">
                     <Image Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Source="{Binding Glyph}" />
                 </Grid>
-                <TextBlock x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Text="{Binding Label}" />
+                <TextBlock 
+                    x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Margin="8,0,0,0" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
+                    Text="{Binding Label}" />            
             </DockPanel>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=PanePlacement}" Value="Right">
@@ -138,7 +141,9 @@
                 <ContentControl x:Name="IconPart" DockPanel.Dock="Left" Focusable="True" IsTabStop="False" Content="{Binding Icon}"
                                 Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                 Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=CompactPaneLength}" />
-                <TextBlock x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Margin="8,0,0,0" Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" Text="{Binding Label}" />
+                <TextBlock x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Margin="8,0,0,0" 
+                           Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
+                           Text="{Binding Label}" />
             </DockPanel>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=PanePlacement}" Value="Right">
@@ -151,7 +156,9 @@
         <!--  This is the template for all menu items. In this sample we use the glyph items.  -->
         <DataTemplate x:Key="HamburgerMenuItem" DataType="{x:Type mah:HamburgerMenuItem}">
             <DockPanel Height="30" LastChildFill="True">
-                <TextBlock x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Text="{Binding Label}" />
+                <TextBlock x:Name="TextPart" VerticalAlignment="Center" FontSize="16" Margin="8,0,0,0" 
+                           Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
+                           Text="{Binding Label}" />
             </DockPanel>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type mah:HamburgerMenu}}, Path=PanePlacement}" Value="Right">
@@ -164,61 +171,49 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="738"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto" MinWidth="738" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <!-- Illust List Viewport -->
-        <!--<ScrollViewer Grid.Column="0" x:Name="ImageTilesViewer" ScrollChanged="ImageTilesViewer_ScrollChanged" >-->
-        <!--<Expander Grid.Column="0" ExpandDirection="Right" IsExpanded="True" HorizontalAlignment="Left">-->
-            <ListView Grid.Column="0"
-                      x:Name="ListImageTiles" x:Uid="ImageTiles"
-                      BorderBrush="Transparent"
-                      HorizontalAlignment="Center" VerticalAlignment="Top" Margin="48,0,0,0"
-                      IsSynchronizedWithCurrentItem="true"
-                      ItemsSource="{Binding Source={StaticResource ActiveImageTiles}, IsAsync=True, NotifyOnTargetUpdated=True}" 
-                      ItemTemplate="{DynamicResource ImageTileTemplate}"
-                      ScrollViewer.IsDeferredScrollingEnabled="False"
-                      SelectionMode="Single"
-                      Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
-                      VirtualizingPanel.IsVirtualizing="True"
-                      VirtualizingPanel.IsContainerVirtualizable="True"
-                      VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                      VirtualizingPanel.CacheLength ="50"
-                      VirtualizingPanel.CacheLengthUnit="Item"
-                      VirtualizingPanel.VirtualizationMode="Recycling"
-                      VirtualizingPanel.ScrollUnit="Item"
-                      mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
-                      KeyDown="ListImageTiles_KeyDown"                      
-                      MouseDoubleClick="ListImageTiles_MouseDoubleClick"
-                      MouseDown="ListImageTiles_MouseDown"
-                      PreviewMouseWheel="ListImageTiles_PreviewMouseWheel"
-                      SelectionChanged="ImageTiles_SelectionChanged">
-                <ListView.CacheMode>
-                    <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
-                </ListView.CacheMode>
-                <ListView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
-                        <!--<auxc:UniformGridPanel Orientation="Vertical" Columns="5" Rows="5" Width="700" Height="Auto">
-                        
-                    </auxc:UniformGridPanel>-->
 
-                        <!--<vwp:VirtualizingTilePanel Columns="5" ChildHeight="152" MinChildWidth="128">
+        <ListView Grid.Column="0"
+            x:Name="ListImageTiles" x:Uid="ImageTiles"
+            BorderBrush="Transparent"
+            HorizontalAlignment="Left" VerticalAlignment="Top" Margin="48,0,0,0" Width="Auto"
+            IsSynchronizedWithCurrentItem="true"
+            ItemsSource="{Binding Source={StaticResource ActiveImageTiles}, IsAsync=True, NotifyOnTargetUpdated=True}" 
+            ItemTemplate="{DynamicResource ImageTileTemplate}"
+            ScrollViewer.IsDeferredScrollingEnabled="False"
+            SelectionMode="Single"
+            Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.IsContainerVirtualizable="True"
+            VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+            VirtualizingPanel.CacheLength ="50"
+            VirtualizingPanel.CacheLengthUnit="Item"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            VirtualizingPanel.ScrollUnit="Item"
+            mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
+            KeyDown="ListImageTiles_KeyDown"                      
+            MouseDoubleClick="ListImageTiles_MouseDoubleClick"
+            MouseDown="ListImageTiles_MouseDown"
+            PreviewMouseWheel="ListImageTiles_PreviewMouseWheel"
+            SelectionChanged="ImageTiles_SelectionChanged">
+            <ListView.CacheMode>
+                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+            </ListView.CacheMode>
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="5" Grid.IsSharedSizeScope="True" 
+                                HorizontalAlignment="Center" VerticalAlignment="Top" 
+                                ScrollViewer.CanContentScroll="True" UseLayoutRounding="True">
+                        <UniformGrid.CacheMode>
+                            <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+                        </UniformGrid.CacheMode>
+                    </UniformGrid>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+        </ListView>
 
-                    </vwp:VirtualizingTilePanel>-->
-
-                        <UniformGrid Columns="5" Grid.IsSharedSizeScope="True" 
-                                 HorizontalAlignment="Center" VerticalAlignment="Top" 
-                                 ScrollViewer.CanContentScroll="True" UseLayoutRounding="True">
-                            <UniformGrid.CacheMode>
-                                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
-                            </UniformGrid.CacheMode>
-                        </UniformGrid>
-                    </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
-            </ListView>
-        <!--</ScrollViewer>-->
-        <!--</Expander>-->
         <mah:ProgressRing Grid.Column="0" 
                           x:Name="ImageTilesWait" 
                           Width="128" Height="128" 
@@ -241,9 +236,19 @@
                            OptionsItemTemplate="{StaticResource HamburgerMenuIconItem}"
                            ItemInvoked="PixivCatgoryMenu_ItemInvoked">
             <!--  Header  -->
+            <mah:HamburgerMenu.HamburgerButtonTemplate>
+                <DataTemplate>
+                    <TextBlock Text="&#xE700;" FontSize="24" FontWeight="ExtraBlack" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </DataTemplate>
+            </mah:HamburgerMenu.HamburgerButtonTemplate>
             <mah:HamburgerMenu.HamburgerMenuHeaderTemplate>
                 <DataTemplate>
-                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" Text="Pixiv" Margin="4,0,0,0"/>
+                    <TextBlock 
+                        HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4,0,0,0"
+                        Text="PiXiV.net" FontSize="30" FontWeight="Bold" 
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" />
                 </DataTemplate>
             </mah:HamburgerMenu.HamburgerMenuHeaderTemplate>
             <!--  Items  -->
@@ -275,31 +280,10 @@
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="Following" x:Name="miPixivFollowing" x:Uid="miPixivFollowing" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Heart" />
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Check" />
                         </mah:HamburgerMenuIconItem.Icon>                        
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Following Private" x:Name="miPixivFollowingPrivate" x:Uid="miPixivFollowingPrivate" >
-                        <mah:HamburgerMenuIconItem.Icon>
-                            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
-                                <iconPacks:PackIconModern 
-                                    Kind="Heart" Width="22" Height="22" 
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
-                                <iconPacks:PackIconModern 
-                                    Kind="Lock" Width="8" Height="8"
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                            </Grid>
-                        </mah:HamburgerMenuIconItem.Icon>
-                    </mah:HamburgerMenuIconItem>
-                    <!-- Favorite -->
-                    <mah:HamburgerMenuSeparatorItem />
-                    <mah:HamburgerMenuIconItem Label="Favorite" x:Name="miPixivFavorite" x:Uid="miPixivFavorite" >
-                        <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Check" />
-                        </mah:HamburgerMenuIconItem.Icon>
-                    </mah:HamburgerMenuIconItem>
-                    <mah:HamburgerMenuIconItem Label="Favorite Private" x:Name="miPixivFavoritePrivate" x:Uid="miPixivFavoritePrivate" >
                         <mah:HamburgerMenuIconItem.Icon>
                             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                 <iconPacks:PackIconModern 
@@ -310,6 +294,27 @@
                                     Kind="Lock" Width="8" Height="8" Margin="14,12,0,0"
                                     HorizontalAlignment="Center" VerticalAlignment="Center"
                                     Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                            </Grid>
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <!-- Favorite -->
+                    <mah:HamburgerMenuSeparatorItem />
+                    <mah:HamburgerMenuIconItem Label="Favorite" x:Name="miPixivFavorite" x:Uid="miPixivFavorite" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Heart" />
+                        </mah:HamburgerMenuIconItem.Icon>
+                    </mah:HamburgerMenuIconItem>
+                    <mah:HamburgerMenuIconItem Label="Favorite Private" x:Name="miPixivFavoritePrivate" x:Uid="miPixivFavoritePrivate" >
+                        <mah:HamburgerMenuIconItem.Icon>
+                            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+                                <iconPacks:PackIconModern 
+                                    Kind="Heart" Width="22" Height="22" 
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                                <iconPacks:PackIconModern 
+                                    Kind="Lock" Width="8" Height="8"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </Grid>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>

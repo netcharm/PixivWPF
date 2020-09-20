@@ -256,6 +256,8 @@ namespace PixivWPF.Common
         public bool PrivateFavPrefer { get; set; } = false;
         public bool PrivateBookmarkPrefer { get; set; } = false;
 
+        public bool IgnoreOrderOpen { get; set; } = false;
+
         public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
 
         public string ShellSearchBridgeApplication { get; set; } = "PixivWPFSearch.exe";
@@ -383,6 +385,7 @@ namespace PixivWPF.Common
                                 Cache.CurrentAccent = cache.CurrentAccent;
                                 Cache.PrivateFavPrefer = cache.PrivateFavPrefer;
                                 Cache.PrivateBookmarkPrefer = cache.PrivateBookmarkPrefer;
+                                Cache.IgnoreOrderOpen = cache.IgnoreOrderOpen;
                                 Cache.AutoExpand = cache.AutoExpand;
                                 Cache.ShellSearchBridgeApplication = cache.ShellSearchBridgeApplication;
                                 Cache.ShellPixivPediaApplication = cache.ShellPixivPediaApplication;

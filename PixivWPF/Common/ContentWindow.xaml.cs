@@ -63,6 +63,8 @@ namespace PixivWPF.Common
         {
             InitializeComponent();
 
+            //this.GlowBrush = null;
+
             SearchBox.ItemsSource = AutoSuggestList;
 
             CommandToggleTheme.ItemsSource = Application.Current.GetAccents();

@@ -197,9 +197,12 @@ namespace PixivWPF.Common
     public static class ApplicationExtensions
     {
         #region Application Setting Helper
+        public static Setting CurrentSetting { get { return(Setting.Instance is Setting ? Setting.Instance : Setting.Load()); } }
         public static Setting LoadSetting(this Application app, bool force = false)
         {
-            return (!force && Setting.Instance is Setting ? Setting.Instance : Setting.Load(force));
+            if (force) Setting.Load(force);
+            return (CurrentSetting);
+            //return (!force && Setting.Instance is Setting ? Setting.Instance : Setting.Load(force));
         }
 
         public static void SaveSetting(this Application app)
@@ -1185,8 +1188,9 @@ namespace PixivWPF.Common
             }
             else if (obj is ImageListGrid)
             {
+                setting = Application.Current.LoadSetting();
                 var list = obj as ImageListGrid;
-                foreach (var item in list.SelectedItems)
+                foreach (var item in list.GetSelected(setting.IgnoreOrderOpen))
                 {
                     await new Action(() =>
                     {
@@ -1260,8 +1264,9 @@ namespace PixivWPF.Common
             }
             else if (obj is ImageListGrid)
             {
+                setting = Application.Current.LoadSetting();
                 var list = obj as ImageListGrid;
-                foreach (var item in list.SelectedItems)
+                foreach (var item in list.GetSelected(setting.IgnoreOrderOpen))
                 {
                     //Cmd_OpenItem.Execute(item);
                     await new Action(() =>
@@ -4218,6 +4223,26 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
 
+            return (result);
+        }
+
+        public static IList<ImageItem> GetSelected(this ImageListGrid gallery, bool ignore_order = false)
+        {
+            var result = new List<ImageItem>();
+            try
+            {
+                if (Keyboard.Modifiers == ModifierKeys.Control) ignore_order = !ignore_order;
+                if (ignore_order)
+                {
+                    foreach (var item in gallery.Items)
+                    {
+                        if (gallery.SelectedItems.Contains(item)) result.Add(item);
+                    }
+                }
+                else
+                    result = gallery.SelectedItems.ToList();
+            }
+            catch (Exception) { }
             return (result);
         }
         #endregion
