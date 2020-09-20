@@ -41,15 +41,23 @@
     
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands ShowLastSeparator="True">
-            <Button x:Name="CommandNavRefresh" x:Uid="CommandNavRefresh" 
-                    Click="CommandNavRefresh_Click"
-                    ToolTip="Refresh Current Page">
-                <iconPacks:PackIconModern Kind="Refresh" />
+            <Button 
+                x:Name="CommandNavRefresh" x:Uid="CommandNavRefresh" 
+                Click="CommandNavRefresh_Click"
+                ToolTip="Refresh Current Page">
+                <TextBlock 
+                    Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
-            <Button x:Name="CommandNavRefreshThumb" x:Uid="CommandNavRefreshThumb" 
-                    Click="CommandNavRefresh_Click"
-                    ToolTip="Refresh Current Page Thumbnail">
-                <iconPacks:PackIconModern Kind="ImageMultiple" />
+            <Button 
+                x:Name="CommandNavRefreshThumb" x:Uid="CommandNavRefreshThumb" 
+                Click="CommandNavRefresh_Click"
+                ToolTip="Refresh Current Page Thumbnail">
+                <TextBlock 
+                    Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Button x:Name="CommandNavDate" x:Uid="CommandNavDate" 
                     Click="CommandNavDate_Click"                                

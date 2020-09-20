@@ -164,7 +164,7 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="742"/>
+            <ColumnDefinition Width="Auto" MinWidth="738"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <!-- Illust List Viewport -->
@@ -173,7 +173,7 @@
             <ListView Grid.Column="0"
                       x:Name="ListImageTiles" x:Uid="ImageTiles"
                       BorderBrush="Transparent"
-                      HorizontalAlignment="Center" VerticalAlignment="Top" Margin="48,0,4,0"
+                      HorizontalAlignment="Center" VerticalAlignment="Top" Margin="48,0,0,0"
                       IsSynchronizedWithCurrentItem="true"
                       ItemsSource="{Binding Source={StaticResource ActiveImageTiles}, IsAsync=True, NotifyOnTargetUpdated=True}" 
                       ItemTemplate="{DynamicResource ImageTileTemplate}"
@@ -280,7 +280,16 @@
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Following Private" x:Name="miPixivFollowingPrivate" x:Uid="miPixivFollowingPrivate" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PageHeart" />
+                            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+                                <iconPacks:PackIconModern 
+                                    Kind="Heart" Width="22" Height="22" 
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                                <iconPacks:PackIconModern 
+                                    Kind="Lock" Width="8" Height="8"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </Grid>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <!-- Favorite -->
@@ -292,7 +301,16 @@
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Favorite Private" x:Name="miPixivFavoritePrivate" x:Uid="miPixivFavoritePrivate" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PageCheck" />
+                            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <iconPacks:PackIconModern 
+                                    Kind="Check" Width="22" Height="22" 
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                                <iconPacks:PackIconModern 
+                                    Kind="Lock" Width="8" Height="8" Margin="14,12,0,0"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                            </Grid>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <!-- Ranking Day -->

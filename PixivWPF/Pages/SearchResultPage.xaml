@@ -50,12 +50,18 @@
             <Separator />
             <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="ActionRefreshResult_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Refresh" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    <TextBlock Margin="4,0,0,0"
+                        Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionRefreshThumb" Header="Refresh Thumbnails" Click="ActionRefreshResult_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="ImageMultiple" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    <TextBlock Margin="4,0,0,0"
+                        Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>            
             <Separator/>
@@ -186,7 +192,7 @@
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionRefreshResult_Click">
                         <Button.Content>
-                            <TextBlock Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                            <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>
