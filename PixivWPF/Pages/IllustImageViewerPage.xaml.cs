@@ -28,6 +28,8 @@ namespace PixivWPF.Pages
         private object DataType = null;
         private Window window = null;
 
+        public ImageItem Item { get; set; } = null;
+
         internal void UpdateTheme()
         {
             btnViewPrevPage.Enable(btnViewPrevPage.IsEnabled, btnViewPrevPage.IsVisible);
@@ -176,6 +178,8 @@ namespace PixivWPF.Pages
                 var titleheight = window is MetroWindow ? (window as MetroWindow).TitleBarHeight : 0;
                 window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
                 window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom + (32 - titleheight % 32);
+
+                if (Item is ImageItem) UpdateDetail(Item);
             }
         }
 

@@ -23,6 +23,8 @@ namespace PixivWPF.Pages
     {
         private Setting setting = Application.Current.LoadSetting();
 
+        public ImageItem Item { get; set; } = null;
+
         private object DataObject = null;
 
         private bool bCancel = false;
@@ -35,11 +37,14 @@ namespace PixivWPF.Pages
         // Return the result of the hit test to the callback.
         private HitTestResultBehavior MyHitTestResult(HitTestResult result)
         {
-            // Add the hit test result to the list that will be processed after the enumeration.
-            hitResultsList.Add(result.VisualHit);
-
-            // Set the behavior to return visuals at all z-order levels.
-            return HitTestResultBehavior.Continue;
+            var behavior = HitTestResultBehavior.Continue;
+            try
+            {
+                // Add the hit test result to the list that will be processed after the enumeration.
+                hitResultsList.Add(result.VisualHit);
+            }
+            catch (Exception) { }
+            return (behavior);
         }
 
         private bool IsElement(FrameworkElement target, MouseEventArgs e)
@@ -77,32 +82,41 @@ namespace PixivWPF.Pages
 
         private WindowsFormsHostEx GetHostEx(System.Windows.Forms.WebBrowser browser)
         {
-            if (browser == IllustDescHtml)
-                return (descHost);
-            else if (browser == IllustTagsHtml)
-                return (tagsHost);
-            else return (null);
+            WindowsFormsHostEx result = null;
+            try
+            {
+                if (browser == IllustDescHtml)
+                    result = descHost;
+                else if (browser == IllustTagsHtml)
+                    result = tagsHost;
+            }
+            catch (Exception) { }
+            return (result);
         }
 
         private async void AdjustBrowserSize(System.Windows.Forms.WebBrowser browser)
         {
-            if (browser is System.Windows.Forms.WebBrowser)
+            try
             {
-                int h_min = 96;
-                int h_max = 480;
-
-                var host = GetHostEx(browser);
-                if (host is System.Windows.Forms.Integration.WindowsFormsHost)
+                if (browser is System.Windows.Forms.WebBrowser)
                 {
-                    h_min = (int)(host.MinHeight);
-                    h_max = (int)(host.MaxHeight);
+                    int h_min = 96;
+                    int h_max = 480;
+
+                    var host = GetHostEx(browser);
+                    if (host is System.Windows.Forms.Integration.WindowsFormsHost)
+                    {
+                        h_min = (int)(host.MinHeight);
+                        h_max = (int)(host.MaxHeight);
+                    }
+                    await Task.Delay(1);
+                    var size = browser.Document.Body.ScrollRectangle.Size;
+                    var offset = browser.Document.Body.OffsetRectangle.Top;
+                    if (offset <= 0) offset = 16;
+                    browser.Height = Math.Min(Math.Max(size.Height, h_min), h_max) + offset * 2;
                 }
-                await Task.Delay(1);
-                var size = browser.Document.Body.ScrollRectangle.Size;
-                var offset = browser.Document.Body.OffsetRectangle.Top;
-                if (offset <= 0) offset = 16;
-                browser.Height = Math.Min(Math.Max(size.Height, h_min), h_max) + offset * 2;
             }
+            catch (Exception) { }
         }
 
         private string GetText(System.Windows.Forms.WebBrowser browser, bool html = false)
@@ -270,187 +284,226 @@ namespace PixivWPF.Pages
 
         public async void UpdateIllustTagsAsync()
         {
-            if (DataObject is ImageItem)
+            try
             {
-                var item = DataObject as ImageItem;
-                if (item.ItemType != ImageItemType.User)
+                if (DataObject is ImageItem)
                 {
-                    await new Action(() =>
+                    var item = DataObject as ImageItem;
+                    if (item.ItemType != ImageItemType.User)
                     {
-                        WebBrowserRefresh(IllustTagsHtml);
-                    }).InvokeAsync();
+                        await new Action(() =>
+                        {
+                            WebBrowserRefresh(IllustTagsHtml);
+                        }).InvokeAsync();
+                    }
                 }
             }
+            catch (Exception) { }
         }
 
         public async void UpdateIllustDescAsync()
         {
-            if (DataObject is ImageItem)
+            try
             {
-                var item = DataObject as ImageItem;
-                if (item.ItemType != ImageItemType.User)
+                if (DataObject is ImageItem)
                 {
-                    await new Action(() =>
+                    var item = DataObject as ImageItem;
+                    if (item.ItemType != ImageItemType.User)
                     {
-                        WebBrowserRefresh(IllustDescHtml);
-                    }).InvokeAsync();
+                        await new Action(() =>
+                        {
+                            WebBrowserRefresh(IllustDescHtml);
+                        }).InvokeAsync();
+                    }
                 }
             }
+            catch (Exception) { }
         }
 
         public async void UpdateWebContentAsync()
         {
-            if (DataObject is ImageItem)
+            try
             {
-                var item = DataObject as ImageItem;
-                if (item.ItemType != ImageItemType.User)
+                if (DataObject is ImageItem)
                 {
-                    await new Action(() =>
+                    var item = DataObject as ImageItem;
+                    if (item.ItemType != ImageItemType.User)
                     {
-                        WebBrowserRefresh(IllustTagsHtml);
-                        WebBrowserRefresh(IllustDescHtml);
-                    }).InvokeAsync();
+                        await new Action(() =>
+                        {
+                            WebBrowserRefresh(IllustTagsHtml);
+                            WebBrowserRefresh(IllustDescHtml);
+                        }).InvokeAsync();
+                    }
                 }
             }
+            catch (Exception) { }
         }
 
         internal void UpdateTheme()
         {
-            if (IllustTagsHtml is System.Windows.Forms.WebBrowser)
+            try
             {
-                var tagsTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustTagsHtml.Document.Title : string.Empty;
-                IllustTagsHtml.DocumentText = GetText(IllustTagsHtml, true).GetHtmlFromTemplate(tagsTitle);
-            }
-            if (IllustDescHtml is System.Windows.Forms.WebBrowser)
-            {
-                var descTitle = IllustDescHtml.Document is System.Windows.Forms.HtmlDocument ? IllustDescHtml.Document.Title : string.Empty;
-                IllustDescHtml.DocumentText = GetText(IllustDescHtml, true).GetHtmlFromTemplate(descTitle);
-            }
+                if (IllustTagsHtml is System.Windows.Forms.WebBrowser)
+                {
+                    var tagsTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustTagsHtml.Document.Title : string.Empty;
+                    IllustTagsHtml.DocumentText = GetText(IllustTagsHtml, true).GetHtmlFromTemplate(tagsTitle);
+                }
+                if (IllustDescHtml is System.Windows.Forms.WebBrowser)
+                {
+                    var descTitle = IllustDescHtml.Document is System.Windows.Forms.HtmlDocument ? IllustDescHtml.Document.Title : string.Empty;
+                    IllustDescHtml.DocumentText = GetText(IllustDescHtml, true).GetHtmlFromTemplate(descTitle);
+                }
 
-            btnSubPagePrev.Enable(btnSubPagePrev.IsEnabled, btnSubPagePrev.IsVisible);
-            btnSubPageNext.Enable(btnSubPageNext.IsEnabled, btnSubPageNext.IsVisible);
+                btnSubPagePrev.Enable(btnSubPagePrev.IsEnabled, btnSubPagePrev.IsVisible);
+                btnSubPageNext.Enable(btnSubPageNext.IsEnabled, btnSubPageNext.IsVisible);
+            }
+            catch (Exception) { }
         }
 
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
             var id = illustid ?? -1;
-            foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeIllusts, FavoriteIllusts })
+            try
             {
-                foreach (var item in illusts.Items)
+                foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeIllusts, FavoriteIllusts })
                 {
-                    if (item.Illust is Pixeez.Objects.Work)
+                    foreach (var item in illusts.Items)
                     {
-                        if (id == -1)
-                            item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
-                        else if (id == (int)(item.Illust.Id))
+                        if (item.Illust is Pixeez.Objects.Work)
                         {
-                            if (illusts == SubIllusts)
-                                item.IsDownloaded = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
-                            else
+                            if (id == -1)
+                                item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                            else if (id == (int)(item.Illust.Id))
                             {
-                                if (item.Count > 1)
-                                    item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                                if (illusts == SubIllusts)
+                                    item.IsDownloaded = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
                                 else
-                                    item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
+                                {
+                                    if (item.Count > 1)
+                                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                                    else
+                                        item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
+                                }
                             }
                         }
                     }
                 }
             }
+            catch (Exception) { }
         }
 
         public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
         {
-            if (DataObject is ImageItem)
+            try
             {
-                UpdateDownloadedMark(DataObject as ImageItem);
-                SubIllusts.UpdateTilesState(false);
-            }
+                if (DataObject is ImageItem)
+                {
+                    UpdateDownloadedMark(DataObject as ImageItem);
+                    SubIllusts.UpdateTilesState(false);
+                }
 
-            await Task.Run(() =>
-            {
-                UpdateDownloadState(illustid, exists);
-            });
+                await Task.Run(() =>
+                {
+                    UpdateDownloadState(illustid, exists);
+                });
+            }
+            catch(Exception) { }
         }
 
         private void UpdateDownloadedMark()
         {
-            if (DataObject is ImageItem)
+            try
             {
-                var item = DataObject as ImageItem;
-                UpdateDownloadedMark(item);
+                if (DataObject is ImageItem)
+                {
+                    var item = DataObject as ImageItem;
+                    UpdateDownloadedMark(item);
+                }
             }
+            catch (Exception) { }
         }
 
         private void UpdateDownloadedMark(ImageItem item, bool? exists = null)
         {
-            if (item is ImageItem)
+            try
             {
-                string fp = string.Empty;
-
-                var index = item.Index;
-                if (index < 0)
+                if (item is ImageItem)
                 {
-                    var download = item.Illust.IsPartDownloadedAsync(out fp);
-                    if (item.IsDownloaded != download) item.IsDownloaded = download;
-                    if (item.IsDownloaded)
+                    string fp = string.Empty;
+                    var index = item.Index;
+                    if (index < 0)
                     {
-                        IllustDownloaded.Visibility = Visibility.Visible;
-                        IllustDownloaded.Tag = fp;
-                        ToolTipService.SetToolTip(IllustDownloaded, fp);
+                        var download = item.Illust.IsPartDownloadedAsync(out fp);
+                        if (item.IsDownloaded != download) item.IsDownloaded = download;
+                        if (item.IsDownloaded)
+                        {
+                            IllustDownloaded.Visibility = Visibility.Visible;
+                            IllustDownloaded.Tag = fp;
+                            ToolTipService.SetToolTip(IllustDownloaded, fp);
+                        }
+                        else
+                        {
+                            IllustDownloaded.Visibility = Visibility.Collapsed;
+                            IllustDownloaded.Tag = null;
+                            ToolTipService.SetToolTip(IllustDownloaded, null);
+                        }
                     }
                     else
                     {
-                        IllustDownloaded.Visibility = Visibility.Collapsed;
-                        IllustDownloaded.Tag = null;
-                        ToolTipService.SetToolTip(IllustDownloaded, null);
-                    }
-                }
-                else
-                {
-                    var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp);
-                    if (download)
-                    {
-                        IllustDownloaded.Visibility = Visibility.Visible;
-                        IllustDownloaded.Tag = fp;
-                        ToolTipService.SetToolTip(IllustDownloaded, fp);
-                    }
-                    else
-                    {
-                        IllustDownloaded.Visibility = Visibility.Collapsed;
-                        IllustDownloaded.Tag = null;
-                        ToolTipService.SetToolTip(IllustDownloaded, null);
+                        var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp);
+                        if (download)
+                        {
+                            IllustDownloaded.Visibility = Visibility.Visible;
+                            IllustDownloaded.Tag = fp;
+                            ToolTipService.SetToolTip(IllustDownloaded, fp);
+                        }
+                        else
+                        {
+                            IllustDownloaded.Visibility = Visibility.Collapsed;
+                            IllustDownloaded.Tag = null;
+                            ToolTipService.SetToolTip(IllustDownloaded, null);
+                        }
                     }
                 }
             }
+            catch (Exception) { }
         }
 
         private void UpdateFavMark(Pixeez.Objects.Work illust)
         {
-            if (illust.IsLiked())
+            try
             {
-                BookmarkIllust.Tag = PackIconModernKind.Heart;// "Heart";
-                ActionBookmarkIllustRemove.IsEnabled = true;
+                if (illust.IsLiked())
+                {
+                    BookmarkIllust.Tag = PackIconModernKind.Heart;// "Heart";
+                    ActionBookmarkIllustRemove.IsEnabled = true;
+                }
+                else
+                {
+                    BookmarkIllust.Tag = PackIconModernKind.HeartOutline;// "HeartOutline";
+                    ActionBookmarkIllustRemove.IsEnabled = false;
+                }
             }
-            else
-            {
-                BookmarkIllust.Tag = PackIconModernKind.HeartOutline;// "HeartOutline";
-                ActionBookmarkIllustRemove.IsEnabled = false;
-            }
+            catch (Exception) { }
         }
 
         private void UpdateFollowMark(Pixeez.Objects.UserBase user)
         {
-            if (user.IsLiked())
+            try
             {
-                FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
-                ActionFollowAuthorRemove.IsEnabled = true;
+                if (user.IsLiked())
+                {
+                    FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
+                    ActionFollowAuthorRemove.IsEnabled = true;
+                }
+                else
+                {
+                    FollowAuthor.Tag = PackIconModernKind.Add;// "Add";
+                    ActionFollowAuthorRemove.IsEnabled = false;
+                }
             }
-            else
-            {
-                FollowAuthor.Tag = PackIconModernKind.Add;// "Add";
-                ActionFollowAuthorRemove.IsEnabled = false;
-            }
+            catch (Exception) { }
         }
 
         public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
@@ -463,46 +516,58 @@ namespace PixivWPF.Pages
 
         public void UpdateLikeState(int illustid = -1, bool is_user = false)
         {
-            if (DataObject is ImageItem)
+            try
             {
-                UpdateFollowMark((DataObject as ImageItem).Illust.User);
-                UpdateFavMark((DataObject as ImageItem).Illust);
-            }
-            else if (DataObject is Pixeez.Objects.UserBase)
-            {
-                UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
-            }
+                if (DataObject is ImageItem)
+                {
+                    UpdateFollowMark((DataObject as ImageItem).Illust.User);
+                    UpdateFavMark((DataObject as ImageItem).Illust);
+                }
+                else if (DataObject is Pixeez.Objects.UserBase)
+                {
+                    UpdateFollowMark(DataObject as Pixeez.Objects.UserBase);
+                }
 
-            if (RelativeIllustsExpander.IsExpanded)
-            {
-                RelativeIllusts.UpdateLikeState(illustid, is_user);
+                if (RelativeIllustsExpander.IsExpanded)
+                {
+                    RelativeIllusts.UpdateLikeState(illustid, is_user);
+                }
+                if (FavoriteIllustsExpander.IsExpanded)
+                {
+                    FavoriteIllusts.UpdateLikeState(illustid, is_user);
+                }
             }
-            if (FavoriteIllustsExpander.IsExpanded)
-            {
-                FavoriteIllusts.UpdateLikeState(illustid, is_user);
-            }
+            catch (Exception) { }
         }
 
         private async void UpdateSubPageNav()
         {
-            if (DataObject is Pixeez.Objects.UserBase)
+            try
             {
-                btnSubPageNext.Hide();
-                btnSubPagePrev.Hide();
-            }
-            else if (DataObject is ImageItem)
-            {
-                var item = DataObject as ImageItem;
-
-                if (item.Count > 1)
+                if (DataObject is Pixeez.Objects.UserBase)
                 {
-                    btnSubPagePrev.Enable(item.Index > 0);
-                    btnSubPageNext.Enable(item.Index < item.Count - 1);
+                    btnSubPageNext.Hide();
+                    btnSubPagePrev.Hide();
+                }
+                else if (DataObject is ImageItem)
+                {
+                    var item = DataObject as ImageItem;
 
-                    if (SubIllusts.SelectedIndex < 0)
+                    if (item.Count > 1)
                     {
-                        SubIllusts.SelectedIndex = 0;
-                        await Task.Delay(1);
+                        btnSubPagePrev.Enable(item.Index > 0);
+                        btnSubPageNext.Enable(item.Index < item.Count - 1);
+
+                        if (SubIllusts.SelectedIndex < 0)
+                        {
+                            SubIllusts.SelectedIndex = 0;
+                            await Task.Delay(1);
+                        }
+                    }
+                    else
+                    {
+                        btnSubPageNext.Hide();
+                        btnSubPagePrev.Hide();
                     }
                 }
                 else
@@ -510,25 +575,25 @@ namespace PixivWPF.Pages
                     btnSubPageNext.Hide();
                     btnSubPagePrev.Hide();
                 }
+                await Task.Delay(1);
             }
-            else
-            {
-                btnSubPageNext.Hide();
-                btnSubPagePrev.Hide();
-            }
-            await Task.Delay(1);
+            catch (Exception) { }
         }
 
         private void OpenDownloaded()
         {
-            if (DataObject is ImageItem)
+            try
             {
-                if (IllustDownloaded.Tag is string)
+                if (DataObject is ImageItem)
                 {
-                    var fp = IllustDownloaded.Tag as string;
-                    fp.OpenFileWithShell();
+                    if (IllustDownloaded.Tag is string)
+                    {
+                        var fp = IllustDownloaded.Tag as string;
+                        fp.OpenFileWithShell();
+                    }
                 }
             }
+            catch (Exception) { }
         }
 
         internal async void UpdateDetail(ImageItem item)
@@ -661,6 +726,19 @@ namespace PixivWPF.Pages
                 IllustAuthorAvatorWait.Show();
 
                 IllustTitle.Text = $"{item.Illust.Title}";
+
+                if(item.Sanity.Equals("18+"))
+                    IllustSanity.Text = "18";
+                else if (item.Sanity.Equals("17+"))
+                    IllustSanity.Text = "17";
+                else if (item.Sanity.Equals("15+"))
+                    IllustSanity.Text = "15";
+                else
+                    IllustSanity.Text = "";
+                IllustSanityInfo.ToolTip = $"R[{item.Sanity}]";
+
+                if (string.IsNullOrEmpty(IllustSanity.Text)) IllustSanityInfo.Hide();
+                else IllustSanityInfo.Show();
 
                 IllustDate.Text = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:ss");
                 IllustDateInfo.ToolTip = IllustDate.Text;
@@ -1158,18 +1236,22 @@ namespace PixivWPF.Pages
 
         private void InitHtmlRenderHost(out WindowsFormsHostEx host, System.Windows.Forms.WebBrowser browser, Panel panel)
         {
-            host = new WindowsFormsHostEx()
+            try
             {
-                //IsRedirected = true,
-                //CompositionMode = ,
-                AllowDrop = false,
-                MinHeight = 24,
-                MaxHeight = 480,
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Stretch,
-                Child = browser
-            };
-            panel.Children.Add(host);
+                host = new WindowsFormsHostEx()
+                {
+                    //IsRedirected = true,
+                    //CompositionMode = ,
+                    AllowDrop = false,
+                    MinHeight = 24,
+                    MaxHeight = 480,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch,
+                    Child = browser
+                };
+                if (panel is Panel) panel.Children.Add(host);
+            }
+            catch (Exception) { host = null; }
         }
 
         private void InitHtmlRender(out System.Windows.Forms.WebBrowser browser)
@@ -1199,13 +1281,17 @@ namespace PixivWPF.Pages
 
         private void CreateHtmlRender()
         {
-            InitHtmlRender(out IllustTagsHtml);
-            InitHtmlRender(out IllustDescHtml);
-            InitHtmlRenderHost(out tagsHost, IllustTagsHtml, IllustTagsHost);
-            InitHtmlRenderHost(out descHost, IllustDescHtml, IllustDescHost);
+            try
+            {
+                InitHtmlRender(out IllustTagsHtml);
+                InitHtmlRender(out IllustDescHtml);
+                InitHtmlRenderHost(out tagsHost, IllustTagsHtml, IllustTagsHost);
+                InitHtmlRenderHost(out descHost, IllustDescHtml, IllustDescHost);
 
-            UpdateTheme();
-            this.UpdateLayout();
+                UpdateTheme();
+                this.UpdateLayout();
+            }
+            catch (Exception) { }
         }
 
         private void DeleteHtmlRender()
@@ -1253,7 +1339,8 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-
+            if(Item is ImageItem) UpdateDetail(Item);
+            else if(Tag is Pixeez.Objects.UserBase) UpdateDetail(Tag as Pixeez.Objects.UserBase);
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -1448,9 +1535,9 @@ namespace PixivWPF.Pages
 
         private async void WebBrowser_ProgressChanged(object sender, System.Windows.Forms.WebBrowserProgressChangedEventArgs e)
         {
-            if (sender is System.Windows.Forms.WebBrowser)
+            try
             {
-                try
+                if (sender is System.Windows.Forms.WebBrowser)
                 {
                     var browser = sender as System.Windows.Forms.WebBrowser;
 
@@ -1486,15 +1573,15 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
+            }
 #if DEBUG
-                catch (Exception ex)
-                {
-                    ex.Message.DEBUG();
-                }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
 #else
                 catch (Exception) { }
 #endif
-            }
         }
 
         private void WebBrowser_Navigating(object sender, System.Windows.Forms.WebBrowserNavigatingEventArgs e)
@@ -1512,7 +1599,10 @@ namespace PixivWPF.Pages
 
         private void WebBrowser_Navigated(object sender, System.Windows.Forms.WebBrowserNavigatedEventArgs e)
         {
-
+            try
+            {
+            }
+            catch (Exception) { }
         }
 
         private void WebBrowser_DocumentCompleted(object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e)
@@ -1546,9 +1636,9 @@ namespace PixivWPF.Pages
 
         private void WebBrowser_PreviewKeyDown(object sender, System.Windows.Forms.PreviewKeyDownEventArgs e)
         {
-            if (sender is System.Windows.Forms.WebBrowser)
+            try
             {
-                try
+                if (sender is System.Windows.Forms.WebBrowser)
                 {
                     var browser = sender as System.Windows.Forms.WebBrowser;
                     if (e.Control && e.KeyCode == System.Windows.Forms.Keys.C)
@@ -1570,12 +1660,12 @@ namespace PixivWPF.Pages
                         WebBrowserRefresh(browser);
                     }
                 }
-#if DEBUG
-                catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
-#else
-                catch (Exception) { }
-#endif
             }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[BROWSER]"); }
+#else
+            catch (Exception) { }
+#endif
         }
         #endregion
 
@@ -1730,9 +1820,9 @@ namespace PixivWPF.Pages
                 else if (sender == btnIllustTagRefresh)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
-                        Application.Current.LoadTags(false, true);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
                         WebBrowserRefresh(IllustTagsHtml);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        Application.Current.LoadTags(false, true);
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                         Application.Current.LoadSetting().CustomTagsFile.OpenFileWithShell();
                 }
@@ -1757,7 +1847,6 @@ namespace PixivWPF.Pages
                 {
                     FavoriteIllusts.UpdateTilesImage();
                 }
-
             }
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
@@ -1797,7 +1886,7 @@ namespace PixivWPF.Pages
 
         private void IllustInfo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount >= 2)
+            if (e.ClickCount == 2)
             {
                 ActionIllustInfo_Click(sender, e);
             }
@@ -1805,60 +1894,69 @@ namespace PixivWPF.Pages
             {
                 ActionSpeech_Click(sender, e);
             }
+            e.Handled = true;
         }
 
         private void IllustDownloaded_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (IllustDownloaded.Tag is string)
+            try
             {
-                var fp = IllustDownloaded.Tag as string;
-                fp.OpenFileWithShell();
+                if (IllustDownloaded.Tag is string)
+                {
+                    var fp = IllustDownloaded.Tag as string;
+                    fp.OpenFileWithShell();
+                }
             }
+            catch (Exception) { }
         }
 
         private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
+            try
             {
-                if (e.ClickCount >= 2)
+                if (e.LeftButton == MouseButtonState.Pressed)
                 {
-                    if (SubIllusts.Items.Count() <= 0)
+                    if (e.ClickCount >= 2)
                     {
-                        if (DataObject is ImageItem)
+                        if (SubIllusts.Items.Count() <= 0)
                         {
-                            var item = DataObject as ImageItem;
-                            CommonHelper.Cmd_OpenWorkPreview.Execute(item);
+                            if (DataObject is ImageItem)
+                            {
+                                var item = DataObject as ImageItem;
+                                CommonHelper.Cmd_OpenWorkPreview.Execute(item);
+                            }
                         }
+                        else
+                        {
+                            if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
+                                SubIllusts.SelectedIndex = 0;
+                            CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+                        }
+                        e.Handled = true;
                     }
-                    else
+                    else if (IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
                     {
-                        if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
-                            SubIllusts.SelectedIndex = 0;
-                        CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+                        SubPageNav_Clicked(btnSubPagePrev, e);
+                        e.Handled = true;
                     }
-                    e.Handled = true;
+                    else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
+                    {
+                        SubPageNav_Clicked(btnSubPageNext, e);
+                        e.Handled = true;
+                    }
                 }
-                else if (IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
-                {
-                    SubPageNav_Clicked(btnSubPagePrev, e);
-                    e.Handled = true;
-                }
-                else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
+                else if (e.XButton1 == MouseButtonState.Pressed && SubIllusts.Items.Count > 0)
                 {
                     SubPageNav_Clicked(btnSubPageNext, e);
                     e.Handled = true;
                 }
+                else if (e.XButton2 == MouseButtonState.Pressed && SubIllusts.Items.Count > 0)
+                {
+                    SubPageNav_Clicked(btnSubPagePrev, e);
+                    e.Handled = true;
+                }
             }
-            else if (e.XButton1 == MouseButtonState.Pressed && SubIllusts.Items.Count > 0)
-            {
-                SubPageNav_Clicked(btnSubPageNext, e);
-                e.Handled = true;
-            }
-            else if (e.XButton2 == MouseButtonState.Pressed && SubIllusts.Items.Count > 0)
-            {
-                SubPageNav_Clicked(btnSubPagePrev, e);
-                e.Handled = true;
-            }
+            catch (Exception) { }
         }
 
         private void IllustTagExpander_Expanded(object sender, RoutedEventArgs e)
@@ -2136,14 +2234,14 @@ namespace PixivWPF.Pages
         private void ActionRefreshAvator(ImageItem item)
         {
             var ua = new Action(async () =>
-             {
+            {
                  try
                  {
                      IllustAuthorAvator.Source = await item.User.GetAvatarUrl().LoadImageFromUrl();
                      if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
                  }
                  catch(Exception) { }
-             }).InvokeAsync();
+            }).InvokeAsync();
         }
 
         private void ActionRefreshAvator(Pixeez.Objects.UserBase user)
@@ -2928,345 +3026,381 @@ namespace PixivWPF.Pages
 
         private void ActionCopyIllustID_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+            try
             {
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == SubIllustsExpander || host == SubIllusts)
+                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
                 {
-                    if (DataObject is ImageItem)
+                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    if (host == SubIllustsExpander || host == SubIllusts)
                     {
-                        CommonHelper.Cmd_CopyIllustIDs.Execute(DataObject);
+                        if (DataObject is ImageItem)
+                        {
+                            CommonHelper.Cmd_CopyIllustIDs.Execute(DataObject);
+                        }
+                    }
+                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                    {
+                        CommonHelper.Cmd_CopyIllustIDs.Execute(RelativeIllusts);
+                    }
+                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                    {
+                        CommonHelper.Cmd_CopyIllustIDs.Execute(FavoriteIllusts);
+                    }
+                    else if (host == CommentsExpander || host == CommentsViewer)
+                    {
+
                     }
                 }
-                else if (host == RelativeIllustsExpander || host == RelativeIllusts)
-                {
-                    CommonHelper.Cmd_CopyIllustIDs.Execute(RelativeIllusts);
-                }
-                else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                {
-                    CommonHelper.Cmd_CopyIllustIDs.Execute(FavoriteIllusts);
-                }
-                else if (host == CommentsExpander || host == CommentsViewer)
-                {
-
-                }
             }
+            catch (Exception) { }
         }
 
         private void ActionOpenSelectedIllust_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+            try
             {
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
+                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
                 {
-                    CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
-                }
-                else if (host == RelativeIllustsExpander || host == RelativeIllusts)
-                {
-                    CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
-                }
-                else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                {
-                    CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
-                }
-                else if (host == CommentsExpander || host == CommentsViewer)
-                {
+                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
+                    {
+                        CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+                    }
+                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                    {
+                        CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+                    }
+                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                    {
+                        CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
+                    }
+                    else if (host == CommentsExpander || host == CommentsViewer)
+                    {
 
+                    }
                 }
             }
+            catch (Exception) { }
         }
 
         private void ActionSendToOtherInstance_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+            try
             {
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                var uid = (sender as MenuItem).Uid;
-                if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
+                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
                 {
-                    if (sender == PreviewSendIllustToInstance || uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase))
+                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    var uid = (sender as MenuItem).Uid;
+                    if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
                     {
-                        if (DataObject is ImageItem)
+                        if (sender == PreviewSendIllustToInstance || uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            var item = DataObject as ImageItem;
+                            if (DataObject is ImageItem)
+                            {
+                                var item = DataObject as ImageItem;
+                                if (Keyboard.Modifiers == ModifierKeys.None)
+                                    CommonHelper.Cmd_SendToOtherInstance.Execute(item);
+                                else
+                                    CommonHelper.Cmd_ShellSendToOtherInstance.Execute(item);
+                            }
+                        }
+                        else if (sender == PreviewSendAuthorToInstance || uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            if (DataObject is ImageItem)
+                            {
+                                var item = DataObject as ImageItem;
+                                var id = $"uid:{item.UserID}";
+                                if (Keyboard.Modifiers == ModifierKeys.None)
+                                    CommonHelper.Cmd_SendToOtherInstance.Execute(id);
+                                else
+                                    CommonHelper.Cmd_ShellSendToOtherInstance.Execute(id);
+                            }
+                        }
+                    }
+                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                    {
+                        if (uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase))
+                        {
                             if (Keyboard.Modifiers == ModifierKeys.None)
-                                CommonHelper.Cmd_SendToOtherInstance.Execute(item);
+                                CommonHelper.Cmd_SendToOtherInstance.Execute(RelativeIllusts);
                             else
-                                CommonHelper.Cmd_ShellSendToOtherInstance.Execute(item);
+                                CommonHelper.Cmd_ShellSendToOtherInstance.Execute(RelativeIllusts);
                         }
-                    }
-                    else if (sender == PreviewSendAuthorToInstance || uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        if (DataObject is ImageItem)
+                        else if (uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            var item = DataObject as ImageItem;
-                            var id = $"uid:{item.UserID}";
+                            var ids = new List<string>();
+                            foreach (var item in RelativeIllusts.SelectedItems)
+                            {
+                                var id = $"uid:{item.UserID}";
+                                if (!ids.Contains(id)) ids.Add(id);
+                            }
+
                             if (Keyboard.Modifiers == ModifierKeys.None)
-                                CommonHelper.Cmd_SendToOtherInstance.Execute(id);
+                                CommonHelper.Cmd_SendToOtherInstance.Execute(ids);
                             else
-                                CommonHelper.Cmd_ShellSendToOtherInstance.Execute(id);
+                                CommonHelper.Cmd_ShellSendToOtherInstance.Execute(ids);
                         }
                     }
-                }
-                else if (host == RelativeIllustsExpander || host == RelativeIllusts)
-                {
-                    if (uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase))
+                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.None)
-                            CommonHelper.Cmd_SendToOtherInstance.Execute(RelativeIllusts);
-                        else
-                            CommonHelper.Cmd_ShellSendToOtherInstance.Execute(RelativeIllusts);
-                    }
-                    else if (uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var ids = new List<string>();
-                        foreach (var item in RelativeIllusts.SelectedItems)
+                        if (uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            var id = $"uid:{item.UserID}";
-                            if (!ids.Contains(id)) ids.Add(id);
+                            if (Keyboard.Modifiers == ModifierKeys.None)
+                                CommonHelper.Cmd_SendToOtherInstance.Execute(FavoriteIllusts);
+                            else
+                                CommonHelper.Cmd_ShellSendToOtherInstance.Execute(FavoriteIllusts);
                         }
-
-                        if (Keyboard.Modifiers == ModifierKeys.None)
-                            CommonHelper.Cmd_SendToOtherInstance.Execute(ids);
-                        else
-                            CommonHelper.Cmd_ShellSendToOtherInstance.Execute(ids);
-                    }
-                }
-                else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                {
-                    if (uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        if (Keyboard.Modifiers == ModifierKeys.None)
-                            CommonHelper.Cmd_SendToOtherInstance.Execute(FavoriteIllusts);
-                        else
-                            CommonHelper.Cmd_ShellSendToOtherInstance.Execute(FavoriteIllusts);
-                    }
-                    else if (uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var ids = new List<string>();
-                        foreach (var item in FavoriteIllusts.SelectedItems)
+                        else if (uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            var id = $"uid:{item.UserID}";
-                            if (!ids.Contains(id)) ids.Add(id);
+                            var ids = new List<string>();
+                            foreach (var item in FavoriteIllusts.SelectedItems)
+                            {
+                                var id = $"uid:{item.UserID}";
+                                if (!ids.Contains(id)) ids.Add(id);
+                            }
+
+                            if (Keyboard.Modifiers == ModifierKeys.None)
+                                CommonHelper.Cmd_SendToOtherInstance.Execute(ids);
+                            else
+                                CommonHelper.Cmd_ShellSendToOtherInstance.Execute(ids);
                         }
-
-                        if (Keyboard.Modifiers == ModifierKeys.None)
-                            CommonHelper.Cmd_SendToOtherInstance.Execute(ids);
-                        else
-                            CommonHelper.Cmd_ShellSendToOtherInstance.Execute(ids);
                     }
-                }
-                else if (host == CommentsExpander || host == CommentsViewer)
-                {
+                    else if (host == CommentsExpander || host == CommentsViewer)
+                    {
 
+                    }
                 }
             }
+            catch (Exception) { }
         }
 
         private void ActionPrevPage_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+            try
             {
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == SubIllustsExpander || host == SubIllusts)
+                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
                 {
-                    SubIllustPagesNav_Click(btnSubIllustPrevPages, e);
-                }
-                else if (host == RelativeIllustsExpander || host == RelativeIllusts)
-                {
+                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    if (host == SubIllustsExpander || host == SubIllusts)
+                    {
+                        SubIllustPagesNav_Click(btnSubIllustPrevPages, e);
+                    }
+                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                    {
 
-                }
-                else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                {
+                    }
+                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                    {
 
-                }
-                else if (host == CommentsExpander || host == CommentsViewer)
-                {
+                    }
+                    else if (host == CommentsExpander || host == CommentsViewer)
+                    {
 
+                    }
                 }
             }
+            catch (Exception) { }
         }
 
         private void ActionNextPage_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+            try
             {
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == SubIllustsExpander || host == SubIllusts)
+                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
                 {
-                    SubIllustPagesNav_Click(btnSubIllustNextPages, e);
-                }
-                else if (host == RelativeIllustsExpander || host == RelativeIllusts)
-                {
-                    RelativeNextPage_Click(RelativeIllusts, e);
-                }
-                else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                {
-                    FavoriteNextPage_Click(FavoriteIllusts, e);
-                }
-                else if (host == CommentsExpander || host == CommentsViewer)
-                {
+                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    if (host == SubIllustsExpander || host == SubIllusts)
+                    {
+                        SubIllustPagesNav_Click(btnSubIllustNextPages, e);
+                    }
+                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                    {
+                        RelativeNextPage_Click(RelativeIllusts, e);
+                    }
+                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                    {
+                        FavoriteNextPage_Click(FavoriteIllusts, e);
+                    }
+                    else if (host == CommentsExpander || host == CommentsViewer)
+                    {
 
+                    }
                 }
             }
+            catch (Exception) { }
         }
 
         private void ActionSaveIllusts_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItem)
+            try
             {
-                var m = sender as MenuItem;
-                var host = (m.Parent as ContextMenu).PlacementTarget;
-                if (m.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase))
+                if (sender is MenuItem)
                 {
-                    if (host == SubIllustsExpander || host == SubIllusts)
+                    var m = sender as MenuItem;
+                    var host = (m.Parent as ContextMenu).PlacementTarget;
+                    if (m.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        foreach (ImageItem item in SubIllusts.SelectedItems)
+                        if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            CommonHelper.Cmd_SaveIllust.Execute(item);
+                            foreach (ImageItem item in SubIllusts.SelectedItems)
+                            {
+                                CommonHelper.Cmd_SaveIllust.Execute(item);
+                            }
                         }
-                    }
-                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
-                    {
-                        foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                        else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                         {
-                            CommonHelper.Cmd_SaveIllust.Execute(item);
+                            foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                            {
+                                CommonHelper.Cmd_SaveIllust.Execute(item);
+                            }
                         }
-                    }
-                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                    {
-                        foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                        else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
                         {
-                            CommonHelper.Cmd_SaveIllust.Execute(item);
+                            foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                            {
+                                CommonHelper.Cmd_SaveIllust.Execute(item);
+                            }
                         }
                     }
                 }
             }
+            catch (Exception) { }
         }
 
         private void ActionSaveIllustsAll_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItem)
+            try
             {
-                var m = sender as MenuItem;
-                var host = (m.Parent as ContextMenu).PlacementTarget;
-                if (m.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase))
+                if (sender is MenuItem)
                 {
-                    if (host == SubIllustsExpander || host == SubIllusts)
+                    var m = sender as MenuItem;
+                    var host = (m.Parent as ContextMenu).PlacementTarget;
+                    if (m.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        CommonHelper.Cmd_SaveIllustAll.Execute(DataObject as ImageItem);
-                    }
-                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
-                    {
-                        foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                        if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            CommonHelper.Cmd_SaveIllustAll.Execute(item);
+                            CommonHelper.Cmd_SaveIllustAll.Execute(DataObject as ImageItem);
                         }
-                    }
-                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                    {
-                        foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                        else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                         {
-                            CommonHelper.Cmd_SaveIllustAll.Execute(item);
+                            foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                            {
+                                CommonHelper.Cmd_SaveIllustAll.Execute(item);
+                            }
+                        }
+                        else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                        {
+                            foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                            {
+                                CommonHelper.Cmd_SaveIllustAll.Execute(item);
+                            }
                         }
                     }
                 }
             }
+            catch (Exception) { }
         }
 
         private void ActionOpenDownloaded_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItem)
+            try
             {
-                var m = sender as MenuItem;
-                var host = (m.Parent as ContextMenu).PlacementTarget;
-                if (m.Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase))
+                if (sender is MenuItem)
                 {
-                    if (host == SubIllustsExpander || host == SubIllusts)
+                    var m = sender as MenuItem;
+                    var host = (m.Parent as ContextMenu).PlacementTarget;
+                    if (m.Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        foreach (ImageItem item in SubIllusts.SelectedItems)
+                        if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                            foreach (ImageItem item in SubIllusts.SelectedItems)
+                            {
+                                CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                            }
                         }
-                    }
-                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
-                    {
-                        foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                        else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                         {
-                            CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                            foreach (ImageItem item in RelativeIllusts.SelectedItems)
+                            {
+                                CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                            }
                         }
-                    }
-                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                    {
-                        foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                        else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
                         {
-                            CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                            foreach (ImageItem item in FavoriteIllusts.SelectedItems)
+                            {
+                                CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                            }
                         }
                     }
                 }
             }
+            catch (Exception) { }
         }
 
         private void ActionRefreshIllusts_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItem)
+            try
             {
-                var m = sender as MenuItem;
-                var host = (m.Parent as ContextMenu).PlacementTarget;
-                if (m.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
+                if (sender is MenuItem)
                 {
-                    if (host == SubIllustsExpander || host == SubIllusts)
+                    var m = sender as MenuItem;
+                    var host = (m.Parent as ContextMenu).PlacementTarget;
+                    if (m.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        if (DataObject is ImageItem)
+                        if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            var item = DataObject as ImageItem;
-                            ShowIllustPagesAsync(item, 0, SubIllusts.Tag is int ? (int)(SubIllusts.Tag) : 0);
+                            if (DataObject is ImageItem)
+                            {
+                                var item = DataObject as ImageItem;
+                                ShowIllustPagesAsync(item, 0, SubIllusts.Tag is int ? (int)(SubIllusts.Tag) : 0);
+                            }
+                        }
+                        else if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                        {
+                            if (DataObject is ImageItem)
+                            {
+                                var item = DataObject as ImageItem;
+                                ShowRelativeInlineAsync(item, RelativeIllustsExpander.Tag is string ? RelativeIllustsExpander.Tag as string : string.Empty);
+                            }
+                            else if (DataObject is Pixeez.Objects.UserBase)
+                            {
+                                var user = DataObject as Pixeez.Objects.UserBase;
+                                ShowUserWorksInlineAsync(user, RelativeIllustsExpander.Tag is string ? RelativeIllustsExpander.Tag as string : string.Empty);
+                            }
+                        }
+                        else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
+                        {
+                            if (DataObject is ImageItem)
+                            {
+                                var user = (DataObject as ImageItem).User;
+                                ShowFavoriteInlineAsync(user, FavoriteIllustsExpander.Tag is string ? FavoriteIllustsExpander.Tag as string : string.Empty);
+                            }
+                            else if (DataObject is Pixeez.Objects.UserBase)
+                            {
+                                var user = DataObject as Pixeez.Objects.UserBase;
+                                ShowFavoriteInlineAsync(user, FavoriteIllustsExpander.Tag is string ? FavoriteIllustsExpander.Tag as string : string.Empty);
+                            }
                         }
                     }
-                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
+                    else if (m.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        if (DataObject is ImageItem)
+                        if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            var item = DataObject as ImageItem;
-                            ShowRelativeInlineAsync(item, RelativeIllustsExpander.Tag is string ? RelativeIllustsExpander.Tag as string : string.Empty);
+                            SubIllusts.UpdateTilesImage();
                         }
-                        else if (DataObject is Pixeez.Objects.UserBase)
+                        else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                         {
-                            var user = DataObject as Pixeez.Objects.UserBase;
-                            ShowUserWorksInlineAsync(user, RelativeIllustsExpander.Tag is string ? RelativeIllustsExpander.Tag as string : string.Empty);
+                            RelativeIllusts.UpdateTilesImage();
                         }
-                    }
-                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                    {
-                        if (DataObject is ImageItem)
+                        else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
                         {
-                            var user = (DataObject as ImageItem).User;
-                            ShowFavoriteInlineAsync(user, FavoriteIllustsExpander.Tag is string ? FavoriteIllustsExpander.Tag as string : string.Empty);
+                            FavoriteIllusts.UpdateTilesImage();
                         }
-                        else if (DataObject is Pixeez.Objects.UserBase)
-                        {
-                            var user = DataObject as Pixeez.Objects.UserBase;
-                            ShowFavoriteInlineAsync(user, FavoriteIllustsExpander.Tag is string ? FavoriteIllustsExpander.Tag as string : string.Empty);
-                        }
-                    }
-                }
-                else if (m.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    if (host == SubIllustsExpander || host == SubIllusts)
-                    {
-                        SubIllusts.UpdateTilesImage();
-                    }
-                    else if (host == RelativeIllustsExpander || host == RelativeIllusts)
-                    {
-                        RelativeIllusts.UpdateTilesImage();
-                    }
-                    else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
-                    {
-                        FavoriteIllusts.UpdateTilesImage();
                     }
                 }
             }
+            catch (Exception) { }
         }
 
         #endregion

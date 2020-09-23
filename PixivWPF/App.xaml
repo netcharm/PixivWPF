@@ -25,6 +25,9 @@
 
                 <ResourceDictionary Source="pack://application:,,,/Common/ToastUI.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <ScaleTransform x:Key="FontStretchSemiCondensed" ScaleX="0.75" />
+            <ScaleTransform x:Key="FontStretchCondensed" ScaleX="0.8" />
+            <ScaleTransform x:Key="FontStretchExpanded" ScaleX="1.2" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

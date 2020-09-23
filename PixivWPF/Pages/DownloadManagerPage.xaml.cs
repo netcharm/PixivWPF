@@ -349,7 +349,7 @@ namespace PixivWPF.Pages
                     if (item is DownloadInfo)
                         targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
                 }
-                Clipboard.SetText(string.Join(Environment.NewLine, targets));
+                CommonHelper.Cmd_CopyIllustIDs.Execute(targets);
             }).InvokeAsync();
         }
 

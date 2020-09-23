@@ -238,17 +238,16 @@
             <!--  Header  -->
             <mah:HamburgerMenu.HamburgerButtonTemplate>
                 <DataTemplate>
-                    <TextBlock Text="&#xE700;" FontSize="24" FontWeight="ExtraBlack" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock 
+                        Text="&#xE700;" FontSize="24" FontWeight="ExtraBlack" FontFamily="Segoe MDL2 Assets" 
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </DataTemplate>
             </mah:HamburgerMenu.HamburgerButtonTemplate>
             <mah:HamburgerMenu.HamburgerMenuHeaderTemplate>
                 <DataTemplate>
                     <TextBlock 
                         HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4,0,0,0"
-                        Text="PiXiV.net" FontSize="30" FontWeight="Bold" 
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" />
+                        Text="PiXiV.net" FontSize="30" FontWeight="Bold"/>
                 </DataTemplate>
             </mah:HamburgerMenu.HamburgerMenuHeaderTemplate>
             <!--  Items  -->
@@ -288,12 +287,10 @@
                             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                 <iconPacks:PackIconModern 
                                     Kind="Check" Width="22" Height="22" 
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <iconPacks:PackIconModern 
                                     Kind="Lock" Width="8" Height="8" Margin="14,12,0,0"
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Grid>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -309,12 +306,10 @@
                             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
                                 <iconPacks:PackIconModern 
                                     Kind="Heart" Width="22" Height="22" 
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <iconPacks:PackIconModern 
                                     Kind="Lock" Width="8" Height="8"
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Grid>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -324,7 +319,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
                             <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -332,7 +326,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
                             <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -340,7 +333,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
                             <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -348,7 +340,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
                             <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -356,7 +347,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
                             <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -364,7 +354,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarDay" />-->
                             <TextBlock Text="&#xE161;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -374,7 +363,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />-->
                             <TextBlock Text="&#xE162;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -382,7 +370,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />-->
                             <TextBlock Text="&#xE162;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -390,7 +377,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />-->
                             <TextBlock Text="&#xE162;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -398,7 +384,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarWeek" />-->
                             <TextBlock Text="&#xE162;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
@@ -408,7 +393,6 @@
                         <mah:HamburgerMenuIconItem.Icon>
                             <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="CalendarMonth" />-->
                             <TextBlock Text="&#xE163;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>

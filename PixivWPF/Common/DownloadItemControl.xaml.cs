@@ -367,7 +367,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (State == DownloadState.Downloading || (Downloading is SemaphoreSlim && Downloading.CurrentCount == 0));
+                return (State == DownloadState.Downloading || State == DownloadState.Writing || (Downloading is SemaphoreSlim && Downloading.CurrentCount == 0));
             }
         }
 
@@ -452,6 +452,11 @@ namespace PixivWPF.Common
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = true;
                     }
+                    else if (State == DownloadState.Writing)
+                    {
+                        miRemove.IsEnabled = false;
+                        miStopDownload.IsEnabled = false;
+                    }
                     else if (State == DownloadState.Idle)
                     {
                         miRemove.IsEnabled = true;
@@ -468,7 +473,6 @@ namespace PixivWPF.Common
                         miStopDownload.IsEnabled = false;
                     }
                     miOpenImage.IsEnabled = FileName.IsDownloaded();
-                    //miOpenImage.IsEnabled = Url.IsDownloaded();
                     miOpenFolder.IsEnabled = true;
 
                     PART_DownloadProgressPercent.Text = $"{State.ToString()}: {PART_DownloadProgress.Value:0.0}%";
@@ -805,6 +809,14 @@ namespace PixivWPF.Common
             if (IsDownloading) await Cancel();
             CheckProperties();
 
+            setting = Application.Current.LoadSetting();
+            bool delta = true;
+            if (File.Exists(FileName))
+            {
+                delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan ? true : false;
+                if (!delta) return;
+            }
+
             string fc = Url.GetImageCachePath();
             if (File.Exists(fc))
             {
@@ -821,18 +833,20 @@ namespace PixivWPF.Common
             }
             else
             {
-                await new Action(async () =>
+                if (CanDownload)
                 {
-                    Random rnd = new Random();
-                    await Task.Delay(rnd.Next(20, 200));
-                    Application.Current.DoEvents();
+                    await new Action(async () =>
+                    {
+                        Random rnd = new Random();
+                        await Task.Delay(rnd.Next(20, 200));
+                        Application.Current.DoEvents();
 
-                    if (string.IsNullOrEmpty(setting.AccessToken) ||
-                        setting.ExpTime.Ticks <= DateTime.Now.Ticks)
-                        await DownloadDirectAsync();
-                    else
-                        await DownloadAsync();
-                }).InvokeAsync();
+                        if (string.IsNullOrEmpty(setting.AccessToken) || setting.ExpTime <= DateTime.Now)
+                            await DownloadDirectAsync();
+                        else
+                            await DownloadAsync();
+                    }).InvokeAsync();
+                }
             }
         }
 

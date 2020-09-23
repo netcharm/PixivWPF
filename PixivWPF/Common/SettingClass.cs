@@ -19,16 +19,29 @@ namespace PixivWPF.Common
         //private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
         private static string AppPath = Application.Current.GetRoot();
 
-        private static SemaphoreSlim ConfigReadWrite = new SemaphoreSlim(1, 1);
+        private static SemaphoreSlim CanConfigRead = new SemaphoreSlim(1, 1);
+        private static SemaphoreSlim CanConfigWrite = new SemaphoreSlim(1, 1);
         [JsonIgnore]
-        public bool ConfigBusy
+        public static bool IsConfigBusy
         {
-            get { return (ConfigReadWrite.CurrentCount <= 0 ? true : false); }
+            get { return (IsConfigLoad || IsConfigSave ? true : false); }
+        }
+
+        [JsonIgnore]
+        public static bool IsConfigLoad
+        {
+            get { return (CanConfigRead.CurrentCount <= 0 ? true : false); }
+        }
+
+        [JsonIgnore]
+        public static bool IsConfigSave
+        {
+            get { return (CanConfigWrite.CurrentCount <= 0 ? true : false); }
         }
 
         private static SemaphoreSlim TagsReadWrite = new SemaphoreSlim(1, 1);
         [JsonIgnore]
-        public bool TagsBusy
+        public static bool IsTagsBusy
         {
             get { return (TagsReadWrite.CurrentCount <= 0 ? true : false); }
         }
@@ -45,7 +58,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (ConfigBusy) return (tagsfile);
+                if (IsConfigBusy) return (tagsfile);
                 else return (Path.IsPathRooted(tagsfile) ? tagsfile : Path.Combine(AppPath, tagsfile));
             }
             set { tagsfile = Path.GetFileName(value); }
@@ -56,10 +69,32 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (ConfigBusy) return (tagsfile_t2s);
+                if (IsConfigBusy) return (tagsfile_t2s);
                 else return (Path.IsPathRooted(tagsfile_t2s) ? tagsfile_t2s : Path.Combine(AppPath, tagsfile_t2s));
             }
             set { tagsfile_t2s = Path.GetFileName(value); }
+        }
+
+        private static string last_opened = "last_opened.json";
+        public string LastOpenedFile
+        {
+            get
+            {
+                if (IsConfigBusy) return (last_opened);
+                else return (Path.IsPathRooted(last_opened) ? last_opened : Path.Combine(AppPath, last_opened));
+            }
+            set { last_opened = Path.GetFileName(value); }
+        }
+
+        private static string custom_template_file = "contents-template.html";
+        public string ContentsTemplateFile
+        {
+            get
+            {
+                if (IsConfigBusy) return (custom_template_file);
+                else return (Path.IsPathRooted(custom_template_file) ? custom_template_file : Path.Combine(AppPath, custom_template_file));
+            }
+            set { custom_template_file = Path.GetFileName(value); }
         }
 
         [JsonIgnore]
@@ -74,7 +109,7 @@ namespace PixivWPF.Common
             get { return (accesstoken); }
             set
             {
-                if (!ConfigBusy)
+                if (!IsConfigBusy)
                 {
                     username = User.AesEncrypt(value);
                     password = Pass.AesEncrypt(value);
@@ -121,7 +156,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (SaveUserPass && !ConfigBusy) return username;
+                if (SaveUserPass && IsConfigBusy) return username;
                 else return (string.Empty);
             }
             set { if (SaveUserPass) username = value; }
@@ -132,7 +167,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (SaveUserPass && !ConfigBusy) return password;
+                if (SaveUserPass && IsConfigBusy) return password;
                 else return (string.Empty);
             }
             set { if (SaveUserPass) password = value; }
@@ -222,6 +257,8 @@ namespace PixivWPF.Common
             set { expdurtime = value; }
         }
 
+        public int DownloadTimeSpan { get; set; } = 750;
+
         [JsonIgnore]
         private string lastfolder = string.Empty;
         [JsonIgnore]
@@ -256,7 +293,7 @@ namespace PixivWPF.Common
         public bool PrivateFavPrefer { get; set; } = false;
         public bool PrivateBookmarkPrefer { get; set; } = false;
 
-        public bool IgnoreOrderOpen { get; set; } = false;
+        public bool OpenWithSelectionOrder { get; set; } = true;
 
         public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
 
@@ -264,16 +301,7 @@ namespace PixivWPF.Common
         public string ShellPixivPediaApplication { get; set; } = "nw.exe";
         public string ShellPixivPediaApplicationArgs { get; set; } = "--single-process --enable-node-worker --app-shell-host-window-size=1280x720";
 
-        private static string custom_template_file = "contents-template.html";
-        public string ContentsTemplateFile
-        {
-            get
-            {
-                if (ConfigBusy) return (custom_template_file);
-                else return (Path.IsPathRooted(custom_template_file) ? custom_template_file : Path.Combine(AppPath, custom_template_file));
-            }
-            set { custom_template_file = Path.GetFileName(value); }
-        }
+        public Point DropBoxPosition { get; set; } = new Point(0, 0);
 
         public DateTime ContentsTemplateTime { get; set; } = new DateTime(0);
         public string ContentsTemplete { get; set; } = string.Empty;
@@ -284,8 +312,6 @@ namespace PixivWPF.Common
         public string SaveFolder { get; set; }
 
         public List<StorageType> LocalStorage { get; set; } = new List<StorageType>();
-
-        public Point DropBoxPosition { get; set; } = new Point(0, 0);
 
         public static void UpdateContentsTemplete()
         {
@@ -317,9 +343,9 @@ namespace PixivWPF.Common
             }
         }
 
-        public void Save(string configfile = "")
+        public void Save(bool full, string configfile = "")
         {
-            if (ConfigReadWrite.Wait(1))
+            if (!IsConfigBusy && CanConfigWrite.Wait(1))
             {
                 try
                 {
@@ -343,6 +369,13 @@ namespace PixivWPF.Common
                         File.WriteAllText(configfile, text, new UTF8Encoding(true));
 
                         SaveTags();
+
+                        if (full)
+                        {
+                            IList<string> titles = Application.Current.OpenedWindowTitles();
+                            var links = JsonConvert.SerializeObject(titles, Formatting.Indented);
+                            File.WriteAllText(Cache.LastOpenedFile, links, new UTF8Encoding(true));
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -351,16 +384,21 @@ namespace PixivWPF.Common
                 }
                 finally
                 {
-                    ConfigReadWrite.Release();
+                    CanConfigWrite.Release();
                 }
             }
+        }
+
+        public void Save(string configfile = "")
+        {
+            Save(false, configfile);
         }
 
         private static DateTime lastConfigUpdate = default(DateTime);
         public static Setting Load(bool force = false, string configfile = "")
         {
             Setting result = Cache is Setting ? Cache : new Setting();
-            if (ConfigReadWrite.Wait(0))
+            if (!IsConfigBusy && CanConfigRead.Wait(0))
             {
                 try
                 {
@@ -385,7 +423,7 @@ namespace PixivWPF.Common
                                 Cache.CurrentAccent = cache.CurrentAccent;
                                 Cache.PrivateFavPrefer = cache.PrivateFavPrefer;
                                 Cache.PrivateBookmarkPrefer = cache.PrivateBookmarkPrefer;
-                                Cache.IgnoreOrderOpen = cache.IgnoreOrderOpen;
+                                Cache.OpenWithSelectionOrder = cache.OpenWithSelectionOrder;
                                 Cache.AutoExpand = cache.AutoExpand;
                                 Cache.ShellSearchBridgeApplication = cache.ShellSearchBridgeApplication;
                                 Cache.ShellPixivPediaApplication = cache.ShellPixivPediaApplication;
@@ -444,7 +482,7 @@ namespace PixivWPF.Common
 #endif
                 finally
                 {
-                    ConfigReadWrite.Release();
+                    CanConfigRead.Release();
                 }
             }
             return (result);

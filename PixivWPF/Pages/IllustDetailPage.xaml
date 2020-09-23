@@ -344,13 +344,25 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,0,0"
+                        <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,2,0"
                                    ContextMenu="{DynamicResource MenuSpeech}" MouseLeftButtonDown="IllustInfo_MouseLeftButtonDown"
                                Foreground="{DynamicResource MahApps.Brushes.Text}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                        <StackPanel Grid.Column="1" x:Name="IllustDateInfo" Visibility="Collapsed"
-                                    MinWidth="24"
+                        <Grid Grid.Column="1" x:Name="IllustSanityInfo" Visibility="Collapsed" 
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.95">
+                            <TextBlock x:Name="IllustSanity" Text="18" Padding="0,0,2,0"
+                                        FontSize="14" FontWeight="SemiBold"
+                                        LayoutTransform="{StaticResource FontStretchCondensed}"
+                                        Foreground="{DynamicResource MahApps.Brushes.Text}"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="IllustSanityMark" Text="&#xF140;"
+                                        FontSize="20pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                                        Foreground="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <StackPanel Grid.Column="2" x:Name="IllustDateInfo" Visibility="Collapsed" MinWidth="24" Margin="2,0,0,0"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
                             <iconPacks:PackIconModern 
                                 Kind="CalendarDay" x:Name="IllustDateIcon"
@@ -375,7 +387,8 @@
                         <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"
                                 HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
                             <iconPacks:PackIconModern 
-                                Kind="Download" x:Name="IllustDownloaded" Visibility="Collapsed"
+                                x:Name="IllustDownloaded" Kind="Download" 
+                                Visibility="Collapsed"
                                 MouseDoubleClick="IllustDownloaded_MouseDoubleClick"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 Background="Transparent"
@@ -383,7 +396,7 @@
                                 Margin="2,0,4,0" 
                                 Width="16" Height="16"/>
                             <iconPacks:PackIconModern 
-                                Kind="ImageAnts" x:Name="IllustSizeIcon"
+                                x:Name="IllustSizeIcon" Kind="ImageAnts" 
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                                 Width="16" Height="16"/>
@@ -659,7 +672,7 @@
 
                 <!-- Illust Tag -->
                 <Expander Grid.Row="2" Margin="0,4,0,0" IsExpanded="True"
-                          x:Name="IllustTagExpander" x:Uid="IllustTagExpander"
+                          x:Name="IllustTagExpander" x:Uid="IllustTagExpander"                          
                           Header="Tags" Visibility="Collapsed" Expanded="IllustTagExpander_Expanded">
                     <StackPanel x:Name="IllustTagsHost"  Orientation="Vertical" AllowDrop="False">
                         <!--<WindowsFormsHost x:Name="IllustTagsHtmlHost" Visibility="Collapsed"
@@ -674,7 +687,7 @@
                     <Button
                         x:Name="btnIllustTagPedia" x:Uid="PixivPedia" ToolTip="Query Tag in Pixiv Pedia"
                         Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionOpenPedia_Click">
@@ -688,7 +701,7 @@
                         x:Name="btnIllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
                         Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                         ContextMenu="{DynamicResource MenuSpeech}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionSpeech_Click">
@@ -702,7 +715,7 @@
                         x:Name="btnIllustTagRefresh" x:Uid="TagsRefresh" ToolTip="Refresh Tags"
                         Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0" FontWeight="Normal"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
@@ -731,7 +744,7 @@
                         x:Name="btnIllustDescSpeech" x:Uid="Speech"
                         Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                         ContextMenu="{DynamicResource MenuSpeech}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionSpeech_Click">
@@ -745,7 +758,7 @@
                         x:Name="btnIllustDescRefresh" x:Uid="DescRefresh" ToolTip="Refresh Descriptions"
                         Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0" FontWeight="Normal"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
@@ -779,7 +792,7 @@
                     <Button 
                         x:Name="btnSubIllustPrevPages" x:Uid="SubIllustPrevPages"
                         Visibility="Collapsed" Margin="0,2,0,0"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right"
                         Click="SubIllustPagesNav_Click">
@@ -788,7 +801,7 @@
                     <Button 
                         x:Name="btnSubIllustNextPages" x:Uid="SubIllustNextPages"
                         Visibility="Collapsed" Margin="0,2,0,0"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right"
                         Click="SubIllustPagesNav_Click">
@@ -797,7 +810,7 @@
                     <Button 
                         x:Name="btnSubIllustRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
                         Visibility="{Binding ElementName=SubIllustsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionRefresh_Click">
@@ -827,7 +840,7 @@
                     <Button 
                         x:Name="RelativePrevPage" x:Uid="RelativePrevPage"
                         Visibility="Collapsed" Margin="0,2,0,0"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right"
                         Click="RelativePrevPage_Click">
@@ -836,7 +849,7 @@
                     <Button 
                         x:Name="RelativeNextPage" x:Uid="RelativeNextPage"
                         Visibility="Collapsed" Margin="0,2,0,0"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right"
                         Click="RelativeNextPage_Click">
@@ -845,7 +858,7 @@
                     <Button 
                         x:Name="btnRelativeRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
                         Visibility="{Binding ElementName=RelativeIllustsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionRefresh_Click">
@@ -876,7 +889,7 @@
                     <Button 
                         x:Name="FavoritePrevPage" x:Uid="FavoritePrevPage"
                         Visibility="Collapsed" Margin="0,2,0,0"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right"
                         Click="FavoritePrevPage_Click">
@@ -885,7 +898,7 @@
                     <Button 
                         x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage"
                         Visibility="Collapsed" Margin="0,2,0,0"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right"
                         Click="FavoriteNextPage_Click">
@@ -894,7 +907,7 @@
                     <Button 
                         x:Name="btnFavoriteRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
                         Visibility="{Binding ElementName=FavoriteIllustsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionRefresh_Click">
@@ -922,7 +935,7 @@
                     <Button 
                         x:Name="CommentsPrevPage" x:Uid="CommentsPrevPage" 
                         Visibility="Collapsed" Margin="0,2,0,0"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right"
                         Click="CommentsPrevPage_Click">
@@ -931,7 +944,7 @@
                     <Button 
                         x:Name="CommentsNextPage" x:Uid="CommentsNextPage" 
                         Visibility="Collapsed" Margin="0,2,0,0"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right"
                         Click="CommentsNextPage_Click">
@@ -940,7 +953,7 @@
                     <Button 
                         x:Name="btnCommentRefresh" x:Uid="ActionRefreshComment" ToolTip="Refresh Comment"
                         Visibility="{Binding ElementName=CommentsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionRefresh_Click">

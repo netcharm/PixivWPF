@@ -112,6 +112,7 @@ namespace PixivWPF.Pages
             }
 
             window = Window.GetWindow(this);
+            if(Tag is string) UpdateDetail((string)Tag);
         }
 
         internal void UpdateDetail(string content)

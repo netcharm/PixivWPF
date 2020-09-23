@@ -187,7 +187,7 @@
                     <Button 
                         x:Name="btnSearchRefresh" x:Uid="ThumbnailRefresh" ToolTip="Refresh Thumbnails"
                         Visibility="{Binding ElementName=ResultExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
                         Click="ActionRefreshResult_Click">

@@ -522,7 +522,9 @@ namespace PixivWPF.Common
             return (PipeName);
         }
 
-        private static string[] r18 = new string[] { "r18", "r15", "xxx" };
+        private static string[] r15 = new string[] { "xxx", "r18", "r17", "r15", "18+", "17+", "15+" };
+        private static string[] r17 = new string[] { "xxx", "r18", "r17", "18+", "17+", };
+        private static string[] r18 = new string[] { "xxx", "r18", "18+"};
 
         #region Window Helper
         public static MainWindow GetMainWindow(this Application app)
@@ -537,17 +539,52 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static void MinimizedWindow(MetroWindow win, ImageItem item, string condition)
+        public static IList<string> OpenedWindowTitles(this Application app)
         {
-            if (item.ItemType != ImageItemType.User)
+            List<string> titles = new List<string>();
+            try
             {
-                if (r18.Contains(condition))
+                foreach (Window win in Application.Current.Windows)
                 {
-                    if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
-                    else if (item.Sanity.Equals("17+")) win.WindowState = WindowState.Minimized;
-                    else if (item.Sanity.Equals("15+")) win.WindowState = WindowState.Minimized;
+                    if (win is MainWindow) continue;
+                    else if (win is MetroWindow)
+                    {
+                        if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Title.StartsWith("PIXIV Login", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        titles.Add(win.Title);
+                    }
+                    else continue;
                 }
             }
+            catch (Exception) { }
+            return (titles);
+        }
+
+        private static async void MinimizedWindow(MetroWindow win, ImageItem item, string condition)
+        {
+            await new Action(() => {
+                if (item.ItemType != ImageItemType.User)
+                {
+                    if (r18.Contains(condition))
+                    {
+                        if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
+                    }
+                    else if (r17.Contains(condition))
+                    {
+                        if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
+                        else if (item.Sanity.Equals("17+")) win.WindowState = WindowState.Minimized;
+                    }
+                    else if (r15.Contains(condition))
+                    {
+                        if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
+                        else if (item.Sanity.Equals("17+")) win.WindowState = WindowState.Minimized;
+                        else if (item.Sanity.Equals("15+")) win.WindowState = WindowState.Minimized;
+                    }
+                }
+            }).InvokeAsync();
         }
 
         public static async void MinimizedWindows(this Application app, string condition = "")
@@ -565,22 +602,24 @@ namespace PixivWPF.Common
                             if (win.Content is IllustDetailPage)
                             {
                                 var page = win.Content as IllustDetailPage;
-                                if (page.Tag is ImageItem)
-                                {
+                                if (page.Item is ImageItem)
+                                    MinimizedWindow(win as MetroWindow, page.Item, condition);
+                                else if (page.Item is ImageItem)
                                     MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
-                                }
                             }
                             else if (win.Content is IllustImageViewerPage)
                             {
                                 var page = win.Content as IllustImageViewerPage;
-                                if (page.Tag is ImageItem)
-                                {
+                                if (page.Item is ImageItem)
+                                    MinimizedWindow(win as MetroWindow, page.Item, condition);
+                                else if (page.Item is ImageItem)
                                     MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
-                                }
                             }
+                            await Task.Delay(1);
+                            DoEvents();
                         }
                     }
-                    catch (Exception) { }
+                    catch (Exception) { continue; }
                     finally
                     {
                         await Task.Delay(1);
@@ -801,39 +840,47 @@ namespace PixivWPF.Common
             return null;
         }
 
+        private static SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
         public static async void DoEvents()
         {
-            try
-            {
-                if (Application.Current.Dispatcher.CheckAccess())
-                {
-                    await Dispatcher.Yield();
-                    //await System.Windows.Threading.Dispatcher.Yield();
-
-                    //DispatcherFrame frame = new DispatcherFrame();
-                    //await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-                    //Dispatcher.PushFrame(frame);
-                }
-            }
-            catch (Exception)
+            if (await CanDoEvents.WaitAsync(0))
             {
                 try
                 {
                     if (Application.Current.Dispatcher.CheckAccess())
                     {
-                        DispatcherFrame frame = new DispatcherFrame();
-                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
-                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
+                        await Dispatcher.Yield();
+                        //await System.Windows.Threading.Dispatcher.Yield();
 
-                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-                        await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
-                        //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
-                        Dispatcher.PushFrame(frame);
+                        //DispatcherFrame frame = new DispatcherFrame();
+                        //await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                        //Dispatcher.PushFrame(frame);
                     }
                 }
                 catch (Exception)
                 {
-                    await Task.Delay(1);
+                    try
+                    {
+                        if (Application.Current.Dispatcher.CheckAccess())
+                        {
+                            DispatcherFrame frame = new DispatcherFrame();
+                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
+                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
+
+                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
+                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
+                            Dispatcher.PushFrame(frame);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        await Task.Delay(1);
+                    }
+                }
+                finally
+                {
+                    CanDoEvents.Release();
                 }
             }
         }
@@ -995,7 +1042,7 @@ namespace PixivWPF.Common
     public static class CommonHelper
     {
         private const int WIDTH_MIN = 720;
-        private const int HEIGHT_MIN = 520;
+        private const int HEIGHT_MIN = 524;
         private const int HEIGHT_DEF = 900;
         private const int HEIGHT_MAX = 1008;
         private const int WIDTH_DEF = 1280;
@@ -1171,27 +1218,33 @@ namespace PixivWPF.Common
         {
             if (obj is ImageItem)
             {
-                var item = obj as ImageItem;
-                switch (item.ItemType)
+                try
                 {
-                    case ImageItemType.Work:
-                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
-                        Cmd_OpenWork.Execute(item.Illust);
-                        break;
-                    case ImageItemType.User:
-                        Cmd_OpenUser.Execute(item.User);
-                        break;
-                    default:
-                        Cmd_OpenIllust.Execute(item.Illust);
-                        break;
+                    var item = obj as ImageItem;
+                    switch (item.ItemType)
+                    {
+                        case ImageItemType.Work:
+                            item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
+                            Cmd_OpenWork.Execute(item.Illust);
+                            break;
+                        case ImageItemType.User:
+                            Cmd_OpenUser.Execute(item.User);
+                            break;
+                        default:
+                            Cmd_OpenIllust.Execute(item.Illust);
+                            break;
+                    }
                 }
+                catch (Exception) { }
             }
             else if (obj is ImageListGrid)
             {
-                setting = Application.Current.LoadSetting();
                 var list = obj as ImageListGrid;
-                foreach (var item in list.GetSelected(setting.IgnoreOrderOpen))
+                foreach (var item in list.GetSelected())
                 {
+                    //await Task.Run(new Action(() => {
+                    //    Cmd_OpenItem.Execute(item);
+                    //}));
                     await new Action(() =>
                     {
                         Cmd_OpenItem.Execute(item);
@@ -1206,14 +1259,12 @@ namespace PixivWPF.Common
             {
                 var illust = obj as Pixeez.Objects.Work;
                 var title = $"ID: {illust.Id}, {illust.Title}";
-                if (title.ActiveByTitle()) return;
+                if (await title.ActiveByTitle()) return;
 
                 var item = illust.IllustItem();
                 if (item is ImageItem)
                 {
-                    var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Tag = item };
-                    page.UpdateDetail(item);
-
+                    var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Tag = item, Item = item };
                     var viewer = new ContentWindow()
                     {
                         Title = title,
@@ -1243,11 +1294,9 @@ namespace PixivWPF.Common
                 var title = $"Preview ID: {item.ID}, {item.Subject}";
                 if (!item.Subject.EndsWith(suffix, StringComparison.CurrentCultureIgnoreCase))
                     title = $"{title}{suffix}";
-                if (title.ActiveByTitle()) return;
+                if (await title.ActiveByTitle()) return;
 
-                var page = new IllustImageViewerPage() { FontFamily = setting.FontFamily, Tag = item };
-                page.UpdateDetail(item);
-
+                var page = new IllustImageViewerPage() { FontFamily = setting.FontFamily, Tag = item, Item = item };
                 var viewer = new ContentWindow()
                 {
                     Title = $"{title}",
@@ -1264,9 +1313,8 @@ namespace PixivWPF.Common
             }
             else if (obj is ImageListGrid)
             {
-                setting = Application.Current.LoadSetting();
                 var list = obj as ImageListGrid;
-                foreach (var item in list.GetSelected(setting.IgnoreOrderOpen))
+                foreach (var item in list.GetSelected())
                 {
                     //Cmd_OpenItem.Execute(item);
                     await new Action(() =>
@@ -1284,11 +1332,9 @@ namespace PixivWPF.Common
             {
                 var user = obj as Pixeez.Objects.UserBase;
                 var title = $"User: {user.Name} / {user.Id} / {user.Account}";
-                if (title.ActiveByTitle()) return;
-
+                if (await title.ActiveByTitle()) return;
+                
                 var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Tag = obj };
-                page.UpdateDetail(user);
-
                 var viewer = new ContentWindow()
                 {
                     Title = title,
@@ -1477,23 +1523,31 @@ namespace PixivWPF.Common
                     {
                         if (Keyboard.Modifiers == ModifierKeys.Control)
                         {
-                            List<string> titles = new List<string>();
-                            foreach (Window win in Application.Current.Windows)
-                            {
-                                if (win is MainWindow) continue;
-                                else if (win is MetroWindow)
-                                {
-                                    if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase)) continue;
-                                    else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
-                                    else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
-                                    else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
-                                    titles.Add(win.Title);
-                                }
-                                else continue;
-                            }
+                            IList<string> titles = Application.Current.OpenedWindowTitles();
                             if (titles.Count > 0) Clipboard.SetText($"{string.Join(Environment.NewLine, titles)}{Environment.NewLine}");
                         }
-                        else
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        {
+                            setting = Application.Current.LoadSetting();
+                            IList<string> titles = Application.Current.OpenedWindowTitles();
+                            if (titles.Count > 0)
+                            {
+                                var links = JsonConvert.SerializeObject(titles, Formatting.Indented);
+                                File.WriteAllText(setting.LastOpenedFile, links, new UTF8Encoding(true));
+                            }
+                        }
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        {
+                            setting = Application.Current.LoadSetting();
+                            var opened = File.ReadAllText(setting.LastOpenedFile);
+                            IList<string> titles = JsonConvert.DeserializeObject<IList<string>>(opened);
+                            if (titles.Count > 0)
+                            {
+                                var links = string.Join(Environment.NewLine, titles).ParseLinks();
+                                Cmd_Search.Execute(links);
+                            }
+                        }
+                        else if (Keyboard.Modifiers == ModifierKeys.None)
                             SetDropBoxState(true.ShowDropBox());
                     }
                 }).InvokeAsync();
@@ -1682,11 +1736,11 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_Search { get; } = new DelegateCommand<string>(async obj =>
+        public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(async obj =>
         {
-            if (obj is string && !string.IsNullOrEmpty(obj))
+            if (obj is string && !string.IsNullOrEmpty((string)obj))
             {
-                var content = ParseLink(obj);
+                var content = ParseLink((string)obj);
                 if (!string.IsNullOrEmpty(content))
                 {
                     if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
@@ -1709,11 +1763,9 @@ namespace PixivWPF.Common
                     }
 
                     var title = $"Searching {content} ...";
-                    if (title.ActiveByTitle()) return;
+                    if (await title.ActiveByTitle()) return;
 
                     var page = new SearchResultPage() { FontFamily = setting.FontFamily, Tag = content };
-                    page.UpdateDetail(content);
-
                     var viewer = new ContentWindow()
                     {
                         Title = title,
@@ -1730,19 +1782,22 @@ namespace PixivWPF.Common
                     Application.Current.DoEvents();
                 }
             }
+            else if(obj is IEnumerable<string>)
+            {
+                foreach (var link in obj as IEnumerable<string>)
+                {
+                    await new Action(() => {
+                        Cmd_Search.Execute(link);
+                    }).InvokeAsync();
+                }
+            }
         });
 
-        public static ICommand Cmd_Drop { get; } = new DelegateCommand<IEnumerable<string>>(async obj =>
+        public static ICommand Cmd_Drop { get; } = new DelegateCommand<IEnumerable<string>>(obj =>
         {
-            if (obj is IEnumerable)
+            if (obj is IEnumerable<string>)
             {
-                foreach (var link in (obj as List<string>))
-                {
-                    await Task.Run(new Action(() =>
-                    {
-                        Cmd_Search.Execute(link);
-                    }));
-                }
+                Cmd_Search.Execute(obj);
             }
         });
 
@@ -1750,8 +1805,8 @@ namespace PixivWPF.Common
         {
             Application.Current.SaveTags();
         });
-        #region Pixiv Token Helper
 
+        #region Pixiv Token Helper
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
         private static async Task<Pixeez.Tokens> RefreshToken()
         {
@@ -2057,6 +2112,10 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(content, @"^(((id)|(uid)):[ ]*(\d+)+)", opt));
                 mr.Add(Regex.Matches(content, @"^(((user)|(fuzzy)|(tag)|(title)):[ ]*(.+)+)", opt));
 
+                //mr.Add(Regex.Matches(content, @"User:\s(.+)\s/\s(\d+)\s/\s(.+)", opt));
+                //mr.Add(Regex.Matches(content, @"Id:\s(\d+),\s(.+?)", opt));
+                mr.Add(Regex.Matches(content, @"(Searching\s)(.*?)$", opt));
+
                 if (!Regex.IsMatch(content, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
                 {
                     try
@@ -2097,10 +2156,15 @@ namespace PixivWPF.Common
                 {
                     var link = m.Groups[1].Value.Trim().Trim(trim_char);
                     if (link.Equals("user-profile", StringComparison.CurrentCultureIgnoreCase)) break;
-                    if (link.Equals("background", StringComparison.CurrentCultureIgnoreCase) || link.Equals("workspace", StringComparison.CurrentCultureIgnoreCase))
+                    else if (link.Equals("background", StringComparison.CurrentCultureIgnoreCase) || link.Equals("workspace", StringComparison.CurrentCultureIgnoreCase))
                         link = $"uid:{m.Groups[5].Value.Trim().Trim(trim_char)}";
 
-                    if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
+                    if (link.StartsWith("searching", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        link = m.Groups[2].Value.Trim();
+                        if (!links.Contains(link)) links.Add(link);
+                    }
+                    else if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                     {
                         //link = Uri.UnescapeDataString(WebUtility.HtmlDecode(link));
                         if (!links.Contains(link)) links.Add(link);
@@ -2108,6 +2172,8 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("id:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var id = link.Substring(3).Trim();
+                        if (Regex.IsMatch(id, @"(\d+),\s(.+?)", opt))
+                            id = Regex.Replace(id, @"(\d+),\s(.+?)", "$1", opt);
                         var a_link = id.ArtworkLink();
                         var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
                         if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
@@ -2152,8 +2218,18 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("user:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var user = link.Substring(5).Trim();
-                        var u_link = $"User:{user}";
-                        if (!links.Contains(u_link)) links.Add(u_link);
+                        if (Regex.IsMatch(user, @"(.+)\s/\s(\d+)\s/\s(.+)", opt))
+                        {
+                            var uid = Regex.Replace(user, @"(.+)\s/\s(\d+)\s/\s(.+)", "$2", opt);
+                            var u_link = uid.UserLink();
+                            var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={uid}";
+                            if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
+                        }
+                        else
+                        {
+                            var u_link = $"User:{user}";
+                            if (!links.Contains(u_link)) links.Add(u_link);
+                        }
                     }
                     else if (link.StartsWith("fuzzy:", StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -2165,6 +2241,12 @@ namespace PixivWPF.Common
                     {
                         var fuzzy = link.Substring(6).Trim();
                         var u_link = $"Fuzzy:{fuzzy}";
+                        if (!links.Contains(u_link)) links.Add(u_link);
+                    }
+                    else if (link.StartsWith("searching ", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var search = link.Substring(10).Trim();
+                        var u_link = $"{search}";
                         if (!links.Contains(u_link)) links.Add(u_link);
                     }
                     else
@@ -2752,7 +2834,7 @@ namespace PixivWPF.Common
                 if (contents.ToLower().Contains("://dic.pixiv.net/a/"))
                     contents = Uri.UnescapeDataString(contents.Substring(contents.IndexOf("/a/") + 3));
                 var title = $"PixivPedia: {contents} ...";
-                if (title.ActiveByTitle()) return;
+                if (await title.ActiveByTitle()) return;
 
                 var page = new BrowerPage ();
                 page.UpdateDetail(contents);
@@ -4226,24 +4308,32 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<ImageItem> GetSelected(this ImageListGrid gallery, bool ignore_order = false)
+        public static IList<ImageItem> GetSelected(this ImageListGrid gallery, bool WithSelectionOrder = false)
         {
             var result = new List<ImageItem>();
             try
             {
-                if (Keyboard.Modifiers == ModifierKeys.Control) ignore_order = !ignore_order;
-                if (ignore_order)
+                if (Keyboard.Modifiers == ModifierKeys.Control) WithSelectionOrder = !WithSelectionOrder;
+                if (WithSelectionOrder)
+                {
+                    result = gallery.SelectedItems.ToList();
+                }
+                else
                 {
                     foreach (var item in gallery.Items)
                     {
                         if (gallery.SelectedItems.Contains(item)) result.Add(item);
                     }
                 }
-                else
-                    result = gallery.SelectedItems.ToList();
             }
             catch (Exception) { }
             return (result);
+        }
+
+        public static IList<ImageItem> GetSelected(this ImageListGrid gallery)
+        {
+            setting = Application.Current.LoadSetting();
+            return (GetSelected(gallery, setting.OpenWithSelectionOrder));
         }
         #endregion
 
@@ -5151,20 +5241,22 @@ namespace PixivWPF.Common
             window.Activate();
         }
 
-        public static bool ActiveByTitle(this string title)
+        public static async Task<bool> ActiveByTitle(this string title)
         {
             bool result = false;
-            foreach (Window win in Application.Current.Windows)
-            {
-                //if (win.Title.StartsWith(title))
-                if (win.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase))
+            await new Action(() => {
+                foreach (Window win in Application.Current.Windows)
                 {
-                    if (win is MetroWindow) (win as MetroWindow).Active();
-                    else win.Activate();
-                    result = true;
-                    break;
+                    //if (win.Title.StartsWith(title))
+                    if (win.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (win is MetroWindow) (win as MetroWindow).Active();
+                        else win.Activate();
+                        result = true;
+                        break;
+                    }
                 }
-            }
+            }).InvokeAsync();
             return (result);
         }
 

@@ -55,7 +55,7 @@ namespace PixivWPF.Pages
                 VerticalAlignment = VerticalAlignment.Stretch,
                 Child = browser
             };
-            panel.Children.Add(host);
+            if(panel is Panel) panel.Children.Add(host);
         }
 
         private void InitHtmlRender(out System.Windows.Forms.WebBrowser browser)
@@ -127,6 +127,8 @@ namespace PixivWPF.Pages
 
         private bool IsSkip(string url)
         {
+            if (string.IsNullOrEmpty(url)) return (true);
+
             var result = false;
             var ul = url.ToLower();
             if (ul.Contains("/plugins/like.php")) result = true;
@@ -172,7 +174,7 @@ namespace PixivWPF.Pages
                 {
                     webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
                 }
-                else ex.Message.ShowMessageBox("ERROR!");
+                else ex.Message.ShowMessageBox("ERROR[BROWSER]!");
                 
             }
         }
@@ -312,14 +314,13 @@ namespace PixivWPF.Pages
 
         private async void WebBrowser_ProgressChanged(object sender, System.Windows.Forms.WebBrowserProgressChangedEventArgs e)
         {
-            //return;
-            if (sender is System.Windows.Forms.WebBrowser)
+            try
             {
-                var browser = sender as System.Windows.Forms.WebBrowser;
-
-                if (browser.Document != null)
+                if (sender is System.Windows.Forms.WebBrowser)
                 {
-                    try
+                    var browser = sender as System.Windows.Forms.WebBrowser;
+
+                    if (browser.Document != null)
                     {
                         foreach (System.Windows.Forms.HtmlElement imgElemt in browser.Document.Images)
                         {
@@ -347,16 +348,17 @@ namespace PixivWPF.Pages
                                 catch (Exception ex)
                                 {
                                     ex.Message.DEBUG();
+                                    continue;
                                 }
 #else
-                                catch (Exception) { }
+                                catch (Exception) { continue; }
 #endif
                             }
                         }
                     }
-                    catch (Exception) { }
                 }
             }
+            catch (Exception) { }
         }
 
         private async void WebBrowser_Navigating(object sender, System.Windows.Forms.WebBrowserNavigatingEventArgs e)
@@ -417,8 +419,12 @@ namespace PixivWPF.Pages
 
         private void Window_Error(object sender, System.Windows.Forms.HtmlElementErrorEventArgs e)
         {
-            // Ignore the error and suppress the error dialog box. 
-            e.Handled = true;
+            try
+            {
+                // Ignore the error and suppress the error dialog box. 
+                e.Handled = true;
+            }
+            catch (Exception) { }
         }
 
         public BrowerPage()

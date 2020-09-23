@@ -180,8 +180,16 @@ namespace PixivWPF
                 {
                     //sw.ReadToEnd().ShowMessageDialog("RECEIVED!");
                     var contents = sw.ReadToEnd().Trim();
-                    if (contents.Equals("cmd:min_r18", StringComparison.CurrentCultureIgnoreCase))
-                        Application.Current.MinimizedWindows("r18");
+                    if (contents.StartsWith("cmd:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var kv = contents.Substring(4).Split(new char[] { '-', '_', ':', '+', '=' });
+                        var action = kv[0];
+                        var param = kv.Length == 2 ? kv[1] : "r18";
+                        if (action.StartsWith("min", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Application.Current.MinimizedWindows(param);
+                        }
+                    }
                     else
                     {
                         var links = contents.ParseLinks();
@@ -199,7 +207,7 @@ namespace PixivWPF
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageDialog("ERROR!");
+                ex.Message.ShowMessageDialog("ERROR[PIPE]!");
             }
             finally
             {
@@ -275,7 +283,7 @@ namespace PixivWPF
                     else win.Close();
                 }
 
-                if (setting is Setting) setting.Save();
+                if (setting is Setting) setting.Save(true);
                 Application.Current.Shutdown();
             }
             else e.Cancel = true;
@@ -338,12 +346,19 @@ namespace PixivWPF
             if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
         }
 
+#if DEBUG
         private async void MetroWindow_StylusUp(object sender, StylusEventArgs e)
         {
             //
             await Task.Delay(1);
             this.DoEvents();
         }
+#else
+        private void MetroWindow_StylusUp(object sender, StylusEventArgs e)
+        {
+            this.DoEvents();
+        }
+#endif
 
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
