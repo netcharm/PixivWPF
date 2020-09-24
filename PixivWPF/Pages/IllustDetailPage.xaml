@@ -672,7 +672,7 @@
 
                 <!-- Illust Tag -->
                 <Expander Grid.Row="2" Margin="0,4,0,0" IsExpanded="True"
-                          x:Name="IllustTagExpander" x:Uid="IllustTagExpander"                          
+                          x:Name="IllustTagExpander" x:Uid="IllustTagExpander"
                           Header="Tags" Visibility="Collapsed" Expanded="IllustTagExpander_Expanded">
                     <StackPanel x:Name="IllustTagsHost"  Orientation="Vertical" AllowDrop="False">
                         <!--<WindowsFormsHost x:Name="IllustTagsHtmlHost" Visibility="Collapsed"

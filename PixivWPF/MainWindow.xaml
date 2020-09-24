@@ -47,7 +47,6 @@
                 ToolTip="Refresh">
                 <TextBlock 
                     Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Button 
@@ -56,7 +55,6 @@
                 ToolTip="Refresh Thumbnails">
                 <TextBlock 
                     Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Button x:Name="CommandNavDate" x:Uid="CommandNavDate" 
@@ -75,8 +73,7 @@
                 <iconPacks:PackIconModern Kind="NavigateNext" />
             </Button>
             <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" 
-                       HorizontalAlignment="Left" VerticalAlignment="Center"
-                       Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                       HorizontalAlignment="Left" VerticalAlignment="Center"/>
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
 
@@ -108,11 +105,6 @@
             <Button Click="CommandLogin_Click"
                     ToolTip="Open Login Dialog">
                 <iconPacks:PackIconModern Kind="User" />
-                <!--<Rectangle Width="16" Height="16" Fill="{DynamicResource MahApps.Brushes.IdealForeground}">
-                    <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_user}"/>
-                    </Rectangle.OpacityMask>
-                </Rectangle>-->
             </Button>
             <Button Click="CommandToggleTheme_Click" >
                 <iconPacks:PackIconModern Kind="Contrast" />

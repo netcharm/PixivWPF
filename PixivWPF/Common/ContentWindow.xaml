@@ -45,7 +45,6 @@
                     ToolTip="Refresh Current Page">
                 <TextBlock 
                     Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
         </mah:WindowCommands>
@@ -79,11 +78,6 @@
             <Button Click="CommandLogin_Click"
                     ToolTip="Open Login Dialog">
                 <iconPacks:PackIconModern Kind="User" />
-                <!--<Rectangle Width="16" Height="16" Fill="{DynamicResource MahApps.Brushes.IdealForeground}">
-                    <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_user}"/>
-                    </Rectangle.OpacityMask>
-                </Rectangle>-->
             </Button>
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>

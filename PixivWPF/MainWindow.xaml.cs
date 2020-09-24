@@ -147,18 +147,6 @@ namespace PixivWPF
             }
         }
 
-        private string GetLastSelectedID()
-        {
-            string id = pagetiles is Pages.TilesPage ? pagetiles.lastSelectedId : string.Empty;
-            if (pagetiles.ListImageTiles.Items.Count > 0)
-            {
-                if (pagetiles.ListImageTiles.SelectedIndex == 0 && string.IsNullOrEmpty(pagetiles.lastSelectedId))
-                    pagetiles.lastSelectedId = (pagetiles.ListImageTiles.Items[0] as ImageItem).ID;
-                id = pagetiles.ListImageTiles.SelectedItem is ImageItem ? (pagetiles.ListImageTiles.SelectedItem as ImageItem).ID : pagetiles.lastSelectedId;
-            }
-            return (id);
-        }
-
         #region Named Pipe Heler
         private NamedPipeServerStream pipeServer;
         private string pipeName = Application.Current.PipeServerName();
@@ -430,7 +418,7 @@ namespace PixivWPF
                 if (sender == CommandNavRefresh)
                 {
                     UpdateTitle(pagetiles.TargetPage.ToString());
-                    pagetiles.ShowImages(pagetiles.TargetPage, false, GetLastSelectedID());
+                    pagetiles.ShowImages(pagetiles.TargetPage, false, pagetiles.GetLastSelectedID());
                 }
                 else if (sender == CommandNavRefreshThumb)
                 {
@@ -456,7 +444,7 @@ namespace PixivWPF
                 {
                     LastSelectedDate = CommonHelper.SelectedDate;
                     NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
-                    pagetiles.ShowImages(pagetiles.TargetPage, false, GetLastSelectedID());
+                    pagetiles.ShowImages(pagetiles.TargetPage, false, pagetiles.GetLastSelectedID());
                 }
             }
         }
@@ -467,7 +455,7 @@ namespace PixivWPF
 
         internal void CommandNavNext_Click(object sender, RoutedEventArgs e)
         {
-            pagetiles.ShowImages(pagetiles.TargetPage, true, GetLastSelectedID());
+            pagetiles.ShowImages(pagetiles.TargetPage, true, pagetiles.GetLastSelectedID());
         }
 
         private void CommandSearch_Click(object sender, RoutedEventArgs e)

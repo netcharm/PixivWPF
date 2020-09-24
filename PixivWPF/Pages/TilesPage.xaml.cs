@@ -27,8 +27,8 @@ namespace PixivWPF.Pages
         internal ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
 
         private Setting setting = Application.Current.LoadSetting();
-        public PixivPage TargetPage = PixivPage.Recommanded;
-        private PixivPage LastPage = PixivPage.Recommanded;
+        public PixivPage TargetPage = PixivPage.None;
+        private PixivPage LastPage = PixivPage.None;
         private string NextURL = null;
 
         public DateTime SelectedDate { get; set; } = DateTime.Now;
@@ -90,6 +90,18 @@ namespace PixivWPF.Pages
             if (item.Source == null) return;
 
             e.Accepted = true;
+        }
+
+        internal string GetLastSelectedID()
+        {
+            string id = lastSelectedId;
+            if (ListImageTiles.Items.Count > 0)
+            {
+                if (ListImageTiles.SelectedIndex == 0 && string.IsNullOrEmpty(lastSelectedId))
+                    lastSelectedId = (ListImageTiles.Items[0] as ImageItem).ID;
+                id = ListImageTiles.SelectedItem is ImageItem ? (ListImageTiles.SelectedItem as ImageItem).ID : lastSelectedId;
+            }
+            return (id);
         }
 
         protected internal async void UpdateImageTiles()
@@ -1431,5 +1443,6 @@ namespace PixivWPF.Pages
             }
             #endregion
         }
+
     }
 }

@@ -376,6 +376,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region Application/System Information
         private static string root = string.Empty;
         public static string Root
         {
@@ -521,12 +522,13 @@ namespace PixivWPF.Common
         {
             return (PipeName);
         }
+        #endregion
 
+        #region Window Helper
         private static string[] r15 = new string[] { "xxx", "r18", "r17", "r15", "18+", "17+", "15+" };
         private static string[] r17 = new string[] { "xxx", "r18", "r17", "18+", "17+", };
         private static string[] r18 = new string[] { "xxx", "r18", "18+"};
 
-        #region Window Helper
         public static MainWindow GetMainWindow(this Application app)
         {
             MainWindow result = null;
@@ -562,6 +564,15 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
             return (titles);
+        }
+
+        public static void SetTitle(this Application app, string title)
+        {
+            if(Application.Current.MainWindow is MetroWindow)
+            {
+                var win = Application.Current.MainWindow as MetroWindow;
+                win.Title = title;
+            }
         }
 
         private static async void MinimizedWindow(MetroWindow win, ImageItem item, string condition)
