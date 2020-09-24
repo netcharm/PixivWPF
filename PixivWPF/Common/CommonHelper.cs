@@ -2568,7 +2568,7 @@ namespace PixivWPF.Common
                     if (win is MainWindow)
                     {
                         var mw = win as MainWindow;
-                        mw.UpdateIllustTagsAsync();
+                        mw.UpdateIllustDescAsync();
                     }
                     else if (win is ContentWindow)
                     {
@@ -2597,7 +2597,7 @@ namespace PixivWPF.Common
                     if (win is MainWindow)
                     {
                         var mw = win as MainWindow;
-                        mw.UpdateIllustTagsAsync();
+                        mw.UpdateWebContentAsync();
                     }
                     else if (win is ContentWindow)
                     {

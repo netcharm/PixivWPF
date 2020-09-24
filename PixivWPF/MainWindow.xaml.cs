@@ -59,6 +59,42 @@ namespace PixivWPF
             }
         }
 
+        public async void UpdateIllustDescAsync()
+        {
+            if (ContentFrame.Content is Pages.TilesPage)
+            {
+                var tiles = ContentFrame.Content as Pages.TilesPage;
+                if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
+                {
+                    await new Action(() =>
+                    {
+                        var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
+                        detail.UpdateIllustDescAsync();
+                    }).InvokeAsync();
+                }
+            }
+        }
+
+        public async void UpdateWebContentAsync()
+        {
+            try
+            {
+                if (ContentFrame.Content is Pages.TilesPage)
+                {
+                    var tiles = ContentFrame.Content as Pages.TilesPage;
+                    if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
+                    {
+                        await new Action(() =>
+                        {
+                            var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
+                            detail.UpdateWebContentAsync();
+                        }).InvokeAsync();
+                    }
+                }
+            }
+            catch (Exception) { }
+        }
+
         public void UpdateTheme()
         {
             //if (pagenav is Pages.NavPage) pagenav.CheckPage();

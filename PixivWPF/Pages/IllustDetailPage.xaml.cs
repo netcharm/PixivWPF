@@ -344,17 +344,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (IllustTagsHtml is System.Windows.Forms.WebBrowser)
-                {
-                    var tagsTitle = IllustTagsHtml.Document is System.Windows.Forms.HtmlDocument ? IllustTagsHtml.Document.Title : string.Empty;
-                    IllustTagsHtml.DocumentText = GetText(IllustTagsHtml, true).GetHtmlFromTemplate(tagsTitle);
-                }
-                if (IllustDescHtml is System.Windows.Forms.WebBrowser)
-                {
-                    var descTitle = IllustDescHtml.Document is System.Windows.Forms.HtmlDocument ? IllustDescHtml.Document.Title : string.Empty;
-                    IllustDescHtml.DocumentText = GetText(IllustDescHtml, true).GetHtmlFromTemplate(descTitle);
-                }
-
+                UpdateWebContentAsync();
                 btnSubPagePrev.Enable(btnSubPagePrev.IsEnabled, btnSubPagePrev.IsVisible);
                 btnSubPageNext.Enable(btnSubPageNext.IsEnabled, btnSubPageNext.IsVisible);
             }
@@ -756,8 +746,9 @@ namespace PixivWPF.Pages
 
                 if (item.Illust.Tags.Count > 0)
                 {
-                    IllustTagsHtml.DocumentText = MakeIllustTagsHtml(item);
-                    AdjustBrowserSize(IllustTagsHtml);
+                    WebBrowserRefresh(IllustTagsHtml);
+                    //IllustTagsHtml.DocumentText = MakeIllustTagsHtml(item);
+                    //AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "Tags";
                     if (setting.AutoExpand == AutoExpandMode.AUTO ||
@@ -779,8 +770,9 @@ namespace PixivWPF.Pages
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
-                    IllustDescHtml.DocumentText = MakeIllustDescHtml(item);
-                    AdjustBrowserSize(IllustDescHtml);
+                    WebBrowserRefresh(IllustDescHtml);
+                    //IllustDescHtml.DocumentText = MakeIllustDescHtml(item);
+                    //AdjustBrowserSize(IllustDescHtml);
 
                     if (setting.AutoExpand == AutoExpandMode.AUTO ||
                         setting.AutoExpand == AutoExpandMode.ON ||
@@ -906,8 +898,9 @@ namespace PixivWPF.Pages
 
                 if (nuser != null && nprof != null && nworks != null)
                 {
-                    IllustTagsHtml.DocumentText = MakeUserInfoHtml(UserInfo);
-                    AdjustBrowserSize(IllustTagsHtml);
+                    WebBrowserRefresh(IllustTagsHtml);
+                    //IllustTagsHtml.DocumentText = MakeUserInfoHtml(UserInfo);
+                    //AdjustBrowserSize(IllustTagsHtml);
 
                     IllustTagExpander.Header = "User Infomation";
                     if (setting.AutoExpand == AutoExpandMode.ON)
@@ -926,8 +919,9 @@ namespace PixivWPF.Pages
 
                 if (nuser != null && !string.IsNullOrEmpty(nuser.comment) && nuser.comment.Length > 0)
                 {
-                    IllustDescHtml.DocumentText = MakeUserCommentHtml(UserInfo);
-                    AdjustBrowserSize(IllustDescHtml);
+                    WebBrowserRefresh(IllustDescHtml);
+                    //IllustDescHtml.DocumentText = MakeUserCommentHtml(UserInfo);
+                    //AdjustBrowserSize(IllustDescHtml);
 
                     if (setting.AutoExpand == AutoExpandMode.ON ||
                         setting.AutoExpand == AutoExpandMode.AUTO)

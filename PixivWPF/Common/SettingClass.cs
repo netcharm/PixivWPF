@@ -328,6 +328,7 @@ namespace PixivWPF.Common
                         Cache.ContentsTemplete = Cache.CustomContentsTemplete;
                         Cache.ContentsTemplateTime = DateTime.Now;
                         Cache.Save();
+                        CommonHelper.UpdateWebContentAsync();
                     }
                 }
                 else
@@ -337,9 +338,9 @@ namespace PixivWPF.Common
                         Cache.ContentsTemplete = CommonHelper.GetDefaultTemplate();
                         Cache.CustomContentsTemplete = string.Empty;
                         Cache.Save();
+                        CommonHelper.UpdateWebContentAsync();
                     }
                 }
-                CommonHelper.UpdateWebContentAsync();
             }
         }
 
