@@ -425,6 +425,7 @@ namespace PixivWPF.Common
                                 Cache.PrivateFavPrefer = cache.PrivateFavPrefer;
                                 Cache.PrivateBookmarkPrefer = cache.PrivateBookmarkPrefer;
                                 Cache.OpenWithSelectionOrder = cache.OpenWithSelectionOrder;
+                                Cache.DownloadTimeSpan = cache.DownloadTimeSpan;
                                 Cache.AutoExpand = cache.AutoExpand;
                                 Cache.ShellSearchBridgeApplication = cache.ShellSearchBridgeApplication;
                                 Cache.ShellPixivPediaApplication = cache.ShellPixivPediaApplication;
