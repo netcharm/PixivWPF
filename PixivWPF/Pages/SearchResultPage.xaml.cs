@@ -35,6 +35,8 @@ namespace PixivWPF.Pages
         private ContextMenu ContextMenuResultFilter = null;
         private Dictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new Dictionary<string, Tuple<MenuItem, MenuItem>>();
 
+        public string Contents { get; set; } = string.Empty;
+
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
             var id = illustid ?? -1;
@@ -112,7 +114,7 @@ namespace PixivWPF.Pages
             }
 
             window = Window.GetWindow(this);
-            if(Tag is string) UpdateDetail((string)Tag);
+            if (!string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
         }
 
         internal void UpdateDetail(string content)

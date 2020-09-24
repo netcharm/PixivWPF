@@ -85,28 +85,6 @@
                     </Rectangle.OpacityMask>
                 </Rectangle>-->
             </Button>
-            <Button Click="CommandToggleTheme_Click" Visibility="Collapsed" >
-                <iconPacks:PackIconModern Kind="Contrast" />
-            </Button>
-            <mah:SplitButton x:Name="CommandToggleTheme"
-                             ToolTip="Toggle Application Theme"
-                             Background="Transparent"
-                             AlternationCount="2"
-                             BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                             Visibility="Collapsed"
-                             Click="CommandToggleTheme_Click" 
-                             SelectionChanged="CommandToggleTheme_SelectionChanged">
-
-                <!--ArrowBrush="{DynamicResource IdealForegroundDisabledBrush}"
-                                  Foreground="{DynamicResource IdealForegroundDisabledBrush}"
-                                  Background="Transparent" 
-                                  Style="{DynamicResource MetroSplitButton}"
-                                  BorderThickness="1" BorderBrush="{Binding Path=WindowTitleBrush, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Controls:MetroWindow}}}"-->
-
-                <mah:SplitButton.Icon>
-                    <iconPacks:PackIconModern Kind="ClothesShirt" />
-                </mah:SplitButton.Icon>
-            </mah:SplitButton>
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>
 

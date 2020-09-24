@@ -257,6 +257,7 @@ namespace PixivWPF.Common
             set { expdurtime = value; }
         }
 
+        public int DownloadWaitingTime { get; set; } = 5000;
         public int DownloadTimeSpan { get; set; } = 750;
 
         [JsonIgnore]

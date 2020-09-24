@@ -1421,6 +1421,17 @@ namespace PixivWPF.Pages
                     browser.Document.Write("");
                     AdjustBrowserSize(browser);
                 }
+                else if(DataObject is Pixeez.Objects.UserBase)
+                {
+                    var item = DataObject as Pixeez.Objects.UserBase;
+                    if (browser == IllustTagsHtml)
+                        IllustTagsHtml.DocumentText = MakeUserInfoHtml(UserInfo);
+                    else if (browser == IllustDescHtml)
+                        IllustDescHtml.DocumentText = MakeUserCommentHtml(UserInfo);
+
+                    browser.Document.Write("");
+                    AdjustBrowserSize(browser);
+                }
             }
             catch (Exception) { }
         }
@@ -1442,9 +1453,10 @@ namespace PixivWPF.Pages
                     if (string.IsNullOrEmpty(tag))
                     {
                         var href = link.GetAttribute("href");
+                        var href_lower = href.ToLower();
                         if (!string.IsNullOrEmpty(href))
                         {
-                            if (href.StartsWith("pixiv://illusts/", StringComparison.CurrentCultureIgnoreCase))
+                            if (href_lower.StartsWith("pixiv://illusts/", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 var illust_id = Regex.Replace(href, @"pixiv://illusts/(\d+)", "$1", RegexOptions.IgnoreCase);
                                 if (!string.IsNullOrEmpty(illust_id))
@@ -1470,7 +1482,7 @@ namespace PixivWPF.Pages
                                     }
                                 }
                             }
-                            else if (href.StartsWith("pixiv://users/", StringComparison.CurrentCultureIgnoreCase))
+                            else if (href_lower.StartsWith("pixiv://users/", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 var user_id = Regex.Replace(href, @"pixiv://users/(\d+)", "$1", RegexOptions.IgnoreCase);
                                 var user = user_id.FindUser();
@@ -1493,6 +1505,30 @@ namespace PixivWPF.Pages
                                     }
                                 }
                             }
+                            else if (href_lower.StartsWith("http", StringComparison.CurrentCultureIgnoreCase) && href_lower.Contains("dic.pixiv.net/"))
+                            {
+                                await new Action(() =>
+                                {
+                                    CommonHelper.Cmd_OpenPixivPedia.Execute(href);
+                                }).InvokeAsync();
+                                //GetHtmlContents(href);
+                            }
+                            else if (href_lower.StartsWith("about:/a", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                href = href.Replace("about:/a", "https://dic.pixiv.net/a");
+                                await new Action(() =>
+                                {
+                                    CommonHelper.Cmd_OpenPixivPedia.Execute(href);
+                                }).InvokeAsync();
+                                //GetHtmlContents(href);
+                            }
+                            else if (href_lower.Contains("pixiv.net/") || href_lower.Contains("pximg.net/"))
+                            {
+                                await new Action(() =>
+                                {
+                                    CommonHelper.Cmd_Search.Execute(href);
+                                }).InvokeAsync();
+                            }
                             else
                             {
                                 e.BubbleEvent = true;
@@ -1503,17 +1539,28 @@ namespace PixivWPF.Pages
                     else
                     {
                         var tag_tooltip = link.GetAttribute("data-tooltip");
-                        if (Keyboard.Modifiers == ModifierKeys.Alt)
-                            CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
-                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                            CommonHelper.Cmd_OpenPixivPedia.Execute(tag);
-                        else if (Keyboard.Modifiers == ModifierKeys.Control)
-                            CommonHelper.Cmd_Speech.Execute(tag);
-                        else if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) &&
-                                 (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)))
-                            CommonHelper.Cmd_Speech.Execute(tag_tooltip);
-                        else
+                        if(!e.AltKeyPressed && !e.CtrlKeyPressed && !e.ShiftKeyPressed)
                             CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
+                        else if (e.AltKeyPressed && !e.CtrlKeyPressed && !e.ShiftKeyPressed)
+                            CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
+                        else if (!e.AltKeyPressed && !e.CtrlKeyPressed && e.ShiftKeyPressed)
+                            CommonHelper.Cmd_OpenPixivPedia.Execute(tag);
+                        else if (!e.AltKeyPressed && e.CtrlKeyPressed && !e.ShiftKeyPressed)
+                            CommonHelper.Cmd_Speech.Execute(tag);
+                        else if (!e.AltKeyPressed && e.CtrlKeyPressed && e.ShiftKeyPressed)
+                            CommonHelper.Cmd_Speech.Execute(tag_tooltip);
+
+                        //if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        //    CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
+                        //else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        //    CommonHelper.Cmd_OpenPixivPedia.Execute(tag);
+                        //else if (Keyboard.Modifiers == ModifierKeys.Control)
+                        //    CommonHelper.Cmd_Speech.Execute(tag);
+                        //else if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) &&
+                        //         (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)))
+                        //    CommonHelper.Cmd_Speech.Execute(tag_tooltip);
+                        //else
+                        //    CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
                     }
                 }
             }

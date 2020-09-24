@@ -67,9 +67,6 @@ namespace PixivWPF.Common
 
             SearchBox.ItemsSource = AutoSuggestList;
 
-            CommandToggleTheme.ItemsSource = Application.Current.GetAccents();
-            CommandToggleTheme.SelectedIndex = CommandToggleTheme.Items.IndexOf(Application.Current.CurrentAccent());
-
             //Topmost = true;
             ShowActivated = true;
             //Activate();
@@ -208,20 +205,6 @@ namespace PixivWPF.Common
         private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
         {
             CommonHelper.Cmd_OpenDropBox.Execute(sender);
-        }
-
-        private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
-        {
-            Theme.Toggle();
-            UpdateTheme();
-        }
-
-        private void CommandToggleTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (CommandToggleTheme.SelectedIndex >= 0 && CommandToggleTheme.SelectedIndex < CommandToggleTheme.Items.Count)
-            {
-                Application.Current.SetAccent(CommandToggleTheme.SelectedValue.ToString());
-            }
         }
 
         private void CommandSearch_Click(object sender, RoutedEventArgs e)

@@ -36,6 +36,8 @@ namespace PixivWPF.Pages
         private const int HTTP_STREAM_READ_COUNT = 65536;
         private Setting setting = Application.Current.LoadSetting();
 
+        public string Contents { get; set; } = string.Empty;
+
         internal void UpdateTheme()
         {
             if (webHtml is System.Windows.Forms.WebBrowser)
@@ -194,6 +196,50 @@ namespace PixivWPF.Pages
                 }).InvokeAsync();
             }
         }
+        
+        private async void WebBrowerReplaceImageSource(System.Windows.Forms.WebBrowser browser)
+        {
+            try
+            {
+                if (browser is System.Windows.Forms.WebBrowser && browser.Document != null)
+                {
+                    foreach (System.Windows.Forms.HtmlElement imgElemt in browser.Document.Images)
+                    {
+                        try
+                        {
+                            var src = imgElemt.GetAttribute("src");
+                            if (!string.IsNullOrEmpty(src))
+                            {
+                                await new Action(async () =>
+                                {
+                                    try
+                                    {
+                                        if (src.ToLower().Contains("no_image_p.svg"))
+                                            imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.GetRoot(), "no_image.png")).AbsoluteUri);
+                                        else if (src.IsPixivImage())
+                                        {
+                                            var img = await src.GetImagePath();
+                                            if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", new Uri(img).AbsoluteUri);
+                                        }
+                                    }
+                                    catch (Exception) { }
+                                }).InvokeAsync();
+                            }
+                        }
+#if DEBUG
+                            catch (Exception ex)
+                            {
+                                ex.Message.DEBUG();
+                                continue;
+                            }
+#else
+                        catch (Exception) { continue; }
+#endif
+                    }
+                }
+            }
+            catch (Exception) { }
+        }
 
         private async void WebBrowser_LinkClick(object sender, System.Windows.Forms.HtmlElementEventArgs e)
         {
@@ -215,7 +261,7 @@ namespace PixivWPF.Pages
                         var href_lower = href.ToLower();
                         if (!string.IsNullOrEmpty(href))
                         {
-                            if (href.StartsWith("pixiv://illusts/", StringComparison.CurrentCultureIgnoreCase))
+                            if (href_lower.StartsWith("pixiv://illusts/", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 var illust_id = Regex.Replace(href, @"pixiv://illusts/(\d+)", "$1", RegexOptions.IgnoreCase);
                                 if (!string.IsNullOrEmpty(illust_id))
@@ -241,7 +287,7 @@ namespace PixivWPF.Pages
                                     }
                                 }
                             }
-                            else if (href.StartsWith("pixiv://users/", StringComparison.CurrentCultureIgnoreCase))
+                            else if (href_lower.StartsWith("pixiv://users/", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 var user_id = Regex.Replace(href, @"pixiv://users/(\d+)", "$1", RegexOptions.IgnoreCase);
                                 var user = user_id.FindUser();
@@ -261,7 +307,7 @@ namespace PixivWPF.Pages
                                     }
                                 }
                             }
-                            else if (href.StartsWith("http", StringComparison.CurrentCultureIgnoreCase) && href_lower.Contains("dic.pixiv.net/"))
+                            else if (href_lower.StartsWith("http", StringComparison.CurrentCultureIgnoreCase) && href_lower.Contains("dic.pixiv.net/"))
                             {
                                 await new Action(() =>
                                 {
@@ -295,10 +341,10 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Control)
-                            CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
-                        else
+                        if (!e.AltKeyPressed && !e.CtrlKeyPressed && !e.ShiftKeyPressed)
                             CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
+                        else if (e.AltKeyPressed && !e.CtrlKeyPressed && !e.ShiftKeyPressed)
+                            CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
                     }
                 }
             }
@@ -312,7 +358,7 @@ namespace PixivWPF.Pages
 #endif
         }
 
-        private async void WebBrowser_ProgressChanged(object sender, System.Windows.Forms.WebBrowserProgressChangedEventArgs e)
+        private void WebBrowser_ProgressChanged(object sender, System.Windows.Forms.WebBrowserProgressChangedEventArgs e)
         {
             try
             {
@@ -320,42 +366,7 @@ namespace PixivWPF.Pages
                 {
                     var browser = sender as System.Windows.Forms.WebBrowser;
 
-                    if (browser.Document != null)
-                    {
-                        foreach (System.Windows.Forms.HtmlElement imgElemt in browser.Document.Images)
-                        {
-                            var src = imgElemt.GetAttribute("src");
-                            if (!string.IsNullOrEmpty(src))
-                            {
-                                try
-                                {
-                                    await new Action(async () =>
-                                    {
-                                        try
-                                        {
-                                            if (src.ToLower().Contains("no_image_p.svg"))
-                                                imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.GetRoot(), "no_image.png")).AbsoluteUri);
-                                            else if (src.IsPixivImage())
-                                            {
-                                                var img = await src.GetImagePath();
-                                                if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", new Uri(img).AbsoluteUri);
-                                            }
-                                        }
-                                        catch (Exception) { }
-                                    }).InvokeAsync();
-                                }
-#if DEBUG
-                                catch (Exception ex)
-                                {
-                                    ex.Message.DEBUG();
-                                    continue;
-                                }
-#else
-                                catch (Exception) { continue; }
-#endif
-                            }
-                        }
-                    }
+                    WebBrowerReplaceImageSource(browser);
                 }
             }
             catch (Exception) { }
@@ -394,17 +405,18 @@ namespace PixivWPF.Pages
             {
                 if (sender == webHtml)
                 {
-                    try
-                    {
-                        ((System.Windows.Forms.WebBrowser)sender).Document.Window.Error += new System.Windows.Forms.HtmlElementErrorEventHandler(Window_Error);
+                    ((System.Windows.Forms.WebBrowser)sender).Document.Window.Error += new System.Windows.Forms.HtmlElementErrorEventHandler(Window_Error);
 
-                        var browser = sender as System.Windows.Forms.WebBrowser;
-                        foreach (System.Windows.Forms.HtmlElement link in browser.Document.Links)
+                    var browser = sender as System.Windows.Forms.WebBrowser;
+                    foreach (System.Windows.Forms.HtmlElement link in browser.Document.Links)
+                    {
+                        try
                         {
                             link.Click += WebBrowser_LinkClick;
                         }
+                        catch (Exception) { continue; }
                     }
-                    catch (Exception) { }
+                    WebBrowerReplaceImageSource(browser);
                 }
             }
 #if DEBUG
@@ -435,9 +447,15 @@ namespace PixivWPF.Pages
             CreateHtmlRender();
         }
 
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
+        }
+
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             DeleteHtmlRender();
         }
+
     }
 }

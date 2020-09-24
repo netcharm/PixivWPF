@@ -551,6 +551,7 @@ namespace PixivWPF.Common
                     {
                         if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("PIXIV Login", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
                         //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
@@ -1765,7 +1766,7 @@ namespace PixivWPF.Common
                     var title = $"Searching {content} ...";
                     if (await title.ActiveByTitle()) return;
 
-                    var page = new SearchResultPage() { FontFamily = setting.FontFamily, Tag = content };
+                    var page = new SearchResultPage() { FontFamily = setting.FontFamily, Tag = content, Contents = content };
                     var viewer = new ContentWindow()
                     {
                         Title = title,
@@ -2416,30 +2417,35 @@ namespace PixivWPF.Common
                         html.AppendLine("<!DOCTYPE html>");
                         html.AppendLine("<HTML>");
                         html.AppendLine("  <HEAD>");
-                        html.AppendLine("    <TITLE>{%title%}</TITLE>");
+                        html.AppendLine("    <TITLE>{% title %}</TITLE>");
                         html.AppendLine("    <META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
                         html.AppendLine("    <META http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />");
                         html.AppendLine("    <STYLE>");
                         html.AppendLine("      :root { --accent: {% accentcolor_rgb %}; --text: {% textcolor_rgb %} }");                        
                         html.AppendLine("      *{font-family:\"等距更纱黑体 SC\", FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", Iosevka, \"Sarasa Mono J\", \"Sarasa Term J\", \"Sarasa Gothic J\", \"更纱黑体 SC\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif !important;}");
-                        html.AppendLine("      body{background-color: {%backcolor%} !important;}");
-                        html.AppendLine("      a:link{color:{%accentcolor%} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:hover{color:{%accentcolor%} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:active{color:{%accentcolor%} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:visited{color:{%accentcolor%} !important;text-decoration:none !important;}");
+                        html.AppendLine("      body{background-color: {% backcolor %} !important;}");
+                        html.AppendLine("      a:link{color:{% accentcolor %} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:hover{color:{% accentcolor %} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:active{color:{% accentcolor %} !important;text-decoration:none !important;}");
+                        html.AppendLine("      a:visited{color:{% accentcolor %} !important;text-decoration:none !important;}");
                         html.AppendLine("      img{width:auto!important;height:auto!important;max-width:100%!important;max-height:100% !important;}");
-                        html.AppendLine("      .tag{color:{%accentcolor%} !important;background-color:rgba(var(--accent), 10%);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {%accentcolor%};border-left-width:5px;overflow-wrap:break-word;}");
+                        html.AppendLine("      .tag{color:{% accentcolor %} !important;background-color:rgba(var(--accent), 10%);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {% accentcolor %};border-left-width:5px;overflow-wrap:break-word;}");
                         html.AppendLine("      .tag.::before{ content: '#'; }");
-                        html.AppendLine("      .desc{color:{%textcolor%} !important;text-decoration:none !important;width: 99% !important;word-wrap: break-word !important;overflow-wrap: break-word !important;white-space:normal !important;}");
+                        html.AppendLine("      .desc{color:{% textcolor %} !important;text-decoration:none !important;width: 99% !important;word-wrap: break-word !important;overflow-wrap: break-word !important;white-space:normal !important;}");
                         html.AppendLine("      .twitter::before{font-family:FontAwesome; content:''; margin-left:3px; padding-right:4px; color: #1da1f2;}");
                         html.AppendLine("      .web::before{content:'🌐'; padding-right:3px; margin-left:-0px;}");
                         html.AppendLine("      .mail::before{content:'🖃'; padding-right:4px; margin-left:2px;}");
-                        html.AppendLine("      .E404{display:block; min-height:calc(95vh); background-image:url('{%site%}/404.jpg'); background-position: center; background-attachment: fixed; background-repeat: no-repeat;}");
+                        html.AppendLine("      .E404{display:block; min-height:calc(95vh); background-image:url('{% site %}/404.jpg'); background-position: center; background-attachment: fixed; background-repeat: no-repeat;}");
                         html.AppendLine("      .E404T{font-size:calc(2.5vw); color:gray; position:fixed; margin-left:calc(50vw); margin-top:calc(50vh);}");
+                        html.AppendLine();
+                        html.AppendLine("      @media screen and(-ms-high-contrast: active), (-ms-high-contrast: none) {");
+                        html.AppendLine("      .tag{color:{% accentcolor %} !important;background-color:rgba({% accentcolor_rgb %}, 0.1);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {% accentcolor %};border-left-width:5px;overflow-wrap:break-word;}");
+                        html.AppendLine("      }");
+
                         html.AppendLine("    </STYLE>");
                         html.AppendLine("  </HEAD>");
                         html.AppendLine("<BODY>");
-                        html.AppendLine("{%contents%}");
+                        html.AppendLine("{% contents %}");
                         html.AppendLine("</BODY>");
                         html.AppendLine("</HTML>");
 
@@ -2480,14 +2486,14 @@ namespace PixivWPF.Common
             title = string.IsNullOrEmpty(title) ? string.Empty : title.Trim();
 
             var template = GetDefaultTemplate();
-            template = Regex.Replace(template, "{%site%}", new Uri(Application.Current.GetRoot()).AbsoluteUri, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%title%}", title, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%backcolor%}", backcolor, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%accentcolor%}", accentcolor, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%accentcolor_rgb%}", accentcolor_rgb, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%textcolor%}", textcolor, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%textcolor_rgb%}", textcolor_rgb, RegexOptions.IgnoreCase);
-            template = Regex.Replace(template, "{%contents%}", contents, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            template = Regex.Replace(template, @"{%\s*?site\s*?%}", new Uri(Application.Current.GetRoot()).AbsoluteUri, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, @"{%\s*?title\s*?%}", title, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, @"{%\s*?backcolor\s*?%}", backcolor, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, @"{%\s*?accentcolor\s*?%}", accentcolor, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, @"{%\s*?accentcolor_rgb\s*?%}", accentcolor_rgb, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, @"{%\s*?textcolor\s*?%}", textcolor, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, @"{%\s*?textcolor_rgb\s*?%}", textcolor_rgb, RegexOptions.IgnoreCase);
+            template = Regex.Replace(template, @"{%\s*?contents\s*?%}", contents, RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
             return (template.ToString());
         }
@@ -2836,9 +2842,7 @@ namespace PixivWPF.Common
                 var title = $"PixivPedia: {contents} ...";
                 if (await title.ActiveByTitle()) return;
 
-                var page = new BrowerPage ();
-                page.UpdateDetail(contents);
-
+                var page = new BrowerPage () { Contents = contents };
                 var viewer = new ContentWindow()
                 {
                     Title = title,

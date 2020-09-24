@@ -300,7 +300,7 @@ namespace PixivWPF
                 win.Close();
             }
 
-            if (setting is Setting) setting.Save();
+            if (setting is Setting) setting.Save(true);
             Application.Current.Shutdown();
         }
 #else
