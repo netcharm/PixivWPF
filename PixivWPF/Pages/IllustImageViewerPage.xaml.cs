@@ -29,6 +29,7 @@ namespace PixivWPF.Pages
         private Window window = null;
 
         public ImageItem Item { get; set; } = null;
+        private string PreviewImageUrl = string.Empty;
 
         internal void UpdateTheme()
         {
@@ -65,10 +66,12 @@ namespace PixivWPF.Pages
                         ActionViewPageSep.Hide();
                     }
 
-                    var img = await illust.GetPreviewUrl(item.Index, true).LoadImageFromUrl();
+                    PreviewImageUrl = illust.GetPreviewUrl(item.Index, true);
+                    var img = await PreviewImageUrl.LoadImageFromUrl();
                     if (img == null || img.Width < 360)
                     {
-                        var large = await item.Illust.GetOriginalUrl(item.Index).LoadImageFromUrl();
+                        PreviewImageUrl = item.Illust.GetOriginalUrl(item.Index);
+                        var large = await PreviewImageUrl.LoadImageFromUrl();
                         if (large != null) img = large;
                     }
                     Preview.Source = img;
@@ -342,6 +345,14 @@ namespace PixivWPF.Pages
                     CommonHelper.Cmd_OpenIllust.Execute(item.Illust);
                 else if (sender == ActionOpenAuthor)
                     CommonHelper.Cmd_OpenUser.Execute(item.User);
+                else if (sender == ActionOpenCachedWith)
+                {
+                    CommonHelper.Cmd_ShellOpenFile.Execute(PreviewImageUrl.GetImageCachePath());
+                }
+                else if (sender == ActionCopyCachedWith)
+                {
+                    CommonHelper.Cmd_CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
+                }
                 else if (sender == ActionSendIllustToInstance)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
@@ -426,7 +437,8 @@ namespace PixivWPF.Pages
                 if (item.Illust is Pixeez.Objects.Work)
                 {
                     var illust = item.Illust as Pixeez.Objects.Work;
-                    var large = await illust.GetOriginalUrl(item.Index).LoadImageFromUrl();
+                    PreviewImageUrl = illust.GetOriginalUrl(item.Index);
+                    var large = await PreviewImageUrl.LoadImageFromUrl();
                     if (large != null) Preview.Source = large;
                     if (Preview.Source != null)
                     {

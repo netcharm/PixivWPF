@@ -6,15 +6,16 @@ using System.Speech.Synthesis;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace PixivWPF.Common
 {
-    class SpeechTTS
+    public class SpeechTTS
     {
         #region Speech Synthesis routines
         public static List<InstalledVoice> InstalledVoices { get; private set; } = null;
 
-        private Dictionary<CultureInfo, List<string>> nametable = new Dictionary<CultureInfo, List<string>>() {
+        private static Dictionary<CultureInfo, List<string>> nametable = new Dictionary<CultureInfo, List<string>>() {
             { CultureInfo.GetCultureInfo("zh-CN"), new List<string>() { "huihui", "yaoyao", "lili", "kangkang" } },
             { CultureInfo.GetCultureInfo("zh-TW"), new List<string>() { "hanhan", "yating", "zhiwei" } },
             { CultureInfo.GetCultureInfo("ja-JP"), new List<string>() { "haruka", "ayumi", "sayaka", "ichiro" } },
@@ -28,6 +29,23 @@ namespace PixivWPF.Common
         private bool SPEECH_SLOW = false;
         private string SPEECH_TEXT = string.Empty;
         private CultureInfo SPEECH_CULTURE = null;
+
+        public static Dictionary<string, string> GetNames()
+        {
+            var result = nametable.Select(n => new KeyValuePair<string, string>(n.Key.IetfLanguageTag, string.Join(", ", n.Value)));
+            return (result.ToDictionary(kv => kv.Key, kv => kv.Value));
+        }
+
+        public static Dictionary<CultureInfo, List<string>> SetNames(Dictionary<string, string> names)
+        {
+            var result = names.Select(n => new KeyValuePair<CultureInfo, List<string>>(CultureInfo.GetCultureInfo(n.Key.Trim()), n.Value.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries).Select(v => v.Trim()).ToList()));
+            return (result.ToDictionary(kv => kv.Key, kv => kv.Value));
+        }
+
+        public static void SetCustomNames(Dictionary<string, string> names)
+        {
+            nametable = SetNames(names);
+        }
 
         private void Synth_StateChanged(object sender, StateChangedEventArgs e)
         {
@@ -167,7 +185,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public void Play(string text, CultureInfo locale = null)
+        public void Play(string text, CultureInfo locale = null, bool async = true)
         {
             if (!(synth is SpeechSynthesizer)) return;
 
@@ -222,12 +240,14 @@ namespace PixivWPF.Common
                 if (SPEECH_SLOW) synth.Rate = -5;
                 else synth.Rate = 0;
 
-                // Synchronous
-                //synth.Speak( text );
-                // Asynchronous
                 synth.SpeakAsyncCancelAll();
                 synth.Resume();
-                synth.SpeakAsync(text);
+
+                if (async)
+                    synth.SpeakAsync(text);  // Asynchronous
+                else
+                    synth.Speak(text);       // Synchronous
+
                 SPEECH_TEXT = text;
                 SPEECH_CULTURE = locale;
             }
@@ -241,25 +261,41 @@ namespace PixivWPF.Common
 #endif            
         }
 
+        public async void Play(IEnumerable<string> contents, CultureInfo locale = null)
+        {
+            await new Action(() =>
+            {
+                foreach (var text in contents)
+                {
+                    Play(text, locale, false);
+                }
+            }).InvokeAsync();
+        }
+
         public void Pause()
         {
-            if (!(synth is SpeechSynthesizer)) return;
-            if (synth != null && synth.State == SynthesizerState.Speaking)
+            if (synth is SpeechSynthesizer &&
+                synth.State == SynthesizerState.Speaking)
+            {
                 synth.Pause();
+            }                
         }
 
         public void Resume()
         {
-            if (!(synth is SpeechSynthesizer)) return;
-            if (synth.State == SynthesizerState.Paused)
-                synth.Resume();
+            if (synth is SpeechSynthesizer && 
+                synth.State == SynthesizerState.Paused){
+                    synth.Resume();
+            }
         }
 
         public void Stop()
         {
-            if (!(synth is SpeechSynthesizer)) return;
-            synth.SpeakAsyncCancelAll();
-            synth.Resume();
+            if (synth is SpeechSynthesizer)
+            {
+                synth.SpeakAsyncCancelAll();
+                synth.Resume();
+            }
         }
 
         public SpeechTTS()

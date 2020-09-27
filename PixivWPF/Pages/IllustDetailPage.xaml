@@ -229,11 +229,17 @@
                     <ContentControl.ContextMenu>
                         <ContextMenu>
                             <MenuItem x:Name="PreviewCopyIllustID" x:Uid="ActionCopyIllustID" 
-                                          Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
                                 <MenuItem.Icon>
                                     <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem x:Name="PreviewCopyImage" x:Uid="ActionCopyImage" 
+                                Header="Copy Preview To Clipboard" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                <MenuItem.Icon>
+                                    <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                </MenuItem.Icon>
+                            </MenuItem>                            
                             <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
                                 <MenuItem.Icon>
                                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
@@ -347,23 +353,25 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,2,0"
-                                   ContextMenu="{DynamicResource MenuSpeech}" MouseLeftButtonDown="IllustInfo_MouseLeftButtonDown"
-                               Foreground="{DynamicResource MahApps.Brushes.Text}"
-                               HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            ContextMenu="{DynamicResource MenuSpeech}" 
+                            MouseLeftButtonDown="IllustInfo_MouseLeftButtonDown"
+                            MouseDown="IllustInfo_MouseLeftButtonDown"
+                            Foreground="{DynamicResource MahApps.Brushes.Text}"
+                            HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <Grid Grid.Column="1" x:Name="IllustSanityInfo" Visibility="Collapsed" 
-                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.95">
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.95">
                             <TextBlock x:Name="IllustSanity" Text="18" Padding="0,0,2,0"
-                                        FontSize="14" FontWeight="SemiBold"
-                                        LayoutTransform="{StaticResource FontStretchCondensed}"
-                                        Foreground="{DynamicResource MahApps.Brushes.Text}"
-                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                FontSize="14" FontWeight="SemiBold"
+                                LayoutTransform="{StaticResource FontStretchCondensed}"
+                                Foreground="{DynamicResource MahApps.Brushes.Text}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             <TextBlock x:Name="IllustSanityMark" Text="&#xF140;"
-                                        FontSize="20pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
-                                        Foreground="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
-                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                FontSize="20pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                                Foreground="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
                         <StackPanel Grid.Column="2" x:Name="IllustDateInfo" Visibility="Collapsed" MinWidth="24" Margin="2,0,0,0"
-                                HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
+                            HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
                             <iconPacks:PackIconModern 
                                 Kind="CalendarDay" x:Name="IllustDateIcon"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"

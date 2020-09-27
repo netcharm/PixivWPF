@@ -109,20 +109,14 @@
             <Button Click="CommandToggleTheme_Click" >
                 <iconPacks:PackIconModern Kind="Contrast" />
             </Button>
-            <mah:SplitButton x:Name="CommandToggleTheme"
+            <mah:SplitButton x:Name="CommandToggleTheme" MinWidth="96" MaxWidth="120"
                              ToolTip="Toggle Application Theme"
-                             MinWidth="96"
-                             Background="Transparent"
+                             UseLayoutRounding="True"
                              AlternationCount="2"
+                             Background="Transparent"
                              BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                              Click="CommandToggleTheme_Click" 
                              SelectionChanged="CommandToggleTheme_SelectionChanged">
-
-                        <!--ArrowBrush="{DynamicResource IdealForegroundDisabledBrush}"
-                            Foreground="{DynamicResource IdealForegroundDisabledBrush}"
-                            Background="Transparent" 
-                            Style="{DynamicResource MetroSplitButton}"
-                            BorderThickness="1" BorderBrush="{Binding Path=WindowTitleBrush, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Controls:MetroWindow}}}"-->
                 <mah:SplitButton.ItemTemplate >
                     <DataTemplate DataType="{x:Type local:SimpleAccent}">
                         <Grid>

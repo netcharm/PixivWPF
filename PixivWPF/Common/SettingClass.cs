@@ -296,6 +296,13 @@ namespace PixivWPF.Common
 
         public bool OpenWithSelectionOrder { get; set; } = true;
 
+        private Dictionary<string, string> speech_names = SpeechTTS.GetNames();
+        public Dictionary<string, string> SpeechPrefer
+        {
+            get { return(speech_names); }
+            set { speech_names = value; }
+        }
+
         public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
 
         public string ShellSearchBridgeApplication { get; set; } = "PixivWPFSearch.exe";
@@ -434,6 +441,7 @@ namespace PixivWPF.Common
                                 Cache.ShellPixivPediaApplicationArgs = cache.ShellPixivPediaApplicationArgs;
                                 Cache.ContentsTemplateFile = cache.ContentsTemplateFile;
                                 Cache.LocalStorage = cache.LocalStorage;
+                                Cache.SpeechPrefer = cache.SpeechPrefer;
                             }
                             else
                             {
@@ -465,6 +473,8 @@ namespace PixivWPF.Common
                             #region Update Contents Template
                             UpdateContentsTemplete();
                             #endregion
+
+                            SpeechTTS.SetCustomNames(Cache.SpeechPrefer);
 
                             #region Update Theme
 #if DEBUG

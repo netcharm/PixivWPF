@@ -71,6 +71,8 @@ namespace PixivWPF.Pages
                 AllowNavigation = true,
                 AllowWebBrowserDrop = false
             };
+            browser.Navigate("about:blank");
+            browser.Document.Write(string.Empty);
 
             try
             {

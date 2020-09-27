@@ -26,6 +26,7 @@ namespace PixivWPF.Pages
         public ImageItem Item { get; set; } = null;
 
         private object DataObject = null;
+        private string PreviewImageUrl = string.Empty;
 
         private bool bCancel = false;
         private WindowsFormsHostEx tagsHost;
@@ -282,60 +283,30 @@ namespace PixivWPF.Pages
             return (result);
         }
 
-        public async void UpdateIllustTagsAsync()
+        public void UpdateIllustTags()
         {
             try
             {
-                if (DataObject is ImageItem)
-                {
-                    var item = DataObject as ImageItem;
-                    if (item.ItemType != ImageItemType.User)
-                    {
-                        await new Action(() =>
-                        {
-                            WebBrowserRefresh(IllustTagsHtml);
-                        }).InvokeAsync();
-                    }
-                }
+                WebBrowserRefresh(IllustTagsHtml);
             }
             catch (Exception) { }
         }
 
-        public async void UpdateIllustDescAsync()
+        public void UpdateIllustDesc()
         {
             try
             {
-                if (DataObject is ImageItem)
-                {
-                    var item = DataObject as ImageItem;
-                    if (item.ItemType != ImageItemType.User)
-                    {
-                        await new Action(() =>
-                        {
-                            WebBrowserRefresh(IllustDescHtml);
-                        }).InvokeAsync();
-                    }
-                }
+                WebBrowserRefresh(IllustDescHtml);
             }
             catch (Exception) { }
         }
 
-        public async void UpdateWebContentAsync()
+        public void UpdateWebContent()
         {
             try
             {
-                if (DataObject is ImageItem)
-                {
-                    var item = DataObject as ImageItem;
-                    if (item.ItemType != ImageItemType.User)
-                    {
-                        await new Action(() =>
-                        {
-                            WebBrowserRefresh(IllustTagsHtml);
-                            WebBrowserRefresh(IllustDescHtml);
-                        }).InvokeAsync();
-                    }
-                }
+                WebBrowserRefresh(IllustTagsHtml);
+                WebBrowserRefresh(IllustDescHtml);
             }
             catch (Exception) { }
         }
@@ -344,9 +315,12 @@ namespace PixivWPF.Pages
         {
             try
             {
-                UpdateWebContentAsync();
-                btnSubPagePrev.Enable(btnSubPagePrev.IsEnabled, btnSubPagePrev.IsVisible);
-                btnSubPageNext.Enable(btnSubPageNext.IsEnabled, btnSubPageNext.IsVisible);
+                if (Item is ImageItem || DataObject is ImageItem || DataObject is Pixeez.Objects.UserBase)
+                {
+                    UpdateWebContent();
+                    btnSubPagePrev.Enable(btnSubPagePrev.IsEnabled, btnSubPagePrev.IsVisible);
+                    btnSubPageNext.Enable(btnSubPageNext.IsEnabled, btnSubPageNext.IsVisible);
+                }
             }
             catch (Exception) { }
         }
@@ -1258,6 +1232,8 @@ namespace PixivWPF.Pages
                 WebBrowserShortcutsEnabled = true,
                 AllowWebBrowserDrop = false
             };
+            browser.Navigate("about:blank");
+            browser.Document.Write(string.Empty);
 
             try
             {
@@ -1392,44 +1368,39 @@ namespace PixivWPF.Pages
         {
             try
             {
-                //browser.Stop();
+                var contents = string.Empty;
                 if (DataObject is ImageItem)
                 {
                     var item = DataObject as ImageItem;
                     if (browser == IllustTagsHtml)
                     {
                         if (item.ItemType == ImageItemType.User)
-                        {
-                            IllustTagsHtml.DocumentText = MakeUserInfoHtml(UserInfo);
-                        }
+                            contents = MakeUserInfoHtml(UserInfo);                        
                         else
-                        {
-                            IllustTagsHtml.DocumentText = MakeIllustTagsHtml(item);
-                        }
+                            contents = MakeIllustTagsHtml(item);
                     }
                     else if (browser == IllustDescHtml)
                     {
                         if (item.ItemType == ImageItemType.User)
-                        {
-                            IllustDescHtml.DocumentText = MakeUserCommentHtml(UserInfo);
-                        }
+                            contents = MakeUserCommentHtml(UserInfo);
                         else
-                        {
-                            IllustDescHtml.DocumentText = MakeIllustDescHtml(item);
-                        }
+                            contents = MakeIllustDescHtml(item);
                     }
-                    browser.Document.Write("");
-                    AdjustBrowserSize(browser);
+
                 }
-                else if(DataObject is Pixeez.Objects.UserBase)
+                else if (DataObject is Pixeez.Objects.UserBase)
                 {
                     var item = DataObject as Pixeez.Objects.UserBase;
                     if (browser == IllustTagsHtml)
-                        IllustTagsHtml.DocumentText = MakeUserInfoHtml(UserInfo);
+                        contents = MakeUserInfoHtml(UserInfo);
                     else if (browser == IllustDescHtml)
-                        IllustDescHtml.DocumentText = MakeUserCommentHtml(UserInfo);
+                        contents = MakeUserCommentHtml(UserInfo);
+                }
 
-                    browser.Document.Write("");
+                if(!string.IsNullOrEmpty(contents))
+                {
+                    browser.DocumentText = contents;
+                    browser.Document.Write(string.Empty);
                     AdjustBrowserSize(browser);
                 }
             }
@@ -1441,11 +1412,11 @@ namespace PixivWPF.Pages
             bCancel = true;
             try
             {
+                e.BubbleEvent = false;
+                e.ReturnValue = false;
+
                 if (e.EventType.Equals("click", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    e.BubbleEvent = false;
-                    e.ReturnValue = false;
-
                     var from = e.FromElement;
                     var link = sender as System.Windows.Forms.HtmlElement;
 
@@ -1511,7 +1482,6 @@ namespace PixivWPF.Pages
                                 {
                                     CommonHelper.Cmd_OpenPixivPedia.Execute(href);
                                 }).InvokeAsync();
-                                //GetHtmlContents(href);
                             }
                             else if (href_lower.StartsWith("about:/a", StringComparison.CurrentCultureIgnoreCase))
                             {
@@ -1520,7 +1490,6 @@ namespace PixivWPF.Pages
                                 {
                                     CommonHelper.Cmd_OpenPixivPedia.Execute(href);
                                 }).InvokeAsync();
-                                //GetHtmlContents(href);
                             }
                             else if (href_lower.Contains("pixiv.net/") || href_lower.Contains("pximg.net/"))
                             {
@@ -1549,18 +1518,6 @@ namespace PixivWPF.Pages
                             CommonHelper.Cmd_Speech.Execute(tag);
                         else if (!e.AltKeyPressed && e.CtrlKeyPressed && e.ShiftKeyPressed)
                             CommonHelper.Cmd_Speech.Execute(tag_tooltip);
-
-                        //if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        //    CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
-                        //else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        //    CommonHelper.Cmd_OpenPixivPedia.Execute(tag);
-                        //else if (Keyboard.Modifiers == ModifierKeys.Control)
-                        //    CommonHelper.Cmd_Speech.Execute(tag);
-                        //else if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) &&
-                        //         (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)))
-                        //    CommonHelper.Cmd_Speech.Execute(tag_tooltip);
-                        //else
-                        //    CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
                     }
                 }
             }
@@ -1627,6 +1584,8 @@ namespace PixivWPF.Pages
 
         private void WebBrowser_Navigating(object sender, System.Windows.Forms.WebBrowserNavigatingEventArgs e)
         {
+            if (e.Url.OriginalString.StartsWith("about:")) return;
+            //e.Cancel = true;
             if (bCancel == true)
             {
                 try
@@ -1728,10 +1687,24 @@ namespace PixivWPF.Pages
                 else if (sender is MenuItem)
                 {
                     var mi = sender as MenuItem;
+
+                    if (mi.Uid.Equals("SpeechAuto", StringComparison.CurrentCultureIgnoreCase))
+                        culture = null;
+                    else if (mi.Uid.Equals("SpeechChineseS", StringComparison.CurrentCultureIgnoreCase))
+                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-CN");
+                    else if (mi.Uid.Equals("SpeechChineseT", StringComparison.CurrentCultureIgnoreCase))
+                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-TW");
+                    else if (mi.Uid.Equals("SpeechJapaness", StringComparison.CurrentCultureIgnoreCase))
+                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("ja-JP");
+                    else if (mi.Uid.Equals("SpeechKorean", StringComparison.CurrentCultureIgnoreCase))
+                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("ko-KR");
+                    else if (mi.Uid.Equals("SpeechEnglish", StringComparison.CurrentCultureIgnoreCase))
+                        culture = CultureInfo.GetCultureInfoByIetfLanguageTag("en-US");
+
                     if (mi.Parent is ContextMenu)
                     {
                         var host = (mi.Parent as ContextMenu).PlacementTarget;
-                        if (host == btnIllustTagSpeech) text = string.Join(Environment.NewLine, GetText(IllustTagsHtml).Trim().Trim('#').Split('#')); //.Replace("#", ", ");
+                        if (host == btnIllustTagSpeech) text = string.Join(Environment.NewLine, GetText(IllustTagsHtml).Trim().Trim('#').Split('#'));
                         else if (host == btnIllustDescSpeech) text = GetText(IllustDescHtml);
                         else if (host == IllustAuthor) text = IllustAuthor.Text;
                         else if (host == IllustTitle) text = IllustTitle.Text;
@@ -1753,19 +1726,6 @@ namespace PixivWPF.Pages
                                 text += $"{item.Illust.Title},\r\n";
                             }
                         }
-
-                        if (mi.Uid.Equals("SpeechAuto", StringComparison.CurrentCultureIgnoreCase))
-                            culture = null;
-                        else if (mi.Uid.Equals("SpeechChineseS", StringComparison.CurrentCultureIgnoreCase))
-                            culture = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-CN");
-                        else if (mi.Uid.Equals("SpeechChineseT", StringComparison.CurrentCultureIgnoreCase))
-                            culture = CultureInfo.GetCultureInfoByIetfLanguageTag("zh-TW");
-                        else if (mi.Uid.Equals("SpeechJapaness", StringComparison.CurrentCultureIgnoreCase))
-                            culture = CultureInfo.GetCultureInfoByIetfLanguageTag("ja-JP");
-                        else if (mi.Uid.Equals("SpeechKorean", StringComparison.CurrentCultureIgnoreCase))
-                            culture = CultureInfo.GetCultureInfoByIetfLanguageTag("ko-KR");
-                        else if (mi.Uid.Equals("SpeechEnglish", StringComparison.CurrentCultureIgnoreCase))
-                            culture = CultureInfo.GetCultureInfoByIetfLanguageTag("en-US");
                     }
                 }
             }
@@ -1927,7 +1887,11 @@ namespace PixivWPF.Pages
 
         private void IllustInfo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount == 2)
+            if(e.ChangedButton == MouseButton.Middle)
+            {
+                ActionIllustInfo_Click(sender, e);
+            }
+            else if (e.ClickCount == 2)
             {
                 ActionIllustInfo_Click(sender, e);
             }
@@ -2042,6 +2006,13 @@ namespace PixivWPF.Pages
                 if (DataObject is ImageItem)
                 {
                     CommonHelper.Cmd_CopyIllustIDs.Execute(DataObject);
+                }
+            }
+            else if (sender == PreviewCopyImage)
+            {
+                if (!string.IsNullOrEmpty(PreviewImageUrl))
+                {
+                    CommonHelper.Cmd_CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
                 }
             }
             else if (sender == ActionCopyIllustDate || sender == IllustDate)
@@ -2241,10 +2212,12 @@ namespace PixivWPF.Pages
                         lastSelectionItem = item;
                         lastSelectionChanged = DateTime.Now.ToFileTime();
 
-                        var img = await item.Illust.GetPreviewUrl(item.Index).LoadImageFromUrl();
+                        PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index);
+                        var img = await PreviewImageUrl.LoadImageFromUrl();
                         if (img == null || img.Width < 360)
                         {
-                            var large = await item.Illust.GetPreviewUrl(item.Index, true).LoadImageFromUrl();
+                            PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
+                            var large = await PreviewImageUrl.LoadImageFromUrl();
                             if (large != null) img = large;
                         }
                         if (img != null)

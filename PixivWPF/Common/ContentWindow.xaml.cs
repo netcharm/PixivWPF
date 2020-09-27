@@ -126,35 +126,15 @@ namespace PixivWPF.Common
         private void MetroWindow_MouseDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = false;
-            if (e.ChangedButton == MouseButton.XButton1)
+            if(e.ChangedButton == MouseButton.Middle)
             {
                 if (Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    //Hide();
+                    Hide();
                 }
                 else if (Title.Equals("Download Manager", StringComparison.CurrentCultureIgnoreCase))
                 {
                     Hide();
-                }
-                else if(e.ClickCount >= 2)
-                {
-                    Close();
-                }
-                e.Handled = true;
-            }
-            else if (e.ChangedButton == MouseButton.XButton2)
-            {
-                if (Title.Equals("Download Manager", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    Hide();
-                }
-                //else if(Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase) && e.ClickCount >= 2)
-                //{
-                //    Close();
-                //}
-                else if (e.ClickCount >= 2)
-                {
-                    Close();
                 }
                 else
                 {

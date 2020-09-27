@@ -42,6 +42,69 @@ namespace PixivWPF.Pages
                 detail_page.UpdateTheme();
         }
 
+        public async void UpdateIllustTagsAsync()
+        {
+            try
+            {
+                if (IllustDetail.Content is IllustDetailPage)
+                {
+                    await new Action(() =>
+                    {
+                        var detail = IllustDetail.Content as IllustDetailPage;
+                        detail.UpdateIllustTags();
+                    }).InvokeAsync();
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public void UpdateIllustTags()
+        {
+            UpdateIllustTagsAsync();
+        }
+
+        public async void UpdateIllustDescAsync()
+        {
+            try
+            {
+                if (IllustDetail.Content is IllustDetailPage)
+                {
+                    await new Action(() =>
+                    {
+                        var detail = IllustDetail.Content as IllustDetailPage;
+                        detail.UpdateIllustDesc();
+                    }).InvokeAsync();
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public void UpdateIllustDesc()
+        {
+            UpdateIllustDescAsync();
+        }
+
+        public async void UpdateWebContentAsync()
+        {
+            try
+            {
+                if (IllustDetail.Content is IllustDetailPage)
+                {
+                    await new Action(() =>
+                    {
+                        var detail = IllustDetail.Content as IllustDetailPage;
+                        detail.UpdateWebContent();
+                    }).InvokeAsync();
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public void UpdateWebContent()
+        {
+            UpdateWebContentAsync();
+        }
+
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
             if (ImageList is ObservableCollection<ImageItem>)

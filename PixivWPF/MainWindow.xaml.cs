@@ -43,56 +43,31 @@ namespace PixivWPF
             CommandToggleDropbox.IsChecked = state;
         }
 
-        public async void UpdateIllustTagsAsync()
+        public void UpdateIllustTagsAsync()
         {
             if (ContentFrame.Content is Pages.TilesPage)
             {
                 var tiles = ContentFrame.Content as Pages.TilesPage;
-                if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
-                {
-                    await new Action(() =>
-                    {
-                        var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
-                        detail.UpdateIllustTagsAsync();
-                    }).InvokeAsync();
-                }
+                tiles.UpdateIllustTags();
             }
         }
 
-        public async void UpdateIllustDescAsync()
+        public void UpdateIllustDescAsync()
         {
             if (ContentFrame.Content is Pages.TilesPage)
             {
                 var tiles = ContentFrame.Content as Pages.TilesPage;
-                if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
-                {
-                    await new Action(() =>
-                    {
-                        var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
-                        detail.UpdateIllustDescAsync();
-                    }).InvokeAsync();
-                }
+                tiles.UpdateIllustDesc();
             }
         }
 
-        public async void UpdateWebContentAsync()
+        public void UpdateWebContentAsync()
         {
-            try
+            if (ContentFrame.Content is Pages.TilesPage)
             {
-                if (ContentFrame.Content is Pages.TilesPage)
-                {
-                    var tiles = ContentFrame.Content as Pages.TilesPage;
-                    if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
-                    {
-                        await new Action(() =>
-                        {
-                            var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
-                            detail.UpdateWebContentAsync();
-                        }).InvokeAsync();
-                    }
-                }
+                var tiles = ContentFrame.Content as Pages.TilesPage;
+                tiles.UpdateWebContent();
             }
-            catch (Exception) { }
         }
 
         public void UpdateTheme()
