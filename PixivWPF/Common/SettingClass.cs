@@ -272,6 +272,7 @@ namespace PixivWPF.Common
             set
             {
                 lastfolder = value;
+                if (Cache is Setting) Cache.lastfolder = lastfolder;
                 if (LocalStorage.Count(o => o.Folder.Equals(lastfolder)) <= 0)
                 {
                     LocalStorage.Add(new StorageType(lastfolder, true));
@@ -356,6 +357,65 @@ namespace PixivWPF.Common
             }
         }
 
+        public static void UpdateCache(Setting new_setting)
+        {
+            if (Cache is Setting && new_setting is Setting && new_setting.Update > 0)
+            {
+                if (Cache.AutoExpand != new_setting.AutoExpand)
+                    Cache.AutoExpand = new_setting.AutoExpand;
+
+                if (Cache.DownloadTimeSpan != new_setting.DownloadTimeSpan)
+                    Cache.DownloadTimeSpan = new_setting.DownloadTimeSpan;
+                if (Cache.DownloadWaitingTime != new_setting.DownloadWaitingTime)
+                    Cache.DownloadWaitingTime = new_setting.DownloadWaitingTime;
+                if (Cache.DownloadCompletedToast != new_setting.DownloadCompletedToast)
+                    Cache.DownloadCompletedToast = new_setting.DownloadCompletedToast;
+                if (Cache.DownloadCompletedSound != new_setting.DownloadCompletedSound)
+                    Cache.DownloadCompletedSound = new_setting.DownloadCompletedSound;
+                if (Cache.DownloadCompletedSoundForElapsedSeconds != new_setting.DownloadCompletedSoundForElapsedSeconds)
+                    Cache.DownloadCompletedSoundForElapsedSeconds = new_setting.DownloadCompletedSoundForElapsedSeconds;
+
+                if (Cache.PrivateFavPrefer != new_setting.PrivateFavPrefer)
+                    Cache.PrivateFavPrefer = new_setting.PrivateFavPrefer;
+                if (Cache.PrivateBookmarkPrefer != new_setting.PrivateBookmarkPrefer)
+                    Cache.PrivateBookmarkPrefer = new_setting.PrivateBookmarkPrefer;
+
+                if (Cache.OpenWithSelectionOrder != new_setting.OpenWithSelectionOrder)
+                    Cache.OpenWithSelectionOrder = new_setting.OpenWithSelectionOrder;
+
+                if (Cache.SaveUserPass != new_setting.SaveUserPass)
+                    Cache.SaveUserPass = new_setting.SaveUserPass;
+
+                if (Cache.UsingProxy != new_setting.UsingProxy)
+                    Cache.UsingProxy = new_setting.UsingProxy;
+                if (!Cache.Proxy.Equals(new_setting.Proxy, StringComparison.CurrentCultureIgnoreCase))
+                    Cache.Proxy = new_setting.Proxy;
+
+                if (!Cache.CurrentTheme.Equals(new_setting.CurrentTheme, StringComparison.CurrentCultureIgnoreCase))
+                    Cache.CurrentTheme = new_setting.CurrentTheme;
+                if (!Cache.CurrentAccent.Equals(new_setting.CurrentAccent, StringComparison.CurrentCultureIgnoreCase))
+                    Cache.CurrentAccent = new_setting.CurrentAccent;
+
+                if (!Cache.FontName.Equals(new_setting.FontName, StringComparison.CurrentCultureIgnoreCase))
+                    Cache.FontName = new_setting.FontName;
+
+                if (!Cache.ShellSearchBridgeApplication.Equals(new_setting.ShellSearchBridgeApplication, StringComparison.CurrentCultureIgnoreCase))
+                    Cache.ShellSearchBridgeApplication = new_setting.ShellSearchBridgeApplication;
+                if (!Cache.ShellPixivPediaApplication.Equals(new_setting.ShellPixivPediaApplication, StringComparison.CurrentCultureIgnoreCase))
+                    Cache.ShellPixivPediaApplication = new_setting.ShellPixivPediaApplication;
+                if (!Cache.ShellPixivPediaApplicationArgs.Equals(new_setting.ShellPixivPediaApplicationArgs, StringComparison.CurrentCultureIgnoreCase))
+                    Cache.ShellPixivPediaApplicationArgs = new_setting.ShellPixivPediaApplicationArgs;
+                if (!Cache.ContentsTemplateFile.Equals(new_setting.ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                    Cache.ContentsTemplateFile = new_setting.ContentsTemplateFile;
+
+                if (Cache.SpeechPrefer != new_setting.SpeechPrefer)
+                    Cache.SpeechPrefer = new_setting.SpeechPrefer;
+
+                if (Cache.LocalStorage != new_setting.LocalStorage)
+                    Cache.LocalStorage = new_setting.LocalStorage;
+            }
+        }
+
         public void Save(bool full, string configfile = "")
         {
             if (!IsConfigBusy && CanConfigWrite.Wait(1))
@@ -364,6 +424,8 @@ namespace PixivWPF.Common
                 {
                     if (Cache is Setting)
                     {
+                        UpdateCache(this);
+
                         if (string.IsNullOrEmpty(configfile)) configfile = config;
 
                         if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.SaveFolder)) < 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
@@ -428,27 +490,7 @@ namespace PixivWPF.Common
                             if (Cache is Setting && text.Length > 20)
                             {
                                 var cache = JsonConvert.DeserializeObject<Setting>(text);
-                                Cache.SaveUserPass = cache.SaveUserPass;
-                                Cache.Proxy = cache.Proxy;
-                                Cache.UsingProxy = cache.UsingProxy;
-                                Cache.FontName = cache.FontName;
-                                Cache.CurrentTheme = cache.CurrentTheme;
-                                Cache.CurrentAccent = cache.CurrentAccent;
-                                Cache.PrivateFavPrefer = cache.PrivateFavPrefer;
-                                Cache.PrivateBookmarkPrefer = cache.PrivateBookmarkPrefer;
-                                Cache.OpenWithSelectionOrder = cache.OpenWithSelectionOrder;
-                                Cache.DownloadTimeSpan = cache.DownloadTimeSpan;
-                                Cache.DownloadWaitingTime = cache.DownloadWaitingTime;
-                                Cache.DownloadCompletedToast = cache.DownloadCompletedToast;
-                                Cache.DownloadCompletedSound = cache.DownloadCompletedSound;
-                                Cache.DownloadCompletedSoundForElapsedSeconds = cache.DownloadCompletedSoundForElapsedSeconds;
-                                Cache.AutoExpand = cache.AutoExpand;
-                                Cache.SpeechPrefer = cache.SpeechPrefer;
-                                Cache.ShellSearchBridgeApplication = cache.ShellSearchBridgeApplication;
-                                Cache.ShellPixivPediaApplication = cache.ShellPixivPediaApplication;
-                                Cache.ShellPixivPediaApplicationArgs = cache.ShellPixivPediaApplicationArgs;
-                                Cache.ContentsTemplateFile = cache.ContentsTemplateFile;
-                                Cache.LocalStorage = cache.LocalStorage;
+                                UpdateCache(cache);
                             }
                             else
                             {

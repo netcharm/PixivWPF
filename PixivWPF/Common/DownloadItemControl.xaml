@@ -83,7 +83,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*" MinWidth="468"/>
         </Grid.ColumnDefinitions>
-
+       
         <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_Preview" x:Uid="Preview"
                Source="{Binding Path=Thumbnail, Mode=OneWay}"
                Width="128" Height="128" Margin="2,2,4,2"
@@ -114,11 +114,20 @@
             <TextBlock.Foreground>
                 <LinearGradientBrush x:Name="PART_ProgressInfoLinear" StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0"></GradientStop>
-                    <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0" x:Name="PART_ProgressInfoLeft"></GradientStop>
-                    <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="0" x:Name="PART_ProgressInfoRight"></GradientStop>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0" x:Name="PART_ProgressInfoLinearLeft"></GradientStop>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="0" x:Name="PART_ProgressInfoLinearRight"></GradientStop>
                     <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="1"></GradientStop>
                 </LinearGradientBrush>
             </TextBlock.Foreground>
+        </TextBlock>
+        <TextBlock Grid.Column ="1" Grid.Row="0" Grid.RowSpan="3" x:Name="PART_DownloadStatusMark" 
+                   Margin="8"
+                   HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                   FontSize="64" FontFamily="Segoe MDL2 Assets"
+                   Opacity="0.25">
+            <TextBlock.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="3" Color="{DynamicResource MahApps.Colors.IdealForeground}"/>
+            </TextBlock.Effect>
         </TextBlock>
         <Grid Grid.Row="4" Grid.Column="1" Margin="2">
             <Grid.ColumnDefinitions>

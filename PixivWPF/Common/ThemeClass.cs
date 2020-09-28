@@ -534,7 +534,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (Color.FromScRgb(0.5f, ErrorColor.ScR, ErrorColor.ScG, ErrorColor.ScB));
+                return (Color.FromScRgb(0.3f, ErrorColor.ScR, ErrorColor.ScG, ErrorColor.ScB));
             }
         }
 
@@ -550,7 +550,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (Color.FromScRgb(0.75f, SystemErrorTextColor.ScR, SystemErrorTextColor.ScG, SystemErrorTextColor.ScB));
+                return (Color.FromScRgb(0.4f, SystemErrorTextColor.ScR, SystemErrorTextColor.ScG, SystemErrorTextColor.ScB));
             }
         }
 

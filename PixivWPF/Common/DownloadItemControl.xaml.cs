@@ -435,8 +435,8 @@ namespace PixivWPF.Common
                         var offset = Math.Abs((factor - 1) / 2);
                         PART_ProgressInfoLinear.StartPoint = new Point(0 - offset, 0);
                         PART_ProgressInfoLinear.EndPoint = new Point(1 + offset, 0);
-                        PART_ProgressInfoLeft.Offset = percent;
-                        PART_ProgressInfoRight.Offset = percent;
+                        PART_ProgressInfoLinearLeft.Offset = percent;
+                        PART_ProgressInfoLinearRight.Offset = percent;
                         #endregion
 
                         lastRateA = rateA;
@@ -462,43 +462,57 @@ namespace PixivWPF.Common
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        this.Background = Application.Current.GetSucceedBrush();
+                        //this.Background = Application.Current.GetSucceedBrush();
+                        PART_DownloadStatusMark.Foreground = Application.Current.GetSucceedBrush();
+                        PART_DownloadStatusMark.Text = "\uE930";
                     }
                     else if (State == DownloadState.NonExists)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        this.Background = Application.Current.GetNonExistsBrush();
+                        //this.Background = Application.Current.GetNonExistsBrush();
+                        PART_DownloadStatusMark.Foreground = Application.Current.GetNonExistsBrush();
+                        PART_DownloadStatusMark.Text = "\uE946";
                     }
                     else if (State == DownloadState.Downloading)
                     {
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = true;
-                        this.Background = Application.Current.GetBackgroundBrush();
+                        //this.Background = Application.Current.GetBackgroundBrush();
+                        PART_DownloadStatusMark.Foreground = Application.Current.GetBackgroundBrush();
+                        PART_DownloadStatusMark.Text = "\uEB41";
                     }
                     else if (State == DownloadState.Writing)
                     {
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = false;
-                        this.Background = Application.Current.GetBackgroundBrush();
+                        //this.Background = Application.Current.GetBackgroundBrush();
+                        PART_DownloadStatusMark.Foreground = Application.Current.GetBackgroundBrush();
+                        PART_DownloadStatusMark.Text = "\uE78C";
                     }
                     else if (State == DownloadState.Idle)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        this.Background = Application.Current.GetBackgroundBrush();
+                        //this.Background = Application.Current.GetBackgroundBrush();
+                        PART_DownloadStatusMark.Foreground = Application.Current.GetBackgroundBrush();
+                        PART_DownloadStatusMark.Text = "\uEA3A";
                     }
                     else if (State == DownloadState.Failed)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        this.Background = Application.Current.GetFailedBrush();
+                        //this.Background = Application.Current.GetFailedBrush();
+                        PART_DownloadStatusMark.Foreground = Application.Current.GetFailedBrush();
+                        PART_DownloadStatusMark.Text = "\uEA39";
                     }
                     else
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        this.Background = Application.Current.GetBackgroundBrush();
+                        //this.Background = Application.Current.GetBackgroundBrush();
+                        PART_DownloadStatusMark.Foreground = Application.Current.GetBackgroundBrush();
+                        PART_DownloadStatusMark.Text = "";
                     }
                     miOpenImage.IsEnabled = FileName.IsDownloaded();
                     miOpenFolder.IsEnabled = true;
