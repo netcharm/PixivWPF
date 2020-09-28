@@ -1030,6 +1030,34 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region Invoke/InvokeAsync
+        public static Dispatcher Dispatcher = Application.Current is Application ? Application.Current.Dispatcher : Dispatcher.CurrentDispatcher;
+        public static Dispatcher AppDispatcher(this object obj)
+        {
+            if (Application.Current is Application)
+                return (Application.Current.Dispatcher);
+            else
+                return (Dispatcher.CurrentDispatcher);
+        }
+
+        public static async Task Invoke(this Action action)
+        {
+            Dispatcher dispatcher = action.AppDispatcher();
+
+            await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
+        }
+
+        public static async Task InvokeAsync(this Action action)
+        {
+            try
+            {
+                Dispatcher dispatcher = action.AppDispatcher();
+                await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+            }
+            catch (Exception) { }
+        }
+        #endregion
+
         #region AES Encrypt/Decrypt helper
         public static string AesEncrypt(this string text, string skey, bool auto = true)
         {
@@ -1291,11 +1319,12 @@ namespace PixivWPF.Common
                         var di = item as DownloadInfo;
                         var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason:{di.FailReason}";
                         var delta = di.EndTime - di.StartTime;
+                        var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / 1024.0 / delta.TotalSeconds;
                         targets.Add($"URL    : {di.Url}");
                         targets.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
                         targets.Add($"State  : {di.State}{fail}");
                         targets.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.Days * 24 + delta.Hours}:{delta.Minutes}:{delta.Seconds} s");
-                        targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {di.Received / 1024.0 / delta.TotalSeconds:0.00} KB/s");
+                        targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate:0.00} KB/s");
                         targets.Add(sep);
                     }
                 }
@@ -5509,7 +5538,107 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Window/Dialog/MessageBox routines
+        #region SearchBox common routines
+        private static ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {};
+        public static ObservableCollection<string> AutoSuggestList
+        {
+            get { return (auto_suggest_list); }
+        }
+
+        public static IEnumerable<string> GetSuggestList(this string text)
+        {
+            List<string> result = new List<string>();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                if (Regex.IsMatch(text, @"^\d+$", RegexOptions.IgnoreCase))
+                {
+                    result.Add($"IllustID: {text}");
+                    result.Add($"UserID: {text}");
+                }
+                result.Add($"User: {text}");
+                result.Add($"Fuzzy: {text}");
+                result.Add($"Tag: {text}");
+                result.Add($"Fuzzy Tag: {text}");
+                //result.Add($"Caption: {text}");
+            }
+
+            return (result);
+        }
+
+        public static void SearchBox_TextChanged(object sender, RoutedEventArgs e)
+        {
+            if (sender is ComboBox)
+            {
+                var SearchBox = sender as ComboBox;
+                if (SearchBox.Text.Length > 0)
+                {
+                    auto_suggest_list.Clear();
+
+                    var content = SearchBox.Text.ParseLink().ParseID();
+                    if (!string.IsNullOrEmpty(content))
+                    {
+                        content.GetSuggestList().ToList().ForEach(t => auto_suggest_list.Add(t));
+                        SearchBox.Items.Refresh();
+                        SearchBox.IsDropDownOpen = true;
+                    }
+
+                    e.Handled = true;
+                }
+            }
+        }
+
+        public static void SearchBox_DropDownOpened(object sender, EventArgs e)
+        {
+            if (sender is ComboBox)
+            {
+                var SearchBox = sender as ComboBox;
+
+                var textBox = Keyboard.FocusedElement as TextBox;
+                if (textBox != null && textBox.Text.Length == 1 && textBox.SelectionLength == 1)
+                {
+                    textBox.SelectionLength = 0;
+                    textBox.SelectionStart = 1;
+                }
+            }
+        }
+
+        public static void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox)
+            {
+                var SearchBox = sender as ComboBox;
+
+                e.Handled = true;
+                var items = e.AddedItems;
+                if (items.Count > 0)
+                {
+                    var item = items[0];
+                    if (item is string)
+                    {
+                        var query = (string)item;
+                        Cmd_Search.Execute(query);
+                    }
+                }
+            }
+        }
+
+        public static void SearchBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (sender is ComboBox)
+            {
+                var SearchBox = sender as ComboBox;
+
+                if (e.Key == Key.Return)
+                {
+                    e.Handled = true;
+                    Cmd_Search.Execute(SearchBox.Text);
+                }
+            }
+        }
+        #endregion
+
+        #region Window routines
         public static MetroWindow GetMainWindow()
         {
             return (Application.Current.MainWindow as MetroWindow);
@@ -5645,84 +5774,15 @@ namespace PixivWPF.Common
             return (e);
         }
 
-        public static Dispatcher Dispatcher = Application.Current is Application ? Application.Current.Dispatcher : Dispatcher.CurrentDispatcher;
-        public static Dispatcher AppDispatcher(this object obj)
-        {
-            if (Application.Current is Application)
-                return (Application.Current.Dispatcher);
-            else
-                return (Dispatcher.CurrentDispatcher);
-        }
-
-        public static async Task Invoke(this Action action)
-        {
-            Dispatcher dispatcher = action.AppDispatcher();
-
-            await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
-        }
-
-        public static async Task InvokeAsync(this Action action)
-        {
-            try
-            {
-                Dispatcher dispatcher = action.AppDispatcher();
-                await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
-            }
-            catch (Exception) { }
-        }
-
         public static Window GetActiveWindow(this Page page)
         {
             var window = Window.GetWindow(page);
             if (window == null) window = GetActiveWindow();
             return (window);
         }
+        #endregion
 
-        internal static DownloadManagerPage _downManager = new DownloadManagerPage();
-
-        public static void ShowDownloadManager(this bool active)
-        {
-            if (!(_downManager is DownloadManagerPage))
-            {
-                _downManager = new DownloadManagerPage();
-                _downManager.AutoStart = false;
-            }
-
-            Window _dm = null;
-            foreach (Window win in Application.Current.Windows)
-            {
-                if (win.Content is DownloadManagerPage)
-                {
-                    _dm = win;
-                    break;
-                }
-            }
-
-            if (_dm is Window)
-            {
-                _dm.Show();
-                if (_dm.WindowState == WindowState.Minimized) _dm.WindowState = WindowState.Normal;
-                if (active) _dm.Activate();
-            }
-            else
-            {
-                var viewer = new ContentWindow()
-                {
-                    Title = $"Download Manager",
-                    Width = WIDTH_MIN + 80,
-                    Height = HEIGHT_MIN,
-                    MinWidth = WIDTH_MIN + 80,
-                    MinHeight = HEIGHT_MIN,
-                    Left = _downManager.Pos.X,
-                    Top = _downManager.Pos.Y,
-                    Tag = _downManager,
-                    FontFamily = setting.FontFamily,
-                    Content = _downManager
-                };
-                viewer.Show();
-            }
-        }
-
+        #region Dialog/MessageBox routines
         public static void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             ShowMessageDialog(content, title, image);
@@ -5792,7 +5852,9 @@ namespace PixivWPF.Common
                 await window.ShowMessageAsync("Cupcakes!", "Your cupcakes are finished! Enjoy!");
             }
         }
+        #endregion
 
+        #region Toast routines
         private static string lastToastTitle = string.Empty;
         private static string lastToastContent = string.Empty;
         public static void ShowDownloadToast(this string content, string title = "Pixiv", string imgsrc = "", object tag = null)
@@ -5884,102 +5946,50 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region SearchBox common routines
-        private static ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {};
-        public static ObservableCollection<string> AutoSuggestList
-        {
-            get { return (auto_suggest_list); }
-        }
+        #region DownloadManager Window
+        internal static DownloadManagerPage _downManager = new DownloadManagerPage();
 
-        public static IEnumerable<string> GetSuggestList(this string text)
+        public static void ShowDownloadManager(this bool active)
         {
-            List<string> result = new List<string>();
-
-            if (!string.IsNullOrEmpty(text))
+            if (!(_downManager is DownloadManagerPage))
             {
-                if (Regex.IsMatch(text, @"^\d+$", RegexOptions.IgnoreCase))
-                {
-                    result.Add($"IllustID: {text}");
-                    result.Add($"UserID: {text}");
-                }
-                result.Add($"User: {text}");
-                result.Add($"Fuzzy: {text}");
-                result.Add($"Tag: {text}");
-                result.Add($"Fuzzy Tag: {text}");
-                //result.Add($"Caption: {text}");
+                _downManager = new DownloadManagerPage();
+                _downManager.AutoStart = false;
             }
 
-            return (result);
-        }
-
-        public static void SearchBox_TextChanged(object sender, RoutedEventArgs e)
-        {
-            if (sender is ComboBox)
+            Window _dm = null;
+            foreach (Window win in Application.Current.Windows)
             {
-                var SearchBox = sender as ComboBox;
-                if (SearchBox.Text.Length > 0)
+                if (win.Content is DownloadManagerPage)
                 {
-                    auto_suggest_list.Clear();
-
-                    var content = SearchBox.Text.ParseLink().ParseID();
-                    if (!string.IsNullOrEmpty(content))
-                    {
-                        content.GetSuggestList().ToList().ForEach(t => auto_suggest_list.Add(t));
-                        SearchBox.Items.Refresh();
-                        SearchBox.IsDropDownOpen = true;
-                    }
-
-                    e.Handled = true;
+                    _dm = win;
+                    break;
                 }
             }
-        }
 
-        public static void SearchBox_DropDownOpened(object sender, EventArgs e)
-        {
-            if (sender is ComboBox)
+            if (_dm is Window)
             {
-                var SearchBox = sender as ComboBox;
-
-                var textBox = Keyboard.FocusedElement as TextBox;
-                if (textBox != null && textBox.Text.Length == 1 && textBox.SelectionLength == 1)
-                {
-                    textBox.SelectionLength = 0;
-                    textBox.SelectionStart = 1;
-                }
+                _dm.Show();
+                if (_dm.WindowState == WindowState.Minimized) _dm.WindowState = WindowState.Normal;
+                if (active) _dm.Activate();
             }
-        }
-
-        public static void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (sender is ComboBox)
+            else
             {
-                var SearchBox = sender as ComboBox;
-
-                e.Handled = true;
-                var items = e.AddedItems;
-                if (items.Count > 0)
+                setting = Application.Current.LoadSetting();
+                var viewer = new ContentWindow()
                 {
-                    var item = items[0];
-                    if (item is string)
-                    {
-                        var query = (string)item;
-                        Cmd_Search.Execute(query);
-                    }
-                }
-            }
-        }
-
-        public static void SearchBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (sender is ComboBox)
-            {
-                var SearchBox = sender as ComboBox;
-
-                if (e.Key == Key.Return)
-                {
-                    e.Handled = true;
-                    Cmd_Search.Execute(SearchBox.Text);
-                }
+                    Title = $"Download Manager",
+                    MinWidth = WIDTH_MIN + 80,
+                    MinHeight = HEIGHT_MIN,
+                    Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
+                    Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
+                    Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager.Pos.X,
+                    Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager.Pos.Y,
+                    Tag = _downManager,
+                    FontFamily = setting.FontFamily,
+                    Content = _downManager
+                };
+                viewer.Show();
             }
         }
         #endregion

@@ -303,7 +303,7 @@ namespace PixivWPF.Common
         private Dictionary<string, string> speech_names = SpeechTTS.GetNames();
         public Dictionary<string, string> SpeechPrefer
         {
-            get { return(speech_names); }
+            get { return (speech_names); }
             set { speech_names = value; }
         }
 
@@ -313,8 +313,27 @@ namespace PixivWPF.Common
         public string ShellPixivPediaApplication { get; set; } = "nw.exe";
         public string ShellPixivPediaApplicationArgs { get; set; } = "--single-process --enable-node-worker --app-shell-host-window-size=1280x720";
 
-        public Point DropBoxPosition { get; set; } = new Point(0, 0);
-        public Point DownloadManagerPosition { get; set; } = new Point(0, 0);
+        private Point dropbox_pos = new Point(0, 0);
+        public Point DropBoxPosition
+        {
+            get { return (dropbox_pos); }
+            set
+            {
+                dropbox_pos = value;
+                if (Cache is Setting) Cache.dropbox_pos = dropbox_pos;
+            }
+        }
+
+        private Rect downloadmanager_pos = new Rect(0, 0, 0, 0);
+        public Rect DownloadManagerPosition
+        {
+            get { return (downloadmanager_pos); }
+            set
+            {
+                downloadmanager_pos = value;
+                if (Cache is Setting) Cache.downloadmanager_pos = downloadmanager_pos;
+            }
+        }
 
         public DateTime ContentsTemplateTime { get; set; } = new DateTime(0);
         public string ContentsTemplete { get; set; } = string.Empty;
@@ -407,6 +426,9 @@ namespace PixivWPF.Common
                     Cache.ShellPixivPediaApplicationArgs = new_setting.ShellPixivPediaApplicationArgs;
                 if (!Cache.ContentsTemplateFile.Equals(new_setting.ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     Cache.ContentsTemplateFile = new_setting.ContentsTemplateFile;
+
+                Cache.DropBoxPosition = new_setting.DropBoxPosition;
+                Cache.DownloadManagerPosition = new_setting.DownloadManagerPosition;
 
                 if (Cache.SpeechPrefer != new_setting.SpeechPrefer)
                     Cache.SpeechPrefer = new_setting.SpeechPrefer;

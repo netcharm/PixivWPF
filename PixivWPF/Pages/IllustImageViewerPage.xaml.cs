@@ -349,7 +349,7 @@ namespace PixivWPF.Pages
                 {
                     CommonHelper.Cmd_ShellOpenFile.Execute(PreviewImageUrl.GetImageCachePath());
                 }
-                else if (sender == ActionCopyCachedWith)
+                else if (sender == ActionCopyPreview)
                 {
                     CommonHelper.Cmd_CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
                 }

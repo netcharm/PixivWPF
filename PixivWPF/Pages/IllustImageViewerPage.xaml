@@ -46,6 +46,11 @@
                                     <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem x:Name="ActionCopyPreview" x:Uid="ActionCopyImage" Header="Copy Preview" Click="ActionIllustInfo_Click">
+                                <MenuItem.Icon>
+                                    <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <MenuItem x:Name="ActionOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionIllustInfo_Click">
                                 <MenuItem.Icon>
                                     <iconPacks:PackIconModern Kind="NewWindow" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
@@ -90,11 +95,6 @@
                                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem x:Name="ActionCopyCachedWith" x:Uid="ActionCopyImage" Header="Copy Preview" Click="ActionIllustInfo_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>                            
                             <Separator/>
                             <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Image" Click="ActionSaveIllust_Click">
                                 <MenuItem.Icon>

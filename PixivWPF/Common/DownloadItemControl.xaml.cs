@@ -564,6 +564,7 @@ namespace PixivWPF.Common
                 File.SetLastAccessTime(FileName, FileTime);
                 PART_OpenFile.IsEnabled = true;
                 PART_OpenFolder.IsEnabled = true;
+                FailReason = $"downloaded from remote site.";
                 State = DownloadState.Finished;
             }
             catch (Exception ex)
@@ -586,7 +587,6 @@ namespace PixivWPF.Common
                 if (File.Exists(source))
                 {
                     StartTick = DateTime.Now;
-                    FailReason = string.Empty;
                     State = DownloadState.Writing;
                     var fi = new FileInfo(source);
                     Length = Received = fi.Length;
@@ -597,6 +597,7 @@ namespace PixivWPF.Common
                     File.SetLastAccessTime(FileName, FileTime);
                     PART_OpenFile.IsEnabled = true;
                     PART_OpenFolder.IsEnabled = true;
+                    FailReason = $"copied from cached image.";
                     State = DownloadState.Finished;
                 }
             }
