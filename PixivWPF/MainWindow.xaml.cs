@@ -257,13 +257,13 @@ namespace PixivWPF
             Application.Current.ReleaseAppWatcher();
             Application.Current.LoadSetting().LocalStorage.ReleaseDownloadedWatcher();
 
+            if (setting is Setting) setting.Save(true);
+
             foreach (Window win in Application.Current.Windows)
             {
                 if (win == this) continue;
                 win.Close();
             }
-
-            if (setting is Setting) setting.Save(true);
             Application.Current.Shutdown();
         }
 #else
@@ -276,13 +276,13 @@ namespace PixivWPF
                 Application.Current.ReleaseAppWatcher();
                 Application.Current.LoadSetting().LocalStorage.ReleaseDownloadedWatcher();
 
+                if (setting is Setting) setting.Save(true);
+
                 foreach (Window win in Application.Current.Windows)
                 {
                     if (win is MainWindow) continue;
                     else win.Close();
                 }
-
-                if (setting is Setting) setting.Save(true);
                 Application.Current.Shutdown();
             }
             else e.Cancel = true;

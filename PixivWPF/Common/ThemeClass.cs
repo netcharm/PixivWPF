@@ -20,10 +20,10 @@ namespace PixivWPF.Common
     public static class Theme
     {
         private static List<string> accents = new List<string>() {
-                //"BaseDark","BaseLight",
-                "Amber","Blue","Brown","Cobalt","Crimson","Cyan", "Emerald","Green",
-                "Indigo","Lime","Magenta","Mauve","Olive","Orange", "Pink",
-                "Purple","Red","Sienna","Steel","Taupe","Teal","Violet","Yellow"
+            //"BaseDark","BaseLight",
+            "Amber", "Blue", "Brown", "Cobalt", "Crimson", "Cyan", "Emerald", "Green",
+            "Indigo", "Lime", "Magenta", "Mauve", "Olive", "Orange", "Pink",
+            "Purple", "Red", "Sienna", "Steel", "Taupe", "Teal", "Violet", "Yellow"
         };
 
         private static Setting setting = Application.Current.LoadSetting();
@@ -95,7 +95,7 @@ namespace PixivWPF.Common
 
         public static IList<string> Accents
         {
-            get { return ThemeManager.Current.ColorSchemes; }
+            get { return ThemeManager.Current.ColorSchemes.OrderBy(cs => cs).ToList(); }
         }
 
         public static IList<string> Styles
@@ -154,6 +154,7 @@ namespace PixivWPF.Common
                             });
                         }
                     }
+                    accent_color_list = accent_color_list.OrderBy(ac => ac.AccentName).ToList();
                 }
                 return (accent_color_list);
             }
@@ -331,6 +332,136 @@ namespace PixivWPF.Common
         /// {MenuTextBrush}
         /// {WindowBrush}
         /// ===================================================================
+        /// DEFAULT COMMON CONTROL COLORS
+        /// 
+        /// MahApps.Colors.SystemAltHigh
+        /// MahApps.Colors.SystemAltLow
+        /// MahApps.Colors.SystemAltMedium
+        /// MahApps.Colors.SystemAltMediumHigh
+        /// MahApps.Colors.SystemAltMediumLow
+        /// MahApps.Colors.SystemBaseHigh
+        /// MahApps.Colors.SystemBaseLow
+        /// MahApps.Colors.SystemBaseMedium
+        /// MahApps.Colors.SystemBaseMediumHigh
+        /// MahApps.Colors.SystemBaseMediumLow
+        /// MahApps.Colors.SystemChromeAltLow
+        /// MahApps.Colors.SystemChromeBlackHigh
+        /// MahApps.Colors.SystemChromeBlackLow
+        /// MahApps.Colors.SystemChromeBlackMediumLow
+        /// MahApps.Colors.SystemChromeBlackMedium
+        /// MahApps.Colors.SystemChromeDisabledHigh
+        /// MahApps.Colors.SystemChromeDisabledLow
+        /// MahApps.Colors.SystemChromeHigh
+        /// MahApps.Colors.SystemChromeLow
+        /// MahApps.Colors.SystemChromeMedium
+        /// MahApps.Colors.SystemChromeMediumLow
+        /// MahApps.Colors.SystemChromeWhite
+        /// MahApps.Colors.SystemChromeGray
+        /// MahApps.Colors.SystemListLow
+        /// MahApps.Colors.SystemListMedium
+        /// MahApps.Colors.SystemErrorText
+        /// 
+        /// MahApps.Brushes.SystemControlBackgroundAccent
+        /// MahApps.Brushes.SystemControlBackgroundAltHigh
+        /// MahApps.Brushes.SystemControlBackgroundAltMedium
+        /// MahApps.Brushes.SystemControlBackgroundAltMediumHigh
+        /// MahApps.Brushes.SystemControlBackgroundAltMediumLow
+        /// MahApps.Brushes.SystemControlBackgroundBaseHigh
+        /// MahApps.Brushes.SystemControlBackgroundBaseLow
+        /// MahApps.Brushes.SystemControlBackgroundBaseMedium
+        /// MahApps.Brushes.SystemControlBackgroundBaseMediumHigh
+        /// MahApps.Brushes.SystemControlBackgroundBaseMediumLow
+        /// MahApps.Brushes.SystemControlBackgroundChromeBlackHigh
+        /// MahApps.Brushes.SystemControlBackgroundChromeBlackLow
+        /// MahApps.Brushes.SystemControlBackgroundChromeBlackMedium
+        /// MahApps.Brushes.SystemControlBackgroundChromeBlackMediumLow
+        /// MahApps.Brushes.SystemControlBackgroundChromeMedium
+        /// MahApps.Brushes.SystemControlBackgroundChromeMediumLow
+        /// MahApps.Brushes.SystemControlBackgroundChromeWhite
+        /// MahApps.Brushes.SystemControlBackgroundListLow
+        /// MahApps.Brushes.SystemControlBackgroundListMedium
+        /// MahApps.Brushes.SystemControlDisabledAccent
+        /// MahApps.Brushes.SystemControlDisabledBaseHigh
+        /// MahApps.Brushes.SystemControlDisabledBaseLow
+        /// MahApps.Brushes.SystemControlDisabledBaseMediumLow
+        /// MahApps.Brushes.SystemControlDisabledChromeDisabledHigh
+        /// MahApps.Brushes.SystemControlDisabledChromeDisabledLow
+        /// MahApps.Brushes.SystemControlDisabledChromeHigh
+        /// MahApps.Brushes.SystemControlDisabledChromeMediumLow
+        /// MahApps.Brushes.SystemControlDisabledListMedium
+        /// MahApps.Brushes.SystemControlDisabledTransparent
+        /// MahApps.Brushes.SystemControlErrorTextForeground
+        /// MahApps.Brushes.SystemControlFocusVisualPrimary
+        /// MahApps.Brushes.SystemControlFocusVisualSecondary
+        /// MahApps.Brushes.SystemControlForegroundAccent
+        /// MahApps.Brushes.SystemControlForegroundAltHigh
+        /// MahApps.Brushes.SystemControlForegroundAltMediumHigh
+        /// MahApps.Brushes.SystemControlForegroundBaseHigh
+        /// MahApps.Brushes.SystemControlForegroundBaseLow
+        /// MahApps.Brushes.SystemControlForegroundBaseMedium
+        /// MahApps.Brushes.SystemControlForegroundBaseMediumHigh
+        /// MahApps.Brushes.SystemControlForegroundBaseMediumLow
+        /// MahApps.Brushes.SystemControlForegroundChromeBlackHigh
+        /// MahApps.Brushes.SystemControlForegroundChromeBlackMedium
+        /// MahApps.Brushes.SystemControlForegroundChromeBlackMediumLow
+        /// MahApps.Brushes.SystemControlForegroundChromeDisabledLow
+        /// MahApps.Brushes.SystemControlForegroundChromeGray
+        /// MahApps.Brushes.SystemControlForegroundChromeHigh
+        /// MahApps.Brushes.SystemControlForegroundChromeMedium
+        /// MahApps.Brushes.SystemControlForegroundChromeWhite
+        /// MahApps.Brushes.SystemControlForegroundListLow
+        /// MahApps.Brushes.SystemControlForegroundListMedium
+        /// MahApps.Brushes.SystemControlForegroundTransparent
+        /// MahApps.Brushes.SystemControlHighlightAccent
+        /// MahApps.Brushes.SystemControlHighlightAltAccent
+        /// MahApps.Brushes.SystemControlHighlightAltAltHigh
+        /// MahApps.Brushes.SystemControlHighlightAltAltMediumHigh
+        /// MahApps.Brushes.SystemControlHighlightAltBaseHigh
+        /// MahApps.Brushes.SystemControlHighlightAltBaseLow
+        /// MahApps.Brushes.SystemControlHighlightAltBaseMedium
+        /// MahApps.Brushes.SystemControlHighlightAltBaseMediumHigh
+        /// MahApps.Brushes.SystemControlHighlightAltBaseMediumLow
+        /// MahApps.Brushes.SystemControlHighlightAltChromeWhite
+        /// MahApps.Brushes.SystemControlHighlightAltListAccentHigh
+        /// MahApps.Brushes.SystemControlHighlightAltListAccentLow
+        /// MahApps.Brushes.SystemControlHighlightAltListAccentMedium
+        /// MahApps.Brushes.SystemControlHighlightAltTransparent
+        /// MahApps.Brushes.SystemControlHighlightBaseHigh
+        /// MahApps.Brushes.SystemControlHighlightBaseLow
+        /// MahApps.Brushes.SystemControlHighlightBaseMedium
+        /// MahApps.Brushes.SystemControlHighlightBaseMediumHigh
+        /// MahApps.Brushes.SystemControlHighlightBaseMediumLow
+        /// MahApps.Brushes.SystemControlHighlightChromeAltLow
+        /// MahApps.Brushes.SystemControlHighlightChromeHigh
+        /// MahApps.Brushes.SystemControlHighlightChromeWhite
+        /// MahApps.Brushes.SystemControlHighlightListAccentHigh
+        /// MahApps.Brushes.SystemControlHighlightListAccentLow
+        /// MahApps.Brushes.SystemControlHighlightListAccentMedium
+        /// MahApps.Brushes.SystemControlHighlightListLow
+        /// MahApps.Brushes.SystemControlHighlightListMedium
+        /// MahApps.Brushes.SystemControlHighlightTransparent
+        /// MahApps.Brushes.SystemControlHyperlinkBaseHigh
+        /// MahApps.Brushes.SystemControlHyperlinkBaseMedium
+        /// MahApps.Brushes.SystemControlHyperlinkBaseMediumHigh
+        /// MahApps.Brushes.SystemControlHyperlinkText
+        /// MahApps.Brushes.SystemControlPageBackgroundAltHigh
+        /// MahApps.Brushes.SystemControlPageBackgroundAltMedium
+        /// MahApps.Brushes.SystemControlPageBackgroundBaseLow
+        /// MahApps.Brushes.SystemControlPageBackgroundBaseMedium
+        /// MahApps.Brushes.SystemControlPageBackgroundChromeLow
+        /// MahApps.Brushes.SystemControlPageBackgroundChromeMediumLow
+        /// MahApps.Brushes.SystemControlPageBackgroundListLow
+        /// MahApps.Brushes.SystemControlPageBackgroundMediumAltMedium
+        /// MahApps.Brushes.SystemControlPageBackgroundTransparent
+        /// MahApps.Brushes.SystemControlPageTextBaseHigh
+        /// MahApps.Brushes.SystemControlPageTextBaseMedium
+        /// MahApps.Brushes.SystemControlPageTextChromeBlackMediumLow
+        /// MahApps.Brushes.SystemControlRevealFocusVisual
+        /// MahApps.Brushes.SystemControlTransientBorder
+        /// MahApps.Brushes.SystemControlTransparent
+        /// MahApps.Brushes.SystemControlDescriptionTextForeground
+        /// 
+        /// 
         /// 
         /// Accent Color/Brush
         /// ===================================================================
@@ -364,6 +495,72 @@ namespace PixivWPF.Common
         /// "RightArrowFill"
         /// "WindowTitleColorBrush"
         /// ===================================================================
+        #endregion
+
+        #region Custom Colors/Brushes
+        public static Color SucceedColor
+        {
+            get
+            {
+                return (Color.FromScRgb(0.2f, AccentColor.ScR, AccentColor.ScG, AccentColor.ScB));
+            }
+        }
+
+        public static Brush SucceedBrush
+        {
+            get
+            {
+                return (SucceedColor.ToBrush());
+            }
+        }
+
+        public static Color WarningColor
+        {
+            get
+            {
+                return (Color.FromScRgb(0.2f, ErrorColor.ScR, ErrorColor.ScG, ErrorColor.ScB));
+            }
+        }
+
+        public static Brush WarningBrush
+        {
+            get
+            {
+                return (WarningColor.ToBrush());
+            }
+        }
+
+        public static Color FailedColor
+        {
+            get
+            {
+                return (Color.FromScRgb(0.5f, ErrorColor.ScR, ErrorColor.ScG, ErrorColor.ScB));
+            }
+        }
+
+        public static Brush FailedBrush
+        {
+            get
+            {
+                return (FailedColor.ToBrush());
+            }
+        }
+
+        public static Color ErrorColor
+        {
+            get
+            {
+                return (Color.FromScRgb(0.75f, SystemErrorTextColor.ScR, SystemErrorTextColor.ScG, SystemErrorTextColor.ScB));
+            }
+        }
+
+        public static Brush ErrorBrush
+        {
+            get
+            {
+                return (ErrorColor.ToBrush());
+            }
+        }
         #endregion
 
         #region ACCENT COLORS
@@ -593,6 +790,26 @@ namespace PixivWPF.Common
             get
             {
                 return (FlyoutColor.ToBrush());
+            }
+        }
+        #endregion
+
+        #region Common Colors
+        public static Color SystemAccentColor
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Colors.SystemAccent"] as Brush).ToColor();
+            }
+        }
+
+        public static Color SystemErrorTextColor
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Colors.SystemErrorText"] as Brush).ToColor();
             }
         }
         #endregion

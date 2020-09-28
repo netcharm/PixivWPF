@@ -200,7 +200,7 @@ namespace PixivWPF.Common
         public static Setting CurrentSetting { get { return (Setting.Instance is Setting ? Setting.Instance : Setting.Load()); } }
         public static Setting LoadSetting(this Application app, bool force = false)
         {
-            if (force) Setting.Load(force);
+            if (force) Setting.Load(force, force);
             return (CurrentSetting);
             //return (!force && Setting.Instance is Setting ? Setting.Instance : Setting.Load(force));
         }
@@ -263,6 +263,96 @@ namespace PixivWPF.Common
         public static string GetAccent(this Application app)
         {
             return (Theme.CurrentAccent);
+        }
+
+        public static Color GetForegroundColor(this Application app)
+        {
+            return (Theme.ThemeForegroundColor);
+        }
+
+        public static Brush GetForegroundBrush(this Application app)
+        {
+            return (Theme.ThemeForegroundBrush);
+        }
+
+        public static Color GetBackgroundColor(this Application app)
+        {
+            return (Theme.ThemeBackgroundColor);
+        }
+
+        public static Brush GetBackgroundBrush(this Application app)
+        {
+            return (Theme.ThemeBackgroundBrush);
+        }
+
+        public static Color GetTextColor(this Application app)
+        {
+            return (Theme.TextColor);
+        }
+
+        public static Brush GetTextBrush(this Application app)
+        {
+            return (Theme.TextBrush);
+        }
+
+        public static Color GetIdealTextColor(this Application app)
+        {
+            return (Theme.IdealForeground);
+        }
+
+        public static Brush GetIdealTextBrush(this Application app)
+        {
+            return (Theme.IdealForegroundBrush);
+        }
+
+        public static Color GetSucceedColor(this Application app)
+        {
+            return (Theme.SucceedColor);
+        }
+
+        public static Brush GetSucceedBrush(this Application app)
+        {
+            return (Theme.SucceedBrush);
+        }
+
+        public static Color GetErrorColor(this Application app)
+        {
+            return (Theme.ErrorColor);
+        }
+
+        public static Brush GetErrorBrush(this Application app)
+        {
+            return (Theme.ErrorBrush);
+        }
+
+        public static Color GetWarningColor(this Application app)
+        {
+            return (Theme.WarningColor);
+        }
+
+        public static Brush GetWarningBrush(this Application app)
+        {
+            return (Theme.WarningBrush);
+        }
+
+        public static Color GetFailedColor(this Application app)
+        {
+            return (Theme.FailedColor);
+        }
+
+        public static Brush GetFailedBrush(this Application app)
+        {
+            return (Theme.FailedBrush);
+        }
+
+        public static Color GetNonExistsColor(this Application app)
+        {
+            return (Theme.Gray10Color);
+        }
+
+        public static Brush GetNonExistsBrush(this Application app)
+        {
+            return (Theme.Gray10Brush);
         }
 
         public static string GetStyle(this Application app)
@@ -667,7 +757,7 @@ namespace PixivWPF.Common
                     {
                         if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            //Setting.Load(true);
+                            //Setting.Load(true, false);
                             //lastConfigEventTick = DateTime.Now;
                         }
                         else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
@@ -688,7 +778,7 @@ namespace PixivWPF.Common
                     {
                         if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Setting.Load(true);
+                            Setting.Load(true, false);
                             //lastConfigEventTick = DateTime.Now;
                         }
                         else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
@@ -1096,30 +1186,6 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_CopyImage { get; } = new DelegateCommand<object>(async obj =>
-        {
-            if (obj is string)
-            {
-                await new Action(() =>
-                {
-                    (obj as string).CopyImage();
-                }).InvokeAsync();
-            }
-            else if (obj is ImageItem)
-            {
-                var item = obj as ImageItem;
-
-                string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCachePath();
-                if (!string.IsNullOrEmpty(fp))
-                {
-                    await new Action(() =>
-                    {
-                        fp.CopyImage();
-                    }).InvokeAsync();
-                }
-            }
-        });
-
         public static ICommand Cmd_CopyIllustIDs { get; } = new DelegateCommand<object>(obj =>
         {
             var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "id:" : string.Empty;
@@ -1206,6 +1272,67 @@ namespace PixivWPF.Common
             {
                 var id = (obj as string).ParseLink().ParseID();
                 if (!string.IsNullOrEmpty(id)) Clipboard.SetText($"{prefix}{id}");
+            }
+        });
+
+        public static ICommand Cmd_CopyDownloadInfo { get; } = new DelegateCommand<object>(obj =>
+        {
+            if (obj is IEnumerable)
+            {
+                var items = obj as IList;
+                if (items.Count <= 0) return;
+                var sep = @"--------------------------------------------------------------------------------------------";
+                var targets = new List<string>();
+                targets.Add(sep);
+                foreach (var item in items)
+                {
+                    if (item is DownloadInfo)
+                    {
+                        var di = item as DownloadInfo;
+                        var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason:{di.FailReason}";
+                        var delta = di.EndTime - di.StartTime;
+                        targets.Add($"URL    : {di.Url}");
+                        targets.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
+                        targets.Add($"State  : {di.State}{fail}");
+                        targets.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.Days * 24 + delta.Hours}:{delta.Minutes}:{delta.Seconds} s");
+                        targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {di.Received / 1024.0 / delta.TotalSeconds:0.00} KB/s");
+                        targets.Add(sep);
+                    }
+                }
+                targets.Add("");
+                Clipboard.SetText(string.Join(Environment.NewLine, targets));
+            }
+            else if (obj is DownloadInfo)
+            {
+                Cmd_CopyDownloadInfo.Execute(new List<DownloadInfo>() { obj as DownloadInfo });
+            }
+            else if (obj is ItemCollection)
+            {
+                Cmd_CopyDownloadInfo.Execute(obj as IList);
+            }
+        });
+
+        public static ICommand Cmd_CopyImage { get; } = new DelegateCommand<object>(async obj =>
+        {
+            if (obj is string)
+            {
+                await new Action(() =>
+                {
+                    (obj as string).CopyImage();
+                }).InvokeAsync();
+            }
+            else if (obj is ImageItem)
+            {
+                var item = obj as ImageItem;
+
+                string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCachePath();
+                if (!string.IsNullOrEmpty(fp))
+                {
+                    await new Action(() =>
+                    {
+                        fp.CopyImage();
+                    }).InvokeAsync();
+                }
             }
         });
 
@@ -1480,75 +1607,6 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_OpenDownloaded { get; } = new DelegateCommand<object>(obj =>
-        {
-            if (obj is ImageItem)
-            {
-                var item = obj as ImageItem;
-                var illust = item.Illust;
-
-                if (item.Index >= 0)
-                {
-                    string fp = string.Empty;
-                    item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
-                    fp.OpenFileWithShell();
-                }
-                else
-                {
-                    string fp = string.Empty;
-                    item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
-                    fp.OpenFileWithShell();
-                }
-            }
-        });
-
-        public static ICommand Cmd_CopyDownloadInfo { get; } = new DelegateCommand<object>(obj =>
-        {
-            if (obj is IEnumerable)
-            {
-                var items = obj as IList;
-                if (items.Count <= 0) return;
-                var sep = @"--------------------------------------------------------------------------------------------";
-                var targets = new List<string>();
-                targets.Add(sep);
-                foreach (var item in items)
-                {
-                    if (item is DownloadInfo)
-                    {
-                        var di = item as DownloadInfo;
-                        var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason:{di.FailReason}";
-                        targets.Add($"URL    : {di.Url}");
-                        targets.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
-                        targets.Add($"State  : {di.State}{fail}");
-                        targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes)");
-                        targets.Add(sep);
-                    }
-                }
-                targets.Add("");
-                Clipboard.SetText(string.Join(Environment.NewLine, targets));
-            }
-            else if (obj is DownloadInfo)
-            {
-                Cmd_CopyDownloadInfo.Execute(new List<DownloadInfo>() { obj as DownloadInfo });
-            }
-            else if (obj is ItemCollection)
-            {
-                Cmd_CopyDownloadInfo.Execute(obj as IList);
-            }
-        });
-
-        public static ICommand Cmd_OpenPixivPedia { get; } = new DelegateCommand<object>(async obj =>
-        {
-            if (obj is string)
-            {
-                var content = obj as string;
-                await new Action(() =>
-                {
-                    OpenPixivPedia(content);
-                }).InvokeAsync();
-            }
-        });
-
         public static ICommand Cmd_OpenDropBox { get; } = new DelegateCommand<object>(async obj =>
         {
             if (obj is System.Windows.Controls.Primitives.ToggleButton)
@@ -1591,28 +1649,67 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_Speech { get; } = new DelegateCommand<object>(obj =>
+        public static ICommand Cmd_OpenDragDrop { get; } = new DelegateCommand<IEnumerable<string>>(obj =>
         {
-            if (obj is string)
+            if (obj is IEnumerable<string>)
             {
-                var content = obj as string;
-                if (!string.IsNullOrEmpty(content))
-                {
-                    content.Play(null);
-                }
+                Cmd_Search.Execute(obj);
             }
         });
 
-        public static ICommand Cmd_ShellOpenPixivPedia { get; } = new DelegateCommand<object>(async obj =>
+        public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(async obj =>
         {
-            if (obj is string)
+            if (obj is string && !string.IsNullOrEmpty((string)obj))
             {
-                var content = obj as string;
+                var content = ParseLink((string)obj);
                 if (!string.IsNullOrEmpty(content))
+                {
+                    if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var illust = content.ParseID().FindIllust();
+                        if (illust is Pixeez.Objects.Work)
+                        {
+                            Cmd_OpenIllust.Execute(illust);
+                            return;
+                        }
+                    }
+                    else if (content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var user = content.ParseID().FindUser();
+                        if (user is Pixeez.Objects.UserBase)
+                        {
+                            Cmd_OpenUser.Execute(user);
+                            return;
+                        }
+                    }
+
+                    var title = $"Searching {content} ...";
+                    if (await title.ActiveByTitle()) return;
+
+                    var page = new SearchResultPage() { FontFamily = setting.FontFamily, Tag = content, Contents = content };
+                    var viewer = new ContentWindow()
+                    {
+                        Title = title,
+                        Width = WIDTH_MIN,
+                        Height = HEIGHT_DEF,
+                        MinWidth = WIDTH_MIN,
+                        MinHeight = HEIGHT_MIN,
+                        MaxHeight = HEIGHT_MAX,
+                        FontFamily = setting.FontFamily,
+                        Content = page
+                    };
+                    viewer.Show();
+                    await Task.Delay(1);
+                    Application.Current.DoEvents();
+                }
+            }
+            else if (obj is IEnumerable<string>)
+            {
+                foreach (var link in obj as IEnumerable<string>)
                 {
                     await new Action(() =>
                     {
-                        content.ShellOpenPixivPedia();
+                        Cmd_Search.Execute(link);
                     }).InvokeAsync();
                 }
             }
@@ -1774,6 +1871,55 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_OpenDownloaded { get; } = new DelegateCommand<object>(obj =>
+        {
+            if (obj is ImageItem)
+            {
+                var item = obj as ImageItem;
+                var illust = item.Illust;
+
+                if (item.Index >= 0)
+                {
+                    string fp = string.Empty;
+                    item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
+                    fp.OpenFileWithShell();
+                }
+                else
+                {
+                    string fp = string.Empty;
+                    item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
+                    fp.OpenFileWithShell();
+                }
+            }
+        });
+
+        public static ICommand Cmd_OpenPixivPedia { get; } = new DelegateCommand<object>(async obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
+                await new Action(() =>
+                {
+                    OpenPixivPedia(content);
+                }).InvokeAsync();
+            }
+        });
+
+        public static ICommand Cmd_ShellOpenPixivPedia { get; } = new DelegateCommand<object>(async obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
+                if (!string.IsNullOrEmpty(content))
+                {
+                    await new Action(() =>
+                    {
+                        content.ShellOpenPixivPedia();
+                    }).InvokeAsync();
+                }
+            }
+        });
+
         public static ICommand Cmd_ShellOpenFile { get; } = new DelegateCommand<object>(async obj =>
         {
             if (obj is string)
@@ -1801,75 +1947,21 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_Search { get; } = new DelegateCommand<object>(async obj =>
-        {
-            if (obj is string && !string.IsNullOrEmpty((string)obj))
-            {
-                var content = ParseLink((string)obj);
-                if (!string.IsNullOrEmpty(content))
-                {
-                    if (content.StartsWith("IllustID:", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var illust = content.ParseID().FindIllust();
-                        if (illust is Pixeez.Objects.Work)
-                        {
-                            Cmd_OpenIllust.Execute(illust);
-                            return;
-                        }
-                    }
-                    else if (content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var user = content.ParseID().FindUser();
-                        if (user is Pixeez.Objects.UserBase)
-                        {
-                            Cmd_OpenUser.Execute(user);
-                            return;
-                        }
-                    }
-
-                    var title = $"Searching {content} ...";
-                    if (await title.ActiveByTitle()) return;
-
-                    var page = new SearchResultPage() { FontFamily = setting.FontFamily, Tag = content, Contents = content };
-                    var viewer = new ContentWindow()
-                    {
-                        Title = title,
-                        Width = WIDTH_MIN,
-                        Height = HEIGHT_DEF,
-                        MinWidth = WIDTH_MIN,
-                        MinHeight = HEIGHT_MIN,
-                        MaxHeight = HEIGHT_MAX,
-                        FontFamily = setting.FontFamily,
-                        Content = page
-                    };
-                    viewer.Show();
-                    await Task.Delay(1);
-                    Application.Current.DoEvents();
-                }
-            }
-            else if (obj is IEnumerable<string>)
-            {
-                foreach (var link in obj as IEnumerable<string>)
-                {
-                    await new Action(() =>
-                    {
-                        Cmd_Search.Execute(link);
-                    }).InvokeAsync();
-                }
-            }
-        });
-
-        public static ICommand Cmd_Drop { get; } = new DelegateCommand<IEnumerable<string>>(obj =>
-        {
-            if (obj is IEnumerable<string>)
-            {
-                Cmd_Search.Execute(obj);
-            }
-        });
-
         public static ICommand Cmd_SaveTags { get; } = new DelegateCommand(() =>
         {
             Application.Current.SaveTags();
+        });
+
+        public static ICommand Cmd_Speech { get; } = new DelegateCommand<object>(obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
+                if (!string.IsNullOrEmpty(content))
+                {
+                    content.Play(null);
+                }
+            }
         });
 
         #region Pixiv Token Helper
@@ -5286,6 +5378,11 @@ namespace PixivWPF.Common
                         var page = win.Content as IllustImageViewerPage;
                         page.UpdateTheme();
                     }
+                    else if (win.Content is DownloadManagerPage)
+                    {
+                        var page = win.Content as DownloadManagerPage;
+                        page.UpdateTheme();
+                    }
                     else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
                     {
                         win.Background = Theme.AccentBrush;
@@ -5304,7 +5401,7 @@ namespace PixivWPF.Common
 
                 foreach (Window win in Application.Current.Windows)
                 {
-                    win.UpdateTheme(img);
+                    if(win is MetroWindow) win.UpdateTheme(img);
                 }
             }
             catch (Exception) { }
@@ -6273,6 +6370,41 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
             return (result);
+        }
+
+        public static double DeltaMilliseconds(this DateTime dt1, DateTime dt2, bool abs = true)
+        {
+            var delta = (dt2 - dt1).TotalMilliseconds;
+            if (abs) delta = Math.Abs(delta);
+            return (delta);
+        }
+
+        public static double DeltaSeconds(this DateTime dt1, DateTime dt2, bool abs = true)
+        {
+            var delta = (dt2 - dt1).TotalSeconds;
+            if (abs) delta = Math.Abs(delta);
+            return (delta);
+        }
+
+        public static double DeltaMinutes(this DateTime dt1, DateTime dt2, bool abs = true)
+        {
+            var delta = (dt2 - dt1).TotalMinutes;
+            if (abs) delta = Math.Abs(delta);
+            return (delta);
+        }
+
+        public static double DeltaHours(this DateTime dt1, DateTime dt2, bool abs = true)
+        {
+            var delta = (dt2 - dt1).TotalHours;
+            if (abs) delta = Math.Abs(delta);
+            return (delta);
+        }
+
+        public static double DeltaDays(this DateTime dt1, DateTime dt2, bool abs = true)
+        {
+            var delta = (dt2 - dt1).TotalDays;
+            if (abs) delta = Math.Abs(delta);
+            return (delta);
         }
 
         public static TimeSpan Delta(this DateTime dt1, DateTime dt2)

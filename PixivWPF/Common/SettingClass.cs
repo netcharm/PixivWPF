@@ -259,6 +259,9 @@ namespace PixivWPF.Common
 
         public int DownloadWaitingTime { get; set; } = 5000;
         public int DownloadTimeSpan { get; set; } = 750;
+        public bool DownloadCompletedToast { get; set; } = true;
+        public bool DownloadCompletedSound { get; set; } = true;
+        public int DownloadCompletedSoundForElapsedSeconds { get; set; } = 60;
 
         [JsonIgnore]
         private string lastfolder = string.Empty;
@@ -310,6 +313,7 @@ namespace PixivWPF.Common
         public string ShellPixivPediaApplicationArgs { get; set; } = "--single-process --enable-node-worker --app-shell-host-window-size=1280x720";
 
         public Point DropBoxPosition { get; set; } = new Point(0, 0);
+        public Point DownloadManagerPosition { get; set; } = new Point(0, 0);
 
         public DateTime ContentsTemplateTime { get; set; } = new DateTime(0);
         public string ContentsTemplete { get; set; } = string.Empty;
@@ -404,7 +408,7 @@ namespace PixivWPF.Common
         }
 
         private static DateTime lastConfigUpdate = default(DateTime);
-        public static Setting Load(bool force = false, string configfile = "")
+        public static Setting Load(bool force = false, bool loadtags = true, string configfile = "")
         {
             Setting result = Cache is Setting ? Cache : new Setting();
             if (!IsConfigBusy && CanConfigRead.Wait(0))
@@ -435,13 +439,16 @@ namespace PixivWPF.Common
                                 Cache.OpenWithSelectionOrder = cache.OpenWithSelectionOrder;
                                 Cache.DownloadTimeSpan = cache.DownloadTimeSpan;
                                 Cache.DownloadWaitingTime = cache.DownloadWaitingTime;
+                                Cache.DownloadCompletedToast = cache.DownloadCompletedToast;
+                                Cache.DownloadCompletedSound = cache.DownloadCompletedSound;
+                                Cache.DownloadCompletedSoundForElapsedSeconds = cache.DownloadCompletedSoundForElapsedSeconds;
                                 Cache.AutoExpand = cache.AutoExpand;
+                                Cache.SpeechPrefer = cache.SpeechPrefer;
                                 Cache.ShellSearchBridgeApplication = cache.ShellSearchBridgeApplication;
                                 Cache.ShellPixivPediaApplication = cache.ShellPixivPediaApplication;
                                 Cache.ShellPixivPediaApplicationArgs = cache.ShellPixivPediaApplicationArgs;
                                 Cache.ContentsTemplateFile = cache.ContentsTemplateFile;
                                 Cache.LocalStorage = cache.LocalStorage;
-                                Cache.SpeechPrefer = cache.SpeechPrefer;
                             }
                             else
                             {
@@ -486,7 +493,7 @@ namespace PixivWPF.Common
                             #endregion
                             result = Cache;
                         }
-                        LoadTags(true, true);
+                        if(loadtags) LoadTags(true, true);
                     }
                 }
 #if DEBUG

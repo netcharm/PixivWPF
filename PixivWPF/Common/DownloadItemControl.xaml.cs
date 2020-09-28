@@ -139,6 +139,9 @@ namespace PixivWPF.Common
 
         public string FailReason { get; set; } = string.Empty;
 
+        public DateTime StartTime { get; internal set; } = DateTime.Now;
+        public DateTime EndTime { get; internal set; } = DateTime.Now;
+
         public DownloadInfo()
         {
             setting = Application.Current.LoadSetting();
@@ -377,9 +380,19 @@ namespace PixivWPF.Common
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private DateTime startTick = DateTime.Now;
-        private DateTime endTick = DateTime.Now;
+        private DateTime StartTick
+        {
+            get { return (Info.StartTime); }
+            set { Info.StartTime = value; }
+        }
+        private DateTime EndTick
+        {
+            get { return (Info.EndTime); }
+            set { Info.EndTime = value; }
+        }
         private DateTime lastTick = DateTime.Now;
+        private int lastRatesCount = 5;
+        private Queue<double> lastRates = new Queue<double>();
         private double lastRate = 0;
         private double lastRateA = 0;
         private long lastReceived = 0;
@@ -393,7 +406,7 @@ namespace PixivWPF.Common
         private void InitProgress()
         {
             progress = new Progress<Tuple<double, double>>(i => {
-                if ((State == DownloadState.Downloading && endTick.Ticks - lastTick.Ticks >= 10000000.0) ||
+                if ((State == DownloadState.Downloading && EndTick.DeltaSeconds(lastTick) >= 1) ||
                      State == DownloadState.Writing ||
                      State == DownloadState.Finished ||
                      State == DownloadState.NonExists)
@@ -403,11 +416,14 @@ namespace PixivWPF.Common
                     try
                     {
                         #region Update ProgressBar & Progress Info Text
-                        var deltaA = (endTick.Ticks - startTick.Ticks) / 10000000.0;
-                        var deltaC = (endTick.Ticks - lastTick.Ticks) / 10000000.0;
+                        var deltaA = (EndTick - StartTick).TotalSeconds;
+                        var deltaC = (EndTick - lastTick).TotalSeconds;
                         var rateA = deltaA > 0 ? received / deltaA / 1024.0 : 0;
                         var rateC = deltaC > 0 ? lastReceived / deltaC / 1024.0 : lastRate;
-                        if (rateC > 0 || deltaC >= 5) lastRate = rateC;
+                        lastRates.Enqueue(rateC);
+                        if (lastRates.Count > lastRatesCount) lastRates.Dequeue();
+                        if (rateC > 0 || deltaC >= 1) lastRate = lastRates.Average();
+
                         var percent = total > 0 ? received / total : 0;
                         PART_DownloadProgress.Value = percent * 100;
                         PART_DownloadProgressPercent.Text = $"{State.ToString()}: {PART_DownloadProgress.Value:0.0}%";
@@ -427,7 +443,7 @@ namespace PixivWPF.Common
                         lastReceived = 0;
                     }
                     catch (Exception) { }
-                    lastTick = endTick;
+                    lastTick = EndTick;
                 }
             });
         }
@@ -442,35 +458,47 @@ namespace PixivWPF.Common
 
                     progress.Report(Progress);
 
-                    if (State == DownloadState.Finished || State == DownloadState.NonExists)
+                    if (State == DownloadState.Finished)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
+                        this.Background = Application.Current.GetSucceedBrush();
+                    }
+                    else if (State == DownloadState.NonExists)
+                    {
+                        miRemove.IsEnabled = true;
+                        miStopDownload.IsEnabled = false;
+                        this.Background = Application.Current.GetNonExistsBrush();
                     }
                     else if (State == DownloadState.Downloading)
                     {
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = true;
+                        this.Background = Application.Current.GetBackgroundBrush();
                     }
                     else if (State == DownloadState.Writing)
                     {
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = false;
+                        this.Background = Application.Current.GetBackgroundBrush();
                     }
                     else if (State == DownloadState.Idle)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
+                        this.Background = Application.Current.GetBackgroundBrush();
                     }
                     else if (State == DownloadState.Failed)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
+                        this.Background = Application.Current.GetFailedBrush();
                     }
                     else
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
+                        this.Background = Application.Current.GetBackgroundBrush();
                     }
                     miOpenImage.IsEnabled = FileName.IsDownloaded();
                     miOpenFolder.IsEnabled = true;
@@ -523,9 +551,6 @@ namespace PixivWPF.Common
                 PART_OpenFile.IsEnabled = true;
                 PART_OpenFolder.IsEnabled = true;
                 State = DownloadState.Finished;
-                progress.Report(finishedProgress);
-                $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
-                this.Sound();
             }
             catch (Exception ex)
             {
@@ -535,10 +560,6 @@ namespace PixivWPF.Common
             }
             finally
             {
-                IsStart = false;
-                if (State == DownloadState.Finished) result = FileName;
-                if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
-                cancelSource = null;
             }
             return (result);
         }
@@ -550,7 +571,7 @@ namespace PixivWPF.Common
             {
                 if (File.Exists(source))
                 {
-                    startTick = DateTime.Now;
+                    StartTick = DateTime.Now;
                     FailReason = string.Empty;
                     State = DownloadState.Writing;
                     var fi = new FileInfo(source);
@@ -563,9 +584,6 @@ namespace PixivWPF.Common
                     PART_OpenFile.IsEnabled = true;
                     PART_OpenFolder.IsEnabled = true;
                     State = DownloadState.Finished;
-                    progress.Report(finishedProgress);
-                    $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
-                    this.Sound();
                 }
             }
             catch (Exception ex)
@@ -576,10 +594,6 @@ namespace PixivWPF.Common
             }
             finally
             {
-                IsStart = false;
-                if (State == DownloadState.Finished) result = FileName;
-                if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
-                cancelSource = null;
             }
             return (result);
         }
@@ -628,7 +642,7 @@ namespace PixivWPF.Common
                                 }
 
                                 bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
-                                endTick = DateTime.Now;
+                                EndTick = DateTime.Now;
 
                                 if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
                                 {
@@ -655,12 +669,9 @@ namespace PixivWPF.Common
                     result = await Url.DownloadImage(FileName);
                     result.Touch(Url);
                     Length = result.GetFileLength();
-                    if (Length < 0) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File not exists.");
+                    if (Length <= 0) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File not exists.");
                     Received = Length;
                     State = DownloadState.Finished;
-                    progress.Report(Progress);
-                    $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
-                    this.Sound();
                 }
             }
             catch(Exception ex)
@@ -681,8 +692,24 @@ namespace PixivWPF.Common
             IsStart = false;
             Canceling = false;
 
-            if (State == DownloadState.Finished) result = FileName;
-            else if (State == DownloadState.Downloading) State = DownloadState.Failed;
+            setting = Application.Current.LoadSetting();
+
+            if (State == DownloadState.Finished)
+            {
+                result = FileName;
+                EndTick = DateTime.Now;
+
+                if (setting.DownloadCompletedToast)
+                    $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
+                if (setting.DownloadCompletedSound && StartTick.DeltaSeconds(EndTick) > setting.DownloadCompletedSoundForElapsedSeconds)
+                    this.Sound();
+            }
+            else if (State == DownloadState.Downloading)
+            {
+                FailReason = "Unkonwn failed reason when downloading.";
+                State = DownloadState.Failed;
+            }
+
             progress.Report(Progress);
 
             if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
@@ -707,13 +734,13 @@ namespace PixivWPF.Common
                     cancelSource = new CancellationTokenSource();
                     cancelToken = cancelSource.Token;
 
-                    startTick = DateTime.Now;
+                    StartTick = DateTime.Now;
                     FailReason = string.Empty;
                     State = DownloadState.Downloading;
 
                     using (var response = await GetAsyncResponse(Url))
                     {
-                        endTick = DateTime.Now;
+                        EndTick = DateTime.Now;
                         lastReceived = 0;
                         Received = 0;
 
@@ -749,7 +776,7 @@ namespace PixivWPF.Common
                     cancelSource = new CancellationTokenSource();
                     cancelToken = cancelSource.Token;
 
-                    startTick = DateTime.Now;
+                    StartTick = DateTime.Now;
                     FailReason = string.Empty;
                     State = DownloadState.Downloading;
 
@@ -758,7 +785,7 @@ namespace PixivWPF.Common
                     {
                         if(async_response is Pixeez.AsyncResponse)
                         {
-                            endTick = DateTime.Now;
+                            EndTick = DateTime.Now;
                             lastReceived = 0;
                             Received = 0;
 
@@ -806,7 +833,7 @@ namespace PixivWPF.Common
                         {
                             IsStart = false;
                             Canceling = false;
-                            startTick = DateTime.Now;
+                            StartTick = DateTime.Now;
                             FailReason = string.Empty;
                             State = DownloadState.Downloading;
                             SaveFile(FileName, fc);

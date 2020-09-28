@@ -90,7 +90,7 @@
                                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem x:Name="ActionCopyCachedWith" x:Uid="ActionOpenWith" Header="Copy Cached To Clibboard" Click="ActionIllustInfo_Click">
+                            <MenuItem x:Name="ActionCopyCachedWith" x:Uid="ActionCopyImage" Header="Copy Preview" Click="ActionIllustInfo_Click">
                                 <MenuItem.Icon>
                                     <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>

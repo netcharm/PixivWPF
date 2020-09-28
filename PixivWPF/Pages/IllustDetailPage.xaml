@@ -235,7 +235,7 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                             <MenuItem x:Name="PreviewCopyImage" x:Uid="ActionCopyImage" 
-                                Header="Copy Preview To Clipboard" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                Header="Copy Preview" Visibility="Visible" Click="ActionIllustInfo_Click">
                                 <MenuItem.Icon>
                                     <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>

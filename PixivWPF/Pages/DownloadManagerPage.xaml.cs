@@ -43,6 +43,11 @@ namespace PixivWPF.Pages
             get { return items; }
         }
 
+        public void UpdateTheme()
+        {
+            UpdateDownloadState();
+        }
+
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
             foreach (var item in Items)
