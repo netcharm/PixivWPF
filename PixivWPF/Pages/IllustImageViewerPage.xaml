@@ -90,7 +90,7 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator/>
-                            <MenuItem x:Name="ActionOpenCachedWith" x:Uid="ActionOpenWith" Header="Open Cached With..." Click="ActionIllustInfo_Click">
+                            <MenuItem x:Name="ActionOpenCachedWith" x:Uid="ActionOpenWith" Header="Open Preview With..." Click="ActionIllustInfo_Click">
                                 <MenuItem.Icon>
                                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                 </MenuItem.Icon>
