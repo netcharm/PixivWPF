@@ -196,6 +196,14 @@ namespace PixivWPF.Common
                 !accent.Equals(CurrentAccent, StringComparison.CurrentCultureIgnoreCase))
             {
                 ThemeManager.Current.ChangeTheme(Application.Current, style, accent);
+                setting = Application.Current.LoadSetting();
+                if (setting.CurrentAccent.Equals(accent, StringComparison.CurrentCultureIgnoreCase) || 
+                    setting.CurrentTheme.Equals(style, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    setting.CurrentAccent = accent;
+                    setting.CurrentTheme = style;
+                    setting.Save();
+                }
             }
         }
 
@@ -203,7 +211,7 @@ namespace PixivWPF.Common
         {
             if(!string.IsNullOrEmpty(theme))
             {
-                ThemeManager.Current.ChangeTheme(Application.Current, theme);
+                CurrentTheme = theme;
             }
         }
 
@@ -215,6 +223,17 @@ namespace PixivWPF.Common
                 if (Themes.Contains(value))
                 {
                     ThemeManager.Current.ChangeTheme(Application.Current, value);
+                    var theme = ThemeManager.Current.DetectTheme(Application.Current);
+                    var color = theme.ColorScheme;
+                    var style = theme.BaseColorScheme;
+                    setting = Application.Current.LoadSetting();
+                    if (setting.CurrentAccent.Equals(color, StringComparison.CurrentCultureIgnoreCase) ||
+                        setting.CurrentTheme.Equals(style, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        setting.CurrentAccent = color;
+                        setting.CurrentTheme = style;
+                        setting.Save();
+                    }
                 }
             }
         }
@@ -228,7 +247,7 @@ namespace PixivWPF.Common
                 {
                     ThemeManager.Current.ChangeThemeColorScheme(Application.Current, value);
                     setting = Application.Current.LoadSetting();
-                    if (setting.CurrentAccent != value)
+                    if (setting.CurrentAccent.Equals(value, StringComparison.CurrentCultureIgnoreCase))
                     {
                         setting.CurrentAccent = value;
                         setting.Save();
@@ -246,7 +265,7 @@ namespace PixivWPF.Common
                 {
                     ThemeManager.Current.ChangeThemeBaseColor(Application.Current, value);
                     setting = Application.Current.LoadSetting();
-                    if (setting.CurrentTheme != value)
+                    if (setting.CurrentTheme.Equals(value, StringComparison.CurrentCultureIgnoreCase))
                     {
                         setting.CurrentTheme = value;
                         setting.Save();
@@ -502,7 +521,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (Color.FromScRgb(0.2f, AccentColor.ScR, AccentColor.ScG, AccentColor.ScB));
+                return (Color.FromScRgb(1.0f, AccentColor.ScR, AccentColor.ScG, AccentColor.ScB));
             }
         }
 
@@ -518,7 +537,8 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (Color.FromScRgb(0.2f, ErrorColor.ScR, ErrorColor.ScG, ErrorColor.ScB));
+                var color = WarningBrush.ToColor();
+                return (Color.FromScRgb(0.8f, color.ScR, color.ScG, color.ScB));
             }
         }
 
@@ -526,7 +546,8 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (WarningColor.ToBrush());
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Control.Validation"] as Brush);
             }
         }
 
@@ -534,7 +555,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (Color.FromScRgb(0.3f, ErrorColor.ScR, ErrorColor.ScG, ErrorColor.ScB));
+                return (Color.FromScRgb(0.5f, ErrorColor.ScR, ErrorColor.ScG, ErrorColor.ScB));
             }
         }
 
@@ -550,7 +571,8 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (Color.FromScRgb(0.4f, SystemErrorTextColor.ScR, SystemErrorTextColor.ScG, SystemErrorTextColor.ScB));
+                var color = ErrorBrush.ToColor();
+                return (Color.FromScRgb(0.4f, color.ScR, color.ScG, color.ScB));
             }
         }
 
@@ -558,7 +580,9 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (ErrorColor.ToBrush());
+                //return (ErrorColor.ToBrush());
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.SystemControlErrorTextForeground"] as Brush);
             }
         }
         #endregion
