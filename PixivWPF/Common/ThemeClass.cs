@@ -538,7 +538,7 @@ namespace PixivWPF.Common
             get
             {
                 var color = WarningBrush.ToColor();
-                return (Color.FromScRgb(0.8f, color.ScR, color.ScG, color.ScB));
+                return (Color.FromScRgb(1.0f, color.ScR, color.ScG, color.ScB));
             }
         }
 
@@ -555,7 +555,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (Color.FromScRgb(0.5f, ErrorColor.ScR, ErrorColor.ScG, ErrorColor.ScB));
+                return (Color.FromScRgb(1.0f, ErrorColor.ScR, ErrorColor.ScG, ErrorColor.ScB));
             }
         }
 
@@ -572,7 +572,7 @@ namespace PixivWPF.Common
             get
             {
                 var color = ErrorBrush.ToColor();
-                return (Color.FromScRgb(0.4f, color.ScR, color.ScG, color.ScB));
+                return (Color.FromScRgb(1.0f, color.ScR, color.ScG, color.ScB));
             }
         }
 

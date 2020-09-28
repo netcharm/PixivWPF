@@ -347,12 +347,12 @@ namespace PixivWPF.Common
 
         public static Color GetNonExistsColor(this Application app)
         {
-            return (Theme.Gray10Color);
+            return (Theme.Gray5Color);
         }
 
         public static Brush GetNonExistsBrush(this Application app)
         {
-            return (Theme.Gray10Brush);
+            return (Theme.Gray5Brush);
         }
 
         public static string GetStyle(this Application app)
