@@ -2963,7 +2963,7 @@ namespace PixivWPF.Common
                 var sendData = contents.Trim();
                 if (string.IsNullOrEmpty(sendData)) return;
 
-                var pipes = System.IO.Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
+                var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
 #if DEBUG
                 if (pipes.Length > 0)
                 {
@@ -2982,9 +2982,9 @@ namespace PixivWPF.Common
                     try
                     {
                         var pipeName = pipe.Substring(9);
-#if !DEBUG
-                        if (pipeName.Equals(current, StringComparison.CurrentCultureIgnoreCase)) continue;
-#endif
+                        if (pipeName.Equals(current, StringComparison.CurrentCultureIgnoreCase) && 
+                            Keyboard.Modifiers != ModifierKeys.Control) continue;
+
                         using (var pipeClient = new NamedPipeClientStream(".", pipeName,
                             PipeDirection.Out, PipeOptions.Asynchronous,
                             System.Security.Principal.TokenImpersonationLevel.Impersonation))

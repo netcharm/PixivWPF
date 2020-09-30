@@ -151,7 +151,7 @@ namespace PixivWPF.Common
 
         private string GetVoiceName(CultureInfo culture)
         {
-            string result = null;
+            string result = string.Empty;
             if (culture is CultureInfo)
             {
                 foreach (InstalledVoice voice in synth.GetInstalledVoices())
@@ -165,6 +165,33 @@ namespace PixivWPF.Common
                     }
                 }
             }
+            return (result);
+        }
+
+        private string GetCustomVoiceName(CultureInfo culture)
+        {
+            string result = string.Empty;
+            var nvs = GetVoiceNames();
+            if (nvs.ContainsKey(culture))
+            {
+                //string[] ns = new string[] {"huihui", "yaoyao", "lili", "yating", "hanhan", "haruka", "ayumi", "heami", "david", "zira"};
+                foreach (var n in nametable[culture])
+                {
+                    var found = false;
+                    foreach (var nl in nvs[culture])
+                    {
+                        var nll = nl.ToLower();
+                        if (nll.Contains(n))
+                        {
+                            result = nl;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) break;
+                }
+            }
+            if (string.IsNullOrEmpty(result)) result = GetVoiceName(culture);
             return (result);
         }
 
@@ -205,29 +232,10 @@ namespace PixivWPF.Common
 
                 synth.SelectVoice(voice_default);
 
-                if (!(locale is CultureInfo))
-                    locale = DetectCulture(text);
+                if (!(locale is CultureInfo)) locale = DetectCulture(text);
 
-                var nvs = GetVoiceNames();
-                if (nvs.ContainsKey(locale))
-                {
-                    //string[] ns = new string[] {"huihui", "yaoyao", "lili", "yating", "hanhan", "haruka", "ayumi", "heami", "david", "zira"};
-                    foreach (var n in nametable[locale])
-                    {
-                        var found = false;
-                        foreach (var nl in nvs[locale])
-                        {
-                            var nll = nl.ToLower();
-                            if (nll.Contains(n))
-                            {
-                                synth.SelectVoice(nl);
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (found) break;
-                    }
-                }
+                var voice = GetCustomVoiceName(locale);
+                if(!string.IsNullOrEmpty(voice)) synth.SelectVoice(voice);
 
                 //synth.Volume = 100;  // 0...100
                 //synth.Rate = 0;     // -10...10
@@ -261,15 +269,82 @@ namespace PixivWPF.Common
 #endif            
         }
 
-        public async void Play(IEnumerable<string> contents, CultureInfo locale = null)
+        public void Play(PromptBuilder prompt, CultureInfo locale = null, bool async = true)
         {
-            await new Action(() =>
+            if (!(synth is SpeechSynthesizer)) return;
+
+            if (!(prompt is PromptBuilder) || prompt.IsEmpty) return;
+
+            var voices = synth.GetInstalledVoices();
+            if (voices.Count <= 0) return;
+
+            if (synth.State == SynthesizerState.Paused)
             {
-                foreach (var text in contents)
-                {
-                    Play(text, locale, false);
-                }
-            }).InvokeAsync();
+                synth.Resume();
+                return;
+            }
+
+            try
+            {
+                synth.SpeakAsyncCancelAll();
+                synth.Resume();
+
+                synth.SelectVoice(voice_default);
+
+                if (!(locale is CultureInfo)) locale = prompt.Culture;
+
+                var voice = GetCustomVoiceName(locale);
+                if (!string.IsNullOrEmpty(voice)) synth.SelectVoice(voice);
+
+                //synth.Volume = 100;  // 0...100
+                //synth.Rate = 0;     // -10...10
+                var prompt_xml = prompt.ToXml();
+                if (prompt_xml.Equals(SPEECH_TEXT, StringComparison.CurrentCultureIgnoreCase) &&
+                    SPEECH_CULTURE.IetfLanguageTag.Equals(locale.IetfLanguageTag, StringComparison.CurrentCultureIgnoreCase))
+                    SPEECH_SLOW = !SPEECH_SLOW;
+                else
+                    SPEECH_SLOW = false;
+
+                if (SPEECH_SLOW) synth.Rate = -5;
+                else synth.Rate = 0;
+
+                synth.SpeakAsyncCancelAll();
+                synth.Resume();
+
+                if (async)
+                    synth.SpeakAsync(prompt);  // Asynchronous
+                else
+                    synth.Speak(prompt);       // Synchronous
+
+                SPEECH_TEXT = prompt_xml;
+                SPEECH_CULTURE = prompt.Culture;
+            }
+#if DEBUG
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+#else
+            catch (Exception) { }
+#endif            
+        }
+
+        public void Play(IEnumerable<string> contents, CultureInfo locale = null)
+        {
+            var prompt = new PromptBuilder();
+            prompt.ClearContent();
+            foreach (var text in contents)
+            {
+                var culture = locale == null ? DetectCulture(text) : locale;
+                prompt.StartParagraph(culture);
+                prompt.StartSentence(culture);
+                prompt.StartVoice(GetCustomVoiceName(culture));
+                prompt.AppendText(text);
+                prompt.EndVoice();
+                prompt.EndSentence();
+                prompt.EndParagraph();
+            }
+            Play(prompt);
         }
 
         public void Pause()

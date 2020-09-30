@@ -16,7 +16,7 @@ namespace PixivWPF
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            var setting = Application.Current.LoadSetting();
+            var setting = Application.Current.LoadSetting(true);
         }
     }
 }
