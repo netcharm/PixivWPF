@@ -6352,7 +6352,7 @@ namespace PixivWPF.Common
                 {
                     var tlist = text.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                     if (tlist.Count() == 1)
-                        t2s.Play(tlist[0], culture, async);
+                        t2s.Play(text, culture, async);
                     else if (tlist.Count() > 1)
                         t2s.Play(tlist, culture);
                 }
