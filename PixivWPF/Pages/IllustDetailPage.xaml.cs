@@ -690,8 +690,9 @@ namespace PixivWPF.Pages
                 IllustAuthorAvatorWait.Show();
 
                 IllustTitle.Text = $"{item.Illust.Title}";
+                IllustTitle.ToolTip = IllustTitle.Text.TranslatedTag();
 
-                if(item.Sanity.Equals("18+"))
+                if (item.Sanity.Equals("18+"))
                     IllustSanity.Text = "18";
                 else if (item.Sanity.Equals("17+"))
                     IllustSanity.Text = "17";
@@ -810,6 +811,8 @@ namespace PixivWPF.Pages
             }
             finally
             {
+                item.Illust.AddToHistory();
+                Application.Current.DoEvents();
                 IllustDetailWait.Hide();
             }
         }
@@ -929,6 +932,8 @@ namespace PixivWPF.Pages
             }
             finally
             {
+                user.AddToHistory();
+                Application.Current.DoEvents();
                 IllustDetailWait.Hide();
             }
         }
@@ -1295,6 +1300,7 @@ namespace PixivWPF.Pages
             InitializeComponent();
 
             RelativeIllusts.Columns = 5;
+            FavoriteIllusts.Columns = 5;
 
             IllustDetailWait.Visibility = Visibility.Collapsed;
             btnSubPagePrev.Hide();
@@ -1433,7 +1439,7 @@ namespace PixivWPF.Pages
                                     {
                                         await new Action(() =>
                                         {
-                                            CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                            CommonHelper.Cmd_Open.Execute(illust);
                                         }).InvokeAsync();
                                     }
                                     else
@@ -1443,7 +1449,7 @@ namespace PixivWPF.Pages
                                         {
                                             await new Action(() =>
                                             {
-                                                CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                                CommonHelper.Cmd_Open.Execute(illust);
                                             }).InvokeAsync();
                                         }
                                     }
@@ -1457,7 +1463,7 @@ namespace PixivWPF.Pages
                                 {
                                     await new Action(() =>
                                     {
-                                        CommonHelper.Cmd_OpenIllust.Execute(user);
+                                        CommonHelper.Cmd_Open.Execute(user);
                                     }).InvokeAsync();
                                 }
                                 else
@@ -1467,7 +1473,7 @@ namespace PixivWPF.Pages
                                     {
                                         await new Action(() =>
                                         {
-                                            CommonHelper.Cmd_OpenIllust.Execute(user);
+                                            CommonHelper.Cmd_Open.Execute(user);
                                         }).InvokeAsync();
                                     }
                                 }
@@ -1642,14 +1648,16 @@ namespace PixivWPF.Pages
                         var text = GetText(browser);
                         if (sender == IllustTagsHtml) text = text.Replace("#", " ");
                         if (!string.IsNullOrEmpty(text))
-                            Clipboard.SetDataObject(text, true);
+                            CommonHelper.Cmd_CopyText.Execute(text);
                     }
                     else if (e.Shift && e.KeyCode == System.Windows.Forms.Keys.C)
                     {
-                        var html = GetText(browser, true);
-                        var text = GetText(browser, false);
-                        var data = ClipboardHelper.CreateDataObject(html, text);
-                        Clipboard.SetDataObject(data, true);
+                        var data = new HtmlTextData()
+                        {
+                            Html = GetText(browser, true),
+                            Text = GetText(browser, false)
+                        };
+                        CommonHelper.Cmd_CopyText.Execute(data);
                     }
                     else if (e.KeyCode == System.Windows.Forms.Keys.F5)
                     {
@@ -1926,7 +1934,7 @@ namespace PixivWPF.Pages
                         {
                             if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
                                 SubIllusts.SelectedIndex = 0;
-                            CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+                            CommonHelper.Cmd_Open.Execute(SubIllusts);
                         }
                         e.Handled = true;
                     }
@@ -1974,16 +1982,16 @@ namespace PixivWPF.Pages
             if (sender == ActionCopyIllustTitle || sender == IllustTitle)
             {
                 if (Keyboard.Modifiers == ModifierKeys.None)
-                    Clipboard.SetDataObject($"{IllustTitle.Text}");
+                    CommonHelper.Cmd_CopyText.Execute($"{IllustTitle.Text}");
                 else
-                    Clipboard.SetDataObject($"title:{IllustTitle.Text}");
+                    CommonHelper.Cmd_CopyText.Execute($"title:{IllustTitle.Text}");
             }
             else if (sender == ActionCopyIllustAuthor || sender == IllustAuthor)
             {
                 if (Keyboard.Modifiers == ModifierKeys.None)
-                    Clipboard.SetDataObject($"{IllustAuthor.Text}");
+                    CommonHelper.Cmd_CopyText.Execute($"{IllustAuthor.Text}");
                 else
-                    Clipboard.SetDataObject($"user:{IllustAuthor.Text}");
+                    CommonHelper.Cmd_CopyText.Execute($"user:{IllustAuthor.Text}");
             }
             else if (sender == ActionCopyAuthorID)
             {
@@ -2008,7 +2016,7 @@ namespace PixivWPF.Pages
             }
             else if (sender == ActionCopyIllustDate || sender == IllustDate)
             {
-                Clipboard.SetDataObject(ActionCopyIllustDate.Header.ToString());
+                CommonHelper.Cmd_CopyText.Execute(ActionCopyIllustDate.Header);
             }
             else if (sender == ActionIllustWebPage)
             {
@@ -2031,7 +2039,7 @@ namespace PixivWPF.Pages
                     {
                         await new Action(() =>
                         {
-                            CommonHelper.Cmd_OpenIllust.Execute(item.Illust);
+                            CommonHelper.Cmd_Open.Execute(item.Illust);
                         }).InvokeAsync();
                     }
                 }
@@ -2044,7 +2052,7 @@ namespace PixivWPF.Pages
                     if (item.Illust is Pixeez.Objects.Work)
                     {
                         var href = item.ID.ArtworkLink();
-                        Clipboard.SetDataObject(href);
+                        CommonHelper.Cmd_CopyText.Execute(href);
                     }
                 }
             }
@@ -2177,7 +2185,7 @@ namespace PixivWPF.Pages
                     if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
                         SubIllusts.SelectedIndex = 0;
                     IllustDownloaded.Visibility = (DataObject as ImageItem).IsDownloadedVisibility;
-                    CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+                    CommonHelper.Cmd_Open.Execute(SubIllusts);
                 }
             }
         }
@@ -2519,14 +2527,14 @@ namespace PixivWPF.Pages
 
         private void SubIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+            CommonHelper.Cmd_Open.Execute(SubIllusts);
         }
 
         private void SubIllusts_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+                CommonHelper.Cmd_Open.Execute(SubIllusts);
             }
         }
 
@@ -2686,7 +2694,7 @@ namespace PixivWPF.Pages
 
         private void ActionOpenRelative_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+            CommonHelper.Cmd_Open.Execute(RelativeIllusts);
         }
 
         private void ActionCopyRelativeIllustID_Click(object sender, RoutedEventArgs e)
@@ -2710,14 +2718,14 @@ namespace PixivWPF.Pages
 
         private void RelativeIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+            CommonHelper.Cmd_Open.Execute(RelativeIllusts);
         }
 
         private void RelativeIllusts_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+                CommonHelper.Cmd_Open.Execute(RelativeIllusts);
             }
         }
 
@@ -2774,7 +2782,7 @@ namespace PixivWPF.Pages
 
         private void ActionOpenFavorite_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
+            CommonHelper.Cmd_Open.Execute(FavoriteIllusts);
         }
 
         private void ActionCopyFavoriteIllustID_Click(object sender, RoutedEventArgs e)
@@ -2798,14 +2806,14 @@ namespace PixivWPF.Pages
 
         private void FavriteIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
+            CommonHelper.Cmd_Open.Execute(FavoriteIllusts);
         }
 
         private void FavriteIllusts_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
+                CommonHelper.Cmd_Open.Execute(FavoriteIllusts);
             }
         }
 
@@ -3069,15 +3077,15 @@ namespace PixivWPF.Pages
                     var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                     if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
                     {
-                        CommonHelper.Cmd_OpenIllust.Execute(SubIllusts);
+                        CommonHelper.Cmd_Open.Execute(SubIllusts);
                     }
                     else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                     {
-                        CommonHelper.Cmd_OpenIllust.Execute(RelativeIllusts);
+                        CommonHelper.Cmd_Open.Execute(RelativeIllusts);
                     }
                     else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
                     {
-                        CommonHelper.Cmd_OpenIllust.Execute(FavoriteIllusts);
+                        CommonHelper.Cmd_Open.Execute(FavoriteIllusts);
                     }
                     else if (host == CommentsExpander || host == CommentsViewer)
                     {

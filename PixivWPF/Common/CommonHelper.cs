@@ -81,6 +81,12 @@ namespace PixivWPF.Common
 
     public enum AutoExpandMode { OFF = 0, ON, AUTO, SINGLEPAGE };
 
+    public class HtmlTextData
+    {
+        public string Html { get; set; } = string.Empty;
+        public string Text { get; set; } = string.Empty;
+    }
+
     public class SimpleCommand : ICommand
     {
         public Predicate<object> CanExecuteDelegate { get; set; }
@@ -647,6 +653,7 @@ namespace PixivWPF.Common
                         //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Title.StartsWith("History", StringComparison.CurrentCultureIgnoreCase)) continue;
                         titles.Add(win.Title);
                     }
                     else continue;
@@ -1163,6 +1170,152 @@ namespace PixivWPF.Common
             return decrypt;
         }
         #endregion
+
+        #region Visit History
+        private static Queue<ImageItem> _history = new Queue<ImageItem>();
+        private static ObservableCollection<ImageItem> history = new ObservableCollection<ImageItem>();
+        public static ObservableCollection<ImageItem> History { get { return (HistorySource(null)); } }
+
+        public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust)
+        {
+            //if(_history is Queue<ImageItem>)
+            //{
+            //    var new_id = illust.Id ?? -1;                
+            //    if (_history.Count() > 0)
+            //    {
+            //        var last = _history.Last();
+            //        if (last.ItemType != ImageItemType.User)
+            //        {
+            //            var last_id = last.Illust.Id ?? -1;
+            //            if (last_id == new_id) return;
+            //        }
+            //    }
+            //    var illusts = _history.Where(i => i.ItemType != ImageItemType.User).Distinct();
+            //    var found = illusts.Where(i => i.Illust.Id == new_id);
+            //    if (found.Count() == 1)
+            //    {
+            //        _history.Enqueue(illust.IllustItem());
+            //        HistoryUpdate(app);
+            //        return;
+            //    }
+            //    var setting = app.LoadSetting();
+            //    if (_history.Count > setting.MaxHistory) _history.Dequeue();
+            //    HistoryUpdate(app);
+            //}
+
+            if (history is ObservableCollection<ImageItem>)
+            {
+                var new_id = illust.Id ?? -1;
+                if (history.Count() > 0)
+                {
+                    var last_item = history.First();
+                    if (last_item.ItemType != ImageItemType.User)
+                    {
+                        var last_id = last_item.Illust.Id ?? -1;
+                        if (last_id == new_id) return;
+                    }
+                }
+
+                var illusts = history.Where(i => i.ItemType != ImageItemType.User).Distinct();
+                var found = illusts.Where(i => i.Illust.Id == new_id);
+                if (found.Count() >= 1)
+                {
+                    history.Move(history.IndexOf(found.FirstOrDefault()), 0);
+                }
+                else
+                {
+                    history.Insert(0, illust.IllustItem());
+                    var setting = app.LoadSetting();
+                    if (history.Count > setting.MaxHistory) history.Remove(history.Last());
+                }
+                HistoryUpdate(app);
+            }
+        }
+
+        public static void HistoryAdd(this Application app, Pixeez.Objects.UserBase user)
+        {
+            if (history is ObservableCollection<ImageItem>)
+            {
+                var new_id = user.Id ?? -1;
+                if (history.Count() > 0)
+                {
+                    var last_item = history.First();
+                    if (last_item.ItemType == ImageItemType.User)
+                    {
+                        var last_id = last_item.Illust.Id ?? -1;
+                        if (last_id == new_id) return;
+                    }
+                }
+                var users = history.Where(i => i.ItemType == ImageItemType.User).Distinct();
+                var found = users.Where(i => i.User.Id == new_id);
+                if (found.Count() >= 1)
+                {
+                    history.Move(history.IndexOf(found.FirstOrDefault()), 0);
+                }
+                else
+                {
+                    history.Insert(0, user.UserItem());
+                    var setting = app.LoadSetting();
+                    if (history.Count > setting.MaxHistory) history.Remove(history.Last());
+                }
+                HistoryUpdate(app);
+            }
+        }
+
+        public static void HistoryUpdate(this Application app)
+        {
+            var win = "History".GetWindowByTitle();
+            if (win is ContentWindow && win.Content is HistoryPage) (win.Content as HistoryPage).UpdateDetail();
+        }
+
+        public static IEnumerable<ImageItem> HistoryList(this Application app)
+        {
+            var result = new List<ImageItem>();
+            if (history is ObservableCollection<ImageItem>)
+            {
+                result = history.ToList();
+            }
+            return (result);
+        }
+
+        public static ObservableCollection<ImageItem> HistorySource(this Application app)
+        {
+            return (history);
+            //return (new ObservableCollection<ImageItem>(history.Reverse()));
+        }
+
+        public static ImageItem HistoryRecent(this Application app, int num = 0)
+        {
+            if (history.Count > 0)
+            {
+                var index = history.Count > num ? history.Count - num -1 : history.Count - 1;
+                return (index >= 0 ? history.Skip(index).Take(1).FirstOrDefault() : null);
+            }
+            else return (null);
+        }
+
+        public static ImageItem HistoryRecentIllust(this Application app, int num = 0)
+        {
+            if (history.Count > 0)
+            {
+                var illusts = history.Where(h => h.ItemType != ImageItemType.User);
+                var index = illusts.Count() > num ? illusts.Count() - num -1 : illusts.Count() - 1;
+                return (index >= 0 ? illusts.Skip(index).Take(1).FirstOrDefault() : null);
+            }
+            else return (null);
+        }
+
+        public static ImageItem HistoryRecentUser(this Application app, int num = 0)
+        {
+            if (history.Count > 0)
+            {
+                var users = history.Where(h => h.ItemType == ImageItemType.User);
+                var index = users.Count() > num ? users.Count() - num -1 : users.Count() - 1;
+                return (index >= 0 ? users.Skip(index).Take(1).FirstOrDefault() : null);
+            }
+            else return (null);
+        }
+        #endregion
     }
 
     public static class PixeezExtensions
@@ -1214,6 +1367,54 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_CopyText { get; } = new DelegateCommand<object>(obj => 
+        {
+            if (obj is string)
+            {
+                var text = obj as string;
+                if (!string.IsNullOrEmpty(text))
+                {
+                    var data = new DataObject();
+                    data.SetData(DataFormats.Text, text);
+                    data.SetData(DataFormats.UnicodeText, text);
+                    Clipboard.SetDataObject(data, true);
+                }
+            }
+            else if (obj is HtmlTextData)
+            {
+                Cmd_CopyHtml.Execute(obj);
+            }
+            else
+            {
+                if(obj != null) Cmd_CopyText.Execute(obj.ToString());
+            }
+        });
+
+        public static ICommand Cmd_CopyHtml { get; } = new DelegateCommand<object>(obj =>
+        {
+            try
+            {
+                if (obj is string)
+                {
+                    var text = obj as string;
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        ClipboardHelper.CopyToClipboard(text, text);
+                    }
+                }
+                else if (obj is HtmlTextData)
+                {
+                    var ht = obj as HtmlTextData;
+                    ClipboardHelper.CopyToClipboard(ht.Html, ht.Text);
+                }
+                else
+                {
+                    Cmd_CopyText.Execute(obj);
+                }
+            }
+            catch (Exception) { }
+        });
+
         public static ICommand Cmd_CopyIllustIDs { get; } = new DelegateCommand<object>(obj =>
         {
             var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "id:" : string.Empty;
@@ -1230,8 +1431,7 @@ namespace PixivWPF.Common
                         var id = $"{prefix}{item.ID}";
                         if (!ids.Contains(id)) ids.Add(id);
                     }
-                    Clipboard.SetText(string.Join(Environment.NewLine, ids));
-                    //Clipboard.SetDataObject(string.Join(Environment.NewLine, ids));
+                    Cmd_CopyText.Execute(string.Join(Environment.NewLine, ids));
                 }
                 else if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -1239,7 +1439,7 @@ namespace PixivWPF.Common
                     if (page is IllustDetailPage)
                     {
                         if (page.Item is ImageItem && page.Item.ItemType != ImageItemType.User)
-                            Clipboard.SetText($"{prefix}{page.Item.ID}");
+                            Cmd_CopyText.Execute($"{prefix}{page.Item.ID}");
                     }
                 }
             }
@@ -1248,7 +1448,7 @@ namespace PixivWPF.Common
                 var item = obj as ImageItem;
                 if (item.Illust is Pixeez.Objects.Work)
                 {
-                    Clipboard.SetText($"{prefix}{item.ID}");
+                    Cmd_CopyText.Execute($"{prefix}{item.ID}");
                 }
             }
             else if (obj is IEnumerable<string>)
@@ -1259,12 +1459,12 @@ namespace PixivWPF.Common
                     var id = $"{prefix}{s}";
                     if (!ids.Contains(id)) ids.Add(id);
                 }
-                Clipboard.SetText(string.Join(Environment.NewLine, ids));
+                Cmd_CopyText.Execute(string.Join(Environment.NewLine, ids));
             }
             else if (obj is string)
             {
                 var id = (obj as string).ParseLink().ParseID();
-                if (!string.IsNullOrEmpty(id)) Clipboard.SetText($"{prefix}{id}");
+                if (!string.IsNullOrEmpty(id)) Cmd_CopyText.Execute($"{prefix}{id}");
             }
         });
 
@@ -1284,7 +1484,7 @@ namespace PixivWPF.Common
                         var uid = $"{prefix}{item.UserID}";
                         if (!ids.Contains(uid)) ids.Add(uid);
                     }
-                    Clipboard.SetText(string.Join(Environment.NewLine, ids));
+                    Cmd_CopyText.Execute(string.Join(Environment.NewLine, ids));
                 }
                 else if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -1292,7 +1492,7 @@ namespace PixivWPF.Common
                     if (page is IllustDetailPage)
                     {
                         if (page.Item is ImageItem)
-                            Clipboard.SetText($"{prefix}{page.Item.UserID}");
+                            Cmd_CopyText.Execute($"{prefix}{page.Item.UserID}");
                     }
                 }
             }
@@ -1301,7 +1501,7 @@ namespace PixivWPF.Common
                 var item = obj as ImageItem;
                 if (item.Illust is Pixeez.Objects.Work)
                 {
-                    Clipboard.SetText($"{prefix}{item.UserID}");
+                    Cmd_CopyText.Execute($"{prefix}{item.UserID}");
                 }
             }
             else if (obj is IEnumerable<string>)
@@ -1312,12 +1512,12 @@ namespace PixivWPF.Common
                     var uid = $"{prefix}{s}";
                     if (!ids.Contains(uid)) ids.Add(uid);
                 }
-                Clipboard.SetText(string.Join(Environment.NewLine, ids));
+                Cmd_CopyText.Execute(string.Join(Environment.NewLine, ids));
             }
             else if (obj is string)
             {
                 var id = (obj as string).ParseLink().ParseID();
-                if (!string.IsNullOrEmpty(id)) Clipboard.SetText($"{prefix}{id}");
+                if (!string.IsNullOrEmpty(id)) Cmd_CopyText.Execute($"{prefix}{id}");
             }
         });
 
@@ -1347,7 +1547,7 @@ namespace PixivWPF.Common
                     }
                 }
                 targets.Add("");
-                Clipboard.SetText(string.Join(Environment.NewLine, targets));
+                Cmd_CopyText.Execute(string.Join(Environment.NewLine, targets));
             }
             else if (obj is DownloadInfo)
             {
@@ -1383,7 +1583,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_OpenIllust { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand Cmd_Open { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is ImageListGrid)
             {
@@ -1422,6 +1622,10 @@ namespace PixivWPF.Common
                 {
                     Cmd_OpenWorkPreview.Execute(gallery);
                 }
+                else if (gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Cmd_OpenItem.Execute(gallery);
+                }
             }
         });
 
@@ -1442,7 +1646,7 @@ namespace PixivWPF.Common
                             Cmd_OpenUser.Execute(item.User);
                             break;
                         default:
-                            Cmd_OpenIllust.Execute(item.Illust);
+                            Cmd_Open.Execute(item.Illust);
                             break;
                     }
                 }
@@ -1697,7 +1901,7 @@ namespace PixivWPF.Common
                         if (Keyboard.Modifiers == ModifierKeys.Control)
                         {
                             IList<string> titles = Application.Current.OpenedWindowTitles();
-                            if (titles.Count > 0) Clipboard.SetText($"{string.Join(Environment.NewLine, titles)}{Environment.NewLine}");
+                            if (titles.Count > 0) Cmd_CopyText.Execute($"{string.Join(Environment.NewLine, titles)}{Environment.NewLine}");
                         }
                         else if (Keyboard.Modifiers == ModifierKeys.Shift)
                         {
@@ -1747,7 +1951,7 @@ namespace PixivWPF.Common
                         var illust = content.ParseID().FindIllust();
                         if (illust is Pixeez.Objects.Work)
                         {
-                            Cmd_OpenIllust.Execute(illust);
+                            Cmd_Open.Execute(illust);
                             return;
                         }
                     }
@@ -2008,6 +2212,27 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_OpenHistory { get; } = new DelegateCommand(async () =>
+        {
+            var title = $"History";
+            if (await title.ActiveByTitle()) return;
+
+            var page = new HistoryPage() { FontFamily = setting.FontFamily };
+            var viewer = new ContentWindow()
+            {
+                Title = title,
+                Width = WIDTH_MIN,
+                Height = HEIGHT_DEF,
+                MinWidth = WIDTH_MIN,
+                MinHeight = HEIGHT_MIN,
+                FontFamily = setting.FontFamily,
+                Content = page
+            };
+            viewer.Show();
+            await Task.Delay(1);
+            Application.Current.DoEvents();
+        });
+
         public static ICommand Cmd_OpenPixivPedia { get; } = new DelegateCommand<object>(async obj =>
         {
             if (obj is string)
@@ -2107,6 +2332,28 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Cmd_RefreshPage { get; } = new DelegateCommand<object>(obj =>
+        {
+            if (obj is IllustDetailPage)
+            {
+                var page = obj as IllustDetailPage;
+                if (page.Tag is ImageItem)
+                    page.UpdateDetail(page.Tag as ImageItem);
+                else if (page.Tag is Pixeez.Objects.UserBase)
+                    page.UpdateDetail(page.Tag as Pixeez.Objects.UserBase);
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                var page = obj as IllustImageViewerPage;
+                if (page.Tag is ImageItem)
+                    page.UpdateDetail(page.Tag as ImageItem);
+            }
+            else if (obj is HistoryPage)
+            {
+                var page = obj as HistoryPage;
+                page.UpdateDetail();
+            }
+        });
         #region Pixiv Token Helper
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
         private static async Task<Pixeez.Tokens> RefreshToken()
@@ -4726,7 +4973,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Illust Tile ListView routines
+        #region Illust routines
         #region SameIllust
         public static bool IsSameIllust(this string id, int hash)
         {
@@ -4820,6 +5067,28 @@ namespace PixivWPF.Common
         {
             setting = Application.Current.LoadSetting();
             return (GetSelected(gallery, setting.OpenWithSelectionOrder));
+        }
+        #endregion
+
+        #region History routines
+        public static void AddToHistory(this Pixeez.Objects.Work illust)
+        {
+            Application.Current.HistoryAdd(illust);
+        }
+
+        public static void AddToHistory(this Pixeez.Objects.User user)
+        {
+            Application.Current.HistoryAdd(user);
+        }
+
+        public static void AddToHistory(this Pixeez.Objects.UserBase user)
+        {
+            Application.Current.HistoryAdd(user);
+        }
+
+        public static void ShowHistory(this Application app)
+        {
+            Cmd_OpenHistory.Execute(null);
         }
         #endregion
 
@@ -5809,6 +6078,24 @@ namespace PixivWPF.Common
             {
             }
 
+            return (result);
+        }
+
+        public static MetroWindow GetWindowByTitle(this string title)
+        {
+            MetroWindow result = null;
+            foreach (Window win in Application.Current.Windows)
+            {
+                if (win is MetroWindow)
+                {
+                    var win_title = (win as MetroWindow).Title;
+                    if (win_title.Equals(title, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        result = win as MetroWindow;
+                        break;
+                    }
+                }
+            }
             return (result);
         }
 

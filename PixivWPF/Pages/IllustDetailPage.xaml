@@ -225,6 +225,53 @@
                                SnapsToDevicePixels="True" />
                     </Viewbox>
                 </Grid>
+                <Grid Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"
+                      Visibility="{Binding Visibility, Mode=OneWay, ElementName=IllustSanityInfo}">
+                    <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4">
+                        <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
+                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
+                            LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
+                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets" Margin="0" Padding="0"
+                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
+                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    </Grid>
+                    <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4">
+                        <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
+                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
+                            LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
+                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
+                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    </Grid>
+                    <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4">
+                        <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
+                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
+                            LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
+                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
+                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    </Grid>
+                    <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4">
+                        <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
+                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
+                            LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
+                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
+                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    </Grid>
+                </Grid>
                 <ContentControl Grid.Row="0" x:Name="PreviewBox" >
                     <ContentControl.ContextMenu>
                         <ContextMenu>
@@ -368,7 +415,7 @@
                             <TextBlock x:Name="IllustSanityMark" Text="&#xF140;"
                                 FontSize="20pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
                                 Foreground="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                         </Grid>
                         <StackPanel Grid.Column="2" x:Name="IllustDateInfo" Visibility="Collapsed" MinWidth="24" Margin="2,0,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
@@ -682,11 +729,7 @@
                 <Expander Grid.Row="2" Margin="0,4,0,0" IsExpanded="True"
                           x:Name="IllustTagExpander" x:Uid="IllustTagExpander"
                           Header="Tags" Visibility="Collapsed" Expanded="IllustTagExpander_Expanded">
-                    <StackPanel x:Name="IllustTagsHost"  Orientation="Vertical" AllowDrop="False">
-                        <!--<WindowsFormsHost x:Name="IllustTagsHtmlHost" Visibility="Collapsed"
-                                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                                          MinHeight="24" MaxHeight="480" Height="auto" UseLayoutRounding="True"/>-->
-                    </StackPanel>
+                    <StackPanel x:Name="IllustTagsHost"  Orientation="Vertical" AllowDrop="False"/>
                 </Expander>
                 <StackPanel Grid.Row="2" x:Name="TagPanel" 
                             Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
@@ -738,11 +781,7 @@
                 <Expander Grid.Row="3" Margin="0,4,0,0" IsExpanded="True"
                           x:Name="IllustDescExpander" x:Uid="IllustDescExpander"
                           Header="Description" Visibility="Collapsed" Expanded="IllustDescExpander_Expanded">
-                    <StackPanel x:Name="IllustDescHost" Orientation="Vertical" AllowDrop="False">
-                        <!--<WindowsFormsHost x:Name="IllustDescHtmlHost" Visibility="Collapsed"
-                                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                                          MinHeight="72" MaxHeight="480" Height="auto" UseLayoutRounding="True"/>-->
-                    </StackPanel>
+                    <StackPanel x:Name="IllustDescHost" Orientation="Vertical" AllowDrop="False"/>
                 </Expander>
                 <StackPanel Grid.Row="3" x:Name="DescPanel" 
                             Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"

@@ -201,16 +201,13 @@
             </Grid>
         </ScrollViewer>
 
-        <!-- Illust Open Progress Prompt -->
+        <!-- Illust Searching Progress Prompt -->
         <mah:ProgressRing Grid.Column="0"
                           x:Name="PreviewWait"
                           Width="128" Height="128" Opacity="0.62" 
                           Foreground="{DynamicResource MahApps.Brushes.Accent}"
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
-        <!-- Illust Save Progress -->
-        <mah:MetroProgressBar Grid.Column="0" x:Name="IllustsSaveProgress" x:Uid="IllustsSaveProgress" Height="8" VerticalAlignment="Bottom" Visibility="Collapsed"/>
 
     </Grid>
 </Page>

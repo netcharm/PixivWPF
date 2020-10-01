@@ -417,6 +417,113 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static ImageItem UserItem(this Pixeez.Objects.UserBase user, string nexturl = "")
+        {
+            ImageItem result = null;
+            try
+            {
+                if (user is Pixeez.Objects.User)
+                {
+                    var nu = user as Pixeez.Objects.User;
+                    var contact = nu.Profile is Pixeez.Objects.Profile ? nu.Profile.Contacts : null;
+                    var twitter = contact is Pixeez.Objects.Contacts ? $"📧{contact.Twitter}" : string.Empty;
+                    var web = nu.Profile is Pixeez.Objects.Profile ? $"🌐{nu.Profile.Homepage}" : string.Empty;
+                    var mail = string.IsNullOrEmpty(nu.Email) ? string.Empty : $"🖃{nu.Email}";
+
+                    var info = new List<string>() { twitter, web, mail };
+                    var tooltip = string.Join("\r\n", info).Trim();
+                    if (string.IsNullOrEmpty(tooltip))
+                    {
+                        var cu = nu.Id.FindUser();
+                        if (cu is Pixeez.Objects.User)
+                        {
+                            var u = cu as Pixeez.Objects.User;
+                            contact = u.Profile is Pixeez.Objects.Profile ? u.Profile.Contacts : null;
+                            twitter = contact is Pixeez.Objects.Contacts ? $"📧{contact.Twitter}" : string.Empty;
+                            web = u.Profile is Pixeez.Objects.Profile ? $"🌐{u.Profile.Homepage}" : string.Empty;
+                            mail = string.IsNullOrEmpty(u.Email) ? string.Empty : $"🖃{u.Email}";
+                            info = new List<string>() { twitter, web, mail };
+                            tooltip = string.Join("\r\n", info).Trim();
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(tooltip)) tooltip = null;
+
+                    var url = nu.GetAvatarUrl();
+
+                    result = new ImageItem()
+                    {
+                        ItemType = ImageItemType.User,
+                        NextURL = nexturl,
+                        Thumb = url,
+                        BadgeValue = nu.Stats == null ? null : nu.Stats.Works.Value.ToString(),
+                        IsFavorited = false,
+                        IsFollowed = nu.IsLiked(),
+                        Illust = null,
+                        ID = nu.Id.ToString(),
+                        User = nu,
+                        UserID = nu.Id.ToString(),
+                        Subject = contact == null ? $"{nu.Name}" : $"{nu.Name} - {contact.Twitter}",
+                        DisplayTitle = true,
+                        ToolTip = tooltip,
+                        Tag = nu
+                    };
+                }
+                else if(user is Pixeez.Objects.NewUser)
+                {
+                    var nu = user as Pixeez.Objects.NewUser;
+                    dynamic contact = null;
+                    var twitter = string.Empty;
+                    var web = string.Empty;
+                    var mail = string.IsNullOrEmpty(nu.Email) ? string.Empty : $"🖃{nu.Email}";
+
+                    var info = new List<string>() { twitter, web, mail };
+                    var tooltip = string.Join("\r\n", info).Trim();
+                    if (string.IsNullOrEmpty(tooltip))
+                    {
+                        var cu = nu.Id.FindUser();
+                        if (cu is Pixeez.Objects.User)
+                        {
+                            var u = cu as Pixeez.Objects.User;
+                            contact = u.Profile is Pixeez.Objects.Profile ? u.Profile.Contacts : null;
+                            twitter = contact is Pixeez.Objects.Contacts ? $"📧{contact.Twitter}" : string.Empty;
+                            web = u.Profile is Pixeez.Objects.Profile ? $"🌐{u.Profile.Homepage}" : string.Empty;
+                            mail = string.IsNullOrEmpty(u.Email) ? string.Empty : $"🖃{u.Email}";
+                            info = new List<string>() { twitter, web, mail };
+                            tooltip = string.Join("\r\n", info).Trim();
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(tooltip)) tooltip = null;
+
+                    var url = nu.GetAvatarUrl();
+
+                    result = new ImageItem()
+                    {
+                        ItemType = ImageItemType.User,
+                        NextURL = nexturl,
+                        Thumb = url,
+                        BadgeValue = null,
+                        IsFavorited = false,
+                        IsFollowed = nu.IsLiked(),
+                        Illust = null,
+                        ID = nu.Id.ToString(),
+                        User = nu,
+                        UserID = nu.Id.ToString(),
+                        Subject = contact == null ? $"{nu.Name}" : $"{nu.Name} - {contact.Twitter}",
+                        DisplayTitle = true,
+                        ToolTip = tooltip,
+                        Tag = nu
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR");
+            }
+            return (result);
+        }
+
         #region Image Tile Add Helper
         public static async void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Collection, string nexturl = "")
         {
@@ -532,54 +639,10 @@ namespace PixivWPF.Common
             {
                 if (user is Pixeez.Objects.User && Collection is IList<ImageItem>)
                 {
-                    var contact = user.Profile is Pixeez.Objects.Profile ? user.Profile.Contacts : null;
-                    var twitter = contact is Pixeez.Objects.Contacts ? $"📧{contact.Twitter}" : string.Empty;
-                    var web = user.Profile is Pixeez.Objects.Profile ? $"🌐{user.Profile.Homepage}" : string.Empty;
-                    var mail = string.IsNullOrEmpty(user.Email) ? string.Empty : $"🖃{user.Email}";
-
-                    var info = new List<string>() { twitter, web, mail };
-                    var tooltip = string.Join("\r\n", info).Trim();
-                    if (string.IsNullOrEmpty(tooltip))
-                    {
-                        var cu = user.Id.FindUser();
-                        if(cu is Pixeez.Objects.User)
-                        {
-                            var u = cu as Pixeez.Objects.User;
-                            contact = u.Profile is Pixeez.Objects.Profile ? u.Profile.Contacts : null;
-                            twitter = contact is Pixeez.Objects.Contacts ? $"📧{contact.Twitter}" : string.Empty;
-                            web = u.Profile is Pixeez.Objects.Profile ? $"🌐{u.Profile.Homepage}" : string.Empty;
-                            mail = string.IsNullOrEmpty(u.Email) ? string.Empty : $"🖃{u.Email}";
-                            info = new List<string>() { twitter, web, mail };
-                            tooltip = string.Join("\r\n", info).Trim();
-                        }                           
-                    }
-
-                    if (string.IsNullOrEmpty(tooltip)) tooltip = null;
-
-                    var url = user.GetAvatarUrl();
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        var i = new ImageItem()
-                        {
-                            ItemType = ImageItemType.User,
-                            Thumb = url,
-                            NextURL = nexturl,
-                            BadgeValue = user.Stats == null ? null : user.Stats.Works.Value.ToString(),
-                            IsFavorited = false,
-                            IsFollowed = user.IsLiked(),
-                            Illust = null,
-                            ID = user.Id.ToString(),
-                            User = user,
-                            UserID = user.Id.ToString(),
-                            Subject = user.Profile == null ? $"{user.Name}" : $"{user.Name} - {user.Profile.Contacts.Twitter}",
-                            DisplayTitle = true,
-                            ToolTip = tooltip,
-                            Tag = user
-                        };
-                        Collection.Add(i);
-                        await Task.Delay(1);
-                        i.DoEvents();
-                    }
+                    var u = user.UserItem(nexturl);
+                    Collection.Add(u);
+                    await Task.Delay(1);
+                    u.DoEvents();
                 }
             }
             catch (Exception ex)

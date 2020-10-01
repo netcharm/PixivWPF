@@ -1,7 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using Microsoft.Win32;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+
+using Newtonsoft.Json;
 
 namespace PixivWPF.Common
 {
@@ -263,6 +262,17 @@ namespace PixivWPF.Common
         public bool DownloadCompletedSound { get; set; } = true;
         public int DownloadCompletedSoundForElapsedSeconds { get; set; } = 60;
 
+        public int max_history = 100;
+        public int MaxHistory
+        {
+            get { return (max_history); }
+            set
+            {
+                max_history = value > 150 ? 150 : value;
+                if (Cache is Setting) Cache.max_history = max_history;
+            }
+        }
+        
         [JsonIgnore]
         private string lastfolder = string.Empty;
         [JsonIgnore]
@@ -430,6 +440,9 @@ namespace PixivWPF.Common
                 Cache.DropBoxPosition = new_setting.DropBoxPosition;
                 Cache.DownloadManagerPosition = new_setting.DownloadManagerPosition;
 
+                if (Cache.MaxHistory != new_setting.MaxHistory && new_setting.MaxHistory >= 0)
+                    Cache.MaxHistory = new_setting.MaxHistory;
+
                 if (Cache.SpeechPrefer != new_setting.SpeechPrefer)
                     Cache.SpeechPrefer = new_setting.SpeechPrefer;
 
@@ -508,10 +521,11 @@ namespace PixivWPF.Common
                         lastConfigUpdate = filetime;
                         if (File.Exists(configfile))
                         {
+                            var dso = new JsonSerializerSettings(){ Error = (se, ev) => ev.ErrorContext.Handled = true };
                             var text = File.ReadAllText(configfile);
                             if (Cache is Setting && text.Length > 20)
                             {
-                                var cache = JsonConvert.DeserializeObject<Setting>(text);
+                                var cache = JsonConvert.DeserializeObject<Setting>(text, dso);
                                 UpdateCache(cache);
                             }
                             else
@@ -519,7 +533,7 @@ namespace PixivWPF.Common
                                 if (text.Length < 20)
                                     Cache = new Setting();
                                 else
-                                    Cache = JsonConvert.DeserializeObject<Setting>(text);
+                                    Cache = JsonConvert.DeserializeObject<Setting>(text, dso);
                             }
 
                             if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))

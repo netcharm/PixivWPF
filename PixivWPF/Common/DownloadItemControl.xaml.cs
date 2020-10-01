@@ -962,9 +962,9 @@ namespace PixivWPF.Common
             {
                 var illust = Url.GetIllustId().FindIllust();
                 if (illust is Pixeez.Objects.Work)
-                    CommonHelper.Cmd_OpenIllust.Execute(illust);
+                    CommonHelper.Cmd_Open.Execute(illust);
                 else
-                    CommonHelper.Cmd_OpenIllust.Execute(Url);
+                    CommonHelper.Cmd_Open.Execute(Url);
             }
             else if (sender == miDownload || sender == PART_Download)
             {

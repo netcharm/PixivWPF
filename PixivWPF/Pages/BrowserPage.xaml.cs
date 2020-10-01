@@ -273,7 +273,7 @@ namespace PixivWPF.Pages
                                     {
                                         await new Action(() =>
                                         {
-                                            CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                            CommonHelper.Cmd_Open.Execute(illust);
                                         }).InvokeAsync();
                                     }
                                     else
@@ -283,7 +283,7 @@ namespace PixivWPF.Pages
                                         {
                                             await new Action(() =>
                                             {
-                                                CommonHelper.Cmd_OpenIllust.Execute(illust);
+                                                CommonHelper.Cmd_Open.Execute(illust);
                                             }).InvokeAsync();
                                         }
                                     }

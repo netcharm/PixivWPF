@@ -873,7 +873,7 @@ namespace PixivWPF.Pages
         {
             if ((IsPrivate || uid == 0) && setting.MyInfo is Pixeez.Objects.User)
             {
-                CommonHelper.Cmd_OpenIllust.Execute(setting.MyInfo);
+                CommonHelper.Cmd_Open.Execute(setting.MyInfo);
             }
             else
             {
@@ -890,7 +890,7 @@ namespace PixivWPF.Pages
 
                 if (Keyboard.Modifiers == ModifierKeys.Control || !(user is Pixeez.Objects.User))
                     user = await uid.RefreshUser();
-                CommonHelper.Cmd_OpenIllust.Execute(user);
+                CommonHelper.Cmd_Open.Execute(user);
             }
         }
 

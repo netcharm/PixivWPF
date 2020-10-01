@@ -342,7 +342,7 @@ namespace PixivWPF.Pages
                 if (sender == ActionCopyIllustID)
                     CommonHelper.Cmd_CopyIllustIDs.Execute(item);
                 else if (sender == ActionOpenIllust)
-                    CommonHelper.Cmd_OpenIllust.Execute(item.Illust);
+                    CommonHelper.Cmd_Open.Execute(item.Illust);
                 else if (sender == ActionOpenAuthor)
                     CommonHelper.Cmd_OpenUser.Execute(item.User);
                 else if (sender == ActionOpenCachedWith)

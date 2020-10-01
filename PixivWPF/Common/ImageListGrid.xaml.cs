@@ -2,6 +2,7 @@
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.IconPacks;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -91,6 +92,18 @@ namespace PixivWPF.Common
             get
             {
                 return ImageList;
+            }
+        }
+
+        [Description("Get or Set Image Tiles Source")]
+        [Category("Common Properties")]
+        public IEnumerable ItemsSource
+        {
+            get { return PART_ImageTiles.ItemsSource; }
+            set
+            {
+                ImageList = new ObservableCollection<ImageItem>(value as IEnumerable<ImageItem>);
+                PART_ImageTiles.ItemsSource = ImageList;
             }
         }
 
@@ -238,6 +251,7 @@ namespace PixivWPF.Common
         public void Refresh()
         {
             PART_ImageTiles.Items.Refresh();
+            //CollectionViewSource.GetDefaultView(this).Refresh();
         }
 
         private void TileBadge_TargetUpdated(object sender, DataTransferEventArgs e)

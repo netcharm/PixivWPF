@@ -77,8 +77,12 @@ namespace PixivWPF.Common
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (Content is IllustDetailPage || Content is IllustImageViewerPage) CommandPageRefresh.Visibility = Visibility.Visible;
-            else CommandPageRefresh.Visibility = Visibility.Collapsed;
+            if (Content is IllustDetailPage || 
+                Content is IllustImageViewerPage || 
+                Content is HistoryPage)
+                CommandPageRefresh.Visibility = Visibility.Visible;
+            else
+                CommandPageRefresh.Visibility = Visibility.Collapsed;
 
             if (this.DropBoxExists() == null)
                 CommandToggleDropbox.IsChecked = false;
@@ -152,20 +156,7 @@ namespace PixivWPF.Common
 
         private void CommandPageRefresh_Click(object sender, RoutedEventArgs e)
         {
-            if (Content is Pages.IllustDetailPage)
-            {
-                var page = Content as Pages.IllustDetailPage;
-                if(page.Tag is ImageItem)
-                    page.UpdateDetail(page.Tag as ImageItem);
-                else if(page.Tag is Pixeez.Objects.UserBase)
-                    page.UpdateDetail(page.Tag as Pixeez.Objects.UserBase);
-            }
-            else if (Content is Pages.IllustImageViewerPage)
-            {
-                var page = Content as Pages.IllustImageViewerPage;
-                if (page.Tag is ImageItem)
-                    page.UpdateDetail(page.Tag as ImageItem);
-            }
+            CommonHelper.Cmd_RefreshPage.Execute(Content);
         }
 
         private void CommandLogin_Click(object sender, RoutedEventArgs e)
@@ -185,6 +176,11 @@ namespace PixivWPF.Common
         private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
         {
             CommonHelper.Cmd_OpenDropBox.Execute(sender);
+        }
+
+        private void CommandHistory_Click(object sender, RoutedEventArgs e)
+        {
+            CommonHelper.Cmd_OpenHistory.Execute(null);
         }
 
         private void CommandSearch_Click(object sender, RoutedEventArgs e)

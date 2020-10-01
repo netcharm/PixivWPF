@@ -499,6 +499,11 @@ namespace PixivWPF
         {
             CommonHelper.Cmd_OpenDropBox.Execute(sender);
         }
+
+        private void CommandHistory_Click(object sender, RoutedEventArgs e)
+        {
+            CommonHelper.Cmd_OpenHistory.Execute(null);
+        }
     }
 
 }
