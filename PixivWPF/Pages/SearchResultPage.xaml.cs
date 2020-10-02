@@ -75,6 +75,17 @@ namespace PixivWPF.Pages
             }
         }
 
+        internal void UpdateDetail(string content)
+        {
+            DataType = content;
+            ResultExpander.Visibility = Visibility.Visible;
+            ResultExpander.IsExpanded = false;
+            ResultExpander.IsExpanded = true;
+
+            if (window != null)
+                window.SizeToContent = SizeToContent.WidthAndHeight;
+        }
+
         public SearchResultPage()
         {
             InitializeComponent();
@@ -115,17 +126,6 @@ namespace PixivWPF.Pages
 
             window = Window.GetWindow(this);
             if (!string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
-        }
-
-        internal void UpdateDetail(string content)
-        {
-            DataType = content;
-            ResultExpander.Visibility = Visibility.Visible;
-            ResultExpander.IsExpanded = false;
-            ResultExpander.IsExpanded = true;
-
-            if (window != null)
-                window.SizeToContent = SizeToContent.WidthAndHeight;
         }
 
         #region Search Result Panel related routines

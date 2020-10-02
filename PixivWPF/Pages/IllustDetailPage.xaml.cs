@@ -817,6 +817,16 @@ namespace PixivWPF.Pages
             }
         }
 
+        private string user_backgroundimage_url = string.Empty;
+        public async void UpdateUserBackground()
+        {
+            if (setting.ShowUserBackgroundImage)
+            {
+                if (string.IsNullOrEmpty(user_backgroundimage_url))
+                    Preview.Source = await user_backgroundimage_url.LoadImageFromUrl();
+            }
+        }
+
         private Pixeez.Objects.UserInfo UserInfo = null;
         private async void UpdateDetailUser(Pixeez.Objects.UserBase user)
         {
@@ -840,17 +850,15 @@ namespace PixivWPF.Pages
                 PreviewBox.Hide();
                 PreviewBox.Height = 0;
                 Preview.Source = null;
-                //if (nprof.background_image_url is string)
-                //    Preview.Source = await ((string)nprof.background_image_url).LoadImageFromURL();
-                //else
-                //    Preview.Source = await nuser.GetPreviewUrl().LoadImageFromURL();
+
+                user_backgroundimage_url = nprof.background_image_url is string ? nprof.background_image_url as string : nuser.GetPreviewUrl();
+                UpdateUserBackground();
 
                 IllustSizeIcon.Kind = PackIconModernKind.Image;
                 IllustSize.Text = $"{nprof.total_illusts + nprof.total_manga}";
                 IllustViewedIcon.Kind = PackIconModernKind.Check;
                 IllustViewed.Text = $"{nprof.total_follow_users}";
                 IllustFavorited.Text = $"{nprof.total_illust_bookmarks_public}";
-
                 IllustStatInfo.Show();
 
                 IllustTitle.Text = string.Empty;
@@ -1497,7 +1505,7 @@ namespace PixivWPF.Pages
                             {
                                 await new Action(() =>
                                 {
-                                    CommonHelper.Cmd_Search.Execute(href);
+                                    CommonHelper.Cmd_OpenSearch.Execute(href);
                                 }).InvokeAsync();
                             }
                             else
@@ -1511,9 +1519,9 @@ namespace PixivWPF.Pages
                     {
                         var tag_tooltip = link.GetAttribute("data-tooltip");
                         if(!e.AltKeyPressed && !e.CtrlKeyPressed && !e.ShiftKeyPressed)
-                            CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
+                            CommonHelper.Cmd_OpenSearch.Execute($"Fuzzy Tag:{tag}");
                         else if (e.AltKeyPressed && !e.CtrlKeyPressed && !e.ShiftKeyPressed)
-                            CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
+                            CommonHelper.Cmd_OpenSearch.Execute($"Tag:{tag}");
                         else if (!e.AltKeyPressed && !e.CtrlKeyPressed && e.ShiftKeyPressed)
                             CommonHelper.Cmd_OpenPixivPedia.Execute(tag);
                         else if (!e.AltKeyPressed && e.CtrlKeyPressed && !e.ShiftKeyPressed)
@@ -2163,10 +2171,6 @@ namespace PixivWPF.Pages
                 else
                 { 
                     CommonHelper.Cmd_OpenDownloaded.Execute(SubIllusts);
-                    //foreach (ImageItem item in SubIllusts.GetSelected())
-                    //{
-                    //    CommonHelper.Cmd_OpenDownloaded.Execute(item);
-                    //}
                 }
             }
             else if (sender == PreviewOpen)
@@ -2185,7 +2189,7 @@ namespace PixivWPF.Pages
                     if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
                         SubIllusts.SelectedIndex = 0;
                     IllustDownloaded.Visibility = (DataObject as ImageItem).IsDownloadedVisibility;
-                    CommonHelper.Cmd_Open.Execute(SubIllusts);
+                    CommonHelper.Cmd_OpenWorkPreview.Execute(SubIllusts);
                 }
             }
         }

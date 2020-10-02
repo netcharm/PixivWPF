@@ -109,7 +109,7 @@
         </StackPanel>
         <ListView Grid.Row="1"  x:Name="DownloadItems" x:Uid="DownloadItems"
                   IsSynchronizedWithCurrentItem="True"
-                  Style="{DynamicResource VirtualisedMetroListView}"
+                  Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
                   BorderThickness="0"
                   VirtualizingPanel.CacheLength ="0"
                   VirtualizingPanel.CacheLengthUnit="Item"

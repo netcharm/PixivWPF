@@ -263,16 +263,19 @@ namespace PixivWPF.Common
         public int DownloadCompletedSoundForElapsedSeconds { get; set; } = 60;
 
         public int max_history = 100;
-        public int MaxHistory
+        public int HistoryMax { get; set; } = 150;
+        public int HistoryLimit
         {
             get { return (max_history); }
             set
             {
-                max_history = value > 150 ? 150 : value;
+                max_history = value > HistoryMax ? HistoryMax : value;
                 if (Cache is Setting) Cache.max_history = max_history;
             }
         }
-        
+
+        public bool ShowUserBackgroundImage { get; set; } = false;
+
         [JsonIgnore]
         private string lastfolder = string.Empty;
         [JsonIgnore]
@@ -309,6 +312,7 @@ namespace PixivWPF.Common
         public bool PrivateBookmarkPrefer { get; set; } = false;
 
         public bool OpenWithSelectionOrder { get; set; } = true;
+        public bool AllForSelectionNone { get; set; } = false;
 
         private Dictionary<string, string> speech_names = SpeechTTS.GetNames();
         public Dictionary<string, string> SpeechPrefer
@@ -411,6 +415,8 @@ namespace PixivWPF.Common
 
                 if (Cache.OpenWithSelectionOrder != new_setting.OpenWithSelectionOrder)
                     Cache.OpenWithSelectionOrder = new_setting.OpenWithSelectionOrder;
+                if (Cache.AllForSelectionNone != new_setting.AllForSelectionNone)
+                    Cache.AllForSelectionNone = new_setting.AllForSelectionNone; 
 
                 if (Cache.SaveUserPass != new_setting.SaveUserPass)
                     Cache.SaveUserPass = new_setting.SaveUserPass;
@@ -440,8 +446,13 @@ namespace PixivWPF.Common
                 Cache.DropBoxPosition = new_setting.DropBoxPosition;
                 Cache.DownloadManagerPosition = new_setting.DownloadManagerPosition;
 
-                if (Cache.MaxHistory != new_setting.MaxHistory && new_setting.MaxHistory >= 0)
-                    Cache.MaxHistory = new_setting.MaxHistory;
+                if (Cache.ShowUserBackgroundImage != new_setting.ShowUserBackgroundImage)
+                    Cache.ShowUserBackgroundImage = new_setting.ShowUserBackgroundImage;
+
+                if (Cache.HistoryLimit != new_setting.HistoryLimit && new_setting.HistoryLimit >= 0)
+                    Cache.HistoryLimit = new_setting.HistoryLimit;
+                if (Cache.HistoryMax != new_setting.HistoryMax && new_setting.HistoryMax >= 0)
+                    Cache.HistoryMax = new_setting.HistoryMax;
 
                 if (Cache.SpeechPrefer != new_setting.SpeechPrefer)
                     Cache.SpeechPrefer = new_setting.SpeechPrefer;

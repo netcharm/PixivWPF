@@ -330,7 +330,7 @@ namespace PixivWPF.Pages
                             {
                                 await new Action(() =>
                                 {
-                                    CommonHelper.Cmd_Search.Execute(href);
+                                    CommonHelper.Cmd_OpenSearch.Execute(href);
                                 }).InvokeAsync();
                             }
                             else
@@ -344,9 +344,9 @@ namespace PixivWPF.Pages
                     else
                     {
                         if (!e.AltKeyPressed && !e.CtrlKeyPressed && !e.ShiftKeyPressed)
-                            CommonHelper.Cmd_Search.Execute($"Fuzzy Tag:{tag}");
+                            CommonHelper.Cmd_OpenSearch.Execute($"Fuzzy Tag:{tag}");
                         else if (e.AltKeyPressed && !e.CtrlKeyPressed && !e.ShiftKeyPressed)
-                            CommonHelper.Cmd_Search.Execute($"Tag:{tag}");
+                            CommonHelper.Cmd_OpenSearch.Execute($"Tag:{tag}");
                     }
                 }
             }

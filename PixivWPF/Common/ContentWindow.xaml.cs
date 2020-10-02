@@ -114,7 +114,7 @@ namespace PixivWPF.Common
             var links = e.ParseDragContent();
             foreach (var link in links)
             {
-                CommonHelper.Cmd_Search.Execute(link);
+                CommonHelper.Cmd_OpenSearch.Execute(link);
             }
         }
 
@@ -185,7 +185,7 @@ namespace PixivWPF.Common
 
         private void CommandSearch_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_Search.Execute(SearchBox.Text);
+            CommonHelper.Cmd_OpenSearch.Execute(SearchBox.Text);
         }
 
         private void SearchBox_TextChanged(object sender, RoutedEventArgs e)
@@ -226,7 +226,7 @@ namespace PixivWPF.Common
                 if (item is string)
                 {
                     var query = (string)item;
-                    CommonHelper.Cmd_Search.Execute(query);
+                    CommonHelper.Cmd_OpenSearch.Execute(query);
                 }
             }
         }
@@ -236,7 +236,7 @@ namespace PixivWPF.Common
             if (e.Key == Key.Return)
             {
                 e.Handled = true;
-                CommonHelper.Cmd_Search.Execute(SearchBox.Text);
+                CommonHelper.Cmd_OpenSearch.Execute(SearchBox.Text);
             }
         }
 

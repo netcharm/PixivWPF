@@ -1,6 +1,7 @@
 ﻿using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -69,6 +70,34 @@ namespace PixivWPF.Pages
                 HistoryItems.UpdateLikeState(illustid, is_user);
         }
 
+        public void AddToHistory(Pixeez.Objects.Work illust)
+        {
+            if(HistoryItems.Items is ObservableCollection<ImageItem>)
+            {
+                //Application.Current.HistoryAdd(illust);
+                Application.Current.HistoryAdd(illust, HistoryItems.Items);
+                UpdateDetail();
+            }            
+        }
+
+        public void AddToHistory(Pixeez.Objects.User user)
+        {
+            if (HistoryItems.Items is ObservableCollection<ImageItem>)
+            {
+                Application.Current.HistoryAdd(user, HistoryItems.Items);
+                UpdateDetail();
+            }
+        }
+
+        public void AddToHistory(Pixeez.Objects.UserBase user)
+        {
+            if (HistoryItems.Items is ObservableCollection<ImageItem>)
+            {
+                Application.Current.HistoryAdd(user, HistoryItems.Items);
+                UpdateDetail();
+            }
+        }
+
         private void ShowHistory(string filter = "")
         {
             try
@@ -80,11 +109,22 @@ namespace PixivWPF.Pages
                 var no_filter = string.IsNullOrEmpty(filter);
                 var filter_string = no_filter ? string.Empty : $" ({filter.Replace("users入り", "+ Favs")})";
 
-                HistoryItems.ItemsSource = Application.Current.HistorySource();
-                Application.Current.DoEvents();
-                if (HistoryItems.Items.Count() == 0 && window != null && no_filter) window.Close();
-                HistoryItems.UpdateTilesImage();
-                Application.Current.DoEvents();
+                if (Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    HistoryItems.Items.Clear();
+                    foreach (var item in Application.Current.HistorySource())
+                    {
+                        HistoryItems.Items.Add(item);
+                    }
+                    Application.Current.DoEvents();
+                }
+                if (HistoryItems.Items.Count() == 0 && window != null && no_filter)
+                    window.Close();
+                else
+                {
+                    HistoryItems.UpdateTilesImage();
+                    Application.Current.DoEvents();
+                }
             }
             catch (Exception ex)
             {
@@ -118,7 +158,7 @@ namespace PixivWPF.Pages
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             #region Update ContextMenu
-            var cmr = Resources["MenuSearchResult"] as ContextMenu;
+            var cmr = Resources["MenuHistoryResult"] as ContextMenu;
             if (cmr is ContextMenu)
             {
                 foreach (dynamic item in cmr.Items)
@@ -131,7 +171,7 @@ namespace PixivWPF.Pages
                 }
             }
 
-            var cmf = Resources["MenuSearchFilter"] as ContextMenu;
+            var cmf = Resources["MenuHistoryFilter"] as ContextMenu;
             if (cmf is ContextMenu)
             {
                 ContextMenuResultFilter = cmf;
@@ -140,7 +180,7 @@ namespace PixivWPF.Pages
                     if (item is MenuItem)
                     {
                         var mi = item as MenuItem;
-                        if (mi.Name.Equals("SearchFilter_00000users", StringComparison.CurrentCultureIgnoreCase))
+                        if (mi.Name.Equals("HistoryFilter_00000users", StringComparison.CurrentCultureIgnoreCase))
                         {
                             mi.IsChecked = true;
                             break;
@@ -151,6 +191,12 @@ namespace PixivWPF.Pages
             #endregion
 
             window = Window.GetWindow(this);
+
+            //HistoryItems.Items = Application.Current.HistorySource();
+            foreach (var item in Application.Current.HistorySource())
+            {
+                HistoryItems.Items.Add(item);
+            }
             UpdateDetail();
         }
 

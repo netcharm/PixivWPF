@@ -13,16 +13,16 @@
 
     <Page.Resources>
         <ContextMenu x:Name="MenuHistoryFilter" x:Key="MenuHistoryFilter">
-            <MenuItem x:Name="SearchFilter_00000users" x:Uid="SearchFilter_00000users" Header="No Filter" Click="HistoryFilter_Click"/>
-            <MenuItem x:Name="SearchFilter_00100users" x:Uid="SearchFilter_00100users" Header="100~500 Favs" Click="HistoryFilter_Click"/>
-            <MenuItem x:Name="SearchFilter_00500users" x:Uid="SearchFilter_00500users" Header="500~1000 Favs" Click="HistoryFilter_Click"/>
-            <MenuItem x:Name="SearchFilter_01000users" x:Uid="SearchFilter_01000users" Header="1000~3000 Favs" Click="HistoryFilter_Click"/>
-            <MenuItem x:Name="SearchFilter_03000users" x:Uid="SearchFilter_03000users" Header="3000~5000 Favs" Click="HistoryFilter_Click"/>
-            <MenuItem x:Name="SearchFilter_05000users" x:Uid="SearchFilter_05000users" Header="5000~10000 Favs" Click="HistoryFilter_Click"/>
-            <MenuItem x:Name="SearchFilter_10000users" x:Uid="SearchFilter_10000users" Header="10000~20000 Favs" Click="HistoryFilter_Click"/>
-            <MenuItem x:Name="SearchFilter_20000users" x:Uid="SearchFilter_20000users" Header="20000~30000 Favs" Click="HistoryFilter_Click"/>
-            <MenuItem x:Name="SearchFilter_30000users" x:Uid="SearchFilter_30000users" Header="30000~50000 Favs" Click="HistoryFilter_Click"/>
-            <MenuItem x:Name="SearchFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000+ Favs" Click="HistoryFilter_Click"/>
+            <MenuItem x:Name="HistoryFilter_00000users" x:Uid="HistoryFilter_00000users" Header="No Filter" Click="HistoryFilter_Click"/>
+            <MenuItem x:Name="HistoryFilter_00100users" x:Uid="HistoryFilter_00100users" Header="100~500 Favs" Click="HistoryFilter_Click"/>
+            <MenuItem x:Name="HistoryFilter_00500users" x:Uid="HistoryFilter_00500users" Header="500~1000 Favs" Click="HistoryFilter_Click"/>
+            <MenuItem x:Name="HistoryFilter_01000users" x:Uid="HistoryFilter_01000users" Header="1000~3000 Favs" Click="HistoryFilter_Click"/>
+            <MenuItem x:Name="HistoryFilter_03000users" x:Uid="HistoryFilter_03000users" Header="3000~5000 Favs" Click="HistoryFilter_Click"/>
+            <MenuItem x:Name="HistoryFilter_05000users" x:Uid="HistoryFilter_05000users" Header="5000~10000 Favs" Click="HistoryFilter_Click"/>
+            <MenuItem x:Name="HistoryFilter_10000users" x:Uid="HistoryFilter_10000users" Header="10000~20000 Favs" Click="HistoryFilter_Click"/>
+            <MenuItem x:Name="HistoryFilter_20000users" x:Uid="HistoryFilter_20000users" Header="20000~30000 Favs" Click="HistoryFilter_Click"/>
+            <MenuItem x:Name="HistoryFilter_30000users" x:Uid="HistoryFilter_30000users" Header="30000~50000 Favs" Click="HistoryFilter_Click"/>
+            <MenuItem x:Name="HistoryFilter_50000users" x:Uid="HistoryFilter_50000users" Header="50000+ Favs" Click="HistoryFilter_Click"/>
         </ContextMenu>
         <ContextMenu x:Key="MenuHistoryResult">
             <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Selected ID" Click="ActionCopyResultIllustID_Click">

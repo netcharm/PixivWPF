@@ -16,7 +16,7 @@ It support visit pixiv through custom http proxy.
 1. Must Login every hours (maybe)
 1. User Name/Pass not saved to local
 1. Support Private Following / Favorite
-1.
+1. Support simple visited history for illust & user, but maybe slower when has large amount (>150)
 1.
 1.
 

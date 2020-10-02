@@ -46,6 +46,19 @@
                        Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!-- User Mark -->
+                <iconPacks:PackIconModern 
+                    Grid.Row="0"
+                    Kind="User" 
+                    Width="24" Height="24" Margin="6,0,0,8" 
+                    Foreground="{DynamicResource MahApps.Brushes.Accent}" 
+                    HorizontalAlignment="Left" VerticalAlignment="Bottom" 
+                    Visibility="{Binding UserMarkVisibility, Mode=OneWay}" >
+                    <iconPacks:PackIconModern.Effect>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+                    </iconPacks:PackIconModern.Effect>
+                </iconPacks:PackIconModern>
+                <!-- Favorited Mark -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0"
                     Kind="Heart" 
@@ -69,6 +82,7 @@
                         <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>
+                <!-- Follow Mark -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0" x:Name="PART_Follow" 
                     Kind="Check"
@@ -80,7 +94,8 @@
                     <iconPacks:PackIconModern.Effect>
                         <DropShadowEffect x:Name="PART_Follow_Shadow" ShadowDepth="0" Color="{DynamicResource MahApps.Colors.Accent}" Opacity="1" BlurRadius="10"/>
                     </iconPacks:PackIconModern.Effect>
-                </iconPacks:PackIconModern>                
+                </iconPacks:PackIconModern>
+                <!-- Download Mark -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0"
                     Kind="Download" 

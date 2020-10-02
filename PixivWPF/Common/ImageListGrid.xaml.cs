@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace PixivWPF.Common
     /// <summary>
     /// ImageListGrid.xaml 的交互逻辑
     /// </summary>
-    public partial class ImageListGrid : UserControl
+    public partial class ImageListGrid : UserControl, INotifyPropertyChanged
     {
         [Description("Get or Set Columns for display Image Tile Grid")]
         [Category("Common Properties")]
@@ -89,17 +90,20 @@ namespace PixivWPF.Common
         [Category("Common Properties")]
         public ObservableCollection<ImageItem> Items
         {
-            get
+            get { return (ImageList); }
+            set
             {
-                return ImageList;
+                ImageList = value;
+                PART_ImageTiles.ItemsSource = value;
+                NotifyPropertyChanged("ItemsChanged");
             }
         }
 
-        [Description("Get or Set Image Tiles Source")]
+        [Description("Get or Set Image Tiles LiveFilter")]
         [Category("Common Properties")]
-        public IEnumerable ItemsSource
+        public IEnumerable LiveFilter
         {
-            get { return PART_ImageTiles.ItemsSource; }
+            get { return PART_ImageTiles.Items; }
             set
             {
                 ImageList = new ObservableCollection<ImageItem>(value as IEnumerable<ImageItem>);
@@ -354,6 +358,15 @@ namespace PixivWPF.Common
             }
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
+        private void RaisePropertyChanged(string propertyName)
+        {
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
