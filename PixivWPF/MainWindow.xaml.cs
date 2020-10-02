@@ -311,17 +311,17 @@ namespace PixivWPF
         {
             if (e.IsDown)
             {
-                if (e.Key == Key.F5)
+                if (e.Key == Key.F5 || e.SystemKey == Key.F5)
                 {
                     CommandNavRefresh_Click(CommandNavRefresh, new RoutedEventArgs());
                     e.Handled = true;
                 }
-                else if (e.Key == Key.F3)
+                else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
                 {
                     CommandNavNext_Click(CommandNavNext, new RoutedEventArgs());
                     e.Handled = true;
                 }
-                else if (e.Key == Key.F6)
+                else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
                 {
                     CommandNavRefresh_Click(CommandNavRefreshThumb, e);
                     e.Handled = true;
