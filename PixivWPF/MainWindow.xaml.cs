@@ -309,33 +309,36 @@ namespace PixivWPF
 
         private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.F5)
+            if (e.IsDown)
             {
-                CommandNavRefresh_Click(CommandNavRefresh, new RoutedEventArgs());
-                e.Handled = true;
-            }
-            else if (e.Key == Key.F3)
-            {
-                CommandNavNext_Click(CommandNavNext, new RoutedEventArgs());
-                e.Handled = true;
-            }
-            else if (e.Key == Key.F6)
-            {
-                CommandNavRefresh_Click(CommandNavRefreshThumb, e);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)
-            {
-                if (pagetiles is Pages.TilesPage)
+                if (e.Key == Key.F5)
                 {
-                    pagetiles.KeyAction(e);
+                    CommandNavRefresh_Click(CommandNavRefresh, new RoutedEventArgs());
+                    e.Handled = true;
                 }
-                e.Handled = true;
-            }
-            else
-            {
-                var ret = sender.WindowKeyUp(e);
-                e.Handled = ret.Handled;
+                else if (e.Key == Key.F3)
+                {
+                    CommandNavNext_Click(CommandNavNext, new RoutedEventArgs());
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.F6)
+                {
+                    CommandNavRefresh_Click(CommandNavRefreshThumb, e);
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)
+                {
+                    if (pagetiles is Pages.TilesPage)
+                    {
+                        pagetiles.KeyAction(e);
+                    }
+                    e.Handled = true;
+                }
+                else
+                {
+                    var ret = sender.WindowKeyUp(e);
+                    e.Handled = ret.Handled;
+                }
             }
         }
 

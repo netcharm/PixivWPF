@@ -1331,45 +1331,48 @@ namespace PixivWPF.Pages
         private async void Page_KeyUp(object sender, KeyEventArgs e)
         {
             e.Handled = false;
-            if (DataObject is ImageItem)
+            if (e.IsDown)
             {
-                var item = DataObject as ImageItem;
-                if (e.Key == Key.F7 || e.SystemKey == Key.F7)
+                if (DataObject is ImageItem)
                 {
-                    var pub = setting.PrivateFavPrefer ? false : true;
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                        await item.Illust.Like(pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        await item.Illust.Like(!pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        await item.Illust.UnLike();
+                    var item = DataObject as ImageItem;
+                    if (e.Key == Key.F7 || e.SystemKey == Key.F7)
+                    {
+                        var pub = setting.PrivateFavPrefer ? false : true;
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            await item.Illust.Like(pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            await item.Illust.Like(!pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            await item.Illust.UnLike();
+                    }
+                    else if (e.Key == Key.F8 || e.SystemKey == Key.F8)
+                    {
+                        var pub = setting.PrivateFavPrefer ? false : true;
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            await item.User.Like(pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            await item.User.Like(!pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            await item.User.UnLike();
+                    }
+                    e.Handled = true;
                 }
-                else if (e.Key == Key.F8 || e.SystemKey == Key.F8)
+                else if (DataObject is Pixeez.Objects.UserBase)
                 {
-                    var pub = setting.PrivateFavPrefer ? false : true;
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                        await item.User.Like(pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        await item.User.Like(!pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        await item.User.UnLike();
+                    var item = DataObject as Pixeez.Objects.UserBase;
+                    if (e.Key == Key.F8 || e.SystemKey == Key.F8)
+                    {
+                        var pub = setting.PrivateFavPrefer ? false : true;
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            await item.Like(pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            await item.Like(!pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            await item.UnLike();
+                    }
+                    e.Handled = true;
                 }
-                e.Handled = true;
-            }
-            else if (DataObject is Pixeez.Objects.UserBase)
-            {
-                var item = DataObject as Pixeez.Objects.UserBase;
-                if (e.Key == Key.F8 || e.SystemKey == Key.F8)
-                {
-                    var pub = setting.PrivateFavPrefer ? false : true;
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                        await item.Like(pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        await item.Like(!pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        await item.UnLike();
-                }
-                e.Handled = true;
             }
         }
 
