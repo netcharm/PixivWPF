@@ -157,7 +157,12 @@ namespace PixivWPF.Pages
         internal void UpdateDetail()
         {
             ShowHistory();
-            if (window != null) window.SizeToContent = SizeToContent.WidthAndHeight;
+            if (window != null)
+            {
+                var wa = System.Windows.Forms.Screen.GetWorkingArea(new System.Drawing.Point((int)window.Left, (int)window.Top));
+                window.MaxHeight = wa.Height;
+                window.SizeToContent = SizeToContent.WidthAndHeight;
+            }
         }
 
         public HistoryPage()

@@ -2465,7 +2465,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand Cmd_RefreshThumb { get; } = new DelegateCommand<object>(obj =>
+        public static ICommand Cmd_RefreshPageThumb { get; } = new DelegateCommand<object>(obj =>
         {
             if (obj is IllustDetailPage)
             {

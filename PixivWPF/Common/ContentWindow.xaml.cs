@@ -49,6 +49,9 @@ namespace PixivWPF.Common
             var dw = rect.Width;
             var dh = rect.Height;
 
+            this.MaxWidth = dw;
+            this.MaxHeight = dh;
+
             if (this.Left + this.Width > dw) this.Left = this.Left + this.Width - dw;
             if (this.Top + this.Height > dh) this.Top = this.Top + this.Height - dh;
         }
@@ -156,7 +159,10 @@ namespace PixivWPF.Common
 
         private void CommandPageRefresh_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_RefreshPage.Execute(Content);
+            if(sender == CommandPageRefresh)
+                CommonHelper.Cmd_RefreshPage.Execute(Content);
+            else if(sender == CommandPageRefreshThumb)
+                CommonHelper.Cmd_RefreshPageThumb.Execute(Content);
         }
 
         private void CommandLogin_Click(object sender, RoutedEventArgs e)
