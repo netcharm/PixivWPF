@@ -144,6 +144,16 @@ namespace PixivWPF.Pages
             }
         }
 
+        internal void UpdateThumb()
+        {
+            try
+            {
+                HistoryItems.UpdateTilesImage();
+                Application.Current.DoEvents();
+            }
+            catch (Exception) { }
+        }
+
         internal void UpdateDetail()
         {
             ShowHistory();

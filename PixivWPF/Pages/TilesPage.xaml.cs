@@ -174,6 +174,11 @@ namespace PixivWPF.Pages
             //ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);
         }
 
+        public void UpdateTiles()
+        {
+            ShowImages(TargetPage, false, GetLastSelectedID());
+        }
+
         private void KeepLastSelected(string id)
         {
             if (ListImageTiles.Items.Count > 0)

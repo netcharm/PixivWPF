@@ -560,6 +560,43 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
+        public async void UpdateThumb()
+        {
+            await new Action(() => 
+            {
+                try
+                {
+                    if (DataObject is ImageItem)
+                    {
+                        SubIllusts.UpdateTilesImage();
+                        Application.Current.DoEvents();
+                        RelativeIllusts.UpdateTilesImage();
+                        Application.Current.DoEvents();
+                        FavoriteIllusts.UpdateTilesImage();
+                        Application.Current.DoEvents();
+                        ActionRefreshAvator(DataObject as ImageItem);
+                        Application.Current.DoEvents();
+                        ActionRefreshPreview_Click(this, new RoutedEventArgs());
+                        Application.Current.DoEvents();
+                    }
+                    else if (DataObject is Pixeez.Objects.UserBase)
+                    {
+                        SubIllusts.UpdateTilesImage();
+                        Application.Current.DoEvents();
+                        RelativeIllusts.UpdateTilesImage();
+                        Application.Current.DoEvents();
+                        FavoriteIllusts.UpdateTilesImage();
+                        Application.Current.DoEvents();
+                        ActionRefreshAvator(DataObject as Pixeez.Objects.UserBase);
+                        Application.Current.DoEvents();
+                        UpdateUserBackground();
+                        Application.Current.DoEvents();
+                    }
+                }
+                catch (Exception) { }
+            }).InvokeAsync();
+        }
+
         internal async void UpdateDetail(ImageItem item)
         {
             try
@@ -823,7 +860,11 @@ namespace PixivWPF.Pages
             if (setting.ShowUserBackgroundImage)
             {
                 if (string.IsNullOrEmpty(user_backgroundimage_url))
+                {
                     Preview.Source = await user_backgroundimage_url.LoadImageFromUrl();
+                    PreviewViewer.Show();
+                    PreviewBox.Show();
+                }
             }
         }
 
@@ -1328,11 +1369,13 @@ namespace PixivWPF.Pages
             DeleteHtmlRender();
         }
 
+        private long lastKeyUp = Environment.TickCount;
         private async void Page_KeyUp(object sender, KeyEventArgs e)
         {
             e.Handled = false;
-            if (e.IsDown)
+            if (e.Timestamp - lastKeyUp > 50)
             {
+                lastKeyUp = e.Timestamp;
                 if (DataObject is ImageItem)
                 {
                     var item = DataObject as ImageItem;
@@ -1356,6 +1399,33 @@ namespace PixivWPF.Pages
                         else if (Keyboard.Modifiers == ModifierKeys.Alt)
                             await item.User.UnLike();
                     }
+                    else if(e.Key == Key.F5 || e.SystemKey == Key.F5)
+                    {
+                        if (Parent is Frame)
+                        {
+                            CommonHelper.Cmd_RefreshPage.Execute(Application.Current.MainWindow);
+                        }
+                        if(DataObject is ImageItem)
+                        {
+                            UpdateDetail(DataObject as ImageItem);
+                        }
+                    }
+                    else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
+                    {
+                        UpdateThumb();
+                        if (Parent is Frame)
+                        {
+                            CommonHelper.Cmd_RefreshPage.Execute(Application.Current.MainWindow);
+                        }
+                    }
+                    else if(e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        CommonHelper.Cmd_SaveIllust.Execute(SubIllusts);
+                    }
+                    else if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Shift)
+                    {
+                        CommonHelper.Cmd_SaveIllustAll.Execute(DataObject as ImageItem);
+                    }
                     e.Handled = true;
                 }
                 else if (DataObject is Pixeez.Objects.UserBase)
@@ -1370,6 +1440,10 @@ namespace PixivWPF.Pages
                             await item.Like(!pub);
                         else if (Keyboard.Modifiers == ModifierKeys.Alt)
                             await item.UnLike();
+                    }
+                    else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
+                    {
+                        UpdateThumb();
                     }
                     e.Handled = true;
                 }
@@ -2585,10 +2659,6 @@ namespace PixivWPF.Pages
             else if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
             {
                 CommonHelper.Cmd_SaveIllust.Execute(SubIllusts);
-                //foreach (var item in SubIllusts.GetSelected())
-                //{
-                //    CommonHelper.Cmd_SaveIllust.Execute(item);
-                //}
             }
             else if (SubIllusts.SelectedItem is ImageItem)
             {

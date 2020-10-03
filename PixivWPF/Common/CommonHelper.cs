@@ -2453,8 +2453,49 @@ namespace PixivWPF.Common
                 var page = obj as HistoryPage;
                 page.UpdateDetail();
             }
+            else if(obj is TilesPage)
+            {
+                var win = Application.Current.MainWindow is MainWindow ? Application.Current.MainWindow as MainWindow : null;
+                if (win is MainWindow) win.CommandNavRefresh_Click(win.CommandNavRefresh, new RoutedEventArgs());
+            }
+            else if (obj is MainWindow)
+            {
+                var win = obj as MainWindow;
+                win.CommandNavRefresh_Click(win.CommandNavRefresh, new RoutedEventArgs());
+            }
+        });
+
+        public static ICommand Cmd_RefreshThumb { get; } = new DelegateCommand<object>(obj =>
+        {
+            if (obj is IllustDetailPage)
+            {
+                var page = obj as IllustDetailPage;
+                page.UpdateThumb();
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                var page = obj as IllustImageViewerPage;
+                if (page.Tag is ImageItem)
+                    page.UpdateDetail(page.Tag as ImageItem);
+            }
+            else if (obj is HistoryPage)
+            {
+                var page = obj as HistoryPage;
+                page.UpdateThumb();
+            }
+            else if (obj is TilesPage)
+            {
+                var win = Application.Current.MainWindow is MainWindow ? Application.Current.MainWindow as MainWindow : null;
+                if (win is MainWindow) win.CommandNavRefresh_Click(win.CommandNavRefreshThumb, new RoutedEventArgs());
+            }
+            else if (obj is MainWindow)
+            {
+                var win = obj as MainWindow;
+                win.CommandNavRefresh_Click(win.CommandNavRefreshThumb, new RoutedEventArgs());
+            }
         });
         #region Pixiv Token Helper
+
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
         private static async Task<Pixeez.Tokens> RefreshToken()
         {
