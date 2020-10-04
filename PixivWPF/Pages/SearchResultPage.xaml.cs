@@ -295,7 +295,7 @@ namespace PixivWPF.Pages
                 else if (ResultIllusts.Items.Count() == 1 && no_filter)
                 {
                     ResultIllusts.SelectedIndex = 0;
-                    CommonHelper.Cmd_Open.Execute(ResultIllusts);
+                    Commands.Open.Execute(ResultIllusts);
                     if (window != null) window.Close();
                 }
             }
@@ -325,20 +325,20 @@ namespace PixivWPF.Pages
 
         private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_CopyIllustIDs.Execute(ResultIllusts);
+            Commands.CopyIllustIDs.Execute(ResultIllusts);
         }
 
         private void ActionOpenResult_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_Open.Execute(ResultIllusts);
+            Commands.Open.Execute(ResultIllusts);
         }
 
         private void ActionSendToOtherInstance_Click(object sender, RoutedEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.None)
-                CommonHelper.Cmd_SendToOtherInstance.Execute(ResultIllusts);
+                Commands.SendToOtherInstance.Execute(ResultIllusts);
             else
-                CommonHelper.Cmd_ShellSendToOtherInstance.Execute(ResultIllusts);
+                Commands.ShellSendToOtherInstance.Execute(ResultIllusts);
         }
 
         private void ActionRefreshResult_Click(object sender, RoutedEventArgs e)
@@ -374,7 +374,7 @@ namespace PixivWPF.Pages
             {
                 foreach (ImageItem item in ResultIllusts.SelectedItems)
                 {
-                    CommonHelper.Cmd_SaveIllust.Execute(item);
+                    Commands.SaveIllust.Execute(item);
                 }
             }
         }
@@ -385,7 +385,7 @@ namespace PixivWPF.Pages
             {
                 foreach (ImageItem item in ResultIllusts.SelectedItems)
                 {
-                    CommonHelper.Cmd_SaveIllustAll.Execute(item);
+                    Commands.SaveIllustAll.Execute(item);
                 }
             }
         }
@@ -396,7 +396,7 @@ namespace PixivWPF.Pages
             {
                 foreach (ImageItem item in ResultIllusts.SelectedItems)
                 {
-                    CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                    Commands.OpenDownloaded.Execute(item);
                 }
             }
         }
@@ -531,14 +531,14 @@ namespace PixivWPF.Pages
 
         private void ResultIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            CommonHelper.Cmd_Open.Execute(ResultIllusts);
+            Commands.Open.Execute(ResultIllusts);
         }
 
         private void ResultIllusts_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                CommonHelper.Cmd_Open.Execute(ResultIllusts);
+                Commands.Open.Execute(ResultIllusts);
             }
         }
 

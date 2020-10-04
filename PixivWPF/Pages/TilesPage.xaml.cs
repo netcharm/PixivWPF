@@ -167,11 +167,10 @@ namespace PixivWPF.Pages
             return (id);
         }
 
-        protected internal async void UpdateImageTiles()
+        protected internal async void UpdateTilesThumb()
         {
             this.DoEvents();
-            lastTask = await ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);
-            //ImageList.UpdateTilesImage(lastTask, cancelTokenSource, 5);
+            lastTask = await ImageList.UpdateTilesThumb(lastTask, cancelTokenSource, 5);
         }
 
         public void UpdateTiles()
@@ -411,7 +410,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -463,7 +462,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -515,7 +514,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -567,7 +566,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -622,7 +621,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -678,7 +677,7 @@ namespace PixivWPF.Pages
                             }
                         }
                         this.DoEvents();
-                        UpdateImageTiles();
+                        UpdateTilesThumb();
                     }
                 }
             }
@@ -731,7 +730,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -795,7 +794,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -854,7 +853,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -879,7 +878,7 @@ namespace PixivWPF.Pages
         {
             if ((IsPrivate || uid == 0) && setting.MyInfo is Pixeez.Objects.User)
             {
-                CommonHelper.Cmd_Open.Execute(setting.MyInfo);
+                Commands.Open.Execute(setting.MyInfo);
             }
             else
             {
@@ -896,7 +895,7 @@ namespace PixivWPF.Pages
 
                 if (Keyboard.Modifiers == ModifierKeys.Control || !(user is Pixeez.Objects.User))
                     user = await uid.RefreshUser();
-                CommonHelper.Cmd_Open.Execute(user);
+                Commands.Open.Execute(user);
             }
         }
 
@@ -934,7 +933,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -990,7 +989,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -1045,7 +1044,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -1100,7 +1099,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateImageTiles();
+                    UpdateTilesThumb();
                 }
             }
             catch (Exception ex)
@@ -1149,6 +1148,7 @@ namespace PixivWPF.Pages
                 if (string.IsNullOrEmpty(ID_O) || !ID_O.Equals(ID_N, StringComparison.CurrentCultureIgnoreCase))// || detail_page.Tag != item)
                 {
                     detail_page.Tag = item;
+                    detail_page.Contents = item;
                     detail_page.UpdateDetail(item);
                 }
                 if (ListImageTiles.SelectedItem is ImageItem) (ListImageTiles.SelectedItem as ImageItem).Focus();
@@ -1176,7 +1176,7 @@ namespace PixivWPF.Pages
             }
             else if (e.Key == Key.F6)
             {
-                UpdateImageTiles();
+                UpdateTilesThumb();
                 e.Handled = true;
             }
             else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)

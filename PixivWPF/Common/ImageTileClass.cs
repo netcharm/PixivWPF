@@ -16,7 +16,7 @@ using System.Windows.Media;
 
 namespace PixivWPF.Common
 {
-    public enum ImageItemType { User, Works, Work, Pages, Page, Manga }
+    public enum ImageItemType { None, User, Works, Work, Pages, Page, Manga }
 
     public class ImageItem : FrameworkElement, INotifyPropertyChanged
     {
@@ -25,7 +25,7 @@ namespace PixivWPF.Common
             if (source is ImageSource) source = null;
         }
 
-        public ImageItemType ItemType { get; set; }
+        public ImageItemType ItemType { get; set; } = ImageItemType.None;
 
         private ImageSource source = null;
         public ImageSource Source
@@ -283,12 +283,16 @@ namespace PixivWPF.Common
                                             Application.Current.DoEvents();
 
                                             if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                            item.Source = await item.Thumb.LoadImageFromUrl();
-                                            if(item.Source is ImageSource)
-                                                item.State = TaskStatus.RanToCompletion;
-                                            else
-                                                item.State = TaskStatus.Faulted;
-                                            Application.Current.DoEvents();
+                                            if (item.Source == null)
+                                            {
+                                                var img = await item.Thumb.LoadImageFromUrl();
+                                                if (item.Source == null) item.Source = img;
+                                                if(item.Source is ImageSource)
+                                                    item.State = TaskStatus.RanToCompletion;
+                                                else
+                                                    item.State = TaskStatus.Faulted;
+                                                Application.Current.DoEvents();
+                                            }
                                         }
                                     }
 #if DEBUG
@@ -320,7 +324,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async Task<Task> UpdateTilesImage(this IEnumerable<ImageItem> items, Task task, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5)
+        public static async Task<Task> UpdateTilesThumb(this IEnumerable<ImageItem> items, Task task, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5)
         {
             Task result = null;
             try

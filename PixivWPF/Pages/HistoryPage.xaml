@@ -9,7 +9,9 @@
       xmlns:Common="clr-namespace:PixivWPF.Common"
       mc:Ignorable="d" 
       d:DesignHeight="300" d:DesignWidth="300"
-      Title="HistoryPage" Loaded="Page_Loaded">
+      Title="HistoryPage" 
+      Loaded="Page_Loaded"
+      SizeChanged="Page_SizeChanged">
 
     <Page.Resources>
         <ContextMenu x:Name="MenuHistoryFilter" x:Key="MenuHistoryFilter">

@@ -38,24 +38,6 @@ namespace PixivWPF.Common
                 CommonHelper.UpdateTheme();
         }
 
-        private void AdjustWindowPos()
-        {
-            //var dw = System.Windows.SystemParameters.MaximizedPrimaryScreenWidth;
-            //var dh = System.Windows.SystemParameters.MaximizedPrimaryScreenHeight;
-            //var dw = System.Windows.SystemParameters.WorkArea.Width;
-            //var dh = System.Windows.SystemParameters.WorkArea.Height;
-
-            var rect = System.Windows.Forms.Screen.GetWorkingArea(new System.Drawing.Point((int)this.Top, (int)this.Left));
-            var dw = rect.Width;
-            var dh = rect.Height;
-
-            this.MaxWidth = dw;
-            this.MaxHeight = dh;
-
-            if (this.Left + this.Width > dw) this.Left = this.Left + this.Width - dw;
-            if (this.Top + this.Height > dh) this.Top = this.Top + this.Height - dh;
-        }
-
         private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>();
         public ObservableCollection<string> AutoSuggestList
         {
@@ -81,18 +63,19 @@ namespace PixivWPF.Common
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
             if (Content is IllustDetailPage || 
-                Content is IllustImageViewerPage || 
+                Content is IllustImageViewerPage ||
                 Content is HistoryPage)
                 CommandPageRefresh.Visibility = Visibility.Visible;
             else
                 CommandPageRefresh.Visibility = Visibility.Collapsed;
+            CommandPageRefreshThumb.Visibility = CommandPageRefresh.Visibility;
 
             if (this.DropBoxExists() == null)
                 CommandToggleDropbox.IsChecked = false;
             else
                 CommandToggleDropbox.IsChecked = true;
 
-            AdjustWindowPos();
+            this.AdjustWindowPos();
         }
 
         private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -117,7 +100,7 @@ namespace PixivWPF.Common
             var links = e.ParseDragContent();
             foreach (var link in links)
             {
-                CommonHelper.Cmd_OpenSearch.Execute(link);
+                Commands.OpenSearch.Execute(link);
             }
         }
 
@@ -125,7 +108,8 @@ namespace PixivWPF.Common
         {
             try
             {
-                if(!e.Handled) sender.WindowKeyUp(e);
+                if (Content is IllustDetailPage) (Content as IllustDetailPage).KeyAction(e);
+                else if (!e.Handled) sender.WindowKeyUp(e);
             }
             catch (Exception) { }
         }
@@ -160,9 +144,9 @@ namespace PixivWPF.Common
         private void CommandPageRefresh_Click(object sender, RoutedEventArgs e)
         {
             if(sender == CommandPageRefresh)
-                CommonHelper.Cmd_RefreshPage.Execute(Content);
+                Commands.RefreshPage.Execute(Content);
             else if(sender == CommandPageRefreshThumb)
-                CommonHelper.Cmd_RefreshPageThumb.Execute(Content);
+                Commands.RefreshPageThumb.Execute(Content);
         }
 
         private void CommandLogin_Click(object sender, RoutedEventArgs e)
@@ -176,22 +160,22 @@ namespace PixivWPF.Common
 
         private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
         {
-            true.ShowDownloadManager();
+            Commands.OpenDownloadManager.Execute(true);
         }
 
         private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_OpenDropBox.Execute(sender);
+            Commands.OpenDropBox.Execute(sender);
         }
 
         private void CommandHistory_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_OpenHistory.Execute(null);
+            Commands.OpenHistory.Execute(null);
         }
 
         private void CommandSearch_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_OpenSearch.Execute(SearchBox.Text);
+            Commands.OpenSearch.Execute(SearchBox.Text);
         }
 
         private void SearchBox_TextChanged(object sender, RoutedEventArgs e)
@@ -232,7 +216,7 @@ namespace PixivWPF.Common
                 if (item is string)
                 {
                     var query = (string)item;
-                    CommonHelper.Cmd_OpenSearch.Execute(query);
+                    Commands.OpenSearch.Execute(query);
                 }
             }
         }
@@ -242,7 +226,7 @@ namespace PixivWPF.Common
             if (e.Key == Key.Return)
             {
                 e.Handled = true;
-                CommonHelper.Cmd_OpenSearch.Execute(SearchBox.Text);
+                Commands.OpenSearch.Execute(SearchBox.Text);
             }
         }
 

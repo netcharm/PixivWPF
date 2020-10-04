@@ -116,15 +116,12 @@ namespace PixivWPF.Pages
                     {
                         HistoryItems.Items.Add(item);
                     }
-                    Application.Current.DoEvents();
                 }
+
                 if (HistoryItems.Items.Count() == 0 && window != null && no_filter)
                     window.Close();
                 else
-                {
                     HistoryItems.UpdateTilesImage();
-                    Application.Current.DoEvents();
-                }
             }
             catch (Exception ex)
             {
@@ -141,6 +138,7 @@ namespace PixivWPF.Pages
             finally
             {
                 HistoryWait.Hide();
+                Application.Current.DoEvents();
             }
         }
 
@@ -159,9 +157,8 @@ namespace PixivWPF.Pages
             ShowHistory();
             if (window != null)
             {
-                var wa = System.Windows.Forms.Screen.GetWorkingArea(new System.Drawing.Point((int)window.Left, (int)window.Top));
-                window.MaxHeight = wa.Height;
                 window.SizeToContent = SizeToContent.WidthAndHeight;
+                if(window is ContentWindow) (window as ContentWindow).AdjustWindowPos();
             }
         }
 
@@ -207,6 +204,12 @@ namespace PixivWPF.Pages
 
             window = Window.GetWindow(this);
 
+            if (window != null)
+            {
+                var wa = System.Windows.Forms.Screen.GetWorkingArea(new System.Drawing.Point((int)window.Left, (int)window.Top));
+                window.MaxHeight = Math.Min(960, wa.Height);
+            }
+
             //HistoryItems.Items = Application.Current.HistorySource();
             foreach (var item in Application.Current.HistorySource())
             {
@@ -215,23 +218,28 @@ namespace PixivWPF.Pages
             UpdateDetail();
         }
 
+        private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (window is ContentWindow) (window as ContentWindow).AdjustWindowPos();
+        }
+
         #region History Result related routines
         private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_CopyIllustIDs.Execute(HistoryItems);
+            Commands.CopyIllustIDs.Execute(HistoryItems);
         }
 
         private void ActionOpenResult_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_Open.Execute(HistoryItems);
+            Commands.Open.Execute(HistoryItems);
         }
 
         private void ActionSendToOtherInstance_Click(object sender, RoutedEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.None)
-                CommonHelper.Cmd_SendToOtherInstance.Execute(HistoryItems);
+                Commands.SendToOtherInstance.Execute(HistoryItems);
             else
-                CommonHelper.Cmd_ShellSendToOtherInstance.Execute(HistoryItems);
+                Commands.ShellSendToOtherInstance.Execute(HistoryItems);
         }
 
         private void ActionRefreshResult_Click(object sender, RoutedEventArgs e)
@@ -263,7 +271,7 @@ namespace PixivWPF.Pages
             {
                 foreach (ImageItem item in HistoryItems.SelectedItems)
                 {
-                    CommonHelper.Cmd_SaveIllust.Execute(item);
+                    Commands.SaveIllust.Execute(item);
                 }
             }
         }
@@ -274,7 +282,7 @@ namespace PixivWPF.Pages
             {
                 foreach (ImageItem item in HistoryItems.SelectedItems)
                 {
-                    CommonHelper.Cmd_SaveIllustAll.Execute(item);
+                    Commands.SaveIllustAll.Execute(item);
                 }
             }
         }
@@ -285,7 +293,7 @@ namespace PixivWPF.Pages
             {
                 foreach (ImageItem item in HistoryItems.SelectedItems)
                 {
-                    CommonHelper.Cmd_OpenDownloaded.Execute(item);
+                    Commands.OpenDownloaded.Execute(item);
                 }
             }
         }
@@ -377,7 +385,7 @@ namespace PixivWPF.Pages
         {
             try
             {                
-                CommonHelper.Cmd_Open.Execute(HistoryItems);
+                Commands.Open.Execute(HistoryItems);
             }
             catch (Exception) { }
         }
@@ -386,7 +394,7 @@ namespace PixivWPF.Pages
         {
             if (e.Key == Key.Enter)
             {
-                CommonHelper.Cmd_Open.Execute(HistoryItems);
+                Commands.Open.Execute(HistoryItems);
             }
         }
 

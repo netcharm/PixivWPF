@@ -16,6 +16,15 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace PixivWPF.Pages
 {
+    public class DownloadParams
+    {
+        public string Url { get; set; } = string.Empty;
+        public string ThumbUrl { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; } = default(DateTime);
+        public bool IsSinglePage { get; set; } = false;
+        public bool OverwriteExists { get; set; } = true;
+    }
+
     /// <summary>
     /// DownloadManagerPage.xaml 的交互逻辑
     /// </summary>
@@ -354,7 +363,7 @@ namespace PixivWPF.Pages
                     if (item is DownloadInfo)
                         targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
                 }
-                CommonHelper.Cmd_CopyIllustIDs.Execute(targets);
+                Commands.CopyIllustIDs.Execute(targets);
             }).InvokeAsync();
         }
 
@@ -371,7 +380,7 @@ namespace PixivWPF.Pages
                         dis.Add(item as DownloadInfo);
                     }
                 }
-                CommonHelper.Cmd_CopyDownloadInfo.Execute(dis);
+                Commands.CopyDownloadInfo.Execute(dis);
             }).InvokeAsync();
         }
 

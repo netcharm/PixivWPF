@@ -83,7 +83,7 @@ namespace PixivWPF
                 NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
                 CommandNavDate.IsEnabled = true;
             }
-            else if( title.Equals("My"))
+            else if (title.Equals("My"))
             {
 
             }
@@ -196,13 +196,13 @@ namespace PixivWPF
                         {
                             await new Action(() =>
                             {
-                                CommonHelper.Cmd_OpenSearch.Execute(link);
+                                Commands.OpenSearch.Execute(link);
                             }).InvokeAsync();
                         }
                     }
                 }
 
-                if(ps.IsConnected) ps.Disconnect();
+                if (ps.IsConnected) ps.Disconnect();
             }
             catch (Exception ex)
             {
@@ -210,7 +210,7 @@ namespace PixivWPF
             }
             finally
             {
-                if(pipeServer is NamedPipeServerStream && !pipeOnClosing) CreateNamedPipeServer();
+                if (pipeServer is NamedPipeServerStream && !pipeOnClosing) CreateNamedPipeServer();
             }
         }
         #endregion
@@ -303,7 +303,7 @@ namespace PixivWPF
             var links = e.ParseDragContent();
             foreach (var link in links)
             {
-                CommonHelper.Cmd_OpenSearch.Execute(link);
+                Commands.OpenSearch.Execute(link);
             }
         }
 
@@ -374,10 +374,10 @@ namespace PixivWPF
 
         private void CommandToggleTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(CommandToggleTheme.SelectedIndex>=0 && CommandToggleTheme.SelectedIndex< CommandToggleTheme.Items.Count)
+            if (CommandToggleTheme.SelectedIndex >= 0 && CommandToggleTheme.SelectedIndex < CommandToggleTheme.Items.Count)
             {
                 var item = CommandToggleTheme.SelectedItem;
-                if(item is SimpleAccent)
+                if (item is SimpleAccent)
                     Application.Current.SetAccent((item as SimpleAccent).AccentName);
             }
         }
@@ -405,7 +405,7 @@ namespace PixivWPF
                 }
                 else if (sender == CommandNavRefreshThumb)
                 {
-                    pagetiles.UpdateImageTiles();
+                    pagetiles.UpdateTilesThumb();
                 }
             }
             catch { }
@@ -419,7 +419,7 @@ namespace PixivWPF
                 //var point = CommandNavDate.PointToScreen(Mouse.GetPosition(CommandNavDate));
                 var point = CommandNavDate.PointToScreen(new Point(0, CommandNavDate.ActualHeight));
                 //var point = CommandNavDate.TransformToAncestor(Application.Current.MainWindow).Transform(new Point(0,0));
-                CommonHelper.Cmd_DatePicker.Execute(point);
+                Commands.DatePicker.Execute(point);
 
                 if (LastSelectedDate.Year != CommonHelper.SelectedDate.Year ||
                     LastSelectedDate.Month != CommonHelper.SelectedDate.Month ||
@@ -443,7 +443,7 @@ namespace PixivWPF
 
         private void CommandSearch_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_OpenSearch.Execute(SearchBox.Text);
+            Commands.OpenSearch.Execute(SearchBox.Text);
         }
 
         private void SearchBox_TextChanged(object sender, RoutedEventArgs e)
@@ -484,7 +484,7 @@ namespace PixivWPF
                 if (item is string)
                 {
                     var query = (string)item;
-                    CommonHelper.Cmd_OpenSearch.Execute(query);
+                    Commands.OpenSearch.Execute(query);
                 }
             }
         }
@@ -494,23 +494,23 @@ namespace PixivWPF
             if (e.Key == Key.Return)
             {
                 e.Handled = true;
-                CommonHelper.Cmd_OpenSearch.Execute(SearchBox.Text);
+                Commands.OpenSearch.Execute(SearchBox.Text);
             }
         }
 
         private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.ShowDownloadManager(true);
+            Commands.OpenDownloadManager.Execute(true);
         }
 
         private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_OpenDropBox.Execute(sender);
+            Commands.OpenDropBox.Execute(sender);
         }
 
         private void CommandHistory_Click(object sender, RoutedEventArgs e)
         {
-            CommonHelper.Cmd_OpenHistory.Execute(null);
+            Commands.OpenHistory.Execute(null);
         }
     }
 

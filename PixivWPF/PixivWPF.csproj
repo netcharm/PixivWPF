@@ -169,6 +169,7 @@
     </Compile>
     <Compile Include="Common\CacheClass.cs" />
     <Compile Include="Common\ClipboardHelper.cs" />
+    <Compile Include="Common\Commands.cs" />
     <Compile Include="Common\CommonHelper.cs" />
     <Compile Include="Common\DateTimePicker.xaml.cs">
       <DependentUpon>DateTimePicker.xaml</DependentUpon>

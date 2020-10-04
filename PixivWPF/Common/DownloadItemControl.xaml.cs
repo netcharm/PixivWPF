@@ -952,19 +952,19 @@ namespace PixivWPF.Common
         {
             if ((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
             {
-                CommonHelper.Cmd_CopyIllustIDs.Execute(Url);
+                Commands.CopyIllustIDs.Execute(Url);
             }
             else if (sender == miCopyDonwnloadInfo)
             {
-                CommonHelper.Cmd_CopyDownloadInfo.Execute(Info);
+                Commands.CopyDownloadInfo.Execute(Info);
             }
             else if ((sender == miOpenIllust || sender == PART_OpenIllust) && !string.IsNullOrEmpty(Url))
             {
                 var illust = Url.GetIllustId().FindIllust();
                 if (illust is Pixeez.Objects.Work)
-                    CommonHelper.Cmd_Open.Execute(illust);
+                    Commands.Open.Execute(illust);
                 else
-                    CommonHelper.Cmd_Open.Execute(Url);
+                    Commands.Open.Execute(Url);
             }
             else if (sender == miDownload || sender == PART_Download)
             {

@@ -273,7 +273,7 @@ namespace PixivWPF.Pages
                                     {
                                         await new Action(() =>
                                         {
-                                            CommonHelper.Cmd_Open.Execute(illust);
+                                            Commands.Open.Execute(illust);
                                         }).InvokeAsync();
                                     }
                                     else
@@ -283,7 +283,7 @@ namespace PixivWPF.Pages
                                         {
                                             await new Action(() =>
                                             {
-                                                CommonHelper.Cmd_Open.Execute(illust);
+                                                Commands.Open.Execute(illust);
                                             }).InvokeAsync();
                                         }
                                     }
@@ -297,7 +297,7 @@ namespace PixivWPF.Pages
                                 {
                                     await new Action(() =>
                                     {
-                                        CommonHelper.Cmd_OpenUser.Execute(user);
+                                        Commands.OpenUser.Execute(user);
                                     }).InvokeAsync();
                                 }
                                 else
@@ -305,7 +305,7 @@ namespace PixivWPF.Pages
                                     user = await user_id.RefreshUser();
                                     if (user is Pixeez.Objects.User)
                                     {
-                                        CommonHelper.Cmd_OpenUser.Execute(user);
+                                        Commands.OpenUser.Execute(user);
                                     }
                                 }
                             }
@@ -313,7 +313,7 @@ namespace PixivWPF.Pages
                             {
                                 await new Action(() =>
                                 {
-                                    CommonHelper.Cmd_OpenPixivPedia.Execute(href);
+                                    Commands.OpenPedia.Execute(href);
                                 }).InvokeAsync();
                                 //GetHtmlContents(href);
                             }
@@ -322,7 +322,7 @@ namespace PixivWPF.Pages
                                 href = href.Replace("about:/a", "https://dic.pixiv.net/a");
                                 await new Action(() =>
                                 {
-                                    CommonHelper.Cmd_OpenPixivPedia.Execute(href);
+                                    Commands.OpenPedia.Execute(href);
                                 }).InvokeAsync();
                                 //GetHtmlContents(href);
                             }
@@ -330,7 +330,7 @@ namespace PixivWPF.Pages
                             {
                                 await new Action(() =>
                                 {
-                                    CommonHelper.Cmd_OpenSearch.Execute(href);
+                                    Commands.OpenSearch.Execute(href);
                                 }).InvokeAsync();
                             }
                             else
@@ -344,9 +344,9 @@ namespace PixivWPF.Pages
                     else
                     {
                         if (!e.AltKeyPressed && !e.CtrlKeyPressed && !e.ShiftKeyPressed)
-                            CommonHelper.Cmd_OpenSearch.Execute($"Fuzzy Tag:{tag}");
+                            Commands.OpenSearch.Execute($"Fuzzy Tag:{tag}");
                         else if (e.AltKeyPressed && !e.CtrlKeyPressed && !e.ShiftKeyPressed)
-                            CommonHelper.Cmd_OpenSearch.Execute($"Tag:{tag}");
+                            Commands.OpenSearch.Execute($"Tag:{tag}");
                     }
                 }
             }

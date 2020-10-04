@@ -247,7 +247,7 @@ namespace PixivWPF.Common
             var needUpdate = Items.Where(item => item.Source == null);
             if (needUpdate.Count() > 0)
             {
-                lastTask = await Items.UpdateTilesImage(lastTask, cancelTokenSource, parallel);
+                lastTask = await Items.UpdateTilesThumb(lastTask, cancelTokenSource, parallel);
                 //Items.UpdateTilesImage(lastTask, cancelTokenSource, parallel);
             }
         }

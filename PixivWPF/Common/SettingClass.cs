@@ -648,13 +648,14 @@ namespace PixivWPF.Common
                     {
                         lastTagsUpdate = filetime;
 
+                        bool tags_changed = false;
                         if (all && File.Exists(default_tags))
                         {
                             try
                             {
                                 var tags = File.ReadAllText(default_tags);
                                 CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
-                                CommonHelper.UpdateIllustTagsAsync();
+                                tags_changed = true;
                             }
                             catch (Exception) { }
                         }
@@ -670,7 +671,7 @@ namespace PixivWPF.Common
                                 {
                                     CommonHelper.TagsT2S[k.Trim()] = CommonHelper.TagsT2S[k].Trim();
                                 }
-                                CommonHelper.UpdateIllustTagsAsync();
+                                tags_changed = true;
                             }
                             catch (Exception) { }
                         }
@@ -681,11 +682,12 @@ namespace PixivWPF.Common
                                 if (CommonHelper.TagsT2S is Dictionary<string, string>)
                                 {
                                     CommonHelper.TagsT2S.Clear();
-                                    CommonHelper.UpdateIllustTagsAsync();
+                                    tags_changed = true;
                                 }
                             }
                             catch (Exception) { }
                         }
+                        if (tags_changed) CommonHelper.UpdateIllustTagsAsync();
                     }
                 }
                 catch (Exception) { }

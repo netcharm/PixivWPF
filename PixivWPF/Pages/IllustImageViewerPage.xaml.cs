@@ -28,7 +28,7 @@ namespace PixivWPF.Pages
         private object DataType = null;
         private Window window = null;
 
-        public ImageItem Item { get; set; } = null;
+        public ImageItem Contents { get; set; } = null;
         private string PreviewImageUrl = string.Empty;
 
         internal void UpdateTheme()
@@ -182,7 +182,7 @@ namespace PixivWPF.Pages
                 window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
                 window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom + (32 - titleheight % 32);
 
-                if (Item is ImageItem) UpdateDetail(Item);
+                if (Contents is ImageItem) UpdateDetail(Contents);
             }
         }
 
@@ -340,33 +340,33 @@ namespace PixivWPF.Pages
             {
                 var item = DataType as ImageItem;
                 if (sender == ActionCopyIllustID)
-                    CommonHelper.Cmd_CopyIllustIDs.Execute(item);
+                    Commands.CopyIllustIDs.Execute(item);
                 else if (sender == ActionOpenIllust)
-                    CommonHelper.Cmd_Open.Execute(item.Illust);
+                    Commands.Open.Execute(item.Illust);
                 else if (sender == ActionOpenAuthor)
-                    CommonHelper.Cmd_OpenUser.Execute(item.User);
+                    Commands.OpenUser.Execute(item.User);
                 else if (sender == ActionOpenCachedWith)
                 {
-                    CommonHelper.Cmd_ShellOpenFile.Execute(PreviewImageUrl.GetImageCachePath());
+                    Commands.ShellOpenFile.Execute(PreviewImageUrl.GetImageCachePath());
                 }
                 else if (sender == ActionCopyPreview)
                 {
-                    CommonHelper.Cmd_CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
+                    Commands.CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
                 }
                 else if (sender == ActionSendIllustToInstance)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
-                        CommonHelper.Cmd_SendToOtherInstance.Execute(item);
+                        Commands.SendToOtherInstance.Execute(item);
                     else
-                        CommonHelper.Cmd_ShellSendToOtherInstance.Execute(item);
+                        Commands.ShellSendToOtherInstance.Execute(item);
                 }
                 else if (sender == ActionSendAuthorToInstance)
                 {
                     var id = $"uid:{item.UserID}";
                     if (Keyboard.Modifiers == ModifierKeys.None)
-                        CommonHelper.Cmd_SendToOtherInstance.Execute(id);
+                        Commands.SendToOtherInstance.Execute(id);
                     else
-                        CommonHelper.Cmd_ShellSendToOtherInstance.Execute(id);
+                        Commands.ShellSendToOtherInstance.Execute(id);
                 }
             }
         }

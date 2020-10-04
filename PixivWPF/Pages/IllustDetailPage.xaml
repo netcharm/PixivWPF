@@ -407,7 +407,7 @@
                             HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <Grid Grid.Column="1" x:Name="IllustSanityInfo" Visibility="Collapsed" 
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.95">
-                            <TextBlock x:Name="IllustSanity" Text="18" Padding="0,0,2,0"
+                            <TextBlock x:Name="IllustSanity" Text="18" Padding="0,0,2,2"
                                 FontSize="14" FontWeight="SemiBold"
                                 LayoutTransform="{StaticResource FontStretchCondensed}"
                                 Foreground="{DynamicResource MahApps.Brushes.Text}"
