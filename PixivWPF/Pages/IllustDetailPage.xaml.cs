@@ -1484,7 +1484,10 @@ namespace PixivWPF.Pages
                 }
                 else if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    Commands.SaveIllust.Execute(SubIllusts);
+                    if (SubIllusts.Items.Count > 0)
+                        Commands.SaveIllust.Execute(SubIllusts);
+                    else
+                        Commands.SaveIllust.Execute(Contents);
                     e.Handled = true;
                 }
                 else if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Shift)
