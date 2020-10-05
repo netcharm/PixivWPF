@@ -5178,6 +5178,14 @@ namespace PixivWPF.Common
             }
         }
 
+        public static void AdjustWindowPos(this Window window)
+        {
+            if (window is ContentWindow)
+            {
+                AdjustWindowPos(window as ContentWindow);
+            }
+        }
+
         public static void Active(this MetroWindow window)
         {
             if (window.WindowState == WindowState.Minimized)

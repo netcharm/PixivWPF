@@ -64,18 +64,11 @@
                     Text="&#xE163;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
-            <Button x:Name="CommandNavPrev" x:Uid="CommandNavPrev" 
-                    Click="CommandNavPrev_Click"
-                    ToolTip="Goto Prev Page" Visibility="Collapsed">
-                <TextBlock 
-                    Text="&#xE760;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Button>
             <Button x:Name="CommandNavNext" x:Uid="CommandNavNext" 
                     Click="CommandNavNext_Click"
                     ToolTip="Goto Next Page">
                 <TextBlock 
-                    Text="&#xE761;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" 
@@ -128,16 +121,16 @@
                     Text="&#xE77B;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
-            <Button Click="CommandToggleTheme_Click"
+            <!--<Button Click="CommandToggleTheme_Click"
                     ToolTip="Toggle Application Theme Style">
                 <TextBlock 
                     Text="&#xF08C;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Button>
+            </Button>-->
             <mah:SplitButton x:Name="CommandToggleTheme" MinWidth="96" MaxWidth="120"
-                             ToolTip="Toggle Application Theme Color"
+                             ToolTip="Toggle Application Theme"
                              UseLayoutRounding="True"
-                             AlternationCount="2"
+                             AlternationCount="2"                             
                              Background="Transparent"
                              BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                              Click="CommandToggleTheme_Click" 
@@ -161,8 +154,11 @@
                 </mah:SplitButton.ItemTemplate>
                 
                 <mah:SplitButton.Icon>
-                    <TextBlock 
+                    <!--<TextBlock 
                     Text="&#xE790;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
+                    <TextBlock 
+                    Text="&#xF08C;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </mah:SplitButton.Icon>
             </mah:SplitButton>

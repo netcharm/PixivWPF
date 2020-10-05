@@ -49,7 +49,7 @@ namespace PixivWPF.Common
         private const int WIDTH_MIN = 720;
         private const int HEIGHT_MIN = 524;
         private const int HEIGHT_DEF = 900;
-        private const int HEIGHT_MAX = 1012;
+        private const int HEIGHT_MAX = 1024;
         private const int WIDTH_DEF = 1280;
 
         public static ICommand DatePicker { get; } = new DelegateCommand<Point?>(obj =>

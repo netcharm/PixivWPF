@@ -432,10 +432,6 @@ namespace PixivWPF
             }
         }
 
-        private void CommandNavPrev_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
         internal void CommandNavNext_Click(object sender, RoutedEventArgs e)
         {
             pagetiles.ShowImages(pagetiles.TargetPage, true, pagetiles.GetLastSelectedID());

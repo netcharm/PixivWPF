@@ -1,4 +1,5 @@
-﻿using PixivWPF.Common;
+﻿using MahApps.Metro.Controls;
+using PixivWPF.Common;
 using Prism.Commands;
 using System;
 using System.Collections.Generic;
@@ -327,6 +328,7 @@ namespace PixivWPF.Pages
                 {
                     window.Topmost = true;
                     if (!window.IsActive) window.Activate();
+                    (window as MetroWindow).AdjustWindowPos();
                     window.Topmost = false;
                 }
             }

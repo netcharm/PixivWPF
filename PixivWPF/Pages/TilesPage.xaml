@@ -256,10 +256,12 @@
                     <!-- Common -->
                     <mah:HamburgerMenuIconItem Label="Recommanded" x:Name="miPixivRecommanded" x:Uid="miPixivRecommanded" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Home" />
+                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Home" />-->
                             <!--<TextBlock Text="&#xE10F;" FontSize="22" FontFamily="Segoe UI Symbol" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
+                            <TextBlock Text="&#xECAA;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>                            
                         </mah:HamburgerMenuIconItem.Icon>
                         <mah:HamburgerMenuIconItem.Tag>
                             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="28" FontWeight="Bold">Recommanded</TextBlock>
@@ -267,12 +269,16 @@
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Latest" x:Name="miPixivLatest" x:Uid="miPixivLatest" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="ImageMultiple" />
+                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="ImageMultiple" />-->
+                            <TextBlock Text="&#xE158;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>                        
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Trending Tags" x:Name="miPixivTrendingTags" x:Uid="miPixivTrendingTags" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="GraphLineUp" />
+                            <!--<iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="GraphLineUp" />-->
+                            <TextBlock Text="&#xE9D2;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>                        
                     </mah:HamburgerMenuIconItem>
                     <!-- Follwing -->
