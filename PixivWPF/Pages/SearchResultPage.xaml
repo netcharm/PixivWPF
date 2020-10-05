@@ -166,8 +166,8 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top">
                     <Button 
                         x:Name="SearchFilter" x:Uid="ResultFilter" ToolTip="Results Filter"
-                        Visibility="Visible"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Visible" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" 
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         ContextMenu="{StaticResource MenuSearchFilter}"
@@ -180,8 +180,8 @@
                     </Button>
                     <Button 
                         x:Name="ResultPrevPage" x:Uid="ResultPrevPage" ToolTip="Previous Results Page"
-                        Visibility="Collapsed"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="SearchResultPrevPage_Click">
@@ -193,8 +193,8 @@
                     </Button>
                     <Button 
                         x:Name="ResultNextPage" x:Uid="ResultNextPage" ToolTip="Next Results Page"
-                        Visibility="Visible"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Visible" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ResultNextPage_Click">
@@ -206,8 +206,8 @@
                     </Button>
                     <Button 
                         x:Name="SearchRefreshThumb" x:Uid="RefreshThumbnail" ToolTip="Refresh Thumbnails"
-                        Visibility="Visible"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Visible" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ActionRefreshResult_Click">
