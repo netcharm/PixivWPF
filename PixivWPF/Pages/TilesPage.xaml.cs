@@ -1191,7 +1191,6 @@ namespace PixivWPF.Pages
             {
                 if (ListImageTiles.SelectedItem != null)
                 {
-
                     e.Handled = true;
                 }
             }

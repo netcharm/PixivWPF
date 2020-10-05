@@ -5238,7 +5238,11 @@ namespace PixivWPF.Common
                         if ((sender as MetroWindow).Content is DownloadManagerPage) return (e);
                         if ((sender as MetroWindow).Tag is DownloadManagerPage) return (e);
 
-                        if (e.Key == Key.Escape) win.Close();
+                        if (e.Key == Key.Escape)
+                        {
+                            if (sender is MainWindow) return (e);
+                            else win.Close();
+                        }
                     }
                     e.Handled = true;
                 }

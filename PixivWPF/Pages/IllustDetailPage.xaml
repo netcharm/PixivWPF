@@ -742,10 +742,10 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top">
                     <Button
                         x:Name="IllustTagPedia" x:Uid="PixivPedia" ToolTip="Query Tag in Pixiv Pedia"
-                        Visibility="Visible"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Visible" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ActionOpenPedia_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE1D3;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -755,11 +755,11 @@
                     </Button>
                     <Button
                         x:Name="IllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
-                        Visibility="Visible"
+                        Visibility="Visible" FontWeight="Normal"
                         ContextMenu="{DynamicResource MenuSpeech}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ActionSpeech_Click">
                         <Button.Content>
                             <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -769,10 +769,10 @@
                     </Button>
                     <Button 
                         x:Name="IllustTagRefresh" x:Uid="TagsRefresh" ToolTip="Refresh Tags"
-                        Visibility="Visible"
+                        Visibility="Visible" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0" FontWeight="Normal"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -797,9 +797,9 @@
                         x:Name="IllustDescSpeech" x:Uid="Speech"
                         Visibility="Visible"
                         ContextMenu="{DynamicResource MenuSpeech}"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ActionSpeech_Click">
                         <Button.Content>
                             <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -812,7 +812,7 @@
                         Visibility="Visible"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0" FontWeight="Normal"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -846,10 +846,10 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="SubIllustPrevPages" x:Uid="SubIllustPrevPages"
-                        Visibility="Collapsed" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="SubIllustPagesNav_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -859,11 +859,10 @@
                     </Button>
                     <Button 
                         x:Name="SubIllustNextPages" x:Uid="SubIllustNextPages"
-                        Visibility="Collapsed" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
-                        Click="SubIllustPagesNav_Click">
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0">
                         <Button.Content>
                             <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
@@ -872,10 +871,10 @@
                     </Button>
                     <Button 
                         x:Name="SubIllustRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="Visible"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Visible" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -904,10 +903,10 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="RelativePrevPage" x:Uid="RelativePrevPage"
-                        Visibility="Collapsed" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
                         Click="RelativePrevPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -917,10 +916,10 @@
                     </Button>
                     <Button 
                         x:Name="RelativeNextPage" x:Uid="RelativeNextPage"
-                        Visibility="Collapsed" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
                         Click="RelativeNextPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -930,10 +929,10 @@
                     </Button>
                     <Button 
                         x:Name="RelativeRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="Visible"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Visible" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -963,10 +962,10 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="FavoritePrevPage" x:Uid="FavoritePrevPage"
-                        Visibility="Collapsed" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
                         Click="FavoritePrevPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -976,10 +975,10 @@
                     </Button>
                     <Button 
                         x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage"
-                        Visibility="Collapsed"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
                         Click="FavoriteNextPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -989,10 +988,10 @@
                     </Button>
                     <Button 
                         x:Name="FavoriteRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="Visible"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Visible" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -1019,10 +1018,10 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="CommentsPrevPage" x:Uid="CommentsPrevPage" 
-                        Visibility="Collapsed" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
                         Click="CommentsPrevPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -1032,10 +1031,10 @@
                     </Button>
                     <Button 
                         x:Name="CommentsNextPage" x:Uid="CommentsNextPage" 
-                        Visibility="Collapsed" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
                         Click="CommentsNextPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -1045,10 +1044,10 @@
                     </Button>
                     <Button 
                         x:Name="btnCommentRefresh" x:Uid="ActionRefreshComment" ToolTip="Refresh Comment"
-                        Visibility="Visible"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
+                        Visibility="Visible" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 

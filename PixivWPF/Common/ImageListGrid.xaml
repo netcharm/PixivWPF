@@ -47,17 +47,15 @@
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <!-- User Mark -->
-                <iconPacks:PackIconModern 
-                    Grid.Row="0"
-                    Kind="User" 
-                    Width="24" Height="24" Margin="6,0,0,8" 
-                    Foreground="{DynamicResource MahApps.Brushes.Accent}" 
-                    HorizontalAlignment="Left" VerticalAlignment="Bottom" 
-                    Visibility="{Binding UserMarkVisibility, Mode=OneWay}" >
-                    <iconPacks:PackIconModern.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
-                    </iconPacks:PackIconModern.Effect>
-                </iconPacks:PackIconModern>
+                <TextBlock Grid.Row="0" 
+                           HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,8" 
+                           Text="&#xE187;" FontSize="24" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" 
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                           Visibility="{Binding UserMarkVisibility, Mode=OneWay}" >
+                    <TextBlock.Effect>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
+                    </TextBlock.Effect>
+                </TextBlock>
                 <!-- Favorited Mark -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0"

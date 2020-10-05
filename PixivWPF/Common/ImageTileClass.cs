@@ -65,20 +65,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public Visibility UserMarkVisibility { get; set; } = Visibility.Collapsed;
-        [Description("Get or Set Item is or not a user item")]
-        [Category("Common Properties")]
-        [DefaultValue(false)]
-        public bool IsUser
-        {
-            get { return (UserMarkVisibility == Visibility.Visible ? true : false); }
-            set
-            {
-                if (value) UserMarkVisibility = Visibility.Visible;
-                else UserMarkVisibility = Visibility.Collapsed;
-                NotifyPropertyChanged("FavMarkVisibility");
-            }
-        }
+        public Visibility UserMarkVisibility { get { return (ItemType == ImageItemType.User ? Visibility.Visible : Visibility.Collapsed); } } 
 
         public Visibility FollowMarkVisibility { get; set; } = Visibility.Collapsed;
         [Description("Get or Set User IsFollowed State")]
@@ -478,7 +465,6 @@ namespace PixivWPF.Common
                         BadgeValue = nu.Stats == null ? null : nu.Stats.Works.Value.ToString(),
                         IsFavorited = false,
                         IsFollowed = nu.IsLiked(),
-                        IsUser = true,
                         Illust = null,
                         ID = nu.Id.ToString(),
                         User = nu,
@@ -526,7 +512,6 @@ namespace PixivWPF.Common
                         BadgeValue = null,
                         IsFavorited = false,
                         IsFollowed = nu.IsLiked(),
-                        IsUser = true,
                         Illust = null,
                         ID = nu.Id.ToString(),
                         User = nu,

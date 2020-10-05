@@ -406,38 +406,52 @@
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="My Information" x:Name="miPixivMine" x:Uid="miPixivMine" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="User" />
+                            <TextBlock 
+                                Text="&#xE779;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="My Follower Users" x:Name="miPixivMyFollower" x:Uid="miPixivMyFollower" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PeopleMultiple" />
+                            <TextBlock 
+                                Text="&#xE902;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>   
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="My Following Users" x:Name="miPixivMyFollowing" x:Uid="miPixivMyFollowing" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PeopleMultiple" />
+                            <TextBlock 
+                                Text="&#xE902;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="My Following Users Private" x:Name="miPixivMyFollowingPrivate" x:Uid="miPixivMyFollowingPrivate" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PeopleMultiple" />
+                            <TextBlock 
+                                Text="&#xE902;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="My Pixiv Users" x:Name="miPixivMyUsers" x:Uid="miPixivMyUsers" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PeopleMultiple" />
+                            <TextBlock 
+                                Text="&#xE902;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="My Blacklist Users" x:Name="miPixivMyBlacklis" x:Uid="miPixivMyBlacklis" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="PeopleMultiple" />
+                            <TextBlock 
+                                Text="&#xE902;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="About" x:Name="miAbout" x:Uid="miAbout" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Information" />
+                            <TextBlock 
+                                Text="&#xE946;" FontSize="22" FontFamily="Segoe MDL2 Assets" 
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </mah:HamburgerMenuIconItem.Icon>
                         <mah:HamburgerMenuIconItem.Tag>
                             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="28" FontWeight="Bold">About</TextBlock>

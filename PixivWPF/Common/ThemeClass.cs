@@ -227,8 +227,8 @@ namespace PixivWPF.Common
                     var color = theme.ColorScheme;
                     var style = theme.BaseColorScheme;
                     setting = Application.Current.LoadSetting();
-                    if (setting.CurrentAccent.Equals(color, StringComparison.CurrentCultureIgnoreCase) ||
-                        setting.CurrentTheme.Equals(style, StringComparison.CurrentCultureIgnoreCase))
+                    if (!setting.CurrentAccent.Equals(color, StringComparison.CurrentCultureIgnoreCase) ||
+                        !setting.CurrentTheme.Equals(style, StringComparison.CurrentCultureIgnoreCase))
                     {
                         setting.CurrentAccent = color;
                         setting.CurrentTheme = style;
@@ -247,7 +247,7 @@ namespace PixivWPF.Common
                 {
                     ThemeManager.Current.ChangeThemeColorScheme(Application.Current, value);
                     setting = Application.Current.LoadSetting();
-                    if (setting.CurrentAccent.Equals(value, StringComparison.CurrentCultureIgnoreCase))
+                    if (!setting.CurrentAccent.Equals(value, StringComparison.CurrentCultureIgnoreCase))
                     {
                         setting.CurrentAccent = value;
                         setting.Save();
@@ -265,7 +265,7 @@ namespace PixivWPF.Common
                 {
                     ThemeManager.Current.ChangeThemeBaseColor(Application.Current, value);
                     setting = Application.Current.LoadSetting();
-                    if (setting.CurrentTheme.Equals(value, StringComparison.CurrentCultureIgnoreCase))
+                    if (!setting.CurrentTheme.Equals(value, StringComparison.CurrentCultureIgnoreCase))
                     {
                         setting.CurrentTheme = value;
                         setting.Save();

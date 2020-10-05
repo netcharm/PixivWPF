@@ -294,6 +294,7 @@ namespace PixivWPF.Common
             }
         }
 
+        public bool UseCustomFont { get; set; } = false;
         public string FontName { get; set; } = string.Empty;
         [JsonIgnore]
         private FontFamily fontfamily = SystemFonts.MessageFontFamily;
@@ -302,11 +303,27 @@ namespace PixivWPF.Common
 
         private string theme = string.Empty;
         [JsonProperty("Theme")]
-        public string CurrentTheme { get; set; }
+        public string CurrentTheme
+        {
+            get { return (theme); }
+            set
+            {
+                theme = value;
+                if (Cache is Setting) Cache.theme = theme;
+            }
+        }
 
         private string accent = string.Empty;
         [JsonProperty("Accent")]
-        public string CurrentAccent { get; set; }
+        public string CurrentAccent
+        {
+            get { return (accent); }
+            set
+            {
+                accent = value;
+                if (Cache is Setting) Cache.accent = accent;
+            }
+        }
 
         public bool PrivateFavPrefer { get; set; } = false;
         public bool PrivateBookmarkPrefer { get; set; } = false;
@@ -551,9 +568,9 @@ namespace PixivWPF.Common
                                 Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
 
                             Cache.LocalStorage.InitDownloadedWatcher();
-#if DEBUG
+
                             #region Setup UI font
-                            if (!string.IsNullOrEmpty(Cache.FontName))
+                            if (Cache.UseCustomFont && !string.IsNullOrEmpty(Cache.FontName))
                             {
                                 try
                                 {
@@ -565,7 +582,7 @@ namespace PixivWPF.Common
                                 }
                             }
                             #endregion
-#endif
+
                             #region Update Contents Template
                             UpdateContentsTemplete();
                             #endregion

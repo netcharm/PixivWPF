@@ -60,17 +60,23 @@
             <Button x:Name="CommandNavDate" x:Uid="CommandNavDate" 
                     Click="CommandNavDate_Click"                                
                     ToolTip="Date Selector">
-                <iconPacks:PackIconModern Kind="Calendar" />
+                <TextBlock 
+                    Text="&#xE163;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Button x:Name="CommandNavPrev" x:Uid="CommandNavPrev" 
                     Click="CommandNavPrev_Click"
                     ToolTip="Goto Prev Page" Visibility="Collapsed">
-                <iconPacks:PackIconModern Kind="NavigatePrevious" />
+                <TextBlock 
+                    Text="&#xE760;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Button x:Name="CommandNavNext" x:Uid="CommandNavNext" 
                     Click="CommandNavNext_Click"
                     ToolTip="Goto Next Page">
-                <iconPacks:PackIconModern Kind="NavigateNext" />
+                <TextBlock 
+                    Text="&#xE761;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" 
                        HorizontalAlignment="Left" VerticalAlignment="Center"/>
@@ -93,7 +99,9 @@
             </ComboBox>
             <Button Click="CommandSearch_Click" 
                     ToolTip="Searching Illust/User">
-                <iconPacks:PackIconModern Kind="Magnify" />
+                <TextBlock 
+                    Text="&#xE721;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Button Click="CommandHistory_Click" 
                     ToolTip="History">
@@ -103,20 +111,31 @@
             </Button>
             <Button Click="CommandDownloadManager_Click" 
                     ToolTip="Open Download Manager">
-                <iconPacks:PackIconModern Kind="Download" />
+                <TextBlock 
+                    Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
-            <ToggleButton x:Name="CommandToggleDropbox" Click="CommandToggleDropbox_Click">
-                <iconPacks:PackIconModern Kind="Link" />
+            <ToggleButton x:Name="CommandToggleDropbox" 
+                          ToolTip="Open Drop Box"
+                          Click="CommandToggleDropbox_Click">
+                <TextBlock 
+                    Text="&#xE167;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </ToggleButton>
             <Button Click="CommandLogin_Click"
                     ToolTip="Open Login Dialog">
-                <iconPacks:PackIconModern Kind="User" />
+                <TextBlock 
+                    Text="&#xE77B;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
-            <Button Click="CommandToggleTheme_Click" >
-                <iconPacks:PackIconModern Kind="Contrast" />
+            <Button Click="CommandToggleTheme_Click"
+                    ToolTip="Toggle Application Theme Style">
+                <TextBlock 
+                    Text="&#xF08C;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <mah:SplitButton x:Name="CommandToggleTheme" MinWidth="96" MaxWidth="120"
-                             ToolTip="Toggle Application Theme"
+                             ToolTip="Toggle Application Theme Color"
                              UseLayoutRounding="True"
                              AlternationCount="2"
                              Background="Transparent"
@@ -142,7 +161,9 @@
                 </mah:SplitButton.ItemTemplate>
                 
                 <mah:SplitButton.Icon>
-                    <iconPacks:PackIconModern Kind="ClothesShirt" />
+                    <TextBlock 
+                    Text="&#xE790;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </mah:SplitButton.Icon>
             </mah:SplitButton>
         </mah:WindowCommands>
