@@ -25,7 +25,6 @@ namespace PixivWPF.Pages
 
         public ImageItem Contents { get; set; } = null;
 
-        //private object DataObject = null;
         private string PreviewImageUrl = string.Empty;
 
         private bool bCancel = false;
@@ -789,13 +788,13 @@ namespace PixivWPF.Pages
                     }
                     else IllustTagExpander.IsExpanded = false;
                     IllustTagExpander.Show();
-                    btnIllustTagPedia.Show();
+                    IllustTagPedia.Show();
                 }
                 else
                 {
                     IllustTagsHtml.DocumentText = string.Empty;
                     IllustTagExpander.Hide();
-                    btnIllustTagPedia.Hide();
+                    IllustTagPedia.Hide();
                 }
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
@@ -934,7 +933,7 @@ namespace PixivWPF.Pages
                 BookmarkIllust.Hide();
                 IllustActions.Hide();
 
-                btnIllustTagPedia.Hide();
+                IllustTagPedia.Hide();
 
                 if (nuser != null && nprof != null && nworks != null)
                 {
@@ -1024,18 +1023,18 @@ namespace PixivWPF.Pages
                     if (pageNum <= 0)
                     {
                         pageNum = 0;
-                        btnSubIllustPrevPages.Hide();
+                        SubIllustPrevPages.Hide();
                     }
                     else
-                        btnSubIllustPrevPages.Show();
+                        SubIllustPrevPages.Show();
 
                     if (pageNum >= pageCount - 1)
                     {
                         pageNum = pageCount - 1;
-                        btnSubIllustNextPages.Hide();
+                        SubIllustNextPages.Hide();
                     }
                     else
-                        btnSubIllustNextPages.Show();
+                        SubIllustNextPages.Show();
 
                     SubIllusts.Tag = pageNum;
                     this.DoEvents();
@@ -1380,7 +1379,28 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            if(Contents is ImageItem) UpdateDetail(Contents);
+            #region ToolButton MouseOver action
+            IllustTagPedia.MouseOverAction();
+            IllustTagSpeech.MouseOverAction();
+            IllustTagRefresh.MouseOverAction();
+
+            IllustDescSpeech.MouseOverAction();
+            IllustDescRefresh.MouseOverAction();
+
+            SubIllustPrevPages.MouseOverAction();
+            SubIllustNextPages.MouseOverAction();
+            SubIllustRefresh.MouseOverAction();
+
+            RelativePrevPage.MouseOverAction();
+            RelativeNextPage.MouseOverAction();
+            RelativeRefresh.MouseOverAction();
+
+            FavoritePrevPage.MouseOverAction();
+            FavoriteNextPage.MouseOverAction();
+            FavoriteRefresh.MouseOverAction();
+            #endregion
+
+            if (Contents is ImageItem) UpdateDetail(Contents);
             else if(Tag is Pixeez.Objects.UserBase) UpdateDetail(Tag as Pixeez.Objects.UserBase);
         }
 
@@ -1782,12 +1802,12 @@ namespace PixivWPF.Pages
             var is_tag = false;
             try
             {
-                if (sender == btnIllustTagSpeech)
+                if (sender == IllustTagSpeech)
                 {
                     is_tag = true;
                     text = GetText(IllustTagsHtml);
                 }
-                else if (sender == btnIllustDescSpeech)
+                else if (sender == IllustDescSpeech)
                     text = GetText(IllustDescHtml);
                 else if (sender == IllustTitle)
                     text = IllustTitle.Text;
@@ -1813,8 +1833,8 @@ namespace PixivWPF.Pages
                     if (mi.Parent is ContextMenu)
                     {
                         var host = (mi.Parent as ContextMenu).PlacementTarget;
-                        if (host == btnIllustTagSpeech) { is_tag = true; text = GetText(IllustTagsHtml); }
-                        else if (host == btnIllustDescSpeech) text = GetText(IllustDescHtml);
+                        if (host == IllustTagSpeech) { is_tag = true; text = GetText(IllustTagsHtml); }
+                        else if (host == IllustDescSpeech) text = GetText(IllustDescHtml);
                         else if (host == IllustAuthor) text = IllustAuthor.Text;
                         else if (host == IllustTitle) text = IllustTitle.Text;
                         else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
@@ -1861,9 +1881,9 @@ namespace PixivWPF.Pages
                     if (mi.Parent is ContextMenu)
                     {
                         var host = (mi.Parent as ContextMenu).PlacementTarget;
-                        if (host == btnIllustTagSpeech)
+                        if (host == IllustTagSpeech)
                             text = $"\"tag:{string.Join($"\"{Environment.NewLine}\"tag:", GetText(IllustTagsHtml).Trim().Trim('#').Split('#'))}\"";
-                        else if (host == btnIllustDescSpeech)
+                        else if (host == IllustDescSpeech)
                             text = $"\"{string.Join("\" \"", GetText(IllustDescHtml).ParseLinks().ToArray())}\"";
                         else if (host == IllustAuthor)
                             text = $"\"user:{IllustAuthor.Text}\"";
@@ -1897,7 +1917,7 @@ namespace PixivWPF.Pages
                     if (mi.Parent is ContextMenu)
                     {
                         var host = (mi.Parent as ContextMenu).PlacementTarget;
-                        if (host == btnIllustTagSpeech)
+                        if (host == IllustTagSpeech)
                         {
                             if (Keyboard.Modifiers == ModifierKeys.None)
                                 WebBrowserRefresh(IllustTagsHtml);
@@ -1906,7 +1926,7 @@ namespace PixivWPF.Pages
                             else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                                 Application.Current.LoadSetting().CustomTagsFile.OpenFileWithShell();
                         }
-                        else if (host == btnIllustDescSpeech)
+                        else if (host == IllustDescSpeech)
                         {
                             if (Keyboard.Modifiers == ModifierKeys.None)
                                 WebBrowserRefresh(IllustDescHtml);
@@ -1926,7 +1946,7 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
-                else if (sender == btnIllustTagRefresh)
+                else if (sender == IllustTagRefresh)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         WebBrowserRefresh(IllustTagsHtml);
@@ -1935,7 +1955,7 @@ namespace PixivWPF.Pages
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                         Application.Current.LoadSetting().CustomTagsFile.OpenFileWithShell();
                 }
-                else if (sender == btnIllustDescRefresh)
+                else if (sender == IllustDescRefresh)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         WebBrowserRefresh(IllustTagsHtml);
@@ -1944,15 +1964,15 @@ namespace PixivWPF.Pages
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                         Application.Current.LoadSetting().ContentsTemplateFile.OpenFileWithShell();
                 }
-                else if (sender == btnSubIllustRefresh)
+                else if (sender == SubIllustRefresh)
                 {
                     SubIllusts.UpdateTilesImage();
                 }
-                else if (sender == btnRelativeRefresh)
+                else if (sender == RelativeRefresh)
                 {
                     RelativeIllusts.UpdateTilesImage();
                 }
-                else if (sender == btnFavoriteRefresh)
+                else if (sender == FavoriteRefresh)
                 {
                     FavoriteIllusts.UpdateTilesImage();
                 }
@@ -1968,7 +1988,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (sender == btnIllustTagPedia)
+                if (sender == IllustTagPedia)
                 {
                     var shell = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
                     var tags = GetText(IllustTagsHtml).Trim().Trim('#').Split('#');
@@ -2583,7 +2603,7 @@ namespace PixivWPF.Pages
 
         private void SubIllustPagesNav_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == btnSubIllustPrevPages || sender == btnSubIllustNextPages)
+            if (sender == SubIllustPrevPages || sender == SubIllustNextPages)
             {
                 var btn = sender as Button;
                 if (Contents is ImageItem)
@@ -2593,12 +2613,12 @@ namespace PixivWPF.Pages
                     {
                         var pageNum = SubIllusts.Tag is int ? (int)(SubIllusts.Tag) : 0;
                         var index = 0;
-                        if (btn == btnSubIllustPrevPages)
+                        if (btn == SubIllustPrevPages)
                         {
                             pageNum -= 1;
                             index = 29;
                         }
-                        else if (btn == btnSubIllustNextPages)
+                        else if (btn == SubIllustNextPages)
                         {
                             pageNum += 1;
                         }
@@ -2683,9 +2703,9 @@ namespace PixivWPF.Pages
                 {
                     if (SubIllusts.SelectedIndex > 0)
                         SubIllusts.SelectedIndex -= 1;
-                    else if (SubIllusts.SelectedIndex == 0 && btnSubIllustPrevPages.IsShown())
+                    else if (SubIllusts.SelectedIndex == 0 && SubIllustPrevPages.IsShown())
                     {
-                        SubIllustPagesNav_Click(btnSubIllustPrevPages, e);
+                        SubIllustPagesNav_Click(SubIllustPrevPages, e);
                     }
                 }
                 else if (sender == btnSubPageNext)
@@ -2694,9 +2714,9 @@ namespace PixivWPF.Pages
                         SubIllusts.SelectedIndex = 1;
                     else if (SubIllusts.SelectedIndex < count - 1 && count > 1)
                         SubIllusts.SelectedIndex += 1;
-                    else if (SubIllusts.SelectedIndex == count - 1 && btnSubIllustNextPages.IsShown())
+                    else if (SubIllusts.SelectedIndex == count - 1 && SubIllustNextPages.IsShown())
                     {
-                        SubIllustPagesNav_Click(btnSubIllustNextPages, e);
+                        SubIllustPagesNav_Click(SubIllustNextPages, e);
                     }
                 }
                 if (SubIllusts.SelectedItem is ImageItem) SubIllusts.SelectedItem.Focus();
@@ -3206,7 +3226,7 @@ namespace PixivWPF.Pages
                     var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                     if (host == SubIllustsExpander || host == SubIllusts)
                     {
-                        SubIllustPagesNav_Click(btnSubIllustPrevPages, e);
+                        SubIllustPagesNav_Click(SubIllustPrevPages, e);
                     }
                     else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                     {
@@ -3234,7 +3254,7 @@ namespace PixivWPF.Pages
                     var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                     if (host == SubIllustsExpander || host == SubIllusts)
                     {
-                        SubIllustPagesNav_Click(btnSubIllustNextPages, e);
+                        SubIllustPagesNav_Click(SubIllustNextPages, e);
                     }
                     else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                     {

@@ -324,61 +324,67 @@ namespace PixivWPF.Pages
         private void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
         {
             string uid = (sender as dynamic).Uid;
-
-            if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
-                uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
-                uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+            try
             {
-                IList<ImageItem> items = new List<ImageItem>();
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == HistoryItems) items = HistoryItems.SelectedItems;
-                try
+                if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
+                    uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                    uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                    IList<ImageItem> items = new List<ImageItem>();
+                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    if (host == HistoryItems) items = HistoryItems.GetSelected(ImageItemType.Work);
+                    try
                     {
-                        items.LikeIllust();
+                        if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            items.LikeIllust();
+                        }
+                        else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            items.LikeIllust(false);
+                        }
+                        else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            items.UnLikeIllust();
+                        }
                     }
-                    else if (uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.LikeIllust(false);
-                    }
-                    else if (uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.UnLikeIllust();
-                    }
+                    catch (Exception) { }
                 }
-                catch (Exception) { }
             }
+            catch (Exception) { }
         }
 
         private void ActionFollowAuthor_Click(object sender, RoutedEventArgs e)
         {
             string uid = (sender as dynamic).Uid;
-
-            if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
-                uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
-                uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
+            try
             {
-                IList<ImageItem> items = new List<ImageItem>();
-                var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == HistoryItems) items = HistoryItems.SelectedItems;
-                try
+                if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
+                    uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
+                    uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                    IList<ImageItem> items = new List<ImageItem>();
+                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    if (host == HistoryItems) items = HistoryItems.GetSelected();
+                    try
                     {
-                        items.LikeUser();
+                        if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            items.LikeUser();
+                        }
+                        else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            items.LikeUser(false);
+                        }
+                        else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            items.UnLikeUser();
+                        }
                     }
-                    else if (uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.LikeUser(false);
-                    }
-                    else if (uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        items.UnLikeUser();
-                    }
+                    catch (Exception) { }
                 }
-                catch (Exception) { }
             }
+            catch (Exception) { }
         }
 
         private void HistoryIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)

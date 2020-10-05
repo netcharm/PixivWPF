@@ -25,11 +25,12 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class IllustImageViewerPage : Page
     {
-        private object DataType = null;
         private Window window = null;
 
         public ImageItem Contents { get; set; } = null;
         private string PreviewImageUrl = string.Empty;
+        private string OriginalImageUrl = string.Empty;
+        private bool IsOriginal = false;
 
         internal void UpdateTheme()
         {
@@ -42,20 +43,20 @@ namespace PixivWPF.Pages
             try
             {
                 PreviewWait.Show();
+                if (item is ImageItem) Contents = item;
 
-                DataType = item;
-                if (item.Illust is Pixeez.Objects.Work)
+                if (Contents.Illust is Pixeez.Objects.Work)
                 {
-                    var illust = item.Illust as Pixeez.Objects.Work;
+                    var illust = Contents.Illust as Pixeez.Objects.Work;
 
-                    if(illust.PageCount > 1)
+                    if (illust.PageCount > 1)
                     {
                         ActionViewPrevPage.Show();
                         ActionViewNextPage.Show();
                         ActionViewPageSep.Show();
 
-                        btnViewPrevPage.Enable(item.Index > 0);
-                        btnViewNextPage.Enable(item.Index < item.Count - 1);
+                        btnViewPrevPage.Enable(Contents.Index > 0);
+                        btnViewNextPage.Enable(Contents.Index < Contents.Count - 1);
                     }
                     else
                     {
@@ -66,11 +67,11 @@ namespace PixivWPF.Pages
                         ActionViewPageSep.Hide();
                     }
 
-                    PreviewImageUrl = illust.GetPreviewUrl(item.Index, true);
+                    PreviewImageUrl = illust.GetPreviewUrl(Contents.Index, true);
                     var img = await PreviewImageUrl.LoadImageFromUrl();
                     if (img == null || img.Width < 360)
                     {
-                        PreviewImageUrl = item.Illust.GetOriginalUrl(item.Index);
+                        PreviewImageUrl = Contents.Illust.GetOriginalUrl(Contents.Index);
                         var large = await PreviewImageUrl.LoadImageFromUrl();
                         if (large != null) img = large;
                     }
@@ -82,7 +83,7 @@ namespace PixivWPF.Pages
                         PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
                         Page_SizeChanged(null, null);
                     }
-                        
+
                     if (window == null)
                     {
                         window = this.GetActiveWindow();
@@ -94,10 +95,10 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        if (Regex.IsMatch(item.Subject, @" - \d+\/\d+$", RegexOptions.IgnoreCase))
-                            window.Title = $"Preview ID: {item.ID}, {item.Subject}";
+                        if (Regex.IsMatch(Contents.Subject, @" - \d+\/\d+$", RegexOptions.IgnoreCase))
+                            window.Title = $"Preview ID: {Contents.ID}, {Contents.Subject}";
                         else
-                            window.Title = $"Preview ID: {item.ID}, {item.Subject}";// - 1/1";
+                            window.Title = $"Preview ID: {Contents.ID}, {Contents.Subject}";// - 1/1";
                     }
                 }
             }
@@ -113,27 +114,26 @@ namespace PixivWPF.Pages
 
         private void ChangeIllustPage(int offset)
         {
-            if (DataType is ImageItem)
+            if (Contents is ImageItem)
             {
-                var item = DataType as ImageItem;
-                var illust = item.Illust;
-                int index_p = item.Index;
+                var illust = Contents.Illust;
+                int index_p = Contents.Index;
                 if (index_p < 0) index_p = 0;
-                var index_n = item.Index+offset;
+                var index_n = Contents.Index+offset;
                 if (index_n < 0) index_n = 0;
-                if (index_n >= item.Count - 1) index_n = item.Count - 1;
+                if (index_n >= Contents.Count - 1) index_n = Contents.Count - 1;
                 if (index_n == index_p) return;
 
                 var i = illust.IllustItem();
-                if(i is ImageItem)
+                if (i is ImageItem)
                 {
-                    i.NextURL = item.NextURL;
+                    i.NextURL = Contents.NextURL;
                     i.Thumb = illust.GetThumbnailUrl(index_n);
                     i.Index = index_n;
                     i.BadgeValue = (index_n + 1).ToString();
                     i.Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}";
                     i.DisplayTitle = false;
-                    i.Tag = item.Tag;
+                    i.Tag = Contents.Tag;
                 }
                 UpdateDetail(i);
             }
@@ -141,14 +141,12 @@ namespace PixivWPF.Pages
 
         private void SaveIllust()
         {
-            if (DataType is ImageItem)
+            if (Contents is ImageItem)
             {
-                var item = DataType as ImageItem;
-                if (item.Illust is Pixeez.Objects.Work)
+                if (Contents.Illust is Pixeez.Objects.Work)
                 {
-
-                    var illust = item.Illust;
-                    var idx = item.Index;
+                    var illust = Contents.Illust;
+                    var idx = Contents.Index;
                     var url = illust.GetOriginalUrl(idx);
                     var dt = illust.GetDateTime();
 
@@ -178,6 +176,14 @@ namespace PixivWPF.Pages
             window = Window.GetWindow(this);
             if (window is Window)
             {
+                #region ToolButton MouseOver action
+                btnViewPrevPage.MouseOverAction();
+                btnViewNextPage.MouseOverAction();
+                btnViewOriginalPage.MouseOverAction();
+                btnViewFullSize.MouseOverAction();
+                btnSavePage.MouseOverAction();
+                #endregion
+
                 var titleheight = window is MetroWindow ? (window as MetroWindow).TitleBarHeight : 0;
                 window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
                 window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom + (32 - titleheight % 32);
@@ -228,7 +234,8 @@ namespace PixivWPF.Pages
         {
             int offset = 0;
             int factor = 1;
-            if(Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)){
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
                 factor = 10;
             }
             if (e.Delta < 0)
@@ -312,57 +319,39 @@ namespace PixivWPF.Pages
             {
                 SaveIllust();
                 return;
-            }              
+            }
             ChangeIllustPage(offset);
         }
 
-        private void btnAction_MouseEnter(object sender, MouseEventArgs e)
-        {
-            if(sender is ButtonBase)
-            {
-                var btn = sender as ButtonBase;
-                btn.BorderThickness = new Thickness(2);
-            }
-        }
-
-        private void btnAction_MouseLeave(object sender, MouseEventArgs e)
-        {
-            if (sender is ButtonBase)
-            {
-                var btn = sender as ButtonBase;
-                btn.BorderThickness = new Thickness(0);
-            }
-        }
 
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
-            if (DataType is ImageItem)
+            if (Contents is ImageItem)
             {
-                var item = DataType as ImageItem;
                 if (sender == ActionCopyIllustID)
-                    Commands.CopyIllustIDs.Execute(item);
+                    Commands.CopyIllustIDs.Execute(Contents);
                 else if (sender == ActionOpenIllust)
-                    Commands.Open.Execute(item.Illust);
+                    Commands.Open.Execute(Contents.Illust);
                 else if (sender == ActionOpenAuthor)
-                    Commands.OpenUser.Execute(item.User);
+                    Commands.OpenUser.Execute(Contents.User);
                 else if (sender == ActionOpenCachedWith)
                 {
-                    Commands.ShellOpenFile.Execute(PreviewImageUrl.GetImageCachePath());
+                    Commands.ShellOpenFile.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
                 }
                 else if (sender == ActionCopyPreview)
                 {
-                    Commands.CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
+                    Commands.CopyImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
                 }
                 else if (sender == ActionSendIllustToInstance)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
-                        Commands.SendToOtherInstance.Execute(item);
+                        Commands.SendToOtherInstance.Execute(Contents);
                     else
-                        Commands.ShellSendToOtherInstance.Execute(item);
+                        Commands.ShellSendToOtherInstance.Execute(Contents);
                 }
                 else if (sender == ActionSendAuthorToInstance)
                 {
-                    var id = $"uid:{item.UserID}";
+                    var id = $"uid:{Contents.UserID}";
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         Commands.SendToOtherInstance.Execute(id);
                     else
@@ -429,27 +418,43 @@ namespace PixivWPF.Pages
 
         private async void ActionViewOriginalPage_Click(object sender, RoutedEventArgs e)
         {
-            if(DataType is ImageItem)
+            if (Contents is ImageItem)
             {
-                PreviewWait.Visibility = Visibility.Visible;
-
-                var item = DataType as ImageItem;
-                if (item.Illust is Pixeez.Objects.Work)
+                var preview = Preview.Source;
+                try
                 {
-                    var illust = item.Illust as Pixeez.Objects.Work;
-                    PreviewImageUrl = illust.GetOriginalUrl(item.Index);
-                    var large = await PreviewImageUrl.LoadImageFromUrl();
-                    if (large != null) Preview.Source = large;
-                    if (Preview.Source != null)
+                    PreviewWait.Show();
+                    if (Contents.Illust is Pixeez.Objects.Work)
                     {
-                        var aspect = Preview.Source.AspectRatio();
-                        PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
-
-                        Page_SizeChanged(null, null);
+                        var illust = Contents.Illust as Pixeez.Objects.Work;
+                        OriginalImageUrl = illust.GetOriginalUrl(Contents.Index);
+                        var original = await OriginalImageUrl.LoadImageFromUrl();
+                        if (original != null)
+                        {
+                            Preview.Source = original;
+                            IsOriginal = true;
+                        }
+                        else
+                        {
+                            Preview.Source = preview;
+                            IsOriginal = false;
+                        }
+                        if (Preview.Source != null)
+                        {
+                            var aspect = Preview.Source.AspectRatio();
+                            PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
+                            Page_SizeChanged(sender, null);
+                            PreviewWait.Hide();
+                        }
                     }
                 }
-
-                PreviewWait.Visibility = Visibility.Hidden;
+                catch (Exception)
+                {
+                    Preview.Source = preview;
+                }
+                finally
+                {
+                }
             }
         }
     }

@@ -115,7 +115,7 @@
                                       HorizontalAlignment="Right" VerticalAlignment="Center"
                                       Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                                       Width="16" Height="16"/>
-            <TextBlock x:Name="PreviewSize" x:Uid="PreviewSize" Margin="2,0,4,0" Foreground="{DynamicResource MahApps.Brushes.MahApps.Brushes.Text}"/>
+            <TextBlock x:Name="PreviewSize" x:Uid="PreviewSize" Margin="2,0,4,0" Foreground="{DynamicResource MahApps.Brushes.Text}"/>
         </StackPanel>
         <StackPanel Grid.Row="0" x:Name="ActionBar"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom">
@@ -123,35 +123,35 @@
                 Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                Click="ActionViewPrevPage_Click" MouseEnter="btnAction_MouseEnter" MouseLeave="btnAction_MouseLeave">
+                Click="ActionViewPrevPage_Click" >
                 <iconPacks:PackIconModern Kind="NavigatePrevious" Width="32" Height="32" />
             </Button>
             <Button x:Name="btnViewNextPage" x:Uid="ViewNextPage"
                 Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                Click="ActionViewNextPage_Click" MouseEnter="btnAction_MouseEnter" MouseLeave="btnAction_MouseLeave">
+                Click="ActionViewNextPage_Click" >
                 <iconPacks:PackIconModern Kind="NavigateNext" Width="32" Height="32" />
             </Button>
             <Button x:Name="btnViewOriginalPage" x:Uid="ViewOriginalPage"
                 Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                Click="ActionViewOriginalPage_Click" MouseEnter="btnAction_MouseEnter" MouseLeave="btnAction_MouseLeave">
+                Click="ActionViewOriginalPage_Click" >
                 <iconPacks:PackIconModern Kind="ArrowExpand" Width="32" Height="32" />
             </Button>
             <ToggleButton x:Name="btnViewFullSize" x:Uid="ViewFullSize"
                 Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                Click="ActionViewFullSize_Click" MouseEnter="btnAction_MouseEnter" MouseLeave="btnAction_MouseLeave">
+                Click="ActionViewFullSize_Click" >
                 <iconPacks:PackIconModern Kind="Magnify" Width="32" Height="32" />
             </ToggleButton>
             <Button x:Name="btnSavePage" x:Uid="SavePage"
                 Width="64" Height="64" 
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                Click="ActionSaveIllust_Click" MouseEnter="btnAction_MouseEnter" MouseLeave="btnAction_MouseLeave">
+                Click="ActionSaveIllust_Click" >
                 <iconPacks:PackIconModern Kind="Save" Width="32" Height="32" />
             </Button>
         </StackPanel>

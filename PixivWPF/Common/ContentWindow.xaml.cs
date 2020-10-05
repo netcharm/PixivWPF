@@ -68,7 +68,11 @@ namespace PixivWPF.Common
                 CommandPageRefresh.Visibility = Visibility.Visible;
             else
                 CommandPageRefresh.Visibility = Visibility.Collapsed;
-            CommandPageRefreshThumb.Visibility = CommandPageRefresh.Visibility;
+
+            if (Content is IllustImageViewerPage)
+                CommandPageRefreshThumb.Visibility = Visibility.Collapsed;
+            else
+                CommandPageRefreshThumb.Visibility = CommandPageRefresh.Visibility;
 
             if (this.DropBoxExists() == null)
                 CommandToggleDropbox.IsChecked = false;

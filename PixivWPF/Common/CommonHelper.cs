@@ -35,6 +35,7 @@ using Prism.Commands;
 using WPFNotification.Core.Configuration;
 using WPFNotification.Model;
 using WPFNotification.Services;
+using System.Windows.Controls.Primitives;
 
 namespace PixivWPF.Common
 {
@@ -4048,6 +4049,27 @@ namespace PixivWPF.Common
             setting = Application.Current.LoadSetting();
             return (GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone));
         }
+
+        public static IList<ImageItem> GetSelected(this ImageListGrid gallery, ImageItemType type)
+        {
+            setting = Application.Current.LoadSetting();
+            var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
+            return (selected.Where(i => i.ItemType == type).ToList());
+        }
+
+        public static IList<ImageItem> GetSelectedIllusts(this ImageListGrid gallery)
+        {
+            setting = Application.Current.LoadSetting();
+            var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
+            return (selected.Where(i => i.ItemType != ImageItemType.User && i.ItemType != ImageItemType.None).ToList());
+        }
+
+        public static IList<ImageItem> GetSelectedUsers(this ImageListGrid gallery)
+        {
+            setting = Application.Current.LoadSetting();
+            var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
+            return (selected.Where(i => i.ItemType == ImageItemType.User).ToList());
+        }
         #endregion
 
         #region History routines
@@ -4913,6 +4935,47 @@ namespace PixivWPF.Common
             element.IsEnabled = false;
             element.Foreground = Theme.GrayBrush;
             element.Visibility = Visibility.Visible;
+        }
+        #endregion
+
+        #region Button MouseOver Action
+        public static void MouseOverAction(this ButtonBase button)
+        {
+            if (button is ButtonBase)
+            {
+                //button.IsMouseOver
+                button.BorderBrush = Theme.AccentBrush;
+                button.MouseEnter += ToolButton_MouseEnter;
+                button.MouseLeave += ToolButton_MouseLeave;
+            }
+        }
+
+        public static void ToolButton_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (sender is ButtonBase)
+            {
+                var btn = sender as ButtonBase;
+
+                if (btn.Height >= 32)
+                    btn.BorderThickness = new Thickness(2);
+                else
+                    btn.BorderThickness = new Thickness(0);
+
+                btn.Foreground = Theme.AccentBrush;
+                btn.Background = Theme.SemiTransparentBrush;
+            }
+        }
+
+        public static void ToolButton_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (sender is ButtonBase)
+            {
+                var btn = sender as ButtonBase;
+                btn.BorderThickness = new Thickness(0);
+
+                btn.Foreground = Theme.IdealForegroundBrush;
+                btn.Background = Theme.TransparentBrush;
+            }
         }
         #endregion
 

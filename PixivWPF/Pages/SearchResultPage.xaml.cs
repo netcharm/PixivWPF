@@ -93,6 +93,7 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            #region Update ContextMenu
             var cmr = Resources["MenuSearchResult"] as ContextMenu;
             if (cmr is ContextMenu)
             {
@@ -123,6 +124,14 @@ namespace PixivWPF.Pages
                     }
                 }
             }
+            #endregion
+
+            #region ToolButton MouseOver action
+            SearchFilter.MouseOverAction();
+            ResultPrevPage.MouseOverAction();
+            ResultNextPage.MouseOverAction();
+            SearchRefreshThumb.MouseOverAction();
+            #endregion
 
             window = Window.GetWindow(this);
             if (!string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
@@ -362,7 +371,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            else if(sender == btnSearchRefresh)
+            else if(sender == SearchRefreshThumb)
             {
                 ResultIllusts.UpdateTilesImage();
             }
@@ -434,7 +443,7 @@ namespace PixivWPF.Pages
             {
                 IList<ImageItem> items = new List<ImageItem>();
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == ResultIllusts || host == ResultExpander) items = ResultIllusts.SelectedItems;
+                if (host == ResultIllusts || host == ResultExpander) items = ResultIllusts.GetSelectedIllusts();
                 try
                 {
                     if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
@@ -464,7 +473,7 @@ namespace PixivWPF.Pages
             {
                 IList<ImageItem> items = new List<ImageItem>();
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == ResultIllusts || host == ResultExpander) items = ResultIllusts.SelectedItems;
+                if (host == ResultIllusts || host == ResultExpander) items = ResultIllusts.GetSelected();
                 try
                 {
                     if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))

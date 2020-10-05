@@ -49,7 +49,7 @@ namespace PixivWPF.Common
         private const int WIDTH_MIN = 720;
         private const int HEIGHT_MIN = 524;
         private const int HEIGHT_DEF = 900;
-        private const int HEIGHT_MAX = 1008;
+        private const int HEIGHT_MAX = 1012;
         private const int WIDTH_DEF = 1280;
 
         public static ICommand DatePicker { get; } = new DelegateCommand<Point?>(obj =>
@@ -136,11 +136,16 @@ namespace PixivWPF.Common
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
                     {
-                        if (item.ItemType != ImageItemType.User)
+                        if (item.ItemType != ImageItemType.User && item.ItemType != ImageItemType.None)
                         {
                             var id = $"{prefix}{item.ID}";
                             if (!ids.Contains(id)) ids.Add(id);
                         }
+                        //else if (item.ItemType == ImageItemType.User)
+                        //{
+                        //    var id = $"u{prefix}{item.ID}";
+                        //    if (!ids.Contains(id)) ids.Add(id);
+                        //}
                     }
                     CopyText.Execute(string.Join(Environment.NewLine, ids));
                 }
@@ -149,7 +154,7 @@ namespace PixivWPF.Common
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
                     {
-                        if (page.Contents is ImageItem && page.Contents.ItemType != ImageItemType.User)
+                        if (page.Contents is ImageItem && page.Contents.ItemType != ImageItemType.User && page.Contents.ItemType != ImageItemType.None)
                             CopyText.Execute($"{prefix}{page.Contents.ID}");
                     }
                 }
@@ -187,7 +192,8 @@ namespace PixivWPF.Common
                 var gallery = obj as ImageListGrid;
                 if (gallery.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                     gallery.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    gallery.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
@@ -478,7 +484,8 @@ namespace PixivWPF.Common
                 var gallery = obj as ImageListGrid;
                 if (gallery.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
                     gallery.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    gallery.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase) ||
+                    gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
                 {
                     OpenItem.Execute(gallery);
                 }
@@ -486,10 +493,166 @@ namespace PixivWPF.Common
                 {
                     OpenWorkPreview.Execute(gallery);
                 }
-                else if (gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
+            }
+        });
+
+        public static ICommand OpenDownloaded { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                if (obj is ImageItem)
                 {
-                    OpenItem.Execute(gallery);
+                    var item = obj as ImageItem;
+                    var illust = item.Illust;
+
+                    if (item.Index >= 0)
+                    {
+                        string fp = string.Empty;
+                        item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
+                        fp.OpenFileWithShell();
+                    }
+                    else
+                    {
+                        string fp = string.Empty;
+                        item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
+                        fp.OpenFileWithShell();
+                    }
                 }
+                else if (obj is ImageListGrid)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as ImageListGrid;
+                        foreach (var item in gallery.GetSelected())
+                        {
+                            await new Action(() =>
+                            {
+                                OpenDownloaded.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
+            }
+        });
+
+        public static ICommand OpenHistory { get; } = new DelegateCommand(async () =>
+        {
+            try
+            {
+                var title = $"History";
+                if (await title.ActiveByTitle()) return;
+
+                await new Action(async () =>
+                {
+                    var page = new HistoryPage() { FontFamily = setting.FontFamily };
+                    var viewer = new ContentWindow()
+                    {
+                        Title = title,
+                        Width = WIDTH_MIN,
+                        Height = HEIGHT_DEF,
+                        MinWidth = WIDTH_MIN,
+                        MinHeight = HEIGHT_MIN,
+                        FontFamily = setting.FontFamily,
+                        Content = page
+                    };
+                    viewer.Show();
+                    await Task.Delay(1);
+                    Application.Current.DoEvents();
+                }).InvokeAsync();
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[HISTORY]");
+            }
+        });
+
+        public static ICommand Open { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is ImageListGrid)
+            {
+                OpenGallery.Execute(obj);
+            }
+            else if (obj is ImageItem)
+            {
+                OpenItem.Execute(obj);
+            }
+            else if (obj is Pixeez.Objects.Work)
+            {
+                OpenWork.Execute(obj);
+            }
+            else if (obj is Pixeez.Objects.UserBase)
+            {
+                OpenUser.Execute(obj);
+            }
+            else if (obj is string)
+            {
+                OpenSearch.Execute(obj as string);
+            }
+        });
+
+        public static ICommand AddDownloadItem { get; } = new DelegateCommand<dynamic>(async obj => {
+            await new Action(() => {
+                OpenDownloadManager.Execute(true);
+                if (_downManager is DownloadManagerPage && obj is DownloadParams)
+                {
+                    var dp = obj as DownloadParams;
+                    _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists);
+                }
+            }).InvokeAsync();
+        });
+
+        public static ICommand OpenDownloadManager { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            if (obj is bool)
+            {
+                var active = (bool)obj;
+                await new Action(() =>
+                {
+                    if (!(_downManager is DownloadManagerPage))
+                    {
+                        _downManager = new DownloadManagerPage();
+                        _downManager.AutoStart = false;
+                    }
+
+                    Window _dm = null;
+                    foreach (Window win in Application.Current.Windows)
+                    {
+                        if (win.Content is DownloadManagerPage)
+                        {
+                            _dm = win;
+                            break;
+                        }
+                    }
+
+                    if (_dm is Window)
+                    {
+                        _dm.Show();
+                        if (_dm.WindowState == WindowState.Minimized) _dm.WindowState = WindowState.Normal;
+                        if (active) _dm.Activate();
+                    }
+                    else
+                    {
+                        setting = Application.Current.LoadSetting();
+                        var viewer = new ContentWindow()
+                        {
+                            Title = $"Download Manager",
+                            MinWidth = WIDTH_MIN + 80,
+                            MinHeight = HEIGHT_MIN,
+                            Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
+                            Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
+                            Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager.Pos.X,
+                            Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager.Pos.Y,
+                            Tag = _downManager,
+                            FontFamily = setting.FontFamily,
+                            Content = _downManager
+                        };
+                        viewer.Show();
+                    }
+                }).InvokeAsync();
             }
         });
 
@@ -554,166 +717,6 @@ namespace PixivWPF.Common
                         }).InvokeAsync();
                     }
                 }).InvokeAsync();
-            }
-        });
-
-        public static ICommand OpenDownloaded { get; } = new DelegateCommand<dynamic>(async obj =>
-        {
-            try
-            {
-                if (obj is ImageItem)
-                {
-                    var item = obj as ImageItem;
-                    var illust = item.Illust;
-
-                    if (item.Index >= 0)
-                    {
-                        string fp = string.Empty;
-                        item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
-                        fp.OpenFileWithShell();
-                    }
-                    else
-                    {
-                        string fp = string.Empty;
-                        item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
-                        fp.OpenFileWithShell();
-                    }
-                }
-                else if (obj is ImageListGrid)
-                {
-                    await new Action(async () =>
-                    {
-                        var gallery = obj as ImageListGrid;
-                        foreach (var item in gallery.GetSelected())
-                        {
-                            await new Action(() =>
-                            {
-                                OpenDownloaded.Execute(item);
-                            }).InvokeAsync();
-                        }
-                    }).InvokeAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
-            }
-        });
-
-        public static ICommand OpenDownloadManager { get; } = new DelegateCommand<dynamic>(async obj =>
-        {
-            if (obj is bool)
-            {
-                var active = (bool)obj;
-                await new Action(() =>
-                {
-                    if (!(_downManager is DownloadManagerPage))
-                    {
-                        _downManager = new DownloadManagerPage();
-                        _downManager.AutoStart = false;
-                    }
-
-                    Window _dm = null;
-                    foreach (Window win in Application.Current.Windows)
-                    {
-                        if (win.Content is DownloadManagerPage)
-                        {
-                            _dm = win;
-                            break;
-                        }
-                    }
-
-                    if (_dm is Window)
-                    {
-                        _dm.Show();
-                        if (_dm.WindowState == WindowState.Minimized) _dm.WindowState = WindowState.Normal;
-                        if (active) _dm.Activate();
-                    }
-                    else
-                    {
-                        setting = Application.Current.LoadSetting();
-                        var viewer = new ContentWindow()
-                        {
-                            Title = $"Download Manager",
-                            MinWidth = WIDTH_MIN + 80,
-                            MinHeight = HEIGHT_MIN,
-                            Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
-                            Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
-                            Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager.Pos.X,
-                            Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager.Pos.Y,
-                            Tag = _downManager,
-                            FontFamily = setting.FontFamily,
-                            Content = _downManager
-                        };
-                        viewer.Show();
-                    }
-                }).InvokeAsync();
-            }
-        });
-
-        public static ICommand AddDownloadItem { get; } = new DelegateCommand<dynamic>(async obj => {
-            await new Action(() => {
-                OpenDownloadManager.Execute(true);
-                if (_downManager is DownloadManagerPage && obj is DownloadParams)
-                {
-                    var dp = obj as DownloadParams;
-                    _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists);
-                }
-            }).InvokeAsync();
-        });
-
-        public static ICommand OpenHistory { get; } = new DelegateCommand(async () =>
-        {
-            try
-            {
-                var title = $"History";
-                if (await title.ActiveByTitle()) return;
-
-                await new Action(async () =>
-                {
-                    var page = new HistoryPage() { FontFamily = setting.FontFamily };
-                    var viewer = new ContentWindow()
-                    {
-                        Title = title,
-                        Width = WIDTH_MIN,
-                        Height = HEIGHT_DEF,
-                        MinWidth = WIDTH_MIN,
-                        MinHeight = HEIGHT_MIN,
-                        FontFamily = setting.FontFamily,
-                        Content = page
-                    };
-                    viewer.Show();
-                    await Task.Delay(1);
-                    Application.Current.DoEvents();
-                }).InvokeAsync();
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[HISTORY]");
-            }
-        });
-
-        public static ICommand Open { get; } = new DelegateCommand<dynamic>(obj =>
-        {
-            if (obj is ImageListGrid)
-            {
-                OpenGallery.Execute(obj);
-            }
-            else if (obj is ImageItem)
-            {
-                OpenItem.Execute(obj);
-            }
-            else if (obj is Pixeez.Objects.Work)
-            {
-                OpenWork.Execute(obj);
-            }
-            else if (obj is Pixeez.Objects.UserBase)
-            {
-                OpenUser.Execute(obj);
-            }
-            else if (obj is string)
-            {
-                OpenSearch.Execute(obj as string);
             }
         });
 
@@ -1175,16 +1178,14 @@ namespace PixivWPF.Common
             if (obj is IllustDetailPage)
             {
                 var page = obj as IllustDetailPage;
-                if (page.Tag is ImageItem)
-                    page.UpdateDetail(page.Tag as ImageItem);
-                else if (page.Tag is Pixeez.Objects.UserBase)
-                    page.UpdateDetail(page.Tag as Pixeez.Objects.UserBase);
+                if (page.Contents is ImageItem)
+                    page.UpdateDetail(page.Contents);
             }
             else if (obj is IllustImageViewerPage)
             {
                 var page = obj as IllustImageViewerPage;
-                if (page.Tag is ImageItem)
-                    page.UpdateDetail(page.Tag as ImageItem);
+                if (page.Contents is ImageItem)
+                    page.UpdateDetail(page.Contents);
             }
             else if (obj is HistoryPage)
             {
@@ -1213,8 +1214,8 @@ namespace PixivWPF.Common
             else if (obj is IllustImageViewerPage)
             {
                 var page = obj as IllustImageViewerPage;
-                if (page.Tag is ImageItem)
-                    page.UpdateDetail(page.Tag as ImageItem);
+                if (page.Contents is ImageItem)
+                    page.UpdateDetail(page.Contents);
             }
             else if (obj is HistoryPage)
             {
@@ -1235,26 +1236,7 @@ namespace PixivWPF.Common
 
         public static ICommand AppendPage { get; } = new DelegateCommand<dynamic>(obj =>
         {
-            if (obj is IllustDetailPage)
-            {
-                var page = obj as IllustDetailPage;
-                if (page.Tag is ImageItem)
-                    page.UpdateDetail(page.Tag as ImageItem);
-                else if (page.Tag is Pixeez.Objects.UserBase)
-                    page.UpdateDetail(page.Tag as Pixeez.Objects.UserBase);
-            }
-            else if (obj is IllustImageViewerPage)
-            {
-                var page = obj as IllustImageViewerPage;
-                if (page.Tag is ImageItem)
-                    page.UpdateDetail(page.Tag as ImageItem);
-            }
-            else if (obj is HistoryPage)
-            {
-                var page = obj as HistoryPage;
-                page.UpdateDetail();
-            }
-            else if (obj is TilesPage)
+            if (obj is TilesPage)
             {
                 var win = Application.Current.MainWindow is MainWindow ? Application.Current.MainWindow as MainWindow : null;
                 if (win is MainWindow) win.CommandNavNext_Click(win.CommandNavNext, new RoutedEventArgs());

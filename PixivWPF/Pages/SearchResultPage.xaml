@@ -67,12 +67,16 @@
             <Separator/>
             <MenuItem x:Name="ActionNextResultPage" x:Uid="ActionNextResultPage" Header="Open Next Page" Click="ResultNextPage_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Name="ActionResultFilter" x:Uid="ActionResultFilter" Header="Result Filter" Click="SearchFilter_Click" ContextMenu="{StaticResource MenuSearchFilter}">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Filter" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    <TextBlock Text="&#xE16E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
                 <MenuItem x:Name="ActionFilter_00000users" x:Uid="SearchFilter_00000users" Header="No Filter" Click="SearchFilter_Click"/>
                 <MenuItem x:Name="ActionFilter_00100users" x:Uid="SearchFilter_00100users" Header="100~500 Favs" Click="SearchFilter_Click"/>
@@ -145,7 +149,8 @@
                 </Grid.RowDefinitions>
 
                 <!-- Illust Searched Results -->
-                <Expander Grid.Row="0" x:Name="ResultExpander" x:Uid="ResultIllustsExpander" Margin="0,4,0,0"
+                <Expander Grid.Row="0" x:Name="ResultExpander" x:Uid="ResultIllustsExpander" 
+                          Margin="0,4,0,0"
                           IsExpanded="true" ExpandDirection="Down"
                           Visibility="Visible" Header="Search Results"
                           ContextMenu="{StaticResource MenuSearchResult}"
@@ -157,39 +162,51 @@
                                           MouseDoubleClick="ResultIllusts_MouseDoubleClick" 
                                           KeyUp="ResultIllusts_KeyUp" />
                 </Expander>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,4,0,0" 
+                            HorizontalAlignment="Right" VerticalAlignment="Top">
                     <Button 
                         x:Name="SearchFilter"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="24" Height="24" HorizontalAlignment="Right"
-                        Margin="0,0,4,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         ContextMenu="{StaticResource MenuSearchFilter}"
                         Click="SearchFilter_Click">
-                        <iconPacks:PackIconModern Kind="Filter" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE16E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
                     </Button>
                     <Button 
                         x:Name="ResultPrevPage" Visibility="Collapsed"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="24" Height="24" HorizontalAlignment="Right"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="SearchResultPrevPage_Click">
-                        <iconPacks:PackIconModern Kind="NavigatePrevious" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
                     </Button>
                     <Button 
                         x:Name="ResultNextPage"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="24" Height="24" HorizontalAlignment="Right"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="ResultNextPage_Click">
-                        <iconPacks:PackIconModern Kind="NavigateNext" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="btnSearchRefresh" x:Uid="ThumbnailRefresh" ToolTip="Refresh Thumbnails"
+                        x:Name="SearchRefreshThumb" x:Uid="RefreshThumbnail" ToolTip="Refresh Thumbnails"
                         Visibility="{Binding ElementName=ResultExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="ActionRefreshResult_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 

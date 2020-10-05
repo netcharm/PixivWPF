@@ -71,12 +71,16 @@
             <Separator x:Uid="ActionNavPageSeparator"/>
             <MenuItem x:Uid="ActionPrevPage" Header="Open Previous Page" Click="ActionPrevPage_Click" >
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>                        
             <MenuItem x:Uid="ActionNextPage" Header="Open Next Page" Click="ActionNextPage_Click" >
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />
@@ -726,21 +730,22 @@
                 </Grid>
 
                 <!-- Illust Tag -->
-                <Expander Grid.Row="2" Margin="0,4,0,0" IsExpanded="True"
-                          x:Name="IllustTagExpander" x:Uid="IllustTagExpander"
+                <Expander Grid.Row="2" x:Name="IllustTagExpander" x:Uid="IllustTagExpander"
+                          Margin="0,4,0,0"
+                          IsExpanded="True" ExpandDirection="Down"
                           Header="Tags" Visibility="Collapsed" Expanded="IllustTagExpander_Expanded">
                     <StackPanel x:Name="IllustTagsHost"  Orientation="Vertical" AllowDrop="False"/>
                 </Expander>
                 <StackPanel Grid.Row="2" x:Name="TagPanel" 
                             Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
-                            Orientation="Horizontal" Margin="0,0,0,0"
+                            Orientation="Horizontal" Margin="0,4,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Top">
                     <Button
-                        x:Name="btnIllustTagPedia" x:Uid="PixivPedia" ToolTip="Query Tag in Pixiv Pedia"
-                        Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        x:Name="IllustTagPedia" x:Uid="PixivPedia" ToolTip="Query Tag in Pixiv Pedia"
+                        Visibility="Visible"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="ActionOpenPedia_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE1D3;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -749,12 +754,12 @@
                         </Button.Content>
                     </Button>
                     <Button
-                        x:Name="btnIllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
-                        Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        x:Name="IllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
+                        Visibility="Visible"
                         ContextMenu="{DynamicResource MenuSpeech}"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="ActionSpeech_Click">
                         <Button.Content>
                             <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -763,11 +768,11 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="btnIllustTagRefresh" x:Uid="TagsRefresh" ToolTip="Refresh Tags"
-                        Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        x:Name="IllustTagRefresh" x:Uid="TagsRefresh" ToolTip="Refresh Tags"
+                        Visibility="Visible"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0" FontWeight="Normal"
-                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -778,22 +783,23 @@
                 </StackPanel>
 
                 <!-- Illust Info -->
-                <Expander Grid.Row="3" Margin="0,4,0,0" IsExpanded="True"
-                          x:Name="IllustDescExpander" x:Uid="IllustDescExpander"
+                <Expander Grid.Row="3" x:Name="IllustDescExpander" x:Uid="IllustDescExpander"
+                          Margin="0,4,0,0"
+                          IsExpanded="True" ExpandDirection="Down"
                           Header="Description" Visibility="Collapsed" Expanded="IllustDescExpander_Expanded">
                     <StackPanel x:Name="IllustDescHost" Orientation="Vertical" AllowDrop="False"/>
                 </Expander>
                 <StackPanel Grid.Row="3" x:Name="DescPanel" 
                             Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
-                            Orientation="Horizontal" Margin="0,0,0,0"
+                            Orientation="Horizontal" Margin="0,4,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Top">
                     <Button
-                        x:Name="btnIllustDescSpeech" x:Uid="Speech"
-                        Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        x:Name="IllustDescSpeech" x:Uid="Speech"
+                        Visibility="Visible"
                         ContextMenu="{DynamicResource MenuSpeech}"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="ActionSpeech_Click">
                         <Button.Content>
                             <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -802,11 +808,11 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="btnIllustDescRefresh" x:Uid="DescRefresh" ToolTip="Refresh Descriptions"
-                        Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        x:Name="IllustDescRefresh" x:Uid="DescRefresh" ToolTip="Refresh Descriptions"
+                        Visibility="Visible"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0" FontWeight="Normal"
-                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -817,8 +823,9 @@
                 </StackPanel>
                 
                 <!-- Illust Subsets -->
-                <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander" Margin="0, 4, 0, 0"
-                          IsExpanded="False" ExpandDirection="Down" 
+                <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander" 
+                          Margin="0,4,0,0"
+                          IsExpanded="True" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Illust Sets Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           MouseDown="Preview_MouseDown"
@@ -833,33 +840,42 @@
                                           KeyUp="SubIllusts_KeyUp"/>
 
                 </Expander>
-                <StackPanel Grid.Row="4" Orientation="Horizontal" x:Name="SubIllustsNavPanel" 
+                <StackPanel Grid.Row="4" x:Name="SubIllustsNavPanel" 
+                            Orientation="Horizontal" Margin="0,4,0,0"
                             Visibility="{Binding ElementName=SubIllustsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
-                            HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
+                            HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
-                        x:Name="btnSubIllustPrevPages" x:Uid="SubIllustPrevPages"
-                        Visibility="Collapsed" Margin="0,2,0,0"
+                        x:Name="SubIllustPrevPages" x:Uid="SubIllustPrevPages"
+                        Visibility="Collapsed" 
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="SubIllustPagesNav_Click">
-                        <iconPacks:PackIconModern Kind="NavigatePrevious" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="btnSubIllustNextPages" x:Uid="SubIllustNextPages"
-                        Visibility="Collapsed" Margin="0,2,0,0"
+                        x:Name="SubIllustNextPages" x:Uid="SubIllustNextPages"
+                        Visibility="Collapsed" 
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="SubIllustPagesNav_Click">
-                        <iconPacks:PackIconModern Kind="NavigateNext" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="btnSubIllustRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="{Binding ElementName=SubIllustsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        x:Name="SubIllustRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
+                        Visibility="Visible"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="4,0,0,0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -870,8 +886,9 @@
                 </StackPanel>
 
                 <!-- Illust Relatives -->
-                <Expander Grid.Row="5" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" Margin="0, 4, 0, 0" 
-                          IsExpanded="False" ExpandDirection="Down" 
+                <Expander Grid.Row="5" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" 
+                          Margin="0,4,0,0"
+                          IsExpanded="True" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Relative Illust Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           Expanded="RelativeIllustsExpander_Expanded" Collapsed="RelativeIllustsExpander_Collapsed">
@@ -883,31 +900,40 @@
                                           MouseWheel="RelativeIllusts_MouseWheel" 
                                           KeyUp="RelativeIllusts_KeyUp" />
                 </Expander>
-                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
+                <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="0,4,0,0"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="RelativePrevPage" x:Uid="RelativePrevPage"
-                        Visibility="Collapsed" Margin="0,2,0,0"
+                        Visibility="Collapsed" 
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
                         Click="RelativePrevPage_Click">
-                        <iconPacks:PackIconModern Kind="NavigatePrevious" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
                     </Button>
                     <Button 
                         x:Name="RelativeNextPage" x:Uid="RelativeNextPage"
-                        Visibility="Collapsed" Margin="0,2,0,0"
+                        Visibility="Collapsed" 
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
                         Click="RelativeNextPage_Click">
-                        <iconPacks:PackIconModern Kind="NavigateNext" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="btnRelativeRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="{Binding ElementName=RelativeIllustsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        x:Name="RelativeRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
+                        Visibility="Visible"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -918,8 +944,9 @@
                 </StackPanel>
 
                 <!-- Illust Author Favorites -->
-                <Expander Grid.Row="6" x:Name="FavoriteIllustsExpander" x:Uid="RelativeIllustsExpander" Margin="0,4,0,0" 
-                          IsExpanded="False" ExpandDirection="Down" 
+                <Expander Grid.Row="6" x:Name="FavoriteIllustsExpander" x:Uid="RelativeIllustsExpander" 
+                          Margin="0,4,0,0"
+                          IsExpanded="True" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Author Favorites Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           Collapsed="FavoriteIllustsExpander_Collapsed"
@@ -932,31 +959,40 @@
                                           MouseWheel="FavriteIllusts_MouseWheel" 
                                           KeyUp="FavriteIllusts_KeyUp"/>
                 </Expander>
-                <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
+                <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0,4,0,0"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="FavoritePrevPage" x:Uid="FavoritePrevPage"
-                        Visibility="Collapsed" Margin="0,2,0,0"
+                        Visibility="Collapsed" 
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
                         Click="FavoritePrevPage_Click">
-                        <iconPacks:PackIconModern Kind="NavigatePrevious" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
                     </Button>
                     <Button 
                         x:Name="FavoriteNextPage" x:Uid="FavoriteNextPage"
-                        Visibility="Collapsed" Margin="0,2,0,0"
+                        Visibility="Collapsed"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
                         Click="FavoriteNextPage_Click">
-                        <iconPacks:PackIconModern Kind="NavigateNext" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="btnFavoriteRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="{Binding ElementName=FavoriteIllustsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        x:Name="FavoriteRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
+                        Visibility="Visible"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -967,8 +1003,9 @@
                 </StackPanel>
 
                 <!-- Illust Comments  -->
-                <Expander Grid.Row="7" x:Name="CommentsExpander" x:Uid="CommentsExpander" Margin="0, 4, 0, 0" 
-                          IsExpanded="False" ExpandDirection="Down" 
+                <Expander Grid.Row="7" x:Name="CommentsExpander" x:Uid="CommentsExpander" 
+                          Margin="0,4,0,0"
+                          IsExpanded="True" ExpandDirection="Down"                          
                           Visibility="Collapsed" Header="Comments"
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           Collapsed="CommentsExpander_Collapsed"
@@ -978,31 +1015,40 @@
                     </WebBrowser>
                 </Expander>
                 <StackPanel Grid.Row="7" x:Name="CommentsNavigator" x:Uid="CommentsNavigator"
-                            Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
+                            Orientation="Horizontal" Margin="0,4,0,0"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" >
                     <Button 
                         x:Name="CommentsPrevPage" x:Uid="CommentsPrevPage" 
-                        Visibility="Collapsed" Margin="0,2,0,0"
+                        Visibility="Collapsed" 
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
                         Click="CommentsPrevPage_Click">
-                        <iconPacks:PackIconModern Kind="NavigatePrevious" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
                     </Button>
                     <Button 
                         x:Name="CommentsNextPage" x:Uid="CommentsNextPage" 
-                        Visibility="Collapsed" Margin="0,2,0,0"
+                        Visibility="Collapsed" 
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
                         Click="CommentsNextPage_Click">
-                        <iconPacks:PackIconModern Kind="NavigateNext" />
+                        <Button.Content>
+                            <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>                        
                     </Button>
                     <Button 
                         x:Name="btnCommentRefresh" x:Uid="ActionRefreshComment" ToolTip="Refresh Comment"
-                        Visibility="{Binding ElementName=CommentsExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
+                        Visibility="Visible"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" FontWeight="Normal"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"
                         Click="ActionRefresh_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
