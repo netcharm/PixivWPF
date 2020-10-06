@@ -1200,7 +1200,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand AppendPage { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand AppendTiles { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
@@ -1211,6 +1211,68 @@ namespace PixivWPF.Common
             {
                 var win = obj as MainWindow;
                 win.CommandNavNext_Click(win.CommandNavNext, new RoutedEventArgs());
+            }
+        });
+
+        public static ICommand PrevIllust { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).PrevIllust();
+            }
+            else if (obj is MainWindow)
+            {
+                var win = obj as MainWindow;
+                win.PrevIllust();
+            }
+        });
+
+        public static ICommand NextIllust { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).NextIllust();
+            }
+            else if (obj is MainWindow)
+            {
+                var win = obj as MainWindow;
+                win.NextIllust();
+            }
+        });
+
+        public static ICommand PrevIllustPage { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).PrevIllustPage();
+            }
+            else if (obj is MainWindow)
+            {
+                var win = obj as MainWindow;
+                win.PrevIllustPage();
+            }
+            else if (obj is ContentWindow)
+            {
+                var win = obj as ContentWindow;
+                if (win.Content is IllustDetailPage) (win.Content as IllustDetailPage).PrevIllustPage();
+            }
+        });
+
+        public static ICommand NextIllustPage { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).NextIllustPage();
+            }
+            else if (obj is MainWindow)
+            {
+                var win = obj as MainWindow;
+                win.NextIllustPage();
+            }
+            else if (obj is ContentWindow)
+            {
+                var win = obj as ContentWindow;
+                if (win.Content is IllustDetailPage) (win.Content as IllustDetailPage).NextIllustPage();
             }
         });
 

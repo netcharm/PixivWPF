@@ -122,6 +122,38 @@ namespace PixivWPF
             }
         }
 
+        public void PrevIllust()
+        {
+            if(pagetiles is Pages.TilesPage)
+            {
+                pagetiles.PrevIllust();
+            }
+        }
+
+        public void NextIllust()
+        {
+            if (pagetiles is Pages.TilesPage)
+            {
+                pagetiles.NextIllust();
+            }
+        }
+
+        public void PrevIllustPage()
+        {
+            if (pagetiles is Pages.TilesPage)
+            {
+                pagetiles.PrevIllustPage();
+            }
+        }
+
+        public void NextIllustPage()
+        {
+            if (pagetiles is Pages.TilesPage)
+            {
+                pagetiles.NextIllustPage();
+            }
+        }
+
         #region Named Pipe Heler
         private NamedPipeServerStream pipeServer;
         private string pipeName = Application.Current.PipeServerName();
@@ -221,7 +253,7 @@ namespace PixivWPF
 
             setting = Application.Current.LoadSetting();
 
-            this.FontFamily = setting.FontFamily;
+            FontFamily = setting.FontFamily;
 
             Title = $"{Title} [Version: {Application.Current.Version()}]";
 

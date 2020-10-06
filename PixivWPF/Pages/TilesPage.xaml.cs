@@ -205,6 +205,40 @@ namespace PixivWPF.Pages
                 }
             }
         }
+        
+        public void PrevIllust()
+        {
+            if (this is TilesPage)
+            {
+                if (ListImageTiles.Items.IsCurrentBeforeFirst)
+                    ListImageTiles.Items.MoveCurrentToLast();
+                else
+                    ListImageTiles.Items.MoveCurrentToPrevious();
+                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+            }
+        }
+
+        public void NextIllust()
+        {
+            if (this is TilesPage)
+            {
+                if (ListImageTiles.Items.IsCurrentAfterLast)
+                    ListImageTiles.Items.MoveCurrentToFirst();
+                else
+                    ListImageTiles.Items.MoveCurrentToNext();
+                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+            }
+        }
+
+        public void PrevIllustPage()
+        {
+            if (detail_page is IllustDetailPage) detail_page.PrevIllustPage();
+        }
+
+        public void NextIllustPage()
+        {
+            if (detail_page is IllustDetailPage) detail_page.NextIllustPage();
+        }
 
         internal void KeyAction(KeyEventArgs e)
         {
@@ -1162,19 +1196,19 @@ namespace PixivWPF.Pages
         private void ListImageTiles_KeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = false;
-            if (e.Key == Key.F5)
+            if (e.Key == Key.F5 || e.SystemKey == Key.F5)
             {
                 var main = this.GetMainWindow() as MainWindow;
                 main.CommandNavRefresh_Click(main.CommandNavRefresh, new RoutedEventArgs());
                 e.Handled = true;
             }
-            else if (e.Key == Key.F3)
+            else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
             {
                 var main = this.GetMainWindow() as MainWindow;
                 main.CommandNavNext_Click(main.CommandNavNext, new RoutedEventArgs());
                 e.Handled = true;
             }
-            else if (e.Key == Key.F6)
+            else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
             {
                 UpdateTilesThumb();
                 e.Handled = true;
@@ -1187,14 +1221,15 @@ namespace PixivWPF.Pages
                     e.Handled = true;
                 }
             }
-            else if (e.Key == Key.Enter)
+            else if (e.Key == Key.Enter || e.SystemKey == Key.Enter)
             {
                 if (ListImageTiles.SelectedItem != null)
                 {
                     e.Handled = true;
                 }
             }
-            else if (e.Key == Key.Down || e.Key == Key.Next || e.Key == Key.PageDown)
+            else if (e.Key == Key.Down || e.Key == Key.Next || e.Key == Key.PageDown ||
+                     e.SystemKey == Key.Down || e.SystemKey == Key.Next || e.SystemKey == Key.PageDown)
             {
                 if (ListImageTiles.SelectedIndex >= ListImageTiles.Items.Count - 1)
                 {
@@ -1202,7 +1237,7 @@ namespace PixivWPF.Pages
                     e.Handled = true;
                 }
             }
-            else if (e.Key == Key.Home)
+            else if (e.Key == Key.Home || e.SystemKey == Key.Home)
             {
                 if (ListImageTiles.Items.Count > 0)
                 {
@@ -1211,27 +1246,7 @@ namespace PixivWPF.Pages
                     e.Handled = true;
                 }
             }
-            //else if (e.Key == Key.Left)
-            //{
-            //    if (ListImageTiles.Items.Count > 0 && ListImageTiles.SelectedIndex % 5 == 0)
-            //    {
-            //        ListImageTiles.Items.MoveCurrentToPrevious();
-            //        ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
-            //        e.Handled = true;
-            //    }
-            //    else sender.WindowKeyUp(e);
-            //}
-            //else if (e.Key == Key.Right)
-            //{
-            //    if (ListImageTiles.Items.Count > 0 && ListImageTiles.SelectedIndex % 5 == 4)
-            //    {
-            //        ListImageTiles.Items.MoveCurrentToNext();
-            //        ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
-            //        e.Handled = true;
-            //    }
-            //    else sender.WindowKeyUp(e);
-            //}
-            else if (e.Key == Key.End)
+            else if (e.Key == Key.End || e.SystemKey == Key.End)
             {
                 if (ListImageTiles.Items.Count > 0)
                 {
@@ -1240,7 +1255,7 @@ namespace PixivWPF.Pages
                     e.Handled = true;
                 }
             }
-            else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+            else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control))
             {
                 if (ListImageTiles.SelectedItem is ImageItem)
                 {
@@ -1259,24 +1274,30 @@ namespace PixivWPF.Pages
                 }
                 e.Handled = true;
             }
+            else if ((e.Key == Key.Left || e.SystemKey == Key.Left) && Keyboard.Modifiers == ModifierKeys.Alt)
+            {
+                PrevIllustPage();
+                e.Handled = true;
+            }
+            else if ((e.Key == Key.Right || e.SystemKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Alt)
+            {
+                NextIllustPage();
+                e.Handled = true;
+            }
         }
 
         private void ListImageTiles_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            var change_detail_page = Keyboard.Modifiers == ModifierKeys.Shift;
+            var change_detail_page = Keyboard.Modifiers == ModifierKeys.Shift && e.OriginalSource != null;
             if (e.XButton1 == MouseButtonState.Pressed)
             {
                 if (change_detail_page && detail_page is IllustDetailPage)
                 {
-                    detail_page.NextPage();
+                    if (detail_page is IllustDetailPage) detail_page.NextIllustPage();
                 }
                 else
                 {
-                    if (ListImageTiles.Items.IsCurrentAfterLast)
-                        ListImageTiles.Items.MoveCurrentToFirst();
-                    else
-                        ListImageTiles.Items.MoveCurrentToNext();
-                    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                    NextIllust();
                 }
                 e.Handled = true;
             }
@@ -1284,15 +1305,11 @@ namespace PixivWPF.Pages
             {
                 if (change_detail_page && detail_page is IllustDetailPage)
                 {
-                    detail_page.PrevPage();
+                    if (detail_page is IllustDetailPage) detail_page.PrevIllustPage();
                 }
                 else
                 {
-                    if (ListImageTiles.Items.IsCurrentBeforeFirst)
-                        ListImageTiles.Items.MoveCurrentToLast();
-                    else
-                        ListImageTiles.Items.MoveCurrentToPrevious();
-                    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                    PrevIllust();
                 }
                 e.Handled = true;
             }
