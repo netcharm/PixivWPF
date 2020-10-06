@@ -268,10 +268,16 @@ namespace PixivWPF.Common
         public int HistoryMax { get; set; } = 150;
         public int HistoryLimit
         {
-            get { return (max_history); }
+            get
+            {
+                max_history = Math.Min(max_history, HistoryMax);
+                if (max_history < 0) max_history = 100;
+                return (max_history);
+            }
             set
             {
-                max_history = value > HistoryMax ? HistoryMax : value;
+                if (value > 0) max_history = Math.Min(value, HistoryMax);
+                else max_history = 100;
                 if (Cache is Setting) Cache.max_history = max_history;
             }
         }

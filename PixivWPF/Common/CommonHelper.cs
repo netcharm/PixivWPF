@@ -4233,29 +4233,87 @@ namespace PixivWPF.Common
         #endregion
 
         #region Like helper routines
-        public static bool IsLiked(this Pixeez.Objects.Work illust)
+        public static bool IsLiked(this Pixeez.Objects.Work illust, bool is_new = false)
         {
             bool result = false;
-            illust = IllustCache.ContainsKey(illust.Id) ? IllustCache[illust.Id] : illust;
-            if (illust.User != null)
+            if (illust is Pixeez.Objects.Work)
             {
-                result = illust.IsBookMarked();// || (illust.IsLiked ?? false);
+                if (is_new) IllustCache[illust.Id] = illust;
+                var new_bookmarked = illust.IsBookMarked();
+                if (IllustCache.ContainsKey(illust.Id))
+                {
+                    var old_bookmarked = IllustCache[illust.Id].IsBookMarked();
+                    if (old_bookmarked != new_bookmarked) IllustCache[illust.Id] = illust;
+                }
+                else
+                {
+                    IllustCache[illust.Id] = illust;
+                }
+                
+                if (illust.User is Pixeez.Objects.UserBase)
+                { 
+                    result = new_bookmarked;// || (illust.IsLiked ?? false);
+                }
             }
             return (result);
         }
 
-        public static bool IsLiked(this Pixeez.Objects.UserBase user)
+        public static bool IsLiked(this Pixeez.Objects.UserBase user, bool is_new = false)
         {
             bool result = false;
-            user = UserCache.ContainsKey(user.Id) ? UserCache[user.Id] : user;
-            if (user != null)
+            if (user is Pixeez.Objects.User)
             {
-                var u = user as Pixeez.Objects.User;
-                var ue = u is Pixeez.Objects.User;
-                if (ue)
-                    result = user.is_followed ?? u.IsFollowing ?? u.IsFollowed ?? false;
+                if (is_new) UserCache[user.Id] = user;
+                var new_user = user as Pixeez.Objects.User;
+                var new_liked = new_user.is_followed ?? new_user.IsFollowing ?? new_user.IsFollowed ?? false;
+                if (UserCache.ContainsKey(user.Id))
+                {
+                    var u = UserCache[user.Id];
+                    if (u is Pixeez.Objects.User)
+                    {
+                        var old_user = u as Pixeez.Objects.User;
+                        var old_liked = old_user.is_followed ?? old_user.IsFollowing ?? old_user.IsFollowed ?? false;
+                        if (old_liked != new_liked) UserCache[user.Id] = user;
+                    }
+                    else if (u is Pixeez.Objects.NewUser)
+                    {
+                        var old_user = u as Pixeez.Objects.NewUser;
+                        var old_liked = old_user.is_followed ?? false;
+                        if (old_liked != new_liked) UserCache[user.Id] = user;
+                    }
+                }
                 else
-                    result = user.is_followed ?? false;
+                {
+                    UserCache[user.Id] = user;
+                }
+                result = new_liked;
+            }
+            else if(user is Pixeez.Objects.NewUser)
+            {
+                if (is_new) UserCache[user.Id] = user;
+                var new_user = user as Pixeez.Objects.NewUser;
+                var new_liked = new_user.is_followed ?? false;
+                if (UserCache.ContainsKey(user.Id))
+                {
+                    var u = UserCache[user.Id];
+                    if (u is Pixeez.Objects.User)
+                    {
+                        var old_user = u as Pixeez.Objects.User;
+                        var old_liked = old_user.is_followed ?? old_user.IsFollowing ?? old_user.IsFollowed ?? false;
+                        if (old_liked != new_liked) UserCache[user.Id] = user;
+                    }
+                    else if (u is Pixeez.Objects.NewUser)
+                    {
+                        var old_user = u as Pixeez.Objects.NewUser;
+                        var old_liked = old_user.is_followed ?? false;
+                        if (old_liked != new_liked) UserCache[user.Id] = user;
+                    }
+                }
+                else
+                {
+                    UserCache[user.Id] = user;
+                }
+                result = new_liked;
             }
             return (result);
         }
@@ -4968,7 +5026,7 @@ namespace PixivWPF.Common
                 else
                     btn.BorderThickness = new Thickness(0);
 
-                btn.Foreground = Theme.AccentBrush;
+                //btn.Foreground = Theme.AccentBrush;
                 btn.Background = Theme.SemiTransparentBrush;
             }
         }
@@ -4980,7 +5038,7 @@ namespace PixivWPF.Common
                 var btn = sender as ButtonBase;
                 btn.BorderThickness = new Thickness(0);
 
-                btn.Foreground = Theme.IdealForegroundBrush;
+                //btn.Foreground = Theme.IdealForegroundBrush;
                 btn.Background = Theme.TransparentBrush;
             }
         }

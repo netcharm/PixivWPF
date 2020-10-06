@@ -66,7 +66,7 @@
             </Button>
             <Button x:Name="CommandNavNext" x:Uid="CommandNavNext" 
                     Click="CommandNavNext_Click"
-                    ToolTip="Goto Next Page">
+                    ToolTip="Get More Illusts">
                 <TextBlock 
                     Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
