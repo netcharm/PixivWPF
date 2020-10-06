@@ -653,7 +653,7 @@ namespace PixivWPF.Common
         {
             await new Action(() =>
             {
-                if (item.ItemType != ImageItemType.User)
+                if (item.IsWork())
                 {
                     if (r18.Contains(condition))
                     {
@@ -1188,14 +1188,14 @@ namespace PixivWPF.Common
                     if (source.Count() > 0)
                     {
                         var last_item = source.First();
-                        if (last_item.ItemType != ImageItemType.User)
+                        if (last_item.IsWork())
                         {
                             var last_id = last_item.Illust.Id ?? -1;
                             if (last_id == new_id) return;
                         }
                     }
 
-                    var illusts = source.Where(i => i.ItemType != ImageItemType.User).Distinct();
+                    var illusts = source.Where(i => i.IsWork()).Distinct();
                     var found = illusts.Where(i => i.Illust.Id == new_id);
                     if (found.Count() >= 1)
                     {
@@ -1226,13 +1226,13 @@ namespace PixivWPF.Common
                     if (source.Count() > 0)
                     {
                         var last_item = source.First();
-                        if (last_item.ItemType == ImageItemType.User)
+                        if (last_item.IsUser())
                         {
                             var last_id = last_item.User.Id ?? -1;
                             if (last_id == new_id) return;
                         }
                     }
-                    var users = source.Where(i => i.ItemType == ImageItemType.User).Distinct();
+                    var users = source.Where(i => i.IsUser()).Distinct();
                     var found = users.Where(i => i.User.Id == new_id);
                     if (found.Count() >= 1)
                     {
@@ -1306,7 +1306,7 @@ namespace PixivWPF.Common
         {
             if (history.Count > 0)
             {
-                var illusts = history.Where(h => h.ItemType != ImageItemType.User);
+                var illusts = history.Where(h => h.IsWork());
                 var index = illusts.Count() > num ? illusts.Count() - num -1 : illusts.Count() - 1;
                 return (index >= 0 ? illusts.Skip(index).Take(1).FirstOrDefault() : null);
             }
@@ -1317,7 +1317,7 @@ namespace PixivWPF.Common
         {
             if (history.Count > 0)
             {
-                var users = history.Where(h => h.ItemType == ImageItemType.User);
+                var users = history.Where(h => h.IsUser());
                 var index = users.Count() > num ? users.Count() - num -1 : users.Count() - 1;
                 return (index >= 0 ? users.Skip(index).Take(1).FirstOrDefault() : null);
             }
@@ -3968,7 +3968,7 @@ namespace PixivWPF.Common
         {
             bool result = false;
 
-            if (item.ItemType == ImageItemType.Work)
+            if (item.IsWork())
             {
                 result = item.Illust.GetPreviewUrl(item.Index).GetImageId().IsSameIllust(hash) || item.Illust.GetOriginalUrl(item.Index).GetImageId().IsSameIllust(hash);
             }
@@ -4061,14 +4061,14 @@ namespace PixivWPF.Common
         {
             setting = Application.Current.LoadSetting();
             var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
-            return (selected.Where(i => i.ItemType != ImageItemType.User && i.ItemType != ImageItemType.None).ToList());
+            return (selected.Where(i => i.IsWork()).ToList());
         }
 
         public static IList<ImageItem> GetSelectedUsers(this ImageListGrid gallery)
         {
             setting = Application.Current.LoadSetting();
             var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
-            return (selected.Where(i => i.ItemType == ImageItemType.User).ToList());
+            return (selected.Where(i => i.IsUser()).ToList());
         }
         #endregion
 
@@ -4262,18 +4262,21 @@ namespace PixivWPF.Common
 
         public static bool IsLiked(this ImageItem item)
         {
-            return (item.ItemType == ImageItemType.User ? item.User.IsLiked() : item.Illust.IsLiked());
+            var result = false;
+            if (item.IsUser()) result = item.User.IsLiked();
+            else if (item.IsWork()) result = item.Illust.IsLiked();
+            return (result);
         }
 
         public static async Task<bool> Like(this ImageItem item, bool pub = true)
         {
-            if (item.ItemType == ImageItemType.Work && item.Illust is Pixeez.Objects.Work)
+            if (item.IsWork())
             {
                 var result = item.Illust.IsLiked() ? true : await item.LikeIllust(pub);
                 UpdateLikeStateAsync((int)(item.Illust.Id));
                 return (result);
             }
-            else if (item.ItemType == ImageItemType.User && item.User is Pixeez.Objects.UserBase)
+            else if (item.IsUser())
             {
                 var result = item.User.IsLiked() ? true : await item.LikeUser(pub);
                 UpdateLikeStateAsync((int)(item.User.Id), true);
@@ -4284,13 +4287,13 @@ namespace PixivWPF.Common
 
         public static async Task<bool> UnLike(this ImageItem item, bool pub = true)
         {
-            if (item.ItemType == ImageItemType.Work && item.Illust is Pixeez.Objects.Work)
+            if (item.IsWork())
             {
                 var result = item.Illust.IsLiked() ? await item.UnLikeIllust(pub) : false;
                 UpdateLikeStateAsync((int)(item.Illust.Id));
                 return (result);
             }
-            else if (item.ItemType == ImageItemType.User && item.User is Pixeez.Objects.UserBase)
+            else if (item.IsUser())
             {
                 var result = item.User.IsLiked() ? await item.UnLikeUser(pub) : false;
                 item.IsFavorited = result;
@@ -4320,7 +4323,7 @@ namespace PixivWPF.Common
         {
             bool result = false;
 
-            if (item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga)
+            if (item.IsWork())
             {
                 var ret = await item.Illust.LikeIllust(pub);
                 result = ret.Item1;
@@ -4335,7 +4338,7 @@ namespace PixivWPF.Common
         {
             bool result = false;
 
-            if (item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga)
+            if (item.IsWork())
             {
                 var ret = await item.Illust.UnLikeIllust();
                 result = ret.Item1;
@@ -4493,7 +4496,7 @@ namespace PixivWPF.Common
             bool result = false;
 
             //if ((item.ItemType != ImageItemType.Pages && item.ItemType != ImageItemType.Page) && item.User is Pixeez.Objects.UserBase)
-            if ((item.ItemType == ImageItemType.User || item.ItemType == ImageItemType.Work || item.ItemType == ImageItemType.Works || item.ItemType == ImageItemType.Manga) && item.User is Pixeez.Objects.UserBase)
+            if (item.HasUser())
             {
                 try
                 {
@@ -4501,7 +4504,7 @@ namespace PixivWPF.Common
                     var ret = await user.LikeUser(pub);
                     result = ret.Item1;
                     item.User = ret.Item2;
-                    if (item.ItemType == ImageItemType.User)
+                    if (item.IsUser())
                     {
                         item.IsFavorited = result;
                     }
@@ -4516,13 +4519,13 @@ namespace PixivWPF.Common
         {
             bool result = false;
 
-            if (item.ItemType == ImageItemType.User && item.User is Pixeez.Objects.UserBase)
+            if (item.HasUser())
             {
                 try
                 {
                     var user = item.User;
                     result = await user.UnLike();
-                    if (item.ItemType == ImageItemType.User)
+                    if (item.IsUser())
                     {
                         item.IsFavorited = result;
                     }
@@ -4763,15 +4766,19 @@ namespace PixivWPF.Common
                     if (is_user) item_id = user_id;
                     if (illustid == -1 || illustid == item_id)
                     {
-                        if (item.ItemType == ImageItemType.User)
+                        if (item.IsUser())
                         {
                             item.IsFavorited = false;
                             item.IsFollowed = item.User.IsLiked();
                         }
-                        else
+                        else if(item.IsWork())
                         {
                             item.IsFavorited = item.Illust.IsLiked();
                             item.IsFollowed = item.User.IsLiked();
+                        }
+                        else
+                        {
+                            item.IsFavorited = item.IsFollowed = false;
                         }
                     }
                 }

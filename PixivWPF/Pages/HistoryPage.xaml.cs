@@ -332,7 +332,7 @@ namespace PixivWPF.Pages
                 {
                     IList<ImageItem> items = new List<ImageItem>();
                     var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                    if (host == HistoryItems) items = HistoryItems.GetSelected(ImageItemType.Work);
+                    if (host == HistoryItems) items = HistoryItems.GetSelectedIllusts();
                     try
                     {
                         if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))

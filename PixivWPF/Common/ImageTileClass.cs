@@ -16,7 +16,7 @@ using System.Windows.Media;
 
 namespace PixivWPF.Common
 {
-    public enum ImageItemType { None, User, Works, Work, Pages, Page, Manga }
+    public enum ImageItemType { None, User, Works, Work, Pages, Page, Manga, Novel }
 
     public class ImageItem : FrameworkElement, INotifyPropertyChanged
     {
@@ -65,7 +65,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public Visibility UserMarkVisibility { get { return (ItemType == ImageItemType.User ? Visibility.Visible : Visibility.Collapsed); } } 
+        public Visibility UserMarkVisibility { get { return (this.IsUser() ? Visibility.Visible : Visibility.Collapsed); } } 
 
         public Visibility FollowMarkVisibility { get; set; } = Visibility.Collapsed;
         [Description("Get or Set User IsFollowed State")]
@@ -1108,6 +1108,155 @@ namespace PixivWPF.Common
                     url = user.profile_image_urls.Small;
             }
             return (url);
+        }
+        #endregion
+
+        #region Misc Helper
+        public static bool IsUser(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.User) result = item.User is Pixeez.Objects.UserBase ? true : false;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool IsWork(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.Manga ||
+                        item.ItemType == ImageItemType.Work ||
+                        item.ItemType == ImageItemType.Works ||
+                        item.ItemType == ImageItemType.Page ||
+                        item.ItemType == ImageItemType.Pages)
+                        result = item.Illust is Pixeez.Objects.Work ? true : false;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool HasUser(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.Manga ||
+                        item.ItemType == ImageItemType.Work ||
+                        item.ItemType == ImageItemType.Works ||
+                        item.ItemType == ImageItemType.Page ||
+                        item.ItemType == ImageItemType.Pages ||
+                        item.ItemType == ImageItemType.User)
+                        result = item.User is Pixeez.Objects.UserBase ? true : false;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool HasIllust(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.Manga ||
+                        item.ItemType == ImageItemType.Work ||
+                        item.ItemType == ImageItemType.Works ||
+                        item.ItemType == ImageItemType.Page ||
+                        item.ItemType == ImageItemType.Pages)
+                        result = item.Illust is Pixeez.Objects.Work ? true : false;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool HasPages(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.Manga ||
+                        item.ItemType == ImageItemType.Work ||
+                        item.ItemType == ImageItemType.Works ||
+                        item.ItemType == ImageItemType.Page ||
+                        item.ItemType == ImageItemType.Pages)
+                        result = item.Count > 1 ? true : false;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool IsManga(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.Manga) result = true;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool IsNovel(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.Novel) result = true;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool IsBook(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.Manga || item.ItemType == ImageItemType.Novel) result = true;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool IsNone(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.None) result = true;
+                }
+            }
+            catch (Exception) { }
+            return (result);
         }
         #endregion
     }

@@ -1129,7 +1129,7 @@ namespace PixivWPF.Pages
 
                 var item = ImageList[idx];
 
-                if (item.ItemType == ImageItemType.User)
+                if (item.IsUser())
                 {
                     item.IsDownloaded = false;
                     item.IsFavorited = false;
@@ -1263,22 +1263,37 @@ namespace PixivWPF.Pages
 
         private void ListImageTiles_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            var change_detail_page = Keyboard.Modifiers == ModifierKeys.Shift;
             if (e.XButton1 == MouseButtonState.Pressed)
             {
-                if (ListImageTiles.Items.IsCurrentAfterLast)
-                    ListImageTiles.Items.MoveCurrentToFirst();
+                if (change_detail_page && detail_page is IllustDetailPage)
+                {
+                    detail_page.NextPage();
+                }
                 else
-                    ListImageTiles.Items.MoveCurrentToNext();
-                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                {
+                    if (ListImageTiles.Items.IsCurrentAfterLast)
+                        ListImageTiles.Items.MoveCurrentToFirst();
+                    else
+                        ListImageTiles.Items.MoveCurrentToNext();
+                    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                }
                 e.Handled = true;
             }
             else if (e.XButton2 == MouseButtonState.Pressed)
             {
-                if (ListImageTiles.Items.IsCurrentBeforeFirst)
-                    ListImageTiles.Items.MoveCurrentToLast();
+                if (change_detail_page && detail_page is IllustDetailPage)
+                {
+                    detail_page.PrevPage();
+                }
                 else
-                    ListImageTiles.Items.MoveCurrentToPrevious();
-                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                {
+                    if (ListImageTiles.Items.IsCurrentBeforeFirst)
+                        ListImageTiles.Items.MoveCurrentToLast();
+                    else
+                        ListImageTiles.Items.MoveCurrentToPrevious();
+                    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                }
                 e.Handled = true;
             }
         }

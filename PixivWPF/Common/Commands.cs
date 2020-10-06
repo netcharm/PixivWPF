@@ -136,12 +136,12 @@ namespace PixivWPF.Common
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
                     {
-                        if (item.ItemType != ImageItemType.User && item.ItemType != ImageItemType.None)
+                        if (item.IsWork())
                         {
                             var id = $"{prefix}{item.ID}";
                             if (!ids.Contains(id)) ids.Add(id);
                         }
-                        //else if (item.ItemType == ImageItemType.User)
+                        //else if (item.IsUser())
                         //{
                         //    var id = $"u{prefix}{item.ID}";
                         //    if (!ids.Contains(id)) ids.Add(id);
@@ -154,7 +154,7 @@ namespace PixivWPF.Common
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
                     {
-                        if (page.Contents is ImageItem && page.Contents.ItemType != ImageItemType.User && page.Contents.ItemType != ImageItemType.None)
+                        if (page.Contents is ImageItem && page.Contents.IsWork())
                             CopyText.Execute($"{prefix}{page.Contents.ID}");
                     }
                 }
@@ -162,7 +162,7 @@ namespace PixivWPF.Common
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
-                if (item.Illust is Pixeez.Objects.Work)
+                if (item.IsWork())
                 {
                     CopyText.Execute($"{prefix}{item.ID}");
                 }
@@ -307,18 +307,14 @@ namespace PixivWPF.Common
                 try
                 {
                     var item = obj as ImageItem;
-                    switch (item.ItemType)
+                    if(item.IsWork())
                     {
-                        case ImageItemType.Work:
-                            item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
-                            OpenWork.Execute(item.Illust);
-                            break;
-                        case ImageItemType.User:
-                            OpenUser.Execute(item.User);
-                            break;
-                        default:
-                            Open.Execute(item.Illust);
-                            break;
+                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
+                        OpenWork.Execute(item.Illust);
+                    }
+                    else if(item.IsUser())
+                    {
+                        OpenUser.Execute(item.User);
                     }
                 }
                 catch (Exception) { }
@@ -393,7 +389,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (obj is ImageItem && (obj.ItemType == ImageItemType.Work || obj.ItemType == ImageItemType.Manga))
+                if (obj is ImageItem && (obj as ImageItem).IsWork())
                 {
                     var item = obj as ImageItem;
                     item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
@@ -725,7 +721,7 @@ namespace PixivWPF.Common
             if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
-                if (item.ItemType != ImageItemType.User)
+                if (item.IsWork())
                 {
                     var illust = item.Illust;
                     var dt = illust.GetDateTime();
@@ -779,7 +775,7 @@ namespace PixivWPF.Common
             if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
-                if (item.ItemType != ImageItemType.User)
+                if (item.IsWork())
                 {
                     var illust = item.Illust;
                     var dt = illust.GetDateTime();
@@ -935,17 +931,8 @@ namespace PixivWPF.Common
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
-                switch (item.ItemType)
-                {
-                    case ImageItemType.Work:
-                        SendToOtherInstance.Execute(item.Illust);
-                        break;
-                    case ImageItemType.User:
-                        SendToOtherInstance.Execute(item.User);
-                        break;
-                    default:
-                        break;
-                }
+                if(item.IsWork()) SendToOtherInstance.Execute(item.Illust);
+                else if(item.IsUser()) SendToOtherInstance.Execute(item.User);
             }
             else if (obj is ImageListGrid)
             {
@@ -958,18 +945,15 @@ namespace PixivWPF.Common
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
                     {
-                        switch (item.ItemType)
+                        if(item.IsUser())
                         {
-                            case ImageItemType.Work:
-                                var id = $"id:{item.ID}";
-                                if (!ids.Contains(id)) ids.Add(id);
-                                break;
-                            case ImageItemType.User:
-                                var uid = $"uid:{item.ID}";
-                                if (!ids.Contains(uid)) ids.Add(uid);
-                                break;
-                            default:
-                                break;
+                            var uid = $"uid:{item.ID}";
+                            if (!ids.Contains(uid)) ids.Add(uid);
+                        }
+                        else if(item.IsWork())
+                        {
+                            var id = $"id:{item.ID}";
+                            if (!ids.Contains(id)) ids.Add(id);
                         }
                     }
                     SendToOtherInstance.Execute(ids);
@@ -979,7 +963,7 @@ namespace PixivWPF.Common
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
                     {
-                        if (page.Contents is ImageItem && page.Contents.ItemType != ImageItemType.User)
+                        if (page.Contents is ImageItem && page.Contents.IsWork())
                             SendToOtherInstance.Execute(page.Contents);
                     }
                 }
@@ -1025,17 +1009,8 @@ namespace PixivWPF.Common
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
-                switch (item.ItemType)
-                {
-                    case ImageItemType.Work:
-                        ShellSendToOtherInstance.Execute(item.Illust);
-                        break;
-                    case ImageItemType.User:
-                        ShellSendToOtherInstance.Execute(item.User);
-                        break;
-                    default:
-                        break;
-                }
+                if(item.IsUser()) ShellSendToOtherInstance.Execute(item.User);
+                else if(item.IsWork()) ShellSendToOtherInstance.Execute(item.Illust);
             }
             else if (obj is ImageListGrid)
             {
@@ -1048,17 +1023,8 @@ namespace PixivWPF.Common
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
                     {
-                        switch (item.ItemType)
-                        {
-                            case ImageItemType.Work:
-                                ids.Add($"id:{item.ID}");
-                                break;
-                            case ImageItemType.User:
-                                ids.Add($"uid:{item.ID}");
-                                break;
-                            default:
-                                break;
-                        }
+                        if(item.IsUser()) ids.Add($"uid:{item.ID}");
+                        else if(item.IsWork()) ids.Add($"id:{item.ID}");
                     }
                     ShellSendToOtherInstance.Execute(ids);
                 }
@@ -1067,7 +1033,7 @@ namespace PixivWPF.Common
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
                     {
-                        if (page.Contents is ImageItem && page.Contents.ItemType != ImageItemType.User)
+                        if (page.Contents is ImageItem && page.Contents.IsWork())
                             ShellSendToOtherInstance.Execute(page.Contents);
                     }
                 }
