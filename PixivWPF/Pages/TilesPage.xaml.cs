@@ -1255,7 +1255,7 @@ namespace PixivWPF.Pages
                     e.Handled = true;
                 }
             }
-            else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control))
+            else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 if (ListImageTiles.SelectedItem is ImageItem)
                 {

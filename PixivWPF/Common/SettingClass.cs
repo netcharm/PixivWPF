@@ -256,6 +256,8 @@ namespace PixivWPF.Common
             set { expdurtime = value; }
         }
 
+        public bool NoConfirmExit { get; set; } = true;
+
         public int DownloadWaitingTime { get; set; } = 5000;
         public int DownloadTimeSpan { get; set; } = 750;
         public bool DownloadCompletedToast { get; set; } = true;
@@ -411,6 +413,9 @@ namespace PixivWPF.Common
         {
             if (Cache is Setting && new_setting is Setting && new_setting.Update > 0)
             {
+                if (Cache.NoConfirmExit != new_setting.NoConfirmExit)
+                    Cache.NoConfirmExit = new_setting.NoConfirmExit;
+
                 if (Cache.AutoExpand != new_setting.AutoExpand)
                     Cache.AutoExpand = new_setting.AutoExpand;
 

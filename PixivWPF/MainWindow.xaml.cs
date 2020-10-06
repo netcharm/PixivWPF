@@ -301,7 +301,10 @@ namespace PixivWPF
 #else
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (MessageBox.Show("Continue Exit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes)
+            setting = Application.Current.LoadSetting();
+            var ret = setting.NoConfirmExit;
+            if (!ret) ret = MessageBox.Show("Continue Exit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes;
+            if (ret)
             {
                 pipeOnClosing = true;
                 ReleaseNamedPipeServer();
