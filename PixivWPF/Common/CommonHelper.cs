@@ -4238,7 +4238,7 @@ namespace PixivWPF.Common
             bool result = false;
             if (illust is Pixeez.Objects.Work && illust.User is Pixeez.Objects.UserBase)
             {
-                if (is_new || !IllustCache.ContainsKey(illust.Id)) IllustCache[illust.Id] = illust;
+                if (is_new || !IllustCache.ContainsKey(illust.Id)) illust.Cache();
                 result = IllustCache[illust.Id].IsBookMarked();
             }
             return (result);
@@ -4249,7 +4249,7 @@ namespace PixivWPF.Common
             bool result = false;
             if (user is Pixeez.Objects.UserBase)
             {
-                if (is_new || !UserCache.ContainsKey(user.Id)) UserCache[user.Id] = user;
+                if (is_new || !UserCache.ContainsKey(user.Id)) user.Cache();
                 var u = UserCache[user.Id];
                 if (u is Pixeez.Objects.User)
                 {
@@ -4310,16 +4310,16 @@ namespace PixivWPF.Common
         #endregion
 
         #region Like/Unlike Illust helper routines
-        public static async Task<bool> Like(this Pixeez.Objects.Work illust, bool pub = true)
+        public static async Task<Tuple<bool, Pixeez.Objects.Work>> Like(this Pixeez.Objects.Work illust, bool pub = true)
         {
-            var result = (await illust.LikeIllust(pub)).Item1;
+            var result = await illust.LikeIllust(pub);
             UpdateLikeStateAsync((int)(illust.Id.Value), false);
             return (result);
         }
 
-        public static async Task<bool> UnLike(this Pixeez.Objects.Work illust)
+        public static async Task<Tuple<bool, Pixeez.Objects.Work>> UnLike(this Pixeez.Objects.Work illust)
         {
-            var result = (await illust.UnLikeIllust()).Item1;
+            var result = await illust.UnLikeIllust();
             UpdateLikeStateAsync((int)(illust.Id.Value), false);
             return (result);
         }
@@ -4330,7 +4330,7 @@ namespace PixivWPF.Common
 
             if (item.IsWork())
             {
-                var ret = await item.Illust.LikeIllust(pub);
+                var ret = await item.Illust.Like(pub);
                 result = ret.Item1;
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
@@ -4345,7 +4345,7 @@ namespace PixivWPF.Common
 
             if (item.IsWork())
             {
-                var ret = await item.Illust.UnLikeIllust();
+                var ret = await item.Illust.UnLike();
                 result = ret.Item1;
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
@@ -4378,7 +4378,7 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            var result = await item.Illust.Like(pub);
+                            var result = await item.LikeIllust(pub);
                         }
                         catch (Exception){}
                     }).InvokeAsync();
@@ -4399,7 +4399,7 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            var result = await item.Illust.UnLike();
+                            var result = await item.UnLikeIllust();
                         }
                         catch (Exception){}
                     }).InvokeAsync();
@@ -4434,6 +4434,7 @@ namespace PixivWPF.Common
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
+                        illust.Cache();
                         var info = "Liked";
                         var title = result.Item1 ? "Succeed" : "Failed";
                         var fail = result.Item1 ? "is" : "isn't";
@@ -4468,6 +4469,7 @@ namespace PixivWPF.Common
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
+                        illust.Cache();
                         var info = "Unliked";
                         var title = result.Item1 ? "Failed" : "Succeed";
                         var fail = result.Item1 ?  "isn't" : "is";
@@ -4482,16 +4484,16 @@ namespace PixivWPF.Common
         #endregion
 
         #region Like/Unlike User helper routines
-        public static async Task<bool> Like(this Pixeez.Objects.UserBase user, bool pub = true)
+        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> Like(this Pixeez.Objects.UserBase user, bool pub = true)
         {
-            var result = (await user.LikeUser(pub)).Item1;
+            var result = await user.LikeUser(pub);
             UpdateLikeStateAsync((int)(user.Id.Value), true);
             return (result);
         }
 
-        public static async Task<bool> UnLike(this Pixeez.Objects.UserBase user)
+        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> UnLike(this Pixeez.Objects.UserBase user)
         {
-            var result = (await user.UnLikeUser()).Item1;
+            var result = await user.UnLikeUser();
             UpdateLikeStateAsync((int)(user.Id.Value), true);
             return (result);
         }
@@ -4500,13 +4502,12 @@ namespace PixivWPF.Common
         {
             bool result = false;
 
-            //if ((item.ItemType != ImageItemType.Pages && item.ItemType != ImageItemType.Page) && item.User is Pixeez.Objects.UserBase)
             if (item.HasUser())
             {
                 try
                 {
                     var user = item.User;
-                    var ret = await user.LikeUser(pub);
+                    var ret = await user.Like(pub);
                     result = ret.Item1;
                     item.User = ret.Item2;
                     if (item.IsUser())
@@ -4529,7 +4530,9 @@ namespace PixivWPF.Common
                 try
                 {
                     var user = item.User;
-                    result = await user.UnLike();
+                    var ret = await user.UnLike();
+                    result = ret.Item1;
+                    item.User = ret.Item2;
                     if (item.IsUser())
                     {
                         item.IsFavorited = result;
@@ -4565,7 +4568,7 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            var result = await item.User.Like(pub);
+                            var result = await item.LikeUser(pub);
                         }
                         catch (Exception){}
                     }).InvokeAsync();
@@ -4586,7 +4589,7 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            var result = await item.User.UnLike();
+                            var result = await item.UnLikeUser();
                         }
                         catch (Exception){}
                     }).InvokeAsync();
@@ -4621,6 +4624,7 @@ namespace PixivWPF.Common
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
+                        user.Cache();
                         var info = "Liked";
                         var title = result.Item1 ? "Succeed" : "Failed";
                         var fail = result.Item1 ?  "is" : "isn't";
@@ -4654,6 +4658,7 @@ namespace PixivWPF.Common
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
+                        user.Cache();
                         var info = "Unliked";
                         var title = result.Item1 ? "Failed" : "Succeed";
                         var fail = result.Item1 ?  "isn't" : "is";

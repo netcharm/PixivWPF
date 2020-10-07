@@ -1509,11 +1509,11 @@ namespace PixivWPF.Pages
                         if (Contents.IsWork())
                         {
                             if (Keyboard.Modifiers == ModifierKeys.None)
-                                await Contents.Illust.Like(pub);
+                                await Contents.LikeIllust(pub);
                             else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                                await Contents.Illust.Like(!pub);
+                                await Contents.LikeIllust(!pub);
                             else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                                await Contents.Illust.UnLike();
+                                await Contents.UnLikeIllust();
                         }
                         else if (Contents.IsUser())
                         {
@@ -1538,11 +1538,11 @@ namespace PixivWPF.Pages
                     if (Contents is ImageItem)
                     {
                         if (Keyboard.Modifiers == ModifierKeys.None)
-                            await Contents.User.Like(pub);
+                            await Contents.LikeUser(pub);
                         else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                            await Contents.User.Like(!pub);
+                            await Contents.LikeUser(!pub);
                         else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                            await Contents.User.UnLike();
+                            await Contents.LikeUser();
                         e.Handled = true;
                     }
                 }
@@ -2517,15 +2517,15 @@ namespace PixivWPF.Pages
                     {
                         if (sender == ActionBookmarkIllustPublic)
                         {
-                            result = await item.Illust.Like();
+                            result = await item.LikeIllust();
                         }
                         else if (sender == ActionBookmarkIllustPrivate)
                         {
-                            result = await item.Illust.Like(false);
+                            result = await item.LikeIllust(false);
                         }
                         else if (sender == ActionBookmarkIllustRemove)
                         {
-                            result = await item.Illust.UnLike();
+                            result = await item.UnLikeIllust();
                         }
 
                         if (item.IsSameIllust(Contents))
@@ -2584,15 +2584,15 @@ namespace PixivWPF.Pages
                     {
                         if (sender == ActionFollowAuthorPublic)
                         {
-                            result = await item.User.Like();
+                            result = await item.LikeUser();
                         }
                         else if (sender == ActionFollowAuthorPrivate)
                         {
-                            result = await item.User.Like(false);
+                            result = await item.LikeUser(false);
                         }
                         else if (sender == ActionFollowAuthorRemove)
                         {
-                            result = await item.User.UnLike();
+                            result = await item.UnLikeUser();
                         }
 
                         if (item.IsSameIllust(Contents))

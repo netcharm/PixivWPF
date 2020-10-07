@@ -165,6 +165,8 @@ namespace PixivWPF.Pages
         {
             try
             {
+                if (string.IsNullOrEmpty(content)) return;
+
                 PreviewWait.Show();
 
                 ResultIllusts.Items.Clear();
