@@ -4236,24 +4236,10 @@ namespace PixivWPF.Common
         public static bool IsLiked(this Pixeez.Objects.Work illust, bool is_new = false)
         {
             bool result = false;
-            if (illust is Pixeez.Objects.Work)
+            if (illust is Pixeez.Objects.Work && illust.User is Pixeez.Objects.UserBase)
             {
-                if (is_new) IllustCache[illust.Id] = illust;
-                var new_bookmarked = illust.IsBookMarked();
-                if (IllustCache.ContainsKey(illust.Id))
-                {
-                    var old_bookmarked = IllustCache[illust.Id].IsBookMarked();
-                    if (old_bookmarked != new_bookmarked) IllustCache[illust.Id] = illust;
-                }
-                else
-                {
-                    IllustCache[illust.Id] = illust;
-                }
-                
-                if (illust.User is Pixeez.Objects.UserBase)
-                { 
-                    result = new_bookmarked;// || (illust.IsLiked ?? false);
-                }
+                if (is_new || !IllustCache.ContainsKey(illust.Id)) IllustCache[illust.Id] = illust;
+                result = IllustCache[illust.Id].IsBookMarked();
             }
             return (result);
         }
@@ -4261,59 +4247,20 @@ namespace PixivWPF.Common
         public static bool IsLiked(this Pixeez.Objects.UserBase user, bool is_new = false)
         {
             bool result = false;
-            if (user is Pixeez.Objects.User)
+            if (user is Pixeez.Objects.UserBase)
             {
-                if (is_new) UserCache[user.Id] = user;
-                var new_user = user as Pixeez.Objects.User;
-                var new_liked = new_user.is_followed ?? new_user.IsFollowing ?? new_user.IsFollowed ?? false;
-                if (UserCache.ContainsKey(user.Id))
+                if (is_new || !UserCache.ContainsKey(user.Id)) UserCache[user.Id] = user;
+                var u = UserCache[user.Id];
+                if (u is Pixeez.Objects.User)
                 {
-                    var u = UserCache[user.Id];
-                    if (u is Pixeez.Objects.User)
-                    {
-                        var old_user = u as Pixeez.Objects.User;
-                        var old_liked = old_user.is_followed ?? old_user.IsFollowing ?? old_user.IsFollowed ?? false;
-                        if (old_liked != new_liked) UserCache[user.Id] = user;
-                    }
-                    else if (u is Pixeez.Objects.NewUser)
-                    {
-                        var old_user = u as Pixeez.Objects.NewUser;
-                        var old_liked = old_user.is_followed ?? false;
-                        if (old_liked != new_liked) UserCache[user.Id] = user;
-                    }
+                    var old_user = u as Pixeez.Objects.User;
+                    result = old_user.is_followed ?? old_user.IsFollowing ?? old_user.IsFollowed ?? false;
                 }
-                else
+                else if (u is Pixeez.Objects.NewUser)
                 {
-                    UserCache[user.Id] = user;
+                    var old_user = u as Pixeez.Objects.NewUser;
+                    result = old_user.is_followed ?? false;
                 }
-                result = new_liked;
-            }
-            else if(user is Pixeez.Objects.NewUser)
-            {
-                if (is_new) UserCache[user.Id] = user;
-                var new_user = user as Pixeez.Objects.NewUser;
-                var new_liked = new_user.is_followed ?? false;
-                if (UserCache.ContainsKey(user.Id))
-                {
-                    var u = UserCache[user.Id];
-                    if (u is Pixeez.Objects.User)
-                    {
-                        var old_user = u as Pixeez.Objects.User;
-                        var old_liked = old_user.is_followed ?? old_user.IsFollowing ?? old_user.IsFollowed ?? false;
-                        if (old_liked != new_liked) UserCache[user.Id] = user;
-                    }
-                    else if (u is Pixeez.Objects.NewUser)
-                    {
-                        var old_user = u as Pixeez.Objects.NewUser;
-                        var old_liked = old_user.is_followed ?? false;
-                        if (old_liked != new_liked) UserCache[user.Id] = user;
-                    }
-                }
-                else
-                {
-                    UserCache[user.Id] = user;
-                }
-                result = new_liked;
             }
             return (result);
         }
