@@ -1149,37 +1149,11 @@ namespace PixivWPF.Common
         #endregion
 
         #region Visit History
-        private static Queue<ImageItem> _history = new Queue<ImageItem>();
         private static ObservableCollection<ImageItem> history = new ObservableCollection<ImageItem>();
         public static ObservableCollection<ImageItem> History { get { return (HistorySource(null)); } }
 
         public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<ImageItem> source)
         {
-            //if(_history is Queue<ImageItem>)
-            //{
-            //    var new_id = illust.Id ?? -1;                
-            //    if (_history.Count() > 0)
-            //    {
-            //        var last = _history.Last();
-            //        if (last.ItemType != ImageItemType.User)
-            //        {
-            //            var last_id = last.Illust.Id ?? -1;
-            //            if (last_id == new_id) return;
-            //        }
-            //    }
-            //    var illusts = _history.Where(i => i.ItemType != ImageItemType.User).Distinct();
-            //    var found = illusts.Where(i => i.Illust.Id == new_id);
-            //    if (found.Count() == 1)
-            //    {
-            //        _history.Enqueue(illust.IllustItem());
-            //        HistoryUpdate(app);
-            //        return;
-            //    }
-            //    var setting = app.LoadSetting();
-            //    if (_history.Count > setting.MaxHistory) _history.Dequeue();
-            //    HistoryUpdate(app);
-            //}
-
             if (source is ObservableCollection<ImageItem>)
             {
                 try
@@ -1199,7 +1173,13 @@ namespace PixivWPF.Common
                     var found = illusts.Where(i => i.Illust.Id == new_id);
                     if (found.Count() >= 1)
                     {
-                        source.Move(source.IndexOf(found.FirstOrDefault()), 0);
+                        var i = found.FirstOrDefault();
+                        i.Illust = illust;
+                        i.User = illust.User;
+                        i.IsFollowed = i.Illust.IsLiked();
+                        i.IsFavorited = i.User.IsLiked();
+                        i.IsDownloaded = i.Illust.IsPartDownloaded();
+                        source.Move(source.IndexOf(i), 0);
                     }
                     else
                     {
@@ -1236,7 +1216,11 @@ namespace PixivWPF.Common
                     var found = users.Where(i => i.User.Id == new_id);
                     if (found.Count() >= 1)
                     {
-                        source.Move(source.IndexOf(found.FirstOrDefault()), 0);
+                        var u = found.FirstOrDefault();
+                        u.User = user;
+                        u.IsFollowed = u.Illust.IsLiked();
+                        u.IsFavorited = u.User.IsLiked();
+                        source.Move(source.IndexOf(u), 0);
                     }
                     else
                     {
@@ -1276,20 +1260,61 @@ namespace PixivWPF.Common
             }
         }
 
-        public static IEnumerable<ImageItem> HistoryList(this Application app)
+        private static void UpdateHistoryFromCache(IEnumerable<ImageItem> items)
+        {
+            foreach (var item in items)
+            {
+                if (item.IsWork())
+                {
+                    var i = item.ID.FindIllust();
+                    if (i is Pixeez.Objects.Work && i.User is Pixeez.Objects.UserBase)
+                    {
+                        item.Illust = i;
+                        item.User = i.User;
+                    }
+                    item.IsFollowed = item.User.IsLiked();
+                    item.IsFavorited = item.Illust.IsLiked();
+                    item.IsDownloaded = item.Illust.IsPartDownloaded();
+                }
+                else if (item.IsUser())
+                {
+                    var u = item.ID.FindUser();
+                    if (u is Pixeez.Objects.UserBase) item.User = u;
+                    item.IsFollowed = item.User.IsLiked();
+                }
+            }
+        }
+
+        public static IEnumerable<ImageItem> HistoryList(this Application app, bool full_update = false)
         {
             var result = new List<ImageItem>();
             if (history is ObservableCollection<ImageItem>)
             {
+                if (full_update)
+                    UpdateHistoryFromCache(history);
+                else
+                {
+                    history.UpdateLikeState();
+                    history.UpdateDownloadState();
+                }
                 result = history.ToList();
             }
             return (result);
         }
 
-        public static ObservableCollection<ImageItem> HistorySource(this Application app)
+        public static ObservableCollection<ImageItem> HistorySource(this Application app, bool full_update = false)
         {
+            if (history is ObservableCollection<ImageItem>)
+            {
+                if (full_update)
+                    UpdateHistoryFromCache(history);
+                else
+                {
+                    history.UpdateLikeState();
+                    history.UpdateDownloadState();
+                }
+            }
             return (history);
-            //return (new ObservableCollection<ImageItem>(history.Reverse()));
         }
 
         public static ImageItem HistoryRecent(this Application app, int num = 0)
@@ -2611,7 +2636,6 @@ namespace PixivWPF.Common
                 bmp.Freeze();
 
                 result = bmp;
-                //result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
             }
             catch (Exception ex)
             {
@@ -2625,11 +2649,14 @@ namespace PixivWPF.Common
                     var retx = exx.Message;
                 }
             }
-            if (result is ImageSource)
+            finally
             {
-                var dpi = new DPI();
-                if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
-                    result = await ConvertBitmapDPI(result, dpi.X, dpi.Y);
+                if (result is ImageSource)
+                {
+                    var dpi = new DPI();
+                    if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
+                        result = await ConvertBitmapDPI(result, dpi.X, dpi.Y);
+                }
             }
             return (result);
         }
@@ -2925,6 +2952,57 @@ namespace PixivWPF.Common
                     }
                 }
             }).InvokeAsync();
+        }
+
+        public static async void UpdateDownloadStateAsync(this ImageListGrid list, int? illustid = null, bool? exists = null)
+        {
+            await new Action(() => {
+                UpdateDownloadState(list, illustid, exists);
+            }).InvokeAsync();
+        }
+
+        public static void UpdateDownloadState(this ImageListGrid list, int? illustid = null, bool? exists = null)
+        {
+            try
+            {
+                list.Items.UpdateDownloadState(illustid, exists);
+            }
+            catch (Exception) { }
+        }
+
+        public static async void UpdateDownloadStateAsync(this ObservableCollection<ImageItem> collection, int? illustid = null, bool? exists = null)
+        {
+            await new Action(() => {
+                UpdateDownloadState(collection, illustid, exists);
+            }).InvokeAsync();
+        }
+
+        public static void UpdateDownloadState(this ObservableCollection<ImageItem> collection, int? illustid = null, bool? exists = null)
+        {
+            try
+            {
+                var id = illustid ?? -1;
+                foreach (var item in collection)
+                {
+                    if(item.IsPage() || item.IsPages())
+                    {
+                        item.IsDownloaded = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
+                    }
+                    else if (item.IsWork())
+                    {
+                        if (id == -1)
+                            item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                        else if (id == (int)(item.Illust.Id))
+                        {
+                            if (item.Count > 1)
+                                item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                            else
+                                item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
+                        }
+                    }
+                }
+            }
+            catch { }
         }
         #endregion
 

@@ -109,22 +109,7 @@ namespace PixivWPF.Pages
         {
             if (ImageList is ObservableCollection<ImageItem>)
             {
-                var id = illustid ?? -1;
-                foreach (var item in ImageList)
-                {
-                    if (item.Illust is Pixeez.Objects.Work)
-                    {
-                        if (id == -1)
-                            item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
-                        else if (id == (int)(item.Illust.Id))
-                        {
-                            if (item.Count > 1)
-                                item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
-                            else
-                                item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
-                        }
-                    }
-                }
+                ImageList.UpdateDownloadStateAsync();
             }
         }
 

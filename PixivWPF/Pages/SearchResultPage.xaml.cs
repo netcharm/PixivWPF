@@ -38,17 +38,7 @@ namespace PixivWPF.Pages
 
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
-            var id = illustid ?? -1;
-            foreach (var item in ResultIllusts.Items)
-            {
-                if (item.Illust is Pixeez.Objects.Work)
-                {
-                    if (id == -1)
-                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
-                    else if (id == (int)(item.Illust.Id))
-                        item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
-                }
-            }
+            ResultIllusts.UpdateDownloadStateAsync(illustid, exists);
         }
 
         public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = false)

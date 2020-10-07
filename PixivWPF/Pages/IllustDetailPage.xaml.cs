@@ -320,31 +320,11 @@ namespace PixivWPF.Pages
         #region Illust/User state mark methods
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
-            var id = illustid ?? -1;
             try
             {
                 foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeIllusts, FavoriteIllusts })
                 {
-                    foreach (var item in illusts.Items)
-                    {
-                        if (item.Illust is Pixeez.Objects.Work)
-                        {
-                            if (id == -1)
-                                item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
-                            else if (id == (int)(item.Illust.Id))
-                            {
-                                if (illusts == SubIllusts)
-                                    item.IsDownloaded = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
-                                else
-                                {
-                                    if (item.Count > 1)
-                                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
-                                    else
-                                        item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
-                                }
-                            }
-                        }
-                    }
+                    illusts.UpdateDownloadStateAsync(illustid, exists);
                 }
             }
             catch (Exception) { }

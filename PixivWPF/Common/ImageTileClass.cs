@@ -580,6 +580,7 @@ namespace PixivWPF.Common
                         if (i is ImageItem)
                         {
                             //i.Thumb = url;
+                            i.ItemType = ImageItemType.Pages;
                             i.DisplayTitle = false;
                             i.Index = index;
                             i.Count = illust.PageCount ?? 0;
@@ -616,6 +617,7 @@ namespace PixivWPF.Common
                         if (i is ImageItem)
                         {
                             //i.Thumb = url;
+                            i.ItemType = ImageItemType.Page;
                             i.DisplayTitle = false;
                             i.Index = index;
                             i.Count = illust.PageCount ?? 0;
@@ -1138,6 +1140,36 @@ namespace PixivWPF.Common
                         item.ItemType == ImageItemType.Works ||
                         item.ItemType == ImageItemType.Page ||
                         item.ItemType == ImageItemType.Pages)
+                        result = item.Illust is Pixeez.Objects.Work ? true : false;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool IsPage(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.Page)
+                        result = item.Illust is Pixeez.Objects.Work ? true : false;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool IsPages(this ImageItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is ImageItem)
+                {
+                    if (item.ItemType == ImageItemType.Pages)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }

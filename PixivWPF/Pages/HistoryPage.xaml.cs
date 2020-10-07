@@ -37,17 +37,7 @@ namespace PixivWPF.Pages
 
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
-            var id = illustid ?? -1;
-            foreach (var item in HistoryItems.Items)
-            {
-                if (item.Illust is Pixeez.Objects.Work)
-                {
-                    if (id == -1)
-                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
-                    else if (id == (int)(item.Illust.Id))
-                        item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
-                }
-            }
+            HistoryItems.UpdateDownloadStateAsync(illustid, exists);
         }
 
         public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = false)
@@ -116,6 +106,25 @@ namespace PixivWPF.Pages
                     {
                         HistoryItems.Items.Add(item);
                     }
+                }
+                else
+                {
+                    UpdateLikeState();
+                    UpdateDownloadState();
+
+                    //var source = Application.Current.HistorySource();
+                    //foreach (var item in HistoryItems.Items)
+                    //{
+                    //    var hist = source.Where(i => i.ID == item.ID && i.UserID == item.UserID);
+                    //    if (hist.Count() >= 1)
+                    //    {
+                    //        var new_item = hist.First();
+                    //        item.Illust = new_item.Illust;
+                    //        item.User = new_item.User;
+                    //        item.IsFollowed = new_item.IsFollowed;
+                    //        item.IsFavorited = new_item.IsFavorited;
+                    //    }
+                    //}
                 }
 
                 if (HistoryItems.Items.Count() == 0 && window != null && no_filter)
@@ -210,11 +219,14 @@ namespace PixivWPF.Pages
                 window.MaxHeight = Math.Min(960, wa.Height);
             }
 
-            //HistoryItems.Items = Application.Current.HistorySource();
-            foreach (var item in Application.Current.HistorySource())
+            try
             {
-                HistoryItems.Items.Add(item);
+                foreach (var item in Application.Current.HistorySource())
+                {
+                    HistoryItems.Items.Add(item);
+                }
             }
+            catch (Exception) { }
             UpdateDetail();
         }
 
