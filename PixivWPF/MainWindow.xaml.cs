@@ -1,7 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
-using PixivWPF.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -13,6 +10,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
+
+using MahApps.Metro.Controls;
+using PixivWPF.Common;
 
 namespace PixivWPF
 {
@@ -345,7 +345,7 @@ namespace PixivWPF
         private long lastKeyUp = Environment.TickCount;
         private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Timestamp - lastKeyUp > 50)
+            if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
             {
                 lastKeyUp = e.Timestamp;
                 if (e.Key == Key.F5 || e.SystemKey == Key.F5)
@@ -370,6 +370,11 @@ namespace PixivWPF
                     e.Handled = true;
                 }
                 else if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (pagetiles is Pages.TilesPage) pagetiles.KeyAction(e);
+                    e.Handled = true;
+                }
+                else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     if (pagetiles is Pages.TilesPage) pagetiles.KeyAction(e);
                     e.Handled = true;

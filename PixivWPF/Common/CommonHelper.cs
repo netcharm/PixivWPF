@@ -20,22 +20,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
-using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using Newtonsoft.Json;
-using PixivWPF.Pages;
-using Prism.Commands;
 using WPFNotification.Core.Configuration;
 using WPFNotification.Model;
 using WPFNotification.Services;
-using System.Windows.Controls.Primitives;
+using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using PixivWPF.Pages;
 
 namespace PixivWPF.Common
 {
@@ -214,6 +214,11 @@ namespace PixivWPF.Common
             {
                 Setting.UpdateContentsTemplete();
             }).InvokeAsync();
+        }
+        
+        public static string SaveTarget(this Application app, string file="")
+        {
+            return (CommonHelper.ChangeSaveTarget(file));
         }
         #endregion
 
@@ -1352,7 +1357,7 @@ namespace PixivWPF.Common
 
         #region Hot-Key Processing
         private static long lastKeyUp = Environment.TickCount;
-        public static async void KeyAction(this Application app, dynamic current, KeyEventArgs e)
+        public static void KeyAction(this Application app, dynamic current, KeyEventArgs e)
         {
             e.Handled = false;
             var setting = app.LoadSetting();
@@ -3634,18 +3639,7 @@ namespace PixivWPF.Common
         {
             string result = string.Empty;
 
-            var file = url.GetImageName(is_meta_single_page);
-            if (string.IsNullOrEmpty(setting.LastFolder))
-            {
-                SaveFileDialog dlgSave = new SaveFileDialog();
-                dlgSave.FileName = file;
-                if (dlgSave.ShowDialog() == true)
-                {
-                    file = dlgSave.FileName;
-                    setting.LastFolder = Path.GetDirectoryName(file);
-                }
-                else file = string.Empty;
-            }
+            var file = Application.Current.SaveTarget(url.GetImageName(is_meta_single_page));
 
             try
             {
@@ -3662,7 +3656,7 @@ namespace PixivWPF.Common
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowMessageBox("ERROR[SAVEIMAGE]");
                 }
             }
             return (result);
@@ -5411,6 +5405,53 @@ namespace PixivWPF.Common
         #endregion
 
         #region Dialog/MessageBox routines
+        public static string ChangeSaveTarget(string file = "")
+        {
+            var result = string.Empty;
+            setting = Application.Current.LoadSetting();
+            if (string.IsNullOrEmpty(file))
+            {
+                CommonOpenFileDialog dlg = new CommonOpenFileDialog()
+                {
+                    Title = "Select Folder",
+                    IsFolderPicker = true,
+                    InitialDirectory = setting.LastFolder,
+
+                    AddToMostRecentlyUsedList = false,
+                    AllowNonFileSystemItems = false,
+                    DefaultDirectory = setting.LastFolder,
+                    EnsureFileExists = true,
+                    EnsurePathExists = true,
+                    EnsureReadOnly = false,
+                    EnsureValidNames = true,
+                    Multiselect = false,
+                    ShowPlacesList = true
+                };
+
+                if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+                {
+                    setting.LastFolder = dlg.FileName;
+                    result = dlg.FileName;
+                    // Do something with selected folder string                   
+                }
+            }
+            else
+            {                
+                if (string.IsNullOrEmpty(setting.LastFolder))
+                {
+                    SaveFileDialog dlgSave = new SaveFileDialog();
+                    dlgSave.FileName = file;
+                    if (dlgSave.ShowDialog() == true)
+                    {
+                        file = dlgSave.FileName;
+                        setting.LastFolder = Path.GetDirectoryName(file);                        
+                    }
+                }
+                result = Path.Combine(setting.LastFolder, Path.GetFileName(file));
+            }
+            return (result);
+        }
+
         public static void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             ShowMessageDialog(content, title, image);

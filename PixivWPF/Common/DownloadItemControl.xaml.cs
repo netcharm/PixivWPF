@@ -1,21 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Media;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
-
-using Microsoft.Win32;
-using System.Threading;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net;
-using System.Linq;
 
 namespace PixivWPF.Common
 {
@@ -56,28 +53,8 @@ namespace PixivWPF.Common
             set
             {
                 if (string.IsNullOrEmpty(value)) return;
-
                 url = value;
-
-                FileName = url.GetImageName(singlefile);
-
-                if (string.IsNullOrEmpty(setting.LastFolder))
-                {
-                    SaveFileDialog dlgSave = new SaveFileDialog();
-                    dlgSave.FileName = FileName;
-                    if (dlgSave.ShowDialog() == true)
-                    {
-                        FileName = dlgSave.FileName;
-                        setting.LastFolder = Path.GetDirectoryName(FileName);
-                    }
-                    else
-                    {
-                        Canceled = true;
-                        //else FileName = string.Empty;
-                        return;
-                    }
-                }
-                FileName = Path.Combine(setting.LastFolder, Path.GetFileName(FileName));
+                FileName = Application.Current.SaveTarget(url.GetImageName(singlefile));
                 NotifyPropertyChanged("UrlChanged");
             }
         }

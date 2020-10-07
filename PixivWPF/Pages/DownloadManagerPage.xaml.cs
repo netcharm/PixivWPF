@@ -11,8 +11,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 
 using PixivWPF.Common;
-using Microsoft.Win32;
-using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace PixivWPF.Pages
 {
@@ -180,28 +178,6 @@ namespace PixivWPF.Pages
         {
             if (!IsExists(url))
             {
-                var Canceled = false;
-                if (string.IsNullOrEmpty(setting.LastFolder))
-                {
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        SaveFileDialog dlgSave = new SaveFileDialog();
-                        var file = url.GetImageName(is_meta_single_page);
-                        dlgSave.FileName = file;
-                        if (dlgSave.ShowDialog() == true)
-                        {
-                            file = dlgSave.FileName;
-                            setting.LastFolder = System.IO.Path.GetDirectoryName(file);
-                        }
-                        else
-                        {
-                            Canceled = true;
-                            return;
-                        }
-                    }
-                }
-                if (Canceled) return;
-
                 var item = new DownloadInfo()
                 {
                     AutoStart = AutoStart,
@@ -213,7 +189,6 @@ namespace PixivWPF.Pages
                     FileTime = dt
                 };
                 Add(item);
-                //IsIdle = false;
             }
         }
 
@@ -328,28 +303,7 @@ namespace PixivWPF.Pages
 
         private void PART_ChangeFolder_Click(object sender, RoutedEventArgs e)
         {
-            CommonOpenFileDialog dlg = new CommonOpenFileDialog()
-            {
-                Title = "Select Folder",
-                IsFolderPicker = true,
-                InitialDirectory = setting.LastFolder,
-
-                AddToMostRecentlyUsedList = false,
-                AllowNonFileSystemItems = false,
-                DefaultDirectory = setting.LastFolder,
-                EnsureFileExists = true,
-                EnsurePathExists = true,
-                EnsureReadOnly = false,
-                EnsureValidNames = true,
-                Multiselect = false,
-                ShowPlacesList = true
-            };
-
-            if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                setting.LastFolder = dlg.FileName;
-                // Do something with selected folder string
-            }
+            Application.Current.SaveTarget(string.Empty);
         }
 
         private async void PART_CopyID_Click(object sender, RoutedEventArgs e)
@@ -383,7 +337,5 @@ namespace PixivWPF.Pages
                 Commands.CopyDownloadInfo.Execute(dis);
             }).InvokeAsync();
         }
-
-
     }
 }

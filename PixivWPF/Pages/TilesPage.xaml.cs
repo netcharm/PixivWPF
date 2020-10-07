@@ -1,7 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using MahApps.Metro.IconPacks;
-using PixivWPF.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -11,6 +8,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+
+using MahApps.Metro.Controls;
+using MahApps.Metro.IconPacks;
+using PixivWPF.Common;
 
 namespace PixivWPF.Pages
 {
@@ -1178,102 +1179,112 @@ namespace PixivWPF.Pages
             }
         }
 
+        private long lastKeyUp = Environment.TickCount;
         private void ListImageTiles_KeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = false;
-            if (e.Key == Key.F5 || e.SystemKey == Key.F5)
+            if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
             {
-                var main = this.GetMainWindow() as MainWindow;
-                main.CommandNavRefresh_Click(main.CommandNavRefresh, new RoutedEventArgs());
-                e.Handled = true;
-            }
-            else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
-            {
-                var main = this.GetMainWindow() as MainWindow;
-                main.CommandNavNext_Click(main.CommandNavNext, new RoutedEventArgs());
-                e.Handled = true;
-            }
-            else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
-            {
-                UpdateTilesThumb();
-                e.Handled = true;
-            }
-            else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)
-            {
-                if (detail_page is IllustDetailPage)
+                lastKeyUp = e.Timestamp;
+                if (e.Key == Key.F5 || e.SystemKey == Key.F5)
                 {
-                    detail_page.KeyAction(e);
+                    var main = this.GetMainWindow() as MainWindow;
+                    main.CommandNavRefresh_Click(main.CommandNavRefresh, new RoutedEventArgs());
                     e.Handled = true;
                 }
-            }
-            else if (e.Key == Key.Enter || e.SystemKey == Key.Enter)
-            {
-                if (ListImageTiles.SelectedItem != null)
+                else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
                 {
+                    var main = this.GetMainWindow() as MainWindow;
+                    main.CommandNavNext_Click(main.CommandNavNext, new RoutedEventArgs());
                     e.Handled = true;
                 }
-            }
-            else if (e.Key == Key.Down || e.Key == Key.Next || e.Key == Key.PageDown ||
-                     e.SystemKey == Key.Down || e.SystemKey == Key.Next || e.SystemKey == Key.PageDown)
-            {
-                if (ListImageTiles.SelectedIndex >= ListImageTiles.Items.Count - 1)
+                else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
                 {
-                    ShowImages(TargetPage, true);
+                    UpdateTilesThumb();
                     e.Handled = true;
                 }
-            }
-            else if (e.Key == Key.Home || e.SystemKey == Key.Home)
-            {
-                if (ListImageTiles.Items.Count > 0)
+                else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)
                 {
-                    ListImageTiles.Items.MoveCurrentToFirst();
-                    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
-                    e.Handled = true;
-                }
-            }
-            else if (e.Key == Key.End || e.SystemKey == Key.End)
-            {
-                if (ListImageTiles.Items.Count > 0)
-                {
-                    ListImageTiles.Items.MoveCurrentToLast();
-                    ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
-                    e.Handled = true;
-                }
-            }
-            else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                if (ListImageTiles.SelectedItem is ImageItem)
-                {
-                    var item = ListImageTiles.SelectedItem as ImageItem;
-                    if (item.Illust is Pixeez.Objects.Work)
+                    if (detail_page is IllustDetailPage)
                     {
-                        var illust = item.Illust;
-                        var url = illust.GetOriginalUrl();
-                        var dt = illust.GetDateTime();
-                        var is_meta_single_page = illust.PageCount == 1 ? true : false;
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
-                        }
+                        detail_page.KeyAction(e);
+                        e.Handled = true;
                     }
                 }
-                e.Handled = true;
-            }
-            else if ((e.Key == Key.O || e.SystemKey == Key.O) && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                var item = ListImageTiles.SelectedItem as ImageItem;
-                Commands.OpenDownloaded.Execute(item);
-                e.Handled = true;
-            }
-            else if ((e.Key == Key.Left || e.SystemKey == Key.Left) && Keyboard.Modifiers == ModifierKeys.Alt)
-            {
-                PrevIllustPage();
-                e.Handled = true;
-            }
-            else if ((e.Key == Key.Right || e.SystemKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Alt)
-            {
-                NextIllustPage();
-                e.Handled = true;
+                else if (e.Key == Key.Enter || e.SystemKey == Key.Enter)
+                {
+                    if (ListImageTiles.SelectedItem != null)
+                    {
+                        e.Handled = true;
+                    }
+                }
+                else if (e.Key == Key.Down || e.Key == Key.Next || e.Key == Key.PageDown ||
+                         e.SystemKey == Key.Down || e.SystemKey == Key.Next || e.SystemKey == Key.PageDown)
+                {
+                    if (ListImageTiles.SelectedIndex >= ListImageTiles.Items.Count - 1)
+                    {
+                        ShowImages(TargetPage, true);
+                        e.Handled = true;
+                    }
+                }
+                else if (e.Key == Key.Home || e.SystemKey == Key.Home)
+                {
+                    if (ListImageTiles.Items.Count > 0)
+                    {
+                        ListImageTiles.Items.MoveCurrentToFirst();
+                        ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                        e.Handled = true;
+                    }
+                }
+                else if (e.Key == Key.End || e.SystemKey == Key.End)
+                {
+                    if (ListImageTiles.Items.Count > 0)
+                    {
+                        ListImageTiles.Items.MoveCurrentToLast();
+                        ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                        e.Handled = true;
+                    }
+                }
+                else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (ListImageTiles.SelectedItem is ImageItem)
+                    {
+                        var item = ListImageTiles.SelectedItem as ImageItem;
+                        if (item.Illust is Pixeez.Objects.Work)
+                        {
+                            var illust = item.Illust;
+                            var url = illust.GetOriginalUrl();
+                            var dt = illust.GetDateTime();
+                            var is_meta_single_page = illust.PageCount == 1 ? true : false;
+                            if (!string.IsNullOrEmpty(url))
+                            {
+                                url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                            }
+                        }
+                    }
+                    e.Handled = true;
+                }
+                else if ((e.Key == Key.O || e.SystemKey == Key.O) && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    var item = ListImageTiles.SelectedItem as ImageItem;
+                    Commands.OpenDownloaded.Execute(item);
+                    e.Handled = true;
+                }
+                else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    Commands.OpenHistory.Execute(null);
+                    e.Handled = true;
+                }
+                else if ((e.Key == Key.Left || e.SystemKey == Key.Left) && Keyboard.Modifiers == ModifierKeys.Alt)
+                {
+                    PrevIllustPage();
+                    e.Handled = true;
+                }
+                else if ((e.Key == Key.Right || e.SystemKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Alt)
+                {
+                    NextIllustPage();
+                    e.Handled = true;
+                }
             }
         }
 

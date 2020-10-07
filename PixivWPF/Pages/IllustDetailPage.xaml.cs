@@ -11,8 +11,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-using PixivWPF.Common;
 using MahApps.Metro.IconPacks;
+using PixivWPF.Common;
 
 namespace PixivWPF.Pages
 {
@@ -1457,7 +1457,7 @@ namespace PixivWPF.Pages
         private void Page_KeyUp(object sender, KeyEventArgs e)
         {
             e.Handled = false;
-            if (e.Timestamp - lastKeyUp > 50)
+            if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
             {
                 lastKeyUp = e.Timestamp;
                 var pub = setting.PrivateFavPrefer ? false : true;
@@ -1472,8 +1472,15 @@ namespace PixivWPF.Pages
                 }
                 else if (e.Key == Key.F5 || e.SystemKey == Key.F5)
                 {
-                    if (!(Parent is ContentWindow)) Commands.RefreshPage.Execute(Application.Current.MainWindow);
-                    if (Contents is ImageItem) UpdateDetail(Contents);
+                    if (Parent is ContentWindow)
+                        UpdateDetail(Contents);
+                    else
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            UpdateDetail(Contents);
+                        else if(Keyboard.Modifiers == ModifierKeys.None)
+                            Commands.RefreshPage.Execute(Application.Current.MainWindow);
+                    }
                     e.Handled = true;
                 }
                 else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
@@ -1535,6 +1542,11 @@ namespace PixivWPF.Pages
                 else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Shift)
                 {
                     Commands.SaveIllustAll.Execute(Contents);
+                    e.Handled = true;
+                }
+                else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    Commands.OpenHistory.Execute(null);
                     e.Handled = true;
                 }
                 else if((e.Key == Key.Left || e.SystemKey == Key.Left) && Keyboard.Modifiers == ModifierKeys.Alt)
