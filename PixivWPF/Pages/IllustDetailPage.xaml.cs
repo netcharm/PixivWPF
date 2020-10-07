@@ -1454,7 +1454,7 @@ namespace PixivWPF.Pages
         }
 
         private long lastKeyUp = Environment.TickCount;
-        private async void Page_KeyUp(object sender, KeyEventArgs e)
+        private void Page_KeyUp(object sender, KeyEventArgs e)
         {
             e.Handled = false;
             if (e.Timestamp - lastKeyUp > 50)
@@ -1486,30 +1486,14 @@ namespace PixivWPF.Pages
                 {
                     if (Contents is ImageItem)
                     {
-                        if (Contents.IsWork())
-                        {
-                            if (Keyboard.Modifiers == ModifierKeys.None)
-                                await Contents.LikeIllust(pub);
-                            else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                                await Contents.LikeIllust(!pub);
-                            else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                                await Contents.UnLikeIllust();
-                        }
-                        else if (Contents.IsUser())
-                        {
-                            IList<ImageItem> items = null;
-                            if (RelativeIllusts.IsKeyboardFocusWithin) items = RelativeIllusts.GetSelected(true);
-                            else if (FavoriteIllusts.IsKeyboardFocusWithin) items = FavoriteIllusts.GetSelected(true);
-                            if (items is IList<ImageItem> && items.Count > 0)
-                            {
-                                if (Keyboard.Modifiers == ModifierKeys.None)
-                                    items.LikeIllust(pub);
-                                else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                                    items.LikeIllust(!pub);
-                                else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                                    items.UnLikeIllust();
-                            }
-                        }
+                        if (RelativeIllusts.IsKeyboardFocusWithin)
+                            Commands.ChangeIllustLikeState.Execute(RelativeIllusts);
+                        else if (FavoriteIllusts.IsKeyboardFocusWithin)
+                            Commands.ChangeIllustLikeState.Execute(FavoriteIllusts);
+                        else if (Contents.IsWork() && SubIllusts.Items.Count > 0)
+                            Commands.ChangeIllustLikeState.Execute(SubIllusts);
+                        else if (Contents.IsWork())
+                            Commands.ChangeIllustLikeState.Execute(Contents);
                         e.Handled = true;
                     }
                 }
@@ -1517,12 +1501,14 @@ namespace PixivWPF.Pages
                 {
                     if (Contents is ImageItem)
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.None)
-                            await Contents.LikeUser(pub);
-                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                            await Contents.LikeUser(!pub);
-                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                            await Contents.LikeUser();
+                        if (RelativeIllusts.IsKeyboardFocusWithin)
+                            Commands.ChangeUserLikeState.Execute(RelativeIllusts);
+                        else if (FavoriteIllusts.IsKeyboardFocusWithin)
+                            Commands.ChangeUserLikeState.Execute(FavoriteIllusts);
+                        else if (Contents.IsWork() && SubIllusts.Items.Count > 0)
+                            Commands.ChangeUserLikeState.Execute(SubIllusts);
+                        else if (Contents.IsWork())
+                            Commands.ChangeUserLikeState.Execute(Contents);
                         e.Handled = true;
                     }
                 }
@@ -1532,6 +1518,18 @@ namespace PixivWPF.Pages
                         Commands.SaveIllust.Execute(SubIllusts);
                     else
                         Commands.SaveIllust.Execute(Contents);
+                    e.Handled = true;
+                }
+                else if ((e.Key == Key.O || e.SystemKey == Key.O) && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (RelativeIllusts.IsKeyboardFocusWithin)
+                        Commands.OpenDownloaded.Execute(RelativeIllusts);
+                    else if (FavoriteIllusts.IsKeyboardFocusWithin)
+                        Commands.OpenDownloaded.Execute(FavoriteIllusts);
+                    else if (Contents.IsWork() && SubIllusts.Items.Count > 0)
+                        Commands.OpenDownloaded.Execute(SubIllusts);
+                    else if(Contents.IsWork())
+                        Commands.OpenDownloaded.Execute(Contents);
                     e.Handled = true;
                 }
                 else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Shift)
@@ -3424,24 +3422,15 @@ namespace PixivWPF.Pages
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            foreach (ImageItem item in SubIllusts.GetSelected())
-                            {
-                                Commands.OpenDownloaded.Execute(item);
-                            }
+                            Commands.OpenDownloaded.Execute(SubIllusts);
                         }
                         else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                         {
-                            foreach (ImageItem item in RelativeIllusts.GetSelected())
-                            {
-                                Commands.OpenDownloaded.Execute(item);
-                            }
+                            Commands.OpenDownloaded.Execute(RelativeIllusts);
                         }
                         else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
                         {
-                            foreach (ImageItem item in FavoriteIllusts.GetSelected())
-                            {
-                                Commands.OpenDownloaded.Execute(item);
-                            }
+                            Commands.OpenDownloaded.Execute(FavoriteIllusts);
                         }
                     }
                 }

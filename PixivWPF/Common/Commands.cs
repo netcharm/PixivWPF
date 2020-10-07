@@ -309,7 +309,7 @@ namespace PixivWPF.Common
                     var item = obj as ImageItem;
                     if(item.IsWork())
                     {
-                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
+                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();                        
                         OpenWork.Execute(item.Illust);
                     }
                     else if(item.IsUser())
@@ -342,6 +342,9 @@ namespace PixivWPF.Common
                 if (obj is Pixeez.Objects.Work)
                 {
                     var illust = obj as Pixeez.Objects.Work;
+                    var i = illust.Id.FindIllust();
+                    if (i is Pixeez.Objects.Work) illust = i;
+
                     var title = $"ID: {illust.Id}, {illust.Title}";
                     if (await title.ActiveByTitle()) return;
 
@@ -441,6 +444,9 @@ namespace PixivWPF.Common
                 if (obj is Pixeez.Objects.UserBase)
                 {
                     var user = obj as Pixeez.Objects.UserBase;
+                    var u = user.Id.FindUser();
+                    if(u is Pixeez.Objects.UserBase) user = u;
+
                     var title = $"User: {user.Name} / {user.Id} / {user.Account}";
                     if (await title.ActiveByTitle()) return;
 
@@ -528,6 +534,20 @@ namespace PixivWPF.Common
                         }
                     }).InvokeAsync();
                 }
+                else if (obj is IList<ImageItem>)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as IList<ImageItem>;
+                        foreach (var item in gallery)
+                        {
+                            await new Action(() =>
+                            {
+                                OpenDownloaded.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -552,6 +572,7 @@ namespace PixivWPF.Common
                         Height = HEIGHT_DEF,
                         MinWidth = WIDTH_MIN,
                         MinHeight = HEIGHT_MIN,
+                        MaxWidth = WIDTH_MIN + 16,
                         FontFamily = setting.FontFamily,
                         Content = page
                     };
@@ -692,6 +713,7 @@ namespace PixivWPF.Common
                             MinWidth = WIDTH_MIN,
                             MinHeight = HEIGHT_MIN,
                             MaxHeight = HEIGHT_MAX,
+                            MaxWidth = WIDTH_MIN + 16,
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
@@ -1284,6 +1306,204 @@ namespace PixivWPF.Common
             {
                 var win = obj as ContentWindow;
                 if (win.Content is IllustDetailPage) (win.Content as IllustDetailPage).NextIllustPage();
+            }
+        });
+
+        public static ICommand LikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                setting = Application.Current.LoadSetting();
+                var pub = setting.PrivateBookmarkPrefer ? false : true;
+
+                if (obj is ImageItem)
+                {
+                    var item = obj as ImageItem;
+                    await item.LikeIllust(pub);
+                }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    gallery.GetSelected().LikeIllust(pub);
+                }
+                else if (obj is IList<ImageItem>)
+                {
+                    var gallery = obj as IList<ImageItem>;
+                    gallery.LikeIllust(pub);
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
+            }
+        });
+
+        public static ICommand UnLikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                if (obj is ImageItem)
+                {
+                    var item = obj as ImageItem;
+                    await item.UnLikeIllust();
+                }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    gallery.GetSelected().UnLikeIllust();
+                }
+                else if (obj is IList<ImageItem>)
+                {
+                    var gallery = obj as IList<ImageItem>;
+                    gallery.UnLikeIllust();
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
+            }
+        });
+
+        public static ICommand ChangeIllustLikeState { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                setting = Application.Current.LoadSetting();
+                var pub = setting.PrivateFavPrefer ? false : true;
+
+                if (obj is ImageItem)
+                {
+                    var item = obj as ImageItem;
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        await item.LikeIllust(pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        await item.LikeIllust(!pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        await item.UnLikeIllust();
+                }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        gallery.GetSelected().LikeIllust(pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        gallery.GetSelected().LikeIllust(!pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        gallery.GetSelected().UnLikeIllust();
+                }
+                else if (obj is IList<ImageItem>)
+                {
+                    var gallery = obj as IList<ImageItem>;
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        gallery.LikeIllust(pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        gallery.LikeIllust(!pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        gallery.UnLikeIllust();
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
+            }
+        });
+
+        public static ICommand LikeUser { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                setting = Application.Current.LoadSetting();
+                var pub = setting.PrivateFavPrefer ? false : true;
+
+                if (obj is ImageItem)
+                {
+                    var item = obj as ImageItem;
+                    await item.LikeUser(pub);
+                }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    gallery.GetSelected().LikeUser(pub);
+                }
+                else if (obj is IList<ImageItem>)
+                {
+                    var gallery = obj as IList<ImageItem>;
+                    gallery.LikeUser(pub);
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
+            }
+        });
+
+        public static ICommand UnLikeUser { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                if (obj is ImageItem)
+                {
+                    var item = obj as ImageItem;
+                    await item.UnLikeUser();
+                }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    gallery.GetSelected().UnLikeUser();
+                }
+                else if (obj is IList<ImageItem>)
+                {
+                    var gallery = obj as IList<ImageItem>;
+                    gallery.UnLikeUser();
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
+            }
+        });
+
+        public static ICommand ChangeUserLikeState { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                setting = Application.Current.LoadSetting();
+                var pub = setting.PrivateFavPrefer ? false : true;
+
+                if (obj is ImageItem)
+                {
+                    var item = obj as ImageItem;
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        await item.LikeUser(pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        await item.LikeUser(!pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        await item.UnLikeUser();
+                }
+                else if (obj is ImageListGrid)
+                {
+                    var gallery = obj as ImageListGrid;
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        gallery.GetSelected().LikeUser(pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        gallery.GetSelected().LikeUser(!pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        gallery.GetSelected().UnLikeUser();
+                }
+                else if (obj is IList<ImageItem>)
+                {
+                    var gallery = obj as IList<ImageItem>;
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        gallery.LikeUser(pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        gallery.LikeUser(!pub);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        gallery.UnLikeUser();
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
             }
         });
 

@@ -1349,6 +1349,19 @@ namespace PixivWPF.Common
             else return (null);
         }
         #endregion
+
+        #region Hot-Key Processing
+        private static long lastKeyUp = Environment.TickCount;
+        public static async void KeyAction(this Application app, dynamic current, KeyEventArgs e)
+        {
+            e.Handled = false;
+            var setting = app.LoadSetting();
+            if (e.Timestamp - lastKeyUp > 50)
+            {
+                lastKeyUp = e.Timestamp;
+            }
+        }
+        #endregion
     }
 
     public static class PixeezExtensions
@@ -4093,7 +4106,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<ImageItem> GetSelected(this ImageListGrid gallery, bool WithSelectionOrder = false, bool NonForAll = false)
+        public static IList<ImageItem> GetSelected(this ImageListGrid gallery, bool WithSelectionOrder, bool NonForAll = false)
         {
             var result = new List<ImageItem>();
             try
@@ -4185,6 +4198,71 @@ namespace PixivWPF.Common
         #endregion
 
         #region Refresh Illust/User Info
+        public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null)
+        {
+            var result = Illust.Id != null ? await RefreshIllust(Illust.Id.Value, tokens) : Illust;
+            try
+            {
+                if(Illust is Pixeez.Objects.IllustWork)
+                {
+                    var i = Illust as Pixeez.Objects.IllustWork;
+                    if (result is Pixeez.Objects.IllustWork)
+                    {
+                        var r = result as Pixeez.Objects.IllustWork;
+                        i.is_bookmarked = r.is_bookmarked;
+                        i.is_muted = r.is_muted;
+                        i.IsLiked = r.IsLiked;
+                        i.IsManga = r.IsManga;
+                    }
+                    else if(result is Pixeez.Objects.NormalWork)
+                    {
+                        var r = result as Pixeez.Objects.NormalWork;
+                        i.IsLiked = r.IsLiked;
+                        i.IsManga = r.IsManga;
+                        i.is_bookmarked = r.BookMarked;
+                    }
+                }
+                else if(Illust is Pixeez.Objects.NormalWork)
+                {
+                    var i = Illust as Pixeez.Objects.NormalWork;
+                    if (result is Pixeez.Objects.IllustWork)
+                    {
+                        var r = result as Pixeez.Objects.IllustWork;
+                        i.IsLiked = r.IsLiked;
+                        i.IsManga = r.IsManga;
+                    }
+                    else if (result is Pixeez.Objects.NormalWork)
+                    {
+                        var r = result as Pixeez.Objects.NormalWork;
+                        i.IsLiked = r.IsLiked;
+                        i.IsManga = r.IsManga;
+                    }
+                }
+                
+                if (string.IsNullOrEmpty(result.ImageUrls.Px128x128)) result.ImageUrls.Px128x128 = Illust.ImageUrls.Px128x128;
+                if (string.IsNullOrEmpty(result.ImageUrls.Px480mw)) result.ImageUrls.Px480mw = Illust.ImageUrls.Px480mw;
+                if (string.IsNullOrEmpty(result.ImageUrls.SquareMedium)) result.ImageUrls.SquareMedium = Illust.ImageUrls.SquareMedium;
+                if (string.IsNullOrEmpty(result.ImageUrls.Small)) result.ImageUrls.Small = Illust.ImageUrls.Small;
+                if (string.IsNullOrEmpty(result.ImageUrls.Medium)) result.ImageUrls.Medium = Illust.ImageUrls.Medium;
+                if (string.IsNullOrEmpty(result.ImageUrls.Large)) result.ImageUrls.Large = Illust.ImageUrls.Large;
+                if (string.IsNullOrEmpty(result.ImageUrls.Original)) result.ImageUrls.Original = Illust.ImageUrls.Original;
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.Work> RefreshIllust(this string IllustID, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.Work result = null;
+            try
+            {
+                if (!string.IsNullOrEmpty(IllustID))
+                    result = await RefreshIllust(Convert.ToInt32(IllustID), tokens);
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
         public static async Task<Pixeez.Objects.Work> RefreshIllust(this long IllustID, Pixeez.Tokens tokens = null)
         {
             Pixeez.Objects.Work result = null;
@@ -4205,35 +4283,6 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<Pixeez.Objects.Work> RefreshIllust(this string IllustID, Pixeez.Tokens tokens = null)
-        {
-            Pixeez.Objects.Work result = null;
-            try
-            {
-                if (!string.IsNullOrEmpty(IllustID))
-                    result = await RefreshIllust(Convert.ToInt32(IllustID), tokens);
-            }
-            catch (Exception) { }
-            return (result);
-        }
-
-        public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null)
-        {
-            var result = Illust.Id != null ? await RefreshIllust(Illust.Id.Value, tokens) : Illust;
-            try
-            {
-                if (string.IsNullOrEmpty(result.ImageUrls.Px128x128)) result.ImageUrls.Px128x128 = Illust.ImageUrls.Px128x128;
-                if (string.IsNullOrEmpty(result.ImageUrls.Px480mw)) result.ImageUrls.Px480mw = Illust.ImageUrls.Px480mw;
-                if (string.IsNullOrEmpty(result.ImageUrls.SquareMedium)) result.ImageUrls.SquareMedium = Illust.ImageUrls.SquareMedium;
-                if (string.IsNullOrEmpty(result.ImageUrls.Small)) result.ImageUrls.Small = Illust.ImageUrls.Small;
-                if (string.IsNullOrEmpty(result.ImageUrls.Medium)) result.ImageUrls.Medium = Illust.ImageUrls.Medium;
-                if (string.IsNullOrEmpty(result.ImageUrls.Large)) result.ImageUrls.Large = Illust.ImageUrls.Large;
-                if (string.IsNullOrEmpty(result.ImageUrls.Original)) result.ImageUrls.Original = Illust.ImageUrls.Original;
-            }
-            catch (Exception) { }
-            return (result);
-        }
-
         public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null)
         {
             Pixeez.Objects.UserBase result = Illust.User;
@@ -4242,8 +4291,7 @@ namespace PixivWPF.Common
                 var user = await Illust.User.RefreshUser(tokens);
                 if (user.Id.Value == Illust.User.Id.Value)
                 {
-                    user.Cache();
-                    Illust.User.is_followed = user.is_followed;
+                    //Illust.User.is_followed = user.is_followed;
                     result = user;
                 }
             }
@@ -4253,24 +4301,35 @@ namespace PixivWPF.Common
 
         public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.UserBase User, Pixeez.Tokens tokens = null)
         {
-            Pixeez.Objects.UserBase result = User;
-            if (tokens == null) tokens = await ShowLogin();
-            if (tokens == null) return result;
+            var user = await RefreshUser(User.Id.Value);
+            User.is_followed = user.is_followed;
             try
             {
-                var users = await tokens.GetUsersAsync(User.Id.Value);
-                foreach (var user in users)
+                if (User is Pixeez.Objects.User)
                 {
-                    user.Cache();
-                    if (user.Id.Value == User.Id.Value)
-                    {
-                        User.is_followed = user.is_followed;
-                        result = user;
-                        break;
-                    }
+                    var u = User as Pixeez.Objects.User;
+                    u.IsFollowed = user.IsFollowed;
+                    u.IsFollower = user.IsFollower;
+                    u.IsFollowing = user.IsFollowing;
+                    u.IsFriend = user.IsFriend;
+                    u.IsPremium = user.IsFriend;
                 }
             }
             catch (Exception) { }
+            return (user);
+        }
+
+        public static async Task<Pixeez.Objects.User> RefreshUser(this string UserID, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.User result = null;
+            if (!string.IsNullOrEmpty(UserID))
+            {
+                try
+                {
+                    result = await RefreshUser(Convert.ToInt32(UserID), tokens);
+                }
+                catch (Exception) { }
+            }
             return (result);
         }
 
@@ -4294,40 +4353,26 @@ namespace PixivWPF.Common
             catch (Exception) { }
             return (result);
         }
-
-        public static async Task<Pixeez.Objects.User> RefreshUser(this string UserID, Pixeez.Tokens tokens = null)
-        {
-            Pixeez.Objects.User result = null;
-            if (!string.IsNullOrEmpty(UserID))
-            {
-                try
-                {
-                    result = await RefreshUser(Convert.ToInt32(UserID), tokens);
-                }
-                catch (Exception) { }
-            }
-            return (result);
-        }
         #endregion
 
         #region Like helper routines
-        public static bool IsLiked(this Pixeez.Objects.Work illust, bool is_new = false)
+        public static bool IsLiked(this Pixeez.Objects.Work illust)
         {
             bool result = false;
             if (illust is Pixeez.Objects.Work && illust.User is Pixeez.Objects.UserBase)
             {
-                if (is_new || !IllustCache.ContainsKey(illust.Id)) illust.Cache();
+                if (!IllustCache.ContainsKey(illust.Id)) illust.Cache();
                 result = IllustCache[illust.Id].IsBookMarked();
             }
             return (result);
         }
 
-        public static bool IsLiked(this Pixeez.Objects.UserBase user, bool is_new = false)
+        public static bool IsLiked(this Pixeez.Objects.UserBase user)
         {
             bool result = false;
             if (user is Pixeez.Objects.UserBase)
             {
-                if (is_new || !UserCache.ContainsKey(user.Id)) user.Cache();
+                if (!UserCache.ContainsKey(user.Id)) user.Cache();
                 var u = UserCache[user.Id];
                 if (u is Pixeez.Objects.User)
                 {
@@ -4512,7 +4557,6 @@ namespace PixivWPF.Common
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
-                        illust.Cache();
                         var info = "Liked";
                         var title = result.Item1 ? "Succeed" : "Failed";
                         var fail = result.Item1 ? "is" : "isn't";
@@ -4547,7 +4591,6 @@ namespace PixivWPF.Common
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
-                        illust.Cache();
                         var info = "Unliked";
                         var title = result.Item1 ? "Failed" : "Succeed";
                         var fail = result.Item1 ?  "isn't" : "is";
@@ -4702,7 +4745,6 @@ namespace PixivWPF.Common
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
-                        user.Cache();
                         var info = "Liked";
                         var title = result.Item1 ? "Succeed" : "Failed";
                         var fail = result.Item1 ?  "is" : "isn't";
@@ -4736,7 +4778,6 @@ namespace PixivWPF.Common
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
-                        user.Cache();
                         var info = "Unliked";
                         var title = result.Item1 ? "Failed" : "Succeed";
                         var fail = result.Item1 ?  "isn't" : "is";

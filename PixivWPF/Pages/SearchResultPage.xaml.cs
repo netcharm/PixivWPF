@@ -340,10 +340,10 @@ namespace PixivWPF.Pages
                 PreviewWait.Hide();
                 if (window is ContentWindow)
                 {
-                    window.Topmost = true;
-                    if (!window.IsActive) window.Activate();
+                    //window.Topmost = true;
+                    //if (!window.IsActive) window.Activate();
                     (window as MetroWindow).AdjustWindowPos();
-                    window.Topmost = false;
+                    //window.Topmost = false;
                 }
             }
         }
@@ -596,8 +596,7 @@ namespace PixivWPF.Pages
                             }
                         }
                     }
-
-                    ResultExpander_Expanded(ResultExpander, new RoutedEventArgs());
+                    UpdateDetail(Contents);
                 }
             }
         }

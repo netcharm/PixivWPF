@@ -1259,6 +1259,12 @@ namespace PixivWPF.Pages
                 }
                 e.Handled = true;
             }
+            else if ((e.Key == Key.O || e.SystemKey == Key.O) && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                var item = ListImageTiles.SelectedItem as ImageItem;
+                Commands.OpenDownloaded.Execute(item);
+                e.Handled = true;
+            }
             else if ((e.Key == Key.Left || e.SystemKey == Key.Left) && Keyboard.Modifiers == ModifierKeys.Alt)
             {
                 PrevIllustPage();
