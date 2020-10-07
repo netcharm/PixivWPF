@@ -64,6 +64,7 @@ namespace PixivWPF.Common
         {
             if (Content is IllustDetailPage || 
                 Content is IllustImageViewerPage ||
+                Content is SearchResultPage ||
                 Content is HistoryPage)
                 CommandPageRefresh.Visibility = Visibility.Visible;
             else

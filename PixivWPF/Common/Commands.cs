@@ -1153,6 +1153,12 @@ namespace PixivWPF.Common
                 if (page.Contents is ImageItem)
                     page.UpdateDetail(page.Contents);
             }
+            else if (obj is SearchResultPage)
+            {
+                var page = obj as SearchResultPage;
+                if(page.Contents is string)
+                    page.UpdateDetail(page.Contents);
+            }
             else if (obj is HistoryPage)
             {
                 var page = obj as HistoryPage;
@@ -1182,6 +1188,11 @@ namespace PixivWPF.Common
                 var page = obj as IllustImageViewerPage;
                 if (page.Contents is ImageItem)
                     page.UpdateDetail(page.Contents);
+            }
+            else if (obj is SearchResultPage)
+            {
+                var page = obj as SearchResultPage;
+                page.UpdateThumb();
             }
             else if (obj is HistoryPage)
             {

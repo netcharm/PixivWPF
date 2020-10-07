@@ -28,8 +28,6 @@ namespace PixivWPF.Pages
     {
         private Window window = null;
 
-        private object DataType = null;
-
         private string result_filter = string.Empty;
 
         private MenuItem ActionResultFilter = null;
@@ -76,15 +74,39 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal void UpdateDetail(string content)
-        {
-            DataType = content;
-            ResultExpander.Visibility = Visibility.Visible;
-            ResultExpander.IsExpanded = false;
-            ResultExpander.IsExpanded = true;
+        private SemaphoreSlim CanUpdateing = new SemaphoreSlim(1, 1);
 
-            if (window != null)
-                window.SizeToContent = SizeToContent.WidthAndHeight;
+        public async void UpdateDetail(string content)
+        {
+            if (CanUpdateing.Wait(0))
+            {
+                try
+                {
+                    ResultExpander.Show();
+                    if (!ResultExpander.IsExpanded) ResultExpander.IsExpanded = true;
+
+                    var tokens = await CommonHelper.ShowLogin();
+                    if (tokens == null) return;
+
+                    if (Contents is string)
+                    {
+                        ShowResultInline(tokens, Contents, result_filter);
+                    }
+                    if (ResultNextPage is Button) ResultNextPage.Show();
+                }
+                catch (Exception) { }
+                finally
+                {
+                    CanUpdateing.Release();
+                    if (window != null)
+                        window.SizeToContent = SizeToContent.WidthAndHeight;
+                }
+            }
+        }
+
+        public void UpdateThumb()
+        {
+            ResultIllusts.UpdateTilesImage();
         }
 
         public SearchResultPage()
@@ -362,7 +384,7 @@ namespace PixivWPF.Pages
                 {
                     if (host == ResultExpander || host == ResultIllusts)
                     {
-                        ResultExpander_Expanded(sender, e);
+                        UpdateDetail(Contents);
                     }
                 }
                 else if (m.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
@@ -495,37 +517,15 @@ namespace PixivWPF.Pages
             }
         }
 
-        private SemaphoreSlim CanExpanding = new SemaphoreSlim(1, 1);
-        private async void ResultExpander_Expanded(object sender, RoutedEventArgs e)
+        private void ResultExpander_Expanded(object sender, RoutedEventArgs e)
         {
-            if (CanExpanding.Wait(0))
-            {
-                try
-                {
-                    var tokens = await CommonHelper.ShowLogin();
-                    if (tokens == null) return;
-
-                    if (DataType is string)
-                    {
-                        var tag = (string)DataType;
-                        ShowResultInline(tokens, tag, result_filter);
-                    }
-                    if (ResultNextPage is Button)
-                        ResultNextPage.Visibility = Visibility.Visible;
-                }
-                catch (Exception) { }
-                finally
-                {
-                    CanExpanding.Release();
-                }
-            }
+            if(Contents is string) UpdateDetail(Contents);
         }
 
         private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)
         {
             PreviewWait.Hide();
-            if (ResultNextPage is Button)
-                ResultNextPage.Visibility = Visibility.Collapsed;
+            if (ResultNextPage is Button) ResultNextPage.Hide();
         }
 
         private void ResultIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -620,16 +620,15 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (DataType is string)
+            if (Contents is string)
             {
-                var item = (string)DataType;
                 var next_url = string.Empty;
                 if (ResultExpander.Tag is string)
                     next_url = ResultExpander.Tag as string;
 
-                ShowResultInline(tokens, item, result_filter, next_url);
+                ShowResultInline(tokens, Contents, result_filter, next_url);
             }
-            ResultNextPage.Visibility = Visibility.Visible;
+            ResultNextPage.Show();
         }
 
         #endregion
