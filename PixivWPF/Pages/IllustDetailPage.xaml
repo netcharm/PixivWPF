@@ -405,8 +405,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustTitle" Margin="4,0,2,0"
                             ContextMenu="{DynamicResource MenuSpeech}" 
-                            MouseLeftButtonDown="IllustInfo_MouseLeftButtonDown"
-                            MouseDown="IllustInfo_MouseLeftButtonDown"
+                            MouseDown="IllustInfo_MouseDown"
                             Foreground="{DynamicResource MahApps.Brushes.Text}"
                             HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <Grid Grid.Column="1" x:Name="IllustSanityInfo" Visibility="Collapsed" 
@@ -422,6 +421,7 @@
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                         </Grid>
                         <StackPanel Grid.Column="2" x:Name="IllustDateInfo" Visibility="Collapsed" MinWidth="24" Margin="2,0,0,0"
+                                    MouseDown="IllustInfo_MouseDown"
                             HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
                             <iconPacks:PackIconModern 
                                 Kind="CalendarDay" x:Name="IllustDateIcon"
@@ -440,7 +440,8 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="IllustAuthor" Margin="4,0,0,0" 
-                                   ContextMenu="{DynamicResource MenuSpeech}" MouseLeftButtonDown="IllustInfo_MouseLeftButtonDown"
+                                   ContextMenu="{DynamicResource MenuSpeech}" 
+                                   MouseDown="IllustInfo_MouseDown"
                                    Foreground="{DynamicResource MahApps.Brushes.Text}"
                                    HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <StackPanel Grid.Column="1" x:Name="IllustStatInfo" Visibility="Collapsed"

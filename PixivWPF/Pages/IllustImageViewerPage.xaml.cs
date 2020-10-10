@@ -315,14 +315,24 @@ namespace PixivWPF.Pages
                 offset = -10000;
             else if (e.Key == Key.End)
                 offset = 10000;
-            else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+            //else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+            else if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 SaveIllust();
                 return;
             }
+            else if (e.Key == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                ActionIllustInfo_Click(ActionOpenCachedWith, e);
+                return;
+            }
+            else if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                ActionIllustInfo_Click(ActionCopyPreview, e);
+                return;
+            }
             ChangeIllustPage(offset);
         }
-
 
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {

@@ -555,6 +555,84 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand OpenCachedImage { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                if (obj is ImageItem)
+                {
+                    var item = obj as ImageItem;
+                    var illust = item.Illust;
+
+                    if (item.Index >= 0)
+                    {
+                        string fp = string.Empty;
+                        item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
+                        string fp_d = item.IsDownloaded ? fp : string.Empty;
+                        string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
+                        string fp_p = illust.GetPreviewUrl(item.Index).GetImageCachePath();
+
+                        if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
+                        else if (File.Exists(fp_o)) ShellOpenFile.Execute(fp_o);
+                        else if (File.Exists(fp_p)) ShellOpenFile.Execute(fp_p);
+                    }
+                    else
+                    {
+                        string fp = string.Empty;
+                        item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
+                        string fp_d = item.IsDownloaded ? fp : string.Empty;
+                        string fp_o = illust.GetOriginalUrl().GetImageCachePath();
+                        string fp_p = illust.GetPreviewUrl().GetImageCachePath();
+
+                        if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
+                        else if (File.Exists(fp_o)) ShellOpenFile.Execute(fp_o);
+                        else if (File.Exists(fp_p)) ShellOpenFile.Execute(fp_p);
+                    }
+                }
+                else if(obj is string)
+                {
+                    try
+                    {
+                        Uri url = null;
+                        if (Uri.TryCreate(obj as string, UriKind.RelativeOrAbsolute, out url) && url is Uri) ShellOpenFile.Execute(url);
+                    }
+                    catch (Exception) { }
+                }
+                else if (obj is ImageListGrid)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as ImageListGrid;
+                        foreach (var item in gallery.GetSelected())
+                        {
+                            await new Action(() =>
+                            {
+                                OpenDownloaded.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
+                }
+                else if (obj is IList<ImageItem>)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as IList<ImageItem>;
+                        foreach (var item in gallery)
+                        {
+                            await new Action(() =>
+                            {
+                                OpenDownloaded.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
+            }
+        });
+
         public static ICommand OpenHistory { get; } = new DelegateCommand(async () =>
         {
             try
@@ -1130,6 +1208,20 @@ namespace PixivWPF.Common
                     }).InvokeAsync();
                 }
             }
+            else if(obj is Uri)
+            {
+                try
+                {
+                    var url = obj as Uri;
+                    if ((url.IsFile || url.IsUnc) && File.Exists(url.AbsolutePath)) url.AbsolutePath.OpenFileWithShell();
+                    else if (url.IsAbsoluteUri)
+                    {
+                        string fp_d = url.AbsoluteUri.GetImageCachePath();
+                        if (File.Exists(fp_d)) fp_d.OpenFileWithShell();
+                    }
+                }
+                catch (Exception) { }
+            }
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
@@ -1156,7 +1248,7 @@ namespace PixivWPF.Common
                 var content = obj as string;
                 if (!string.IsNullOrEmpty(content))
                 {
-                    content.Play(null);
+                    content.Play();
                 }
             }
         });

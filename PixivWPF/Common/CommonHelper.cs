@@ -215,8 +215,8 @@ namespace PixivWPF.Common
                 Setting.UpdateContentsTemplete();
             }).InvokeAsync();
         }
-        
-        public static string SaveTarget(this Application app, string file="")
+
+        public static string SaveTarget(this Application app, string file = "")
         {
             return (CommonHelper.ChangeSaveTarget(file));
         }
@@ -1252,7 +1252,7 @@ namespace PixivWPF.Common
             app.HistoryAdd(user, history);
         }
 
-        public static void HistoryUpdate(this Application app, ObservableCollection<ImageItem> source=null)
+        public static void HistoryUpdate(this Application app, ObservableCollection<ImageItem> source = null)
         {
             if (source is ObservableCollection<ImageItem>)
             {
@@ -2380,7 +2380,7 @@ namespace PixivWPF.Common
                     try
                     {
                         var pipeName = pipe.Substring(9);
-                        if (pipeName.Equals(current, StringComparison.CurrentCultureIgnoreCase) && 
+                        if (pipeName.Equals(current, StringComparison.CurrentCultureIgnoreCase) &&
                             Keyboard.Modifiers != ModifierKeys.Control) continue;
 
                         using (var pipeClient = new NamedPipeClientStream(".", pipeName,
@@ -2974,7 +2974,8 @@ namespace PixivWPF.Common
 
         public static async void UpdateDownloadStateAsync(this ImageListGrid list, int? illustid = null, bool? exists = null)
         {
-            await new Action(() => {
+            await new Action(() =>
+            {
                 UpdateDownloadState(list, illustid, exists);
             }).InvokeAsync();
         }
@@ -2990,7 +2991,8 @@ namespace PixivWPF.Common
 
         public static async void UpdateDownloadStateAsync(this ObservableCollection<ImageItem> collection, int? illustid = null, bool? exists = null)
         {
-            await new Action(() => {
+            await new Action(() =>
+            {
                 UpdateDownloadState(collection, illustid, exists);
             }).InvokeAsync();
         }
@@ -3002,7 +3004,7 @@ namespace PixivWPF.Common
                 var id = illustid ?? -1;
                 foreach (var item in collection)
                 {
-                    if(item.IsPage() || item.IsPages())
+                    if (item.IsPage() || item.IsPages())
                     {
                         item.IsDownloaded = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
                     }
@@ -3716,7 +3718,8 @@ namespace PixivWPF.Common
 
         public static void SaveImage(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
-            Commands.AddDownloadItem.Execute(new DownloadParams() {
+            Commands.AddDownloadItem.Execute(new DownloadParams()
+            {
                 Url = url,
                 ThumbUrl = thumb,
                 Timestamp = dt,
@@ -4197,7 +4200,7 @@ namespace PixivWPF.Common
             var result = Illust.Id != null ? await RefreshIllust(Illust.Id.Value, tokens) : Illust;
             try
             {
-                if(Illust is Pixeez.Objects.IllustWork)
+                if (Illust is Pixeez.Objects.IllustWork)
                 {
                     var i = Illust as Pixeez.Objects.IllustWork;
                     if (result is Pixeez.Objects.IllustWork)
@@ -4208,7 +4211,7 @@ namespace PixivWPF.Common
                         i.IsLiked = r.IsLiked;
                         i.IsManga = r.IsManga;
                     }
-                    else if(result is Pixeez.Objects.NormalWork)
+                    else if (result is Pixeez.Objects.NormalWork)
                     {
                         var r = result as Pixeez.Objects.NormalWork;
                         i.IsLiked = r.IsLiked;
@@ -4216,7 +4219,7 @@ namespace PixivWPF.Common
                         i.is_bookmarked = r.BookMarked;
                     }
                 }
-                else if(Illust is Pixeez.Objects.NormalWork)
+                else if (Illust is Pixeez.Objects.NormalWork)
                 {
                     var i = Illust as Pixeez.Objects.NormalWork;
                     if (result is Pixeez.Objects.IllustWork)
@@ -4232,7 +4235,7 @@ namespace PixivWPF.Common
                         i.IsManga = r.IsManga;
                     }
                 }
-                
+
                 if (string.IsNullOrEmpty(result.ImageUrls.Px128x128)) result.ImageUrls.Px128x128 = Illust.ImageUrls.Px128x128;
                 if (string.IsNullOrEmpty(result.ImageUrls.Px480mw)) result.ImageUrls.Px480mw = Illust.ImageUrls.Px480mw;
                 if (string.IsNullOrEmpty(result.ImageUrls.SquareMedium)) result.ImageUrls.SquareMedium = Illust.ImageUrls.SquareMedium;
@@ -4894,7 +4897,7 @@ namespace PixivWPF.Common
                             item.IsFavorited = false;
                             item.IsFollowed = item.User.IsLiked();
                         }
-                        else if(item.IsWork())
+                        else if (item.IsWork())
                         {
                             item.IsFavorited = item.Illust.IsLiked();
                             item.IsFollowed = item.User.IsLiked();
@@ -4960,7 +4963,7 @@ namespace PixivWPF.Common
 
                 foreach (Window win in Application.Current.Windows)
                 {
-                    if(win is MetroWindow) win.UpdateTheme(img);
+                    if (win is MetroWindow) win.UpdateTheme(img);
                 }
             }
             catch (Exception) { }
@@ -5436,7 +5439,7 @@ namespace PixivWPF.Common
                 }
             }
             else
-            {                
+            {
                 if (string.IsNullOrEmpty(setting.LastFolder))
                 {
                     SaveFileDialog dlgSave = new SaveFileDialog();
@@ -5444,7 +5447,7 @@ namespace PixivWPF.Common
                     if (dlgSave.ShowDialog() == true)
                     {
                         file = dlgSave.FileName;
-                        setting.LastFolder = Path.GetDirectoryName(file);                        
+                        setting.LastFolder = Path.GetDirectoryName(file);
                     }
                 }
                 result = Path.Combine(setting.LastFolder, Path.GetFileName(file));
@@ -5835,48 +5838,7 @@ namespace PixivWPF.Common
             SetDropBoxState(result);
             return (result);
         }
-#endregion
-    }
-
-    public static class Speech
-    {
-        private static SpeechTTS t2s = Init();
-
-        private static SpeechTTS Init()
-        {
-            var tts = new SpeechTTS()
-            {
-                IsCompleted = new Action(() =>
-                {
-                    if (Application.Current.Dispatcher.CheckAccess())
-                    {
-
-                    }
-                })
-            };
-            return (tts);
-        }
-
-        public static void Play(this string text, CultureInfo culture, bool async = true)
-        {
-            if (!(t2s is SpeechTTS))
-            {
-                t2s = Init();
-            }
-            if (t2s is SpeechTTS)
-            {
-                if (culture == null)
-                {
-                    var tlist = text.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                    if (tlist.Count() == 1)
-                        t2s.Play(text, culture, async);
-                    else if (tlist.Count() > 1)
-                        t2s.Play(tlist, culture);
-                }
-                else
-                    t2s.Play(text, culture, async);
-            }
-        }
+        #endregion
     }
 
     public class DownloadToast : Notification
@@ -5936,7 +5898,7 @@ namespace PixivWPF.Common
 
     public static class ExtensionMethods
     {
-#region Time Calc Helper
+        #region Time Calc Helper
         public static long MillisecondToTicks(this int millisecond)
         {
             long result = 0;
@@ -6102,9 +6064,9 @@ namespace PixivWPF.Common
             catch (Exception) { }
             return (result);
         }
-#endregion
+        #endregion
 
-#region Media Play
+        #region Media Play
         public static async void Sound(this object obj, string mode = "")
         {
             try
@@ -6155,9 +6117,9 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
         }
-#endregion
+        #endregion
 
-#region Misc Helper
+        #region Misc Helper
         public static bool IsConsole
         {
             get
@@ -6187,9 +6149,9 @@ namespace PixivWPF.Common
             if (IsConsole) Console.WriteLine(contents);
 #endif
         }
-#endregion
+        #endregion
 
-#region WPF UI Helper
+        #region WPF UI Helper
         public static DependencyObject GetVisualChildFromTreePath(this DependencyObject dpo, int[] path)
         {
             if (path.Length == 0) return dpo;
@@ -6254,9 +6216,9 @@ namespace PixivWPF.Common
 
             return null;
         }
-#endregion
+        #endregion
 
-#region Graphic Helper
+        #region Graphic Helper
         public static Tuple<double, double> AspectRatio(this ImageSource image)
         {
             double bestDelta = double.MaxValue;
@@ -6290,7 +6252,7 @@ namespace PixivWPF.Common
             }
             return (new Tuple<double, double>(bestI, bestJ));
         }
-#endregion
+        #endregion
     }
 
 }

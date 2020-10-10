@@ -346,6 +346,8 @@ namespace PixivWPF.Common
             set { speech_names = value; }
         }
 
+        public bool SpeechChineseSimplifiedPrefer { get; set; } = true;
+
         public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
 
         public string ShellSearchBridgeApplication { get; set; } = "PixivWPFSearch.exe";
@@ -484,6 +486,8 @@ namespace PixivWPF.Common
 
                 if (Cache.SpeechPrefer != new_setting.SpeechPrefer)
                     Cache.SpeechPrefer = new_setting.SpeechPrefer;
+                if (Cache.SpeechChineseSimplifiedPrefer != new_setting.SpeechChineseSimplifiedPrefer)
+                    Cache.SpeechChineseSimplifiedPrefer = new_setting.SpeechChineseSimplifiedPrefer;
 
                 if (Cache.LocalStorage != new_setting.LocalStorage)
                     Cache.LocalStorage = new_setting.LocalStorage;

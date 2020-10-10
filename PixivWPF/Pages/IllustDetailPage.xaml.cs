@@ -1880,6 +1880,8 @@ namespace PixivWPF.Pages
                     text = IllustTitle.Text;
                 else if (sender == IllustAuthor)
                     text = IllustAuthor.Text;
+                else if (sender == IllustDate || sender == IllustDateInfo)
+                    text = IllustDate.Text;
                 else if (sender is MenuItem)
                 {
                     var mi = sender as MenuItem;
@@ -2072,21 +2074,22 @@ namespace PixivWPF.Pages
 #endif
         }
 
-        private void IllustInfo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private long lastMouseDown = Environment.TickCount;
+        private void IllustInfo_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if(e.ChangedButton == MouseButton.Middle)
+            if (e.Timestamp - lastMouseDown > 100)
             {
-                ActionIllustInfo_Click(sender, e);
+                lastMouseDown = e.Timestamp;
+                if (e.ChangedButton == MouseButton.Middle)
+                {
+                    ActionIllustInfo_Click(sender, e);
+                }
+                else if (e.ChangedButton == MouseButton.Left)
+                {
+                    ActionSpeech_Click(sender, e);
+                }
+                e.Handled = true;
             }
-            else if (e.ClickCount == 2)
-            {
-                ActionIllustInfo_Click(sender, e);
-            }
-            else if (e.ClickCount == 1)
-            {
-                ActionSpeech_Click(sender, e);
-            }
-            e.Handled = true;
         }
 
         private void IllustDownloaded_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -2201,7 +2204,7 @@ namespace PixivWPF.Pages
                     Commands.CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
                 }
             }
-            else if (sender == ActionCopyIllustDate || sender == IllustDate)
+            else if (sender == ActionCopyIllustDate || sender == IllustDate || sender == IllustDateInfo)
             {
                 Commands.CopyText.Execute(ActionCopyIllustDate.Header);
             }
