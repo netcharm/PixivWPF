@@ -15,9 +15,20 @@ namespace PixivWPF.Common
     [JsonObject(MemberSerialization.OptOut)]
     public class Setting
     {
+        #region Application base
         //private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
         private static string AppPath = Application.Current.GetRoot();
+        [JsonIgnore]
+        public string APP_PATH { get { return AppPath; } }
 
+        private static Setting Cache = null;// Load(config);
+        [JsonIgnore]
+        public static Setting Instance { get { return (Cache); } }
+
+        public bool NoConfirmExit { get; set; } = true;
+        #endregion
+
+        #region Config load/save relative
         private static SemaphoreSlim CanConfigRead = new SemaphoreSlim(1, 1);
         private static SemaphoreSlim CanConfigWrite = new SemaphoreSlim(1, 1);
         [JsonIgnore]
@@ -96,327 +107,6 @@ namespace PixivWPF.Common
             set { custom_template_file = Path.GetFileName(value); }
         }
 
-        [JsonIgnore]
-        public string APP_PATH
-        {
-            get { return AppPath; }
-        }
-
-        private string accesstoken = string.Empty;
-        public string AccessToken
-        {
-            get { return (accesstoken); }
-            set
-            {
-                if (!IsConfigBusy)
-                {
-                    username = User.AesEncrypt(value);
-                    password = Pass.AesEncrypt(value);
-                }
-                if (myinfo is Pixeez.Objects.User)
-                {
-                    UID = myinfo.Id.Value.ToString().AesEncrypt(value);
-                }
-                accesstoken = value;
-            }
-        }
-
-        private string refreshtoken = string.Empty;
-        public string RefreshToken
-        {
-            get { return (refreshtoken); }
-            set { refreshtoken = value; }
-        }
-
-        private string proxy = string.Empty;
-        public string Proxy
-        {
-            get { return (proxy); }
-            set { proxy = value; }
-        }
-
-        private bool useproxy = false;
-        public bool UsingProxy
-        {
-            get { return (useproxy); }
-            set { useproxy = value; }
-        }
-
-        private static Setting Cache = null;// Load(config);
-        [JsonIgnore]
-        public static Setting Instance
-        {
-            get { return (Cache); }
-        }
-
-        public bool SaveUserPass { get; set; } = false;
-        [JsonProperty(nameof(User))]
-        public string Username
-        {
-            get
-            {
-                if (SaveUserPass && IsConfigBusy) return username;
-                else return (string.Empty);
-            }
-            set { if (SaveUserPass) username = value; }
-        }
-
-        [JsonProperty(nameof(Pass))]
-        public string Password
-        {
-            get
-            {
-                if (SaveUserPass && IsConfigBusy) return password;
-                else return (string.Empty);
-            }
-            set { if (SaveUserPass) password = value; }
-        }
-
-        [JsonIgnore]
-        private string username = string.Empty;
-        [JsonIgnore]
-        public string User
-        {
-            get { return (username.AesDecrypt(accesstoken)); }
-            set { username = value.AesEncrypt(accesstoken); }
-        }
-
-        [JsonIgnore]
-        private string password = string.Empty;
-        [JsonIgnore]
-        public string Pass
-        {
-            get { return (password.AesDecrypt(accesstoken)); }
-            set { password = value.AesEncrypt(accesstoken); }
-        }
-
-        [JsonIgnore]
-        private Pixeez.Objects.User myinfo = null;
-        [JsonIgnore]
-        public Pixeez.Objects.User MyInfo
-        {
-            get { return myinfo; }
-            set
-            {
-                myinfo = value;
-                if (value is Pixeez.Objects.User)
-                {
-                    UID = myinfo.Id.Value.ToString().AesEncrypt(accesstoken);
-                }
-            }
-        }
-
-        public string UID { get; set; } = string.Empty;
-        [JsonIgnore]
-        public long MyID
-        {
-            get
-            {
-                if (myinfo is Pixeez.Objects.User)
-                    return (myinfo.Id.Value);
-                else
-                    return (GetMyId());
-            }
-        }
-
-        private long GetMyId()
-        {
-            long luid = 0;
-            var suid = UID.AesDecrypt(accesstoken);
-            var ret = long.TryParse(suid, out luid);
-            if (!ret)
-            {
-                new Action(async () =>
-                {
-                    myinfo = await luid.RefreshUser();
-                }).Invoke();
-                return (myinfo.Id.Value);
-            }
-            else return (luid);
-        }
-
-        private long update = 0;
-        public long Update
-        {
-            get { return update; }
-            set { update = value; }
-        }
-
-        private DateTime exptime=DateTime.Now;
-        public DateTime ExpTime
-        {
-            get { return exptime; }
-            set { exptime = value; }
-        }
-
-        private int expdurtime=3600;
-        public int ExpiresIn
-        {
-            get { return expdurtime; }
-            set { expdurtime = value; }
-        }
-
-        public bool NoConfirmExit { get; set; } = true;
-
-        public int DownloadWaitingTime { get; set; } = 5000;
-        public int DownloadTimeSpan { get; set; } = 750;
-        public bool DownloadCompletedToast { get; set; } = true;
-        public bool DownloadCompletedSound { get; set; } = true;
-        public int DownloadCompletedSoundForElapsedSeconds { get; set; } = 60;
-
-        public int max_history = 100;
-        public int HistoryMax { get; set; } = 150;
-        public int HistoryLimit
-        {
-            get
-            {
-                max_history = Math.Min(max_history, HistoryMax);
-                if (max_history < 0) max_history = 100;
-                return (max_history);
-            }
-            set
-            {
-                if (value > 0) max_history = Math.Min(value, HistoryMax);
-                else max_history = 100;
-                if (Cache is Setting) Cache.max_history = max_history;
-            }
-        }
-
-        public bool ShowUserBackgroundImage { get; set; } = false;
-
-        [JsonIgnore]
-        private string lastfolder = string.Empty;
-        [JsonIgnore]
-        public string LastFolder
-        {
-            get { return lastfolder; }
-            set
-            {
-                lastfolder = value;
-                if (Cache is Setting) Cache.lastfolder = lastfolder;
-                if (LocalStorage.Count(o => o.Folder.Equals(lastfolder)) <= 0)
-                {
-                    LocalStorage.Add(new StorageType(lastfolder, true));
-                    lastfolder.AddDownloadedWatcher();
-                }
-            }
-        }
-
-        public bool UseCustomFont { get; set; } = false;
-        public string FontName { get; set; } = string.Empty;
-        [JsonIgnore]
-        private FontFamily fontfamily = SystemFonts.MessageFontFamily;
-        [JsonIgnore]
-        public FontFamily FontFamily { get { return (fontfamily); } }
-
-        private string theme = string.Empty;
-        [JsonProperty("Theme")]
-        public string CurrentTheme
-        {
-            get { return (theme); }
-            set
-            {
-                theme = value;
-                if (Cache is Setting) Cache.theme = theme;
-            }
-        }
-
-        private string accent = string.Empty;
-        [JsonProperty("Accent")]
-        public string CurrentAccent
-        {
-            get { return (accent); }
-            set
-            {
-                accent = value;
-                if (Cache is Setting) Cache.accent = accent;
-            }
-        }
-
-        public bool PrivateFavPrefer { get; set; } = false;
-        public bool PrivateBookmarkPrefer { get; set; } = false;
-
-        public bool OpenWithSelectionOrder { get; set; } = true;
-        public bool AllForSelectionNone { get; set; } = false;
-
-        private Dictionary<string, string> speech_names = SpeechTTS.GetNames();
-        public Dictionary<string, string> SpeechPrefer
-        {
-            get { return (speech_names); }
-            set { speech_names = value; }
-        }
-
-        public bool SpeechChineseSimplifiedPrefer { get; set; } = true;
-
-        public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
-
-        public string ShellSearchBridgeApplication { get; set; } = "PixivWPFSearch.exe";
-        public string ShellPixivPediaApplication { get; set; } = "nw.exe";
-        public string ShellPixivPediaApplicationArgs { get; set; } = "--single-process --enable-node-worker --app-shell-host-window-size=1280x720";
-
-        private Point dropbox_pos = new Point(0, 0);
-        public Point DropBoxPosition
-        {
-            get { return (dropbox_pos); }
-            set
-            {
-                dropbox_pos = value;
-                if (Cache is Setting) Cache.dropbox_pos = dropbox_pos;
-            }
-        }
-
-        private Rect downloadmanager_pos = new Rect(0, 0, 0, 0);
-        public Rect DownloadManagerPosition
-        {
-            get { return (downloadmanager_pos); }
-            set
-            {
-                downloadmanager_pos = value;
-                if (Cache is Setting) Cache.downloadmanager_pos = downloadmanager_pos;
-            }
-        }
-
-        public DateTime ContentsTemplateTime { get; set; } = new DateTime(0);
-        public string ContentsTemplete { get; set; } = string.Empty;
-        [JsonIgnore]
-        public string CustomContentsTemplete { get; set; } = string.Empty;
-
-        [JsonIgnore]
-        public string SaveFolder { get; set; }
-
-        public List<StorageType> LocalStorage { get; set; } = new List<StorageType>();
-
-        public static void UpdateContentsTemplete()
-        {
-            if (Cache is Setting)
-            {
-                if (File.Exists(Cache.ContentsTemplateFile))
-                {
-                    Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentsTemplateFile);
-                    var ftc = File.GetCreationTime(Cache.ContentsTemplateFile);
-                    var ftw = File.GetLastWriteTime(Cache.ContentsTemplateFile);
-                    var fta = File.GetLastAccessTime(Cache.ContentsTemplateFile);
-                    if (ftw > Cache.ContentsTemplateTime || ftc > Cache.ContentsTemplateTime || fta > Cache.ContentsTemplateTime)
-                    {
-                        Cache.ContentsTemplete = Cache.CustomContentsTemplete;
-                        Cache.ContentsTemplateTime = DateTime.Now;
-                        Cache.Save();
-                        CommonHelper.UpdateWebContentAsync();
-                    }
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(Cache.CustomContentsTemplete))
-                    {
-                        Cache.ContentsTemplete = CommonHelper.GetDefaultTemplate();
-                        Cache.CustomContentsTemplete = string.Empty;
-                        Cache.Save();
-                        CommonHelper.UpdateWebContentAsync();
-                    }
-                }
-            }
-        }
-
         public static void UpdateCache(Setting new_setting)
         {
             if (Cache is Setting && new_setting is Setting && new_setting.Update > 0)
@@ -446,7 +136,7 @@ namespace PixivWPF.Common
                 if (Cache.OpenWithSelectionOrder != new_setting.OpenWithSelectionOrder)
                     Cache.OpenWithSelectionOrder = new_setting.OpenWithSelectionOrder;
                 if (Cache.AllForSelectionNone != new_setting.AllForSelectionNone)
-                    Cache.AllForSelectionNone = new_setting.AllForSelectionNone; 
+                    Cache.AllForSelectionNone = new_setting.AllForSelectionNone;
 
                 if (Cache.SaveUserPass != new_setting.SaveUserPass)
                     Cache.SaveUserPass = new_setting.SaveUserPass;
@@ -470,6 +160,11 @@ namespace PixivWPF.Common
                     Cache.ShellPixivPediaApplication = new_setting.ShellPixivPediaApplication;
                 if (!Cache.ShellPixivPediaApplicationArgs.Equals(new_setting.ShellPixivPediaApplicationArgs, StringComparison.CurrentCultureIgnoreCase))
                     Cache.ShellPixivPediaApplicationArgs = new_setting.ShellPixivPediaApplicationArgs;
+                if (!Cache.ShellImageViewer.Equals(new_setting.ShellImageViewer, StringComparison.CurrentCultureIgnoreCase))
+                    Cache.ShellImageViewer = new_setting.ShellImageViewer;
+                if (!Cache.ShellImageViewerEnabled == new_setting.ShellImageViewerEnabled)
+                    Cache.ShellImageViewerEnabled = new_setting.ShellImageViewerEnabled;
+
                 if (!Cache.ContentsTemplateFile.Equals(new_setting.ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     Cache.ContentsTemplateFile = new_setting.ContentsTemplateFile;
 
@@ -484,10 +179,16 @@ namespace PixivWPF.Common
                 if (Cache.HistoryMax != new_setting.HistoryMax && new_setting.HistoryMax >= 0)
                     Cache.HistoryMax = new_setting.HistoryMax;
 
-                if (Cache.SpeechPrefer != new_setting.SpeechPrefer)
-                    Cache.SpeechPrefer = new_setting.SpeechPrefer;
+                if (Cache.SpeechPreferList != new_setting.SpeechPreferList)
+                    Cache.SpeechPreferList = new_setting.SpeechPreferList;
                 if (Cache.SpeechChineseSimplifiedPrefer != new_setting.SpeechChineseSimplifiedPrefer)
                     Cache.SpeechChineseSimplifiedPrefer = new_setting.SpeechChineseSimplifiedPrefer;
+                if (Cache.SpeechSimpleDetectCulture != new_setting.SpeechSimpleDetectCulture)
+                    Cache.SpeechSimpleDetectCulture = new_setting.SpeechSimpleDetectCulture;
+                if (Cache.SpeechAltPlayMixedCulture != new_setting.SpeechAltPlayMixedCulture)
+                    Cache.SpeechAltPlayMixedCulture = new_setting.SpeechAltPlayMixedCulture;
+                if (Cache.SpeechAutoChangeSpeedWhenRepeatPlay != new_setting.SpeechAutoChangeSpeedWhenRepeatPlay)
+                    Cache.SpeechAutoChangeSpeedWhenRepeatPlay = new_setting.SpeechAutoChangeSpeedWhenRepeatPlay;
 
                 if (Cache.LocalStorage != new_setting.LocalStorage)
                     Cache.LocalStorage = new_setting.LocalStorage;
@@ -602,7 +303,13 @@ namespace PixivWPF.Common
                             UpdateContentsTemplete();
                             #endregion
 
-                            SpeechTTS.SetCustomNames(Cache.SpeechPrefer);
+                            #region Setting Speech TTS culture/play setting
+                            SpeechTTS.SetCustomNames(Cache.SpeechPreferList);
+                            Speech.AltPlayMixedCulture = Cache.SpeechAltPlayMixedCulture;
+                            Speech.SimpleCultureDetect = Cache.SpeechSimpleDetectCulture;
+                            Speech.AutoChangeSpeechSpeed = Cache.SpeechAutoChangeSpeedWhenRepeatPlay;
+                            Speech.ChineseSimplifiedPrefer = Cache.SpeechChineseSimplifiedPrefer;
+                            #endregion
 
                             #region Update Theme
 #if DEBUG
@@ -614,7 +321,7 @@ namespace PixivWPF.Common
                             #endregion
                             result = Cache;
                         }
-                        if(loadtags) LoadTags(true, true);
+                        if (loadtags) LoadTags(true, true);
                     }
                 }
 #if DEBUG
@@ -629,7 +336,9 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+        #endregion
 
+        #region Load/Save tag relative
         public void SaveTags()
         {
             if (TagsReadWrite.Wait(1))
@@ -729,49 +438,336 @@ namespace PixivWPF.Common
                 }
             }
         }
+        #endregion
 
-        public static string ProxyServer()
+        #region UI theme/font relative
+        public bool UseCustomFont { get; set; } = false;
+        public string FontName { get; set; } = string.Empty;
+        [JsonIgnore]
+        private FontFamily fontfamily = SystemFonts.MessageFontFamily;
+        [JsonIgnore]
+        public FontFamily FontFamily { get { return (fontfamily); } }
+
+        private string theme = string.Empty;
+        [JsonProperty("Theme")]
+        public string CurrentTheme
         {
-            string result = null;
-            if (Cache is Setting) result = Cache.Proxy;
-            return (result);
+            get { return (theme); }
+            set
+            {
+                theme = value;
+                if (Cache is Setting) Cache.theme = theme;
+            }
         }
 
-        public static bool UseProxy()
+        private string accent = string.Empty;
+        [JsonProperty("Accent")]
+        public string CurrentAccent
         {
-            bool result = false;
-            if (Cache is Setting) result = Cache.UsingProxy;
-            return (result);
+            get { return (accent); }
+            set
+            {
+                accent = value;
+                if (Cache is Setting) Cache.accent = accent;
+            }
+        }
+        #endregion
+
+        #region network relative
+        public string Proxy { get; set; } = string.Empty;
+
+        public bool UsingProxy { get; set; } = false;
+        #endregion
+
+        #region Pixiv account relative
+        private string accesstoken = string.Empty;
+        public string AccessToken
+        {
+            get { return (accesstoken); }
+            set
+            {
+                if (!IsConfigBusy)
+                {
+                    username = User.AesEncrypt(value);
+                    password = Pass.AesEncrypt(value);
+                }
+                if (myinfo is Pixeez.Objects.User)
+                {
+                    UID = myinfo.Id.Value.ToString().AesEncrypt(value);
+                }
+                accesstoken = value;
+                if(Cache is Setting)
+                {
+                    Cache.accesstoken = accesstoken;
+                    Cache.username = username;
+                    Cache.password = password;
+                    Cache.UID = UID;
+                }
+            }
         }
 
-        public static string Token()
+        private string refreshtoken = string.Empty;
+        public string RefreshToken
         {
-            string result = string.Empty;
-            if (Cache is Setting) result = Cache.AccessToken;
-            return (result);
+            get { return (refreshtoken); }
+            set { refreshtoken = value; }
         }
 
-        public static bool Token(string accesstoken)
+        public bool SaveUserPass { get; set; } = false;
+        [JsonProperty(nameof(User))]
+        public string Username
         {
-            bool result = false;
+            get
+            {
+                if (SaveUserPass && IsConfigBusy) return username;
+                else return (string.Empty);
+            }
+            set { if (SaveUserPass) username = value; }
+        }
+
+        [JsonProperty(nameof(Pass))]
+        public string Password
+        {
+            get
+            {
+                if (SaveUserPass && IsConfigBusy) return password;
+                else return (string.Empty);
+            }
+            set { if (SaveUserPass) password = value; }
+        }
+
+        [JsonIgnore]
+        private string username = string.Empty;
+        [JsonIgnore]
+        public string User
+        {
+            get { return (username.AesDecrypt(accesstoken)); }
+            set { username = value.AesEncrypt(accesstoken); }
+        }
+
+        [JsonIgnore]
+        private string password = string.Empty;
+        [JsonIgnore]
+        public string Pass
+        {
+            get { return (password.AesDecrypt(accesstoken)); }
+            set { password = value.AesEncrypt(accesstoken); }
+        }
+
+        [JsonIgnore]
+        private Pixeez.Objects.User myinfo = null;
+        [JsonIgnore]
+        public Pixeez.Objects.User MyInfo
+        {
+            get { return myinfo; }
+            set
+            {
+                myinfo = value;
+                if (value is Pixeez.Objects.User)
+                {
+                    UID = myinfo.Id.Value.ToString().AesEncrypt(accesstoken);
+                }
+            }
+        }
+
+        public string UID { get; set; } = string.Empty;
+        [JsonIgnore]
+        public long MyID
+        {
+            get
+            {
+                if (myinfo is Pixeez.Objects.User)
+                    return (myinfo.Id.Value);
+                else
+                    return (GetMyId());
+            }
+        }
+
+        private long GetMyId()
+        {
+            long luid = 0;
+            var suid = UID.AesDecrypt(accesstoken);
+            var ret = long.TryParse(suid, out luid);
+            if (!ret)
+            {
+                new Action(async () =>
+                {
+                    myinfo = await luid.RefreshUser();
+                }).Invoke();
+                return (myinfo.Id.Value);
+            }
+            else return (luid);
+        }
+
+        private long update = 0;
+        public long Update
+        {
+            get { return update; }
+            set { update = value; }
+        }
+
+        private DateTime exptime=DateTime.Now;
+        public DateTime ExpTime
+        {
+            get { return exptime; }
+            set { exptime = value; }
+        }
+
+        private int expdurtime=3600;
+        public int ExpiresIn
+        {
+            get { return expdurtime; }
+            set { expdurtime = value; }
+        }
+        #endregion
+
+        #region Download relative
+        public int DownloadWaitingTime { get; set; } = 5000;
+        public int DownloadTimeSpan { get; set; } = 750;
+        public bool DownloadCompletedToast { get; set; } = true;
+        public bool DownloadCompletedSound { get; set; } = true;
+        public int DownloadCompletedSoundForElapsedSeconds { get; set; } = 60;
+        [JsonIgnore]
+        private string lastfolder = string.Empty;
+        [JsonIgnore]
+        public string LastFolder
+        {
+            get { return lastfolder; }
+            set
+            {
+                lastfolder = value;
+                if (Cache is Setting) Cache.lastfolder = lastfolder;
+                if (LocalStorage.Count(o => o.Folder.Equals(lastfolder)) <= 0)
+                {
+                    LocalStorage.Add(new StorageType(lastfolder, true));
+                    lastfolder.AddDownloadedWatcher();
+                }
+            }
+        }
+        #endregion
+
+        #region History relative
+        public int max_history = 100;
+        public int HistoryMax { get; set; } = 150;
+        public int HistoryLimit
+        {
+            get
+            {
+                max_history = Math.Min(max_history, HistoryMax);
+                if (max_history < 0) max_history = 100;
+                return (max_history);
+            }
+            set
+            {
+                if (value > 0) max_history = Math.Min(value, HistoryMax);
+                else max_history = 100;
+                if (Cache is Setting) Cache.max_history = max_history;
+            }
+        }
+        #endregion
+
+        #region Viewing relative
+        public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
+        public bool ShowUserBackgroundImage { get; set; } = false;
+        #endregion
+
+        #region Favorite/Follow relative
+        public bool PrivateFavPrefer { get; set; } = false;
+        public bool PrivateBookmarkPrefer { get; set; } = false;
+        #endregion
+
+        #region Selection behavior relative
+        public bool OpenWithSelectionOrder { get; set; } = true;
+        public bool AllForSelectionNone { get; set; } = false;
+        #endregion
+
+        #region Speech relative
+        private Dictionary<string, string> speech_names = SpeechTTS.GetNames();
+        public Dictionary<string, string> SpeechPreferList
+        {
+            get { return (speech_names); }
+            set { speech_names = value; }
+        }
+        public bool SpeechAltPlayMixedCulture { get; set; } = false;
+        public bool SpeechAutoChangeSpeedWhenRepeatPlay { get; set; } = false;
+        public bool SpeechChineseSimplifiedPrefer { get; set; } = true;
+        public bool SpeechSimpleDetectCulture { get; set; } = true;
+        #endregion
+
+        #region Shell bridge relative
+        public string ShellSearchBridgeApplication { get; set; } = "PixivWPFSearch.exe";
+        public string ShellPixivPediaApplication { get; set; } = "nw.exe";
+        public string ShellPixivPediaApplicationArgs { get; set; } = "--single-process --enable-node-worker --app-shell-host-window-size=1280x720";
+        public string ShellImageViewer { get; set; } = string.Empty;
+        public bool ShellImageViewerEnabled { get; set; } = false;
+        #endregion
+
+        #region Window relative
+        private Point dropbox_pos = new Point(0, 0);
+        public Point DropBoxPosition
+        {
+            get { return (dropbox_pos); }
+            set
+            {
+                dropbox_pos = value;
+                if (Cache is Setting) Cache.dropbox_pos = dropbox_pos;
+            }
+        }
+
+        private Rect downloadmanager_pos = new Rect(0, 0, 0, 0);
+        public Rect DownloadManagerPosition
+        {
+            get { return (downloadmanager_pos); }
+            set
+            {
+                downloadmanager_pos = value;
+                if (Cache is Setting) Cache.downloadmanager_pos = downloadmanager_pos;
+            }
+        }
+        #endregion
+
+        #region Template relative
+        public DateTime ContentsTemplateTime { get; set; } = new DateTime(0);
+        public string ContentsTemplete { get; set; } = string.Empty;
+        [JsonIgnore]
+        public string CustomContentsTemplete { get; set; } = string.Empty;
+
+        public static void UpdateContentsTemplete()
+        {
             if (Cache is Setting)
             {
-                Cache.AccessToken = accesstoken;
-                result = true;
+                if (File.Exists(Cache.ContentsTemplateFile))
+                {
+                    Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentsTemplateFile);
+                    var ftc = File.GetCreationTime(Cache.ContentsTemplateFile);
+                    var ftw = File.GetLastWriteTime(Cache.ContentsTemplateFile);
+                    var fta = File.GetLastAccessTime(Cache.ContentsTemplateFile);
+                    if (ftw > Cache.ContentsTemplateTime || ftc > Cache.ContentsTemplateTime || fta > Cache.ContentsTemplateTime)
+                    {
+                        Cache.ContentsTemplete = Cache.CustomContentsTemplete;
+                        Cache.ContentsTemplateTime = DateTime.Now;
+                        Cache.Save();
+                        CommonHelper.UpdateWebContentAsync();
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(Cache.CustomContentsTemplete))
+                    {
+                        Cache.ContentsTemplete = CommonHelper.GetDefaultTemplate();
+                        Cache.CustomContentsTemplete = string.Empty;
+                        Cache.Save();
+                        CommonHelper.UpdateWebContentAsync();
+                    }
+                }
             }
-            return (result);
         }
+        #endregion
 
-        public static bool Token(string accesstoken, string refreshtoken)
-        {
-            bool result = false;
-            if (Cache is Setting)
-            {
-                Cache.AccessToken = accesstoken;
-                Cache.RefreshToken = refreshtoken;
-                result = true;
-            }
-            return (result);
-        }
+        #region Storage monitor relative
+        [JsonIgnore]
+        private string SaveFolder { get; set; }
+        public List<StorageType> LocalStorage { get; set; } = new List<StorageType>();
+        #endregion
     }
 }

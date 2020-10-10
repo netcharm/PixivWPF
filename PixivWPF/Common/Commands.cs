@@ -52,6 +52,14 @@ namespace PixivWPF.Common
         private const int HEIGHT_MAX = 1024;
         private const int WIDTH_DEF = 1280;
 
+        public static ICommand Login { get; } = new DelegateCommand(() =>
+        {
+            var setting = Application.Current.LoadSetting();
+            var dlgLogin = new PixivLoginDialog() { AccessToken = setting.AccessToken };
+            var ret = dlgLogin.ShowDialog();
+            if (ret ?? false) setting.AccessToken = dlgLogin.AccessToken;
+        });
+
         public static ICommand DatePicker { get; } = new DelegateCommand<Point?>(obj =>
         {
             if (obj.HasValue)
@@ -507,7 +515,7 @@ namespace PixivWPF.Common
                     var item = obj as ImageItem;
                     var illust = item.Illust;
 
-                    if (item.Index >= 0)
+                    if (item.Count > 1)
                     {
                         string fp = string.Empty;
                         item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);

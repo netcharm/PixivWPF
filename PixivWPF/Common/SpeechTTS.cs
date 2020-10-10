@@ -33,7 +33,7 @@ namespace PixivWPF.Common
         //private string pattern_ja = @"[\u0021-\u024f\u0250-\u02af\u0391-\u03d9\u1f00-\u1ffe\u1e00-\u1eff\u2010-\u205e\u2e00-\u2e3b\u2c60-\u2c7f\ua720-\ua7ff]+";
         private string pattern_ja = @"([\u3041-\u309f\u30a0-\u31ff\u3220-\u325f\u3280-\u32ff\u3300-\u4077]|(\ud83c[\ude01-\ude51]))+";
         private string pattern_ko = @"[\u1100-\u11ff\u3131-\u318e\u3200-\u321f\u3260-\u327f\ua960-\ua97c\uac00-\ud7a3]+";
-        private string pattern_en = @"[\u0041-\u005a\u0061-\u007a\u0080-\u02af\u0391-\u03d9\u1f00-\u1ffe\u1e00-\u1eff\u2010-\u205e\u2e00-\u2e3b\u2c60-\u2c7f\ua720-\ua7ff]+";
+        private string pattern_en = @"[\u0020-\u007e\u0080-\u02af\u0391-\u03d9\u1f00-\u1ffe\u1e00-\u1eff\u2010-\u205e\u2e00-\u2e3b\u2c60-\u2c7f\ua720-\ua7ff]+";
         private string pattern_dt = @"^[\d: tTzZ+\-\/\\]{4,}$";
         private string pattern_digit = @"^\d+$";
         //private string pattern_emoji = @"[\u2190-\u27bf\u3400-\u4dbf\u4dc0-\u4dff\uf900-\ufad9\u1d300-\u1d356\u1f000-\u1f02b\u1f030-\u1f093\u1f0a0-\u1f0f5\u1f300-\u1f5ff]+";
@@ -132,11 +132,6 @@ namespace PixivWPF.Common
                 //Console.WriteLine("Datetime");
                 result = CultureInfo.CurrentCulture;
             }
-            else if (Regex.IsMatch(text, pattern_symbol, regex_opt))
-            {
-                //Console.WriteLine("Symbol");
-                result = CultureInfo.CurrentCulture;
-            }
             else if (Regex.IsMatch(text, pattern_ko, regex_opt))
             {
                 //Console.WriteLine("korea");
@@ -147,7 +142,7 @@ namespace PixivWPF.Common
                 //Console.WriteLine("Japan");
                 result = CultureInfo.GetCultureInfoByIetfLanguageTag("ja-JP");
             }
-            else if (Regex.IsMatch(text, pattern_en, regex_opt))
+            else if (Regex.IsMatch(text, $@"^{pattern_en}?$", regex_opt))
             {
                 //Console.WriteLine("English");
                 result = CultureInfo.GetCultureInfoByIetfLanguageTag("en-US");
@@ -172,9 +167,14 @@ namespace PixivWPF.Common
                 //Console.WriteLine("Mainland-tw");
                 result = ChineseSimplifiedPrefer ? CultureInfo.GetCultureInfoByIetfLanguageTag("zh-TW") : CultureInfo.GetCultureInfoByIetfLanguageTag("zh-CN");
             }
-            else if (Regex.IsMatch(text, pattern_emoji, regex_opt))
+            else if (Regex.IsMatch(text, $@"^{pattern_emoji}$", regex_opt))
             {
                 //Console.WriteLine("Emoji");
+                result = CultureInfo.CurrentCulture;
+            }
+            else if (Regex.IsMatch(text, $@"^{pattern_symbol}$", regex_opt))
+            {
+                //Console.WriteLine("Symbol");
                 result = CultureInfo.CurrentCulture;
             }
             else
@@ -749,6 +749,12 @@ namespace PixivWPF.Common
             set { if (t2s is SpeechTTS) t2s.SimpleCultureDetect = value; }
         }
         public static SynthesizerState State { get { return (t2s is SpeechTTS ? t2s.State : SynthesizerState.Ready); } }
+
+        public static bool ChineseSimplifiedPrefer
+        {
+            get { return (t2s is SpeechTTS ? t2s.ChineseSimplifiedPrefer : true); }
+            set { if (t2s is SpeechTTS) t2s.ChineseSimplifiedPrefer = value; }
+        }
         #endregion
 
         #region Init speech synthesizer instance

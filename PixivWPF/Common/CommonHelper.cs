@@ -1386,6 +1386,7 @@ namespace PixivWPF.Common
 
         public static DateTime SelectedDate { get; set; } = DateTime.Now;
 
+        private static List<string> ext_imgs_more = new List<string>() { ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
         private static List<string> ext_imgs = new List<string>() { ".png", ".jpg" };
         internal static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         internal static string[] trim_str = new string[] { Environment.NewLine };
@@ -1502,7 +1503,7 @@ namespace PixivWPF.Common
             try
             {
                 setting = app.LoadSetting();
-                result = Setting.Token();
+                result = setting.AccessToken;
             }
             catch (Exception) { }
             return (result);
@@ -2251,12 +2252,18 @@ namespace PixivWPF.Common
         {
             var result = new List<string>();
 
-            foreach (var p in Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator))
+            if (Path.IsPathRooted(cmd) && File.Exists(cmd)) result.Add(cmd);
+            else
             {
-                var c = Path.Combine(p, cmd);
-                if (File.Exists(c)) result.Add(c);
+                var cmd_name = Path.IsPathRooted(cmd) ? Path.GetFileName(cmd) : cmd;
+                var search_list = Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator).ToList();
+                search_list.Insert(0, Application.Current.GetRoot());
+                foreach (var p in search_list)
+                {
+                    var c = Path.Combine(p, cmd);
+                    if (File.Exists(c)) result.Add(c);
+                }
             }
-
             return (result.ToArray());
         }
 
@@ -2478,9 +2485,7 @@ namespace PixivWPF.Common
         public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false)
         {
             bool result = false;
-
             var WinDir = Environment.GetEnvironmentVariable("WinDir");
-
             if (ShowFolder)
             {
                 if (!string.IsNullOrEmpty(FileName))
@@ -2512,11 +2517,23 @@ namespace PixivWPF.Common
                     if (UsingOpenWith && exists)
                         System.Diagnostics.Process.Start(OpenWith, FileName);
                     else
-                        System.Diagnostics.Process.Start(FileName);
+                    {
+                        setting = Application.Current.LoadSetting();
+                        var ext = Path.GetExtension(FileName).ToLower();
+                        var IsImage = ext_imgs_more.Contains(ext) || ext_imgs.Contains(ext) ? true : false;
+                        if (setting.ShellImageViewerEnabled && IsImage)
+                        {
+                            var cmd_found = setting.ShellImageViewer.Where();
+                            if(cmd_found.Length > 0)
+                                System.Diagnostics.Process.Start(cmd_found.First(), FileName);
+                            else
+                                System.Diagnostics.Process.Start(FileName);
+                        }
+                        else System.Diagnostics.Process.Start(FileName);
+                    }
                     result = true;
                 }
             }
-
             return (result);
         }
         #endregion
@@ -3772,11 +3789,12 @@ namespace PixivWPF.Common
                     break;
             }
 
-            var proxy = Setting.ProxyServer();
-            var useproxy = Setting.UseProxy();
+            setting = Application.Current.LoadSetting();
+            var proxy = setting.Proxy;
+            var useproxy = setting.UsingProxy;
             HttpClientHandler handler = new HttpClientHandler()
             {
-                Proxy = string.IsNullOrEmpty(Setting.ProxyServer()) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
+                Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
                 UseProxy = string.IsNullOrEmpty(proxy) || !useproxy ? false : true
             };
             using (HttpClient client = new HttpClient(handler))

@@ -424,14 +424,7 @@ namespace PixivWPF
 
         private void CommandLogin_Click(object sender, RoutedEventArgs e)
         {
-            var accesstoken = Application.Current.AccessToken();
-            var dlgLogin = new PixivLoginDialog() { AccessToken = accesstoken };
-            var ret = dlgLogin.ShowDialog();
-            if (ret ?? false)
-            {
-                accesstoken = dlgLogin.AccessToken;
-                Setting.Token(accesstoken);
-            }
+            Commands.Login.Execute(sender);
         }
 
         internal void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
