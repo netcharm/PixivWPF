@@ -333,6 +333,7 @@ namespace PixivWPF.Common
 
         public bool AutoChangeSpeechSpeed { get; set; } = true;
         public bool AltPlayMixedCulture { get; set; } = false;
+        public bool PlayMixedCultureInline { get; set; } = false;
         public bool SimpleCultureDetect { get; set; } = true;
 
         public SynthesizerState State { get { return (synth is SpeechSynthesizer ? synth.State : SynthesizerState.Ready); } }
@@ -582,9 +583,16 @@ namespace PixivWPF.Common
                     }
                     foreach (var text in contents)
                     {
-                        var sentences = SliceByCulture(text, locale);
-                        foreach (var s in sentences)
-                            PlayQueue.Enqueue(s);
+                        if (PlayMixedCultureInline)
+                        {
+                            var sentences = SliceByCulture(text, locale);
+                            foreach (var s in sentences)
+                                PlayQueue.Enqueue(s);
+                        }
+                        else
+                        {
+                            PlayQueue.Enqueue(new KeyValuePair<string, CultureInfo>(text, DetectCulture(text)));
+                        }
                     }
                     if (PlayQueue.Count > 0)
                     {
@@ -601,21 +609,30 @@ namespace PixivWPF.Common
                 prompt.ClearContent();
                 foreach (var text in contents)
                 {
-                    var sentences = SliceByCulture(text, locale);
-                    var culture = locale == null ? sentences.FirstOrDefault().Value : locale;
-                    prompt.StartParagraph(culture);
-                    foreach (var kv in sentences)
+                    if (PlayMixedCultureInline)
                     {
-                        var new_text = kv.Key;
-                        var new_culture = kv.Value;
-                        //prompt.StartSentence(new_culture);
-                        prompt.StartVoice(GetCustomVoiceName(new_culture));
-                        prompt.AppendText(new_text);
-                        prompt.EndVoice();
-                        //prompt.EndSentence();
-                        //prompt.AppendBreak();
+                        var sentences = SliceByCulture(text, locale);
+                        var culture = locale == null ? sentences.FirstOrDefault().Value : locale;
+                        prompt.StartParagraph(culture);
+                        foreach (var kv in sentences)
+                        {
+                            var new_text = kv.Key;
+                            var new_culture = kv.Value;
+                            prompt.StartVoice(GetCustomVoiceName(new_culture));
+                            prompt.AppendText(new_text);
+                            prompt.EndVoice();
+                        }
+                        prompt.EndParagraph();
                     }
-                    prompt.EndParagraph();
+                    else
+                    {
+                        var culture = locale == null ? DetectCulture(text) : locale;
+                        prompt.StartParagraph(culture);
+                        prompt.StartVoice(GetCustomVoiceName(culture));
+                        prompt.AppendText(text);
+                        prompt.EndVoice();
+                        prompt.EndParagraph();
+                    }
                 }
                 Play(prompt, locale);
             }
@@ -747,6 +764,11 @@ namespace PixivWPF.Common
         {
             get { return (t2s is SpeechTTS ? t2s.SimpleCultureDetect : true); }
             set { if (t2s is SpeechTTS) t2s.SimpleCultureDetect = value; }
+        }
+        public static bool PlayMixedCultureInline
+        {
+            get { return (t2s is SpeechTTS ? t2s.PlayMixedCultureInline : true); }
+            set { if (t2s is SpeechTTS) t2s.PlayMixedCultureInline = value; }
         }
         public static SynthesizerState State { get { return (t2s is SpeechTTS ? t2s.State : SynthesizerState.Ready); } }
 

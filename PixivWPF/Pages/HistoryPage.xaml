@@ -11,6 +11,7 @@
       d:DesignHeight="300" d:DesignWidth="300"
       Title="HistoryPage" 
       Loaded="Page_Loaded"
+      PreviewKeyUp="HistoryIllusts_PreviewKeyUp"
       SizeChanged="Page_SizeChanged">
 
     <Page.Resources>
@@ -146,8 +147,7 @@
                     Columns="5" TileWidth="128" TileHeight="128"
                     SelectionMode="Extended"
                     ContextMenu="{StaticResource MenuHistoryResult}"
-                    MouseDoubleClick="HistoryIllusts_MouseDoubleClick" 
-                    KeyUp="HistoryIllusts_KeyUp" />
+                    MouseDoubleClick="HistoryIllusts_MouseDoubleClick" />
             </Grid>
         </ScrollViewer>
 

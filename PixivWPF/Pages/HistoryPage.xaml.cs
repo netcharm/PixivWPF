@@ -171,6 +171,11 @@ namespace PixivWPF.Pages
             }
         }
 
+        internal void KeyAction(KeyEventArgs e)
+        {
+            HistoryIllusts_PreviewKeyUp(this, e);
+        }
+
         public HistoryPage()
         {
             InitializeComponent();
@@ -408,12 +413,9 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
-        private void HistoryIllusts_KeyUp(object sender, KeyEventArgs e)
+        private void HistoryIllusts_PreviewKeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
-            {
-                Commands.Open.Execute(HistoryItems);
-            }
+            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(HistoryItems, e));
         }
 
         private void HistoryFilter_Click(object sender, RoutedEventArgs e)

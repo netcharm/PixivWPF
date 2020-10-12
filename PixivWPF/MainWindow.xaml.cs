@@ -345,46 +345,7 @@ namespace PixivWPF
         private long lastKeyUp = Environment.TickCount;
         private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
-            {
-                lastKeyUp = e.Timestamp;
-                if (e.Key == Key.F5 || e.SystemKey == Key.F5)
-                {
-                    CommandNavRefresh_Click(CommandNavRefresh, new RoutedEventArgs());
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
-                {
-                    CommandNavNext_Click(CommandNavNext, new RoutedEventArgs());
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
-                {
-                    CommandNavRefresh_Click(CommandNavRefreshThumb, e);
-                    if (pagetiles is Pages.TilesPage) pagetiles.KeyAction(e);
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)
-                {
-                    if (pagetiles is Pages.TilesPage) pagetiles.KeyAction(e);
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
-                {
-                    if (pagetiles is Pages.TilesPage) pagetiles.KeyAction(e);
-                    e.Handled = true;
-                }
-                else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
-                {
-                    if (pagetiles is Pages.TilesPage) pagetiles.KeyAction(e);
-                    e.Handled = true;
-                }
-                else
-                {
-                    var ret = sender.WindowKeyUp(e);
-                    e.Handled = ret.Handled;
-                }
-            }
+            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(sender, e));
         }
 
         private void MetroWindow_StateChanged(object sender, EventArgs e)

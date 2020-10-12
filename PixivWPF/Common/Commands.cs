@@ -1409,6 +1409,126 @@ namespace PixivWPF.Common
             }
         });
 
+        private static long lastKeyUp = Environment.TickCount;
+        public static ICommand KeyProcessor { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            try
+            {
+                if (obj is KeyValuePair<dynamic, KeyEventArgs>)
+                {
+                    var sender = obj.Key;
+                    KeyEventArgs e =  obj.Value;
+                    if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
+                    {
+                        lastKeyUp = e.Timestamp;
+                        if (sender is ImageListGrid || sender is ImageItem)
+                        {
+                            if (e.Key == Key.Enter || e.SystemKey == Key.Enter)
+                            {
+                                Open.Execute(sender);
+                                e.Handled = true;
+                            }
+                            else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
+                            {
+                                RefreshPageThumb.Execute(sender);
+                                e.Handled = true;
+                            }
+                            else if (e.Key == Key.F7 || e.SystemKey == Key.F7)
+                            {
+                                ChangeIllustLikeState.Execute(sender);
+                                e.Handled = true;
+                            }
+                            else if (e.Key == Key.F8 || e.SystemKey == Key.F8)
+                            {
+                                ChangeUserLikeState.Execute(sender);
+                                e.Handled = true;
+                            }
+                            else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
+                            {
+                                SaveIllust.Execute(sender);
+                                e.Handled = true;
+                            }
+                            else if ((e.Key == Key.O || e.SystemKey == Key.O) && Keyboard.Modifiers == ModifierKeys.Control)
+                            {
+                                OpenDownloaded.Execute(sender);
+                                e.Handled = true;
+                            }
+                            else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Shift)
+                            {
+                                SaveIllustAll.Execute(sender);
+                                e.Handled = true;
+                            }
+                            else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
+                            {
+                                OpenHistory.Execute(null);
+                                e.Handled = true;
+                            }
+                        }
+                        else if (sender is MainWindow)
+                        {
+                            var win = sender as MainWindow;
+                            if (e.Key == Key.F5 || e.SystemKey == Key.F5)
+                            {
+                                RefreshPage.Execute(sender);
+                            }
+                            else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
+                            {
+                                AppendTiles.Execute(sender);
+                            }
+                            else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
+                            {
+                                RefreshPageThumb.Execute(sender);
+                            }
+                            else
+                            {
+                                if (win.Content is TilesPage)
+                                {
+                                    KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(win.Content, e));
+                                    e.Handled = true;
+                                }
+                            }
+                        }
+                        else if (sender is ContentWindow)
+                        {
+                            var win = sender as ContentWindow;
+                            if (win.Content is Page)
+                            {
+                                KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(win.Content, e));
+                                e.Handled = true;
+                            }
+                        }
+                        else if (sender is TilesPage)
+                        {
+                            (sender as TilesPage).KeyAction(e);
+                            e.Handled = true;
+                        }
+                        else if (sender is IllustDetailPage)
+                        {
+                            (sender as IllustDetailPage).KeyAction(e);
+                            e.Handled = true;
+                        }
+                        else if (sender is IllustImageViewerPage)
+                        {
+                            (sender as IllustImageViewerPage).KeyAction(e);
+                            e.Handled = true;
+                        }
+                        else if (sender is HistoryPage)
+                        {
+                            (sender as HistoryPage).KeyAction(e);
+                            e.Handled = true;
+                        }
+                        else if (sender is SearchResultPage)
+                        {
+                            (sender as SearchResultPage).KeyAction(e);
+                            e.Handled = true;
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+        });
+
+        #region Like/Unlile Work/User relative
         public static ICommand LikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
@@ -1606,8 +1726,9 @@ namespace PixivWPF.Common
                 ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
             }
         });
+        #endregion
 
-        #region helper routines
+        #region PixivPedia relative
         private static async void OpenPediaWindow(string contents)
         {
             if (!string.IsNullOrEmpty(contents))

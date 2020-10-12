@@ -185,6 +185,9 @@ namespace PixivWPF.Common
                     Cache.SpeechChineseSimplifiedPrefer = new_setting.SpeechChineseSimplifiedPrefer;
                 if (Cache.SpeechSimpleDetectCulture != new_setting.SpeechSimpleDetectCulture)
                     Cache.SpeechSimpleDetectCulture = new_setting.SpeechSimpleDetectCulture;
+                if (Cache.SpeechPlayMixedCultureInline != new_setting.SpeechPlayMixedCultureInline)
+                    Cache.SpeechPlayMixedCultureInline = new_setting.SpeechPlayMixedCultureInline;
+
                 if (Cache.SpeechAltPlayMixedCulture != new_setting.SpeechAltPlayMixedCulture)
                     Cache.SpeechAltPlayMixedCulture = new_setting.SpeechAltPlayMixedCulture;
                 if (Cache.SpeechAutoChangeSpeedWhenRepeatPlay != new_setting.SpeechAutoChangeSpeedWhenRepeatPlay)
@@ -309,6 +312,7 @@ namespace PixivWPF.Common
                             Speech.SimpleCultureDetect = Cache.SpeechSimpleDetectCulture;
                             Speech.AutoChangeSpeechSpeed = Cache.SpeechAutoChangeSpeedWhenRepeatPlay;
                             Speech.ChineseSimplifiedPrefer = Cache.SpeechChineseSimplifiedPrefer;
+                            Speech.PlayMixedCultureInline = Cache.SpeechPlayMixedCultureInline;
                             #endregion
 
                             #region Update Theme
@@ -692,6 +696,7 @@ namespace PixivWPF.Common
         public bool SpeechAutoChangeSpeedWhenRepeatPlay { get; set; } = false;
         public bool SpeechChineseSimplifiedPrefer { get; set; } = true;
         public bool SpeechSimpleDetectCulture { get; set; } = true;
+        public bool SpeechPlayMixedCultureInline { get; set; } = false;
         #endregion
 
         #region Shell bridge relative

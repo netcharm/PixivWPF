@@ -111,12 +111,7 @@ namespace PixivWPF.Common
 
         private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
         {
-            try
-            {
-                if (Content is IllustDetailPage) (Content as IllustDetailPage).KeyAction(e);
-                else if (!e.Handled) sender.WindowKeyUp(e);
-            }
-            catch (Exception) { }
+            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(Content, e));
         }
 
         private void MetroWindow_MouseDown(object sender, MouseButtonEventArgs e)

@@ -99,6 +99,11 @@ namespace PixivWPF.Pages
             ResultIllusts.UpdateTilesImage();
         }
 
+        internal void KeyAction(KeyEventArgs e)
+        {
+            ResultIllusts_KeyUp(this, e);
+        }
+
         public SearchResultPage()
         {
             InitializeComponent();
@@ -539,10 +544,7 @@ namespace PixivWPF.Pages
 
         private void ResultIllusts_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
-            {
-                Commands.Open.Execute(ResultIllusts);
-            }
+            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(ResultIllusts, e));
         }
 
         private void SearchFilter_Click(object sender, RoutedEventArgs e)

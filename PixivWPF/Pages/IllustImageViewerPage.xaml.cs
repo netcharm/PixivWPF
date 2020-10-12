@@ -166,6 +166,11 @@ namespace PixivWPF.Pages
             }
         }
 
+        internal void KeyAction(KeyEventArgs e)
+        {
+            Preview_KeyUp(Preview, e);
+        }
+
         public IllustImageViewerPage()
         {
             InitializeComponent();

@@ -2512,16 +2512,18 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
                 {
                     var UsingOpenWith = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false;
-                    var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
-                    var exists = File.Exists(OpenWith) ?  true : false;
-                    if (UsingOpenWith && exists)
+                    var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
+                    var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
+                    var openwith_exists = File.Exists(OpenWith) ?  true : false;
+                    if (UsingOpenWith && openwith_exists)
                         System.Diagnostics.Process.Start(OpenWith, FileName);
                     else
                     {
                         setting = Application.Current.LoadSetting();
+                        var alt_viewer = Keyboard.Modifiers == ModifierKeys.Alt ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
                         var ext = Path.GetExtension(FileName).ToLower();
                         var IsImage = ext_imgs_more.Contains(ext) || ext_imgs.Contains(ext) ? true : false;
-                        if (setting.ShellImageViewerEnabled && IsImage)
+                        if (alt_viewer && IsImage)
                         {
                             var cmd_found = setting.ShellImageViewer.Where();
                             if(cmd_found.Length > 0)
@@ -5413,6 +5415,12 @@ namespace PixivWPF.Common
 #else
                 catch (Exception) { }
 #endif
+            }
+            else if(sender is ContentWindow)
+            {
+                var win = sender as ContentWindow;
+                if (win.Content is IllustDetailPage) (win.Content as IllustDetailPage).KeyAction(e);
+                //else if(win.Content is HistoryPage) (win.Content as HistoryPage).key
             }
             return (e);
         }
