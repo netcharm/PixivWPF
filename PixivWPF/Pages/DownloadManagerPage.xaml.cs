@@ -74,6 +74,19 @@ namespace PixivWPF.Pages
             });
         }
 
+        public IEnumerable<string> Unfinished()
+        {
+            List<string> result = new List<string>();
+
+            var unfinished = items.Where(i => i.State != DownloadState.Finished);
+            foreach(var item in unfinished)
+            {
+                result.Add($"Downloading: {item.Url.ParseID()}");
+            }
+
+            return (result);
+        }
+
         public DownloadManagerPage()
         {
             InitializeComponent();

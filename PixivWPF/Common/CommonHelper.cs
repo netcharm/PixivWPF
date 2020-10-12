@@ -627,16 +627,23 @@ namespace PixivWPF.Common
                 foreach (Window win in Application.Current.Windows)
                 {
                     if (win is MainWindow) continue;
-                    else if (win is MetroWindow)
+                    else if (win is ContentWindow)
                     {
-                        if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            if (win.Content is DownloadManagerPage)
+                            {
+                                var dm = win.Content as DownloadManagerPage;
+                                titles.AddRange(dm.Unfinished());
+                            }
+                        }
                         else if (win.Title.StartsWith("PIXIV Login", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
                         //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("History", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        titles.Add(win.Title);
+                        else titles.Add(win.Title);
                     }
                     else continue;
                 }
@@ -1594,11 +1601,11 @@ namespace PixivWPF.Common
 
         public static string ParseID(this string searchContent)
         {
-            var patten =  @"((UserID)|(IllustID)|(User)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):(.*?)$";
+            var patten =  @"((UserID)|(IllustID)|(User)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)|(Downloading)):(.*?)$";
             string result = searchContent;
             if (!string.IsNullOrEmpty(result))
             {
-                result = Regex.Replace(result, patten, "$9", RegexOptions.IgnoreCase).Trim().Trim(trim_char);
+                result = Regex.Replace(result, patten, "$10", RegexOptions.IgnoreCase).Trim().Trim(trim_char);
             }
             return (result);
         }
@@ -1698,11 +1705,11 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(content, @"^(((id)|(uid)):[ ]*(\d+)+)", opt));
                 mr.Add(Regex.Matches(content, @"^(((user)|(fuzzy)|(tag)|(title)):[ ]*(.+)+)", opt));
 
-                //mr.Add(Regex.Matches(content, @"User:\s(.+)\s/\s(\d+)\s/\s(.+)", opt));
-                //mr.Add(Regex.Matches(content, @"Id:\s(\d+),\s(.+?)", opt));
                 mr.Add(Regex.Matches(content, @"(Searching\s)(.*?)$", opt));
 
-                if (!Regex.IsMatch(content, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
+                mr.Add(Regex.Matches(content, @"(Downloading:\s)(.*?)$", opt));
+
+                if (!Regex.IsMatch(content, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(download:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
                 {
                     try
                     {
@@ -1792,14 +1799,14 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("tag:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var tag = link.Substring(4).Trim();
-                        var u_link = $"Tag:{tag}";
-                        if (!links.Contains(u_link)) links.Add(u_link);
+                        var t_link = $"Tag:{tag}";
+                        if (!links.Contains(t_link)) links.Add(t_link);
                     }
                     else if (link.StartsWith("tags/", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var tag = link.Substring(5).Trim();
-                        var u_link = $"Tag:{Uri.UnescapeDataString(tag)}";
-                        if (!links.Contains(u_link)) links.Add(u_link);
+                        var t_link = $"Tag:{Uri.UnescapeDataString(tag)}";
+                        if (!links.Contains(t_link)) links.Add(t_link);
                     }
                     else if (link.StartsWith("user:", StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -1820,20 +1827,38 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("fuzzy:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var fuzzy = link.Substring(6).Trim();
-                        var u_link = $"Fuzzy:{fuzzy}";
-                        if (!links.Contains(u_link)) links.Add(u_link);
+                        var f_link = $"Fuzzy:{fuzzy}";
+                        if (!links.Contains(f_link)) links.Add(f_link);
                     }
                     else if (link.StartsWith("title:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var fuzzy = link.Substring(6).Trim();
-                        var u_link = $"Fuzzy:{fuzzy}";
-                        if (!links.Contains(u_link)) links.Add(u_link);
+                        var t_link = $"Fuzzy:{fuzzy}";
+                        if (!links.Contains(t_link)) links.Add(t_link);
                     }
                     else if (link.StartsWith("searching ", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var search = link.Substring(10).Trim();
-                        var u_link = $"{search}";
-                        if (!links.Contains(u_link)) links.Add(u_link);
+                        var s_link = $"{search}";
+                        if (!links.Contains(s_link)) links.Add(s_link);
+                    }
+                    else if (link.StartsWith("downloading ", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var down = link.Substring(12).Trim();
+                        var d_link = down.ArtworkLink();
+                        if (!links.Contains(d_link)) links.Add(d_link);
+                    }
+                    else if (link.StartsWith("download:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var down = link.Substring(9).Trim();
+                        var d_link = down.ArtworkLink();
+                        if (!links.Contains(d_link)) links.Add(d_link);
+                    }
+                    else if (link.StartsWith("downloading:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var down = link.Substring(12).Trim();
+                        var d_link = down.ArtworkLink();
+                        if (!links.Contains(d_link)) links.Add(d_link);
                     }
                     else
                     {
@@ -4354,9 +4379,9 @@ namespace PixivWPF.Common
         {
             Pixeez.Objects.User result = null;
             if (UserID < 0) return (result);
-            var force = UserID == 0 && setting.MyInfo is Pixeez.Objects.User ? false : true;
+            setting = Application.Current.LoadSetting();
+            var force = UserID == 0 && !(setting.MyInfo is Pixeez.Objects.User) ? true : false;
             if (tokens == null) tokens = await ShowLogin(force);
-            //if (tokens == null) tokens = await ShowLogin();
             if (tokens == null) return (result);
             try
             {

@@ -1443,24 +1443,24 @@ namespace PixivWPF.Common
                                 ChangeUserLikeState.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
-                            {
-                                SaveIllust.Execute(sender);
-                                e.Handled = true;
-                            }
                             else if ((e.Key == Key.O || e.SystemKey == Key.O) && Keyboard.Modifiers == ModifierKeys.Control)
                             {
                                 OpenDownloaded.Execute(sender);
                                 e.Handled = true;
                             }
+                            else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
+                            {
+                                OpenHistory.Execute(sender);
+                                e.Handled = true;
+                            }
+                            else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
+                            {
+                                SaveIllust.Execute(sender);
+                                e.Handled = true;
+                            }
                             else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Shift)
                             {
                                 SaveIllustAll.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
-                            {
-                                OpenHistory.Execute(null);
                                 e.Handled = true;
                             }
                         }

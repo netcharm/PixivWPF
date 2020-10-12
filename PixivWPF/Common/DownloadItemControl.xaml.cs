@@ -159,7 +159,7 @@ namespace PixivWPF.Common
     /// </summary>
     public partial class DownloadItem : UserControl, INotifyPropertyChanged
     {
-        private const int HTTP_STREAM_READ_COUNT = 65536;
+        private const int HTTP_STREAM_READ_COUNT = 8192;
         private Setting setting = Application.Current.LoadSetting();
 
         private Tuple<double, double> finishedProgress;

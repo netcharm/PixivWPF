@@ -837,6 +837,11 @@ namespace PixivWPF.Pages
                 var nuser = UserInfo.user;
                 var nprof = UserInfo.profile;
                 var nworks = UserInfo.workspace;
+                if (user.is_followed != nuser.is_followed)
+                {
+                    user.is_followed = nuser.is_followed;
+                    await user.RefreshUser();
+                }                
 
                 PreviewWait.Hide();
                 PreviewViewer.Hide();
@@ -1462,7 +1467,17 @@ namespace PixivWPF.Pages
                 lastKeyUp = e.Timestamp;
                 var pub = setting.PrivateFavPrefer ? false : true;
 
-                if (e.Key == Key.F3 || e.SystemKey == Key.F3)
+                if ((e.Key == Key.Left || e.SystemKey == Key.Left) && Keyboard.Modifiers == ModifierKeys.Alt)
+                {
+                    PrevIllust();
+                    e.Handled = true;
+                }
+                else if ((e.Key == Key.Right || e.SystemKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Alt)
+                {
+                    NextIllust();
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
                 {
                     if (!(Parent is ContentWindow))
                     {
@@ -1519,14 +1534,6 @@ namespace PixivWPF.Pages
                         e.Handled = true;
                     }
                 }
-                else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
-                {
-                    if (SubIllusts.Items.Count > 0)
-                        Commands.SaveIllust.Execute(SubIllusts);
-                    else
-                        Commands.SaveIllust.Execute(Contents);
-                    e.Handled = true;
-                }
                 else if ((e.Key == Key.O || e.SystemKey == Key.O) && Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     if (RelativeIllusts.IsKeyboardFocusWithin)
@@ -1539,24 +1546,22 @@ namespace PixivWPF.Pages
                         Commands.OpenDownloaded.Execute(Contents);
                     e.Handled = true;
                 }
-                else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Shift)
-                {
-                    Commands.SaveIllustAll.Execute(Contents);
-                    e.Handled = true;
-                }
                 else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     Commands.OpenHistory.Execute(null);
                     e.Handled = true;
                 }
-                else if((e.Key == Key.Left || e.SystemKey == Key.Left) && Keyboard.Modifiers == ModifierKeys.Alt)
+                else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    PrevIllust();
+                    if (SubIllusts.Items.Count > 0)
+                        Commands.SaveIllust.Execute(SubIllusts);
+                    else
+                        Commands.SaveIllust.Execute(Contents);
                     e.Handled = true;
                 }
-                else if ((e.Key == Key.Right || e.SystemKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Alt)
+                else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Shift)
                 {
-                    NextIllust();
+                    Commands.SaveIllustAll.Execute(Contents);
                     e.Handled = true;
                 }
                 else e.Handled = false;
@@ -2367,6 +2372,7 @@ namespace PixivWPF.Pages
                         var idx = -1;
                         var illust = Contents;
                         var item = Contents;
+                        var hash = Contents.GetHashCode();
                         if (SubIllusts.SelectedItem is ImageItem)
                         {
                             idx = SubIllusts.SelectedIndex;
@@ -2379,31 +2385,38 @@ namespace PixivWPF.Pages
 
                         PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index);
                         var img = await PreviewImageUrl.LoadImageFromUrl();
-                        if (img == null || img.Width < 360)
+                        if (hash == Contents.GetHashCode())
                         {
-                            PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
-                            var large = await PreviewImageUrl.LoadImageFromUrl();
-                            if (large != null) img = large;
-                        }
-                        if (img != null)
-                        {
-                            if(SubIllusts.SelectedItem is ImageItem)
+                            if (img == null || img.Width < 360)
                             {
-                                if(SubIllusts.SelectedItem == item && SubIllusts.SelectedItem.IsSameIllust(img.GetHashCode()))
-                                    Preview.Source = img;
+                                PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
+                                var large = await PreviewImageUrl.LoadImageFromUrl();
+                                if (large != null) img = large;
                             }
-                            else
+                            if (img != null)
                             {
-                                if (Contents.Illust.Id.IsSameIllust(img.GetHashCode()) || Contents.IsSameIllust(img.GetHashCode()))
-                                    Preview.Source = img;
+                                if(SubIllusts.SelectedItem is ImageItem)
+                                {
+                                    if(SubIllusts.SelectedItem == item && SubIllusts.SelectedItem.IsSameIllust(img.GetHashCode()))
+                                        Preview.Source = img;
+                                }
+                                else
+                                {
+                                    if (Contents.Illust.Id.IsSameIllust(img.GetHashCode()) || Contents.IsSameIllust(img.GetHashCode()))
+                                        Preview.Source = img;
+                                }
                             }
                         }
                     }
                     catch (Exception) { }
                     finally
                     {
-                        if (Preview.Source != null) Preview.Show();
-                        PreviewWait.Hide();
+                        if (Preview.Source != null)
+                        {
+                            Preview.Show();
+                            PreviewWait.Hide();
+                        }
+                        else PreviewWait.Disable();
                     }
                 }).InvokeAsync();
             }
@@ -2411,15 +2424,11 @@ namespace PixivWPF.Pages
 
         private void ActionRefreshAvator(ImageItem item)
         {
-            var ua = new Action(async () =>
+            try
             {
-                 try
-                 {
-                     IllustAuthorAvator.Source = await item.User.GetAvatarUrl().LoadImageFromUrl();
-                     if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
-                 }
-                 catch(Exception) { }
-            }).InvokeAsync();
+                ActionRefreshAvator(item.User);
+            }
+            catch (Exception) { }
         }
 
         private void ActionRefreshAvator(Pixeez.Objects.UserBase user)
@@ -2428,8 +2437,14 @@ namespace PixivWPF.Pages
             {
                 try
                 {
-                    IllustAuthorAvator.Source = await user.GetAvatarUrl().LoadImageFromUrl();
-                    if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
+                    var hash = Contents.GetHashCode();
+                    var img =  await user.GetAvatarUrl().LoadImageFromUrl();
+                    if(hash == Contents.GetHashCode())
+                    {
+                        IllustAuthorAvator.Source = img;
+                        if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
+                        else IllustAuthorAvatorWait.Disable();
+                    }
                 }
                 catch(Exception) { }
             }).InvokeAsync();
