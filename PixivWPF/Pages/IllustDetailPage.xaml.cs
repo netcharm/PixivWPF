@@ -376,13 +376,15 @@ namespace PixivWPF.Pages
                         {
                             IllustDownloaded.Visibility = Visibility.Visible;
                             IllustDownloaded.Tag = fp;
-                            ToolTipService.SetToolTip(IllustDownloaded, fp);
+                            IllustDownloaded.ToolTip = fp;
+                            //ToolTipService.SetToolTip(IllustDownloaded, fp);
                         }
                         else
                         {
                             IllustDownloaded.Visibility = Visibility.Collapsed;
                             IllustDownloaded.Tag = null;
-                            ToolTipService.SetToolTip(IllustDownloaded, null);
+                            IllustDownloaded.ToolTip = string.Empty;
+                            //ToolTipService.SetToolTip(IllustDownloaded, null);
                         }
                     }
                     else
@@ -392,13 +394,15 @@ namespace PixivWPF.Pages
                         {
                             IllustDownloaded.Visibility = Visibility.Visible;
                             IllustDownloaded.Tag = fp;
+                            IllustDownloaded.ToolTip = fp;
                             ToolTipService.SetToolTip(IllustDownloaded, fp);
                         }
                         else
                         {
                             IllustDownloaded.Visibility = Visibility.Collapsed;
                             IllustDownloaded.Tag = null;
-                            ToolTipService.SetToolTip(IllustDownloaded, null);
+                            IllustDownloaded.ToolTip = string.Empty;
+                            //ToolTipService.SetToolTip(IllustDownloaded, null);
                         }
                     }
                 }
@@ -2387,7 +2391,7 @@ namespace PixivWPF.Pages
                         var img = await PreviewImageUrl.LoadImageFromUrl();
                         if (hash == Contents.GetHashCode())
                         {
-                            if (img == null || img.Width < 360)
+                            if (img == null || img.Width < 360 || img.Height < 360)
                             {
                                 PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
                                 var large = await PreviewImageUrl.LoadImageFromUrl();
@@ -2397,16 +2401,16 @@ namespace PixivWPF.Pages
                             {
                                 if(SubIllusts.SelectedItem is ImageItem)
                                 {
-                                    if(SubIllusts.SelectedItem == item && SubIllusts.SelectedItem.IsSameIllust(img.GetHashCode()))
+                                    if(SubIllusts.SelectedItem.GetHashCode() == item.GetHashCode())
                                         Preview.Source = img;
                                 }
                                 else
                                 {
-                                    if (Contents.Illust.Id.IsSameIllust(img.GetHashCode()) || Contents.IsSameIllust(img.GetHashCode()))
+                                    if (hash == Contents.GetHashCode())
                                         Preview.Source = img;
                                 }
                             }
-                        }
+                        }                       
                     }
                     catch (Exception) { }
                     finally
@@ -2736,47 +2740,10 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
+        private void ActionSaveAllIllust_Click(object sender, RoutedEventArgs e)
         {
-            Pixeez.Objects.Work illust = Contents is ImageItem && Contents.IsWork() ? Contents.Illust : null;
-
-            if (illust != null)
-            {
-                var dt = illust.GetDateTime();
-
-                if (illust is Pixeez.Objects.IllustWork)
-                {
-                    var illustset = illust as Pixeez.Objects.IllustWork;
-                    var is_meta_single_page = illust.PageCount==1 ? true : false;
-                    foreach (var pages in illustset.meta_pages)
-                    {
-                        var url = pages.GetOriginalUrl();
-                        url.SaveImage(pages.GetThumbnailUrl(), dt, is_meta_single_page);
-                    }
-                }
-                else if (illust is Pixeez.Objects.NormalWork)
-                {
-                    var url = illust.GetOriginalUrl();
-                    var illustset = illust as Pixeez.Objects.NormalWork;
-                    var is_meta_single_page = illust.PageCount==1 ? true : false;
-                    if (is_meta_single_page)
-                    {
-                        url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
-                    }
-                    else
-                    {
-                        illust = await illust.RefreshIllust();
-                        if (illust is Pixeez.Objects.Work && illust.Metadata != null && illust.Metadata.Pages != null)
-                        {
-                            foreach (var p in illust.Metadata.Pages)
-                            {
-                                var u = p.GetOriginalUrl();
-                                u.SaveImage(p.GetThumbnailUrl(), dt, is_meta_single_page);
-                            }
-                        }
-                    }
-                }
-            }
+            if(Contents.IsWork() && Contents.Count>0)
+                Commands.SaveIllustAll.Execute(Contents);
         }
 
         private void SubPageNav_Clicked(object sender, RoutedEventArgs e)
@@ -3381,24 +3348,15 @@ namespace PixivWPF.Pages
                     {
                         if (host == SubIllustsExpander || host == SubIllusts)
                         {
-                            foreach (ImageItem item in SubIllusts.GetSelected())
-                            {
-                                Commands.SaveIllust.Execute(item);
-                            }
+                            Commands.SaveIllust.Execute(SubIllusts);
                         }
                         else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                         {
-                            foreach (ImageItem item in RelativeIllusts.GetSelected())
-                            {
-                                Commands.SaveIllust.Execute(item);
-                            }
+                            Commands.SaveIllust.Execute(RelativeIllusts);
                         }
                         else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
                         {
-                            foreach (ImageItem item in FavoriteIllusts.GetSelected())
-                            {
-                                Commands.SaveIllust.Execute(item);
-                            }
+                            Commands.SaveIllust.Execute(FavoriteIllusts);
                         }
                     }
                 }

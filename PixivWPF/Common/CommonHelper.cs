@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
@@ -1527,6 +1528,12 @@ namespace PixivWPF.Common
             catch (Exception) { }
             return (result);
         }
+        
+        public static bool DownloadUsingToken(this Application app)
+        {
+            var setting = Application.Current.LoadSetting();
+            return (setting.DownloadByAPI && !string.IsNullOrEmpty(setting.AccessToken) && setting.ExpTime <= DateTime.Now);
+        }
         #endregion
 
         #region Text process routines
@@ -2397,10 +2404,10 @@ namespace PixivWPF.Common
 #if DEBUG
                 if (pipes.Length > 0)
                 {
-                    Console.WriteLine($"Found {pipes.Length} PixivWPF-Search Bridge(s):");
+                    $"Found {pipes.Length} PixivWPF-Search Bridge(s):".DEBUG();
                     foreach (var pipe in pipes)
                     {
-                        Console.WriteLine($"  {pipe}");
+                        $"  {pipe}".DEBUG();
                     }
                 }
                 else return;
@@ -2423,7 +2430,7 @@ namespace PixivWPF.Common
                             using (StreamWriter sw = new StreamWriter(pipeClient))
                             {
 #if DEBUG
-                                Console.WriteLine($"Sending [{sendData}] to {pipeName}");
+                                $"Sending [{sendData}] to {pipeName}".DEBUG();
 #endif
                                 sw.WriteLine(sendData);
                                 sw.Flush();
@@ -2433,7 +2440,7 @@ namespace PixivWPF.Common
 #if DEBUG
                     catch (Exception ex)
                     {
-                        ex.ToString().ShowMessageDialog("ERROR", MessageBoxImage.Error);
+                        ex.ToString().ShowMessageBox("ERROR", MessageBoxImage.Error);
                     }
 #else
                     catch (Exception) { }
@@ -2442,7 +2449,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                ex.ToString().ShowMessageDialog("ERROR", MessageBoxImage.Error);
+                ex.ToString().ShowMessageBox("ERROR", MessageBoxImage.Error);
             }
         }
 
@@ -3544,8 +3551,16 @@ namespace PixivWPF.Common
             string result = null;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
-                if (tokens == null) tokens = await ShowLogin();
-                result = await cache.GetImagePath(url, tokens);
+                var setting = Application.Current.LoadSetting();
+                if (Application.Current.DownloadUsingToken())
+                {
+                    if (tokens == null) tokens = await ShowLogin();
+                    result = await cache.GetImagePath(url, tokens);
+                }
+                else
+                {
+                    result = await cache.GetImagePath(url);
+                }
             }
             return (result);
         }
@@ -5404,52 +5419,6 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static KeyEventArgs WindowKeyUp(this object sender, KeyEventArgs e)
-        {
-            if (sender is MetroWindow)
-            {
-                try
-                {
-                    var win = sender as MetroWindow;
-                    if ((Keyboard.Modifiers & ModifierKeys.Control & ModifierKeys.Shift) > 0 && e.Key == Key.Tab)
-                    {
-                        win.GetPrevWindow().Active();
-                    }
-                    else if ((Keyboard.Modifiers & ModifierKeys.Control) > 0 && e.Key == Key.Tab)
-                    {
-                        win.GetNextWindow().Active();
-                    }
-                    else
-                    {
-                        if ((sender as MetroWindow).Content is DownloadManagerPage) return (e);
-                        if ((sender as MetroWindow).Tag is DownloadManagerPage) return (e);
-
-                        if (e.Key == Key.Escape)
-                        {
-                            if (sender is MainWindow) return (e);
-                            else win.Close();
-                        }
-                    }
-                    e.Handled = true;
-                }
-#if DEBUG
-                catch (Exception ex)
-                {
-                    ex.Message.ShowMessageBox("ERROR");
-                }
-#else
-                catch (Exception) { }
-#endif
-            }
-            else if(sender is ContentWindow)
-            {
-                var win = sender as ContentWindow;
-                if (win.Content is IllustDetailPage) (win.Content as IllustDetailPage).KeyAction(e);
-                //else if(win.Content is HistoryPage) (win.Content as HistoryPage).key
-            }
-            return (e);
-        }
-
         public static Window GetActiveWindow(this Page page)
         {
             var window = Window.GetWindow(page);
@@ -5459,7 +5428,12 @@ namespace PixivWPF.Common
         #endregion
 
         #region Dialog/MessageBox routines
-        public static string ChangeSaveTarget(string file = "")
+        public static string ChangeSaveTarget(this string file)
+        {
+            return(ChangeSaveFolder(file));
+        }
+
+        public static string ChangeSaveFolder(string file = "")
         {
             var result = string.Empty;
             setting = Application.Current.LoadSetting();
@@ -5506,22 +5480,22 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
+        public static async void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
-            ShowMessageDialog(content, title, image);
+            await Task.Delay(1);
+            MessageBox.Show(content, title, MessageBoxButton.OK, image);
+        }
+
+        public static async Task<bool> ShowMessageDialog(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
+        {
+            await Task.Delay(1);
+            var ret = MessageBox.Show(content, title, MessageBoxButton.OKCancel, image);
+            return (ret == MessageBoxResult.OK || ret == MessageBoxResult.Yes ? true: false);
         }
 
         public static async Task ShowMessageBoxAsync(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             await ShowMessageDialogAsync(content, title, image);
-        }
-
-        public static async void ShowMessageDialog(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
-        {
-            //MetroWindow window = GetActiveWindow();
-            //await window.ShowMessageAsync(title, content);
-            await Task.Delay(1);
-            MessageBox.Show(content, title, MessageBoxButton.OK, image);
         }
 
         public static async Task ShowMessageDialogAsync(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
@@ -6186,9 +6160,10 @@ namespace PixivWPF.Common
         public static void DEBUG(this string contents)
         {
 #if DEBUG
-            Console.WriteLine(contents);
+            Debug.WriteLine(contents);
 #else
             if (IsConsole) Console.WriteLine(contents);
+            else Debug.WriteLine(contents);
 #endif
         }
 
@@ -6266,6 +6241,82 @@ namespace PixivWPF.Common
                 return childList;
 
             return null;
+        }
+
+        public static T GetVisualChild<T>(this Visual referenceVisual) where T : Visual
+        {
+            Visual child = null;
+            for (Int32 i = 0; i < VisualTreeHelper.GetChildrenCount(referenceVisual); i++)
+            {
+                child = VisualTreeHelper.GetChild(referenceVisual, i) as Visual;
+                if (child != null && child is T)
+                {
+                    break;
+                }
+                else if (child != null)
+                {
+                    child = GetVisualChild<T>(child);
+                    if (child != null && child is T)
+                    {
+                        break;
+                    }
+                }
+            }
+            return child as T;
+        }
+
+        public static List<T> GetVisualChildren<T>(this Visual obj) where T : Visual
+        {
+            List<T> childList = new List<T>();
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is T)
+                    childList.Add(child as T);
+
+                var childOfChilds = child.GetVisualChildren<T>();
+                if (childOfChilds != null)
+                {
+                    childList.AddRange(childOfChilds);
+                }
+            }
+
+            if (childList.Count > 0)
+                return childList;
+
+            return null;
+        }
+
+        //private static int current_deeper = 0;
+        //public static bool IsVisiualChild(this DependencyObject obj, DependencyObject parent, int deeper = 0)
+        //{
+        //    return (IsVisiualChild(obj, parent, 0, deeper));
+        //}
+
+        public static bool IsVisiualChild(this DependencyObject obj, DependencyObject parent, int max_deeper = 0, int current_deeper = 0)
+        {
+            var result = false;
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+                if (child != null && child == obj)
+                {
+                    result = true;
+                    break;
+                }
+
+                if (current_deeper < max_deeper)
+                {
+                    current_deeper++;
+                    result = obj.IsVisiualChild(child, max_deeper, current_deeper);
+                }
+
+                if (result) break;
+            }
+
+            current_deeper = 0;
+            return (result);
         }
         #endregion
 

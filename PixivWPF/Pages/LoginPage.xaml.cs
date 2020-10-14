@@ -65,12 +65,12 @@ namespace PixivWPF.Pages
                 //var appAccent = appStyle.Item2;
 
 #if DEBUG
-            var logo = System.IO.Path.Combine(Application.Current.GetRoot(), "Assets", "pixiv-logo.png");
-            var uri = new Uri(logo);
-            if (uri.IsAbsoluteUri && System.IO.File.Exists(uri.AbsolutePath))
-            {
-                Logo.Source = new BitmapImage(uri);
-            }
+                var logo = System.IO.Path.Combine(Application.Current.GetRoot(), "Assets", "pixiv-logo.png");
+                var uri = new Uri(logo);
+                if (uri.IsAbsoluteUri && System.IO.File.Exists(uri.AbsolutePath))
+                {
+                    Logo.Source = new BitmapImage(uri);
+                }
 #else
                 var uri = new Uri(@"pack://application:,,,/PixivWPF;component/Resources/pixiv-logo.png");
                 if (uri.IsAbsoluteUri && System.IO.File.Exists(uri.AbsolutePath))

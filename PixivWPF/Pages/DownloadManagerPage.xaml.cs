@@ -156,31 +156,34 @@ namespace PixivWPF.Pages
         private bool IsExists(string url)
         {
             bool result = false;
-
-            if (string.IsNullOrEmpty(url))
-                result = true;
-            else
+            try
             {
-                foreach (var item in items)
-                {
-                    if (item.Url.Equals(url, StringComparison.Ordinal))
-                    {
-                        result = true;
-                        //if (//item.State == DownloadState.Failed ||
-                        //    item.State == DownloadState.Idle ||
-                        //    item.State == DownloadState.Paused)
-                        //    item.IsStart = true;
-                        break;
-                    }
-                }
+                if (string.IsNullOrEmpty(url))
+                    result = true;
+                else
+                    result = items.Where(i => i.Url.Equals(url, StringComparison.CurrentCultureIgnoreCase)).Count() > 0;
             }
+            catch (Exception) { }
+            return (result);
+        }
 
+        private bool IsExists(DownloadInfo item)
+        {
+            bool result = false;
+            try
+            {
+                if (string.IsNullOrEmpty(item.Url))
+                    result = true;
+                else
+                    result = items.Where(i => i.Url.Equals(item.Url, StringComparison.CurrentCultureIgnoreCase)).Count() > 0;
+            }
+            catch (Exception) { }
             return (result);
         }
 
         internal void Add(DownloadInfo item)
         {
-            if (item is DownloadInfo)
+            if (item is DownloadInfo)// && !IsExists(item))
             {
                 items.Add(item);
                 DownloadItems.ScrollIntoView(item);

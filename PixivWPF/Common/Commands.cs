@@ -315,12 +315,12 @@ namespace PixivWPF.Common
                 try
                 {
                     var item = obj as ImageItem;
-                    if(item.IsWork())
+                    if (item.IsWork())
                     {
-                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();                        
+                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
                         OpenWork.Execute(item.Illust);
                     }
-                    else if(item.IsUser())
+                    else if (item.IsUser())
                     {
                         OpenUser.Execute(item.User);
                     }
@@ -453,7 +453,7 @@ namespace PixivWPF.Common
                 {
                     var user = obj as Pixeez.Objects.UserBase;
                     var u = user.Id.FindUser();
-                    if(u is Pixeez.Objects.UserBase) user = u;
+                    if (u is Pixeez.Objects.UserBase) user = u;
 
                     var title = $"User: {user.Name} / {user.Id} / {user.Account}";
                     if (await title.ActiveByTitle()) return;
@@ -597,7 +597,7 @@ namespace PixivWPF.Common
                         else if (File.Exists(fp_p)) ShellOpenFile.Execute(fp_p);
                     }
                 }
-                else if(obj is string)
+                else if (obj is string)
                 {
                     try
                     {
@@ -828,49 +828,53 @@ namespace PixivWPF.Common
         {
             if (obj is ImageItem)
             {
-                var item = obj as ImageItem;
-                if (item.IsWork())
+                await new Action(async () =>
                 {
-                    var illust = item.Illust;
-                    var dt = illust.GetDateTime();
-                    var is_meta_single_page = illust.PageCount == 1 ? true : false;
-                    if (item.Tag is Pixeez.Objects.MetaPages)
+                    var item = obj as ImageItem;
+                    if (item.IsWork())
                     {
-                        var pages = item.Tag as Pixeez.Objects.MetaPages;
-                        var url = pages.GetOriginalUrl();
-                        if (!string.IsNullOrEmpty(url))
+                        if (string.IsNullOrEmpty(setting.LastFolder))
                         {
-                            url.SaveImage(pages.GetThumbnailUrl(), dt, is_meta_single_page);
+                            "".ChangeSaveTarget();
+                            await Task.Delay(10);
+                            Application.Current.DoEvents();
+                        }
+
+                        var dt = item.Illust.GetDateTime();
+                        if (item.IsPage() || item.IsPages())
+                        {
+                            var url = item.Illust.GetOriginalUrl(item.Index);
+                            if (!string.IsNullOrEmpty(url))
+                            {
+                                url.SaveImage(item.Illust.GetThumbnailUrl(item.Index), dt);
+                            }
+                        }
+                        else if (item.Illust is Pixeez.Objects.Work)
+                        {
+                            var url = item.Illust.GetOriginalUrl(item.Index);
+                            if (!string.IsNullOrEmpty(url))
+                            {
+                                url.SaveImage(item.Illust.GetThumbnailUrl(item.Index), dt);
+                            }
                         }
                     }
-                    else if (item.Tag is Pixeez.Objects.Page)
-                    {
-                        var pages = item.Tag as Pixeez.Objects.Page;
-                        var url = pages.GetOriginalUrl();
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            url.SaveImage(pages.GetThumbnailUrl(), dt, is_meta_single_page);
-                        }
-                    }
-                    else if (item.Illust is Pixeez.Objects.Work)
-                    {
-                        var url = illust.GetOriginalUrl(item.Index);
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            url.SaveImage(illust.GetThumbnailUrl(item.Index), dt, is_meta_single_page);
-                        }
-                    }
-                }
+                }).InvokeAsync();
             }
             else if (obj is ImageListGrid)
             {
+                setting = Application.Current.LoadSetting();
                 await new Action(async () =>
                 {
                     var gallery = obj as ImageListGrid;
                     foreach (var item in gallery.GetSelected())
                     {
-                        await new Action(() =>
+                        if (string.IsNullOrEmpty(setting.LastFolder))
                         {
+                            "".ChangeSaveTarget();
+                            await Task.Delay(10);
+                            Application.Current.DoEvents();
+                        }
+                        await new Action(() => {
                             SaveIllust.Execute(item);
                         }).InvokeAsync();
                     }
@@ -882,15 +886,22 @@ namespace PixivWPF.Common
         {
             if (obj is ImageItem)
             {
-                var item = obj as ImageItem;
-                if (item.IsWork())
+                await new Action(async () =>
                 {
-                    var illust = item.Illust;
-                    var dt = illust.GetDateTime();
-                    var is_meta_single_page = illust.PageCount==1 ? true : false;
-
-                    if (illust != null)
+                    var item = obj as ImageItem;
+                    if (item.IsWork())
                     {
+                        if (string.IsNullOrEmpty(setting.LastFolder))
+                        {
+                            "".ChangeSaveTarget();
+                            await Task.Delay(10);
+                            Application.Current.DoEvents();
+                        }
+
+                        var illust = item.Illust;
+                        var dt = illust.GetDateTime();
+                        var is_meta_single_page = illust.PageCount==1 ? true : false;
+
                         if (illust is Pixeez.Objects.IllustWork)
                         {
                             var illustset = illust as Pixeez.Objects.IllustWork;
@@ -932,17 +943,23 @@ namespace PixivWPF.Common
                             }
                         }
                     }
-                }
+                }).InvokeAsync();
             }
             else if (obj is ImageListGrid)
             {
+                setting = Application.Current.LoadSetting();
                 await new Action(async () =>
                 {
                     var gallery = obj as ImageListGrid;
                     foreach (var item in gallery.GetSelected())
                     {
-                        await new Action(() =>
+                        if (string.IsNullOrEmpty(setting.LastFolder))
                         {
+                            "".ChangeSaveTarget();
+                            await Task.Delay(10);
+                            Application.Current.DoEvents();
+                        }
+                        await new Action(() => {
                             SaveIllustAll.Execute(item);
                         }).InvokeAsync();
                     }
@@ -1039,8 +1056,8 @@ namespace PixivWPF.Common
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
-                if(item.IsWork()) SendToOtherInstance.Execute(item.Illust);
-                else if(item.IsUser()) SendToOtherInstance.Execute(item.User);
+                if (item.IsWork()) SendToOtherInstance.Execute(item.Illust);
+                else if (item.IsUser()) SendToOtherInstance.Execute(item.User);
             }
             else if (obj is ImageListGrid)
             {
@@ -1053,12 +1070,12 @@ namespace PixivWPF.Common
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
                     {
-                        if(item.IsUser())
+                        if (item.IsUser())
                         {
                             var uid = $"uid:{item.ID}";
                             if (!ids.Contains(uid)) ids.Add(uid);
                         }
-                        else if(item.IsWork())
+                        else if (item.IsWork())
                         {
                             var id = $"id:{item.ID}";
                             if (!ids.Contains(id)) ids.Add(id);
@@ -1117,8 +1134,8 @@ namespace PixivWPF.Common
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
-                if(item.IsUser()) ShellSendToOtherInstance.Execute(item.User);
-                else if(item.IsWork()) ShellSendToOtherInstance.Execute(item.Illust);
+                if (item.IsUser()) ShellSendToOtherInstance.Execute(item.User);
+                else if (item.IsWork()) ShellSendToOtherInstance.Execute(item.Illust);
             }
             else if (obj is ImageListGrid)
             {
@@ -1131,8 +1148,8 @@ namespace PixivWPF.Common
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
                     {
-                        if(item.IsUser()) ids.Add($"uid:{item.ID}");
-                        else if(item.IsWork()) ids.Add($"id:{item.ID}");
+                        if (item.IsUser()) ids.Add($"uid:{item.ID}");
+                        else if (item.IsWork()) ids.Add($"id:{item.ID}");
                     }
                     ShellSendToOtherInstance.Execute(ids);
                 }
@@ -1216,7 +1233,7 @@ namespace PixivWPF.Common
                     }).InvokeAsync();
                 }
             }
-            else if(obj is Uri)
+            else if (obj is Uri)
             {
                 try
                 {
@@ -1278,7 +1295,7 @@ namespace PixivWPF.Common
             else if (obj is SearchResultPage)
             {
                 var page = obj as SearchResultPage;
-                if(page.Contents is string)
+                if (page.Contents is string)
                     page.UpdateDetail(page.Contents);
             }
             else if (obj is HistoryPage)
@@ -1344,6 +1361,46 @@ namespace PixivWPF.Common
             {
                 var win = obj as MainWindow;
                 win.CommandNavNext_Click(win.CommandNavNext, new RoutedEventArgs());
+            }
+        });
+
+        public static ICommand ScrollUpTiles { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                var tiles = obj as TilesPage;
+                tiles.ScrollPageUp();
+            }
+            else if (obj is MainWindow)
+            {
+                var win = obj as MainWindow;
+                if (win.Content is Grid &&
+                   (win.Content as Grid).Children.Count > 0 &&
+                   (win.Content as Grid).Children[0] is Frame &&
+                   ((win.Content as Grid).Children[0] as Frame).Content is TilesPage)
+                {
+                    ScrollUpTiles.Execute(((win.Content as Grid).Children[0] as Frame).Content);
+                }
+            }
+        });
+
+        public static ICommand ScrollDownTiles { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                var tiles = obj as TilesPage;
+                tiles.ScrollPageDown();
+            }
+            else if (obj is MainWindow)
+            {
+                var win = obj as MainWindow;
+                if (win.Content is Grid && 
+                   (win.Content as Grid).Children.Count > 0 && 
+                   (win.Content as Grid).Children[0] is Frame &&
+                   ((win.Content as Grid).Children[0] as Frame).Content is TilesPage)
+                {
+                    ScrollDownTiles.Execute(((win.Content as Grid).Children[0] as Frame).Content);
+                }
             }
         });
 
@@ -1466,18 +1523,41 @@ namespace PixivWPF.Common
                         }
                         else if (sender is MainWindow)
                         {
+#if DEBUG
+                            $"KeyUp: {e.Key}, {e.SystemKey}, Modifiers: {Keyboard.Modifiers.ToString()}".DEBUG();
+#endif
                             var win = sender as MainWindow;
+                            if (e.Key == Key.LeftAlt || e.Key == Key.RightAlt)
+                            {
+                                //Keyboard.Modifiers
+                                e.Handled = true;
+                                return;
+                            }
+
                             if (e.Key == Key.F5 || e.SystemKey == Key.F5)
                             {
                                 RefreshPage.Execute(sender);
+                                e.Handled = true;
                             }
                             else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
                             {
                                 AppendTiles.Execute(sender);
+                                e.Handled = true;
                             }
                             else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
                             {
                                 RefreshPageThumb.Execute(sender);
+                                e.Handled = true;
+                            }
+                            else if ((e.Key == Key.Up || e.SystemKey == Key.Up) && Keyboard.Modifiers == ModifierKeys.Alt)
+                            {
+                                ScrollUpTiles.Execute(sender);
+                                e.Handled = true;
+                            }
+                            else if ((e.Key == Key.Down || e.SystemKey == Key.Down) && Keyboard.Modifiers == ModifierKeys.Alt)
+                            {
+                                ScrollDownTiles.Execute(sender);
+                                e.Handled = true;
                             }
                             else
                             {

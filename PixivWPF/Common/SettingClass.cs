@@ -117,6 +117,8 @@ namespace PixivWPF.Common
                 if (Cache.AutoExpand != new_setting.AutoExpand)
                     Cache.AutoExpand = new_setting.AutoExpand;
 
+                if (Cache.DownloadByAPI != new_setting.DownloadByAPI)
+                    Cache.DownloadByAPI = new_setting.DownloadByAPI;
                 if (Cache.DownloadTimeSpan != new_setting.DownloadTimeSpan)
                     Cache.DownloadTimeSpan = new_setting.DownloadTimeSpan;
                 if (Cache.DownloadWaitingTime != new_setting.DownloadWaitingTime)
@@ -237,7 +239,7 @@ namespace PixivWPF.Common
                 }
                 catch (Exception ex)
                 {
-                    ex.Message.ShowMessageDialog("ERROR");
+                    ex.Message.ShowMessageBox("ERROR");
                 }
                 finally
                 {
@@ -285,6 +287,9 @@ namespace PixivWPF.Common
 
                             if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
                                 Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
+
+                            if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.LastFolder))
+                                Cache.LocalStorage.Add(new StorageType(Cache.LastFolder, true));
 
                             Cache.LocalStorage.InitDownloadedWatcher();
 
@@ -626,6 +631,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Download relative
+        public bool DownloadByAPI { get; set; } = true;
         public int DownloadWaitingTime { get; set; } = 5000;
         public int DownloadTimeSpan { get; set; } = 750;
         public bool DownloadCompletedToast { get; set; } = true;

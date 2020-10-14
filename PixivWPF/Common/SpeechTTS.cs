@@ -487,7 +487,7 @@ namespace PixivWPF.Common
 #if DEBUG
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ex.Message.DEBUG();
             }
 #else
             catch (Exception) { }
@@ -549,7 +549,7 @@ namespace PixivWPF.Common
 #if DEBUG
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ex.Message.DEBUG();
             }
 #else
             catch (Exception) { }

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -224,6 +225,73 @@ namespace PixivWPF.Pages
         public void NextIllustPage()
         {
             if (detail_page is IllustDetailPage) detail_page.NextIllustPage();
+        }
+
+        private int FirstInView(out int count)
+        {
+            int result = -1;
+
+            UniformGrid vspanel = ListImageTiles.GetVisualChild<UniformGrid>();
+            List<ListViewItem> items = vspanel.GetVisualChildren<ListViewItem>();
+            count = items.Count;
+            if(items[1].IsVisiualChild(vspanel))
+            {
+
+            }
+            return (result);
+        }
+
+        public void ScrollPageUp()
+        {
+            try
+            {
+                if (ListImageTiles.SelectedItem is ImageItem)
+                {
+                    ScrollViewer scrollViewer = ListImageTiles.GetVisualChild<ScrollViewer>();
+                    if (scrollViewer != null)
+                    {
+                        ScrollBar scrollBar = scrollViewer.Template.FindName("PART_VerticalScrollBar", scrollViewer) as ScrollBar;
+                        if (scrollBar != null)
+                        {
+                            var eh = scrollViewer.ExtentHeight;
+                            var ew = scrollViewer.ExtentWidth;
+                            var vh = scrollViewer.ViewportHeight;
+                            var vw = scrollViewer.ViewportWidth;
+                            var pages = (int)Math.Ceiling(eh / vh);
+                            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - vh);
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public void ScrollPageDown()
+        {
+            try
+            {
+                if (ListImageTiles.SelectedItem is ImageItem)
+                {
+                    //int count = 0;
+                    //var index = FirstInView(out count);
+
+                    ScrollViewer scrollViewer = ListImageTiles.GetVisualChild<ScrollViewer>();
+                    if (scrollViewer != null)
+                    {
+                        ScrollBar scrollBar = scrollViewer.Template.FindName("PART_VerticalScrollBar", scrollViewer) as ScrollBar;
+                        if (scrollBar != null)
+                        {
+                            var eh = scrollViewer.ExtentHeight;
+                            var ew = scrollViewer.ExtentWidth;
+                            var vh = scrollViewer.ViewportHeight;
+                            var vw = scrollViewer.ViewportWidth;
+                            var pages = (int)Math.Ceiling(eh / vh);
+                            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + vh);
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
         }
 
         internal void KeyAction(KeyEventArgs e)
@@ -1218,15 +1286,6 @@ namespace PixivWPF.Pages
                         e.Handled = true;
                     }
                 }
-                else if (e.Key == Key.Down || e.Key == Key.Next || e.Key == Key.PageDown ||
-                         e.SystemKey == Key.Down || e.SystemKey == Key.Next || e.SystemKey == Key.PageDown)
-                {
-                    if (ListImageTiles.SelectedIndex >= ListImageTiles.Items.Count - 1)
-                    {
-                        ShowImages(TargetPage, true);
-                        e.Handled = true;
-                    }
-                }
                 else if (e.Key == Key.Home || e.SystemKey == Key.Home)
                 {
                     if (ListImageTiles.Items.Count > 0)
@@ -1250,17 +1309,8 @@ namespace PixivWPF.Pages
                     if (ListImageTiles.SelectedItem is ImageItem)
                     {
                         var item = ListImageTiles.SelectedItem as ImageItem;
-                        if (item.Illust is Pixeez.Objects.Work)
-                        {
-                            var illust = item.Illust;
-                            var url = illust.GetOriginalUrl();
-                            var dt = illust.GetDateTime();
-                            var is_meta_single_page = illust.PageCount == 1 ? true : false;
-                            if (!string.IsNullOrEmpty(url))
-                            {
-                                url.SaveImage(illust.GetThumbnailUrl(), dt, is_meta_single_page);
-                            }
-                        }
+                        if (item.IsWork())
+                            Commands.SaveIllust.Execute(item);
                     }
                     e.Handled = true;
                 }
@@ -1285,6 +1335,16 @@ namespace PixivWPF.Pages
                     NextIllustPage();
                     e.Handled = true;
                 }
+                //else if ((e.Key == Key.Up || e.SystemKey == Key.Up) && Keyboard.Modifiers == ModifierKeys.Alt)
+                //{
+                //    ScrollPageUp();
+                //    e.Handled = true;
+                //}
+                //else if ((e.Key == Key.Down || e.SystemKey == Key.Down) && Keyboard.Modifiers == ModifierKeys.Alt)
+                //{
+                //    ScrollPageDown();
+                //    e.Handled = true;
+                //}
             }
         }
 

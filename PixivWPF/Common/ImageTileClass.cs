@@ -142,6 +142,8 @@ namespace PixivWPF.Common
                 NotifyPropertyChanged("IsDownloaded");
             }
         }
+        public string DownloadedTooltip { get; set; } = string.Empty;
+        public string DownloadedFilePath { get; set; } = string.Empty;
 
         public string Sanity { get; set; } = "all";
         public bool IsR18 { get { return (Sanity.Equals("18+")); } }
@@ -418,7 +420,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageDialog("ERROR");
+                ex.Message.ShowMessageBox("ERROR");
             }
             return (result);
         }
@@ -563,7 +565,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageDialog("ERROR");
+                ex.Message.ShowMessageBox("ERROR");
             }
         }
 

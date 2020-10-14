@@ -142,28 +142,7 @@ namespace PixivWPF.Pages
         private void SaveIllust()
         {
             if (Contents is ImageItem)
-            {
-                if (Contents.Illust is Pixeez.Objects.Work)
-                {
-                    var illust = Contents.Illust;
-                    var idx = Contents.Index;
-                    var url = illust.GetOriginalUrl(idx);
-                    var dt = illust.GetDateTime();
-
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        try
-                        {
-                            var is_meta_single_page = illust.PageCount==1 ? true : false;
-                            url.SaveImage(illust.GetThumbnailUrl(idx), dt, is_meta_single_page);
-                        }
-                        catch (Exception ex)
-                        {
-                            ex.Message.ShowMessageBox("ERROR");
-                        }
-                    }
-                }
-            }
+                Commands.SaveIllust.Execute(Contents);
         }
 
         internal void KeyAction(KeyEventArgs e)

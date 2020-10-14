@@ -425,6 +425,11 @@ namespace PixivWPF.Common
             });
         }
 
+        private void UpdateProgress()
+        {
+            if (progress is IProgress<Tuple<double, double>>) progress.Report(Progress);
+        }
+
         private void CheckProperties()
         {
             if (Tag is DownloadInfo)
@@ -433,7 +438,7 @@ namespace PixivWPF.Common
                 {
                     Info = Tag as DownloadInfo;
 
-                    progress.Report(Progress);
+                    UpdateProgress();
 
                     if (State == DownloadState.Finished)
                     {
@@ -525,6 +530,16 @@ namespace PixivWPF.Common
                     await Task.Delay(1000);
                     Application.Current.DoEvents();
                 }
+                try
+                {
+                    if (httpClient is HttpClient)
+                    {
+                        httpClient.CancelPendingRequests();
+                        httpClient.Dispose();
+                        httpClient = null;
+                    }
+                }
+                catch (Exception) { }
             }
         }
 
@@ -534,7 +549,7 @@ namespace PixivWPF.Common
             try
             {
                 State = DownloadState.Writing;
-                progress.Report(Progress);
+                UpdateProgress();
                 File.WriteAllBytes(FileName, bytes);
                 File.SetCreationTime(FileName, FileTime);
                 File.SetLastWriteTime(FileName, FileTime);
@@ -552,6 +567,7 @@ namespace PixivWPF.Common
             }
             finally
             {
+                UpdateProgress();
             }
             return (result);
         }
@@ -586,10 +602,12 @@ namespace PixivWPF.Common
             }
             finally
             {
+                UpdateProgress();
             }
             return (result);
         }
 
+        private HttpClient httpClient = null;
         private async Task<HttpResponseMessage> GetAsyncResponse(string Url)
         {
             HttpClientHandler handler = new HttpClientHandler()
@@ -601,7 +619,7 @@ namespace PixivWPF.Common
                 UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.UsingProxy ? false : true
             };
 
-            var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(30) };
+            httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(60), MaxResponseContentBufferSize = 100*1024*1024 };
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
             httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
             return (await httpClient.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead));
@@ -612,12 +630,12 @@ namespace PixivWPF.Common
             string result = string.Empty;
             try
             {
+                UpdateProgress();
                 response.EnsureSuccessStatusCode();
                 string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                 Length = response.Content.Headers.ContentLength ?? 0;
                 if (Length > 0)
                 {
-                    progress.Report(Progress);
                     finishedProgress = new Tuple<double, double>(Length, Length);
 
                     using (var cs = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
@@ -641,7 +659,7 @@ namespace PixivWPF.Common
                                     lastReceived += bytesread;
                                     Received += bytesread;
                                     await ms.WriteAsync(bytes, 0, bytesread);
-                                    progress.Report(Progress);
+                                    UpdateProgress();
                                 }
                             } while (bytesread > 0 && Received < Length);
 
@@ -702,8 +720,6 @@ namespace PixivWPF.Common
                 State = DownloadState.Failed;
             }
 
-            progress.Report(Progress);
-
             if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
             cancelSource = null;
             if (Downloading is SemaphoreSlim) Downloading.Release();
@@ -730,12 +746,13 @@ namespace PixivWPF.Common
                     FailReason = string.Empty;
                     State = DownloadState.Downloading;
 
+                    lastReceived = 0;
+                    Length = Received = 0;
+                    UpdateProgress();
+
                     using (var response = await GetAsyncResponse(Url))
                     {
                         EndTick = DateTime.Now;
-                        lastReceived = 0;
-                        Received = 0;
-
                         await DownloadStreamAsync(response);
                     }
                 }
@@ -746,6 +763,7 @@ namespace PixivWPF.Common
                 finally
                 {
                     DownloadFinally(out result);
+                    UpdateProgress();
                 }
             }
             return (result);
@@ -772,15 +790,16 @@ namespace PixivWPF.Common
                     FailReason = string.Empty;
                     State = DownloadState.Downloading;
 
+                    lastReceived = 0;
+                    Length = Received = 0;
+                    UpdateProgress();
+
                     Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
                     using (var async_response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, Url))
                     {
                         if(async_response is Pixeez.AsyncResponse)
                         {
                             EndTick = DateTime.Now;
-                            lastReceived = 0;
-                            Received = 0;
-
                             await DownloadStreamAsync(async_response.Source);
                         }
                         else
@@ -796,8 +815,32 @@ namespace PixivWPF.Common
                 finally
                 {
                     DownloadFinally(out result);
+                    UpdateProgress();
                 }
             }
+            return (result);
+        }
+
+        private string DownloadFromFile(string file)
+        {
+            string result = string.Empty;
+
+            try
+            {
+                IsStart = false;
+                Canceling = false;
+                StartTick = DateTime.Now;
+                FailReason = string.Empty;
+                State = DownloadState.Downloading;
+                SaveFile(FileName, file);
+            }
+            catch (Exception) { }
+            finally
+            {
+                if (Downloading is SemaphoreSlim) Downloading.Release();
+                UpdateProgress();
+            }
+
             return (result);
         }
 
@@ -809,11 +852,13 @@ namespace PixivWPF.Common
             {
                 delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan ? true : false;
                 if (!delta) return;
+                if (!(await "Overwrite exists?".ShowMessageDialog("Warnning", MessageBoxImage.Warning))) return;
             }
 
             if (IsDownloading) await Cancel();
             CheckProperties();
 
+            var target_file = string.Empty;
             string fc = Url.GetImageCachePath();
             if (File.Exists(fc))
             {
@@ -821,20 +866,7 @@ namespace PixivWPF.Common
                 {
                     if (await Downloading.WaitAsync(setting.DownloadWaitingTime))
                     {
-                        try
-                        {
-                            IsStart = false;
-                            Canceling = false;
-                            StartTick = DateTime.Now;
-                            FailReason = string.Empty;
-                            State = DownloadState.Downloading;
-                            SaveFile(FileName, fc);
-                        }
-                        catch (Exception) { }
-                        finally
-                        {
-                            if (Downloading is SemaphoreSlim) Downloading.Release();
-                        }
+                        target_file = DownloadFromFile(fc);
                     }
                 }).InvokeAsync();
             }
@@ -848,10 +880,10 @@ namespace PixivWPF.Common
                         await Task.Delay(rnd.Next(20, 200));
                         Application.Current.DoEvents();
 
-                        if (string.IsNullOrEmpty(setting.AccessToken) || setting.ExpTime <= DateTime.Now)
-                            await DownloadDirectAsync();
+                        if (Application.Current.DownloadUsingToken())
+                            target_file = await DownloadAsync();
                         else
-                            await DownloadAsync();
+                            target_file = await DownloadDirectAsync();
                     }).InvokeAsync();
                 }
             }

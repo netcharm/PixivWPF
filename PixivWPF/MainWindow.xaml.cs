@@ -169,7 +169,7 @@ namespace PixivWPF
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageDialog("ERROR!");
+                ex.Message.ShowMessageBox("ERROR!");
             }
 
             return (true);
@@ -238,7 +238,7 @@ namespace PixivWPF
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageDialog("ERROR[PIPE]!");
+                ex.Message.ShowMessageBox("ERROR[PIPE]!");
             }
             finally
             {
