@@ -1458,7 +1458,8 @@ namespace PixivWPF.Pages
             e.Handled = false;
             if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
             {
-                lastKeyUp = e.Timestamp;
+                if (!Application.Current.IsModiierKey(e.Key)) lastKeyUp = e.Timestamp;
+
                 var pub = setting.PrivateFavPrefer ? false : true;
 
                 if ((e.Key == Key.Left || e.SystemKey == Key.Left) && Keyboard.Modifiers == ModifierKeys.Alt)

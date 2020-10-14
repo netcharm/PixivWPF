@@ -1364,6 +1364,13 @@ namespace PixivWPF.Common
         #endregion
 
         #region Hot-Key Processing
+        private static List<Key> Modifier = new List<Key>() { Key.LeftCtrl, Key.RightCtrl, Key.LeftShift, Key.RightShift, Key.LeftAlt, Key.RightAlt, Key.LWin, Key.RWin };
+
+        public static bool IsModiierKey(this Application app, Key key)
+        {
+            return (Modifier.Contains(key) ? true : false);
+        }
+
         private static long lastKeyUp = Environment.TickCount;
         public static void KeyAction(this Application app, dynamic current, KeyEventArgs e)
         {
@@ -3580,7 +3587,7 @@ namespace PixivWPF.Common
                     UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
                 };
 
-                using (var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(30) })
+                using (var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout) })
                 {
                     try
                     {
@@ -5425,6 +5432,31 @@ namespace PixivWPF.Common
             var window = Window.GetWindow(page);
             if (window == null) window = GetActiveWindow();
             return (window);
+        }
+
+        public static dynamic GetWindowContent(this MetroWindow window)
+        {
+            dynamic result = null;
+            try
+            {
+                if (window is MainWindow)
+                {
+                    if (window.Content is Grid &&
+                       (window.Content as Grid).Children.Count > 0 &&
+                       (window.Content as Grid).Children[0] is Frame &&
+                       ((window.Content as Grid).Children[0] as Frame).Content is TilesPage)
+                    {
+                        result = ((window.Content as Grid).Children[0] as Frame).Content;
+                    }                    
+                }
+                else if(window is ContentWindow)
+                {
+                    if (window.Content is Page)
+                        result = window.Content;
+                }
+            }
+            catch (Exception) { }
+            return (result);
         }
         #endregion
 

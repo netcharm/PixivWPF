@@ -1247,13 +1247,14 @@ namespace PixivWPF.Pages
             }
         }
 
-        private long lastKeyUp = Environment.TickCount;
+        private long lastKeyUp = Environment.TickCount;        
         private void ListImageTiles_KeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = false;
             if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
             {
-                lastKeyUp = e.Timestamp;
+                if (!Application.Current.IsModiierKey(e.Key)) lastKeyUp = e.Timestamp;
+
                 if (e.Key == Key.F5 || e.SystemKey == Key.F5)
                 {
                     var main = this.GetMainWindow() as MainWindow;

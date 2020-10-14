@@ -1374,14 +1374,8 @@ namespace PixivWPF.Common
             }
             else if (obj is MainWindow)
             {
-                var win = obj as MainWindow;
-                if (win.Content is Grid &&
-                   (win.Content as Grid).Children.Count > 0 &&
-                   (win.Content as Grid).Children[0] is Frame &&
-                   ((win.Content as Grid).Children[0] as Frame).Content is TilesPage)
-                {
-                    ScrollUpTiles.Execute(((win.Content as Grid).Children[0] as Frame).Content);
-                }
+                var content = (obj as MainWindow).GetWindowContent();
+                if (content is TilesPage) ScrollUpTiles.Execute(content);
             }
         });
 
@@ -1394,14 +1388,8 @@ namespace PixivWPF.Common
             }
             else if (obj is MainWindow)
             {
-                var win = obj as MainWindow;
-                if (win.Content is Grid && 
-                   (win.Content as Grid).Children.Count > 0 && 
-                   (win.Content as Grid).Children[0] is Frame &&
-                   ((win.Content as Grid).Children[0] as Frame).Content is TilesPage)
-                {
-                    ScrollDownTiles.Execute(((win.Content as Grid).Children[0] as Frame).Content);
-                }
+                var content = (obj as MainWindow).GetWindowContent();
+                if(content is TilesPage) ScrollDownTiles.Execute(content);
             }
         });
 
@@ -1478,7 +1466,8 @@ namespace PixivWPF.Common
                     KeyEventArgs e =  obj.Value;
                     if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
                     {
-                        lastKeyUp = e.Timestamp;
+                        if(!Application.Current.IsModiierKey(e.Key)) lastKeyUp = e.Timestamp;
+
                         if (sender is ImageListGrid || sender is ImageItem)
                         {
                             if (e.Key == Key.Enter || e.SystemKey == Key.Enter)
@@ -1562,9 +1551,10 @@ namespace PixivWPF.Common
                             }
                             else
                             {
-                                if (win.Content is TilesPage)
+                                var content = win.GetWindowContent();
+                                if (content is TilesPage)
                                 {
-                                    KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(win.Content, e));
+                                    KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(content, e));
                                     e.Handled = true;
                                 }
                             }
