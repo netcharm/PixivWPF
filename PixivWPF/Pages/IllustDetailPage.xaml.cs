@@ -555,17 +555,12 @@ namespace PixivWPF.Pages
                         {
                             var illust = await item.ID.RefreshIllust();
                             if (illust is Pixeez.Objects.Work)
-                            {
                                 item.Illust = illust;
-                                item.Illust.Cache();
-                            }
                             else
-                            {
                                 "Illust not exists or deleted".ShowMessageBox("ERROR[ILLUST]");
-                            }
                         }
                         UpdateDetailIllust(item);
-                        IllustDetailWait.Hide();
+                        //IllustDetailWait.Hide();
                     }).InvokeAsync();
                 }
                 else if (item.IsUser())
@@ -577,17 +572,12 @@ namespace PixivWPF.Pages
                         {
                             var user = await item.UserID.RefreshUser();
                             if (user is Pixeez.Objects.User)
-                            {
                                 item.User = user;
-                                item.User.Cache();
-                            }
                             else
-                            {
                                 "User not exists or deleted".ShowMessageBox("ERROR[USER]");
-                            }
                         }
                         UpdateDetailUser(item.User);
-                        IllustDetailWait.Hide();
+                        //IllustDetailWait.Hide();
                     }).InvokeAsync();
                 }
                 IllustDetailViewer.ScrollToTop();

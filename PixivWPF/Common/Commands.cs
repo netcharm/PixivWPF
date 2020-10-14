@@ -841,12 +841,13 @@ namespace PixivWPF.Common
                         }
 
                         var dt = item.Illust.GetDateTime();
+                        var is_meta_single_page = item.Illust.PageCount == 1 ? true : false;
                         if (item.IsPage() || item.IsPages())
                         {
                             var url = item.Illust.GetOriginalUrl(item.Index);
                             if (!string.IsNullOrEmpty(url))
                             {
-                                url.SaveImage(item.Illust.GetThumbnailUrl(item.Index), dt);
+                                url.SaveImage(item.Illust.GetThumbnailUrl(item.Index), dt, is_meta_single_page);
                             }
                         }
                         else if (item.Illust is Pixeez.Objects.Work)
@@ -854,7 +855,7 @@ namespace PixivWPF.Common
                             var url = item.Illust.GetOriginalUrl(item.Index);
                             if (!string.IsNullOrEmpty(url))
                             {
-                                url.SaveImage(item.Illust.GetThumbnailUrl(item.Index), dt);
+                                url.SaveImage(item.Illust.GetThumbnailUrl(item.Index), dt, is_meta_single_page);
                             }
                         }
                     }

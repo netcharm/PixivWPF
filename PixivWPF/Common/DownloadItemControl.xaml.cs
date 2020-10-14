@@ -159,8 +159,10 @@ namespace PixivWPF.Common
     /// </summary>
     public partial class DownloadItem : UserControl, INotifyPropertyChanged
     {
-        private const int HTTP_STREAM_READ_COUNT = 8192;
         private Setting setting = Application.Current.LoadSetting();
+
+        private int HTTP_STREAM_READ_COUNT = 8192;
+        private int HTTP_TIMEOUT = 60;
 
         private Tuple<double, double> finishedProgress;
 
@@ -619,7 +621,7 @@ namespace PixivWPF.Common
                 UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.UsingProxy ? false : true
             };
 
-            httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(60), MaxResponseContentBufferSize = 100*1024*1024 };
+            httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(HTTP_TIMEOUT), MaxResponseContentBufferSize = 100*1024*1024 };
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
             httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
             return (await httpClient.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead));
@@ -847,6 +849,9 @@ namespace PixivWPF.Common
         private async void Start()
         {
             setting = Application.Current.LoadSetting();
+            HTTP_STREAM_READ_COUNT = setting.DownloadHttpStreamBlockSize;
+            HTTP_TIMEOUT = setting.DownloadHttpTimeout > 5 ? setting.DownloadHttpTimeout : 5;
+
             bool delta = true;
             if (File.Exists(FileName))
             {

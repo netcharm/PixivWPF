@@ -119,6 +119,10 @@ namespace PixivWPF.Common
 
                 if (Cache.DownloadByAPI != new_setting.DownloadByAPI)
                     Cache.DownloadByAPI = new_setting.DownloadByAPI;
+                if (Cache.DownloadHttpTimeout != new_setting.DownloadHttpTimeout)
+                    Cache.DownloadHttpTimeout = new_setting.DownloadHttpTimeout;
+                if (Cache.DownloadHttpStreamBlockSize != new_setting.DownloadHttpStreamBlockSize)
+                    Cache.DownloadHttpStreamBlockSize = new_setting.DownloadHttpStreamBlockSize;               
                 if (Cache.DownloadTimeSpan != new_setting.DownloadTimeSpan)
                     Cache.DownloadTimeSpan = new_setting.DownloadTimeSpan;
                 if (Cache.DownloadWaitingTime != new_setting.DownloadWaitingTime)
@@ -632,6 +636,8 @@ namespace PixivWPF.Common
 
         #region Download relative
         public bool DownloadByAPI { get; set; } = true;
+        public int DownloadHttpTimeout { get; set; } = 30;
+        public int DownloadHttpStreamBlockSize { get; set; } = 16384;
         public int DownloadWaitingTime { get; set; } = 5000;
         public int DownloadTimeSpan { get; set; } = 750;
         public bool DownloadCompletedToast { get; set; } = true;
