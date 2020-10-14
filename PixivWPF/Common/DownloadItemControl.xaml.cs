@@ -618,7 +618,7 @@ namespace PixivWPF.Common
                 MaxAutomaticRedirections = 15,
                 //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
                 Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
-                UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.UsingProxy ? false : true
+                UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
             };
 
             httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(HTTP_TIMEOUT), MaxResponseContentBufferSize = 100*1024*1024 };

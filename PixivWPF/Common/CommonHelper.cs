@@ -3570,13 +3570,14 @@ namespace PixivWPF.Common
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
+                setting = Application.Current.LoadSetting();
                 HttpClientHandler handler = new HttpClientHandler()
                 {
                     AllowAutoRedirect = true,
                     MaxAutomaticRedirections = 15,
                     //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
                     Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
-                    UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.UsingProxy ? false : true
+                    UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
                 };
 
                 using (var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(30) })
