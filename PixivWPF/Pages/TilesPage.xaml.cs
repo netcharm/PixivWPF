@@ -1239,7 +1239,11 @@ namespace PixivWPF.Pages
                     detail_page.Contents = item;
                     detail_page.UpdateDetail(item);
                 }
-                if (ListImageTiles.SelectedItem is ImageItem) (ListImageTiles.SelectedItem as ImageItem).Focus();
+                if (ListImageTiles.SelectedItem is ImageItem)
+                {
+                    (ListImageTiles.SelectedItem as ImageItem).Focus();
+                    Keyboard.Focus(ListImageTiles.SelectedItem as ImageItem);
+                }
             }
             catch (Exception ex)
             {

@@ -518,14 +518,15 @@ namespace PixivWPF.Common
                     if (item.Count > 1)
                     {
                         string fp = string.Empty;
-                        //item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
-                        illust.IsDownloadedAsync(out fp, item.Index);
+                        if(item.IsPage() || item.IsPages())
+                            illust.IsDownloadedAsync(out fp, item.Index);
+                        else if(item.IsWork())
+                            illust.IsPartDownloadedAsync(out fp);
                         fp.OpenFileWithShell();
                     }
                     else
                     {
                         string fp = string.Empty;
-                        //item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
                         illust.IsPartDownloadedAsync(out fp);
                         fp.OpenFileWithShell();
                     }

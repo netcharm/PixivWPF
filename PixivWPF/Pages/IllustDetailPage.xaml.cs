@@ -2376,7 +2376,7 @@ namespace PixivWPF.Pages
                         }
 
                         lastSelectionItem = item;
-                        lastSelectionChanged = DateTime.Now.ToFileTime();
+                        lastSelectionChanged = DateTime.Now;
 
                         PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index);
                         var img = await PreviewImageUrl.LoadImageFromUrl();
@@ -2628,18 +2628,18 @@ namespace PixivWPF.Pages
             //IllustDetailWait.Hide();
         }
 
-        long lastSelectionChanged = 0;
+        DateTime lastSelectionChanged = default(DateTime);
         ImageItem lastSelectionItem = null;
         private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 #if DEBUG
-            $"TimeDelta:{DateTime.Now.ToFileTime() - lastSelectionChanged}, {sender}, {e.Handled}, {e.RoutedEvent}, {e.OriginalSource}, {e.Source}".DEBUG();
+            $"TimeDelta:{lastSelectionChanged.DeltaMilliseconds(DateTime.Now)}, {sender}, {e.Handled}, {e.RoutedEvent}, {e.OriginalSource}, {e.Source}".DEBUG();
 #endif
             e.Handled = false;
 
             if (SubIllusts.SelectedItem is ImageItem && SubIllusts.SelectedItems.Count == 1)
             {
-                if (DateTime.Now.ToFileTime() - lastSelectionChanged < 500000)
+                if (lastSelectionChanged.DeltaMilliseconds(DateTime.Now) < 50)
                 {
                     SubIllusts.SelectedItem = lastSelectionItem;
                     return;
@@ -2660,6 +2660,7 @@ namespace PixivWPF.Pages
                 UpdateSubPageNav();
 
                 ActionRefreshPreview_Click(sender, e);
+                Keyboard.Focus(SubIllusts.SelectedItem);
             }
         }
 

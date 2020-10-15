@@ -271,7 +271,7 @@ namespace PixivWPF.Common
                     var filetime = configfile.GetFileTime("m");
                     if (!File.Exists(configfile)) filetime = lastConfigUpdate + TimeSpan.FromSeconds(1);
 
-                    if (!(Cache is Setting) || (force && lastConfigUpdate.DeltaMillisecond(filetime) > 250))
+                    if (!(Cache is Setting) || (force && lastConfigUpdate.DeltaMilliseconds(filetime) > 250))
                     {
                         lastConfigUpdate = filetime;
                         if (File.Exists(configfile))
@@ -400,7 +400,7 @@ namespace PixivWPF.Common
                     var filetime = custom_tags.GetFileTime("m");
                     if (!File.Exists(custom_tags)) filetime = lastTagsUpdate + TimeSpan.FromSeconds(1);
 
-                    if (force && lastTagsUpdate.DeltaMillisecond(filetime) > 5)
+                    if (force && lastTagsUpdate.DeltaMilliseconds(filetime) > 5)
                     {
                         lastTagsUpdate = filetime;
 
