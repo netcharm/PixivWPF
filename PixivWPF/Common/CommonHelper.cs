@@ -3062,21 +3062,24 @@ namespace PixivWPF.Common
                 var id = illustid ?? -1;
                 foreach (var item in collection)
                 {
+                    var part_down = item.Illust.IsPartDownloadedAsync();
                     if (item.IsPage() || item.IsPages())
                     {
                         item.IsDownloaded = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
+                        item.IsPartDownloaded = part_down;
                     }
                     else if (item.IsWork())
                     {
                         if (id == -1)
-                            item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                            item.IsDownloaded = part_down;
                         else if (id == (int)(item.Illust.Id))
                         {
                             if (item.Count > 1)
-                                item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                                item.IsDownloaded = part_down;
                             else
-                                item.IsDownloaded = exists ?? item.Illust.IsPartDownloadedAsync();
+                                item.IsDownloaded = exists ?? part_down;
                         }
+                        item.IsPartDownloaded = part_down;
                     }
                 }
             }

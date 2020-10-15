@@ -121,6 +121,27 @@ namespace PixivWPF.Common
             }
         }
 
+        public Visibility IsPartDownloadedVisibilityAlt { get; set; } = Visibility.Collapsed;
+        public Visibility IsPartDownloadedVisibility { get; set; } = Visibility.Collapsed;
+        [Description("Get or Set Illust IsPartDownloaded State Mark")]
+        [Category("Common Properties")]
+        [DefaultValue(false)]
+        public bool IsPartDownloaded
+        {
+            get { return (IsPartDownloadedVisibility == Visibility.Visible ? true : false); }
+            set
+            {
+                if (value) IsPartDownloadedVisibility = Visibility.Visible;
+                else IsPartDownloadedVisibility = Visibility.Collapsed;
+                NotifyPropertyChanged("IsDownloadedVisibility");
+
+                if (DisplayTitle) IsPartDownloadedVisibilityAlt = Visibility.Collapsed;
+                else IsPartDownloadedVisibilityAlt = IsPartDownloadedVisibility;
+                NotifyPropertyChanged("IsDownloadedVisibilityAlt");
+
+                NotifyPropertyChanged("IsDownloaded");
+            }
+        }
         public Visibility IsDownloadedVisibilityAlt { get; set; } = Visibility.Collapsed;
         public Visibility IsDownloadedVisibility { get; set; } = Visibility.Collapsed;
         [Description("Get or Set Illust IsDownloaded State Mark")]
@@ -128,7 +149,13 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool IsDownloaded
         {
-            get { return (IsDownloadedVisibility == Visibility.Visible ? true : false); }
+            get
+            {
+                if(UsePartDownloaded)
+                    return (IsPartDownloadedVisibility == Visibility.Visible ? true : false);
+                else
+                    return (IsDownloadedVisibility == Visibility.Visible ? true : false);
+            }
             set
             {
                 if (value) IsDownloadedVisibility = Visibility.Visible;
@@ -144,6 +171,8 @@ namespace PixivWPF.Common
         }
         public string DownloadedTooltip { get; set; } = string.Empty;
         public string DownloadedFilePath { get; set; } = string.Empty;
+
+        public bool UsePartDownloaded { get; set; } = false;
 
         public string Sanity { get; set; } = "all";
         public bool IsR18 { get { return (Sanity.Equals("18+")); } }
@@ -217,7 +246,15 @@ namespace PixivWPF.Common
                 foreach (var item in gallery.SelectedItems)
                 {
                     if (item.Illust == null) continue;
-                    bool download = fuzzy ? item.Illust.IsPartDownloadedAsync() : item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
+
+                    bool part_down = item.Illust.IsPartDownloadedAsync();
+                    if (item.IsPartDownloaded != part_down)
+                    {
+                        item.IsPartDownloaded = part_down;
+                        result |= part_down;
+                    }
+
+                    bool download = fuzzy ? part_down : item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
                     if (item.IsDownloaded != download)
                     {
                         item.IsDownloaded = download;
