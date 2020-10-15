@@ -736,8 +736,8 @@ namespace PixivWPF.Common
                     if (_dm is Window)
                     {
                         _dm.Show();
-                        if (_dm.WindowState == WindowState.Minimized) _dm.WindowState = WindowState.Normal;
-                        if (active) _dm.Activate();
+                        //if (_dm.WindowState == WindowState.Minimized) _dm.WindowState = WindowState.Normal;
+                        //if (active) _dm.Activate();
                     }
                     else
                     {
@@ -817,10 +817,14 @@ namespace PixivWPF.Common
                 {
                     foreach (var link in obj as IEnumerable<string>)
                     {
-                        await new Action(() =>
+                        try
                         {
-                            OpenSearch.Execute(link);
-                        }).InvokeAsync();
+                            await new Action(() =>
+                            {
+                                OpenSearch.Execute(link);
+                            }).InvokeAsync();
+                        }
+                        catch (Exception) { }
                     }
                 }).InvokeAsync();
             }

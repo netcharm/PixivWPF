@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PixivWPF</RootNamespace>
     <AssemblyName>PixivWPF</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -57,8 +57,8 @@
     <ApplicationIcon>Resources\pixiv-icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CommonServiceLocator, Version=2.0.4.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
-      <HintPath>..\packages\CommonServiceLocator.2.0.4\lib\net47\CommonServiceLocator.dll</HintPath>
+    <Reference Include="CommonServiceLocator, Version=2.0.5.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommonServiceLocator.2.0.5\lib\net48\CommonServiceLocator.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ControlzEx, Version=4.0.0.0, Culture=neutral, PublicKeyToken=69f1c32f803d307e, processorArchitecture=MSIL">
@@ -70,11 +70,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.Modern.4.5.0\lib\net47\MahApps.Metro.IconPacks.Core.dll</HintPath>
+      <HintPath>..\packages\MahApps.Metro.IconPacks.Modern.4.6.0\lib\net47\MahApps.Metro.IconPacks.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.Modern, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.Modern.4.5.0\lib\net47\MahApps.Metro.IconPacks.Modern.dll</HintPath>
+      <HintPath>..\packages\MahApps.Metro.IconPacks.Modern.4.6.0\lib\net47\MahApps.Metro.IconPacks.Modern.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.2.0, Culture=neutral, processorArchitecture=MSIL">
@@ -106,6 +106,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Linq" />
     <Reference Include="System.Management" />
     <Reference Include="System.Speech" />
     <Reference Include="System.ValueTuple">

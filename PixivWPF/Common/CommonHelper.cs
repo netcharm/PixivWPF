@@ -1713,6 +1713,8 @@ namespace PixivWPF.Common
 
                 mr.Add(Regex.Matches(content, @"[\\|/]((background)|(workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip))))", opt));
 
+                mr.Add(Regex.Matches(content, @"^(\d+)([_]*.*?).((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip))$", opt));
+
                 mr.Add(Regex.Matches(content, @"^(((illust)|(illusts)|(artworks))/(\d+))", opt));
                 mr.Add(Regex.Matches(content, @"^(((user)|(users))/(\d+))", opt));
 
@@ -1762,6 +1764,7 @@ namespace PixivWPF.Common
                 foreach (Match m in mi)
                 {
                     var link = m.Groups[1].Value.Trim().Trim(trim_char);
+
                     if (link.Equals("user-profile", StringComparison.CurrentCultureIgnoreCase)) break;
                     else if (link.Equals("background", StringComparison.CurrentCultureIgnoreCase) || link.Equals("workspace", StringComparison.CurrentCultureIgnoreCase))
                         link = $"uid:{m.Groups[5].Value.Trim().Trim(trim_char)}";

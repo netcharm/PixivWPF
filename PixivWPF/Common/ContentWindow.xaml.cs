@@ -85,10 +85,14 @@ namespace PixivWPF.Common
 
         private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (this.Content is DownloadManagerPage)
+            try
             {
-                (this.Content as DownloadManagerPage).Pos = new Point(this.Left, this.Top);
+                if (this.Content is DownloadManagerPage)
+                {
+                    (this.Content as DownloadManagerPage).Pos = new Point(this.Left, this.Top);
+                }
             }
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[CLOSEWIN]"); }
         }
 
         private void MetroWindow_DragOver(object sender, DragEventArgs e)

@@ -342,7 +342,7 @@ namespace PixivWPF.Common
 #if DEBUG
                 catch (Exception ex) { ex.Message.ShowToast("ERROR"); }
 #else
-                catch (Exception) { }
+                catch (Exception ex) { ex.Message.DEBUG(); }
 #endif
                 finally
                 {
@@ -413,7 +413,7 @@ namespace PixivWPF.Common
                                 CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
                                 tags_changed = true;
                             }
-                            catch (Exception) { }
+                            catch (Exception ex) { ex.Message.DEBUG(); }
                         }
 
                         if (File.Exists(custom_tags))
@@ -429,7 +429,7 @@ namespace PixivWPF.Common
                                 }
                                 tags_changed = true;
                             }
-                            catch (Exception) { }
+                            catch (Exception ex) { ex.Message.DEBUG(); }
                         }
                         else
                         {
@@ -441,12 +441,12 @@ namespace PixivWPF.Common
                                     tags_changed = true;
                                 }
                             }
-                            catch (Exception) { }
+                            catch (Exception ex) { ex.Message.DEBUG(); }
                         }
                         if (tags_changed) CommonHelper.UpdateIllustTagsAsync();
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { ex.Message.DEBUG(); }
                 finally
                 {
                     TagsReadWrite.Release();

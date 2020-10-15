@@ -73,13 +73,13 @@ namespace PixivWPF.Pages
                 try
                 {
                     ResultExpander.Show();
-                    if (!ResultExpander.IsExpanded) ResultExpander.IsExpanded = true;
-
-                    var tokens = await CommonHelper.ShowLogin();
-                    if (tokens == null) return;
-
-                    if (Contents is string)
+                    if (Contents is string && !string.IsNullOrEmpty(Contents))
                     {
+                        if (!ResultExpander.IsExpanded) ResultExpander.IsExpanded = true;
+
+                        var tokens = await CommonHelper.ShowLogin();
+                        if (tokens == null) return;
+
                         ShowResultInline(tokens, Contents, result_filter);
                     }
                     if (ResultNextPage is Button) ResultNextPage.Show();
@@ -320,12 +320,19 @@ namespace PixivWPF.Pages
                 }
                 ResultIllusts.UpdateTilesImage();
 
-                if (ResultIllusts.Items.Count() == 0 && window != null && no_filter) window.Close();
-                else if (ResultIllusts.Items.Count() == 1 && no_filter)
+                if (ResultIllusts.Items.Count() == 1 && no_filter)
                 {
                     ResultIllusts.SelectedIndex = 0;
                     Commands.Open.Execute(ResultIllusts);
-                    if (window != null) window.Close();
+                }
+                if (ResultIllusts.Items.Count() <= 1 && no_filter)
+                {
+                    if (window != null)
+                    {
+                        Application.Current.DoEvents();
+                        await Task.Delay(1);
+                        window.Close();
+                    }
                 }
             }
             catch (Exception ex)
@@ -342,13 +349,10 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                PreviewWait.Hide();
                 if (window is ContentWindow)
                 {
-                    //window.Topmost = true;
-                    //if (!window.IsActive) window.Activate();
+                    PreviewWait.Hide();
                     (window as MetroWindow).AdjustWindowPos();
-                    //window.Topmost = false;
                 }
             }
         }
@@ -516,7 +520,7 @@ namespace PixivWPF.Pages
 
         private void ResultExpander_Expanded(object sender, RoutedEventArgs e)
         {
-            if(Contents is string) UpdateDetail(Contents);
+            if(Contents is string && !string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
         }
 
         private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)
