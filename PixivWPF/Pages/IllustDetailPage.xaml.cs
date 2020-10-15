@@ -2039,11 +2039,17 @@ namespace PixivWPF.Pages
                 }
                 else if (sender == RelativeRefresh)
                 {
-                    RelativeIllusts.UpdateTilesImage();
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        RelativeIllusts.UpdateTilesImage();
+                    else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                        RelativeIllustsExpander_Expanded(sender, e);
                 }
                 else if (sender == FavoriteRefresh)
                 {
-                    FavoriteIllusts.UpdateTilesImage();
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        FavoriteIllusts.UpdateTilesImage();
+                    else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                        FavoriteIllustsExpander_Expanded(sender, e);
                 }
             }
 #if DEBUG

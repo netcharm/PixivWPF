@@ -832,7 +832,8 @@
                           MouseDown="Preview_MouseDown"
                           Expanded="SubIllustsExpander_Expanded" Collapsed="SubIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
-                                          Columns="5" TileWidth="128" TileHeight="128"                                  
+                                          Columns="5" TileWidth="128" TileHeight="128"
+                                          Focusable="True"
                                           SelectionMode="Extended" 
                                           BadgeVisibility="Visible" TitleVisibility="Collapsed"
                                           SelectionChanged="SubIllusts_SelectionChanged" 
@@ -894,6 +895,7 @@
                           Expanded="RelativeIllustsExpander_Expanded" Collapsed="RelativeIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="RelativeIllusts"
                                           Columns="5" TileWidth="128" TileHeight="128"
+                                          Focusable="True"
                                           SelectionMode="Extended"
                                           SelectionChanged="RelativeIllusts_SelectionChanged" 
                                           MouseDoubleClick="RelativeIllusts_MouseDoubleClick" 
@@ -953,6 +955,7 @@
                           Expanded="FavoriteIllustsExpander_Expanded">
                     <Common:ImageListGrid x:Name="FavoriteIllusts" x:Uid="RelativeIllusts"
                                           Columns="5" TileWidth="128" TileHeight="128"
+                                          Focusable="True"
                                           SelectionMode="Extended"
                                           SelectionChanged="FavriteIllusts_SelectionChanged" 
                                           MouseDoubleClick="FavriteIllusts_MouseDoubleClick" 
