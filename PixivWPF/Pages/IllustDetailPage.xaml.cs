@@ -374,14 +374,14 @@ namespace PixivWPF.Pages
                         if (item.IsDownloaded != download) item.IsDownloaded = download;
                         if (item.IsDownloaded)
                         {
-                            IllustDownloaded.Visibility = Visibility.Visible;
+                            IllustDownloaded.Show();
                             IllustDownloaded.Tag = fp;
                             IllustDownloaded.ToolTip = fp;
                             //ToolTipService.SetToolTip(IllustDownloaded, fp);
                         }
                         else
                         {
-                            IllustDownloaded.Visibility = Visibility.Collapsed;
+                            IllustDownloaded.Hide();
                             IllustDownloaded.Tag = null;
                             IllustDownloaded.ToolTip = string.Empty;
                             //ToolTipService.SetToolTip(IllustDownloaded, null);
@@ -392,14 +392,14 @@ namespace PixivWPF.Pages
                         var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp);
                         if (download)
                         {
-                            IllustDownloaded.Visibility = Visibility.Visible;
+                            IllustDownloaded.Show();
                             IllustDownloaded.Tag = fp;
                             IllustDownloaded.ToolTip = fp;
-                            ToolTipService.SetToolTip(IllustDownloaded, fp);
+                            //ToolTipService.SetToolTip(IllustDownloaded, fp);
                         }
                         else
                         {
-                            IllustDownloaded.Visibility = Visibility.Collapsed;
+                            IllustDownloaded.Hide();
                             IllustDownloaded.Tag = null;
                             IllustDownloaded.ToolTip = string.Empty;
                             //ToolTipService.SetToolTip(IllustDownloaded, null);
@@ -649,20 +649,7 @@ namespace PixivWPF.Pages
                 }
                 stat_tip.Add($"Size      : {item.Illust.Width}x{item.Illust.Height}");
 
-                if (item.IsDownloaded)
-                {
-                    IllustDownloaded.Show();
-                    string fp = string.Empty;
-                    item.Illust.IsPartDownloadedAsync(out fp);
-                    IllustDownloaded.Tag = fp;
-                    ToolTipService.SetToolTip(IllustDownloaded, fp);
-                }
-                else
-                {
-                    IllustDownloaded.Hide();
-                    IllustDownloaded.Tag = null;
-                    ToolTipService.SetToolTip(IllustDownloaded, null);
-                }
+                UpdateDownloadedMark();
 
                 IllustSize.Text = $"{item.Illust.Width}x{item.Illust.Height}";
                 IllustViewed.Text = stat_viewed;
@@ -1239,6 +1226,14 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
+        public void OpenInNewWindow()
+        {
+            if(Contents is ImageItem && !(Parent is ContentWindow))
+            {
+                Commands.Open.Execute(Contents);
+            }
+        }
+
         public bool IsFirstPage
         {
             get
@@ -1458,21 +1453,21 @@ namespace PixivWPF.Pages
             e.Handled = false;
             if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
             {
-                if (!Application.Current.IsModiierKey(e.Key)) lastKeyUp = e.Timestamp;
+                if (!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
 
                 var pub = setting.PrivateFavPrefer ? false : true;
 
-                if ((e.Key == Key.Left || e.SystemKey == Key.Left) && Keyboard.Modifiers == ModifierKeys.Alt)
+                if (e.IsKey(Key.Left, ModifierKeys.Alt))
                 {
                     PrevIllust();
                     e.Handled = true;
                 }
-                else if ((e.Key == Key.Right || e.SystemKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Alt)
+                else if (e.IsKey(Key.Right, ModifierKeys.Alt))
                 {
                     NextIllust();
                     e.Handled = true;
                 }
-                else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
+                else if (e.IsKey(Key.F3))
                 {
                     if (!(Parent is ContentWindow))
                     {
@@ -1480,7 +1475,7 @@ namespace PixivWPF.Pages
                         e.Handled = true;
                     }
                 }
-                else if (e.Key == Key.F5 || e.SystemKey == Key.F5)
+                else if (e.IsKey(Key.F5))
                 {
                     if (Parent is ContentWindow)
                         UpdateDetail(Contents);
@@ -1493,13 +1488,13 @@ namespace PixivWPF.Pages
                     }
                     e.Handled = true;
                 }
-                else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
+                else if (e.IsKey(Key.F6))
                 {
                     if (!(Parent is ContentWindow)) Commands.RefreshPageThumb.Execute(Application.Current.MainWindow);
                     UpdateThumb();
                     e.Handled = true;
                 }
-                else if (e.Key == Key.F7 || e.SystemKey == Key.F7)
+                else if (e.IsKey(Key.F7))
                 {
                     if (Contents is ImageItem)
                     {
@@ -1514,7 +1509,7 @@ namespace PixivWPF.Pages
                         e.Handled = true;
                     }
                 }
-                else if (e.Key == Key.F8 || e.SystemKey == Key.F8)
+                else if (e.IsKey(Key.F8))
                 {
                     if (Contents is ImageItem)
                     {
@@ -1529,7 +1524,7 @@ namespace PixivWPF.Pages
                         e.Handled = true;
                     }
                 }
-                else if ((e.Key == Key.O || e.SystemKey == Key.O) && Keyboard.Modifiers == ModifierKeys.Control)
+                else if (e.IsKey(Key.O, ModifierKeys.Control))
                 {
                     if (RelativeIllusts.IsKeyboardFocusWithin)
                         Commands.OpenDownloaded.Execute(RelativeIllusts);
@@ -1541,12 +1536,12 @@ namespace PixivWPF.Pages
                         Commands.OpenDownloaded.Execute(Contents);
                     e.Handled = true;
                 }
-                else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
+                else if (e.IsKey(Key.H, ModifierKeys.Control))
                 {
                     Commands.OpenHistory.Execute(null);
                     e.Handled = true;
                 }
-                else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
+                else if (e.IsKey(Key.S, ModifierKeys.Control))
                 {
                     if (SubIllusts.Items.Count > 0)
                         Commands.SaveIllust.Execute(SubIllusts);
@@ -1554,9 +1549,14 @@ namespace PixivWPF.Pages
                         Commands.SaveIllust.Execute(Contents);
                     e.Handled = true;
                 }
-                else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Shift)
+                else if (e.IsKey(Key.S, new ModifierKeys[] { ModifierKeys.Shift, ModifierKeys.Control }))
                 {
                     Commands.SaveIllustAll.Execute(Contents);
+                    e.Handled = true;
+                }
+                else if (e.IsKey(Key.N, ModifierKeys.Control))
+                {
+                    OpenInNewWindow();
                     e.Handled = true;
                 }
                 else e.Handled = false;
@@ -2227,16 +2227,7 @@ namespace PixivWPF.Pages
             }
             else if (sender == ActionIllustNewWindow)
             {
-                if (Contents is ImageItem)
-                {
-                    if (Contents.Illust is Pixeez.Objects.Work)
-                    {
-                        await new Action(() =>
-                        {
-                            Commands.Open.Execute(Contents.Illust);
-                        }).InvokeAsync();
-                    }
-                }
+                OpenInNewWindow();
             }
             else if (sender == ActionIllustWebLink)
             {

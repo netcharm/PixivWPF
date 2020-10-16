@@ -194,7 +194,7 @@
             VirtualizingPanel.VirtualizationMode="Recycling"
             VirtualizingPanel.ScrollUnit="Item"
             mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
-            KeyDown="ListImageTiles_KeyDown"                      
+            KeyUp="ListImageTiles_KeyUp"
             MouseDoubleClick="ListImageTiles_MouseDoubleClick"
             MouseDown="ListImageTiles_MouseDown"
             PreviewMouseWheel="ListImageTiles_PreviewMouseWheel"

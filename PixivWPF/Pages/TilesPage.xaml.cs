@@ -296,7 +296,7 @@ namespace PixivWPF.Pages
 
         internal void KeyAction(KeyEventArgs e)
         {
-            ListImageTiles_KeyDown(this, e);
+            ListImageTiles_KeyUp(this, e);
         }
 
         public TilesPage()
@@ -1252,31 +1252,31 @@ namespace PixivWPF.Pages
         }
 
         private long lastKeyUp = Environment.TickCount;        
-        private void ListImageTiles_KeyDown(object sender, KeyEventArgs e)
+        private void ListImageTiles_KeyUp(object sender, KeyEventArgs e)
         {
             e.Handled = false;
             if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
             {
-                if (!Application.Current.IsModiierKey(e.Key)) lastKeyUp = e.Timestamp;
+                if (!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
 
-                if (e.Key == Key.F5 || e.SystemKey == Key.F5)
+                if (e.IsKey(Key.F5))
                 {
                     var main = this.GetMainWindow() as MainWindow;
                     main.CommandNavRefresh_Click(main.CommandNavRefresh, new RoutedEventArgs());
                     e.Handled = true;
                 }
-                else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
+                else if (e.IsKey(Key.F3))
                 {
                     var main = this.GetMainWindow() as MainWindow;
                     main.CommandNavNext_Click(main.CommandNavNext, new RoutedEventArgs());
                     e.Handled = true;
                 }
-                else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
+                else if (e.IsKey(Key.F6))
                 {
                     UpdateTilesThumb();
                     e.Handled = true;
                 }
-                else if (e.Key == Key.F7 || e.Key == Key.F8 || e.SystemKey == Key.F7 || e.SystemKey == Key.F8)
+                else if (e.IsKey(Key.F7) || e.IsKey(Key.F8))
                 {
                     if (detail_page is IllustDetailPage)
                     {
@@ -1284,14 +1284,14 @@ namespace PixivWPF.Pages
                         e.Handled = true;
                     }
                 }
-                else if (e.Key == Key.Enter || e.SystemKey == Key.Enter)
+                else if (e.IsKey(Key.Enter))
                 {
                     if (ListImageTiles.SelectedItem != null)
                     {
                         e.Handled = true;
                     }
                 }
-                else if (e.Key == Key.Home || e.SystemKey == Key.Home)
+                else if (e.IsKey(Key.Home))
                 {
                     if (ListImageTiles.Items.Count > 0)
                     {
@@ -1300,7 +1300,7 @@ namespace PixivWPF.Pages
                         e.Handled = true;
                     }
                 }
-                else if (e.Key == Key.End || e.SystemKey == Key.End)
+                else if (e.IsKey(Key.End))
                 {
                     if (ListImageTiles.Items.Count > 0)
                     {
@@ -1309,7 +1309,7 @@ namespace PixivWPF.Pages
                         e.Handled = true;
                     }
                 }
-                else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
+                else if (e.IsKey(Key.S, ModifierKeys.Control))
                 {
                     if (ListImageTiles.SelectedItem is ImageItem)
                     {
@@ -1319,37 +1319,27 @@ namespace PixivWPF.Pages
                     }
                     e.Handled = true;
                 }
-                else if ((e.Key == Key.O || e.SystemKey == Key.O) && Keyboard.Modifiers == ModifierKeys.Control)
+                else if (e.IsKey(Key.O, ModifierKeys.Control))
                 {
                     var item = ListImageTiles.SelectedItem as ImageItem;
                     Commands.OpenDownloaded.Execute(item);
                     e.Handled = true;
                 }
-                else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
+                else if (e.IsKey(Key.H, ModifierKeys.Control))
                 {
                     Commands.OpenHistory.Execute(null);
                     e.Handled = true;
                 }
-                else if ((e.Key == Key.Left || e.SystemKey == Key.Left) && Keyboard.Modifiers == ModifierKeys.Alt)
+                else if (e.IsKey(Key.Left, ModifierKeys.Alt))
                 {
                     PrevIllustPage();
                     e.Handled = true;
                 }
-                else if ((e.Key == Key.Right || e.SystemKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Alt)
+                else if (e.IsKey(Key.Right, ModifierKeys.Alt))
                 {
                     NextIllustPage();
                     e.Handled = true;
                 }
-                //else if ((e.Key == Key.Up || e.SystemKey == Key.Up) && Keyboard.Modifiers == ModifierKeys.Alt)
-                //{
-                //    ScrollPageUp();
-                //    e.Handled = true;
-                //}
-                //else if ((e.Key == Key.Down || e.SystemKey == Key.Down) && Keyboard.Modifiers == ModifierKeys.Alt)
-                //{
-                //    ScrollPageDown();
-                //    e.Handled = true;
-                //}
             }
         }
 

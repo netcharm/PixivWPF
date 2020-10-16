@@ -296,19 +296,21 @@ namespace PixivWPF.Common
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
-
-                string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCachePath();
-                if (!string.IsNullOrEmpty(fp))
+                if (item.IsWork())
                 {
-                    await new Action(() =>
+                    string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCachePath();
+                    if (!string.IsNullOrEmpty(fp))
                     {
-                        fp.CopyImage();
-                    }).InvokeAsync();
+                        await new Action(() =>
+                        {
+                            fp.CopyImage();
+                        }).InvokeAsync();
+                    }
                 }
             }
         });
 
-        public static ICommand OpenItem { get; } = new DelegateCommand<dynamic>(async obj =>
+        public static ICommand OpenItem { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is ImageItem)
             {
@@ -329,17 +331,7 @@ namespace PixivWPF.Common
             }
             else if (obj is ImageListGrid)
             {
-                var list = obj as ImageListGrid;
-                foreach (var item in list.GetSelected())
-                {
-                    //await Task.Run(new Action(() => {
-                    //    OpenItem.Execute(item);
-                    //}));
-                    await new Action(() =>
-                    {
-                        OpenItem.Execute(item);
-                    }).InvokeAsync();
-                }
+                OpenGallery.Execute(obj);
             }
         });
 
@@ -378,16 +370,15 @@ namespace PixivWPF.Common
                         }
                     }).InvokeAsync();
                 }
+                else if(obj is ImageItem)
+                {
+                    var item = obj as ImageItem;
+                    if (item.IsWork())
+                        OpenUser.Execute(item.Illust);
+                }
                 else if (obj is ImageListGrid)
                 {
-                    var gallery = obj as ImageListGrid;
-                    foreach (var item in gallery.GetSelected())
-                    {
-                        await new Action(() =>
-                        {
-                            OpenWork.Execute(item);
-                        }).InvokeAsync();
-                    }
+                    OpenGallery.Execute(obj);
                 }
             }
             catch (Exception ex)
@@ -476,9 +467,25 @@ namespace PixivWPF.Common
                         Application.Current.DoEvents();
                     }).InvokeAsync();
                 }
+                else if (obj is ImageItem)
+                {
+                    var item = obj as ImageItem;
+                    if(item.IsWork() || item.IsUser())
+                        OpenUser.Execute(item.User);                    
+                }
                 else if (obj is ImageListGrid)
                 {
-                    OpenGallery.Execute(obj);
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as ImageListGrid;
+                        foreach (var item in gallery.GetSelected())
+                        {
+                            await new Action(() =>
+                            {
+                                OpenUser.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
                 }
             }
             catch (Exception ex)
@@ -513,22 +520,25 @@ namespace PixivWPF.Common
                 if (obj is ImageItem)
                 {
                     var item = obj as ImageItem;
-                    var illust = item.Illust;
+                    if (item.IsWork())
+                    {
+                        var illust = item.Illust;
 
-                    if (item.Count > 1)
-                    {
-                        string fp = string.Empty;
-                        if(item.IsPage() || item.IsPages())
-                            illust.IsDownloadedAsync(out fp, item.Index);
-                        else if(item.IsWork())
+                        if (item.Count > 1)
+                        {
+                            string fp = string.Empty;
+                            if (item.IsPage() || item.IsPages())
+                                illust.IsDownloadedAsync(out fp, item.Index);
+                            else if (item.IsWork())
+                                illust.IsPartDownloadedAsync(out fp);
+                            fp.OpenFileWithShell();
+                        }
+                        else
+                        {
+                            string fp = string.Empty;
                             illust.IsPartDownloadedAsync(out fp);
-                        fp.OpenFileWithShell();
-                    }
-                    else
-                    {
-                        string fp = string.Empty;
-                        illust.IsPartDownloadedAsync(out fp);
-                        fp.OpenFileWithShell();
+                            fp.OpenFileWithShell();
+                        }
                     }
                 }
                 else if (obj is ImageListGrid)
@@ -1473,46 +1483,46 @@ namespace PixivWPF.Common
                     KeyEventArgs e =  obj.Value;
                     if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
                     {
-                        if(!Application.Current.IsModiierKey(e.Key)) lastKeyUp = e.Timestamp;
+                        if(!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
 
                         if (sender is ImageListGrid || sender is ImageItem)
                         {
-                            if (e.Key == Key.Enter || e.SystemKey == Key.Enter)
+                            if (e.IsKey(Key.Enter))
                             {
                                 Open.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
+                            else if (e.IsKey(Key.F6))
                             {
                                 RefreshPageThumb.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if (e.Key == Key.F7 || e.SystemKey == Key.F7)
+                            else if (e.IsKey(Key.F7))
                             {
                                 ChangeIllustLikeState.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if (e.Key == Key.F8 || e.SystemKey == Key.F8)
+                            else if (e.IsKey(Key.F8))
                             {
                                 ChangeUserLikeState.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if ((e.Key == Key.O || e.SystemKey == Key.O) && Keyboard.Modifiers == ModifierKeys.Control)
+                            else if (e.IsKey(Key.O, ModifierKeys.Control))
                             {
                                 OpenDownloaded.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if ((e.Key == Key.H || e.SystemKey == Key.H) && Keyboard.Modifiers == ModifierKeys.Control)
+                            else if (e.IsKey(Key.H, ModifierKeys.Control))
                             {
                                 OpenHistory.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Control)
+                            else if (e.IsKey(Key.S, ModifierKeys.Control))
                             {
                                 SaveIllust.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if ((e.Key == Key.S || e.SystemKey == Key.S) && Keyboard.Modifiers == ModifierKeys.Shift)
+                            else if (e.IsKey(Key.S, ModifierKeys.Shift))
                             {
                                 SaveIllustAll.Execute(sender);
                                 e.Handled = true;
@@ -1524,34 +1534,27 @@ namespace PixivWPF.Common
                             $"KeyUp: {e.Key}, {e.SystemKey}, Modifiers: {Keyboard.Modifiers.ToString()}".DEBUG();
 #endif
                             var win = sender as MainWindow;
-                            if (e.Key == Key.LeftAlt || e.Key == Key.RightAlt)
-                            {
-                                //Keyboard.Modifiers
-                                e.Handled = true;
-                                return;
-                            }
-
-                            if (e.Key == Key.F5 || e.SystemKey == Key.F5)
+                            if (e.IsKey(Key.F5))
                             {
                                 RefreshPage.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
+                            else if (e.IsKey(Key.F3))
                             {
                                 AppendTiles.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
+                            else if (e.IsKey(Key.F6))
                             {
                                 RefreshPageThumb.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if ((e.Key == Key.Up || e.SystemKey == Key.Up) && Keyboard.Modifiers == ModifierKeys.Alt)
+                            else if (e.IsKey(Key.Up, ModifierKeys.Alt))
                             {
                                 ScrollUpTiles.Execute(sender);
                                 e.Handled = true;
                             }
-                            else if ((e.Key == Key.Down || e.SystemKey == Key.Down) && Keyboard.Modifiers == ModifierKeys.Alt)
+                            else if (e.IsKey(Key.Down, ModifierKeys.Alt))
                             {
                                 ScrollDownTiles.Execute(sender);
                                 e.Handled = true;

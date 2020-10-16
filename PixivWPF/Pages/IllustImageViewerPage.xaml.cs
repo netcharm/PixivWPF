@@ -69,7 +69,7 @@ namespace PixivWPF.Pages
 
                     PreviewImageUrl = illust.GetPreviewUrl(Contents.Index, true);
                     var img = await PreviewImageUrl.LoadImageFromUrl();
-                    if (img == null || img.Width < 360)
+                    if (img == null || img.Width < 360 || img.Height < 360)
                     {
                         PreviewImageUrl = Contents.Illust.GetOriginalUrl(Contents.Index);
                         var large = await PreviewImageUrl.LoadImageFromUrl();
@@ -287,35 +287,41 @@ namespace PixivWPF.Pages
         {
             int offset = 0;
             int factor = 1;
-            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-            {
-                factor = 10;
-            }
-            if (e.Key == Key.Right || e.Key == Key.Down || e.Key == Key.PageDown)
+
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) factor = 10;
+
+            if (e.IsKey(Key.Right) || e.IsKey(Key.Down) || e.IsKey(Key.PageDown))
                 offset = 1 * factor;
-            else if (e.Key == Key.Left || e.Key == Key.Up || e.Key == Key.PageUp)
+            else if (e.IsKey(Key.Left) || e.IsKey(Key.Up) || e.IsKey(Key.PageUp))
                 offset = -1 * factor;
-            else if (e.Key == Key.Home)
+            else if (e.IsKey(Key.Home))
                 offset = -10000;
-            else if (e.Key == Key.End)
+            else if (e.IsKey(Key.End))
                 offset = 10000;
-            //else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
-            else if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                SaveIllust();
-                return;
-            }
-            else if (e.Key == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
+            else if (e.IsKey(Key.O, ModifierKeys.Control))
             {
                 ActionIllustInfo_Click(ActionOpenCachedWith, e);
+                e.Handled = true;
                 return;
             }
-            else if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
+            else if (e.IsKey(Key.C, ModifierKeys.Control))
             {
                 ActionIllustInfo_Click(ActionCopyPreview, e);
+                e.Handled = true;
                 return;
             }
-            ChangeIllustPage(offset);
+            else
+            {
+                Commands.KeyProcessor.Execute(new KeyValuePair<object, KeyEventArgs>(Contents, e));
+                e.Handled = true;
+                return;
+            }
+
+            if (offset != 0)
+            {
+                e.Handled = true;
+                ChangeIllustPage(offset);
+            }
         }
 
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)

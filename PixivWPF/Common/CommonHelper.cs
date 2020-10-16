@@ -40,6 +40,7 @@ using PixivWPF.Pages;
 
 namespace PixivWPF.Common
 {
+    #region Page enmu type
     public enum PixivPage
     {
         None,
@@ -78,6 +79,7 @@ namespace PixivWPF.Common
         RankingMonth,
         RankingYear
     }
+    #endregion
 
     public enum ToastType { DOWNLOAD = 0, OK, OKCANCEL, YES, NO, YESNO };
 
@@ -89,6 +91,7 @@ namespace PixivWPF.Common
         public string Text { get; set; } = string.Empty;
     }
 
+    #region DPI Helper
     public class DPI
     {
         public double X { get; } = 96.0;
@@ -152,7 +155,9 @@ namespace PixivWPF.Common
             return new DPI(dpiX, dpiY);
         }
     }
+    #endregion
 
+    #region Custom storage type
     public class StorageType
     {
         [JsonProperty("Folder")]
@@ -177,6 +182,7 @@ namespace PixivWPF.Common
             Count = -1;
         }
     }
+    #endregion
 
     public static class ApplicationExtensions
     {
@@ -1363,14 +1369,82 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Hot-Key Processing
+        #region Keyboard helper
         private static List<Key> Modifier = new List<Key>() { Key.LeftCtrl, Key.RightCtrl, Key.LeftShift, Key.RightShift, Key.LeftAlt, Key.RightAlt, Key.LWin, Key.RWin };
 
-        public static bool IsModiierKey(this Application app, Key key)
+        public static bool IsModified(this Application app, Key key)
         {
             return (Modifier.Contains(key) ? true : false);
         }
 
+        private static bool IsModifiers(bool Ctrl, bool Shift, bool Alt, bool Win)
+        {
+            var hasModifiers = true;
+            hasModifiers = hasModifiers && !(Ctrl ^ Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
+            hasModifiers = hasModifiers && !(Shift ^ Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
+            hasModifiers = hasModifiers && !(Alt ^ Keyboard.Modifiers.HasFlag(ModifierKeys.Alt));
+            hasModifiers = hasModifiers && !(Win ^ Keyboard.Modifiers.HasFlag(ModifierKeys.Windows));
+            return (hasModifiers);
+        }
+
+        public static bool IsModifiers(this IEnumerable<ModifierKeys> modifiers)
+        {
+            bool ctrl = false;
+            bool shift = false;
+            bool alt = false;
+            bool win = false;
+            bool none = !(ctrl || shift || alt || win);
+            foreach (var modifier in modifiers)
+            {
+                switch (modifier)
+                {
+                    case ModifierKeys.None:
+                        ctrl = shift = alt = win = false;
+                        break;
+                    case ModifierKeys.Alt:
+                        alt = true;
+                        break;
+                    case ModifierKeys.Control:
+                        ctrl = true;
+                        break;
+                    case ModifierKeys.Shift:
+                        shift = true;
+                        break;
+                    case ModifierKeys.Windows:
+                        win = true;
+                        break;
+                    default:
+                        ctrl = shift = alt = win = false;
+                        break;
+                }
+                none = !(ctrl || shift || alt || win);
+                if (none) break;
+            }
+            return (IsModifiers(ctrl, shift, alt, win));
+        }
+
+        public static bool IsKey(this KeyEventArgs evt, Key key)
+        {
+            return (IsKey(evt, key, ModifierKeys.None));
+        }
+
+        public static bool IsKey(this KeyEventArgs evt, Key key, ModifierKeys modifier)
+        {
+            return ((evt.Key == key || evt.SystemKey == key) && Keyboard.Modifiers == modifier);
+        }
+
+        public static bool IsKey(this KeyEventArgs evt, Key key, IEnumerable<ModifierKeys> modifiers)
+        {
+            return ((evt.Key == key || evt.SystemKey == key) && IsModifiers(modifiers));
+        }
+
+        public static bool IsKey(this KeyEventArgs evt, Key key, bool Ctrl, bool Shift, bool Alt, bool Win)
+        {
+            return ((evt.Key == key || evt.SystemKey == key) && IsModifiers(Ctrl, Shift, Alt, Win));
+        }
+        #endregion
+
+        #region Hot-Key Processing
         private static long lastKeyUp = Environment.TickCount;
         public static void KeyAction(this Application app, dynamic current, KeyEventArgs e)
         {
@@ -5905,6 +5979,7 @@ namespace PixivWPF.Common
         #endregion
     }
 
+    #region Custom Toast 
     public class DownloadToast : Notification
     {
         [Description("Get or Set Toast Type")]
@@ -5930,6 +6005,7 @@ namespace PixivWPF.Common
         //public string Title { get; set; }
         public object Tag { get; set; }
     }
+    #endregion
 
     public static class TaskWaitingExtensions
     {
