@@ -310,7 +310,7 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand OpenItem { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand OpenItem { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is ImageItem)
             {
@@ -331,7 +331,14 @@ namespace PixivWPF.Common
             }
             else if (obj is ImageListGrid)
             {
-                OpenGallery.Execute(obj);
+                var list = obj as ImageListGrid;
+                foreach (var item in list.GetSelected())
+                {
+                    await new Action(() =>
+                    {
+                        OpenItem.Execute(item);
+                    }).InvokeAsync();
+                }
             }
         });
 
@@ -378,7 +385,14 @@ namespace PixivWPF.Common
                 }
                 else if (obj is ImageListGrid)
                 {
-                    OpenGallery.Execute(obj);
+                    var gallery = obj as ImageListGrid;
+                    foreach (var item in gallery.GetSelected())
+                    {
+                        await new Action(() =>
+                        {
+                            OpenWork.Execute(item);
+                        }).InvokeAsync();
+                    }
                 }
             }
             catch (Exception ex)
