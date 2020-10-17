@@ -463,7 +463,10 @@ namespace PixivWPF.Pages
                     UpdateFollowMark(Contents.User);
                     if (Contents.IsWork()) UpdateFavMark(Contents.Illust);
                 }
-
+                if (SubIllusts.Items.Count > 0)
+                {
+                    SubIllusts.Items.UpdateLikeState(illustid, is_user);
+                }
                 if (RelativeIllustsExpander.IsExpanded)
                 {
                     RelativeIllusts.UpdateLikeState(illustid, is_user);
@@ -1255,10 +1258,10 @@ namespace PixivWPF.Pages
         {
             if(Contents is ImageItem)
             {
-                if(Contents.Count > 1)
-                {
+                if (Contents.Count > 1)
                     SubPageNav_Clicked(btnSubPagePrev, new RoutedEventArgs());
-                }
+                else PrevIllust();
+
             }
         }
 
@@ -1267,9 +1270,8 @@ namespace PixivWPF.Pages
             if (Contents is ImageItem)
             {
                 if (Contents.Count > 1)
-                {
                     SubPageNav_Clicked(btnSubPageNext, new RoutedEventArgs());
-                }
+                else NextIllust();
             }
         }
         
@@ -1557,6 +1559,26 @@ namespace PixivWPF.Pages
                 else if (e.IsKey(Key.N, ModifierKeys.Control))
                 {
                     OpenInNewWindow();
+                    e.Handled = true;
+                }
+                else if (e.IsKey(Key.U, ModifierKeys.Control))
+                {
+                    if(Contents is ImageItem && Contents.IsWork())
+                        Commands.OpenUser.Execute(Contents);
+                    e.Handled = true;
+                }
+                else if (e.IsKey(Key.R, ModifierKeys.Control))
+                {
+                    if (Contents is ImageItem && Contents.IsUser())
+                        RelativeIllustsExpander.IsExpanded = true;
+                        //RelativeIllustsExpander_Expanded(RelativeIllustsExpander, e);
+                    e.Handled = true;
+                }
+                else if (e.IsKey(Key.F, ModifierKeys.Control))
+                {
+                    if (Contents is ImageItem && Contents.IsUser())
+                        FavoriteIllustsExpander.IsExpanded = true;
+                        //FavoriteIllustsExpander_Expanded(FavoriteIllustsExpander, e);
                     e.Handled = true;
                 }
                 else e.Handled = false;
@@ -1934,7 +1956,7 @@ namespace PixivWPF.Pages
                 if(is_tag)
                     text = string.Join(Environment.NewLine, text.Trim().Trim('#').Split('#'));
                 else
-                    text = string.Join(Environment.NewLine, text.Trim().Split());
+                    text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
             }
             if (!string.IsNullOrEmpty(text)) text.Play(culture);
         }
@@ -2136,23 +2158,23 @@ namespace PixivWPF.Pages
                     }
                     else if (IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
                     {
-                        SubPageNav_Clicked(btnSubPagePrev, e);
+                        PrevIllustPage();
                         e.Handled = true;
                     }
                     else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
                     {
-                        SubPageNav_Clicked(btnSubPageNext, e);
+                        NextIllustPage();
                         e.Handled = true;
                     }
                 }
-                else if (e.XButton1 == MouseButtonState.Pressed && SubIllusts.Items.Count > 0)
+                else if (e.XButton1 == MouseButtonState.Pressed)
                 {
-                    SubPageNav_Clicked(btnSubPageNext, e);
+                    NextIllustPage();
                     e.Handled = true;
                 }
-                else if (e.XButton2 == MouseButtonState.Pressed && SubIllusts.Items.Count > 0)
+                else if (e.XButton2 == MouseButtonState.Pressed)
                 {
-                    SubPageNav_Clicked(btnSubPagePrev, e);
+                    PrevIllustPage();
                     e.Handled = true;
                 }
             }
@@ -2285,7 +2307,7 @@ namespace PixivWPF.Pages
                         Commands.ShellSendToOtherInstance.Execute(Contents.User);
                     else if (Keyboard.Modifiers == ModifierKeys.Alt)
                         ActionRefreshAvator(Contents);
-                    else
+                    else if (Contents.IsWork())
                         Commands.OpenUser.Execute(Contents.User);
                 }
             }

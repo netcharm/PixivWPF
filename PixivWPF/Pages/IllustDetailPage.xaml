@@ -232,6 +232,9 @@
                 <Grid Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"
                       Visibility="{Binding Visibility, Mode=OneWay, ElementName=IllustSanityInfo}">
                     <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4">
+                        <Grid.Effect>
+                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+                        </Grid.Effect>
                         <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
@@ -243,6 +246,9 @@
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                     </Grid>
                     <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4">
+                        <Grid.Effect>
+                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+                        </Grid.Effect>
                         <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
@@ -254,6 +260,9 @@
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                     </Grid>
                     <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4">
+                        <Grid.Effect>
+                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+                        </Grid.Effect>
                         <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
@@ -265,6 +274,9 @@
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                     </Grid>
                     <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4">
+                        <Grid.Effect>
+                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+                        </Grid.Effect>
                         <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"

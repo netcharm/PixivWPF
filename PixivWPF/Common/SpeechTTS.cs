@@ -439,6 +439,8 @@ namespace PixivWPF.Common
         #region Play contents routines
         public void Play(string text, CultureInfo locale = null, bool async = true)
         {
+            if (string.IsNullOrEmpty(text.Trim())) return;
+
             if (!(synth is SpeechSynthesizer)) return;
 
             if (synth.GetInstalledVoices().Count <= 0) return;
@@ -583,6 +585,7 @@ namespace PixivWPF.Common
                     }
                     foreach (var text in contents)
                     {
+                        if (string.IsNullOrEmpty(text)) continue;
                         if (PlayMixedCultureInline)
                         {
                             var sentences = SliceByCulture(text, locale);
@@ -600,6 +603,12 @@ namespace PixivWPF.Common
                         var first = PlayQueue.Dequeue();
                         Play(first.Key, first.Value);
                     }
+                    else
+                    {
+                        SPEECH_TEXT = string.Empty;
+                        SPEECH_SLOW = false;
+                        synth.Rate = 0;
+                    }
                 }
             }
             else
@@ -609,6 +618,7 @@ namespace PixivWPF.Common
                 prompt.ClearContent();
                 foreach (var text in contents)
                 {
+                    if (string.IsNullOrEmpty(text)) continue;
                     if (PlayMixedCultureInline)
                     {
                         var sentences = SliceByCulture(text, locale);
@@ -618,6 +628,7 @@ namespace PixivWPF.Common
                         {
                             var new_text = kv.Key;
                             var new_culture = kv.Value;
+                            if (string.IsNullOrEmpty(new_text)) continue;
                             prompt.StartVoice(GetCustomVoiceName(new_culture));
                             prompt.AppendText(new_text);
                             prompt.EndVoice();
@@ -860,6 +871,7 @@ namespace PixivWPF.Common
             return (culture);
         }
 
+        public static string[] LineBreak = new string[] { Environment.NewLine, "\n\r", "\r\n", "\r", "\n", "<br/>", "<br />", "<br>", "</br>" };
         public static void Play(this string text, CultureInfo culture, bool async = true)
         {
             if (!(t2s is SpeechTTS))
@@ -874,7 +886,7 @@ namespace PixivWPF.Common
                         t2s.Play(text, "unk", async);
                     else
                     {
-                        var tlist = text.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                        var tlist = text.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries);
                         t2s.Play(tlist, culture);
                     }
                 }

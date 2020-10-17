@@ -626,6 +626,24 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static PixivLoginDialog GetLoginWindow(this Application app)
+        {
+            PixivLoginDialog result = null;
+
+            foreach(var win in app.Windows)
+            {
+                if (win is PixivLoginDialog)
+                {
+                    result = win as PixivLoginDialog;
+                    result.Topmost = true;
+                    result.Show();
+                    result.Activate();
+                }
+            }
+
+            return (result);
+        }
+
         public static IList<string> OpenedWindowTitles(this Application app)
         {
             List<string> titles = new List<string>();
@@ -1481,7 +1499,6 @@ namespace PixivWPF.Common
         internal static string[] trim_str = new string[] { Environment.NewLine };
 
         #region Pixiv Token Helper
-
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
         private static async Task<Pixeez.Tokens> RefreshToken()
         {
@@ -5044,6 +5061,11 @@ namespace PixivWPF.Common
                         {
                             item.IsFavorited = false;
                             item.IsFollowed = item.User.IsLiked();
+                        }
+                        else if (item.IsPage() || item.IsPages())
+                        {
+                            item.IsFavorited = false;
+                            item.IsFollowed = false;
                         }
                         else if (item.IsWork())
                         {

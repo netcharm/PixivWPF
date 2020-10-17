@@ -36,6 +36,8 @@ namespace PixivWPF.Common
             ContentFrame.Tag = this;
             ContentFrame.Content = new Pages.LoginPage() { Tag = ContentFrame };
 
+            Topmost = true;
+
             UpdateTheme();
         }
     }
