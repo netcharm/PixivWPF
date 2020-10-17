@@ -299,21 +299,21 @@ namespace PixivWPF.Common
                 }
                 if (menu == LiveFilterUser)
                 {
-                    foreach (var ffmenu in menus_fav)
-                        ffmenu.IsEnabled = false;
-                    foreach (var ffmenu in menus_down)
-                        ffmenu.IsEnabled = false;
-                    foreach (var ffmenu in menus_sanity)
-                        ffmenu.IsEnabled = false;
+                    foreach (var fmenu in menus_fav)
+                        fmenu.IsEnabled = false;
+                    foreach (var fmenu in menus_down)
+                        fmenu.IsEnabled = false;
+                    foreach (var fmenu in menus_sanity)
+                        fmenu.IsEnabled = false;
                 }
                 else if (menu == LiveFilterWork)
                 {
-                    foreach (var ffmenu in menus_fav)
-                        ffmenu.IsEnabled = true;
-                    foreach (var ffmenu in menus_down)
-                        ffmenu.IsEnabled = true;
-                    foreach (var ffmenu in menus_sanity)
-                        ffmenu.IsEnabled = true;
+                    foreach (var fmenu in menus_fav)
+                        fmenu.IsEnabled = true;
+                    foreach (var fmenu in menus_down)
+                        fmenu.IsEnabled = true;
+                    foreach (var fmenu in menus_sanity)
+                        fmenu.IsEnabled = true;
                 }
                 #endregion
                 #region filter by favorited state
@@ -327,7 +327,8 @@ namespace PixivWPF.Common
                     if (fmenu.IsChecked)
                     {
                         filter_fav = fmenu.Name.Substring(idx);
-                        if (menu.Name.StartsWith("LiveFilterFavorited_")) LiveFilterFavoritedRange.IsChecked = true;
+                        if (fmenu.Name.StartsWith("LiveFilterFavorited_"))
+                            LiveFilterFavoritedRange.IsChecked = true;
                         else LiveFilterFavoritedRange.IsChecked = false;
                     }
                 }
