@@ -294,6 +294,53 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
+        public void SetFilter(string filter)
+        {
+            try
+            {
+                ListImageTiles.Items.Filter = filter.GetFilter();
+            }
+            catch(Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
+        public void SetFilter(string filter_type, string filter_fav, string filter_follow, string filter_down, string filter_sanity)
+        {
+            try
+            {
+                var filter = new FilterParam()
+                {
+                    Type = filter_type,
+                    Favorited = filter_fav,
+                    Followed = filter_follow,
+                    Downloaded = filter_down,
+                    Sanity = filter_sanity
+                };
+                ListImageTiles.Items.Filter = filter.GetFilter();
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
+        public void SetFilter(FilterParam filter)
+        {
+            try
+            {
+                if (filter is FilterParam)
+                    ListImageTiles.Items.Filter = filter.GetFilter();
+                else
+                    ListImageTiles.Items.Filter = null;
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
         internal void KeyAction(KeyEventArgs e)
         {
             ListImageTiles_KeyUp(this, e);
@@ -1215,34 +1262,40 @@ namespace PixivWPF.Pages
                 var idx = ListImageTiles.SelectedIndex;
                 if (idx < 0) return;
 
-                var item = ImageList[idx];
-
-                if (item.IsUser())
-                {
-                    item.IsDownloaded = false;
-                    item.IsFavorited = false;
-                    item.IsFollowed = item.User.IsLiked();
-                }
-                else
-                {
-                    item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
-                    item.IsFavorited = item.IsLiked();
-                    item.IsFollowed = item.User.IsLiked();
-                }
-
-                var ID_O = detail_page.Tag is ImageItem ? (detail_page.Tag as ImageItem).ID : string.Empty;
-                var ID_N = item is ImageItem ? item.ID : string.Empty;
-
-                if (string.IsNullOrEmpty(ID_O) || !ID_O.Equals(ID_N, StringComparison.CurrentCultureIgnoreCase))// || detail_page.Tag != item)
-                {
-                    detail_page.Tag = item;
-                    detail_page.Contents = item;
-                    detail_page.UpdateDetail(item);
-                }
                 if (ListImageTiles.SelectedItem is ImageItem)
                 {
-                    (ListImageTiles.SelectedItem as ImageItem).Focus();
-                    Keyboard.Focus(ListImageTiles.SelectedItem as ImageItem);
+                    var item = ListImageTiles.SelectedItem as ImageItem;
+
+                    if (item is ImageItem)
+                    {
+                        //UpdateLikeStateAsync(Convert.ToInt32(item.Illust.Id ?? -1), item.IsUser());
+                        //UpdateDownloadStateAsync(Convert.ToInt32(item.Illust.Id ?? -1));
+                        if (item.IsUser())
+                        {
+                            item.IsDownloaded = false;
+                            item.IsFavorited = false;
+                            item.IsFollowed = item.User.IsLiked();
+                        }
+                        else
+                        {
+                            item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                            item.IsFavorited = item.IsLiked();
+                            item.IsFollowed = item.User.IsLiked();
+                        }
+
+                        var ID_O = detail_page.Tag is ImageItem ? (detail_page.Tag as ImageItem).ID : string.Empty;
+                        var ID_N = item is ImageItem ? item.ID : string.Empty;
+
+                        if (string.IsNullOrEmpty(ID_O) || !ID_O.Equals(ID_N, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            detail_page.Tag = item;
+                            detail_page.Contents = item;
+                            detail_page.UpdateDetail(item);
+                        }
+
+                        item.Focus();
+                        Keyboard.Focus(item);
+                    }
                 }
             }
             catch (Exception ex)
@@ -1596,6 +1649,5 @@ namespace PixivWPF.Pages
             }
             #endregion
         }
-
     }
 }

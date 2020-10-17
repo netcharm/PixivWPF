@@ -502,6 +502,139 @@ namespace PixivWPF
         {
             Commands.OpenHistory.Execute(null);
         }
+
+        private void LiveFilter_Click(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is MenuItem)) return;
+            if (sender == LiveFilterFavoritedRange) return;
+
+            var menus_type = new List<MenuItem>() {
+                LiveFilterUser, LiveFilterWork
+            };
+            var menus_fav = new List<MenuItem>() {
+                LiveFilterFavorited, LiveFilterNotFavorited, //LiveFilterFavoritedRange,
+                LiveFilterFavorited_00100, LiveFilterFavorited_00200, LiveFilterFavorited_00500,
+                LiveFilterFavorited_01000, LiveFilterFavorited_02000, LiveFilterFavorited_05000,
+                LiveFilterFavorited_10000, LiveFilterFavorited_20000, LiveFilterFavorited_50000,
+            };
+            var menus_follow = new List<MenuItem>() {
+                LiveFilterFollowed, LiveFilterNotFollowed,
+            };
+            var menus_down = new List<MenuItem>() {
+                LiveFilterDownloaded, LiveFilterNotDownloaded,
+            };
+            var menus_sanity = new List<MenuItem>() {
+                LiveFilterAllAge, LiveFilterR15, LiveFilterR18,
+            };
+
+            var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav, menus_follow, menus_down, menus_sanity };
+
+            var idx = "LiveFilter".Length;
+
+            string filter_type = string.Empty;
+            string filter_fav = string.Empty;
+            string filter_follow = string.Empty;
+            string filter_down = string.Empty;
+            string filter_sanity = string.Empty;
+
+            var menu = sender as MenuItem;
+
+            if (menu == LiveFilterNone)
+            {
+                LiveFilterNone.IsChecked = true;
+                foreach (var fmenus in menus)
+                {
+                    foreach (var fmenu in fmenus)
+                    {
+                        fmenu.IsChecked = false;
+                        fmenu.IsEnabled = true;
+                    }
+                }
+            }
+            else
+            {
+                LiveFilterNone.IsChecked = false;
+                #region filter by item type 
+                foreach (var fmenu in menus_type)
+                {
+                    if (menus_down.Contains(menu))
+                    {
+                        if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
+                        else fmenu.IsChecked = false;
+                    }
+                    if (fmenu.IsChecked) filter_type = fmenu.Name.Substring(idx);
+                }
+                if (menu == LiveFilterUser)
+                {
+                    foreach (var ffmenu in menus_fav)
+                        ffmenu.IsEnabled = false;
+                    foreach (var ffmenu in menus_down)
+                        ffmenu.IsEnabled = false;
+                    foreach (var ffmenu in menus_sanity)
+                        ffmenu.IsEnabled = false;
+                }
+                else if (menu == LiveFilterWork)
+                {
+                    foreach (var ffmenu in menus_fav)
+                        ffmenu.IsEnabled = true;
+                    foreach (var ffmenu in menus_down)
+                        ffmenu.IsEnabled = true;
+                    foreach (var ffmenu in menus_sanity)
+                        ffmenu.IsEnabled = true;
+                }
+                #endregion
+                #region filter by favorited state
+                foreach (var fmenu in menus_fav)
+                {
+                    if (menus_fav.Contains(menu))
+                    {
+                        if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
+                        else fmenu.IsChecked = false;
+                    }
+                    if (fmenu.IsChecked)
+                    {
+                        filter_fav = fmenu.Name.Substring(idx);
+                        if (menu.Name.StartsWith("LiveFilterFavorited_")) LiveFilterFavoritedRange.IsChecked = true;
+                        else LiveFilterFavoritedRange.IsChecked = false;
+                    }
+                }
+                #endregion
+                #region filter by followed state
+                foreach (var fmenu in menus_follow)
+                {
+                    if (menus_follow.Contains(menu))
+                    {
+                        if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
+                        else fmenu.IsChecked = false;
+                    }
+                    if (fmenu.IsChecked) filter_follow = fmenu.Name.Substring(idx);
+                }
+                #endregion
+                #region filter by downloaded state
+                foreach (var fmenu in menus_down)
+                {
+                    if (menus_down.Contains(menu))
+                    {
+                        if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
+                        else fmenu.IsChecked = false;
+                    }
+                    if (fmenu.IsChecked) filter_down = fmenu.Name.Substring(idx);
+                }
+                #endregion
+                #region filter by sanity state
+                foreach (var fmenu in menus_sanity)
+                {
+                    if (menus_sanity.Contains(menu))
+                    {
+                        if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
+                        else fmenu.IsChecked = false;
+                    }
+                    if(fmenu.IsChecked) filter_sanity = fmenu.Name.Substring(idx);
+                }
+                #endregion
+            }
+            if (pagetiles is Pages.TilesPage) pagetiles.SetFilter(filter_type, filter_fav, filter_follow, filter_down, filter_sanity);
+        }
     }
 
 }

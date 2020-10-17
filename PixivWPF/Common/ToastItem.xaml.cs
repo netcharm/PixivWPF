@@ -139,7 +139,6 @@ namespace PixivWPF.Common
                     ButtonOpenFolder.Visiable = false;
                     break;
             }
-
         }
 
         private async void CheckImageSource()
@@ -150,9 +149,9 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(url))
                 {
                     if (Preview.Source == null)
-                        Preview.Source = await url.GetImageCachePath().LoadImageFromFile();
+                        Preview.Source = (await url.GetImageCachePath().LoadImageFromFile()).Source;
                     if (Preview.Source == null)
-                        Preview.Source = await url.LoadImageFromUrl();
+                        Preview.Source = (await url.LoadImageFromUrl()).Source;
                     if (Preview.Source == null)
                     {
                         Preview.Visibility = Visibility.Collapsed;

@@ -99,6 +99,57 @@ namespace PixivWPF.Pages
             ResultIllusts.UpdateTilesImage();
         }
 
+        public void SetFilter(string filter)
+        {
+            try
+            {
+                ResultIllusts.Filter = filter.GetFilter();
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
+        public void SetFilter(string filter_type, string filter_fav, string filter_follow, string filter_down, string filter_sanity)
+        {
+            try
+            {
+                var filter = new FilterParam()
+                {
+                    Type = filter_type,
+                    Favorited = filter_fav,
+                    Followed = filter_follow,
+                    Downloaded = filter_down,
+                    Sanity = filter_sanity
+                };
+                SetFilter(filter);
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
+        public void SetFilter(FilterParam filter)
+        {
+            try
+            {
+                if (filter is FilterParam)
+                {
+                    ResultIllusts.Filter = filter.GetFilter();
+                }
+                else
+                {
+                    ResultIllusts.Filter = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
         internal void KeyAction(KeyEventArgs e)
         {
             ResultIllusts_KeyUp(this, e);

@@ -26,30 +26,7 @@ namespace PixivWPF.Common
         public CacheImage()
         {
             setting = Application.Current.LoadSetting();
-
             _CacheFolder = Path.Combine(setting.APP_PATH, "cache");
-            _CacheDB = Path.Combine(setting.APP_PATH, "cache.json");
-            Load();
-        }
-
-        public void Load()
-        {
-            if (File.Exists(_CacheDB))
-            {
-#if DEBUG
-                var text = File.ReadAllText(_CacheDB);
-                if (text.Length > 20)
-                    _caches = JsonConvert.DeserializeObject<Dictionary<string, string>>(text);
-#endif
-            }
-        }
-        
-        public void Save()
-        {
-#if DEBUG
-            var text = JsonConvert.SerializeObject(_caches, Formatting.Indented);
-            File.WriteAllText(_CacheDB, text, new UTF8Encoding(true));
-#endif
         }
 
         public bool IsCached(string url)
@@ -61,12 +38,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public async Task<ImageSource> GetImage(string url, bool login = false)
+        public async Task<CustomImageSource> GetImage(string url, bool login = false)
         {
             if (login)
             {
                 var tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return null;
+                if (tokens == null) return (new CustomImageSource(null, string.Empty));
 
                 return (await GetImageLogin(url, tokens));
             }
@@ -81,12 +58,17 @@ namespace PixivWPF.Common
             var file = Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
             file = file.Replace("/", "\\").TrimStart(trimchars);
             file = Path.Combine(_CacheFolder, file);
+            if (!File.Exists(file) && url.IsCached())
+            {
+                var fcache = _caches[url].TrimStart(trimchars);
+                file = Path.Combine(_CacheFolder, fcache);
+            }
             return (file);
         }
 
-        public async Task<ImageSource> GetImageDirect(string url)
+        public async Task<CustomImageSource> GetImageDirect(string url)
         {
-            ImageSource result = null;
+            CustomImageSource result = new CustomImageSource();
             var file = GetCacheFile(url);
             var fp = string.Empty;
             var id = url.GetIllustId();
@@ -112,16 +94,15 @@ namespace PixivWPF.Common
             else if (File.Exists(file))
             {
                 result = await file.LoadImageFromFile();
-                if (result is ImageSource)
+                if (result.Source is ImageSource)
                 {
                     _caches[url] = file.Replace(_CacheFolder, "");
-                    //Save();
                 }
             }
             else if (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp))
             {
                 result = await fp.LoadImageFromFile();
-                if (result is ImageSource)
+                if (result.Source is ImageSource)
                 {
                     _caches[url] = fp;
                 }
@@ -133,10 +114,9 @@ namespace PixivWPF.Common
                 {
                     result = await file.LoadImageFromFile();
                     _caches[url] = file.Replace(_CacheFolder, "");
-                    //Save();
                 }
             }
-            if (result is ImageSource && !string.IsNullOrEmpty(id))
+            if (result.Source is ImageSource && !string.IsNullOrEmpty(id))
             {
                 loadedImageHashTable[result.GetHashCode()] = id;
                 loadedImageFileTable[result.GetHashCode()] = fn;
@@ -144,9 +124,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public async Task<ImageSource> GetImageLogin(string url, Pixeez.Tokens tokens)
+        public async Task<CustomImageSource> GetImageLogin(string url, Pixeez.Tokens tokens)
         {
-            ImageSource result = null;
+            CustomImageSource result = new CustomImageSource();
             var file = GetCacheFile(url);
             var fp = string.Empty;
             var id = url.GetIllustId();
@@ -163,7 +143,7 @@ namespace PixivWPF.Common
                 else
                 {
                     tokens = await CommonHelper.ShowLogin();
-                    if (tokens == null) return null;
+                    if (tokens == null) return (result);
 
                     var success = await url.SaveImage(tokens, file, false);
                     if (success)
@@ -175,7 +155,7 @@ namespace PixivWPF.Common
             else if (File.Exists(file))
             {
                 result = await file.LoadImageFromFile();
-                if (result is ImageSource)
+                if (result.Source is ImageSource)
                 {
                     _caches[url] = file.Replace(_CacheFolder, "");
                     //Save();
@@ -184,7 +164,7 @@ namespace PixivWPF.Common
             else if (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp))
             {
                 result = await fp.LoadImageFromFile();
-                if (result is ImageSource)
+                if (result.Source is ImageSource)
                 {
                     _caches[url] = fp;
                 }
@@ -192,17 +172,16 @@ namespace PixivWPF.Common
             else
             {
                 tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return null;
+                if (tokens == null) return (result);
 
                 var success = await url.SaveImage(tokens, file, false);
                 if (success)
                 {
                     result = await file.LoadImageFromFile();
                     _caches[url] = file.Replace(_CacheFolder, "");
-                    //Save();
                 }
             }
-            if (result is ImageSource && !string.IsNullOrEmpty(id))
+            if (result.Source is ImageSource && !string.IsNullOrEmpty(id))
             {
                 loadedImageHashTable[result.GetHashCode()] = id;
                 loadedImageFileTable[result.GetHashCode()] = fn;

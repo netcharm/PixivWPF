@@ -184,6 +184,24 @@ namespace PixivWPF.Common
     }
     #endregion
 
+    #region CustomImage
+    public class CustomImageSource
+    {
+        public ImageSource Source { get; set; } = null;
+        public string SourcePath { get; set; } = string.Empty;
+
+        public CustomImageSource()
+        {
+        }
+
+        public CustomImageSource(ImageSource source, string path)
+        {
+            Source = source;
+            SourcePath = path;
+        }
+    }
+    #endregion
+
     public static class ApplicationExtensions
     {
         #region Application Setting Helper
@@ -3614,7 +3632,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> LoadImageFromFile(this string file)
+        public static async Task<CustomImageSource> LoadImageFromFile(this string file)
         {
             ImageSource result = null;
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
@@ -3627,12 +3645,12 @@ namespace PixivWPF.Common
                     }).InvokeAsync();
                 }
             }
-            return (result);
+            return (new CustomImageSource(result, file));
         }
 
-        public static async Task<ImageSource> LoadImageFromUrl(this string url, bool login = false)
+        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool login = false)
         {
-            ImageSource result = null;
+            CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
                 result = await cache.GetImage(url, login);
@@ -3640,9 +3658,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> LoadImageFromUri(this Uri uri, Pixeez.Tokens tokens = null)
+        public static async Task<CustomImageSource> LoadImageFromUri(this Uri uri, Pixeez.Tokens tokens = null)
         {
-            ImageSource result = null;
+            CustomImageSource result = new CustomImageSource();
             if (uri.IsUnc || uri.IsFile)
                 result = await LoadImageFromFile(uri.LocalPath);
             else

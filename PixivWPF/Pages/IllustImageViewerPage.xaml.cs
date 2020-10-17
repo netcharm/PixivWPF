@@ -69,13 +69,13 @@ namespace PixivWPF.Pages
 
                     PreviewImageUrl = illust.GetPreviewUrl(Contents.Index, true);
                     var img = await PreviewImageUrl.LoadImageFromUrl();
-                    if (img == null || img.Width < 360 || img.Height < 360)
+                    if (img.Source == null || img.Source.Width < 360 || img.Source.Height < 360)
                     {
                         PreviewImageUrl = Contents.Illust.GetOriginalUrl(Contents.Index);
                         var large = await PreviewImageUrl.LoadImageFromUrl();
-                        if (large != null) img = large;
+                        if (large.Source != null) img = large;
                     }
-                    Preview.Source = img;
+                    Preview.Source = img.Source;
 
                     if (Preview.Source != null)
                     {
@@ -429,9 +429,9 @@ namespace PixivWPF.Pages
                         var illust = Contents.Illust as Pixeez.Objects.Work;
                         OriginalImageUrl = illust.GetOriginalUrl(Contents.Index);
                         var original = await OriginalImageUrl.LoadImageFromUrl();
-                        if (original != null)
+                        if (original.Source != null)
                         {
-                            Preview.Source = original;
+                            Preview.Source = original.Source;
                             IsOriginal = true;
                         }
                         else

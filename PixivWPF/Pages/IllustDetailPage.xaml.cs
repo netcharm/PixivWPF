@@ -800,7 +800,7 @@ namespace PixivWPF.Pages
             {
                 if (string.IsNullOrEmpty(user_backgroundimage_url))
                 {
-                    Preview.Source = await user_backgroundimage_url.LoadImageFromUrl();
+                    Preview.Source = (await user_backgroundimage_url.LoadImageFromUrl()).Source;
                     PreviewViewer.Show();
                     PreviewBox.Show();
                 }
@@ -846,7 +846,7 @@ namespace PixivWPF.Pages
 
                 IllustTitle.Text = string.Empty;
                 IllustAuthor.Text = nuser.Name;
-                IllustAuthorAvator.Source = await nuser.GetAvatarUrl().LoadImageFromUrl();
+                IllustAuthorAvator.Source = (await nuser.GetAvatarUrl().LoadImageFromUrl()).Source;
                 if (IllustAuthorAvator.Source != null)
                 {
                     IllustAuthorAvatorWait.Hide();
@@ -1285,6 +1285,60 @@ namespace PixivWPF.Pages
         {
             if (Parent is ContentWindow) return;
             Commands.NextIllust.Execute(Application.Current.MainWindow);
+        }
+
+        public void SetFilter(string filter)
+        {
+            try
+            {
+                RelativeIllusts.Filter = filter.GetFilter();
+                FavoriteIllusts.Filter = filter.GetFilter();
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
+        public void SetFilter(string filter_type, string filter_fav, string filter_follow, string filter_down, string filter_sanity)
+        {
+            try
+            {
+                var filter = new FilterParam()
+                {
+                    Type = filter_type,
+                    Favorited = filter_fav,
+                    Followed = filter_follow,
+                    Downloaded = filter_down,
+                    Sanity = filter_sanity
+                };
+                SetFilter(filter);
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
+        public void SetFilter(FilterParam filter)
+        {
+            try
+            {
+                if (filter is FilterParam)
+                {
+                    RelativeIllusts.Filter = filter.GetFilter();
+                    FavoriteIllusts.Filter = filter.GetFilter();
+                }
+                else
+                {
+                    RelativeIllusts.Filter = null;
+                    FavoriteIllusts.Filter = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
         }
         #endregion
 
@@ -2401,23 +2455,23 @@ namespace PixivWPF.Pages
                         var img = await PreviewImageUrl.LoadImageFromUrl();
                         if (hash == Contents.GetHashCode())
                         {
-                            if (img == null || img.Width < 360 || img.Height < 360)
+                            if (img.Source == null || img.Source.Width < 360 || img.Source.Height < 360)
                             {
                                 PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
                                 var large = await PreviewImageUrl.LoadImageFromUrl();
-                                if (large != null) img = large;
+                                if (large.Source != null) img = large;
                             }
-                            if (img != null)
+                            if (img.Source != null)
                             {
                                 if(SubIllusts.SelectedItem is ImageItem)
                                 {
                                     if(SubIllusts.SelectedItem.GetHashCode() == item.GetHashCode())
-                                        Preview.Source = img;
+                                        Preview.Source = img.Source;
                                 }
                                 else
                                 {
                                     if (hash == Contents.GetHashCode())
-                                        Preview.Source = img;
+                                        Preview.Source = img.Source;
                                 }
                             }
                         }                       
@@ -2455,7 +2509,7 @@ namespace PixivWPF.Pages
                     var img =  await user.GetAvatarUrl().LoadImageFromUrl();
                     if(hash == Contents.GetHashCode())
                     {
-                        IllustAuthorAvator.Source = img;
+                        IllustAuthorAvator.Source = img.Source;
                         if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
                         else IllustAuthorAvatorWait.Disable();
                     }

@@ -200,7 +200,7 @@ namespace PixivWPF.Pages
                     SingleFile = is_meta_single_page,
                     Overwrite = overwrite,
                     ThumbnailUrl = thumb,
-                    Thumbnail = await thumb.LoadImageFromUrl(),
+                    Thumbnail = (await thumb.LoadImageFromUrl()).Source,
                     Url = url,
                     FileTime = dt
                 };

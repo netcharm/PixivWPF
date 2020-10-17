@@ -101,14 +101,10 @@ namespace PixivWPF.Common
 
         [Description("Get or Set Image Tiles LiveFilter")]
         [Category("Common Properties")]
-        public IEnumerable LiveFilter
+        public Predicate<object> Filter
         {
-            get { return PART_ImageTiles.Items; }
-            set
-            {
-                ImageList = new ObservableCollection<ImageItem>(value as IEnumerable<ImageItem>);
-                PART_ImageTiles.ItemsSource = ImageList;
-            }
+            get { return (PART_ImageTiles.Items is ItemCollection ? PART_ImageTiles.Items.Filter : null); }
+            set { if (PART_ImageTiles.Items is ItemCollection) PART_ImageTiles.Items.Filter = value; }
         }
 
         private Visibility badgevisibility = Visibility.Visible;
@@ -247,8 +243,9 @@ namespace PixivWPF.Common
             var needUpdate = Items.Where(item => item.Source == null);
             if (needUpdate.Count() > 0)
             {
+                //PART_ImageTilesWait.Show();
                 lastTask = await Items.UpdateTilesThumb(lastTask, cancelTokenSource, parallel);
-                //Items.UpdateTilesImage(lastTask, cancelTokenSource, parallel);
+                //if (lastTask.IsCompleted) PART_ImageTilesWait.Hide();
             }
         }
 
@@ -256,6 +253,17 @@ namespace PixivWPF.Common
         {
             PART_ImageTiles.Items.Refresh();
             //CollectionViewSource.GetDefaultView(this).Refresh();
+        }
+
+        public void Filtering(string filter)
+        {
+            if (PART_ImageTiles.Items.CanFilter)
+            {
+                if (string.IsNullOrEmpty(filter))
+                    PART_ImageTiles.Items.Filter = null;
+                else
+                    PART_ImageTiles.Items.Filter = filter.GetFilter();
+            }
         }
 
         private void TileBadge_TargetUpdated(object sender, DataTransferEventArgs e)

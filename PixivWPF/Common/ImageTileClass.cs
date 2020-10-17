@@ -18,6 +18,15 @@ namespace PixivWPF.Common
 {
     public enum ImageItemType { None, User, Works, Work, Pages, Page, Manga, Novel }
 
+    public class FilterParam
+    {
+        public string Type { get; set; } = string.Empty;
+        public string Favorited { get; set; } = string.Empty;
+        public string Followed { get; set; } = string.Empty;
+        public string Downloaded { get; set; } = string.Empty;
+        public string Sanity { get; set; } = string.Empty;
+    }
+
     public class ImageItem : FrameworkElement, INotifyPropertyChanged
     {
         ~ImageItem()
@@ -191,6 +200,306 @@ namespace PixivWPF.Common
             //throw new NotImplementedException();
         }
 
+        #region Tiles Filter Helper
+        public static Predicate<object> GetFilter(this string filter)
+        {
+            Predicate<object> result_filter = null;
+            Func<object, bool> filter_action = null;
+
+            if (!string.IsNullOrEmpty(filter))
+            {
+                filter = filter.ToLower();
+                #region item type
+                if (filter.Equals("user"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            result = (obj as ImageItem).IsUser() ? true : false;
+                        }
+                        return (result);
+                    });
+                }
+                else if (filter.Equals("work"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            result = (obj as ImageItem).IsWork() ? true : false;
+                        }
+                        return (result);
+                    });
+                }
+                #endregion
+                #region item states
+                else if (filter.Equals("favorited"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            result = (obj as ImageItem).IsFavorited ? true : false;
+                        }
+                        return (result);
+                    });
+                }
+                else if (filter.StartsWith("favorited_"))
+                {
+                    int range = 0;
+                    if (int.TryParse(filter.Substring(10), out range))
+                    {
+                        filter_action = new Func<object, bool>(obj =>
+                        {
+                            var result = true;
+                            if (obj is ImageItem)
+                            {
+                                var item = (obj as ImageItem);
+                                if (item.IsWork()) {
+                                    var illust = item.Illust;
+                                    if(illust is Pixeez.Objects.IllustWork)
+                                    {
+                                        var fav_count = (illust as Pixeez.Objects.IllustWork).total_bookmarks;
+                                        result = fav_count > range ? true : false;
+                                    }
+                                    else if (illust is Pixeez.Objects.NormalWork && illust.Stats is Pixeez.Objects.WorkStats)
+                                    {
+                                        var fav_count = illust.Stats.FavoritedCount.Public + illust.Stats.FavoritedCount.Private;
+                                        result = fav_count > range ? true : false;
+                                    }
+                                }
+                            }
+                            return (result);
+                        });
+                    }
+                }
+                else if (filter.Equals("notfavorited"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            result = (obj as ImageItem).IsFavorited ? false : true;
+                        }
+                        return (result);
+                    });
+                }
+                else if (filter.Equals("followed"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            result = (obj as ImageItem).IsFollowed ? true : false;
+                        }
+                        return (result);
+                    });
+                }
+                else if (filter.Equals("notfollowed"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            result = (obj as ImageItem).IsFollowed ? false : true;
+                        }
+                        return (result);
+                    });
+                }
+                else if (filter.Equals("downloaded"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            result = (obj as ImageItem).IsDownloaded ? true : false;
+                        }
+                        return (result);
+                    });
+                }
+                else if (filter.Equals("notdownloaded"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            result = (obj as ImageItem).IsDownloaded ? false : true;
+                        }
+                        return (result);
+                    });
+                }
+                #endregion
+                #region Sanity
+                else if (filter.Equals("allage") || filter.Equals("fullage"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            var item = obj as ImageItem;
+                            if (item.Sanity.Equals("all", StringComparison.CurrentCultureIgnoreCase)) result = true;
+                            else result = false;
+                        }
+                        return (result);
+                    });
+                }
+                else if (filter.Equals("r18") || filter.Equals("18+"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            var item = obj as ImageItem;
+                            if (item.Sanity.Equals("18+", StringComparison.CurrentCultureIgnoreCase)) result = true;
+                            else result = false;
+                        }
+                        return (result);
+                    });
+                }
+                else if (filter.Equals("r15") || filter.Equals("15+"))
+                {
+                    filter_action = new Func<object, bool>(obj =>
+                    {
+                        var result = true;
+                        if (obj is ImageItem)
+                        {
+                            var item = obj as ImageItem;
+                            if (item.Sanity.Equals("15+", StringComparison.CurrentCultureIgnoreCase)) result = true;
+                            else result = false;
+                        }
+                        return (result);
+                    });
+                }
+                #endregion
+            }
+            if (filter_action != null)
+                result_filter = new Predicate<object>(filter_action);
+            else
+                result_filter = null;
+            return (result_filter);
+        }
+      
+        public static Predicate<object> GetFilter(this FilterParam filter)
+        {
+            if (filter is FilterParam)
+                return (GetFilter(filter.Type, filter.Favorited, filter.Followed, filter.Downloaded, filter.Sanity));
+            else
+                return (null);
+        }
+
+        private static Predicate<object> GetFilter(string filter_type, string filter_fav, string filter_follow, string filter_down, string filter_sanity)
+        {
+            Predicate<object> result_filter = null;
+            Func<object, bool> filter_action = null;
+
+            filter_type = filter_type.ToLower();
+            filter_fav = filter_fav.ToLower();
+            filter_follow = filter_follow.ToLower();
+            filter_down = filter_down.ToLower();
+            filter_sanity = filter_sanity.ToLower();
+
+            filter_action = new Func<object, bool>(obj =>
+            {
+                var result = true;
+                if (obj is ImageItem)
+                {
+                    var item = obj as ImageItem;
+                    #region filter by type
+                    if (string.IsNullOrEmpty(filter_type)) result = true;
+                    else
+                    {
+                        if (filter_type.Equals("user"))
+                            result = item.IsUser() ? true : false;
+                        else if (filter_type.Equals("work"))
+                            result = item.IsUser() ? true : false;
+                    }
+                    #endregion
+                    #region filter by favorited state
+                    if (!string.IsNullOrEmpty(filter_fav))
+                    {
+                        if (filter_fav.Equals("favorited"))
+                            result = result && (item.IsFavorited ? true : false);
+                        else if (filter_fav.Equals("notfavorited"))
+                            result = result && (!item.IsFavorited ? true : false);
+                        else if (filter_fav.StartsWith("favorited_"))
+                        {
+                            int range = 0;
+                            if (int.TryParse(filter_fav.Substring(10), out range))
+                            {
+                                if (item.IsWork())
+                                {
+                                    var illust = item.Illust;
+                                    if (illust is Pixeez.Objects.IllustWork)
+                                    {
+                                        var fav_count = (illust as Pixeez.Objects.IllustWork).total_bookmarks;
+                                        result = result && (fav_count > range ? true : false);
+                                    }
+                                    else if (illust is Pixeez.Objects.NormalWork && illust.Stats is Pixeez.Objects.WorkStats)
+                                    {
+                                        var fav_count = illust.Stats.FavoritedCount.Public + illust.Stats.FavoritedCount.Private;
+                                        result = result && (fav_count > range ? true : false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                    #region filter by followed state
+                    if (!string.IsNullOrEmpty(filter_follow))
+                    {
+                        if (filter_follow.Equals("followed"))
+                            result = result && (item.IsFollowed ? true : false);
+                        else if (filter_follow.Equals("notfollowed"))
+                            result = result && (!item.IsFollowed ? true : false);
+                    }
+                    #endregion
+                    #region filter by downloaded state
+                    if (!string.IsNullOrEmpty(filter_down))
+                    {
+                        if (filter_down.Equals("downloaded"))
+                            result = result && (item.IsDownloaded ? true : false);
+                        else if (filter_down.Equals("notdownloaded"))
+                            result = result && (!item.IsDownloaded ? true : false);
+                    }
+                    #endregion
+                    #region filter by sanity state
+                    if (!string.IsNullOrEmpty(filter_sanity))
+                    {
+                        if (filter_sanity.Equals("allage") || filter_sanity.Equals("fullage") || filter_sanity.Equals("all"))
+                            result = result && (item.Sanity.ToLower().Equals("all") ? true : false);
+                        else if (filter_sanity.Equals("r15") || filter_sanity.Equals("r15+") || filter_sanity.Equals("15+"))
+                            result = result && (item.Sanity.ToLower().Equals("15+") ? true : false);
+                        else if (filter_sanity.Equals("r16") || filter_sanity.Equals("r16+") || filter_sanity.Equals("16+"))
+                            result = result && (item.Sanity.ToLower().Equals("16+") ? true : false);
+                        else if (filter_sanity.Equals("r17") || filter_sanity.Equals("r17+") || filter_sanity.Equals("17+"))
+                            result = result && (item.Sanity.ToLower().Equals("17+") ? true : false);
+                        else if (filter_sanity.Equals("r18") || filter_sanity.Equals("r18+") || filter_sanity.Equals("18+"))
+                            result = result && (item.Sanity.ToLower().Equals("18+") ? true : false);
+                    }
+                    #endregion
+                }
+                return (result);
+            });
+            
+            if (filter_action != null)
+                result_filter = new Predicate<object>(filter_action);
+            else
+                result_filter = null;
+            return (result_filter);
+        }
+        #endregion
+
         #region Tile Update Helper
         public static void UpdateTiles(this ObservableCollection<ImageItem> collection, ImageItem item = null)
         {
@@ -312,7 +621,7 @@ namespace PixivWPF.Common
                                             if (item.Source == null)
                                             {
                                                 var img = await item.Thumb.LoadImageFromUrl();
-                                                if (item.Source == null) item.Source = img;
+                                                if (item.Source == null) item.Source = img.Source;
                                                 if(item.Source is ImageSource)
                                                     item.State = TaskStatus.RanToCompletion;
                                                 else
@@ -332,7 +641,7 @@ namespace PixivWPF.Common
 #endif
                                     finally
                                     {
-                                        if (item.Thumb.IsCached()) item.Source = await item.Thumb.GetImageCachePath().LoadImageFromFile();
+                                        if (item.Thumb.IsCached()) item.Source = (await item.Thumb.GetImageCachePath().LoadImageFromFile()).Source;
                                     }
                                 }
                             }).InvokeAsync();
