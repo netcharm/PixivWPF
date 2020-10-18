@@ -642,11 +642,16 @@ namespace PixivWPF
                 #endregion
             }
             if (pagetiles is Pages.TilesPage)
-            {
                 pagetiles.SetFilter(filter_type, filter_fav, filter_follow, filter_down, filter_sanity);
-                CommandFilter.ToolTip = $"Tiles Count: {pagetiles.GetTilesCount()}";
-            }
         }
+
+        private void CommandFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            if (pagetiles is Pages.TilesPage)
+                CommandFilter.ToolTip = $"Tiles Count: {pagetiles.GetTilesCount()}";
+            else CommandFilter.ToolTip = $"Live Filter";
+        }
+
     }
 
 }

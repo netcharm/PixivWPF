@@ -2437,11 +2437,9 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        var idx = -1;
                         var item = Contents;
                         if (SubIllusts.SelectedItem is ImageItem)
                         {
-                            idx = SubIllusts.SelectedIndex;
                             item = SubIllusts.SelectedItem as ImageItem;
                             Contents.Index = item.Index;
                         }
@@ -2461,7 +2459,7 @@ namespace PixivWPF.Pages
                             }
                             if (img.Source != null && item.IsSameIllust(Contents))
                             {                                
-                                if(idx == item.Index) Preview.Source = img.Source;
+                                if(item.Index == Contents.Index) Preview.Source = img.Source;
                             }
                         }                       
                     }
@@ -2733,7 +2731,7 @@ namespace PixivWPF.Pages
 
         private void SubIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Commands.Open.Execute(SubIllusts);
+            Commands.OpenWorkPreview.Execute(SubIllusts);
         }
 
         private void SubIllusts_KeyUp(object sender, KeyEventArgs e)
@@ -2884,7 +2882,7 @@ namespace PixivWPF.Pages
 
         private void RelativeIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Commands.Open.Execute(RelativeIllusts);
+            Commands.OpenWork.Execute(RelativeIllusts);
         }
 
         private void RelativeIllusts_KeyUp(object sender, KeyEventArgs e)
@@ -2963,7 +2961,7 @@ namespace PixivWPF.Pages
 
         private void FavriteIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Commands.Open.Execute(FavoriteIllusts);
+            Commands.OpenWork.Execute(FavoriteIllusts);
         }
 
         private void FavriteIllusts_KeyUp(object sender, KeyEventArgs e)
@@ -3226,15 +3224,15 @@ namespace PixivWPF.Pages
                     var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                     if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
                     {
-                        Commands.Open.Execute(SubIllusts);
+                        Commands.OpenWorkPreview.Execute(SubIllusts);
                     }
                     else if (host == RelativeIllustsExpander || host == RelativeIllusts)
                     {
-                        Commands.Open.Execute(RelativeIllusts);
+                        Commands.OpenWork.Execute(RelativeIllusts);
                     }
                     else if (host == FavoriteIllustsExpander || host == FavoriteIllusts)
                     {
-                        Commands.Open.Execute(FavoriteIllusts);
+                        Commands.OpenWork.Execute(FavoriteIllusts);
                     }
                     else if (host == CommentsExpander || host == CommentsViewer)
                     {

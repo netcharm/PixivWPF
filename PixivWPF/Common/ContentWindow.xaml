@@ -56,7 +56,7 @@
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <mah:DropDownButton x:Name="CommandFilter" x:Uid="CommandFilter"
-                                ToolTip="Live Filter">
+                                ToolTip="Live Filter" ToolTipOpening="CommandFilter_ToolTipOpening">
                 <mah:DropDownButton.Icon>
                     <TextBlock 
                     Text="&#xE16E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 

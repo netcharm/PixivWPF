@@ -876,7 +876,8 @@
                         Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
-                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0">
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
+                        Click="SubIllustPagesNav_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"

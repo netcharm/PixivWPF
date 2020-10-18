@@ -376,16 +376,18 @@ namespace PixivWPF.Common
             if (Content is IllustDetailPage)
                 (Content as IllustDetailPage).SetFilter(filter_type, filter_fav, filter_follow, filter_down, filter_sanity);
             else if (Content is SearchResultPage)
-            {
                 (Content as SearchResultPage).SetFilter(filter_type, filter_fav, filter_follow, filter_down, filter_sanity);
-                CommandFilter.ToolTip = $"Tiles Count: {(Content as SearchResultPage).GetTilesCount()}";
-            }
             else if (Content is HistoryPage)
-            {
                 (Content as HistoryPage).SetFilter(filter_type, filter_fav, filter_follow, filter_down, filter_sanity);
-                CommandFilter.ToolTip = $"Tiles Count: {(Content as HistoryPage).GetTilesCount()}";
-            }
         }
 
+        private void CommandFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            if (Content is SearchResultPage)
+                CommandFilter.ToolTip = $"Tiles Count: {(Content as SearchResultPage).GetTilesCount()}";
+            else if (Content is HistoryPage)
+                CommandFilter.ToolTip = $"Tiles Count: {(Content as HistoryPage).GetTilesCount()}";
+            else CommandFilter.ToolTip = $"Live Filter";
+        }
     }
 }

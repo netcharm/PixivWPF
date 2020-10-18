@@ -319,7 +319,11 @@ namespace PixivWPF.Common
                     var item = obj as ImageItem;
                     if (item.IsWork())
                     {
-                        item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
+                        if (item.IsPage() || item.IsPages())
+                            item.IsDownloaded = item.Illust.IsDownloadedAsync(item.Index);
+                        else
+                            item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+
                         OpenWork.Execute(item.Illust);
                     }
                     else if (item.IsUser())
@@ -408,7 +412,10 @@ namespace PixivWPF.Common
                 if (obj is ImageItem && (obj as ImageItem).IsWork())
                 {
                     var item = obj as ImageItem;
-                    item.IsDownloaded = item.Illust == null ? false : item.Illust.IsPartDownloadedAsync();
+                    if(item.IsPage()||item.IsPages())
+                        item.IsDownloaded = item.Illust.IsDownloadedAsync(item.Index);
+                    else
+                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
 
                     var suffix = item.Count > 1 ? $" - {item.Index}/{item.Count}" : string.Empty;
                     var title = $"Preview ID: {item.ID}, {item.Subject}";
