@@ -542,6 +542,7 @@ namespace PixivWPF
             if (menu == LiveFilterNone)
             {
                 LiveFilterNone.IsChecked = true;
+                LiveFilterFavoritedRange.IsChecked = false;
                 foreach (var fmenus in menus)
                 {
                     foreach (var fmenu in fmenus)
@@ -557,7 +558,7 @@ namespace PixivWPF
                 #region filter by item type 
                 foreach (var fmenu in menus_type)
                 {
-                    if (menus_down.Contains(menu))
+                    if (menus_type.Contains(menu))
                     {
                         if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
                         else fmenu.IsChecked = false;
@@ -584,6 +585,7 @@ namespace PixivWPF
                 }
                 #endregion
                 #region filter by favorited state
+                LiveFilterFavoritedRange.IsChecked = false;
                 foreach (var fmenu in menus_fav)
                 {
                     if (menus_fav.Contains(menu))
@@ -596,7 +598,6 @@ namespace PixivWPF
                         filter_fav = fmenu.Name.Substring(idx);
                         if (fmenu.Name.StartsWith("LiveFilterFavorited_"))
                             LiveFilterFavoritedRange.IsChecked = true;
-                        else LiveFilterFavoritedRange.IsChecked = false;
                     }
                 }
                 #endregion
