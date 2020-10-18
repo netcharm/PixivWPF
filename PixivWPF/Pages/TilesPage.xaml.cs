@@ -334,11 +334,17 @@ namespace PixivWPF.Pages
                     ListImageTiles.Items.Filter = filter.GetFilter();
                 else
                     ListImageTiles.Items.Filter = null;
+
             }
             catch (Exception ex)
             {
                 ex.Message.DEBUG();
             }
+        }
+
+        public int GetTilesCount()
+        {
+            return (ListImageTiles.Items.Count);
         }
 
         internal void KeyAction(KeyEventArgs e)

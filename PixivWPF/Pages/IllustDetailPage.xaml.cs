@@ -2438,9 +2438,7 @@ namespace PixivWPF.Pages
                     try
                     {
                         var idx = -1;
-                        var illust = Contents;
                         var item = Contents;
-                        var hash = Contents.GetHashCode();
                         if (SubIllusts.SelectedItem is ImageItem)
                         {
                             idx = SubIllusts.SelectedIndex;
@@ -2453,26 +2451,17 @@ namespace PixivWPF.Pages
 
                         PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index);
                         var img = await PreviewImageUrl.LoadImageFromUrl();
-                        if (hash == Contents.GetHashCode())
+                        if(item.IsSameIllust(Contents))
                         {
-                            if (img.Source == null || img.Source.Width < 360 || img.Source.Height < 360)
+                            if (img.Source == null || img.Source.Width < 300 || img.Source.Height < 250)
                             {
                                 PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
                                 var large = await PreviewImageUrl.LoadImageFromUrl();
                                 if (large.Source != null) img = large;
                             }
-                            if (img.Source != null)
-                            {
-                                if(SubIllusts.SelectedItem is ImageItem)
-                                {
-                                    if(SubIllusts.SelectedItem.GetHashCode() == item.GetHashCode())
-                                        Preview.Source = img.Source;
-                                }
-                                else
-                                {
-                                    if (hash == Contents.GetHashCode())
-                                        Preview.Source = img.Source;
-                                }
+                            if (img.Source != null && item.IsSameIllust(Contents))
+                            {                                
+                                if(idx == item.Index) Preview.Source = img.Source;
                             }
                         }                       
                     }
@@ -2505,9 +2494,9 @@ namespace PixivWPF.Pages
             {
                 try
                 {
-                    var hash = Contents.GetHashCode();
+                    var item = Contents;
                     var img =  await user.GetAvatarUrl().LoadImageFromUrl();
-                    if(hash == Contents.GetHashCode())
+                    if(item.IsSameIllust(Contents))
                     {
                         IllustAuthorAvator.Source = img.Source;
                         if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();

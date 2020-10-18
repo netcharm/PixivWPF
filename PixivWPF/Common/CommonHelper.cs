@@ -2479,7 +2479,12 @@ namespace PixivWPF.Common
             }
             else
             {
-                age = sanity;
+                if (sanity.StartsWith("all")) age = "all";
+                else if (sanity.StartsWith("12")) age = "12+";
+                else if (sanity.StartsWith("15")) age = "15+";
+                else if (sanity.StartsWith("17")) age = "17+";
+                else if (sanity.StartsWith("18")) age = "18+";
+                else age = "all";
             }
             return (age);
         }

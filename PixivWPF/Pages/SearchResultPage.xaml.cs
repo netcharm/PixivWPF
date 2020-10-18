@@ -150,6 +150,11 @@ namespace PixivWPF.Pages
             }
         }
 
+        public int GetTilesCount()
+        {
+            return (ResultIllusts.Items.Count);
+        }
+
         internal void KeyAction(KeyEventArgs e)
         {
             ResultIllusts_KeyUp(this, e);

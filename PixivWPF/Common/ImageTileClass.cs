@@ -422,7 +422,7 @@ namespace PixivWPF.Common
                         if (filter_type.Equals("user"))
                             result = item.IsUser() ? true : false;
                         else if (filter_type.Equals("work"))
-                            result = item.IsUser() ? true : false;
+                            result = item.IsWork() ? true : false;
                     }
                     #endregion
                     #region filter by favorited state
@@ -476,16 +476,31 @@ namespace PixivWPF.Common
                     #region filter by sanity state
                     if (!string.IsNullOrEmpty(filter_sanity))
                     {
+                        var sanity = item.Sanity.ToLower();
                         if (filter_sanity.Equals("allage") || filter_sanity.Equals("fullage") || filter_sanity.Equals("all"))
-                            result = result && (item.Sanity.ToLower().Equals("all") ? true : false);
+                            result = result && (sanity.Equals("all") ? true : false);
+                        else if (filter_sanity.Equals("noallage") || filter_sanity.Equals("nofullage+") || filter_sanity.Equals("noall"))
+                            result = result && (sanity.Equals("all") ? false : true);
+
+                        else if (filter_sanity.Equals("r12") || filter_sanity.Equals("r12+") || filter_sanity.Equals("12+"))
+                            result = result && (sanity.Equals("12+") ? true : false);
+                        else if (filter_sanity.Equals("nor12") || filter_sanity.Equals("nor12+") || filter_sanity.Equals("no12+"))
+                            result = result && (sanity.Equals("12+") ? false : true);
+
                         else if (filter_sanity.Equals("r15") || filter_sanity.Equals("r15+") || filter_sanity.Equals("15+"))
-                            result = result && (item.Sanity.ToLower().Equals("15+") ? true : false);
-                        else if (filter_sanity.Equals("r16") || filter_sanity.Equals("r16+") || filter_sanity.Equals("16+"))
-                            result = result && (item.Sanity.ToLower().Equals("16+") ? true : false);
+                            result = result && (sanity.Equals("15+") ? true : false);
+                        else if (filter_sanity.Equals("nor15") || filter_sanity.Equals("nor15+") || filter_sanity.Equals("no15+"))
+                            result = result && (sanity.Equals("15+") ? false : true);
+
                         else if (filter_sanity.Equals("r17") || filter_sanity.Equals("r17+") || filter_sanity.Equals("17+"))
-                            result = result && (item.Sanity.ToLower().Equals("17+") ? true : false);
+                            result = result && (sanity.Equals("17+") ? true : false);
+                        else if (filter_sanity.Equals("nor17") || filter_sanity.Equals("nor17+") || filter_sanity.Equals("no17+"))
+                            result = result && (sanity.Equals("17+") ? false : true);
+
                         else if (filter_sanity.Equals("r18") || filter_sanity.Equals("r18+") || filter_sanity.Equals("18+"))
-                            result = result && (item.Sanity.ToLower().Equals("18+") ? true : false);
+                            result = result && (sanity.Equals("18+") ? true : false);
+                        else if (filter_sanity.Equals("nor18") || filter_sanity.Equals("nor18+") || filter_sanity.Equals("no18+"))
+                            result = result && (sanity.Equals("18+") ? false : true);
                     }
                     #endregion
                 }

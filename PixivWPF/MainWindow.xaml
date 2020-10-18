@@ -65,34 +65,43 @@
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </mah:DropDownButton.Icon>
                 <mah:DropDownButton.Items>
-                    <MenuItem x:Name="LiveFilterNone" x:Uid="LiveFilterNone" Header="None" IsCheckable="True" IsChecked="True" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterNone" x:Uid="LiveFilterNone" Header="None" IsChecked="True" Click="LiveFilter_Click"/>
                     <Separator/>
-                    <MenuItem x:Name="LiveFilterUser" x:Uid="LiveFilterUser" Header="User" IsCheckable="True" IsChecked="False" Click="LiveFilter_Click"/>
-                    <MenuItem x:Name="LiveFilterWork" x:Uid="LiveFilterWork" Header="Work" IsCheckable="True" IsChecked="False" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterUser" x:Uid="LiveFilterUser" Header="User" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterWork" x:Uid="LiveFilterWork" Header="Work" Click="LiveFilter_Click"/>
                     <Separator/>
-                    <MenuItem x:Name="LiveFilterFavoritedRange" x:Uid="LiveFilterFavoritedRange" Header="Total Favorited" IsCheckable="false" IsChecked="False" >
-                        <MenuItem x:Name="LiveFilterFavorited_00100" x:Uid="LiveFilterFavorited_00100" Header="Favorited 100+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                        <MenuItem x:Name="LiveFilterFavorited_00200" x:Uid="LiveFilterFavorited_00200" Header="Favorited 200+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                        <MenuItem x:Name="LiveFilterFavorited_00500" x:Uid="LiveFilterFavorited_00500" Header="Favorited 500+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                        <MenuItem x:Name="LiveFilterFavorited_01000" x:Uid="LiveFilterFavorited_01000" Header="Favorited 1000+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                        <MenuItem x:Name="LiveFilterFavorited_02000" x:Uid="LiveFilterFavorited_02000" Header="Favorited 2000+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                        <MenuItem x:Name="LiveFilterFavorited_05000" x:Uid="LiveFilterFavorited_05000" Header="Favorited 5000+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                        <MenuItem x:Name="LiveFilterFavorited_10000" x:Uid="LiveFilterFavorited_10000" Header="Favorited 10000+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                        <MenuItem x:Name="LiveFilterFavorited_20000" x:Uid="LiveFilterFavorited_20000" Header="Favorited 20000+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                        <MenuItem x:Name="LiveFilterFavorited_50000" x:Uid="LiveFilterFavorited_50000" Header="Favorited 50000+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterFavoritedRange" x:Uid="LiveFilterFavoritedRange" Header="Total Favorited" >
+                        <MenuItem x:Name="LiveFilterFavorited_00000" x:Uid="LiveFilterFavorited_00000" Header="Favorited Any+" Click="LiveFilter_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="LiveFilterFavorited_00100" x:Uid="LiveFilterFavorited_00100" Header="Favorited 100+" Click="LiveFilter_Click"/>
+                        <MenuItem x:Name="LiveFilterFavorited_00200" x:Uid="LiveFilterFavorited_00200" Header="Favorited 200+" Click="LiveFilter_Click"/>
+                        <MenuItem x:Name="LiveFilterFavorited_00500" x:Uid="LiveFilterFavorited_00500" Header="Favorited 500+" Click="LiveFilter_Click"/>
+                        <MenuItem x:Name="LiveFilterFavorited_01000" x:Uid="LiveFilterFavorited_01000" Header="Favorited 1000+" Click="LiveFilter_Click"/>
+                        <MenuItem x:Name="LiveFilterFavorited_02000" x:Uid="LiveFilterFavorited_02000" Header="Favorited 2000+" Click="LiveFilter_Click"/>
+                        <MenuItem x:Name="LiveFilterFavorited_05000" x:Uid="LiveFilterFavorited_05000" Header="Favorited 5000+" Click="LiveFilter_Click"/>
+                        <MenuItem x:Name="LiveFilterFavorited_10000" x:Uid="LiveFilterFavorited_10000" Header="Favorited 10000+" Click="LiveFilter_Click"/>
+                        <MenuItem x:Name="LiveFilterFavorited_20000" x:Uid="LiveFilterFavorited_20000" Header="Favorited 20000+" Click="LiveFilter_Click"/>
+                        <MenuItem x:Name="LiveFilterFavorited_50000" x:Uid="LiveFilterFavorited_50000" Header="Favorited 50000+" Click="LiveFilter_Click"/>
                     </MenuItem>
-                    <MenuItem x:Name="LiveFilterFavorited" x:Uid="LiveFilterFavorited" Header="My Favorited" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                    <MenuItem x:Name="LiveFilterNotFavorited" x:Uid="LiveFilterNotFavorited" Header="Not My Favorited" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterFavorited" x:Uid="LiveFilterFavorited" Header="My Favorited" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterNotFavorited" x:Uid="LiveFilterNotFavorited" Header="Not My Favorited" Click="LiveFilter_Click"/>
                     <Separator/>
-                    <MenuItem x:Name="LiveFilterFollowed" x:Uid="LiveFilterFollowed" Header="My Followed" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                    <MenuItem x:Name="LiveFilterNotFollowed" x:Uid="LiveFilterNotFollowed" Header="Not My Followed" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterFollowed" x:Uid="LiveFilterFollowed" Header="My Followed" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterNotFollowed" x:Uid="LiveFilterNotFollowed" Header="Not My Followed" Click="LiveFilter_Click"/>
                     <Separator/>
-                    <MenuItem x:Name="LiveFilterDownloaded" x:Uid="LiveFilterDownloaded" Header="Downloaded" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                    <MenuItem x:Name="LiveFilterNotDownloaded" x:Uid="LiveFilterNotDownloaded" Header="Not Downloaded" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterDownloaded" x:Uid="LiveFilterDownloaded" Header="Downloaded" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterNotDownloaded" x:Uid="LiveFilterNotDownloaded" Header="Not Downloaded" Click="LiveFilter_Click"/>
                     <Separator/>
-                    <MenuItem x:Name="LiveFilterAllAge" x:Uid="LiveFilterAllAge" Header="All Age" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                    <MenuItem x:Name="LiveFilterR15" x:Uid="LiveFilterR15" Header="R15+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
-                    <MenuItem x:Name="LiveFilterR18" x:Uid="LiveFilterR18" Header="R18+" IsCheckable="false" IsChecked="False" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterAllAge" x:Uid="LiveFilterAllAge" Header="All Age" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterNoAllAge" x:Uid="LiveFilterNoAllAge" Header="Not All Age" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterR12" x:Uid="LiveFilterR12" Header="R12+" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterNoR12" x:Uid="LiveFilterNoR12" Header="Not R12+" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterR15" x:Uid="LiveFilterR15" Header="R15+" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterNoR15" x:Uid="LiveFilterNoR15" Header="Not R15+" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterR17" x:Uid="LiveFilterR17" Header="R17+" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterNoR17" x:Uid="LiveFilterNoR17" Header="Not R17+" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterR18" x:Uid="LiveFilterR18" Header="R18+" Click="LiveFilter_Click"/>
+                    <MenuItem x:Name="LiveFilterNoR18" x:Uid="LiveFilterNoR18" Header="Not R18+" Click="LiveFilter_Click"/>
                 </mah:DropDownButton.Items>
             </mah:DropDownButton>
             <Button x:Name="CommandNavDate" x:Uid="CommandNavDate" 

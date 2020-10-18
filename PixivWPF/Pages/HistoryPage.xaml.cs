@@ -222,6 +222,11 @@ namespace PixivWPF.Pages
             }
         }
 
+        public int GetTilesCount()
+        {
+            return (HistoryItems.Items.Count);
+        }
+
         internal void KeyAction(KeyEventArgs e)
         {
             HistoryIllusts_PreviewKeyUp(this, e);

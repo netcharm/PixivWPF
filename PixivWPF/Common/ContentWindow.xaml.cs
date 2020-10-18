@@ -246,6 +246,7 @@ namespace PixivWPF.Common
             };
             var menus_fav = new List<MenuItem>() {
                 LiveFilterFavorited, LiveFilterNotFavorited, //LiveFilterFavoritedRange,
+                LiveFilterFavorited_00000,
                 LiveFilterFavorited_00100, LiveFilterFavorited_00200, LiveFilterFavorited_00500,
                 LiveFilterFavorited_01000, LiveFilterFavorited_02000, LiveFilterFavorited_05000,
                 LiveFilterFavorited_10000, LiveFilterFavorited_20000, LiveFilterFavorited_50000,
@@ -257,7 +258,11 @@ namespace PixivWPF.Common
                 LiveFilterDownloaded, LiveFilterNotDownloaded,
             };
             var menus_sanity = new List<MenuItem>() {
-                LiveFilterAllAge, LiveFilterR15, LiveFilterR18,
+                LiveFilterAllAge, LiveFilterNoAllAge,
+                LiveFilterR12, LiveFilterNoR12,
+                LiveFilterR15, LiveFilterNoR15,
+                LiveFilterR17, LiveFilterNoR17,
+                LiveFilterR18, LiveFilterNoR18,
             };
 
             var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav, menus_follow, menus_down, menus_sanity };
@@ -298,7 +303,7 @@ namespace PixivWPF.Common
                     }
                     if (fmenu.IsChecked) filter_type = fmenu.Name.Substring(idx);
                 }
-                if (menu == LiveFilterUser)
+                if (menu == LiveFilterUser && menu.IsChecked)
                 {
                     foreach (var fmenu in menus_fav)
                         fmenu.IsEnabled = false;
@@ -307,7 +312,7 @@ namespace PixivWPF.Common
                     foreach (var fmenu in menus_sanity)
                         fmenu.IsEnabled = false;
                 }
-                else if (menu == LiveFilterWork)
+                else
                 {
                     foreach (var fmenu in menus_fav)
                         fmenu.IsEnabled = true;
@@ -371,9 +376,15 @@ namespace PixivWPF.Common
             if (Content is IllustDetailPage)
                 (Content as IllustDetailPage).SetFilter(filter_type, filter_fav, filter_follow, filter_down, filter_sanity);
             else if (Content is SearchResultPage)
+            {
                 (Content as SearchResultPage).SetFilter(filter_type, filter_fav, filter_follow, filter_down, filter_sanity);
+                CommandFilter.ToolTip = $"Tiles Count: {(Content as SearchResultPage).GetTilesCount()}";
+            }
             else if (Content is HistoryPage)
+            {
                 (Content as HistoryPage).SetFilter(filter_type, filter_fav, filter_follow, filter_down, filter_sanity);
+                CommandFilter.ToolTip = $"Tiles Count: {(Content as HistoryPage).GetTilesCount()}";
+            }
         }
 
     }
