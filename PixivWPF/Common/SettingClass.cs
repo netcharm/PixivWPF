@@ -116,6 +116,14 @@ namespace PixivWPF.Common
 
                 if (Cache.AutoExpand != new_setting.AutoExpand)
                     Cache.AutoExpand = new_setting.AutoExpand;
+                if (Cache.SeamlessViewInMainWindow != new_setting.SeamlessViewInMainWindow)
+                    Cache.SeamlessViewInMainWindow = new_setting.SeamlessViewInMainWindow;
+                if (Cache.ShowUserBackgroundImage != new_setting.ShowUserBackgroundImage)
+                    Cache.ShowUserBackgroundImage = new_setting.ShowUserBackgroundImage;
+                if (Cache.PreviewUsingLargeMinWidth != new_setting.PreviewUsingLargeMinWidth)
+                    Cache.PreviewUsingLargeMinWidth = new_setting.PreviewUsingLargeMinWidth;
+                if (Cache.PreviewUsingLargeMinHeight != new_setting.PreviewUsingLargeMinHeight)
+                    Cache.PreviewUsingLargeMinHeight = new_setting.PreviewUsingLargeMinHeight;
 
                 if (Cache.DownloadByAPI != new_setting.DownloadByAPI)
                     Cache.DownloadByAPI = new_setting.DownloadByAPI;
@@ -178,9 +186,6 @@ namespace PixivWPF.Common
 
                 Cache.DropBoxPosition = new_setting.DropBoxPosition;
                 Cache.DownloadManagerPosition = new_setting.DownloadManagerPosition;
-
-                if (Cache.ShowUserBackgroundImage != new_setting.ShowUserBackgroundImage)
-                    Cache.ShowUserBackgroundImage = new_setting.ShowUserBackgroundImage;
 
                 if (Cache.HistoryLimit != new_setting.HistoryLimit && new_setting.HistoryLimit >= 0)
                     Cache.HistoryLimit = new_setting.HistoryLimit;
@@ -687,7 +692,10 @@ namespace PixivWPF.Common
 
         #region Viewing relative
         public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
+        public bool SeamlessViewInMainWindow { get; set; } = false;
         public bool ShowUserBackgroundImage { get; set; } = false;
+        public int PreviewUsingLargeMinWidth { get; set; } = 360;
+        public int PreviewUsingLargeMinHeight { get; set; } = 360;
         #endregion
 
         #region Favorite/Follow relative

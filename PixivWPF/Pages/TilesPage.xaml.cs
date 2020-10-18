@@ -306,26 +306,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        public void SetFilter(string filter_type, string filter_fav, string filter_follow, string filter_down, string filter_sanity)
-        {
-            try
-            {
-                var filter = new FilterParam()
-                {
-                    Type = filter_type,
-                    Favorited = filter_fav,
-                    Followed = filter_follow,
-                    Downloaded = filter_down,
-                    Sanity = filter_sanity
-                };
-                ListImageTiles.Items.Filter = filter.GetFilter();
-            }
-            catch (Exception ex)
-            {
-                ex.Message.DEBUG();
-            }
-        }
-
         public void SetFilter(FilterParam filter)
         {
             try

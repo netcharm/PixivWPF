@@ -42,6 +42,8 @@ namespace PixivWPF.Pages
         {
             try
             {
+                var setting = Application.Current.LoadSetting();
+
                 PreviewWait.Show();
                 if (item is ImageItem) Contents = item;
 
@@ -69,7 +71,7 @@ namespace PixivWPF.Pages
 
                     PreviewImageUrl = illust.GetPreviewUrl(Contents.Index, true);
                     var img = await PreviewImageUrl.LoadImageFromUrl();
-                    if (img.Source == null || img.Source.Width < 360 || img.Source.Height < 360)
+                    if (img.Source == null || img.Source.Width < setting.PreviewUsingLargeMinWidth || img.Source.Height < setting.PreviewUsingLargeMinHeight)
                     {
                         PreviewImageUrl = Contents.Illust.GetOriginalUrl(Contents.Index);
                         var large = await PreviewImageUrl.LoadImageFromUrl();

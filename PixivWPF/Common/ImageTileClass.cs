@@ -21,6 +21,8 @@ namespace PixivWPF.Common
     public class FilterParam
     {
         public string Type { get; set; } = string.Empty;
+        public string Fast { get; set; } = string.Empty;
+        public string FavoitedRange { get; set; } = string.Empty;
         public string Favorited { get; set; } = string.Empty;
         public string Followed { get; set; } = string.Empty;
         public string Downloaded { get; set; } = string.Empty;
@@ -392,125 +394,197 @@ namespace PixivWPF.Common
       
         public static Predicate<object> GetFilter(this FilterParam filter)
         {
-            if (filter is FilterParam)
-                return (GetFilter(filter.Type, filter.Favorited, filter.Followed, filter.Downloaded, filter.Sanity));
-            else
-                return (null);
-        }
-
-        private static Predicate<object> GetFilter(string filter_type, string filter_fav, string filter_follow, string filter_down, string filter_sanity)
-        {
             Predicate<object> result_filter = null;
-            Func<object, bool> filter_action = null;
 
-            filter_type = filter_type.ToLower();
-            filter_fav = filter_fav.ToLower();
-            filter_follow = filter_follow.ToLower();
-            filter_down = filter_down.ToLower();
-            filter_sanity = filter_sanity.ToLower();
-
-            filter_action = new Func<object, bool>(obj =>
+            if (filter is FilterParam)
             {
-                var result = true;
-                if (obj is ImageItem)
+                Func<object, bool> filter_action = null;
+
+                #region pre-process filter key/value
+                var filter_type = string.IsNullOrEmpty(filter.Type) ? string.Empty : filter.Type.ToLower();
+                var filter_fav_no = string.IsNullOrEmpty(filter.FavoitedRange) ? string.Empty : filter.FavoitedRange.ToLower();
+                var filter_fast = string.IsNullOrEmpty(filter.Fast) ? string.Empty : filter.Fast.ToLower();
+                var filter_fav = string.IsNullOrEmpty(filter.Favorited) ? string.Empty : filter.Favorited.ToLower();
+                var filter_follow = string.IsNullOrEmpty(filter.Followed) ? string.Empty : filter.Followed.ToLower();
+                var filter_down = string.IsNullOrEmpty(filter.Downloaded) ? string.Empty : filter.Downloaded.ToLower();
+                var filter_sanity = string.IsNullOrEmpty(filter.Sanity) ? string.Empty : filter.Sanity.ToLower();
+
+                if (filter_fav_no.Length > 10) filter_fav_no = filter_fav_no.Substring(10);
+                if (filter_fast.Length > 5) filter_fast = filter_fast.Substring(5);
+                if (filter_sanity.Length > 7) filter_sanity = filter_sanity.Substring(7);
+                #endregion
+
+                #region item type
+                bool user = filter_type.Equals("user") ? true : false;
+                bool work = filter_type.Equals("work") ? true : false;
+                #endregion
+
+                #region item states
+                bool favorited = filter_fav.Equals("favorited") ? true : false;
+                bool notfavorited = filter_fav.Equals("notfavorited") ? true : false;
+
+                bool followed = filter_follow.Equals("followed") ? true : false;
+                bool notfollowed = filter_follow.Equals("notfollowed") ? true : false;
+
+                bool downloaded = filter_down.Equals("downloaded") ? true : false;
+                bool notdownloaded = filter_down.Equals("notdownloaded") ? true : false;
+                #endregion
+
+                #region sanity / not_sanity
+                int sanity_age = -1;
+                int not_sanity_age = -1;
+                if (filter_sanity.Equals("allage") || filter_sanity.Equals("fullage") || filter_sanity.Equals("all")) sanity_age = 0;
+                else if (filter_sanity.Equals("noallage") || filter_sanity.Equals("nofullage+") || filter_sanity.Equals("noall")) not_sanity_age = 0;
+                else if (filter_sanity.Equals("r12") || filter_sanity.Equals("r12+") || filter_sanity.Equals("12+")) sanity_age = 12;
+                else if (filter_sanity.Equals("nor12") || filter_sanity.Equals("nor12+") || filter_sanity.Equals("no12+")) not_sanity_age = 12;
+                else if (filter_sanity.Equals("r15") || filter_sanity.Equals("r15+") || filter_sanity.Equals("15+")) sanity_age = 15;
+                else if (filter_sanity.Equals("nor15") || filter_sanity.Equals("nor15+") || filter_sanity.Equals("no15+")) not_sanity_age = 15;
+                else if (filter_sanity.Equals("r17") || filter_sanity.Equals("r17+") || filter_sanity.Equals("17+")) sanity_age = 17;
+                else if (filter_sanity.Equals("nor17") || filter_sanity.Equals("nor17+") || filter_sanity.Equals("no17+")) not_sanity_age = 17;
+                else if (filter_sanity.Equals("r18") || filter_sanity.Equals("r18+") || filter_sanity.Equals("18+")) sanity_age = 18;
+                else if (filter_sanity.Equals("nor18") || filter_sanity.Equals("nor18+") || filter_sanity.Equals("no18+")) not_sanity_age = 18;
+                #endregion
+
+                #region item favorite range
+                int fav_range = 0;
+                int.TryParse(filter_fav_no, out fav_range);
+                #endregion
+
+                #region fast
+                bool portrait = filter_fast.Equals("portrait") ? true : false;
+                bool landscape = filter_fast.Equals("landscape") ? true : false;
+                bool square = filter_fast.Equals("square") ? true : false;
+                #endregion
+
+                filter_action = new Func<object, bool>(obj =>
                 {
-                    var item = obj as ImageItem;
-                    #region filter by type
-                    if (string.IsNullOrEmpty(filter_type)) result = true;
-                    else
+                    var result = true;
+                    if (obj is ImageItem)
                     {
-                        if (filter_type.Equals("user"))
-                            result = item.IsUser() ? true : false;
-                        else if (filter_type.Equals("work"))
-                            result = item.IsWork() ? true : false;
-                    }
-                    #endregion
-                    #region filter by favorited state
-                    if (!string.IsNullOrEmpty(filter_fav))
-                    {
-                        if (filter_fav.Equals("favorited"))
-                            result = result && (item.IsFavorited ? true : false);
-                        else if (filter_fav.Equals("notfavorited"))
-                            result = result && (!item.IsFavorited ? true : false);
-                        else if (filter_fav.StartsWith("favorited_"))
+                        var item = obj as ImageItem;
+                        #region filter by type
+                        if (user || work)
                         {
-                            int range = 0;
-                            if (int.TryParse(filter_fav.Substring(10), out range))
+                            if (user)
+                                result = item.IsUser() ? true : false;
+                            else if (work)
+                                result = item.IsWork() ? true : false;
+                        }
+                        #endregion
+                        #region filter by fast simple condition
+                        if (!string.IsNullOrEmpty(filter_fast))
+                        {
+                            if (filter_fast.Equals("currentauthor"))
                             {
                                 if (item.IsWork())
                                 {
-                                    var illust = item.Illust;
-                                    if (illust is Pixeez.Objects.IllustWork)
-                                    {
-                                        var fav_count = (illust as Pixeez.Objects.IllustWork).total_bookmarks;
-                                        result = result && (fav_count > range ? true : false);
-                                    }
-                                    else if (illust is Pixeez.Objects.NormalWork && illust.Stats is Pixeez.Objects.WorkStats)
-                                    {
-                                        var fav_count = illust.Stats.FavoritedCount.Public + illust.Stats.FavoritedCount.Private;
-                                        result = result && (fav_count > range ? true : false);
-                                    }
+                                    //var illust = item.Illust;
+                                    //result = result && illust.User.Id ?? -1 == 
+                                }
+                            }
+                            else if(item.IsWork() && (portrait || landscape || square))
+                            {
+                                var width = item.Illust.Width;
+                                var height = item.Illust.Height;
+                                if (width > 0 && height > 0)
+                                {
+                                    double aspect = (double)width / (double)height;
+                                    if (landscape)
+                                        result = result && aspect >= 1.05 ? true : false;
+                                    else if (portrait)
+                                        result = result && aspect <= 0.95 ? true : false;
+                                    else if (square)
+                                        result = result && 0.95 < aspect && aspect < 1.05 ? true : false;
                                 }
                             }
                         }
-                    }
-                    #endregion
-                    #region filter by followed state
-                    if (!string.IsNullOrEmpty(filter_follow))
-                    {
-                        if (filter_follow.Equals("followed"))
-                            result = result && (item.IsFollowed ? true : false);
-                        else if (filter_follow.Equals("notfollowed"))
-                            result = result && (!item.IsFollowed ? true : false);
-                    }
-                    #endregion
-                    #region filter by downloaded state
-                    if (!string.IsNullOrEmpty(filter_down))
-                    {
-                        if (filter_down.Equals("downloaded"))
-                            result = result && (item.IsDownloaded ? true : false);
-                        else if (filter_down.Equals("notdownloaded"))
-                            result = result && (!item.IsDownloaded ? true : false);
-                    }
-                    #endregion
-                    #region filter by sanity state
-                    if (!string.IsNullOrEmpty(filter_sanity))
-                    {
-                        var sanity = item.Sanity.ToLower();
-                        if (filter_sanity.Equals("allage") || filter_sanity.Equals("fullage") || filter_sanity.Equals("all"))
-                            result = result && (sanity.Equals("all") ? true : false);
-                        else if (filter_sanity.Equals("noallage") || filter_sanity.Equals("nofullage+") || filter_sanity.Equals("noall"))
-                            result = result && (sanity.Equals("all") ? false : true);
+                        #endregion
+                        #region filter by favorited number
+                        if (fav_range > 0)
+                        {
+                            if (item.IsWork())
+                            {
+                                var illust = item.Illust;
+                                if (illust is Pixeez.Objects.IllustWork)
+                                {
+                                    var fav_count = (illust as Pixeez.Objects.IllustWork).total_bookmarks;
+                                    result = result && (fav_count > fav_range ? true : false);
+                                }
+                                else if (illust is Pixeez.Objects.NormalWork && illust.Stats is Pixeez.Objects.WorkStats)
+                                {
+                                    var fav_count = illust.Stats.FavoritedCount.Public + illust.Stats.FavoritedCount.Private;
+                                    result = result && (fav_count > fav_range ? true : false);
+                                }
+                            }
+                        }
+                        #endregion
+                        #region filter by favorited state
+                        if (favorited || notfavorited)
+                        {
+                            if (favorited)
+                                result = result && (item.IsFavorited ? true : false);
+                            else if (notfavorited)
+                                result = result && (item.IsFavorited ? false : true);
+                        }
+                        #endregion
+                        #region filter by followed state
+                        if (followed || notfollowed)
+                        {
+                            if (followed)
+                                result = result && (item.IsFollowed ? true : false);
+                            else if (notfollowed)
+                                result = result && (item.IsFollowed ? false : true);
+                        }
+                        #endregion
+                        #region filter by downloaded state
+                        if (downloaded || notdownloaded)
+                        {
+                            if (downloaded)
+                                result = result && (item.IsDownloaded ? true : false);
+                            else if (notdownloaded)
+                                result = result && (item.IsDownloaded ? false : true);
+                        }
+                        #endregion
+                        #region filter by sanity state
+                        if (sanity_age >= 0 || not_sanity_age >= 0)
+                        {
+                            var sanity = item.Sanity.ToLower();
+                            if (sanity_age == 0)
+                                result = result && (sanity.Equals("all") ? true : false);
+                            else if (not_sanity_age == 0)
+                                result = result && (sanity.Equals("all") ? false : true);
 
-                        else if (filter_sanity.Equals("r12") || filter_sanity.Equals("r12+") || filter_sanity.Equals("12+"))
-                            result = result && (sanity.Equals("12+") ? true : false);
-                        else if (filter_sanity.Equals("nor12") || filter_sanity.Equals("nor12+") || filter_sanity.Equals("no12+"))
-                            result = result && (sanity.Equals("12+") ? false : true);
+                            else if (sanity_age == 12)
+                                result = result && (sanity.Equals("12+") ? true : false);
+                            else if (not_sanity_age == 0)
+                                result = result && (sanity.Equals("12+") ? false : true);
 
-                        else if (filter_sanity.Equals("r15") || filter_sanity.Equals("r15+") || filter_sanity.Equals("15+"))
-                            result = result && (sanity.Equals("15+") ? true : false);
-                        else if (filter_sanity.Equals("nor15") || filter_sanity.Equals("nor15+") || filter_sanity.Equals("no15+"))
-                            result = result && (sanity.Equals("15+") ? false : true);
+                            else if (sanity_age == 15)
+                                result = result && (sanity.Equals("15+") ? true : false);
+                            else if (not_sanity_age == 15)
+                                result = result && (sanity.Equals("15+") ? false : true);
 
-                        else if (filter_sanity.Equals("r17") || filter_sanity.Equals("r17+") || filter_sanity.Equals("17+"))
-                            result = result && (sanity.Equals("17+") ? true : false);
-                        else if (filter_sanity.Equals("nor17") || filter_sanity.Equals("nor17+") || filter_sanity.Equals("no17+"))
-                            result = result && (sanity.Equals("17+") ? false : true);
+                            else if (sanity_age == 17)
+                                result = result && (sanity.Equals("17+") ? true : false);
+                            else if (not_sanity_age == 17)
+                                result = result && (sanity.Equals("17+") ? false : true);
 
-                        else if (filter_sanity.Equals("r18") || filter_sanity.Equals("r18+") || filter_sanity.Equals("18+"))
-                            result = result && (sanity.Equals("18+") ? true : false);
-                        else if (filter_sanity.Equals("nor18") || filter_sanity.Equals("nor18+") || filter_sanity.Equals("no18+"))
-                            result = result && (sanity.Equals("18+") ? false : true);
+                            else if (sanity_age == 18)
+                                result = result && (sanity.Equals("18+") ? true : false);
+                            else if (not_sanity_age == 18)
+                                result = result && (sanity.Equals("18+") ? false : true);
+                        }
+                        #endregion
                     }
-                    #endregion
-                }
-                return (result);
-            });
-            
-            if (filter_action != null)
-                result_filter = new Predicate<object>(filter_action);
-            else
-                result_filter = null;
+                    return (result);
+                });
+
+                if (filter_action != null)
+                    result_filter = new Predicate<object>(filter_action);
+                else
+                    result_filter = null;
+            }                
+
             return (result_filter);
         }
         #endregion

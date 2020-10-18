@@ -1258,10 +1258,15 @@ namespace PixivWPF.Pages
         {
             if(Contents is ImageItem)
             {
+                setting = Application.Current.LoadSetting();
                 if (Contents.Count > 1)
-                    SubPageNav_Clicked(btnSubPagePrev, new RoutedEventArgs());
+                {
+                    if (Contents.Index > 0)
+                        SubPageNav_Clicked(btnSubPagePrev, new RoutedEventArgs());
+                    else if (setting.SeamlessViewInMainWindow)
+                        PrevIllust();
+                }
                 else PrevIllust();
-
             }
         }
 
@@ -1269,8 +1274,14 @@ namespace PixivWPF.Pages
         {
             if (Contents is ImageItem)
             {
+                setting = Application.Current.LoadSetting();
                 if (Contents.Count > 1)
-                    SubPageNav_Clicked(btnSubPageNext, new RoutedEventArgs());
+                {
+                    if (Contents.Index < Contents.Count - 1)
+                        SubPageNav_Clicked(btnSubPageNext, new RoutedEventArgs());
+                    else if (setting.SeamlessViewInMainWindow)
+                        NextIllust();
+                }
                 else NextIllust();
             }
         }
@@ -1300,26 +1311,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        public void SetFilter(string filter_type, string filter_fav, string filter_follow, string filter_down, string filter_sanity)
-        {
-            try
-            {
-                var filter = new FilterParam()
-                {
-                    Type = filter_type,
-                    Favorited = filter_fav,
-                    Followed = filter_follow,
-                    Downloaded = filter_down,
-                    Sanity = filter_sanity
-                };
-                SetFilter(filter);
-            }
-            catch (Exception ex)
-            {
-                ex.Message.DEBUG();
-            }
-        }
-
         public void SetFilter(FilterParam filter)
         {
             try
@@ -1339,6 +1330,11 @@ namespace PixivWPF.Pages
             {
                 ex.Message.DEBUG();
             }
+        }
+
+        public dynamic GetTilesCount()
+        {
+            return ($"{RelativeIllusts.ItemsCount} / {FavoriteIllusts.ItemsCount}");
         }
         #endregion
 
@@ -2428,12 +2424,14 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
+        private async void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
         {
             if (Contents is ImageItem)
             {
+                setting = Application.Current.LoadSetting();
+
                 PreviewWait.Show();
-                var ua = new Action(async () =>
+                await new Action(async () =>
                 {
                     try
                     {
@@ -2449,19 +2447,19 @@ namespace PixivWPF.Pages
 
                         PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index);
                         var img = await PreviewImageUrl.LoadImageFromUrl();
-                        if(item.IsSameIllust(Contents))
+                        if (item.IsSameIllust(Contents))
                         {
-                            if (img.Source == null || img.Source.Width < 300 || img.Source.Height < 250)
+                            if (img.Source == null || img.Source.Width < setting.PreviewUsingLargeMinWidth || img.Source.Height < setting.PreviewUsingLargeMinHeight)
                             {
                                 PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
                                 var large = await PreviewImageUrl.LoadImageFromUrl();
                                 if (large.Source != null) img = large;
                             }
                             if (img.Source != null && item.IsSameIllust(Contents))
-                            {                                
-                                if(item.Index == Contents.Index) Preview.Source = img.Source;
+                            {
+                                if (item.Index == Contents.Index) Preview.Source = img.Source;
                             }
-                        }                       
+                        }
                     }
                     catch (Exception) { }
                     finally

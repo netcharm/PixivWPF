@@ -127,6 +127,10 @@ namespace PixivWPF.Common
             }
         }
 
+        [Description("Get or Set Image Tiles Count after filtered/current be displayed")]
+        [Category("Common Properties")]
+        public int ItemsCount { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.Count : 0); } }
+
         private Visibility titlevisibility = Visibility.Visible;
         public Visibility TitleVisibility
         {
@@ -254,7 +258,7 @@ namespace PixivWPF.Common
             PART_ImageTiles.Items.Refresh();
             //CollectionViewSource.GetDefaultView(this).Refresh();
         }
-
+        
         public void Filtering(string filter)
         {
             if (PART_ImageTiles.Items.CanFilter)

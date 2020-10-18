@@ -512,12 +512,19 @@ namespace PixivWPF
             var menus_type = new List<MenuItem>() {
                 LiveFilterUser, LiveFilterWork
             };
-            var menus_fav = new List<MenuItem>() {
-                LiveFilterFavorited, LiveFilterNotFavorited, //LiveFilterFavoritedRange,
+            var menus_fast = new List<MenuItem>() {
+                LiveFilterFast_None,
+                LiveFilterFast_Portrait, LiveFilterFast_Landscape, LiveFilterFast_Square,
+                LiveFilterFast_CurrentAuthor
+            };
+            var menus_fav_no = new List<MenuItem>() {
                 LiveFilterFavorited_00000,
                 LiveFilterFavorited_00100, LiveFilterFavorited_00200, LiveFilterFavorited_00500,
                 LiveFilterFavorited_01000, LiveFilterFavorited_02000, LiveFilterFavorited_05000,
                 LiveFilterFavorited_10000, LiveFilterFavorited_20000, LiveFilterFavorited_50000,
+            };
+            var menus_fav = new List<MenuItem>() {
+                LiveFilterFavorited, LiveFilterNotFavorited,
             };
             var menus_follow = new List<MenuItem>() {
                 LiveFilterFollowed, LiveFilterNotFollowed,
@@ -526,18 +533,21 @@ namespace PixivWPF
                 LiveFilterDownloaded, LiveFilterNotDownloaded,
             };
             var menus_sanity = new List<MenuItem>() {
-                LiveFilterAllAge, LiveFilterNoAllAge,
-                LiveFilterR12, LiveFilterNoR12,
-                LiveFilterR15, LiveFilterNoR15,
-                LiveFilterR17, LiveFilterNoR17,
-                LiveFilterR18, LiveFilterNoR18,
+                LiveFilterSanity_Any,
+                LiveFilterSanity_All, LiveFilterSanity_NoAll,
+                LiveFilterSanity_R12, LiveFilterSanity_NoR12,
+                LiveFilterSanity_R15, LiveFilterSanity_NoR15,
+                LiveFilterSanity_R17, LiveFilterSanity_NoR17,
+                LiveFilterSanity_R18, LiveFilterSanity_NoR18,
             };
 
-            var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav, menus_follow, menus_down, menus_sanity };
+            var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav_no, menus_fast, menus_fav, menus_follow, menus_down, menus_sanity };
 
             var idx = "LiveFilter".Length;
 
             string filter_type = string.Empty;
+            string filter_fav_no = string.Empty;
+            string filter_fast = string.Empty;
             string filter_fav = string.Empty;
             string filter_follow = string.Empty;
             string filter_down = string.Empty;
@@ -545,10 +555,14 @@ namespace PixivWPF
 
             var menu = sender as MenuItem;
 
+            LiveFilterFavoritedRange.IsChecked = false;
+            LiveFilterFast.IsChecked = false;
+            LiveFilterSanity.IsChecked = false;
+
             if (menu == LiveFilterNone)
             {
                 LiveFilterNone.IsChecked = true;
-                LiveFilterFavoritedRange.IsChecked = false;
+                #region un-check all filter conditions
                 foreach (var fmenus in menus)
                 {
                     foreach (var fmenu in fmenus)
@@ -557,6 +571,7 @@ namespace PixivWPF
                         fmenu.IsEnabled = true;
                     }
                 }
+                #endregion
             }
             else
             {
@@ -590,8 +605,42 @@ namespace PixivWPF
                         fmenu.IsEnabled = true;
                 }
                 #endregion
-                #region filter by favorited state
+                #region filter by favirited number
                 LiveFilterFavoritedRange.IsChecked = false;
+                foreach (var fmenu in menus_fav_no)
+                {
+                    if (menus_fav_no.Contains(menu))
+                    {
+                        if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
+                        else fmenu.IsChecked = false;
+                    }
+                    if (fmenu.IsChecked)
+                    {
+                        filter_fav_no = fmenu.Name.Substring(idx);
+                        if (fmenu.Name.StartsWith("LiveFilterFavorited_"))
+                            LiveFilterFavoritedRange.IsChecked = true;
+                    }
+                }
+                #endregion
+                #region filter by fast simple filter
+                LiveFilterFast.IsChecked = false;
+                foreach (var fmenu in menus_fast)
+                {
+                    if (menus_fast.Contains(menu))
+                    {
+                        if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
+                        else fmenu.IsChecked = false;
+                    }
+                    if (fmenu.IsChecked)
+                    {
+                        var param = string.Empty;
+                        filter_fast = $"{fmenu.Name.Substring(idx)}_{param}".Trim().TrimEnd('_');
+                        if (fmenu.Name.StartsWith("LiveFilterFast_"))
+                            LiveFilterFast.IsChecked = true;
+                    }
+                }
+                #endregion
+                #region filter by favorited state
                 foreach (var fmenu in menus_fav)
                 {
                     if (menus_fav.Contains(menu))
@@ -599,12 +648,7 @@ namespace PixivWPF
                         if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
                         else fmenu.IsChecked = false;
                     }
-                    if (fmenu.IsChecked)
-                    {
-                        filter_fav = fmenu.Name.Substring(idx);
-                        if (fmenu.Name.StartsWith("LiveFilterFavorited_"))
-                            LiveFilterFavoritedRange.IsChecked = true;
-                    }
+                    if (fmenu.IsChecked) filter_fav = fmenu.Name.Substring(idx);
                 }
                 #endregion
                 #region filter by followed state
@@ -630,6 +674,7 @@ namespace PixivWPF
                 }
                 #endregion
                 #region filter by sanity state
+                LiveFilterSanity.IsChecked = false;
                 foreach (var fmenu in menus_sanity)
                 {
                     if (menus_sanity.Contains(menu))
@@ -637,12 +682,29 @@ namespace PixivWPF
                         if (fmenu == menu) fmenu.IsChecked = !fmenu.IsChecked;
                         else fmenu.IsChecked = false;
                     }
-                    if(fmenu.IsChecked) filter_sanity = fmenu.Name.Substring(idx);
+                    if (fmenu.IsChecked)
+                    {
+                        filter_sanity = fmenu.Name.Substring(idx);
+                        if (fmenu.Name.StartsWith("LiveFilterSanity_"))
+                            LiveFilterSanity.IsChecked = true;
+                    }
                 }
                 #endregion
             }
+
+            var filter = new FilterParam()
+            {
+                Type = filter_type,
+                FavoitedRange = filter_fav_no,
+                Fast = filter_fast,
+                Favorited = filter_fav,
+                Followed = filter_follow,
+                Downloaded = filter_down,
+                Sanity = filter_sanity
+            };
+
             if (pagetiles is Pages.TilesPage)
-                pagetiles.SetFilter(filter_type, filter_fav, filter_follow, filter_down, filter_sanity);
+                pagetiles.SetFilter(filter);
         }
 
         private void CommandFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
