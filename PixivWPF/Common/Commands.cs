@@ -385,7 +385,7 @@ namespace PixivWPF.Common
                 {
                     var item = obj as ImageItem;
                     if (item.IsWork())
-                        OpenUser.Execute(item.Illust);
+                        OpenWork.Execute(item.Illust);
                 }
                 else if (obj is ImageListGrid)
                 {
