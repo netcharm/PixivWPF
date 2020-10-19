@@ -937,9 +937,6 @@ namespace PixivWPF.Pages
             {
                 IllustDetailWait.Show();
 
-                var tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return;
-
                 if (item.Illust is Pixeez.Objects.Work)
                 {
                     var total = item.Illust.PageCount;

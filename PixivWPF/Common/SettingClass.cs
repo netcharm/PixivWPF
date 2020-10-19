@@ -323,7 +323,7 @@ namespace PixivWPF.Common
                             #endregion
 
                             #region Setting Speech TTS culture/play setting
-                            SpeechTTS.SetCustomNames(Cache.SpeechPreferList);
+                            Speech.CustomNames = Cache.SpeechPreferList;
                             Speech.AltPlayMixedCulture = Cache.SpeechAltPlayMixedCulture;
                             Speech.SimpleCultureDetect = Cache.SpeechSimpleDetectCulture;
                             Speech.AutoChangeSpeechSpeed = Cache.SpeechAutoChangeSpeedWhenRepeatPlay;
@@ -712,14 +712,99 @@ namespace PixivWPF.Common
         private Dictionary<string, string> speech_names = SpeechTTS.GetNames();
         public Dictionary<string, string> SpeechPreferList
         {
-            get { return (speech_names); }
-            set { speech_names = value; }
+            get { return (Cache is Setting ? Cache.speech_names : speech_names); }
+            set
+            {
+                speech_names = value;
+                if (Cache is Setting) Cache.speech_names = value;
+            }
         }
-        public bool SpeechAltPlayMixedCulture { get; set; } = false;
-        public bool SpeechAutoChangeSpeedWhenRepeatPlay { get; set; } = false;
-        public bool SpeechChineseSimplifiedPrefer { get; set; } = true;
-        public bool SpeechSimpleDetectCulture { get; set; } = true;
-        public bool SpeechPlayMixedCultureInline { get; set; } = false;
+        private bool speech_mixedinline_alt = false;
+        public bool SpeechAltPlayMixedCulture
+        {
+            get { return (Cache is Setting ? Cache.speech_mixedinline_alt : speech_mixedinline_alt); }
+            set
+            {
+                speech_mixedinline_alt = value;
+                if (Cache is Setting) Cache.speech_mixedinline_alt = value;
+            }
+        }
+        private bool speech_autoslowrepeat = false;
+        public bool SpeechAutoChangeSpeedWhenRepeatPlay
+        {
+            get { return (Cache is Setting ? Cache.speech_autoslowrepeat : speech_autoslowrepeat); }
+            set
+            {
+                speech_autoslowrepeat = value;
+                if (Cache is Setting) Cache.speech_autoslowrepeat = value;
+            }
+        }
+        private bool speech_mainlandfirst = true;
+        public bool SpeechChineseSimplifiedPrefer
+        {
+            get { return (Cache is Setting ? Cache.speech_mainlandfirst : speech_mainlandfirst); }
+            set
+            {
+                speech_mainlandfirst = value;
+                if (Cache is Setting) Cache.speech_mainlandfirst = value;
+            }
+        }
+        private bool speech_simleculture = true;
+        public bool SpeechSimpleDetectCulture
+        {
+            get { return (Cache is Setting ? Cache.speech_simleculture : speech_simleculture); }
+            set
+            {
+                speech_simleculture = value;
+                if (Cache is Setting) Cache.speech_simleculture = value;
+            }
+        }
+        private bool speech_mixedinline = false;
+        public bool SpeechPlayMixedCultureInline
+        {
+            get { return (Cache is Setting ? Cache.speech_mixedinline : speech_mixedinline); }
+            set
+            {
+                speech_mixedinline = value;
+                if (Cache is Setting) Cache.speech_mixedinline = value;
+            }
+        }
+        private int speech_volumn = 100;
+        public int SpeechPlayVolume
+        {
+            get { return (Cache is Setting ? Cache.speech_volumn : speech_volumn); }
+            set
+            {
+                var vol = Math.Max(0, Math.Min(value, 100));
+                speech_volumn = vol;
+                if (Cache is Setting) Cache.speech_volumn = vol;
+                Speech.PlayVolume = vol;
+            }
+        }
+        private int speech_rate = 0;
+        public int SpeechPlayNormalRate
+        {
+            get { return (Cache is Setting ? Cache.speech_rate : speech_rate); }
+            set
+            {
+                var rate = Math.Max(-10, Math.Min(value, 10));
+                speech_rate = rate;
+                if (Cache is Setting) Cache.speech_rate = rate;
+                Speech.PlayNormalRate = rate;
+            }
+        }
+        private int speech_rateslow = -5;
+        public int SpeechPlaySlowRate
+        {
+            get { return (Cache is Setting ? Cache.speech_rateslow : speech_rateslow); }
+            set
+            {
+                var rate = Math.Max(-10, Math.Min(value, 10));
+                speech_rateslow = rate;
+                if (Cache is Setting) Cache.speech_rateslow = rate;
+                Speech.PlaySlowRate = rate;
+            }
+        }
         #endregion
 
         #region Shell bridge relative

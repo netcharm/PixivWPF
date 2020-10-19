@@ -43,8 +43,7 @@ namespace PixivWPF.Common
     {
         private static Setting setting = Application.Current.LoadSetting();
 
-        private static DownloadManagerPage _downManager = new DownloadManagerPage();
-
+        private static DownloadManagerPage _downManager_page = new DownloadManagerPage();
 
         private const int WIDTH_MIN = 720;
         private const int HEIGHT_MIN = 524;
@@ -707,6 +706,33 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand AddToHistory { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            if (obj is Pixeez.Objects.Work || obj is Pixeez.Objects.User || obj is Pixeez.Objects.UserBase)
+            {
+                try
+                {
+                    await new Action(() =>
+                    {
+                        var win = "History".GetWindowByTitle();
+                        if (win is ContentWindow && win.Content is HistoryPage)
+                            (win.Content as HistoryPage).AddToHistory(obj);
+                        else
+                        {
+                            if (obj is Pixeez.Objects.Work) Application.Current.HistoryAdd(obj as Pixeez.Objects.Work);
+                            else if (obj is Pixeez.Objects.User) Application.Current.HistoryAdd(obj as Pixeez.Objects.User);
+                            else if (obj is Pixeez.Objects.UserBase) Application.Current.HistoryAdd(obj as Pixeez.Objects.UserBase);
+                        }
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+                catch (Exception ex)
+                {
+                    ex.Message.ShowMessageBox("ERROR[HISTORY]");
+                }
+            }
+        });
+
         public static ICommand Open { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is ImageListGrid)
@@ -734,10 +760,10 @@ namespace PixivWPF.Common
         public static ICommand AddDownloadItem { get; } = new DelegateCommand<dynamic>(async obj => {
             await new Action(() => {
                 OpenDownloadManager.Execute(true);
-                if (_downManager is DownloadManagerPage && obj is DownloadParams)
+                if (_downManager_page is DownloadManagerPage && obj is DownloadParams)
                 {
                     var dp = obj as DownloadParams;
-                    _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists);
+                    _downManager_page.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists);
                 }
             }).InvokeAsync();
         });
@@ -746,49 +772,30 @@ namespace PixivWPF.Common
         {
             if (obj is bool)
             {
+                var title = $"Download Manager";
+                if (await title.ActiveByTitle()) return;
+
                 var active = (bool)obj;
                 await new Action(() =>
                 {
-                    if (!(_downManager is DownloadManagerPage))
-                    {
-                        _downManager = new DownloadManagerPage();
-                        _downManager.AutoStart = false;
-                    }
+                    if (!(_downManager_page is DownloadManagerPage))
+                        _downManager_page = new DownloadManagerPage() { AutoStart = false };
 
-                    Window _dm = null;
-                    foreach (Window win in Application.Current.Windows)
+                    setting = Application.Current.LoadSetting();
+                    var viewer = new ContentWindow()
                     {
-                        if (win.Content is DownloadManagerPage)
-                        {
-                            _dm = win;
-                            break;
-                        }
-                    }
-
-                    if (_dm is Window)
-                    {
-                        _dm.Show();
-                        //if (_dm.WindowState == WindowState.Minimized) _dm.WindowState = WindowState.Normal;
-                        //if (active) _dm.Activate();
-                    }
-                    else
-                    {
-                        setting = Application.Current.LoadSetting();
-                        var viewer = new ContentWindow()
-                        {
-                            Title = $"Download Manager",
-                            MinWidth = WIDTH_MIN + 80,
-                            MinHeight = HEIGHT_MIN,
-                            Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
-                            Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
-                            Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager.Pos.X,
-                            Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager.Pos.Y,
-                            Tag = _downManager,
-                            FontFamily = setting.FontFamily,
-                            Content = _downManager
-                        };
-                        viewer.Show();
-                    }
+                        Title = title,
+                        MinWidth = WIDTH_MIN + 80,
+                        MinHeight = HEIGHT_MIN,
+                        Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
+                        Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
+                        Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager_page.Pos.X,
+                        Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager_page.Pos.Y,
+                        Tag = _downManager_page,
+                        FontFamily = setting.FontFamily,
+                        Content = _downManager_page
+                    };
+                    viewer.Show();
                 }).InvokeAsync();
             }
         });
@@ -1316,7 +1323,8 @@ namespace PixivWPF.Common
                 }
             }
         });
-
+        
+        #region tiles navigation
         public static ICommand RefreshPage { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is IllustDetailPage)
@@ -1492,7 +1500,9 @@ namespace PixivWPF.Common
                 if (win.Content is IllustDetailPage) (win.Content as IllustDetailPage).NextIllustPage();
             }
         });
-
+        #endregion
+        
+        #region key processiong
         private static long lastKeyUp = Environment.TickCount;
         public static ICommand KeyProcessor { get; } = new DelegateCommand<dynamic>(obj =>
         {
@@ -1629,6 +1639,7 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
         });
+        #endregion
 
         #region Like/Unlile Work/User relative
         public static ICommand LikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>

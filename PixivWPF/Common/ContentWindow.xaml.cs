@@ -90,10 +90,11 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (this.Content is DownloadManagerPage)
-                {
-                    (this.Content as DownloadManagerPage).Pos = new Point(this.Left, this.Top);
-                }
+                if (Content is DownloadManagerPage)
+                    (Content as DownloadManagerPage).Pos = new Point(this.Left, this.Top);
+                else if(Content is HistoryPage)
+                    (Content as HistoryPage).Pos = new Point(this.Left, this.Top);
+
                 if (Application.Current.GetLoginWindow() != null) e.Cancel = true;
             }
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[CLOSEWIN]"); }

@@ -98,6 +98,15 @@ namespace PixivWPF.Common
                 NotifyPropertyChanged("ItemsChanged");
             }
         }
+        //public ItemCollection Items
+        //{
+        //    get { return (PART_ImageTiles.Items); }
+        //}
+        public IEnumerable ItemsSource
+        {
+            get { return (PART_ImageTiles.ItemsSource); }
+            set { PART_ImageTiles.ItemsSource = value; }
+        }
 
         [Description("Get or Set Image Tiles LiveFilter")]
         [Category("Common Properties")]
@@ -241,14 +250,14 @@ namespace PixivWPF.Common
             }
         }
 
-        public async void UpdateTilesImage(int parallel = 5)
+        public async void UpdateTilesImage(int parallel = 5, SemaphoreSlim updating_semaphore = null)
         {
             Application.Current.DoEvents();
             var needUpdate = Items.Where(item => item.Source == null);
             if (needUpdate.Count() > 0)
             {
                 //PART_ImageTilesWait.Show();
-                lastTask = await Items.UpdateTilesThumb(lastTask, cancelTokenSource, parallel);
+                lastTask = await Items.UpdateTilesThumb(lastTask, cancelTokenSource, parallel, updating_semaphore);
                 //if (lastTask.IsCompleted) PART_ImageTilesWait.Hide();
             }
         }

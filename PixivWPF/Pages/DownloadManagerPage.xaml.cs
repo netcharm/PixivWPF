@@ -29,6 +29,8 @@ namespace PixivWPF.Pages
     public partial class DownloadManagerPage : Page
     {
         private Window window = null;
+        public Point Pos { get; set; } = new Point(0, 0);
+
         private Setting setting = Application.Current.LoadSetting();
 
         [DefaultValue(true)]
@@ -41,8 +43,6 @@ namespace PixivWPF.Pages
         private Timer timer = null;
         //private bool IsIdle = true;
         private bool IsUpdating = false;
-
-        public Point Pos { get; set; } = new Point(0, 0);
 
         private ObservableCollection<DownloadInfo> items = new ObservableCollection<DownloadInfo>();
         public ObservableCollection<DownloadInfo> Items

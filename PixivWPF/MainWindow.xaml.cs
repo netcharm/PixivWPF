@@ -354,20 +354,6 @@ namespace PixivWPF
             if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
         }
 
-#if DEBUG
-        private async void MetroWindow_StylusUp(object sender, StylusEventArgs e)
-        {
-            //
-            await Task.Delay(1);
-            this.DoEvents();
-        }
-#else
-        private void MetroWindow_StylusUp(object sender, StylusEventArgs e)
-        {
-            this.DoEvents();
-        }
-#endif
-
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.ToggleTheme();

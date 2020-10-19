@@ -1302,6 +1302,19 @@ namespace PixivWPF.Common
             app.HistoryAdd(user, history);
         }
 
+        public static void HistoryAdd(this Application app, dynamic item)
+        {
+            if(item is Pixeez.Objects.Work) app.HistoryAdd(item as Pixeez.Objects.Work);
+            else if (item is Pixeez.Objects.User) app.HistoryAdd(item as Pixeez.Objects.User);
+            else if (item is Pixeez.Objects.UserBase) app.HistoryAdd(item as Pixeez.Objects.UserBase);
+            else if(item is ImageItem)
+            {
+                var i = item as ImageItem;
+                if (i.IsUser()) app.HistoryAdd(i.User);
+                else if (i.IsWork()) app.HistoryAdd(i.Illust);
+            }
+        }
+
         public static void HistoryUpdate(this Application app, ObservableCollection<ImageItem> source = null)
         {
             if (source is ObservableCollection<ImageItem>)
@@ -3164,6 +3177,15 @@ namespace PixivWPF.Common
             catch (Exception) { }
         }
 
+        public static void UpdateDownloadState(this ItemCollection items, int? illustid = null, bool? exists = null)
+        {
+            try
+            {
+                items.UpdateDownloadState(illustid, exists);
+            }
+            catch (Exception) { }
+        }
+
         public static async void UpdateDownloadStateAsync(this ObservableCollection<ImageItem> collection, int? illustid = null, bool? exists = null)
         {
             await new Action(() =>
@@ -4351,27 +4373,30 @@ namespace PixivWPF.Common
         #region History routines
         public static void AddToHistory(this Pixeez.Objects.Work illust)
         {
-            var history_win = "History".GetWindowByTitle();
-            if (history_win is ContentWindow)
-                (history_win.Content as HistoryPage).AddToHistory(illust);
+            //Commands.AddToHistory.Execute(illust);
+            var win = "History".GetWindowByTitle();
+            if (win is ContentWindow && win.Content is HistoryPage)
+                (win.Content as HistoryPage).AddToHistory(illust);
             else
                 Application.Current.HistoryAdd(illust);
         }
 
         public static void AddToHistory(this Pixeez.Objects.User user)
         {
-            var history_win = "History".GetWindowByTitle();
-            if (history_win is ContentWindow)
-                (history_win.Content as HistoryPage).AddToHistory(user);
+            //Commands.AddToHistory.Execute(user);
+            var win = "History".GetWindowByTitle();
+            if (win is ContentWindow && win.Content is HistoryPage)
+                (win.Content as HistoryPage).AddToHistory(user);
             else
                 Application.Current.HistoryAdd(user);
         }
 
         public static void AddToHistory(this Pixeez.Objects.UserBase user)
         {
-            var history_win = "History".GetWindowByTitle();
-            if (history_win is ContentWindow)
-                (history_win.Content as HistoryPage).AddToHistory(user);
+            //Commands.AddToHistory.Execute(user);
+            var win = "History".GetWindowByTitle();
+            if (win is ContentWindow && win.Content is HistoryPage)
+                (win.Content as HistoryPage).AddToHistory(user);
             else
                 Application.Current.HistoryAdd(user);
         }

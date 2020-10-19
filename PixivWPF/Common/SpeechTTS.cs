@@ -342,6 +342,9 @@ namespace PixivWPF.Common
         public Action<SpeakStartedEventArgs> SpeakStarted { get; set; } = null;
         public Action<SpeakProgressEventArgs> SpeakProgress { get; set; } = null;
         public Action<SpeakCompletedEventArgs> SpeakCompleted { get; set; } = null;
+        public int PlayNormalRate { get; internal set; } = 0;
+        public int PlaySlowRate { get; internal set; } = -5;
+        public int PlayVolume { get; internal set; } = 100;
 
         private static Dictionary<CultureInfo, List<string>> nametable = new Dictionary<CultureInfo, List<string>>() {
             { CultureInfo.GetCultureInfo("zh-CN"), new List<string>() { "huihui", "yaoyao", "lili", "kangkang" } },
@@ -461,7 +464,7 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(voice)) synth.SelectVoice(voice_default);
                 else synth.SelectVoice(voice);
 
-                //synth.Volume = 100;  // 0...100
+                synth.Volume = Math.Max(0, Math.Min(PlayVolume, 100));  // 0...100
                 //synth.Rate = 0;     // -10...10
                 if (AutoChangeSpeechSpeed && (SimpleCultureDetect || !AltPlayMixedCulture))
                 {
@@ -471,8 +474,8 @@ namespace PixivWPF.Common
                     else
                         SPEECH_SLOW = false;
 
-                    if (SPEECH_SLOW) synth.Rate = -5;
-                    else synth.Rate = 0;
+                    if (SPEECH_SLOW) synth.Rate = Math.Max(-10, Math.Min(PlaySlowRate, 10));
+                    else synth.Rate = Math.Max(-10, Math.Min(PlayNormalRate, 10));
                 }
 
                 if (async)
@@ -525,7 +528,7 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(voice)) synth.SelectVoice(voice_default);
                 else synth.SelectVoice(voice);
 
-                //synth.Volume = 100;  // 0...100
+                synth.Volume = Math.Max(0, Math.Min(PlayVolume, 100));  // 0...100
                 //synth.Rate = 0;     // -10...10
                 var prompt_xml = prompt.ToXml();
                 if (AutoChangeSpeechSpeed)
@@ -536,8 +539,8 @@ namespace PixivWPF.Common
                     else
                         SPEECH_SLOW = false;
 
-                    if (SPEECH_SLOW) synth.Rate = -5;
-                    else synth.Rate = 0;
+                    if (SPEECH_SLOW) synth.Rate = Math.Max(-10, Math.Min(PlaySlowRate, 10));
+                    else synth.Rate = Math.Max(-10, Math.Min(PlayNormalRate, 10));
                 }
 
                 if (async)
@@ -578,8 +581,8 @@ namespace PixivWPF.Common
                         else
                             SPEECH_SLOW = false;
 
-                        if (SPEECH_SLOW) synth.Rate = -5;
-                        else synth.Rate = 0;
+                        if (SPEECH_SLOW) synth.Rate = Math.Max(-10, Math.Min(PlaySlowRate, 10));
+                        else synth.Rate = Math.Max(-10, Math.Min(PlayNormalRate, 10));
 
                         SPEECH_TEXT = speech_text;
                     }
@@ -607,7 +610,7 @@ namespace PixivWPF.Common
                     {
                         SPEECH_TEXT = string.Empty;
                         SPEECH_SLOW = false;
-                        synth.Rate = 0;
+                        synth.Rate = Math.Max(-10, Math.Min(PlayNormalRate, 10));
                     }
                 }
             }
@@ -761,6 +764,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Speech Synthesizer properties
+        public static Dictionary<string, string> CustomNames { set { SpeechTTS.SetCustomNames(value); } }
         public static bool AutoChangeSpeechSpeed
         {
             get { return (t2s is SpeechTTS ? t2s.AutoChangeSpeechSpeed : true); }
@@ -780,6 +784,21 @@ namespace PixivWPF.Common
         {
             get { return (t2s is SpeechTTS ? t2s.PlayMixedCultureInline : true); }
             set { if (t2s is SpeechTTS) t2s.PlayMixedCultureInline = value; }
+        }
+        public static int PlayNormalRate
+        {
+            get { return (t2s is SpeechTTS ? t2s.PlayNormalRate : 0); }
+            set { if (t2s is SpeechTTS) t2s.PlayNormalRate = Math.Max(-10, Math.Min(value, 10)); }
+        }
+        public static int PlaySlowRate
+        {
+            get { return (t2s is SpeechTTS ? t2s.PlaySlowRate : -5); }
+            set { if (t2s is SpeechTTS) t2s.PlaySlowRate = Math.Max(-10, Math.Min(value, 10)); }
+        }
+        public static int PlayVolume
+        {
+            get { return (t2s is SpeechTTS ? t2s.PlayVolume : 100); }
+            set { if (t2s is SpeechTTS) t2s.PlayVolume = Math.Max(0, Math.Min(value, 100)); }
         }
         public static SynthesizerState State { get { return (t2s is SpeechTTS ? t2s.State : SynthesizerState.Ready); } }
 

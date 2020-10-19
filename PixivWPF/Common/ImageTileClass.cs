@@ -673,82 +673,91 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void UpdateTilesImageTask(this IEnumerable<ImageItem> items, CancellationToken cancelToken = default(CancellationToken), int parallel = 5)
+        public static async void UpdateTilesImageTask(this IEnumerable<ImageItem> items, CancellationToken cancelToken = default(CancellationToken), int parallel = 5, SemaphoreSlim update_semaphore = null)
         {
-            var needUpdate = items.Where(item => item.Source == null);
-            if (Application.Current != null && needUpdate.Count() > 0)
+            try
             {
-                try
+                if (update_semaphore == null || await update_semaphore.WaitAsync(10))
                 {
-                    if (parallel <= 0) parallel = 1;
-                    else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
-
-                    var opt = new ParallelOptions();
-                    //opt.TaskScheduler = TaskScheduler.Current;
-                    opt.MaxDegreeOfParallelism = parallel;
-                    opt.CancellationToken = cancelToken;
-
-                    using (cancelToken.Register(Thread.CurrentThread.Abort))
+                    var needUpdate = items.Where(item => item.Source == null);
+                    if (Application.Current != null && needUpdate.Count() > 0)
                     {
-                        var ret = Parallel.ForEach(needUpdate, opt, async (item, loopstate, elementIndex) =>
-                        {
-                            await new Action(async () =>
-                            {
-                                if (cancelToken.IsCancellationRequested)
-                                    opt.CancellationToken.ThrowIfCancellationRequested();
-                                else
-                                {
-                                    try
-                                    {
-                                        if (item.Source == null)
-                                        {
-                                            Random rnd = new Random();
-                                            await Task.Delay(rnd.Next(20, 200));
-                                            Application.Current.DoEvents();
+                        if (parallel <= 0) parallel = 1;
+                        else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
 
-                                            if (item.Count <= 1) item.BadgeValue = string.Empty;
+                        var opt = new ParallelOptions();
+                        //opt.TaskScheduler = TaskScheduler.Current;
+                        opt.MaxDegreeOfParallelism = parallel;
+                        opt.CancellationToken = cancelToken;
+
+                        using (cancelToken.Register(Thread.CurrentThread.Abort))
+                        {
+                            var ret = Parallel.ForEach(needUpdate, opt, async (item, loopstate, elementIndex) =>
+                            {
+                                await new Action(async () =>
+                                {
+                                    if (cancelToken.IsCancellationRequested)
+                                        opt.CancellationToken.ThrowIfCancellationRequested();
+                                    else
+                                    {
+                                        try
+                                        {
                                             if (item.Source == null)
                                             {
-                                                var img = await item.Thumb.LoadImageFromUrl();
-                                                if (item.Source == null) item.Source = img.Source;
-                                                if(item.Source is ImageSource)
-                                                    item.State = TaskStatus.RanToCompletion;
-                                                else
-                                                    item.State = TaskStatus.Faulted;
+                                                Random rnd = new Random();
+                                                await Task.Delay(rnd.Next(10, 100));
                                                 Application.Current.DoEvents();
+
+                                                if (item.Count <= 1) item.BadgeValue = string.Empty;
+                                                if (item.Source == null)
+                                                {
+                                                    var img = await item.Thumb.LoadImageFromUrl();
+                                                    if (item.Source == null) item.Source = img.Source;
+                                                    if(item.Source is ImageSource)
+                                                        item.State = TaskStatus.RanToCompletion;
+                                                    else
+                                                        item.State = TaskStatus.Faulted;
+                                                    Application.Current.DoEvents();
+                                                }
                                             }
                                         }
+    #if DEBUG
+                                        catch (Exception ex)
+                                        {
+                                            $"Download Thumbnail Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                            item.State = TaskStatus.Faulted;
+                                        }
+    #else
+                                        catch(Exception){ }
+    #endif
+                                        finally
+                                        {
+                                            if (item.Source == null && item.Thumb.IsCached())
+                                                item.Source = (await item.Thumb.GetImageCachePath().LoadImageFromFile()).Source;
+                                        }
                                     }
-#if DEBUG
-                                    catch (Exception ex)
-                                    {
-                                        $"Download Thumbnail Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                        item.State = TaskStatus.Faulted;
-                                    }
-#else
-                                    catch(Exception){ }
-#endif
-                                    finally
-                                    {
-                                        if (item.Thumb.IsCached()) item.Source = (await item.Thumb.GetImageCachePath().LoadImageFromFile()).Source;
-                                    }
-                                }
-                            }).InvokeAsync();
-                        });
+                                }).InvokeAsync();
+                            });
+                        }
                     }
                 }
-                catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                var ert = ex.Message;
+            }
+            finally
+            {
+                if (update_semaphore is SemaphoreSlim)
                 {
-                    var ert = ex.Message;
+                    update_semaphore.Release();
+                    await Task.Delay(1);
                 }
-                finally
-                {
-                    Application.Current.DoEvents();
-                }
+                Application.Current.DoEvents();
             }
         }
 
-        public static async Task<Task> UpdateTilesThumb(this IEnumerable<ImageItem> items, Task task, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5)
+        public static async Task<Task> UpdateTilesThumb(this IEnumerable<ImageItem> items, Task task, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5, SemaphoreSlim update_semaphore = null)
         {
             Task result = null;
             try
@@ -770,7 +779,7 @@ namespace PixivWPF.Common
                         cancelSource = new CancellationTokenSource();
                         result = new Task(() =>
                         {
-                            items.UpdateTilesImageTask(cancelSource.Token, parallel);
+                            items.UpdateTilesImageTask(cancelSource.Token, parallel, update_semaphore);
                         }, cancelSource.Token, TaskCreationOptions.PreferFairness);                        
                         result.Start();
                     }).InvokeAsync();

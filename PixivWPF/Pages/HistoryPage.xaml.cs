@@ -26,11 +26,10 @@ namespace PixivWPF.Pages
     public partial class HistoryPage : Page
     {
         private Window window = null;
+        public Point Pos { get; set; } = new Point(0, 0);
 
         private string result_filter = string.Empty;
 
-        private MenuItem ActionResultFilter = null;
-        private ContextMenu ContextMenuResultFilter = null;
         private Dictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new Dictionary<string, Tuple<MenuItem, MenuItem>>();
 
         public string Contents { get; set; } = string.Empty;
@@ -88,17 +87,12 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ShowHistory(string filter = "")
+        private SemaphoreSlim CanUpdating = new SemaphoreSlim(1, 1);
+        private void ShowHistory()
         {
             try
             {
                 HistoryWait.Show();
-
-                if (string.IsNullOrEmpty(filter)) filter = result_filter;
-
-                var no_filter = string.IsNullOrEmpty(filter);
-                var filter_string = no_filter ? string.Empty : $" ({filter.Replace("users入り", "+ Favs")})";
-
                 if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     HistoryItems.Items.Clear();
@@ -106,31 +100,16 @@ namespace PixivWPF.Pages
                     {
                         HistoryItems.Items.Add(item);
                     }
+                    Application.Current.DoEvents();
                 }
                 else
                 {
                     UpdateLikeState();
+                    Application.Current.DoEvents();
                     UpdateDownloadState();
-
-                    //var source = Application.Current.HistorySource();
-                    //foreach (var item in HistoryItems.Items)
-                    //{
-                    //    var hist = source.Where(i => i.ID == item.ID && i.UserID == item.UserID);
-                    //    if (hist.Count() >= 1)
-                    //    {
-                    //        var new_item = hist.First();
-                    //        item.Illust = new_item.Illust;
-                    //        item.User = new_item.User;
-                    //        item.IsFollowed = new_item.IsFollowed;
-                    //        item.IsFavorited = new_item.IsFavorited;
-                    //    }
-                    //}
+                    Application.Current.DoEvents();
                 }
-
-                if (HistoryItems.Items.Count() == 0 && window != null && no_filter)
-                    window.Close();
-                else
-                    HistoryItems.UpdateTilesImage();
+                HistoryItems.UpdateTilesImage(5, CanUpdating);
             }
             catch (Exception ex)
             {
@@ -155,7 +134,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                HistoryItems.UpdateTilesImage();
+                HistoryItems.UpdateTilesImage(5, CanUpdating);
                 Application.Current.DoEvents();
             }
             catch (Exception) { }
@@ -163,11 +142,12 @@ namespace PixivWPF.Pages
 
         internal void UpdateDetail()
         {
+            //if (CanUpdating is SemaphoreSlim) CanUpdating.Release();
             ShowHistory();
             if (window != null)
             {
                 window.SizeToContent = SizeToContent.WidthAndHeight;
-                if(window is ContentWindow) (window as ContentWindow).AdjustWindowPos();
+                if (window is ContentWindow) (window as ContentWindow).AdjustWindowPos();
             }
         }
 
@@ -219,39 +199,6 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            #region Update ContextMenu
-            var cmr = Resources["MenuHistoryResult"] as ContextMenu;
-            if (cmr is ContextMenu)
-            {
-                foreach (dynamic item in cmr.Items)
-                {
-                    if (item is MenuItem && item.Name.Equals("ActionResultFilter", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        ActionResultFilter = item;
-                        break;
-                    }
-                }
-            }
-
-            var cmf = Resources["MenuHistoryFilter"] as ContextMenu;
-            if (cmf is ContextMenu)
-            {
-                ContextMenuResultFilter = cmf;
-                foreach (dynamic item in cmf.Items)
-                {
-                    if (item is MenuItem)
-                    {
-                        var mi = item as MenuItem;
-                        if (mi.Name.Equals("HistoryFilter_00000users", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            mi.IsChecked = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            #endregion
-
             window = Window.GetWindow(this);
 
             if (window != null)
@@ -262,13 +209,16 @@ namespace PixivWPF.Pages
 
             try
             {
+                if (CanUpdating is SemaphoreSlim) CanUpdating.Release();
+                HistoryItems.Items.Clear();
                 foreach (var item in Application.Current.HistorySource())
                 {
                     HistoryItems.Items.Add(item);
                 }
+                Application.Current.DoEvents();
+                UpdateDetail();
             }
             catch (Exception) { }
-            UpdateDetail();
         }
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -452,55 +402,6 @@ namespace PixivWPF.Pages
         private void HistoryIllusts_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(HistoryItems, e));
-        }
-
-        private void HistoryFilter_Click(object sender, RoutedEventArgs e)
-        {
-            e.Handled = true;
-
-            if (sender is MenuItem)
-            {
-                var mi = sender as MenuItem;
-                if (mi.Name.StartsWith("ActionFilter_"))
-                {
-                    foreach (MenuItem item in ActionResultFilter.Items)
-                    {
-                        if (item == sender)
-                        {
-                            item.IsChecked = true;
-                            var filter = Regex.Replace(item.Uid, @"SearchFilter_0*", "", RegexOptions.IgnoreCase);
-                            result_filter = filter.Equals("users", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"{filter}入り";
-                        }
-                        else item.IsChecked = false;
-
-                        var cmi = ContextMenuResultFilter.Items.Cast<MenuItem>().Where(o=>string.Equals(o.Uid, item.Uid, StringComparison.CurrentCultureIgnoreCase));
-                        if (cmi.Count() > 0)
-                        {
-                            if (cmi.First() is MenuItem) cmi.First().IsChecked = item.IsChecked;
-                        }
-                    }
-                }
-                else if (mi.Name.StartsWith("SearchFilter_"))
-                {
-                    foreach (MenuItem item in ContextMenuResultFilter.Items)
-                    {
-                        if (item == sender)
-                        {
-                            item.IsChecked = true;
-                            var filter = Regex.Replace(item.Uid, @"SearchFilter_0*", "", RegexOptions.IgnoreCase);
-                            result_filter = filter.Equals("users", StringComparison.CurrentCultureIgnoreCase) ? string.Empty : $"{filter}入り";
-                        }
-                        else item.IsChecked = false;
-
-                        var cmi = ActionResultFilter.Items.Cast<MenuItem>().Where(o=>string.Equals(o.Uid, item.Uid, StringComparison.CurrentCultureIgnoreCase));
-                        if (cmi.Count() > 0)
-                        {
-                            if (cmi.First() is MenuItem) cmi.First().IsChecked = item.IsChecked;
-                        }
-                    }
-                }
-                ShowHistory();
-            }
         }
         #endregion
     }
