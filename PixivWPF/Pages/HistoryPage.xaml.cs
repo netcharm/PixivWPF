@@ -134,6 +134,7 @@ namespace PixivWPF.Pages
         {
             try
             {
+                if (CanUpdating is SemaphoreSlim && CanUpdating.CurrentCount == 0) CanUpdating.Release();
                 HistoryItems.UpdateTilesImage(5, CanUpdating);
                 Application.Current.DoEvents();
             }
@@ -209,7 +210,7 @@ namespace PixivWPF.Pages
 
             try
             {
-                if (CanUpdating is SemaphoreSlim) CanUpdating.Release();
+                if (CanUpdating is SemaphoreSlim && CanUpdating.CurrentCount == 0) CanUpdating.Release();
                 HistoryItems.Items.Clear();
                 foreach (var item in Application.Current.HistorySource())
                 {
