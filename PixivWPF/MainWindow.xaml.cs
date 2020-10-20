@@ -490,6 +490,13 @@ namespace PixivWPF
             Commands.OpenHistory.Execute(null);
         }
 
+        private void LiveFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            if (pagetiles is Pages.TilesPage)
+                CommandFilter.ToolTip = $"Tiles Count: {pagetiles.GetTilesCount()}";
+            else CommandFilter.ToolTip = $"Live Filter";
+        }
+
         private void LiveFilter_Click(object sender, RoutedEventArgs e)
         {
             if (!(sender is MenuItem)) return;
@@ -501,6 +508,7 @@ namespace PixivWPF
             var menus_fast = new List<MenuItem>() {
                 LiveFilterFast_None,
                 LiveFilterFast_Portrait, LiveFilterFast_Landscape, LiveFilterFast_Square,
+                LiveFilterFast_InHistory, LiveFilterFast_NotInHistory,
                 LiveFilterFast_CurrentAuthor
             };
             var menus_fav_no = new List<MenuItem>() {
@@ -691,13 +699,6 @@ namespace PixivWPF
 
             if (pagetiles is Pages.TilesPage)
                 pagetiles.SetFilter(filter);
-        }
-
-        private void CommandFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
-        {
-            if (pagetiles is Pages.TilesPage)
-                CommandFilter.ToolTip = $"Tiles Count: {pagetiles.GetTilesCount()}";
-            else CommandFilter.ToolTip = $"Live Filter";
         }
 
     }

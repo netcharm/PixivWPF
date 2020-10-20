@@ -56,7 +56,7 @@
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <mah:DropDownButton x:Name="CommandFilter" x:Uid="CommandFilter"
-                                ToolTip="Live Filter" ToolTipOpening="CommandFilter_ToolTipOpening">
+                                ToolTip="Live Filter" ToolTipOpening="LiveFilter_ToolTipOpening">
                 <mah:DropDownButton.Icon>
                     <TextBlock 
                     Text="&#xE16E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -84,6 +84,9 @@
                         <MenuItem x:Name="LiveFilterFast_Landscape" x:Uid="LiveFilterFast_Landscape" Header="Landscape" Click="LiveFilter_Click"/>
                         <MenuItem x:Name="LiveFilterFast_Portrait" x:Uid="LiveFilterFast_Portrait" Header="Portrait" Click="LiveFilter_Click"/>
                         <MenuItem x:Name="LiveFilterFast_Square" x:Uid="LiveFilterFast_Square" Header="Square" Click="LiveFilter_Click"/>
+                        <Separator Visibility="{Binding Visibility, ElementName=LiveFilterFast_InHistory, Mode=OneWay}"/>
+                        <MenuItem x:Name="LiveFilterFast_InHistory" x:Uid="LiveFilterFast_InHistory" Header="In History" Click="LiveFilter_Click"/>
+                        <MenuItem x:Name="LiveFilterFast_NotInHistory" x:Uid="LiveFilterFast_NotInHistory" Header="Not In History" Click="LiveFilter_Click"/>
                         <Separator Visibility="{Binding Visibility, ElementName=LiveFilterFast_CurrentAuthor, Mode=OneWay}"/>
                         <MenuItem x:Name="LiveFilterFast_CurrentAuthor" x:Uid="LiveFilterFast_CurrentAuthor" Header="Selected Author" Click="LiveFilter_Click" Visibility="Collapsed"/>
                     </MenuItem>

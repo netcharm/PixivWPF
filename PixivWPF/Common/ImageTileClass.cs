@@ -454,7 +454,14 @@ namespace PixivWPF.Common
                 bool portrait = filter_fast.Equals("portrait") ? true : false;
                 bool landscape = filter_fast.Equals("landscape") ? true : false;
                 bool square = filter_fast.Equals("square") ? true : false;
+
+                bool in_history = filter_fast.Equals("inhistory") ? true : false;
+                bool not_in_history = filter_fast.Equals("notinhistory") ? true : false;
                 #endregion
+
+                var hist = Application.Current.HistoryList();
+                var hist_ids = hist.Select(h => h.ID).ToList();
+                var hist_idl = hist.Select(h => long.Parse(h.ID)).ToList();
 
                 filter_action = new Func<object, bool>(obj =>
                 {
@@ -496,6 +503,13 @@ namespace PixivWPF.Common
                                     else if (square)
                                         result = result && 0.95 < aspect && aspect < 1.05 ? true : false;
                                 }
+                            }
+                            else if(in_history || not_in_history)
+                            {
+                                if (in_history)
+                                    result = result && hist_ids.Contains(item.ID) ? true : false;
+                                else if (not_in_history)
+                                    result = result && hist_ids.Contains(item.ID) ? false : true;
                             }
                         }
                         #endregion
@@ -705,7 +719,7 @@ namespace PixivWPF.Common
                                             if (item.Source == null)
                                             {
                                                 Random rnd = new Random();
-                                                await Task.Delay(rnd.Next(10, 100));
+                                                await Task.Delay(rnd.Next(1, 50));
                                                 Application.Current.DoEvents();
 
                                                 if (item.Count <= 1) item.BadgeValue = string.Empty;
@@ -721,15 +735,15 @@ namespace PixivWPF.Common
                                                 }
                                             }
                                         }
-    #if DEBUG
+#if DEBUG
                                         catch (Exception ex)
                                         {
                                             $"Download Thumbnail Failed:\n{ex.Message}".ShowMessageBox("ERROR");
                                             item.State = TaskStatus.Faulted;
                                         }
-    #else
+#else
                                         catch(Exception){ }
-    #endif
+#endif
                                         finally
                                         {
                                             if (item.Source == null && item.Thumb.IsCached())
@@ -737,6 +751,51 @@ namespace PixivWPF.Common
                                         }
                                     }
                                 }).InvokeAsync();
+
+    //                            await Task.Run(async ()=>
+    //                            {
+    //                                if (cancelToken.IsCancellationRequested)
+    //                                    opt.CancellationToken.ThrowIfCancellationRequested();
+    //                                else
+    //                                {
+    //                                    try
+    //                                    {
+    //                                        if (item.Count <= 1) item.BadgeValue = string.Empty;
+    //                                        if (item.Source == null)
+    //                                        {
+    //                                            Random rnd = new Random();
+    //                                            await Task.Delay(rnd.Next(10, 1000));
+    //                                            item.DoEvents();
+
+    //                                            if (item.Source == null)
+    //                                            {
+    //                                                var img = await item.Thumb.LoadImageFromUrl();
+    //                                                if (item.Source == null) item.Source = img.Source;
+    //                                                if(item.Source is ImageSource)
+    //                                                    item.State = TaskStatus.RanToCompletion;
+    //                                                else
+    //                                                    item.State = TaskStatus.Faulted;
+    //                                                item.DoEvents();
+    //                                            }
+    //                                        }
+    //                                    }
+    //#if DEBUG
+    //                                    catch (Exception ex)
+    //                                    {
+    //                                        $"Download Thumbnail Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+    //                                        item.State = TaskStatus.Faulted;
+    //                                    }
+    //#else
+    //                                    catch(Exception){ }
+    //#endif
+    //                                    finally
+    //                                    {
+    //                                        if (item.Source == null && item.Thumb.IsCached())
+    //                                            item.Source = (await item.Thumb.GetImageCachePath().LoadImageFromFile()).Source;
+    //                                    }
+    //                                }
+    //                            });
+
                             });
                         }
                     }

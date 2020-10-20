@@ -2472,32 +2472,26 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ActionRefreshAvator(ImageItem item)
+        private async void ActionRefreshAvator(ImageItem item)
         {
-            try
+            if (item is ImageItem)
             {
-                ActionRefreshAvator(item.User);
-            }
-            catch (Exception) { }
-        }
-
-        private void ActionRefreshAvator(Pixeez.Objects.UserBase user)
-        {
-            var ua = new Action(async () =>
-            {
-                try
+                await new Action(async () =>
                 {
-                    var item = Contents;
-                    var img =  await user.GetAvatarUrl().LoadImageFromUrl();
-                    if(item.IsSameIllust(Contents))
+                    try
                     {
-                        IllustAuthorAvator.Source = img.Source;
-                        if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
-                        else IllustAuthorAvatorWait.Disable();
+                        var c_item = Contents;
+                        var img =  await item.User.GetAvatarUrl().LoadImageFromUrl();
+                        if (c_item.IsSameIllust(Contents))
+                        {
+                            IllustAuthorAvator.Source = img.Source;
+                            if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
+                            else IllustAuthorAvatorWait.Disable();
+                        }
                     }
-                }
-                catch(Exception) { }
-            }).InvokeAsync();
+                    catch (Exception) { }
+                }).InvokeAsync();
+            }
         }
         #endregion
 

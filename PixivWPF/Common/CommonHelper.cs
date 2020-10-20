@@ -991,7 +991,7 @@ namespace PixivWPF.Common
                 {
                     if (Application.Current.Dispatcher.CheckAccess())
                     {
-                        await Dispatcher.Yield();
+                        await Dispatcher.Yield(DispatcherPriority.Render);
                         //await System.Windows.Threading.Dispatcher.Yield();
 
                         //DispatcherFrame frame = new DispatcherFrame();
@@ -1009,9 +1009,9 @@ namespace PixivWPF.Common
                             //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
                             //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
 
-                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
+                            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
                             await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
-                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
                             Dispatcher.PushFrame(frame);
                         }
                     }

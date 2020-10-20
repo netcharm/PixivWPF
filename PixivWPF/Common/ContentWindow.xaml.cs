@@ -235,6 +235,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private void LiveFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            if (Content is IllustDetailPage)
+                CommandFilter.ToolTip = $"Tiles Count: {(Content as IllustDetailPage).GetTilesCount()}";
+            else if (Content is SearchResultPage)
+                CommandFilter.ToolTip = $"Tiles Count: {(Content as SearchResultPage).GetTilesCount()}";
+            else if (Content is HistoryPage)
+                CommandFilter.ToolTip = $"Tiles Count: {(Content as HistoryPage).GetTilesCount()}";
+            else CommandFilter.ToolTip = $"Live Filter";
+        }
+
         private void LiveFilter_Click(object sender, RoutedEventArgs e)
         {
             if (!(sender is MenuItem)) return;
@@ -246,6 +257,7 @@ namespace PixivWPF.Common
             var menus_fast = new List<MenuItem>() {
                 LiveFilterFast_None,
                 LiveFilterFast_Portrait, LiveFilterFast_Landscape, LiveFilterFast_Square,
+                LiveFilterFast_InHistory, LiveFilterFast_NotInHistory,
                 LiveFilterFast_CurrentAuthor
             };
             var menus_fav_no = new List<MenuItem>() {
@@ -441,17 +453,6 @@ namespace PixivWPF.Common
                 (Content as SearchResultPage).SetFilter(filter);
             else if (Content is HistoryPage)
                 (Content as HistoryPage).SetFilter(filter);
-        }
-
-        private void CommandFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
-        {
-            if (Content is IllustDetailPage)
-                CommandFilter.ToolTip = $"Tiles Count: {(Content as IllustDetailPage).GetTilesCount()}";
-            else if (Content is SearchResultPage)
-                CommandFilter.ToolTip = $"Tiles Count: {(Content as SearchResultPage).GetTilesCount()}";
-            else if (Content is HistoryPage)
-                CommandFilter.ToolTip = $"Tiles Count: {(Content as HistoryPage).GetTilesCount()}";
-            else CommandFilter.ToolTip = $"Live Filter";
         }
     }
 }
