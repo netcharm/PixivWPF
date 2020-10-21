@@ -1632,6 +1632,37 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var change_illust = Keyboard.Modifiers == ModifierKeys.Shift;
+            if (change_illust)
+            {
+                if (e.XButton1 == MouseButtonState.Pressed)
+                {
+                    NextIllust();
+                    e.Handled = true;
+                }
+                else if (e.XButton2 == MouseButtonState.Pressed)
+                {
+                    PrevIllust();
+                    e.Handled = true;
+                }
+            }
+            else
+            {
+                if (e.XButton1 == MouseButtonState.Pressed)
+                {
+                    NextIllustPage();
+                    e.Handled = true;
+                }
+                else if (e.XButton2 == MouseButtonState.Pressed)
+                {
+                    PrevIllustPage();
+                    e.Handled = true;
+                }
+            }
+        }
+
         #region WebBrowser Events Handle
         private void WebBrowserRefresh(System.Windows.Forms.WebBrowser browser)
         {
