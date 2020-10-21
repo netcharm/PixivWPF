@@ -7,7 +7,7 @@
       xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       mc:Ignorable="d" 
-      d:DesignHeight="320" d:DesignWidth="320"
+      d:DesignHeight="400" d:DesignWidth="368"
       Title="IllustImageViewerPage" 
       PreviewKeyUp="Page_PreviewKeyUp" 
       SizeChanged="Page_SizeChanged"
@@ -147,6 +147,13 @@
                 Click="ActionViewFullSize_Click" >
                 <iconPacks:PackIconModern Kind="Magnify" Width="32" Height="32" />
             </ToggleButton>
+            <Button x:Name="btnOpenCache" x:Uid="OpenCache"
+                Width="64" Height="64" 
+                Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                Click="ActionIllustInfo_Click" >
+                <iconPacks:PackIconModern Kind="Image" Width="32" Height="32" />
+            </Button>
             <Button x:Name="btnSavePage" x:Uid="SavePage"
                 Width="64" Height="64" 
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"

@@ -248,9 +248,23 @@ namespace PixivWPF.Common
 
         private void LiveFilter_Click(object sender, RoutedEventArgs e)
         {
+            if (LiveFilterSanity_OptIncludeUnder.IsChecked)
+            {
+                LiveFilterSanity_NoR18.IsChecked = LiveFilterSanity_R18.IsChecked = false;
+                LiveFilterSanity_NoR18.IsEnabled = LiveFilterSanity_R18.IsEnabled = false;
+            }
+            else
+            {
+                LiveFilterSanity_NoR18.IsEnabled = LiveFilterSanity_R18.IsEnabled = true;
+            }
+        }
+
+        private void LiveFilterItem_Click(object sender, RoutedEventArgs e)
+        {
             if (!(sender is MenuItem)) return;
             if (sender == LiveFilterFavoritedRange) return;
 
+            #region pre-define filter menus list
             var menus_type = new List<MenuItem>() {
                 LiveFilterUser, LiveFilterWork
             };
@@ -285,6 +299,7 @@ namespace PixivWPF.Common
             };
 
             var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav_no, menus_fast, menus_fav, menus_follow, menus_down, menus_sanity };
+            #endregion
 
             var idx = "LiveFilter".Length;
 
@@ -432,6 +447,15 @@ namespace PixivWPF.Common
                             LiveFilterSanity.IsChecked = true;
                     }
                 }
+                if(LiveFilterSanity_OptIncludeUnder.IsChecked)
+                {
+                    LiveFilterSanity_NoR18.IsChecked = LiveFilterSanity_R18.IsChecked = false;
+                    LiveFilterSanity_NoR18.IsEnabled = LiveFilterSanity_R18.IsEnabled = false;
+                }
+                else
+                {
+                    LiveFilterSanity_NoR18.IsEnabled = LiveFilterSanity_R18.IsEnabled = true;
+                }
                 #endregion
             }
 
@@ -443,7 +467,8 @@ namespace PixivWPF.Common
                 Favorited = filter_fav,
                 Followed = filter_follow,
                 Downloaded = filter_down,
-                Sanity = filter_sanity
+                Sanity = filter_sanity,
+                SanityOption_IncludeUnder = LiveFilterSanity_OptIncludeUnder.IsChecked
             };
 
 

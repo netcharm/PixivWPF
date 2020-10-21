@@ -8,7 +8,7 @@
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       xmlns:Common="clr-namespace:PixivWPF.Common"
       mc:Ignorable="d" 
-      d:DesignHeight="300" d:DesignWidth="300"
+      d:DesignHeight="600" d:DesignWidth="300"
       VisualTextRenderingMode="Auto"
       RenderOptions.BitmapScalingMode="HighQuality"
       RenderOptions.CachingHint="Cache"
@@ -203,7 +203,7 @@
         <!-- Illust Detail Viewport -->
         <ScrollViewer Grid.Column="0" x:Name="IllustDetailViewer"
                       Margin="4,4,4,4"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

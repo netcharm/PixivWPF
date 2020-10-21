@@ -36,6 +36,11 @@ namespace PixivWPF.Pages
         {
             btnViewPrevPage.Enable(btnViewPrevPage.IsEnabled, btnViewPrevPage.IsVisible);
             btnViewNextPage.Enable(btnViewNextPage.IsEnabled, btnViewNextPage.IsVisible);
+
+            btnViewOriginalPage.Enable(btnViewOriginalPage.IsEnabled, btnViewOriginalPage.IsVisible);
+            btnViewFullSize.Enable(btnViewFullSize.IsEnabled, btnViewFullSize.IsVisible);
+            btnOpenCache.Enable(btnOpenCache.IsEnabled, btnOpenCache.IsVisible);
+            btnSavePage.Enable(btnViewNextPage.IsEnabled, btnSavePage.IsVisible);
         }
 
         internal async void UpdateDetail(ImageItem item)
@@ -167,6 +172,7 @@ namespace PixivWPF.Pages
                 btnViewNextPage.MouseOverAction();
                 btnViewOriginalPage.MouseOverAction();
                 btnViewFullSize.MouseOverAction();
+                btnOpenCache.MouseOverAction();
                 btnSavePage.MouseOverAction();
                 #endregion
 
@@ -180,16 +186,23 @@ namespace PixivWPF.Pages
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (btnViewFullSize.IsChecked.Value)
+            try
             {
-                PreviewBox.Width = Preview.Source.Width;
-                PreviewBox.Height = Preview.Source.Height;
+                if (Preview.Source is ImageSource && Preview.Source.Width > 0 && Preview.Source.Height > 0)
+                {
+                    if (btnViewFullSize.IsChecked.Value)
+                    {
+                        PreviewBox.Width = Preview.Source.Width;
+                        PreviewBox.Height = Preview.Source.Height;
+                    }
+                    else
+                    {
+                        PreviewBox.Width = PreviewScroll.ActualWidth;
+                        PreviewBox.Height = PreviewScroll.ActualHeight;
+                    }
+                }
             }
-            else
-            {
-                PreviewBox.Width = PreviewScroll.ActualWidth;
-                PreviewBox.Height = PreviewScroll.ActualHeight;
-            }
+            catch (Exception) { }
         }
 
         private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
@@ -336,7 +349,7 @@ namespace PixivWPF.Pages
                     Commands.Open.Execute(Contents.Illust);
                 else if (sender == ActionOpenAuthor)
                     Commands.OpenUser.Execute(Contents.User);
-                else if (sender == ActionOpenCachedWith)
+                else if (sender == ActionOpenCachedWith || sender == btnOpenCache)
                 {
                     Commands.ShellOpenFile.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
                 }
@@ -403,6 +416,9 @@ namespace PixivWPF.Pages
                 PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
                 InfoBar.Margin = new Thickness(16, 16, 16, 32);
                 ActionBar.Margin = new Thickness(0, 0, 16, 16);
+                var bg = new SolidColorBrush(Theme.SemiTransparentColor);
+                bg.Opacity = 0.3;
+                btnViewFullSize.Background = bg;
             }
             else
             {
@@ -414,6 +430,7 @@ namespace PixivWPF.Pages
                 PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
                 InfoBar.Margin = new Thickness(16);
                 ActionBar.Margin = new Thickness(0);
+                btnViewFullSize.Background = Theme.TransparentBrush;
             }
             Page_SizeChanged(null, null);
         }

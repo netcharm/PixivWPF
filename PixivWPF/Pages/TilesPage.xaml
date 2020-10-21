@@ -16,7 +16,10 @@
       TextOptions.TextFormattingMode="Display"
       AllowDrop="True"
       d:DesignHeight="700" d:DesignWidth="1420"
-      Title="Image Master Detail Viewer">
+      Title="Image Master Detail Viewer"
+      PreviewKeyUp="Page_PreviewKeyUp"
+      PreviewMouseDown="Page_PreviewMouseDown"
+      PreviewMouseWheel="Page_PreviewMouseWheel">
 
     <Page.Resources>
         <CollectionViewSource x:Key="ActiveImageTiles" Source="{Binding local:ImageList, Mode=OneWay, IsAsync=True}" Filter="OnlyActiveItems"/>
@@ -178,7 +181,8 @@
         <ListView Grid.Column="0"
             x:Name="ListImageTiles" x:Uid="ImageTiles"
             BorderBrush="Transparent"
-            HorizontalAlignment="Left" VerticalAlignment="Top" Margin="48,0,0,0" Width="Auto"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="48,0,0,0" Width="Auto"
+            HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
             Focusable="True"
             IsSynchronizedWithCurrentItem="true"
             ItemsSource="{Binding Source={StaticResource ActiveImageTiles}, IsAsync=True, NotifyOnTargetUpdated=True}" 
@@ -194,10 +198,7 @@
             VirtualizingPanel.VirtualizationMode="Recycling"
             VirtualizingPanel.ScrollUnit="Item"
             mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
-            KeyUp="ListImageTiles_KeyUp"
             MouseDoubleClick="ListImageTiles_MouseDoubleClick"
-            MouseDown="ListImageTiles_MouseDown"
-            PreviewMouseWheel="ListImageTiles_PreviewMouseWheel"
             SelectionChanged="ImageTiles_SelectionChanged">
             <ListView.CacheMode>
                 <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>

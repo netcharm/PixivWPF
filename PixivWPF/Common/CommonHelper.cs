@@ -5307,13 +5307,16 @@ namespace PixivWPF.Common
             {
                 var btn = sender as ButtonBase;
 
-                if (btn.Height >= 32)
-                    btn.BorderThickness = new Thickness(2);
-                else
-                    btn.BorderThickness = new Thickness(0);
+                //if (btn.Height >= 32)
+                //    btn.BorderThickness = new Thickness(2);
+                //else
+                //    btn.BorderThickness = new Thickness(0);
 
-                //btn.Foreground = Theme.AccentBrush;
-                btn.Background = Theme.SemiTransparentBrush;
+                if ((btn.Parent is StackPanel) && (btn.Parent as StackPanel).Name.Equals("ActionBar") && btn.Width >= 32)
+                    btn.Foreground = Theme.IdealForegroundBrush;
+
+                if (!(btn is ToggleButton) || (btn is ToggleButton && !(btn as ToggleButton).IsChecked.Value))
+                    btn.Background = Theme.SemiTransparentBrush;
             }
         }
 
@@ -5322,10 +5325,14 @@ namespace PixivWPF.Common
             if (sender is ButtonBase)
             {
                 var btn = sender as ButtonBase;
-                btn.BorderThickness = new Thickness(0);
 
-                //btn.Foreground = Theme.IdealForegroundBrush;
-                btn.Background = Theme.TransparentBrush;
+                //btn.BorderThickness = new Thickness(0);
+
+                if ((btn.Parent is StackPanel) && (btn.Parent as StackPanel).Name.Equals("ActionBar") && btn.Width >= 32)
+                    btn.Foreground = Theme.AccentBrush;
+
+                if (!(btn is ToggleButton) || (btn is ToggleButton && !(btn as ToggleButton).IsChecked.Value))
+                    btn.Background = Theme.TransparentBrush;
             }
         }
         #endregion

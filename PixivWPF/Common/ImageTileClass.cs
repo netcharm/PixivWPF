@@ -27,6 +27,7 @@ namespace PixivWPF.Common
         public string Followed { get; set; } = string.Empty;
         public string Downloaded { get; set; } = string.Empty;
         public string Sanity { get; set; } = string.Empty;
+        public bool SanityOption_IncludeUnder { get; set; } = true;
     }
 
     public class ImageItem : FrameworkElement, INotifyPropertyChanged
@@ -431,6 +432,12 @@ namespace PixivWPF.Common
                 #endregion
 
                 #region sanity / not_sanity
+                string[] sanity_age_18 = new string[] { "all", "12+", "15+", "17+", "18+" };
+                string[] sanity_age_17 = new string[] { "all", "12+", "15+", "17+" };
+                string[] sanity_age_15 = new string[] { "all", "12+", "15+" };
+                string[] sanity_age_12 = new string[] { "all", "12+" };
+                string[] sanity_age_all = new string[] { "all" };
+                bool sanity_include_under = filter.SanityOption_IncludeUnder;
                 int sanity_age = -1;
                 int not_sanity_age = -1;
                 if (filter_sanity.Equals("allage") || filter_sanity.Equals("fullage") || filter_sanity.Equals("all")) sanity_age = 0;
@@ -481,6 +488,7 @@ namespace PixivWPF.Common
                         #region filter by fast simple condition
                         if (!string.IsNullOrEmpty(filter_fast))
                         {
+                            #region fast author
                             if (filter_fast.Equals("currentauthor"))
                             {
                                 if (item.IsWork())
@@ -489,7 +497,9 @@ namespace PixivWPF.Common
                                     //result = result && illust.User.Id ?? -1 == 
                                 }
                             }
-                            else if(item.IsWork() && (portrait || landscape || square))
+                            #endregion
+                            #region work aspect
+                            else if (item.IsWork() && (portrait || landscape || square))
                             {
                                 var width = item.Illust.Width;
                                 var height = item.Illust.Height;
@@ -504,13 +514,16 @@ namespace PixivWPF.Common
                                         result = result && 0.95 < aspect && aspect < 1.05 ? true : false;
                                 }
                             }
-                            else if(in_history || not_in_history)
+                            #endregion
+                            #region history
+                            else if (in_history || not_in_history)
                             {
                                 if (in_history)
                                     result = result && hist_ids.Contains(item.ID) ? true : false;
                                 else if (not_in_history)
                                     result = result && hist_ids.Contains(item.ID) ? false : true;
                             }
+                            #endregion
                         }
                         #endregion
                         #region filter by favorited number
@@ -568,25 +581,50 @@ namespace PixivWPF.Common
                             else if (not_sanity_age == 0)
                                 result = result && (sanity.Equals("all") ? false : true);
 
-                            else if (sanity_age == 12)
-                                result = result && (sanity.Equals("12+") ? true : false);
-                            else if (not_sanity_age == 0)
-                                result = result && (sanity.Equals("12+") ? false : true);
+                            else if (sanity_include_under)
+                            {
+                                if (sanity_age == 12)
+                                    result = result && (sanity_age_12.Contains(sanity) ? true : false);
+                                else if (not_sanity_age == 0)
+                                    result = result && (sanity_age_12.Contains(sanity) ? false : true);
 
-                            else if (sanity_age == 15)
-                                result = result && (sanity.Equals("15+") ? true : false);
-                            else if (not_sanity_age == 15)
-                                result = result && (sanity.Equals("15+") ? false : true);
+                                else if (sanity_age == 15)
+                                    result = result && (sanity_age_15.Contains(sanity) ? true : false);
+                                else if (not_sanity_age == 15)
+                                    result = result && (sanity_age_15.Contains(sanity) ? false : true);
 
-                            else if (sanity_age == 17)
-                                result = result && (sanity.Equals("17+") ? true : false);
-                            else if (not_sanity_age == 17)
-                                result = result && (sanity.Equals("17+") ? false : true);
+                                else if (sanity_age == 17)
+                                    result = result && (sanity_age_17.Contains(sanity) ? true : false);
+                                else if (not_sanity_age == 17)
+                                    result = result && (sanity_age_17.Contains(sanity) ? false : true);
 
-                            else if (sanity_age == 18)
-                                result = result && (sanity.Equals("18+") ? true : false);
-                            else if (not_sanity_age == 18)
-                                result = result && (sanity.Equals("18+") ? false : true);
+                                else if (sanity_age == 18)
+                                    result = result && (sanity_age_18.Contains(sanity) ? true : false);
+                                else if (not_sanity_age == 18)
+                                    result = result && (sanity_age_18.Contains(sanity) ? false : true);
+                            }
+                            else
+                            { 
+                                if (sanity_age == 12)
+                                    result = result && (sanity.Equals("12+") ? true : false);
+                                else if (not_sanity_age == 0)
+                                    result = result && (sanity.Equals("12+") ? false : true);
+
+                                else if (sanity_age == 15)
+                                    result = result && (sanity.Equals("15+") ? true : false);
+                                else if (not_sanity_age == 15)
+                                    result = result && (sanity.Equals("15+") ? false : true);
+
+                                else if (sanity_age == 17)
+                                    result = result && (sanity.Equals("17+") ? true : false);
+                                else if (not_sanity_age == 17)
+                                    result = result && (sanity.Equals("17+") ? false : true);
+
+                                else if (sanity_age == 18)
+                                    result = result && (sanity.Equals("18+") ? true : false);
+                                else if (not_sanity_age == 18)
+                                    result = result && (sanity.Equals("18+") ? false : true);
+                            }
                         }
                         #endregion
                     }

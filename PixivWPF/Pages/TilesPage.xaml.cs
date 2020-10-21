@@ -329,7 +329,7 @@ namespace PixivWPF.Pages
 
         internal void KeyAction(KeyEventArgs e)
         {
-            ListImageTiles_KeyUp(this, e);
+            Page_PreviewKeyUp(this, e);
         }
 
         public TilesPage()
@@ -481,6 +481,7 @@ namespace PixivWPF.Pages
             if (!string.IsNullOrEmpty(id)) lastSelectedId = id;
         }
 
+        #region Show category
         private async void ShowRecommanded(string nexturl = null)
         {
             ImageTilesWait.Show();
@@ -1240,6 +1241,7 @@ namespace PixivWPF.Pages
                 KeepLastSelected(lastSelectedId);
             }
         }
+        #endregion
 
         private void ImageTiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -1291,7 +1293,7 @@ namespace PixivWPF.Pages
         }
 
         private long lastKeyUp = Environment.TickCount;        
-        private void ListImageTiles_KeyUp(object sender, KeyEventArgs e)
+        private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             e.Handled = false;
             if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
@@ -1382,7 +1384,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ListImageTiles_MouseDown(object sender, MouseButtonEventArgs e)
+        private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             var change_detail_page = Keyboard.Modifiers == ModifierKeys.Shift && e.OriginalSource != null;
             if (e.XButton1 == MouseButtonState.Pressed)
@@ -1411,6 +1413,18 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void Page_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (ListImageTiles.Items != null && ListImageTiles.Items.Count > 0)
+            {
+                if (e.Delta < 0 && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+                {
+                    ShowImages(TargetPage, true);
+                    e.Handled = true;
+                }
+            }
+        }
+
         private void ListImageTiles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             FrameworkElement originalSource = e.OriginalSource as FrameworkElement;
@@ -1425,18 +1439,6 @@ namespace PixivWPF.Pages
                 //ShowImages(TargetPage, true);
             }
             e.Handled = true;
-        }
-
-        private void ListImageTiles_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            if (ListImageTiles.Items != null && ListImageTiles.Items.Count > 0)
-            {
-                if (e.Delta < 0 && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
-                {
-                    ShowImages(TargetPage, true);
-                    e.Handled = true;
-                }
-            }
         }
 
         private void TileImage_TargetUpdated(object sender, DataTransferEventArgs e)
