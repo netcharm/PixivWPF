@@ -71,7 +71,10 @@ namespace PixivWPF.Common
                 if (IsConfigBusy) return (tagsfile);
                 else return (Path.IsPathRooted(tagsfile) ? tagsfile : Path.Combine(AppPath, tagsfile));
             }
-            set { tagsfile = Path.GetFileName(value); }
+            set
+            {
+                tagsfile = Path.GetFileName(value);
+            }
         }
 
         private static string tagsfile_t2s = "tags_t2s.json";
@@ -85,7 +88,7 @@ namespace PixivWPF.Common
             set { tagsfile_t2s = Path.GetFileName(value); }
         }
 
-        private static string last_opened = "last_opened.json";
+        private string last_opened = "last_opened.json";
         public string LastOpenedFile
         {
             get
@@ -96,7 +99,7 @@ namespace PixivWPF.Common
             set { last_opened = Path.GetFileName(value); }
         }
 
-        private static string custom_template_file = "contents-template.html";
+        private string custom_template_file = "contents-template.html";
         public string ContentsTemplateFile
         {
             get
@@ -104,7 +107,11 @@ namespace PixivWPF.Common
                 if (IsConfigBusy) return (custom_template_file);
                 else return (Path.IsPathRooted(custom_template_file) ? custom_template_file : Path.Combine(AppPath, custom_template_file));
             }
-            set { custom_template_file = Path.GetFileName(value); }
+            set
+            {
+                custom_template_file = Path.GetFileName(value);
+                if (Cache is Setting) Cache.custom_template_file = custom_template_file;
+            }
         }
 
         public static void UpdateCache(Setting new_setting)
@@ -132,7 +139,7 @@ namespace PixivWPF.Common
                 if (Cache.DownloadHttpTimeout != new_setting.DownloadHttpTimeout)
                     Cache.DownloadHttpTimeout = new_setting.DownloadHttpTimeout;
                 if (Cache.DownloadHttpStreamBlockSize != new_setting.DownloadHttpStreamBlockSize)
-                    Cache.DownloadHttpStreamBlockSize = new_setting.DownloadHttpStreamBlockSize;               
+                    Cache.DownloadHttpStreamBlockSize = new_setting.DownloadHttpStreamBlockSize;
                 if (Cache.DownloadTimeSpan != new_setting.DownloadTimeSpan)
                     Cache.DownloadTimeSpan = new_setting.DownloadTimeSpan;
                 if (Cache.DownloadWaitingTime != new_setting.DownloadWaitingTime)
@@ -461,18 +468,38 @@ namespace PixivWPF.Common
         #endregion
 
         #region UI theme/font relative
-        public bool UseCustomFont { get; set; } = false;
-        public string FontName { get; set; } = string.Empty;
         [JsonIgnore]
         private FontFamily fontfamily = SystemFonts.MessageFontFamily;
         [JsonIgnore]
         public FontFamily FontFamily { get { return (fontfamily); } }
 
+        private bool using_custom_font = false;
+        public bool UseCustomFont
+        {
+            get { return (Cache is Setting ? Cache.using_custom_font : using_custom_font); }
+            set
+            {
+                using_custom_font = value;
+                if (Cache is Setting) Cache.using_custom_font = using_custom_font;
+            }
+        }
+
+        private string custom_fontname = string.Empty;
+        public string FontName
+        {
+            get { return (Cache is Setting ? Cache.custom_fontname : custom_fontname); }
+            set
+            {
+                custom_fontname = value;
+                if (Cache is Setting) Cache.custom_fontname = custom_fontname;
+            }
+        }
+
         private string theme = string.Empty;
         [JsonProperty("Theme")]
         public string CurrentTheme
         {
-            get { return (theme); }
+            get { return (Cache is Setting ? Cache.theme : theme); }
             set
             {
                 theme = value;
@@ -484,7 +511,7 @@ namespace PixivWPF.Common
         [JsonProperty("Accent")]
         public string CurrentAccent
         {
-            get { return (accent); }
+            get { return (Cache is Setting ? Cache.accent : accent); }
             set
             {
                 accent = value;
@@ -494,16 +521,34 @@ namespace PixivWPF.Common
         #endregion
 
         #region network relative
-        public string Proxy { get; set; } = string.Empty;
+        private string proxy = string.Empty;
+        public string Proxy
+        {
+            get { return (Cache is Setting ? Cache.proxy : proxy); }
+            set
+            {
+                proxy = value;
+                if (Cache is Setting) Cache.proxy = proxy;
+            }
+        }
 
-        public bool UsingProxy { get; set; } = false;
+        private bool using_proxy = false;
+        public bool UsingProxy
+        {
+            get { return (Cache is Setting ? Cache.using_proxy : using_proxy); }
+            set
+            {
+                using_proxy = value;
+                if (Cache is Setting) Cache.using_proxy = using_proxy;
+            }
+        }
         #endregion
 
         #region Pixiv account relative
         private string accesstoken = string.Empty;
         public string AccessToken
         {
-            get { return (accesstoken); }
+            get { return (Cache is Setting ? Cache.accesstoken : accesstoken); }
             set
             {
                 if (!IsConfigBusy)
@@ -513,15 +558,15 @@ namespace PixivWPF.Common
                 }
                 if (myinfo is Pixeez.Objects.User)
                 {
-                    UID = myinfo.Id.Value.ToString().AesEncrypt(value);
+                    UID = myinfo.Id.Value.ToString();
                 }
                 accesstoken = value;
-                if(Cache is Setting)
+                if (Cache is Setting)
                 {
                     Cache.accesstoken = accesstoken;
                     Cache.username = username;
                     Cache.password = password;
-                    Cache.UID = UID;
+                    Cache.uid = uid;
                 }
             }
         }
@@ -529,20 +574,40 @@ namespace PixivWPF.Common
         private string refreshtoken = string.Empty;
         public string RefreshToken
         {
-            get { return (refreshtoken); }
-            set { refreshtoken = value; }
+            get { return (Cache is Setting ? Cache.refreshtoken : refreshtoken); }
+            set
+            {
+                refreshtoken = value;
+                if (Cache is Setting) Cache.refreshtoken = refreshtoken;
+            }
         }
 
-        public bool SaveUserPass { get; set; } = false;
+        private bool save_user_pass = false;
+        public bool SaveUserPass
+        {
+            get { return (Cache is Setting ? Cache.save_user_pass : save_user_pass); }
+            set
+            {
+                save_user_pass = value;
+                if (Cache is Setting) Cache.save_user_pass = save_user_pass;
+            }
+        }
         [JsonProperty(nameof(User))]
         public string Username
         {
             get
             {
-                if (SaveUserPass && IsConfigBusy) return username;
+                if (SaveUserPass && IsConfigBusy) return Cache is Setting ? Cache.username : username;
                 else return (string.Empty);
             }
-            set { if (SaveUserPass) username = value; }
+            set
+            {
+                if (SaveUserPass)
+                {
+                    username = value;
+                    if (Cache is Setting) Cache.username = username;
+                }
+            }
         }
 
         [JsonProperty(nameof(Pass))]
@@ -550,13 +615,19 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (SaveUserPass && IsConfigBusy) return password;
+                if (SaveUserPass && IsConfigBusy) return Cache is Setting ? Cache.password : password;
                 else return (string.Empty);
             }
-            set { if (SaveUserPass) password = value; }
+            set
+            {
+                if (SaveUserPass)
+                {
+                    password = value;
+                    if (Cache is Setting) Cache.password = password;
+                }
+            }
         }
 
-        [JsonIgnore]
         private string username = string.Empty;
         [JsonIgnore]
         public string User
@@ -565,7 +636,6 @@ namespace PixivWPF.Common
             set { username = value.AesEncrypt(accesstoken); }
         }
 
-        [JsonIgnore]
         private string password = string.Empty;
         [JsonIgnore]
         public string Pass
@@ -574,23 +644,37 @@ namespace PixivWPF.Common
             set { password = value.AesEncrypt(accesstoken); }
         }
 
-        [JsonIgnore]
         private Pixeez.Objects.User myinfo = null;
         [JsonIgnore]
         public Pixeez.Objects.User MyInfo
         {
-            get { return myinfo; }
+            get { return (Cache is Setting ? Cache.myinfo : myinfo); }
             set
             {
                 myinfo = value;
                 if (value is Pixeez.Objects.User)
                 {
-                    UID = myinfo.Id.Value.ToString().AesEncrypt(accesstoken);
+                    UID = myinfo.Id.Value.ToString();
+                }
+                if (Cache is Setting)
+                {
+                    Cache.myinfo = myinfo;
+                    Cache.uid = uid;
                 }
             }
         }
 
-        public string UID { get; set; } = string.Empty;
+        private string uid = string.Empty;
+        public string UID
+        {
+            get { return (Cache is Setting ? Cache.uid.AesDecrypt(accesstoken) : uid.AesDecrypt(accesstoken)); }
+            set
+            {
+                uid = value.AesEncrypt(accesstoken);
+                if (Cache is Setting) Cache.uid = uid;
+            }
+        }
+
         [JsonIgnore]
         public long MyID
         {
@@ -606,8 +690,7 @@ namespace PixivWPF.Common
         private long GetMyId()
         {
             long luid = 0;
-            var suid = UID.AesDecrypt(accesstoken);
-            var ret = long.TryParse(suid, out luid);
+            var ret = long.TryParse(UID, out luid);
             if (!ret)
             {
                 new Action(async () =>
@@ -622,41 +705,143 @@ namespace PixivWPF.Common
         private long update = 0;
         public long Update
         {
-            get { return update; }
-            set { update = value; }
+            get { return (Cache is Setting ? Cache.update : update); }
+            set
+            {
+                update = value;
+                if (Cache is Setting) Cache.update = update;
+            }
         }
 
-        private DateTime exptime=DateTime.Now;
+        private DateTime exptime = DateTime.Now;
         public DateTime ExpTime
         {
-            get { return exptime; }
-            set { exptime = value; }
+            get { return (Cache is Setting ? Cache.exptime : exptime); }
+            set
+            {
+                exptime = value;
+                if (Cache is Setting) Cache.exptime = exptime;
+            }
         }
 
-        private int expdurtime=3600;
+        private int expdurtime = 3600;
         public int ExpiresIn
         {
-            get { return expdurtime; }
-            set { expdurtime = value; }
+            get { return (Cache is Setting ? Cache.expdurtime : expdurtime); }
+            set
+            {
+                expdurtime = value;
+                if (Cache is Setting) Cache.expdurtime = expdurtime;
+            }
         }
         #endregion
 
         #region Download relative
-        public bool DownloadByAPI { get; set; } = true;
-        public bool DownloadUsingProxy { get; set; } = false;
-        public int DownloadHttpTimeout { get; set; } = 30;
-        public int DownloadHttpStreamBlockSize { get; set; } = 16384;
-        public int DownloadWaitingTime { get; set; } = 5000;
-        public int DownloadTimeSpan { get; set; } = 750;
-        public bool DownloadCompletedToast { get; set; } = true;
-        public bool DownloadCompletedSound { get; set; } = true;
-        public int DownloadCompletedSoundForElapsedSeconds { get; set; } = 60;
+        private bool download_by_api = true;
+        public bool DownloadByAPI
+        {
+            get { return (Cache is Setting ? Cache.download_by_api : download_by_api); }
+            set
+            {
+                download_by_api = value;
+                if (Cache is Setting) Cache.download_by_api = download_by_api;
+            }
+        }
+
+        private bool dowanload_using_proxy = false;
+        public bool DownloadUsingProxy
+        {
+            get { return (Cache is Setting ? Cache.dowanload_using_proxy : dowanload_using_proxy); }
+            set
+            {
+                dowanload_using_proxy = value;
+                if (Cache is Setting) Cache.dowanload_using_proxy = dowanload_using_proxy;
+            }
+        }
+
+        private int download_http_timeout = 30;
+        public int DownloadHttpTimeout
+        {
+            get { return (Cache is Setting ? Cache.download_http_timeout : download_http_timeout); }
+            set
+            {
+                download_http_timeout = value;
+                if (Cache is Setting) Cache.download_http_timeout = download_http_timeout;
+            }
+        }
+
+        private int download_http_stream_block_size = 16384;
+        public int DownloadHttpStreamBlockSize
+        {
+            get { return (Cache is Setting ? Cache.download_http_stream_block_size : download_http_stream_block_size); }
+            set
+            {
+                download_http_stream_block_size = value;
+                if (Cache is Setting) Cache.download_http_stream_block_size = download_http_stream_block_size;
+            }
+        }
+
+        private int download_waiting_time = 5000;
+        public int DownloadWaitingTime
+        {
+            get { return (Cache is Setting ? Cache.download_waiting_time : download_waiting_time); }
+            set
+            {
+                download_waiting_time = value;
+                if (Cache is Setting) Cache.download_waiting_time = download_waiting_time;
+            }
+        }
+
+        private int download_timespan = 750;
+        public int DownloadTimeSpan
+        {
+            get { return (Cache is Setting ? Cache.download_timespan : download_timespan); }
+            set
+            {
+                download_timespan = value;
+                if (Cache is Setting) Cache.download_timespan = download_timespan;
+            }
+        }
+
+        private bool download_completed_toast = true;
+        public bool DownloadCompletedToast
+        {
+            get { return (Cache is Setting ? Cache.download_completed_toast : download_completed_toast); }
+            set
+            {
+                download_completed_toast = value;
+                if (Cache is Setting) Cache.download_completed_toast = download_completed_toast;
+            }
+        }
+
+        private bool download_completed_sound = true;
+        public bool DownloadCompletedSound
+        {
+            get { return (Cache is Setting ? Cache.download_completed_sound : download_completed_sound); }
+            set
+            {
+                download_completed_sound = value;
+                if (Cache is Setting) Cache.download_completed_sound = download_completed_sound;
+            }
+        }
+
+        private int download_completed_sound_elapsed = 60;
+        public int DownloadCompletedSoundForElapsedSeconds
+        {
+            get { return (Cache is Setting ? Cache.download_completed_sound_elapsed : download_completed_sound_elapsed); }
+            set
+            {
+                download_completed_sound_elapsed = value;
+                if (Cache is Setting) Cache.download_completed_sound_elapsed = download_completed_sound_elapsed;
+            }
+        }
+
         [JsonIgnore]
         private string lastfolder = string.Empty;
         [JsonIgnore]
         public string LastFolder
         {
-            get { return lastfolder; }
+            get { return (Cache is Setting ? Cache.lastfolder : lastfolder); }
             set
             {
                 lastfolder = value;
@@ -671,41 +856,149 @@ namespace PixivWPF.Common
         #endregion
 
         #region History relative
-        public int max_history = 100;
-        public int HistoryMax { get; set; } = 150;
+        private int history_max = 150;
+        public int HistoryMax
+        {
+            get { return (Cache is Setting ? Cache.history_max : history_max); }
+            set
+            {
+                history_max = value;
+                if (Cache is Setting) Cache.history_max = history_max;
+            }
+        }
+
+        private int history_limit = 100;
         public int HistoryLimit
         {
             get
             {
-                max_history = Math.Min(max_history, HistoryMax);
-                if (max_history < 0) max_history = 100;
-                return (max_history);
+                history_limit = Math.Min(history_limit, history_max);
+                if (history_limit < 0) history_limit = 100;
+                return (history_limit);
             }
             set
             {
-                if (value > 0) max_history = Math.Min(value, HistoryMax);
-                else max_history = 100;
-                if (Cache is Setting) Cache.max_history = max_history;
+                if (value > 0) history_limit = Math.Min(value, history_max);
+                else history_limit = 100;
+                if (Cache is Setting) Cache.history_limit = history_limit;
             }
         }
         #endregion
 
         #region Viewing relative
-        public AutoExpandMode AutoExpand { get; set; } = AutoExpandMode.AUTO;
-        public bool SeamlessViewInMainWindow { get; set; } = false;
-        public bool ShowUserBackgroundImage { get; set; } = false;
-        public int PreviewUsingLargeMinWidth { get; set; } = 360;
-        public int PreviewUsingLargeMinHeight { get; set; } = 360;
+        private AutoExpandMode auto_expand = AutoExpandMode.AUTO;
+        public AutoExpandMode AutoExpand
+        {
+            get { return (Cache is Setting ? Cache.auto_expand : auto_expand); }
+            set
+            {
+                auto_expand = value;
+                if (Cache is Setting) Cache.auto_expand = auto_expand;
+            }
+        }
+
+        private bool seamless_view = false;
+        public bool SeamlessViewInMainWindow
+        {
+            get { return (Cache is Setting ? Cache.seamless_view : seamless_view); }
+            set
+            {
+                seamless_view = value;
+                if (Cache is Setting) Cache.seamless_view = seamless_view;
+            }
+        }
+
+        private bool show_user_bgimage = false;
+        public bool ShowUserBackgroundImage
+        {
+            get { return (Cache is Setting ? Cache.show_user_bgimage : show_user_bgimage); }
+            set
+            {
+                show_user_bgimage = value;
+                if (Cache is Setting) Cache.show_user_bgimage = show_user_bgimage;
+            }
+        }
+
+        private int preview_min_width = 360;
+        public int PreviewUsingLargeMinWidth
+        {
+            get { return (Cache is Setting ? Cache.preview_min_width : preview_min_width); }
+            set
+            {
+                preview_min_width = value;
+                if (Cache is Setting) Cache.preview_min_width = preview_min_width;
+            }
+        }
+
+        private int preview_min_height { get; set; } = 360;
+        public int PreviewUsingLargeMinHeight
+        {
+            get { return (Cache is Setting ? Cache.preview_min_height : preview_min_height); }
+            set
+            {
+                preview_min_height = value;
+                if (Cache is Setting) Cache.preview_min_height = preview_min_height;
+            }
+        }
+
+        private bool smart_mouse_response = true;
+        public bool SmartMouseResponse
+        {
+            get { return (Cache is Setting ? Cache.smart_mouse_response : smart_mouse_response); }
+            set
+            {
+                smart_mouse_response = value;
+                if (Cache is Setting) Cache.smart_mouse_response = smart_mouse_response;
+            }
+        }
         #endregion
 
         #region Favorite/Follow relative
-        public bool PrivateFavPrefer { get; set; } = false;
-        public bool PrivateBookmarkPrefer { get; set; } = false;
+        private bool private_fav_prefer = false;
+        public bool PrivateFavPrefer
+        {
+            get { return (Cache is Setting ? Cache.private_fav_prefer : private_fav_prefer); }
+            set
+            {
+                private_fav_prefer = value;
+                if (Cache is Setting) Cache.private_fav_prefer = private_fav_prefer;
+            }
+        }
+
+        private bool private_bookmark_prefer = false;
+        public bool PrivateBookmarkPrefer
+        {
+            get { return (Cache is Setting ? Cache.private_bookmark_prefer : private_bookmark_prefer); }
+            set
+            {
+                private_bookmark_prefer = value;
+                if (Cache is Setting) Cache.private_bookmark_prefer = private_bookmark_prefer;
+            }
+        }
         #endregion
 
         #region Selection behavior relative
-        public bool OpenWithSelectionOrder { get; set; } = true;
-        public bool AllForSelectionNone { get; set; } = false;
+        private bool open_with_selection_order = true;
+        public bool OpenWithSelectionOrder
+        {
+            get { return (Cache is Setting ? Cache.open_with_selection_order : open_with_selection_order); }
+            set
+            {
+                open_with_selection_order = value;
+                if (Cache is Setting) Cache.open_with_selection_order = open_with_selection_order;
+            }
+        }
+
+        private bool all_for_selection_none = false;
+        public bool AllForSelectionNone
+        {
+            get { return (Cache is Setting ? Cache.all_for_selection_none : all_for_selection_none); }
+            set
+            {
+                all_for_selection_none = value;
+                if (Cache is Setting) Cache.all_for_selection_none = all_for_selection_none;
+            }
+        }
         #endregion
 
         #region Speech relative
@@ -716,9 +1009,10 @@ namespace PixivWPF.Common
             set
             {
                 speech_names = value;
-                if (Cache is Setting) Cache.speech_names = value;
+                if (Cache is Setting) Cache.speech_names = speech_names;
             }
         }
+
         private bool speech_mixedinline_alt = false;
         public bool SpeechAltPlayMixedCulture
         {
@@ -726,9 +1020,10 @@ namespace PixivWPF.Common
             set
             {
                 speech_mixedinline_alt = value;
-                if (Cache is Setting) Cache.speech_mixedinline_alt = value;
+                if (Cache is Setting) Cache.speech_mixedinline_alt = speech_mixedinline_alt;
             }
         }
+
         private bool speech_autoslowrepeat = false;
         public bool SpeechAutoChangeSpeedWhenRepeatPlay
         {
@@ -736,9 +1031,10 @@ namespace PixivWPF.Common
             set
             {
                 speech_autoslowrepeat = value;
-                if (Cache is Setting) Cache.speech_autoslowrepeat = value;
+                if (Cache is Setting) Cache.speech_autoslowrepeat = speech_autoslowrepeat;
             }
         }
+
         private bool speech_mainlandfirst = true;
         public bool SpeechChineseSimplifiedPrefer
         {
@@ -746,9 +1042,10 @@ namespace PixivWPF.Common
             set
             {
                 speech_mainlandfirst = value;
-                if (Cache is Setting) Cache.speech_mainlandfirst = value;
+                if (Cache is Setting) Cache.speech_mainlandfirst = speech_mainlandfirst;
             }
         }
+
         private bool speech_simleculture = true;
         public bool SpeechSimpleDetectCulture
         {
@@ -756,9 +1053,10 @@ namespace PixivWPF.Common
             set
             {
                 speech_simleculture = value;
-                if (Cache is Setting) Cache.speech_simleculture = value;
+                if (Cache is Setting) Cache.speech_simleculture = speech_simleculture;
             }
         }
+
         private bool speech_mixedinline = false;
         public bool SpeechPlayMixedCultureInline
         {
@@ -766,60 +1064,109 @@ namespace PixivWPF.Common
             set
             {
                 speech_mixedinline = value;
-                if (Cache is Setting) Cache.speech_mixedinline = value;
+                if (Cache is Setting) Cache.speech_mixedinline = speech_mixedinline;
             }
         }
+
         private int speech_volumn = 100;
         public int SpeechPlayVolume
         {
             get { return (Cache is Setting ? Cache.speech_volumn : speech_volumn); }
             set
             {
-                var vol = Math.Max(0, Math.Min(value, 100));
-                speech_volumn = vol;
-                if (Cache is Setting) Cache.speech_volumn = vol;
-                Speech.PlayVolume = vol;
+                speech_volumn = Math.Max(0, Math.Min(value, 100));
+                if (Cache is Setting) Cache.speech_volumn = speech_volumn;
+                Speech.PlayVolume = speech_volumn;
             }
         }
+
         private int speech_rate = 0;
         public int SpeechPlayNormalRate
         {
             get { return (Cache is Setting ? Cache.speech_rate : speech_rate); }
             set
             {
-                var rate = Math.Max(-10, Math.Min(value, 10));
-                speech_rate = rate;
-                if (Cache is Setting) Cache.speech_rate = rate;
-                Speech.PlayNormalRate = rate;
+                speech_rate = Math.Max(-10, Math.Min(value, 10));
+                if (Cache is Setting) Cache.speech_rate = speech_rate;
+                Speech.PlayNormalRate = speech_rate;
             }
         }
+
         private int speech_rateslow = -5;
         public int SpeechPlaySlowRate
         {
             get { return (Cache is Setting ? Cache.speech_rateslow : speech_rateslow); }
             set
             {
-                var rate = Math.Max(-10, Math.Min(value, 10));
-                speech_rateslow = rate;
-                if (Cache is Setting) Cache.speech_rateslow = rate;
-                Speech.PlaySlowRate = rate;
+                speech_rateslow = Math.Max(-10, Math.Min(value, 10));
+                if (Cache is Setting) Cache.speech_rateslow = speech_rateslow;
+                Speech.PlaySlowRate = speech_rateslow;
             }
         }
         #endregion
 
         #region Shell bridge relative
-        public string ShellSearchBridgeApplication { get; set; } = "PixivWPFSearch.exe";
-        public string ShellPixivPediaApplication { get; set; } = "nw.exe";
-        public string ShellPixivPediaApplicationArgs { get; set; } = "--single-process --enable-node-worker --app-shell-host-window-size=1280x720";
-        public string ShellImageViewer { get; set; } = string.Empty;
-        public bool ShellImageViewerEnabled { get; set; } = false;
+        private string shell_search_app = "PixivWPFSearch.exe";
+        public string ShellSearchBridgeApplication
+        {
+            get { return (Cache is Setting ? Cache.shell_search_app : shell_search_app); }
+            set
+            {
+                shell_search_app = value;
+                if (Cache is Setting) Cache.shell_search_app = shell_search_app;
+            }
+        }
+
+        private string shell_pedia_app = "nw.exe";
+        public string ShellPixivPediaApplication
+        {
+            get { return (Cache is Setting ? Cache.shell_pedia_app : shell_pedia_app); }
+            set
+            {
+                shell_pedia_app = value;
+                if (Cache is Setting) Cache.shell_pedia_app = shell_pedia_app;
+            }
+        }
+
+        private string shell_pedia_args = "--single-process --enable-node-worker --app-shell-host-window-size=1280x720";
+        public string ShellPixivPediaApplicationArgs
+        {
+            get { return (Cache is Setting ? Cache.shell_pedia_args : shell_pedia_args); }
+            set
+            {
+                shell_pedia_args = value;
+                if (Cache is Setting) Cache.shell_pedia_args = shell_pedia_args;
+            }
+        }
+
+        private string shell_image_viewer = string.Empty;
+        public string ShellImageViewer
+        {
+            get { return (Cache is Setting ? Cache.shell_image_viewer : shell_image_viewer); }
+            set
+            {
+                shell_image_viewer = value;
+                if (Cache is Setting) Cache.shell_image_viewer = shell_image_viewer;
+            }
+        }
+
+        private bool shell_image_viewer_enabled  = false;
+        public bool ShellImageViewerEnabled
+        {
+            get { return (Cache is Setting ? Cache.shell_image_viewer_enabled : shell_image_viewer_enabled); }
+            set
+            {
+                shell_image_viewer_enabled = value;
+                if (Cache is Setting) Cache.shell_image_viewer_enabled = shell_image_viewer_enabled;
+            }
+        }
         #endregion
 
         #region Window relative
         private Point dropbox_pos = new Point(0, 0);
         public Point DropBoxPosition
         {
-            get { return (dropbox_pos); }
+            get { return (Cache is Setting ? Cache.dropbox_pos : dropbox_pos); }
             set
             {
                 dropbox_pos = value;
@@ -830,7 +1177,7 @@ namespace PixivWPF.Common
         private Rect downloadmanager_pos = new Rect(0, 0, 0, 0);
         public Rect DownloadManagerPosition
         {
-            get { return (downloadmanager_pos); }
+            get { return (Cache is Setting ? Cache.downloadmanager_pos : downloadmanager_pos); }
             set
             {
                 downloadmanager_pos = value;
@@ -840,10 +1187,39 @@ namespace PixivWPF.Common
         #endregion
 
         #region Template relative
-        public DateTime ContentsTemplateTime { get; set; } = new DateTime(0);
-        public string ContentsTemplete { get; set; } = string.Empty;
+        private DateTime contents_template_time = new DateTime(0);
+        public DateTime ContentsTemplateTime
+        {
+            get { return (Cache is Setting ? Cache.contents_template_time : contents_template_time); }
+            set
+            {
+                contents_template_time = value;
+                if (Cache is Setting) Cache.contents_template_time = contents_template_time;
+            }
+        }
+
+        private string contents_templete = string.Empty;
+        public string ContentsTemplete
+        {
+            get { return (Cache is Setting ? Cache.contents_templete : contents_templete); }
+            set
+            {
+                contents_templete = value;
+                if (Cache is Setting) Cache.contents_templete = contents_templete;
+            }
+        }
+
+        private string custom_contents_templete = string.Empty;
         [JsonIgnore]
-        public string CustomContentsTemplete { get; set; } = string.Empty;
+        public string CustomContentsTemplete
+        {
+            get { return (Cache is Setting ? Cache.custom_contents_templete : custom_contents_templete); }
+            set
+            {
+                custom_contents_templete = value;
+                if (Cache is Setting) Cache.custom_contents_templete = custom_contents_templete;
+            }
+        }
 
         public static void UpdateContentsTemplete()
         {
@@ -878,9 +1254,27 @@ namespace PixivWPF.Common
         #endregion
 
         #region Storage monitor relative
-        [JsonIgnore]
-        private string SaveFolder { get; set; }
-        public List<StorageType> LocalStorage { get; set; } = new List<StorageType>();
+        private string save_folder = string.Empty;
+        private string SaveFolder
+        {
+            get { return (Cache is Setting ? Cache.save_folder : save_folder); }
+            set
+            {
+                save_folder = value;
+                if (Cache is Setting) Cache.save_folder = save_folder;
+            }
+        }
+
+        private List<StorageType> local_storage = new List<StorageType>();
+        public List<StorageType> LocalStorage
+        {
+            get { return (Cache is Setting ? Cache.local_storage : local_storage); }
+            set
+            {
+                local_storage = value;
+                if (Cache is Setting) Cache.local_storage = local_storage;
+            }
+        }
         #endregion
     }
 }

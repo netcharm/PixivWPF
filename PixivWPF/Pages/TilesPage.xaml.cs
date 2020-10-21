@@ -1386,30 +1386,32 @@ namespace PixivWPF.Pages
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            var change_detail_page = Keyboard.Modifiers == ModifierKeys.Shift && e.OriginalSource != null;
-            if (e.XButton1 == MouseButtonState.Pressed)
+            var change_detail_page = (setting.SmartMouseResponse && e.Source == IllustDetail) || Keyboard.Modifiers == ModifierKeys.Shift;
+            if (change_detail_page)
             {
-                if (change_detail_page && detail_page is IllustDetailPage)
+                if (e.XButton1 == MouseButtonState.Pressed)
                 {
                     if (detail_page is IllustDetailPage) detail_page.NextIllustPage();
+                    e.Handled = true;
                 }
-                else
-                {
-                    NextIllust();
-                }
-                e.Handled = true;
-            }
-            else if (e.XButton2 == MouseButtonState.Pressed)
-            {
-                if (change_detail_page && detail_page is IllustDetailPage)
+                else if (e.XButton2 == MouseButtonState.Pressed)
                 {
                     if (detail_page is IllustDetailPage) detail_page.PrevIllustPage();
+                    e.Handled = true;
                 }
-                else
+            }
+            else
+            {
+                if (e.XButton1 == MouseButtonState.Pressed)
+                {
+                    NextIllust();
+                    e.Handled = true;
+                }
+                else if (e.XButton2 == MouseButtonState.Pressed)
                 {
                     PrevIllust();
+                    e.Handled = true;
                 }
-                e.Handled = true;
             }
         }
 

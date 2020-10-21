@@ -17,7 +17,7 @@
       TextOptions.TextFormattingMode="Display"
       AllowDrop="True"
       Title="IllustDetailPage"
-      PreviewKeyUp="Page_KeyUp"
+      PreviewKeyUp="Page_KeyUp"      
       Loaded="Page_Loaded"
       Unloaded="Page_Unloaded">
 
@@ -377,8 +377,8 @@
                                           Visibility="Hidden"
                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         <Rectangle Grid.Column="0" Grid.ColumnSpan="3" x:Name="PreviewRect" x:Uid="PreviewRect"
-                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 
-                                   MouseDown="Preview_MouseDown" />
+                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent"
+                                   MouseLeftButtonDown="PreviewRect_MouseLeftButtonDown"/>
                     </Grid>
                 </ContentControl>
                 <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge" 
@@ -843,7 +843,6 @@
                           IsExpanded="True" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Illust Sets Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
-                          MouseDown="Preview_MouseDown"
                           Expanded="SubIllustsExpander_Expanded" Collapsed="SubIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
                                           Columns="5" TileWidth="128" TileHeight="128"

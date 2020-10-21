@@ -1189,173 +1189,6 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        #region Navgition methods
-        private async void UpdateSubPageNav()
-        {
-            try
-            {
-                if (Contents is ImageItem)
-                {
-                    if (Contents.IsUser())
-                    {
-                        btnSubPageNext.Hide();
-                        btnSubPagePrev.Hide();
-                    }
-                    else
-                    {
-                        if (Contents.Count > 1)
-                        {
-                            btnSubPagePrev.Enable(Contents.Index > 0);
-                            btnSubPageNext.Enable(Contents.Index < Contents.Count - 1);
-
-                            if (SubIllusts.SelectedIndex < 0)
-                            {
-                                SubIllusts.SelectedIndex = 0;
-                                await Task.Delay(1);
-                            }
-                        }
-                        else
-                        {
-                            btnSubPageNext.Hide();
-                            btnSubPagePrev.Hide();
-                        }
-                    }
-                }
-                await Task.Delay(1);
-            }
-            catch (Exception) { }
-        }
-
-        public void OpenInNewWindow()
-        {
-            if(Contents is ImageItem && !(Parent is ContentWindow))
-            {
-                Commands.Open.Execute(Contents);
-            }
-        }
-
-        public bool IsFirstPage
-        {
-            get
-            {
-                return (Contents is ImageItem && Contents.Index == 0);
-            }
-        }
-
-        public bool IsLastPage
-        {
-            get
-            {
-                return (Contents is ImageItem && Contents.Index == Contents.Count - 1);
-            }
-        }
-
-        public bool IsMultiPages { get { return (Contents is ImageItem && Contents.HasPages()); } }
-        public void PrevIllustPage()
-        {
-            if(Contents is ImageItem)
-            {
-                setting = Application.Current.LoadSetting();
-                if (Contents.Count > 1)
-                {
-                    if (Contents.Index > 0)
-                        SubPageNav_Clicked(btnSubPagePrev, new RoutedEventArgs());
-                    else if (setting.SeamlessViewInMainWindow)
-                        PrevIllust();
-                }
-                else PrevIllust();
-            }
-        }
-
-        public void NextIllustPage()
-        {
-            if (Contents is ImageItem)
-            {
-                setting = Application.Current.LoadSetting();
-                if (Contents.Count > 1)
-                {
-                    if (Contents.Index < Contents.Count - 1)
-                        SubPageNav_Clicked(btnSubPageNext, new RoutedEventArgs());
-                    else if (setting.SeamlessViewInMainWindow)
-                        NextIllust();
-                }
-                else NextIllust();
-            }
-        }
-        
-        public void PrevIllust()
-        {
-            if (Parent is ContentWindow) return;
-            Commands.PrevIllust.Execute(Application.Current.MainWindow);
-        }
-
-        public void NextIllust()
-        {
-            if (Parent is ContentWindow) return;
-            Commands.NextIllust.Execute(Application.Current.MainWindow);
-        }
-
-        public void SetFilter(string filter)
-        {
-            try
-            {
-                RelativeIllusts.Filter = filter.GetFilter();
-                FavoriteIllusts.Filter = filter.GetFilter();
-            }
-            catch (Exception ex)
-            {
-                ex.Message.DEBUG();
-            }
-        }
-
-        public void SetFilter(FilterParam filter)
-        {
-            try
-            {
-                if (filter is FilterParam)
-                {
-                    RelativeIllusts.Filter = filter.GetFilter();
-                    FavoriteIllusts.Filter = filter.GetFilter();
-                }
-                else
-                {
-                    RelativeIllusts.Filter = null;
-                    FavoriteIllusts.Filter = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.Message.DEBUG();
-            }
-        }
-
-        public dynamic GetTilesCount()
-        {
-            return ($"{RelativeIllusts.ItemsCount} / {FavoriteIllusts.ItemsCount}");
-        }
-        #endregion
-
-        private void OpenDownloaded()
-        {
-            try
-            {
-                if (Contents is ImageItem)
-                {
-                    if (IllustDownloaded.Tag is string)
-                    {
-                        var fp = IllustDownloaded.Tag as string;
-                        fp.OpenFileWithShell();
-                    }
-                }
-            }
-            catch (Exception) { }
-        }
-
-        internal void KeyAction(KeyEventArgs e)
-        {
-            Page_KeyUp(this, e);
-        }
-
         #region WebBrowsre helper routines
         private void InitHtmlRenderHost(out WindowsFormsHostEx host, System.Windows.Forms.WebBrowser browser, Panel panel)
         {
@@ -1449,6 +1282,173 @@ namespace PixivWPF.Pages
             catch { }
         }
         #endregion
+
+        #region Navgition methods
+        private async void UpdateSubPageNav()
+        {
+            try
+            {
+                if (Contents is ImageItem)
+                {
+                    if (Contents.IsUser())
+                    {
+                        btnSubPageNext.Hide();
+                        btnSubPagePrev.Hide();
+                    }
+                    else
+                    {
+                        if (Contents.Count > 1)
+                        {
+                            btnSubPagePrev.Enable(Contents.Index > 0);
+                            btnSubPageNext.Enable(Contents.Index < Contents.Count - 1);
+
+                            if (SubIllusts.SelectedIndex < 0)
+                            {
+                                SubIllusts.SelectedIndex = 0;
+                                await Task.Delay(1);
+                            }
+                        }
+                        else
+                        {
+                            btnSubPageNext.Hide();
+                            btnSubPagePrev.Hide();
+                        }
+                    }
+                }
+                await Task.Delay(1);
+            }
+            catch (Exception) { }
+        }
+
+        public void OpenInNewWindow()
+        {
+            if (Contents is ImageItem && !(Parent is ContentWindow))
+            {
+                Commands.Open.Execute(Contents);
+            }
+        }
+
+        public bool IsFirstPage
+        {
+            get
+            {
+                return (Contents is ImageItem && Contents.Index == 0);
+            }
+        }
+
+        public bool IsLastPage
+        {
+            get
+            {
+                return (Contents is ImageItem && Contents.Index == Contents.Count - 1);
+            }
+        }
+
+        public bool IsMultiPages { get { return (Contents is ImageItem && Contents.HasPages()); } }
+        public void PrevIllustPage()
+        {
+            if (Contents is ImageItem)
+            {
+                setting = Application.Current.LoadSetting();
+                if (Contents.Count > 1)
+                {
+                    if (Contents.Index > 0)
+                        SubPageNav_Clicked(btnSubPagePrev, new RoutedEventArgs());
+                    else if (setting.SeamlessViewInMainWindow)
+                        PrevIllust();
+                }
+                else PrevIllust();
+            }
+        }
+
+        public void NextIllustPage()
+        {
+            if (Contents is ImageItem)
+            {
+                setting = Application.Current.LoadSetting();
+                if (Contents.Count > 1)
+                {
+                    if (Contents.Index < Contents.Count - 1)
+                        SubPageNav_Clicked(btnSubPageNext, new RoutedEventArgs());
+                    else if (setting.SeamlessViewInMainWindow)
+                        NextIllust();
+                }
+                else NextIllust();
+            }
+        }
+
+        public void PrevIllust()
+        {
+            if (Parent is ContentWindow) return;
+            Commands.PrevIllust.Execute(Application.Current.MainWindow);
+        }
+
+        public void NextIllust()
+        {
+            if (Parent is ContentWindow) return;
+            Commands.NextIllust.Execute(Application.Current.MainWindow);
+        }
+
+        public void SetFilter(string filter)
+        {
+            try
+            {
+                RelativeIllusts.Filter = filter.GetFilter();
+                FavoriteIllusts.Filter = filter.GetFilter();
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
+        public void SetFilter(FilterParam filter)
+        {
+            try
+            {
+                if (filter is FilterParam)
+                {
+                    RelativeIllusts.Filter = filter.GetFilter();
+                    FavoriteIllusts.Filter = filter.GetFilter();
+                }
+                else
+                {
+                    RelativeIllusts.Filter = null;
+                    FavoriteIllusts.Filter = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
+        public dynamic GetTilesCount()
+        {
+            return ($"{RelativeIllusts.ItemsCount} / {FavoriteIllusts.ItemsCount}");
+        }
+        #endregion
+
+        private void OpenDownloaded()
+        {
+            try
+            {
+                if (Contents is ImageItem)
+                {
+                    if (IllustDownloaded.Tag is string)
+                    {
+                        var fp = IllustDownloaded.Tag as string;
+                        fp.OpenFileWithShell();
+                    }
+                }
+            }
+            catch (Exception) { }
+        }
+
+        internal void KeyAction(KeyEventArgs e)
+        {
+            Page_KeyUp(this, e);
+        }
 
         public IllustDetailPage()
         {
@@ -2167,6 +2167,41 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void PreviewRect_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                if (e.ClickCount >= 2)
+                {
+                    if (SubIllusts.Items.Count() <= 0)
+                    {
+                        if (Contents is ImageItem)
+                        {
+                            Commands.OpenWorkPreview.Execute(Contents);
+                        }
+                    }
+                    else
+                    {
+                        if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
+                            SubIllusts.SelectedIndex = 0;
+                        Commands.OpenWorkPreview.Execute(SubIllusts);
+                    }
+                    e.Handled = true;
+                }
+                else if (IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
+                {
+                    PrevIllustPage();
+                    e.Handled = true;
+                }
+                else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
+                {
+                    NextIllustPage();
+                    e.Handled = true;
+                }
+            }
+            catch (Exception) { }
+        }
+
         private void IllustDownloaded_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             try
@@ -2175,54 +2210,6 @@ namespace PixivWPF.Pages
                 {
                     var fp = IllustDownloaded.Tag as string;
                     fp.OpenFileWithShell();
-                }
-            }
-            catch (Exception) { }
-        }
-
-        private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            try
-            {
-                if (e.LeftButton == MouseButtonState.Pressed)
-                {
-                    if (e.ClickCount >= 2)
-                    {
-                        if (SubIllusts.Items.Count() <= 0)
-                        {
-                            if (Contents is ImageItem)
-                            {
-                                Commands.OpenWorkPreview.Execute(Contents);
-                            }
-                        }
-                        else
-                        {
-                            if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
-                                SubIllusts.SelectedIndex = 0;
-                            Commands.Open.Execute(SubIllusts);
-                        }
-                        e.Handled = true;
-                    }
-                    else if (IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
-                    {
-                        PrevIllustPage();
-                        e.Handled = true;
-                    }
-                    else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
-                    {
-                        NextIllustPage();
-                        e.Handled = true;
-                    }
-                }
-                else if (e.XButton1 == MouseButtonState.Pressed)
-                {
-                    NextIllustPage();
-                    e.Handled = true;
-                }
-                else if (e.XButton2 == MouseButtonState.Pressed)
-                {
-                    PrevIllustPage();
-                    e.Handled = true;
                 }
             }
             catch (Exception) { }

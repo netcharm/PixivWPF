@@ -469,7 +469,6 @@
             </mah:HamburgerMenu.OptionsItemsSource>
         </mah:HamburgerMenu>
 
-
         <!-- Illust Preview Viewport -->
         <Frame Grid.Column="1" Margin="0" x:Name="IllustDetail" x:Uid="IllustDetail"/>
 
