@@ -1635,7 +1635,7 @@ namespace PixivWPF.Pages
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             var change_illust = Keyboard.Modifiers == ModifierKeys.Shift;
-            if (change_illust)
+            if (change_illust && !(Parent is Frame))
             {
                 if (e.XButton1 == MouseButtonState.Pressed)
                 {

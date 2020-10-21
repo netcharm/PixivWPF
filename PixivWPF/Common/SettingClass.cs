@@ -632,16 +632,22 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public string User
         {
-            get { return (username.AesDecrypt(accesstoken)); }
-            set { username = value.AesEncrypt(accesstoken); }
+            get { return (Cache is Setting ? Cache.username.AesDecrypt(accesstoken) : username.AesDecrypt(accesstoken)); }
+            set
+            {
+                username = value.AesEncrypt(accesstoken);
+                if (Cache is Setting) Cache.username = username;
+            }
         }
 
         private string password = string.Empty;
         [JsonIgnore]
         public string Pass
         {
-            get { return (password.AesDecrypt(accesstoken)); }
-            set { password = value.AesEncrypt(accesstoken); }
+            get { return (Cache is Setting ? Cache.password.AesDecrypt(accesstoken) : password.AesDecrypt(accesstoken)); }
+            set { password = value.AesEncrypt(accesstoken);
+                if (Cache is Setting) Cache.password = password;
+            }
         }
 
         private Pixeez.Objects.User myinfo = null;
