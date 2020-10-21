@@ -11,7 +11,8 @@
       d:DesignHeight="300" d:DesignWidth="300"
       Title="HistoryPage" 
       Loaded="Page_Loaded"
-      PreviewKeyUp="HistoryIllusts_PreviewKeyUp"
+      PreviewKeyUp="Page_PreviewKeyUp"
+      PreviewMouseDown="Page_PreviewMouseDown"
       SizeChanged="Page_SizeChanged">
 
     <Page.Resources>
@@ -108,14 +109,16 @@
 
     <Grid>
         <ScrollViewer Grid.Column="0" Margin="4,4,4,4"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Top" VerticalScrollBarVisibility="Auto">
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                      HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top"                       
+                      VerticalScrollBarVisibility="Auto">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- History Results -->
-                <Common:ImageListGrid x:Name="HistoryItems" x:Uid="IllustsWithTag"
+                <Common:ImageListGrid x:Name="HistoryItems" x:Uid="HistoryItems"
                     Columns="5" TileWidth="128" TileHeight="128"
                     SelectionMode="Extended"
                     ContextMenu="{StaticResource MenuHistoryResult}"

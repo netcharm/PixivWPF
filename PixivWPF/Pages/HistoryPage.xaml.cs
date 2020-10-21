@@ -188,9 +188,33 @@ namespace PixivWPF.Pages
             return (HistoryItems.ItemsCount);
         }
 
+        public void PrevIllust()
+        {
+            if (this is HistoryPage && HistoryItems.ItemsCount > 0)
+            {
+                if (HistoryItems.IsCurrentBeforeFirst)
+                    HistoryItems.MoveCurrentToLast();
+                else
+                    HistoryItems.ItemsCollection.MoveCurrentToPrevious();
+                HistoryItems.ScrollIntoView(HistoryItems.SelectedItem);
+            }
+        }
+
+        public void NextIllust()
+        {
+            if (this is HistoryPage && HistoryItems.ItemsCount > 0)
+            {
+                if (HistoryItems.IsCurrentAfterLast)
+                    HistoryItems.MoveCurrentToFirst();
+                else
+                    HistoryItems.MoveCurrentToNext();
+                HistoryItems.ScrollIntoView(HistoryItems.SelectedItem);
+            }
+        }
+
         internal void KeyAction(KeyEventArgs e)
         {
-            HistoryIllusts_PreviewKeyUp(this, e);
+            Page_PreviewKeyUp(this, e);
         }
 
         public HistoryPage()
@@ -227,6 +251,24 @@ namespace PixivWPF.Pages
             if (window is ContentWindow) (window as ContentWindow).AdjustWindowPos();
         }
 
+        private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(HistoryItems, e));
+        }
+
+        private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.XButton1 == MouseButtonState.Pressed)
+            {
+                NextIllust();
+                e.Handled = true;
+            }
+            else if (e.XButton2 == MouseButtonState.Pressed)
+            {
+                PrevIllust();
+                e.Handled = true;
+            }
+        }
         #region History Result related routines
         private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)
         {
@@ -398,11 +440,6 @@ namespace PixivWPF.Pages
                 Commands.Open.Execute(HistoryItems);
             }
             catch (Exception) { }
-        }
-
-        private void HistoryIllusts_PreviewKeyUp(object sender, KeyEventArgs e)
-        {
-            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(HistoryItems, e));
         }
         #endregion
     }

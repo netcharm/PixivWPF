@@ -135,9 +135,33 @@ namespace PixivWPF.Pages
             return (ResultIllusts.ItemsCount);
         }
 
+        public void PrevIllust()
+        {
+            if (this is SearchResultPage && ResultIllusts.ItemsCount > 1)
+            {
+                if (ResultIllusts.IsCurrentBeforeFirst)
+                    ResultIllusts.MoveCurrentToLast();
+                else
+                    ResultIllusts.ItemsCollection.MoveCurrentToPrevious();
+                ResultIllusts.ScrollIntoView(ResultIllusts.SelectedItem);
+            }
+        }
+
+        public void NextIllust()
+        {
+            if (this is SearchResultPage && ResultIllusts.ItemsCount > 1)
+            {
+                if (ResultIllusts.IsCurrentAfterLast)
+                    ResultIllusts.MoveCurrentToFirst();
+                else
+                    ResultIllusts.MoveCurrentToNext();
+                ResultIllusts.ScrollIntoView(ResultIllusts.SelectedItem);
+            }
+        }
+
         internal void KeyAction(KeyEventArgs e)
         {
-            ResultIllusts_KeyUp(this, e);
+            Page_PreviewKeyUp(this, e);
         }
 
         public SearchResultPage()
@@ -189,6 +213,25 @@ namespace PixivWPF.Pages
 
             window = Window.GetWindow(this);
             if (!string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
+        }
+
+        private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(ResultIllusts, e));
+        }
+
+        private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.XButton1 == MouseButtonState.Pressed)
+            {
+                NextIllust();
+                e.Handled = true;
+            }
+            else if (e.XButton2 == MouseButtonState.Pressed)
+            {
+                PrevIllust();
+                e.Handled = true;
+            }
         }
 
         #region Search Result Panel related routines
@@ -580,11 +623,6 @@ namespace PixivWPF.Pages
         private void ResultIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             Commands.Open.Execute(ResultIllusts);
-        }
-
-        private void ResultIllusts_KeyUp(object sender, KeyEventArgs e)
-        {
-            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(ResultIllusts, e));
         }
 
         private void SearchFilter_Click(object sender, RoutedEventArgs e)

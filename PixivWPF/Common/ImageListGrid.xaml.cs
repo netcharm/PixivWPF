@@ -107,6 +107,10 @@ namespace PixivWPF.Common
             get { return (PART_ImageTiles.ItemsSource); }
             set { PART_ImageTiles.ItemsSource = value; }
         }
+        public ItemCollection ItemsCollection
+        {
+            get { return (PART_ImageTiles.Items); }
+        }
 
         [Description("Get or Set Image Tiles LiveFilter")]
         [Category("Common Properties")]
@@ -161,6 +165,69 @@ namespace PixivWPF.Common
                 if (value) titlevisibility = Visibility.Visible;
                 else titlevisibility = Visibility.Collapsed;
             }
+        }
+
+        public bool IsCurrentBeforeFirst { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.IsCurrentBeforeFirst : false); } }
+        public bool IsCurrentAfterLast { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.IsCurrentAfterLast : false); } }
+
+        public void MoveCurrentToFirst()
+        {
+            try
+            {
+                if (PART_ImageTiles is ListView)
+                {
+                    PART_ImageTiles.Items.MoveCurrentToFirst();
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public void MoveCurrentToPrevious()
+        {
+            try
+            {
+                if (PART_ImageTiles is ListView)
+                {
+                    PART_ImageTiles.Items.MoveCurrentToPrevious();
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public void MoveCurrentToNext()
+        {
+            try
+            {
+                if (PART_ImageTiles is ListView)
+                {
+                    PART_ImageTiles.Items.MoveCurrentToNext();
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public void MoveCurrentToLast()
+        {
+            try
+            {
+                if (PART_ImageTiles is ListView)
+                {
+                    PART_ImageTiles.Items.MoveCurrentToLast();
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public void ScrollIntoView(object item)
+        {
+            try
+            {
+                if (PART_ImageTiles is ListView)
+                {
+                    PART_ImageTiles.ScrollIntoView(item);
+                }
+            }
+            catch (Exception) { }
         }
 
         public event SelectionChangedEventHandler SelectionChanged;

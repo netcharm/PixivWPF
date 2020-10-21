@@ -725,8 +725,6 @@ namespace PixivWPF
             if (pagetiles is Pages.TilesPage)
                 pagetiles.SetFilter(filter);
         }
-
-
     }
 
 }

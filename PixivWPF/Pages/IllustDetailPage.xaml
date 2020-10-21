@@ -203,7 +203,9 @@
         <!-- Illust Detail Viewport -->
         <ScrollViewer Grid.Column="0" x:Name="IllustDetailViewer"
                       Margin="4,4,4,4"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto">
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                      HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top"                       
+                      VerticalScrollBarVisibility="Auto">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
