@@ -329,7 +329,10 @@ namespace PixivWPF.Pages
 
         internal void KeyAction(KeyEventArgs e)
         {
-            Page_PreviewKeyUp(this, e);
+            if (setting.SmartMouseResponse && e.Source == IllustDetail)
+                detail_page.KeyAction(e);
+            else
+                Page_PreviewKeyUp(this, e);
         }
 
         public TilesPage()
@@ -1300,86 +1303,94 @@ namespace PixivWPF.Pages
             {
                 if (!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
 
-                if (e.IsKey(Key.F5))
+                if (setting.SmartMouseResponse && e.Source == IllustDetail)
                 {
-                    var main = this.GetMainWindow() as MainWindow;
-                    main.CommandNavRefresh_Click(main.CommandNavRefresh, new RoutedEventArgs());
+                    detail_page.KeyAction(e);
                     e.Handled = true;
                 }
-                else if (e.IsKey(Key.F3))
+                else
                 {
-                    var main = this.GetMainWindow() as MainWindow;
-                    main.CommandNavNext_Click(main.CommandNavNext, new RoutedEventArgs());
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.F6))
-                {
-                    UpdateTilesThumb();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.F7) || e.IsKey(Key.F8))
-                {
-                    if (detail_page is IllustDetailPage)
+                    if (e.IsKey(Key.F5))
                     {
-                        detail_page.KeyAction(e);
+                        var main = this.GetMainWindow() as MainWindow;
+                        main.CommandNavRefresh_Click(main.CommandNavRefresh, new RoutedEventArgs());
                         e.Handled = true;
                     }
-                }
-                else if (e.IsKey(Key.Enter))
-                {
-                    if (ListImageTiles.SelectedItem != null)
+                    else if (e.IsKey(Key.F3))
                     {
+                        var main = this.GetMainWindow() as MainWindow;
+                        main.CommandNavNext_Click(main.CommandNavNext, new RoutedEventArgs());
                         e.Handled = true;
                     }
-                }
-                else if (e.IsKey(Key.Home))
-                {
-                    if (ListImageTiles.Items.Count > 0)
+                    else if (e.IsKey(Key.F6))
                     {
-                        ListImageTiles.Items.MoveCurrentToFirst();
-                        ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                        UpdateTilesThumb();
                         e.Handled = true;
                     }
-                }
-                else if (e.IsKey(Key.End))
-                {
-                    if (ListImageTiles.Items.Count > 0)
+                    else if (e.IsKey(Key.F7) || e.IsKey(Key.F8))
                     {
-                        ListImageTiles.Items.MoveCurrentToLast();
-                        ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                        if (detail_page is IllustDetailPage)
+                        {
+                            detail_page.KeyAction(e);
+                            e.Handled = true;
+                        }
+                    }
+                    else if (e.IsKey(Key.Enter))
+                    {
+                        if (ListImageTiles.SelectedItem != null)
+                        {
+                            e.Handled = true;
+                        }
+                    }
+                    else if (e.IsKey(Key.Home))
+                    {
+                        if (ListImageTiles.Items.Count > 0)
+                        {
+                            ListImageTiles.Items.MoveCurrentToFirst();
+                            ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                            e.Handled = true;
+                        }
+                    }
+                    else if (e.IsKey(Key.End))
+                    {
+                        if (ListImageTiles.Items.Count > 0)
+                        {
+                            ListImageTiles.Items.MoveCurrentToLast();
+                            ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+                            e.Handled = true;
+                        }
+                    }
+                    else if (e.IsKey(Key.S, ModifierKeys.Control))
+                    {
+                        if (ListImageTiles.SelectedItem is ImageItem)
+                        {
+                            var item = ListImageTiles.SelectedItem as ImageItem;
+                            if (item.IsWork())
+                                Commands.SaveIllust.Execute(item);
+                        }
                         e.Handled = true;
                     }
-                }
-                else if (e.IsKey(Key.S, ModifierKeys.Control))
-                {
-                    if (ListImageTiles.SelectedItem is ImageItem)
+                    else if (e.IsKey(Key.O, ModifierKeys.Control))
                     {
                         var item = ListImageTiles.SelectedItem as ImageItem;
-                        if (item.IsWork())
-                            Commands.SaveIllust.Execute(item);
+                        Commands.OpenDownloaded.Execute(item);
+                        e.Handled = true;
                     }
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.O, ModifierKeys.Control))
-                {
-                    var item = ListImageTiles.SelectedItem as ImageItem;
-                    Commands.OpenDownloaded.Execute(item);
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.H, ModifierKeys.Control))
-                {
-                    Commands.OpenHistory.Execute(null);
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.Left, ModifierKeys.Alt))
-                {
-                    PrevIllustPage();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.Right, ModifierKeys.Alt))
-                {
-                    NextIllustPage();
-                    e.Handled = true;
+                    else if (e.IsKey(Key.H, ModifierKeys.Control))
+                    {
+                        Commands.OpenHistory.Execute(null);
+                        e.Handled = true;
+                    }
+                    else if (e.IsKey(Key.Left, ModifierKeys.Alt))
+                    {
+                        PrevIllustPage();
+                        e.Handled = true;
+                    }
+                    else if (e.IsKey(Key.Right, ModifierKeys.Alt))
+                    {
+                        NextIllustPage();
+                        e.Handled = true;
+                    }
                 }
             }
         }

@@ -1472,6 +1472,39 @@ namespace PixivWPF.Common
             return (IsModifiers(ctrl, shift, alt, win));
         }
 
+        public static bool IsModified(this ModifierKeys modifier, bool only = false)
+        {
+            bool result = false;
+            if (only)
+                result = Keyboard.Modifiers == modifier;
+            else
+                result = Keyboard.Modifiers.HasFlag(modifier);
+            return (result);
+        }
+
+        public static bool IsModified(this IEnumerable<ModifierKeys> modifiers, bool all = false)
+        {
+            bool result = false;
+            foreach (var mod in modifiers)
+            {
+                if (all)
+                    result = result && Keyboard.Modifiers.HasFlag(mod);
+                else
+                    result = result || Keyboard.Modifiers.HasFlag(mod);
+            }
+            return (result);
+        }
+
+        public static bool IsModified(this KeyEventArgs evt, IEnumerable<ModifierKeys> modifiers, bool all = false)
+        {
+            return (IsModified(modifiers, all));
+        }
+
+        public static bool IsModified(this KeyEventArgs evt, ModifierKeys modifier, bool only = true)
+        {
+            return (IsModified(modifier, only));
+        }
+
         public static bool IsKey(this KeyEventArgs evt, Key key)
         {
             return (IsKey(evt, key, ModifierKeys.None));
@@ -1518,6 +1551,7 @@ namespace PixivWPF.Common
         private static CacheImage cache = new CacheImage();
         public static Dictionary<long?, Pixeez.Objects.Work> IllustCache = new Dictionary<long?, Pixeez.Objects.Work>();
         public static Dictionary<long?, Pixeez.Objects.UserBase> UserCache = new Dictionary<long?, Pixeez.Objects.UserBase>();
+        public static Dictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new Dictionary<long?, Pixeez.Objects.UserInfo>();
 
         public static Dictionary<string, string> TagsCache = new Dictionary<string, string>();
         public static Dictionary<string, string> TagsT2S = new Dictionary<string, string>();
@@ -4563,6 +4597,52 @@ namespace PixivWPF.Common
             catch (Exception) { }
             return (result);
         }
+
+        public static async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this string UserID, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.UserInfo result = null;
+            if (!string.IsNullOrEmpty(UserID))
+            {
+                try
+                {
+                    long id = -1;
+                    if (long.TryParse(UserID, out id)) result = await RefreshUserInfo(id, tokens);
+                }
+                catch (Exception) { }
+            }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this long UserID, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.UserInfo result = null;
+            if (UserID < 0) return (result);
+            setting = Application.Current.LoadSetting();
+            var force = UserID == 0 && !(setting.MyInfo is Pixeez.Objects.User) ? true : false;
+            if (tokens == null) tokens = await ShowLogin(force);
+            if (tokens == null) return (result);
+            try
+            {
+                var userinfo = await tokens.GetUserInfoAsync($"{UserID}");
+                if (userinfo is Pixeez.Objects.UserInfo)
+                {
+                    userinfo.Cache();
+                    if (userinfo.user.Id.Value == UserID) result = userinfo;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this long? UserID, Pixeez.Tokens tokens = null)
+        {
+            return (await RefreshUserInfo(UserID.Value));
+        }
+
+        public static async Task<Pixeez.Objects.UserInfo> RefreshUserInfo(this Pixeez.Objects.UserBase User, Pixeez.Tokens tokens = null)
+        {
+            return (await RefreshUserInfo(User.Id));
+        }
         #endregion
 
         #region Like helper routines
@@ -5013,6 +5093,12 @@ namespace PixivWPF.Common
                 IllustCache[illust.Id] = illust;
         }
 
+        public static void Cache(this Pixeez.Objects.UserInfo userinfo)
+        {
+            if (userinfo is Pixeez.Objects.UserInfo)
+                UserInfoCache[userinfo.user.Id] = userinfo;
+        }
+
         public static Pixeez.Objects.Work FindIllust(this long id)
         {
             if (IllustCache.ContainsKey(id)) return (IllustCache[id]);
@@ -5030,6 +5116,11 @@ namespace PixivWPF.Common
             long idv = 0;
             if (long.TryParse(id, out idv)) return (FindIllust(idv));
             else return (null);
+        }
+
+        public static Pixeez.Objects.Work FindIllust(this Pixeez.Objects.Work work)
+        {
+            return(FindIllust(work));
         }
 
         public static Pixeez.Objects.UserBase FindUser(this long id)
@@ -5051,6 +5142,34 @@ namespace PixivWPF.Common
             else return (null);
         }
 
+        public static Pixeez.Objects.UserBase FindUser(this Pixeez.Objects.UserBase user)
+        {
+            return (FindUser(user.Id));
+        }
+
+        public static Pixeez.Objects.UserInfo FindUserInfo(this long id)
+        {
+            if (UserInfoCache.ContainsKey(id)) return (UserInfoCache[id]);
+            else return (null);
+        }
+
+        public static Pixeez.Objects.UserInfo FindUserInfo(this long? id)
+        {
+            if (id != null && UserInfoCache.ContainsKey(id)) return (UserInfoCache[id]);
+            else return (null);
+        }
+
+        public static Pixeez.Objects.UserInfo FindUserInfo(this string id)
+        {
+            long idv = 0;
+            if (long.TryParse(id, out idv)) return (FindUserInfo(idv));
+            else return (null);
+        }
+
+        public static Pixeez.Objects.UserInfo FindUserInfo(this Pixeez.Objects.UserBase user)
+        {
+            return (FindUserInfo(user.Id));
+        }
         #endregion
 
         #region Sync Illust/User Like State

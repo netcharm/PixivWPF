@@ -549,12 +549,13 @@ namespace PixivWPF.Pages
         {
             try
             {
+                var force = ModifierKeys.Control.IsModified();
                 if (item.IsWork())
                 {
                     await new Action(async () =>
                     {
                         IllustDetailWait.Show();
-                        if (Keyboard.Modifiers == ModifierKeys.Control)
+                        if (force)
                         {
                             var illust = await item.ID.RefreshIllust();
                             if (illust is Pixeez.Objects.Work)
@@ -563,7 +564,6 @@ namespace PixivWPF.Pages
                                 "Illust not exists or deleted".ShowMessageBox("ERROR[ILLUST]");
                         }
                         UpdateDetailIllust(item);
-                        //IllustDetailWait.Hide();
                     }).InvokeAsync();
                 }
                 else if (item.IsUser())
@@ -571,7 +571,7 @@ namespace PixivWPF.Pages
                     await new Action(async () =>
                     {
                         IllustDetailWait.Show();
-                        if (Keyboard.Modifiers == ModifierKeys.Control)
+                        if (force)
                         {
                             var user = await item.UserID.RefreshUser();
                             if (user is Pixeez.Objects.User)
@@ -579,30 +579,10 @@ namespace PixivWPF.Pages
                             else
                                 "User not exists or deleted".ShowMessageBox("ERROR[USER]");
                         }
-                        UpdateDetailUser(item.User);
-                        //IllustDetailWait.Hide();
+                        UpdateDetailUser(item, force);
                     }).InvokeAsync();
                 }
                 IllustDetailViewer.ScrollToTop();
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR");
-                IllustDetailWait.Hide();
-            }
-            finally
-            {
-            }
-        }
-
-        internal async void UpdateDetail(Pixeez.Objects.UserBase user)
-        {
-            try
-            {
-                await new Action(() =>
-                {
-                    UpdateDetailUser(user);
-                }).InvokeAsync();
             }
             catch (Exception ex)
             {
@@ -808,16 +788,19 @@ namespace PixivWPF.Pages
         }
 
         private Pixeez.Objects.UserInfo UserInfo = null;
-        private async void UpdateDetailUser(Pixeez.Objects.UserBase user)
+        private async void UpdateDetailUser(ImageItem item, bool force = false)
         {
             try
             {
                 IllustDetailWait.Show();
                 this.DoEvents();
 
-                var tokens = await CommonHelper.ShowLogin();
+                var user = item.User;
+                UserInfo = user.FindUserInfo();
 
-                UserInfo = await tokens.GetUserInfoAsync(user.Id.Value.ToString());
+                if(force || UserInfo == null) UserInfo = await user.RefreshUserInfo();
+                if (UserInfo == null) return;
+
                 var nuser = UserInfo.user;
                 var nprof = UserInfo.profile;
                 var nworks = UserInfo.workspace;
@@ -863,9 +846,6 @@ namespace PixivWPF.Pages
                 if (nuser != null && nprof != null && nworks != null)
                 {
                     WebBrowserRefresh(IllustTagsHtml);
-                    //IllustTagsHtml.DocumentText = MakeUserInfoHtml(UserInfo);
-                    //AdjustBrowserSize(IllustTagsHtml);
-
                     IllustTagExpander.Header = "User Infomation";
                     if (setting.AutoExpand == AutoExpandMode.ON)
                         IllustTagExpander.IsExpanded = true;
@@ -884,9 +864,6 @@ namespace PixivWPF.Pages
                 if (nuser != null && !string.IsNullOrEmpty(nuser.comment) && nuser.comment.Length > 0)
                 {
                     WebBrowserRefresh(IllustDescHtml);
-                    //IllustDescHtml.DocumentText = MakeUserCommentHtml(UserInfo);
-                    //AdjustBrowserSize(IllustDescHtml);
-
                     if (setting.AutoExpand == AutoExpandMode.ON ||
                         setting.AutoExpand == AutoExpandMode.AUTO)
                     {
@@ -919,11 +896,11 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR");
+                ex.Message.ShowMessageBox("ERROR[USER]");
             }
             finally
             {
-                user.AddToHistory();
+                item.User.AddToHistory();
                 Application.Current.DoEvents();
                 IllustDetailWait.Hide();
             }
@@ -1488,7 +1465,6 @@ namespace PixivWPF.Pages
             #endregion
 
             if (Contents is ImageItem) UpdateDetail(Contents);
-            else if(Tag is Pixeez.Objects.UserBase) UpdateDetail(Tag as Pixeez.Objects.UserBase);
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -1530,9 +1506,9 @@ namespace PixivWPF.Pages
                         UpdateDetail(Contents);
                     else
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        if(e.IsModified(ModifierKeys.Shift, false))
                             UpdateDetail(Contents);
-                        else if(Keyboard.Modifiers == ModifierKeys.None)
+                        else if(e.IsModified(ModifierKeys.None))
                             Commands.RefreshPage.Execute(Application.Current.MainWindow);
                     }
                     e.Handled = true;
@@ -2104,14 +2080,7 @@ namespace PixivWPF.Pages
                         }
                         else if (mi == ActionRefresh)
                         {
-                            if (this is IllustDetailPage)
-                            {
-                                var page = this as IllustDetailPage;
-                                if (page.Tag is ImageItem)
-                                    page.UpdateDetail(page.Tag as ImageItem);
-                                else if (page.Tag is Pixeez.Objects.UserBase)
-                                    page.UpdateDetail(page.Tag as Pixeez.Objects.UserBase);
-                            }
+                            if (Contents is ImageItem) UpdateDetail(Contents);
                         }
                     }
                 }
