@@ -804,7 +804,7 @@ namespace PixivWPF.Pages
                 var nuser = UserInfo.user;
                 var nprof = UserInfo.profile;
                 var nworks = UserInfo.workspace;
-                if (user.is_followed != nuser.is_followed)
+                if (user.IsLiked() != nuser.IsLiked())
                 {
                     user.is_followed = nuser.is_followed;
                     await user.RefreshUser();
@@ -1820,8 +1820,8 @@ namespace PixivWPF.Pages
                                             imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.GetRoot(), "no_image.png")).AbsoluteUri);
                                         else if (src.IsPixivImage())
                                         {
-                                            var img = await src.GetImagePath();
-                                            if (!string.IsNullOrEmpty(img)) imgElemt.SetAttribute("src", new Uri(img).AbsoluteUri);
+                                            var img = await src.LoadImageFromUrl();
+                                            if (!string.IsNullOrEmpty(img.SourcePath)) imgElemt.SetAttribute("src", new Uri(img.SourcePath).AbsoluteUri);
                                         }
                                     }
 #if DEBUG

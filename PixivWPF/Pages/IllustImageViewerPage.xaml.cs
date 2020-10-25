@@ -351,7 +351,7 @@ namespace PixivWPF.Pages
                     Commands.OpenUser.Execute(Contents.User);
                 else if (sender == ActionOpenCachedWith || sender == btnOpenCache)
                 {
-                    Commands.ShellOpenFile.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+                    Commands.OpenCachedImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
                 }
                 else if (sender == ActionCopyPreview)
                 {

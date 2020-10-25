@@ -29,13 +29,54 @@ namespace PixivWPF.Common
             _CacheFolder = Path.Combine(setting.APP_PATH, "cache");
         }
 
+        public bool IsSameIllust(int hash, string id)
+        {
+            bool result = true;
+            if (loadedImageHashTable.ContainsKey(hash))
+            {
+                result = string.Equals(id, loadedImageHashTable[hash], StringComparison.CurrentCultureIgnoreCase) ||
+                         string.Equals(id, loadedImageFileTable[hash], StringComparison.CurrentCultureIgnoreCase);
+            }
+            return (result);
+        }
+
+        public string GetImagePath(string url)
+        {
+            string result = null;
+            var trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
+            var unc = new Uri(url);
+            var file = unc.IsFile ? unc.AbsolutePath : Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
+            file = file.Replace("/", "\\").TrimStart(trimchars);
+            file = Regex.Replace(file, @"(.*?)(([\?|\*].*)*)", "$1", RegexOptions.IgnoreCase);
+            if (!Path.IsPathRooted(file)) file = Path.Combine(_CacheFolder, file);
+            result = file;
+
+            return (result);
+        }
+
         public bool IsCached(string url)
         {
             bool result = false;
-
-            result = _caches.ContainsKey(url) && File.Exists(Path.Combine(_CacheFolder, _caches[url]));
-
+            try
+            {
+                var local = _caches.ContainsKey(url) ? Path.Combine(_CacheFolder, _caches[url].TrimStart(trimchars)) : GetImagePath(url);
+                if (File.Exists(local)) _caches[url] = local.Replace(_CacheFolder, "").TrimStart(trimchars);
+                else _caches.Remove(url);
+                result = _caches.ContainsKey(url);
+            }
+            catch (Exception) { }
             return (result);
+        }
+
+        public string GetCacheFile(string url)
+        {
+            var file = string.Empty;
+            if (url.IsCached())
+            {
+                file = Path.Combine(_CacheFolder, _caches[url].TrimStart(trimchars));
+            }
+            return (file);
         }
 
         public async Task<CustomImageSource> GetImage(string url, bool login = false)
@@ -53,19 +94,6 @@ namespace PixivWPF.Common
             }
         }
 
-        public string GetCacheFile(string url)
-        {
-            var file = Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
-            file = file.Replace("/", "\\").TrimStart(trimchars);
-            file = Path.Combine(_CacheFolder, file);
-            if (!File.Exists(file) && url.IsCached())
-            {
-                var fcache = _caches[url].TrimStart(trimchars);
-                file = Path.Combine(_CacheFolder, fcache);
-            }
-            return (file);
-        }
-
         public async Task<CustomImageSource> GetImageDirect(string url)
         {
             CustomImageSource result = new CustomImageSource();
@@ -74,46 +102,23 @@ namespace PixivWPF.Common
             var id = url.GetIllustId();
             var fn = url.GetImageId();
 
-            if (_caches.ContainsKey(url))
-            {
-                var fcache = _caches[url].TrimStart(trimchars);
-                file = Path.Combine(_CacheFolder, fcache);
-                if (File.Exists(file))
-                {
-                    result = await file.LoadImageFromFile();
-                }
-                else
-                {
-                    var success = await url.SaveImage(file, false);
-                    if (success)
-                    {
-                        result = await file.LoadImageFromFile();
-                    }
-                }
-            }
-            else if (File.Exists(file))
+            if (!string.IsNullOrEmpty(file))
             {
                 result = await file.LoadImageFromFile();
-                if (result.Source is ImageSource)
-                {
-                    _caches[url] = file.Replace(_CacheFolder, "");
-                }
             }
             else if (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp))
             {
                 result = await fp.LoadImageFromFile();
-                if (result.Source is ImageSource)
-                {
-                    _caches[url] = fp;
-                }
+                if (result.Source is ImageSource) _caches[url] = fp.TrimStart(trimchars);
             }
             else
             {
+                file = GetImagePath(url);
                 var success = await url.SaveImage(file, false);
                 if (success)
                 {
                     result = await file.LoadImageFromFile();
-                    _caches[url] = file.Replace(_CacheFolder, "");
+                    _caches[url] = file.Replace(_CacheFolder, "").TrimStart(trimchars);
                 }
             }
             if (result.Source is ImageSource && !string.IsNullOrEmpty(id))
@@ -132,53 +137,26 @@ namespace PixivWPF.Common
             var id = url.GetIllustId();
             var fn = url.GetImageId();
 
-            if (_caches.ContainsKey(url))
-            {
-                var fcache = _caches[url].TrimStart(trimchars);
-                file = Path.Combine(_CacheFolder, fcache);
-                if (File.Exists(file))
-                {
-                    result = await file.LoadImageFromFile();
-                }
-                else
-                {
-                    tokens = await CommonHelper.ShowLogin();
-                    if (tokens == null) return (result);
-
-                    var success = await url.SaveImage(tokens, file, false);
-                    if (success)
-                    {
-                        result = await file.LoadImageFromFile();
-                    }
-                }
-            }
-            else if (File.Exists(file))
+            if (!string.IsNullOrEmpty(file))
             {
                 result = await file.LoadImageFromFile();
-                if (result.Source is ImageSource)
-                {
-                    _caches[url] = file.Replace(_CacheFolder, "");
-                    //Save();
-                }
             }
             else if (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp))
             {
                 result = await fp.LoadImageFromFile();
-                if (result.Source is ImageSource)
-                {
-                    _caches[url] = fp;
-                }
+                if (result.Source is ImageSource) _caches[url] = fp.TrimStart(trimchars);
             }
             else
             {
                 tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return (result);
 
+                file = GetImagePath(url);
                 var success = await url.SaveImage(tokens, file, false);
                 if (success)
                 {
                     result = await file.LoadImageFromFile();
-                    _caches[url] = file.Replace(_CacheFolder, "");
+                    _caches[url] = file.Replace(_CacheFolder, "").TrimStart(trimchars);
                 }
             }
             if (result.Source is ImageSource && !string.IsNullOrEmpty(id))
@@ -188,123 +166,5 @@ namespace PixivWPF.Common
             }
             return (result);
         }
-
-        public bool IsSameIllust(int hash, string id)
-        {
-            bool result = true;
-            if (loadedImageHashTable.ContainsKey(hash))
-            {
-                result = string.Equals(id, loadedImageHashTable[hash], StringComparison.CurrentCultureIgnoreCase) || 
-                         string.Equals(id, loadedImageFileTable[hash], StringComparison.CurrentCultureIgnoreCase);
-            }
-            return (result);
-        }
-
-        public async Task<string> GetImagePath(string url, Pixeez.Tokens tokens)
-        {
-            string result = null;
-            var trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
-
-            var unc = new Uri(url);           
-            var file = unc.IsFile ? unc.AbsolutePath : Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
-            file = file.Replace("/", "\\").TrimStart(trimchars);
-            file = Regex.Replace(file, @"(.*?)(([\?|\*].*)*)", "$1", RegexOptions.IgnoreCase);
-            if(!Path.IsPathRooted(file)) file = Path.Combine(_CacheFolder, file);
-
-            if (_caches.ContainsKey(url))
-            {
-                var fcache = _caches[url].TrimStart(trimchars);
-                file = Path.Combine(_CacheFolder, fcache);
-                if (File.Exists(file))
-                {
-                    result = file;
-                }
-                else
-                {
-                    tokens = await CommonHelper.ShowLogin();
-                    if (tokens == null) return null;
-
-                    var success = await url.SaveImage(tokens, file, false);
-                    if (success)
-                    {
-                        result = file;
-                    }
-                }
-            }
-            else if (File.Exists(file))
-            {
-                result = file;
-                if (!string.IsNullOrEmpty(result))
-                {
-                    _caches[url] = file.Replace(_CacheFolder, "");
-                    //Save();
-                }
-            }
-            else
-            {
-                tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return null;
-
-                var success = await url.SaveImage(tokens, file, false);
-                if (success)
-                {
-                    result = file;
-                    _caches[url] = file.Replace(_CacheFolder, "");
-                    //Save();
-                }
-            }
-            return (result);
-        }
-
-        public async Task<string> GetImagePath(string url)
-        {
-            string result = null;
-            var trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
-
-            var unc = new Uri(url);
-            var file = unc.IsFile ? unc.AbsolutePath : Regex.Replace(url, @"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/", $"", RegexOptions.IgnoreCase);
-            file = file.Replace("/", "\\").TrimStart(trimchars);
-            file = Regex.Replace(file, @"(.*?)(([\?|\*].*)*)", "$1", RegexOptions.IgnoreCase);
-            if (!Path.IsPathRooted(file)) file = Path.Combine(_CacheFolder, file);
-
-            if (_caches.ContainsKey(url))
-            {
-                var fcache = _caches[url].TrimStart(trimchars);
-                file = Path.Combine(_CacheFolder, fcache);
-                if (File.Exists(file))
-                {
-                    result = file;
-                }
-                else
-                {
-                    var success = await url.SaveImage(file, false);
-                    if (success)
-                    {
-                        result = file;
-                    }
-                }
-            }
-            else if (File.Exists(file))
-            {
-                result = file;
-                if (!string.IsNullOrEmpty(result))
-                {
-                    _caches[url] = file.Replace(_CacheFolder, "");
-                    //Save();
-                }
-            }
-            else
-            {
-                var success = await url.SaveImage(file, false);
-                if (success)
-                {
-                    result = file;
-                    _caches[url] = file.Replace(_CacheFolder, "");
-                    //Save();
-                }
-            }
-            return (result);
-        }
-
     }
 }

@@ -634,8 +634,9 @@ namespace PixivWPF.Common
                 {
                     try
                     {
+                        string s = obj as string;
                         Uri url = null;
-                        if (Uri.TryCreate(obj as string, UriKind.RelativeOrAbsolute, out url) && url is Uri) ShellOpenFile.Execute(url);
+                        if (!string.IsNullOrEmpty(s) && Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out url)) ShellOpenFile.Execute(url);
                     }
                     catch (Exception) { }
                 }
@@ -648,7 +649,7 @@ namespace PixivWPF.Common
                         {
                             await new Action(() =>
                             {
-                                OpenDownloaded.Execute(item);
+                                OpenCachedImage.Execute(item);
                             }).InvokeAsync();
                         }
                     }).InvokeAsync();
@@ -662,7 +663,7 @@ namespace PixivWPF.Common
                         {
                             await new Action(() =>
                             {
-                                OpenDownloaded.Execute(item);
+                                OpenCachedImage.Execute(item);
                             }).InvokeAsync();
                         }
                     }).InvokeAsync();
@@ -1284,10 +1285,10 @@ namespace PixivWPF.Common
                 try
                 {
                     var url = obj as Uri;
-                    if ((url.IsFile || url.IsUnc) && File.Exists(url.AbsolutePath)) url.AbsolutePath.OpenFileWithShell();
+                    if ((url.IsFile || url.IsUnc) && File.Exists(url.LocalPath)) url.LocalPath.OpenFileWithShell();
                     else if (url.IsAbsoluteUri)
                     {
-                        string fp_d = url.AbsoluteUri.GetImageCachePath();
+                        string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCachePath();
                         if (File.Exists(fp_d)) fp_d.OpenFileWithShell();
                     }
                 }
