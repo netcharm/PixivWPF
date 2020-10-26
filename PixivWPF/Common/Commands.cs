@@ -72,7 +72,7 @@ namespace PixivWPF.Common
                     gallery.Name.Equals("ResultItems", StringComparison.CurrentCultureIgnoreCase) ||
                     gallery.Name.Equals("FavoriteItems", StringComparison.CurrentCultureIgnoreCase) ||
                     gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
-                    result = false;
+                    result = true;
             }
             catch (Exception) { }
             return (result);
