@@ -38,7 +38,7 @@ namespace PixivWPF.Pages
 
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
-            ResultIllusts.UpdateDownloadStateAsync(illustid, exists);
+            ResultItems.UpdateDownloadStateAsync(illustid, exists);
         }
 
         public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = false)
@@ -60,7 +60,7 @@ namespace PixivWPF.Pages
         {
             if (ResultExpander.IsExpanded)
             {
-                ResultIllusts.UpdateLikeState(illustid, is_user);
+                ResultItems.UpdateLikeState(illustid, is_user);
             }
         }
 
@@ -96,14 +96,14 @@ namespace PixivWPF.Pages
 
         public void UpdateThumb()
         {
-            ResultIllusts.UpdateTilesImage();
+            ResultItems.UpdateTilesImage();
         }
 
         public void SetFilter(string filter)
         {
             try
             {
-                ResultIllusts.Filter = filter.GetFilter();
+                ResultItems.Filter = filter.GetFilter();
             }
             catch (Exception ex)
             {
@@ -117,11 +117,11 @@ namespace PixivWPF.Pages
             {
                 if (filter is FilterParam)
                 {
-                    ResultIllusts.Filter = filter.GetFilter();
+                    ResultItems.Filter = filter.GetFilter();
                 }
                 else
                 {
-                    ResultIllusts.Filter = null;
+                    ResultItems.Filter = null;
                 }
             }
             catch (Exception ex)
@@ -132,30 +132,30 @@ namespace PixivWPF.Pages
 
         public dynamic GetTilesCount()
         {
-            return (ResultIllusts.ItemsCount);
+            return (ResultItems.ItemsCount);
         }
 
         public void PrevIllust()
         {
-            if (this is SearchResultPage && ResultIllusts.ItemsCount > 1)
+            if (this is SearchResultPage && ResultItems.ItemsCount > 1)
             {
-                if (ResultIllusts.IsCurrentBeforeFirst)
-                    ResultIllusts.MoveCurrentToLast();
+                if (ResultItems.IsCurrentBeforeFirst)
+                    ResultItems.MoveCurrentToLast();
                 else
-                    ResultIllusts.ItemsCollection.MoveCurrentToPrevious();
-                ResultIllusts.ScrollIntoView(ResultIllusts.SelectedItem);
+                    ResultItems.ItemsCollection.MoveCurrentToPrevious();
+                ResultItems.ScrollIntoView(ResultItems.SelectedItem);
             }
         }
 
         public void NextIllust()
         {
-            if (this is SearchResultPage && ResultIllusts.ItemsCount > 1)
+            if (this is SearchResultPage && ResultItems.ItemsCount > 1)
             {
-                if (ResultIllusts.IsCurrentAfterLast)
-                    ResultIllusts.MoveCurrentToFirst();
+                if (ResultItems.IsCurrentAfterLast)
+                    ResultItems.MoveCurrentToFirst();
                 else
-                    ResultIllusts.MoveCurrentToNext();
-                ResultIllusts.ScrollIntoView(ResultIllusts.SelectedItem);
+                    ResultItems.MoveCurrentToNext();
+                ResultItems.ScrollIntoView(ResultItems.SelectedItem);
             }
         }
 
@@ -180,6 +180,8 @@ namespace PixivWPF.Pages
                     if (item is MenuItem && item.Name.Equals("ActionResultFilter", StringComparison.CurrentCultureIgnoreCase))
                     {
                         ActionResultFilter = item;
+                        if((item as MenuItem).Items.Count > 0)
+                            ((item as MenuItem).Items[0] as MenuItem).IsChecked = true;
                         break;
                     }
                 }
@@ -217,7 +219,7 @@ namespace PixivWPF.Pages
 
         private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
         {
-            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(ResultIllusts, e));
+            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(ResultItems, e));
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -243,7 +245,7 @@ namespace PixivWPF.Pages
 
                 PreviewWait.Show();
 
-                ResultIllusts.Items.Clear();
+                ResultItems.Items.Clear();
 
                 List<long?> id_user = new List<long?>();
                 List<long?> id_illust = new List<long?>();
@@ -265,7 +267,7 @@ namespace PixivWPF.Pages
                         {
                             if (id_user.Contains(user.Id)) continue;
                             user.Cache();
-                            user.AddTo(ResultIllusts.Items, next_url);
+                            user.AddTo(ResultItems.Items, next_url);
                             id_user.Add(user.Id);
                             this.DoEvents();
                         }
@@ -284,7 +286,7 @@ namespace PixivWPF.Pages
                         {
                             if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
-                            illust.AddTo(ResultIllusts.Items, next_url);
+                            illust.AddTo(ResultItems.Items, next_url);
                             id_illust.Add(illust.Id);
                             this.DoEvents();
                         }
@@ -306,7 +308,7 @@ namespace PixivWPF.Pages
                         {
                             if (id_user.Contains(user.User.Id)) continue;
                             user.User.Cache();
-                            user.User.AddTo(ResultIllusts.Items, next_url);
+                            user.User.AddTo(ResultItems.Items, next_url);
                             id_user.Add(user.User.Id);
                             this.DoEvents();
                         }
@@ -326,7 +328,7 @@ namespace PixivWPF.Pages
                         {
                             if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
-                            illust.AddTo(ResultIllusts.Items, next_url);
+                            illust.AddTo(ResultItems.Items, next_url);
                             id_illust.Add(illust.Id);
                             this.DoEvents();
                         }
@@ -348,7 +350,7 @@ namespace PixivWPF.Pages
                         {
                             if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
-                            illust.AddTo(ResultIllusts.Items, relatives.next_url);
+                            illust.AddTo(ResultItems.Items, relatives.next_url);
                             id_illust.Add(illust.Id);
                             this.DoEvents();
                         }
@@ -369,7 +371,7 @@ namespace PixivWPF.Pages
                         {
                             if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
-                            illust.AddTo(ResultIllusts.Items, relatives.next_url);
+                            illust.AddTo(ResultItems.Items, relatives.next_url);
                             id_illust.Add(illust.Id);
                             this.DoEvents();
                         }
@@ -390,21 +392,21 @@ namespace PixivWPF.Pages
                         {
                             if (id_illust.Contains(illust.Id)) continue;
                             illust.Cache();
-                            illust.AddTo(ResultIllusts.Items, relatives.next_url);
+                            illust.AddTo(ResultItems.Items, relatives.next_url);
                             id_illust.Add(illust.Id);
                             this.DoEvents();
                         }
                         this.DoEvents();
                     }
                 }
-                ResultIllusts.UpdateTilesImage();
+                ResultItems.UpdateTilesImage();
 
-                if (ResultIllusts.Items.Count() == 1 && no_filter)
+                if (ResultItems.Items.Count() == 1 && no_filter)
                 {
-                    ResultIllusts.SelectedIndex = 0;
-                    Commands.Open.Execute(ResultIllusts);
+                    ResultItems.SelectedIndex = 0;
+                    Commands.Open.Execute(ResultItems);
                 }
-                if (ResultIllusts.Items.Count() <= 1 && no_filter)
+                if (ResultItems.Items.Count() <= 1 && no_filter)
                 {
                     if (window != null)
                     {
@@ -438,20 +440,36 @@ namespace PixivWPF.Pages
 
         private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)
         {
-            Commands.CopyIllustIDs.Execute(ResultIllusts);
+            Commands.CopyArtworkIDs.Execute(ResultItems);
+        }
+
+        private void ActionCopyWeblink_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateLikeState();
+
+            if (sender.GetUid().Equals("ActionIllustWebLink", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Commands.CopyArtworkWeblinks.Execute(ResultItems);
+            }
+            else if (sender.GetUid().Equals("ActionAuthorWebLink", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Commands.CopyArtistWeblinks.Execute(ResultItems);
+            }
+
+            e.Handled = true;
         }
 
         private void ActionOpenResult_Click(object sender, RoutedEventArgs e)
         {
-            Commands.Open.Execute(ResultIllusts);
+            Commands.Open.Execute(ResultItems);
         }
 
         private void ActionSendToOtherInstance_Click(object sender, RoutedEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.None)
-                Commands.SendToOtherInstance.Execute(ResultIllusts);
+                Commands.SendToOtherInstance.Execute(ResultItems);
             else
-                Commands.ShellSendToOtherInstance.Execute(ResultIllusts);
+                Commands.ShellSendToOtherInstance.Execute(ResultItems);
         }
 
         private void ActionRefreshResult_Click(object sender, RoutedEventArgs e)
@@ -462,22 +480,22 @@ namespace PixivWPF.Pages
                 var host = (m.Parent as ContextMenu).PlacementTarget;
                 if (m.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (host == ResultExpander || host == ResultIllusts)
+                    if (host == ResultExpander || host == ResultItems)
                     {
                         UpdateDetail(Contents);
                     }
                 }
                 else if (m.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (host == ResultExpander || host == ResultIllusts)
+                    if (host == ResultExpander || host == ResultItems)
                     {
-                        ResultIllusts.UpdateTilesImage();
+                        ResultItems.UpdateTilesImage();
                     }
                 }
             }
             else if(sender == SearchRefreshThumb)
             {
-                ResultIllusts.UpdateTilesImage();
+                ResultItems.UpdateTilesImage();
             }
         }
 
@@ -485,7 +503,7 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (ImageItem item in ResultIllusts.SelectedItems)
+                foreach (ImageItem item in ResultItems.SelectedItems)
                 {
                     Commands.SaveIllust.Execute(item);
                 }
@@ -496,7 +514,7 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (ImageItem item in ResultIllusts.SelectedItems)
+                foreach (ImageItem item in ResultItems.SelectedItems)
                 {
                     Commands.SaveIllustAll.Execute(item);
                 }
@@ -507,7 +525,7 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (ImageItem item in ResultIllusts.SelectedItems)
+                foreach (ImageItem item in ResultItems.SelectedItems)
                 {
                     Commands.OpenDownloaded.Execute(item);
                 }
@@ -524,9 +542,9 @@ namespace PixivWPF.Pages
                 if (mi.Parent is ContextMenu)
                 {
                     var host = (mi.Parent as ContextMenu).PlacementTarget;
-                    if (host == ResultExpander || host == ResultIllusts)
+                    if (host == ResultExpander || host == ResultItems)
                     {
-                        foreach (ImageItem item in ResultIllusts.SelectedItems)
+                        foreach (ImageItem item in ResultItems.SelectedItems)
                         {
                             text += $"{item.Subject},\r\n";
                         }
@@ -547,7 +565,7 @@ namespace PixivWPF.Pages
             {
                 IList<ImageItem> items = new List<ImageItem>();
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == ResultIllusts || host == ResultExpander) items = ResultIllusts.GetSelectedIllusts();
+                if (host == ResultItems || host == ResultExpander) items = ResultItems.GetSelectedIllusts();
                 try
                 {
                     if (uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase))
@@ -577,7 +595,7 @@ namespace PixivWPF.Pages
             {
                 IList<ImageItem> items = new List<ImageItem>();
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
-                if (host == ResultIllusts || host == ResultExpander) items = ResultIllusts.GetSelected();
+                if (host == ResultItems || host == ResultExpander) items = ResultItems.GetSelected();
                 try
                 {
                     if (uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase))
@@ -608,21 +626,25 @@ namespace PixivWPF.Pages
             if (ResultNextPage is Button) ResultNextPage.Hide();
         }
 
-        private void ResultIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ResultItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             e.Handled = false;
-            ResultIllusts.UpdateTilesState();
+            ResultItems.UpdateTilesState();
             e.Handled = true;
         }
 
-        private void ResultIllusts_MouseWheel(object sender, MouseWheelEventArgs e)
+        private void ResultItems_MouseWheel(object sender, MouseWheelEventArgs e)
         {
 
         }
 
-        private void ResultIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void ResultItems_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Commands.Open.Execute(ResultIllusts);
+            try
+            {
+                if (e.LeftButton == MouseButtonState.Pressed) Commands.Open.Execute(ResultItems);
+            }
+            catch (Exception) { }
         }
 
         private void SearchFilter_Click(object sender, RoutedEventArgs e)

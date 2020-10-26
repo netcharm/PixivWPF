@@ -333,7 +333,7 @@ namespace PixivWPF.Pages
                     if (item is DownloadInfo)
                         targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
                 }
-                Commands.CopyIllustIDs.Execute(targets);
+                Commands.CopyArtworkIDs.Execute(targets);
             }).InvokeAsync();
         }
 

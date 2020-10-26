@@ -269,15 +269,43 @@ namespace PixivWPF.Pages
                 e.Handled = true;
             }
         }
+
         #region History Result related routines
-        private void ActionCopyResultIllustID_Click(object sender, RoutedEventArgs e)
+        private void ActionCopyIllustID_Click(object sender, RoutedEventArgs e)
         {
-            Commands.CopyIllustIDs.Execute(HistoryItems);
+            Commands.CopyArtworkIDs.Execute(HistoryItems);
         }
 
-        private void ActionOpenResult_Click(object sender, RoutedEventArgs e)
+        private void ActionCopyWeblink_Click(object sender, RoutedEventArgs e)
         {
-            Commands.Open.Execute(HistoryItems);
+            UpdateLikeState();
+
+            if (sender.GetUid().Equals("ActionIllustWebLink", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Commands.CopyArtworkWeblinks.Execute(HistoryItems);
+            }
+            else if (sender.GetUid().Equals("ActionAuthorWebLink", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Commands.CopyArtistWeblinks.Execute(HistoryItems);
+            }
+
+            e.Handled = true;
+        }
+
+        private void ActionOpenSelected_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
+                {
+                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    if (host == HistoryItems)
+                    {
+                        Commands.OpenItem.Execute(HistoryItems);
+                    }
+                }
+            }
+            catch (Exception) { }
         }
 
         private void ActionSendToOtherInstance_Click(object sender, RoutedEventArgs e)
@@ -288,7 +316,7 @@ namespace PixivWPF.Pages
                 Commands.ShellSendToOtherInstance.Execute(HistoryItems);
         }
 
-        private void ActionRefreshResult_Click(object sender, RoutedEventArgs e)
+        private void ActionRefresh_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem)
             {
@@ -311,25 +339,19 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void ActionSaveResult_Click(object sender, RoutedEventArgs e)
+        private void ActionSaveIllusts_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem)
             {
-                foreach (ImageItem item in HistoryItems.SelectedItems)
-                {
-                    Commands.SaveIllust.Execute(item);
-                }
+                Commands.SaveIllust.Execute(HistoryItems);
             }
         }
 
-        private void ActionSaveAllResult_Click(object sender, RoutedEventArgs e)
+        private void ActionSaveIllustsAll_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem)
             {
-                foreach (ImageItem item in HistoryItems.SelectedItems)
-                {
-                    Commands.SaveIllustAll.Execute(item);
-                }
+                Commands.SaveIllustAll.Execute(HistoryItems);
             }
         }
 
@@ -436,8 +458,8 @@ namespace PixivWPF.Pages
         private void HistoryIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             try
-            {                
-                Commands.Open.Execute(HistoryItems);
+            {
+                if (e.LeftButton == MouseButtonState.Pressed) Commands.Open.Execute(HistoryItems);
             }
             catch (Exception) { }
         }

@@ -16,20 +16,25 @@
       SizeChanged="Page_SizeChanged">
 
     <Page.Resources>
-        <ContextMenu x:Key="MenuHistoryResult">
-            <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Selected ID" Click="ActionCopyResultIllustID_Click">
+        <ContextMenu x:Name="MenuGallaryAction" x:Key="MenuGallaryAction">
+            <MenuItem x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionCopyIllustID_Click" >
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Name="ActionOpenResult" x:Uid="ActionOpenResult" Header="Open Selected Items" Click="ActionOpenResult_Click">
+            <MenuItem x:Uid="ActionIllustWebLink" Header="Copy Illust Weblink" Click="ActionCopyWeblink_Click" >
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionIllustSendToInstance" Header="Send Selected Items Other Instance" Click="ActionSendToOtherInstance_Click">
+            <MenuItem x:Uid="ActionAuthorWebLink" Header="Copy Author Weblink" Click="ActionCopyWeblink_Click" >
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionOpenIllust" Header="Open Selected Illusts" Click="ActionOpenSelected_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionReadIllustTitle" Header="Read Selected Illusts Title" Click="ActionSpeech_Click" >
@@ -39,8 +44,14 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator />
-            <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="ActionRefreshResult_Click">
+            <Separator x:Name="ActionSendSeparator" x:Uid="ActionSendSeparator"/>
+            <MenuItem x:Uid="ActionSendToInstance" Header="Send Selected To Other Instance" Click="ActionSendToOtherInstance_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator x:Name="ActionRefreshSeparator" x:Uid="ActionRefreshSeparator"/>
+            <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="ActionRefresh_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0"
                         Text="&#xE117;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -48,7 +59,7 @@
                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionRefreshThumb" Header="Refresh Thumbnails" Click="ActionRefreshResult_Click">
+            <MenuItem x:Uid="ActionRefreshThumb" Header="Refresh Thumbnails" Click="ActionRefresh_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0"
                         Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -56,23 +67,23 @@
                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator/>
-            <MenuItem x:Name="ActionSaveResult" x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="ActionSaveResult_Click" >
+            <Separator x:Name="ActionSaveSeparator" x:Uid="ActionSaveSeparator"/>
+            <MenuItem x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="ActionSaveIllusts_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Name="ActionSaveResultAll" x:Uid="ActionSaveIllustsAll" Header="Save Selected Illusts (All Pages)" Click="ActionSaveAllResult_Click" >
+            <MenuItem x:Uid="ActionSaveIllustsAll" Header="Save Selected Illusts (All Pages)" Click="ActionSaveIllustsAll_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Name="ActionOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illusts" Click="ActionOpenDownloaded_Click">
+            <MenuItem x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illusts" Click="ActionOpenDownloaded_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator x:Uid="ActionLikeIllustSeparator" />
+            <Separator x:Name="ActionLikeIllustSeparator" x:Uid="ActionLikeIllustSeparator" />
             <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
@@ -88,8 +99,8 @@
                     <iconPacks:PackIconModern Kind="HeartOutline" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator x:Uid="ActionLikeUserSeparator" />
-            <MenuItem x:Uid="ActionLikeUser" Header="Follow Selected" Click="ActionFollowAuthor_Click">
+            <Separator x:Name="ActionLikeUserSeparator" x:Uid="ActionLikeUserSeparator" />
+            <MenuItem x:Name="ActionLikeUser" x:Uid="ActionLikeUser" Header="Follow Selected" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
@@ -121,7 +132,7 @@
                 <Common:ImageListGrid x:Name="HistoryItems" x:Uid="HistoryItems"
                     Columns="5" TileWidth="128" TileHeight="128"
                     SelectionMode="Extended"
-                    ContextMenu="{StaticResource MenuHistoryResult}"
+                    ContextMenu="{StaticResource MenuGallaryAction}"
                     MouseDoubleClick="HistoryIllusts_MouseDoubleClick" />
             </Grid>
         </ScrollViewer>

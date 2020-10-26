@@ -16,7 +16,7 @@
 
     <Page.Resources>
         <ContextMenu x:Name="MenuSearchFilter" x:Key="MenuSearchFilter">
-            <MenuItem x:Name="SearchFilter_00000users" x:Uid="SearchFilter_00000users" Header="No Filter" Click="SearchFilter_Click"/>
+            <MenuItem x:Name="SearchFilter_00000users" x:Uid="SearchFilter_00000users" Header="No Filter" IsChecked="True" Click="SearchFilter_Click"/>
             <MenuItem x:Name="SearchFilter_00100users" x:Uid="SearchFilter_00100users" Header="100~500 Favs" Click="SearchFilter_Click"/>
             <MenuItem x:Name="SearchFilter_00500users" x:Uid="SearchFilter_00500users" Header="500~1000 Favs" Click="SearchFilter_Click"/>
             <MenuItem x:Name="SearchFilter_01000users" x:Uid="SearchFilter_01000users" Header="1000~3000 Favs" Click="SearchFilter_Click"/>
@@ -33,23 +33,34 @@
                     <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionIllustWebLink" Header="Copy Illust Weblink" Click="ActionCopyWeblink_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionAuthorWebLink" Header="Copy Author Weblink" Click="ActionCopyWeblink_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Name="ActionOpenResult" x:Uid="ActionOpenResult" Header="Open Selected Items" Click="ActionOpenResult_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionIllustSendToInstance" Header="Send Selected Items Other Instance" Click="ActionSendToOtherInstance_Click">
-                <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                </MenuItem.Icon>
-            </MenuItem>            
             <MenuItem x:Uid="ActionReadIllustTitle" Header="Read Selected Illusts Title" Click="ActionSpeech_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xEFA9;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>            
+            </MenuItem>
+            <Separator x:Name="ActionSendSeparator" x:Uid="ActionSendSeparator"/>
+            <MenuItem x:Uid="ActionSendToInstance" Header="Send Selected To Other Instance" Click="ActionSendToOtherInstance_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <Separator />
             <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="ActionRefreshResult_Click">
                 <MenuItem.Icon>
@@ -75,13 +86,14 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <Separator/>
             <MenuItem x:Name="ActionResultFilter" x:Uid="ActionResultFilter" Header="Result Filter" Click="SearchFilter_Click" ContextMenu="{StaticResource MenuSearchFilter}">
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE16E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-                <MenuItem x:Name="ActionFilter_00000users" x:Uid="SearchFilter_00000users" Header="No Filter" Click="SearchFilter_Click"/>
+                <MenuItem x:Name="ActionFilter_00000users" x:Uid="SearchFilter_00000users" Header="No Filter" IsChecked="True" Click="SearchFilter_Click"/>
                 <MenuItem x:Name="ActionFilter_00100users" x:Uid="SearchFilter_00100users" Header="100~500 Favs" Click="SearchFilter_Click"/>
                 <MenuItem x:Name="ActionFilter_00500users" x:Uid="SearchFilter_00500users" Header="500~1000 Favs" Click="SearchFilter_Click"/>
                 <MenuItem x:Name="ActionFilter_01000users" x:Uid="SearchFilter_01000users" Header="1000~3000 Favs" Click="SearchFilter_Click"/>
@@ -91,7 +103,7 @@
                 <MenuItem x:Name="ActionFilter_20000users" x:Uid="SearchFilter_20000users" Header="20000~30000 Favs" Click="SearchFilter_Click"/>
                 <MenuItem x:Name="ActionFilter_30000users" x:Uid="SearchFilter_30000users" Header="30000~50000 Favs" Click="SearchFilter_Click"/>
                 <MenuItem x:Name="ActionFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000+ Favs" Click="SearchFilter_Click"/>
-            </MenuItem>
+            </MenuItem>            
             <Separator/>
             <MenuItem x:Name="ActionSaveResult" x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="ActionSaveResult_Click" >
                 <MenuItem.Icon>
@@ -154,24 +166,24 @@
                 </Grid.RowDefinitions>
 
                 <!-- Illust Searched Results -->
-                <Expander Grid.Row="0" x:Name="ResultExpander" x:Uid="ResultIllustsExpander" 
+                <Expander Grid.Row="0" x:Name="ResultExpander" x:Uid="ResultItemsExpander" 
                           Margin="0,4,0,0"
                           IsExpanded="true" ExpandDirection="Down"
                           Visibility="Visible" Header="Search Results"
                           ContextMenu="{StaticResource MenuSearchResult}"
                           Expanded="ResultExpander_Expanded" Collapsed="ResultExpander_Collapsed">
-                    <Common:ImageListGrid x:Name="ResultIllusts" x:Uid="ResultIllusts"
+                    <Common:ImageListGrid x:Name="ResultItems" x:Uid="ResultItems"
                                           Columns="5" TileWidth="128" TileHeight="128"
                                           SelectionMode="Extended"
-                                          SelectionChanged="ResultIllusts_SelectionChanged" 
-                                          MouseDoubleClick="ResultIllusts_MouseDoubleClick" />
+                                          SelectionChanged="ResultItems_SelectionChanged" 
+                                          MouseDoubleClick="ResultItems_MouseDoubleClick" />
                 </Expander>
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,4,0,0" 
                             HorizontalAlignment="Right" VerticalAlignment="Top">
                     <Button 
                         x:Name="SearchFilter" x:Uid="ResultFilter" ToolTip="Results Filter"
                         Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" 
+                        Style="{DynamicResource MahApps.Styles.Button.DropDown}" Background="Transparent" 
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         ContextMenu="{StaticResource MenuSearchFilter}"

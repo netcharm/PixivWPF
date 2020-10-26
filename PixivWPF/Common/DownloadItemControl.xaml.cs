@@ -966,7 +966,7 @@ namespace PixivWPF.Common
         {
             if ((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
             {
-                Commands.CopyIllustIDs.Execute(Url);
+                Commands.CopyArtworkIDs.Execute(Url);
             }
             else if (sender == miCopyDonwnloadInfo)
             {

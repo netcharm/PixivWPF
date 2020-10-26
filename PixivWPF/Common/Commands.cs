@@ -51,6 +51,33 @@ namespace PixivWPF.Common
         private const int HEIGHT_MAX = 1024;
         private const int WIDTH_DEF = 1280;
 
+        private static bool IsPagesGallary(ImageListGrid gallery)
+        {
+            bool result = false;
+            try
+            {
+                if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
+                    result = true;
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        private static bool IsNormalGallary(ImageListGrid gallery)
+        {
+            bool result = false;
+            try
+            {
+                if (gallery.Name.Equals("RelativeItems", StringComparison.CurrentCultureIgnoreCase) ||
+                    gallery.Name.Equals("ResultItems", StringComparison.CurrentCultureIgnoreCase) ||
+                    gallery.Name.Equals("FavoriteItems", StringComparison.CurrentCultureIgnoreCase) ||
+                    gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
+                    result = false;
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
         public static ICommand Login { get; } = new DelegateCommand(() =>
         {
             var setting = Application.Current.LoadSetting();
@@ -129,16 +156,13 @@ namespace PixivWPF.Common
             catch (Exception) { }
         });
 
-        public static ICommand CopyIllustIDs { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand CopyArtworkIDs { get; } = new DelegateCommand<dynamic>(obj =>
         {
             var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "id:" : string.Empty;
             if (obj is ImageListGrid)
             {
                 var gallery = obj as ImageListGrid;
-                if (gallery.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
+                if (IsNormalGallary(gallery))
                 {
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
@@ -148,15 +172,11 @@ namespace PixivWPF.Common
                             var id = $"{prefix}{item.ID}";
                             if (!ids.Contains(id)) ids.Add(id);
                         }
-                        //else if (item.IsUser())
-                        //{
-                        //    var id = $"u{prefix}{item.ID}";
-                        //    if (!ids.Contains(id)) ids.Add(id);
-                        //}
                     }
+                    ids.Add("");
                     CopyText.Execute(string.Join(Environment.NewLine, ids));
                 }
-                else if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
+                else if (IsPagesGallary(gallery))
                 {
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
@@ -191,16 +211,13 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand CopyUserIDs { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand CopyArtistIDs { get; } = new DelegateCommand<dynamic>(obj =>
         {
             var prefix = Keyboard.Modifiers == ModifierKeys.Control ? "uid:" : string.Empty;
             if (obj is ImageListGrid)
             {
                 var gallery = obj as ImageListGrid;
-                if (gallery.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
+                if (IsNormalGallary(gallery))
                 {
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
@@ -208,9 +225,10 @@ namespace PixivWPF.Common
                         var uid = $"{prefix}{item.UserID}";
                         if (!ids.Contains(uid)) ids.Add(uid);
                     }
+                    ids.Add("");
                     CopyText.Execute(string.Join(Environment.NewLine, ids));
                 }
-                else if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
+                else if (IsPagesGallary(gallery))
                 {
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
@@ -242,6 +260,108 @@ namespace PixivWPF.Common
             {
                 var id = (obj as string).ParseLink().ParseID();
                 if (!string.IsNullOrEmpty(id)) CopyText.Execute($"{prefix}{id}");
+            }
+        });
+
+        public static ICommand CopyArtworkWeblinks { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is ImageListGrid)
+            {
+                var gallery = obj as ImageListGrid;
+                if (IsNormalGallary(gallery))
+                {
+                    var ids = new  List<string>();
+                    foreach (var item in gallery.GetSelected())
+                    {
+                        if (item.IsWork())
+                        {
+                            var id = $"{item.ID.ArtworkLink()}";
+                            if (!ids.Contains(id)) ids.Add(id);
+                        }
+                    }
+                    ids.Add("");
+                    CopyText.Execute(string.Join(Environment.NewLine, ids));
+                }
+                else if (IsPagesGallary(gallery))
+                {
+                    var page = gallery.TryFindParent<IllustDetailPage>();
+                    if (page is IllustDetailPage)
+                    {
+                        if (page.Contents is ImageItem && page.Contents.IsWork())
+                            CopyText.Execute($"{page.Contents.ID.ArtworkLink()}");
+                    }
+                }
+            }
+            else if (obj is ImageItem)
+            {
+                var item = obj as ImageItem;
+                if (item.IsWork())
+                {
+                    CopyText.Execute(item.ID.ArtworkLink());
+                }
+            }
+            else if (obj is IEnumerable<string>)
+            {
+                var ids = new List<string>();
+                foreach (var s in (obj as IEnumerable<string>))
+                {
+                    var id = s.ArtworkLink();
+                    if (!ids.Contains(id)) ids.Add(id);
+                }
+                CopyText.Execute(string.Join(Environment.NewLine, ids));
+            }
+            else if (obj is string)
+            {
+                var id = (obj as string).ParseLink().ParseID();
+                if (!string.IsNullOrEmpty(id)) CopyText.Execute($"{id.ArtworkLink()}");
+            }
+        });
+
+        public static ICommand CopyArtistWeblinks { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is ImageListGrid)
+            {
+                var gallery = obj as ImageListGrid;
+                if (IsNormalGallary(gallery))
+                {
+                    var ids = new  List<string>();
+                    foreach (var item in gallery.GetSelected())
+                    {
+                        var id = $"{item.UserID.ArtistLink()}";
+                        if (!ids.Contains(id)) ids.Add(id);
+                    }
+                    ids.Add("");
+                    CopyText.Execute(string.Join(Environment.NewLine, ids));
+                }
+                else if (IsPagesGallary(gallery))
+                {
+                    var page = gallery.TryFindParent<IllustDetailPage>();
+                    if (page is IllustDetailPage)
+                    {
+                        if (page.Contents is ImageItem)
+                            CopyText.Execute($"{page.Contents.UserID.ArtistLink()}");
+                    }
+                }
+            }
+            else if (obj is ImageItem)
+            {
+                var item = obj as ImageItem;
+                CopyText.Execute(item.UserID.ArtistLink());
+            }
+            else if (obj is IEnumerable<string>)
+            {
+                var ids = new List<string>();
+                foreach (var s in (obj as IEnumerable<string>))
+                {
+                    var id = s.ArtistLink();
+                    if (!ids.Contains(id)) ids.Add(id);
+                }
+                CopyText.Execute(string.Join(Environment.NewLine, ids));
+            }
+            else if (obj is string)
+            {
+                var id = (obj as string).ParseLink().ParseID();
+                if (!string.IsNullOrEmpty(id)) CopyText.Execute($"{id.ArtistLink()}");
             }
         });
 
@@ -519,14 +639,11 @@ namespace PixivWPF.Common
             if (obj is ImageListGrid)
             {
                 var gallery = obj as ImageListGrid;
-                if (gallery.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
+                if (IsNormalGallary(gallery))
                 {
                     OpenItem.Execute(gallery);
                 }
-                else if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
+                else if (IsPagesGallary(gallery))
                 {
                     OpenWorkPreview.Execute(gallery);
                 }
@@ -1109,10 +1226,7 @@ namespace PixivWPF.Common
             else if (obj is ImageListGrid)
             {
                 var gallery = obj as ImageListGrid;
-                if (gallery.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
+                if (IsNormalGallary(gallery))
                 {
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
@@ -1130,7 +1244,7 @@ namespace PixivWPF.Common
                     }
                     SendToOtherInstance.Execute(ids);
                 }
-                else if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
+                else if (IsPagesGallary(gallery))
                 {
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
@@ -1187,10 +1301,7 @@ namespace PixivWPF.Common
             else if (obj is ImageListGrid)
             {
                 var gallery = obj as ImageListGrid;
-                if (gallery.Name.Equals("RelativeIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("ResultIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("FavoriteIllusts", StringComparison.CurrentCultureIgnoreCase) ||
-                    gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
+                if (IsNormalGallary(gallery))
                 {
                     var ids = new  List<string>();
                     foreach (var item in gallery.GetSelected())
@@ -1200,7 +1311,7 @@ namespace PixivWPF.Common
                     }
                     ShellSendToOtherInstance.Execute(ids);
                 }
-                else if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
+                else if (IsPagesGallary(gallery))
                 {
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)

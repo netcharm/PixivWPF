@@ -29,7 +29,17 @@
                     <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionOpenIllust" Header="Open Selected Illusts" Click="ActionOpenSelectedIllust_Click" >
+            <MenuItem x:Uid="ActionIllustWebLink" Header="Copy Illust Weblink" Click="ActionCopyWeblink_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionAuthorWebLink" Header="Copy Author Weblink" Click="ActionCopyWeblink_Click" >
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Uid="ActionOpenIllust" Header="Open Selected Illusts" Click="ActionOpenSelected_Click" >
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
@@ -41,7 +51,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator />
+            <Separator x:Name="ActionSendSeparator" x:Uid="ActionSendSeparator"/>
             <MenuItem x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionSendToOtherInstance_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
@@ -52,7 +62,7 @@
                     <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator />
+            <Separator x:Name="ActionRefreshSeparator" x:Uid="ActionRefreshSeparator"/>
             <MenuItem x:Uid="ActionRefresh" Header="Refresh Illusts" Click="ActionRefreshIllusts_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0"
@@ -69,7 +79,7 @@
                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator x:Uid="ActionNavPageSeparator"/>
+            <Separator x:Name="ActionNavPageSeparator" x:Uid="ActionNavPageSeparator"/>
             <MenuItem x:Uid="ActionPrevPage" Header="Open Previous Page" Click="ActionPrevPage_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -84,7 +94,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator />
+            <Separator x:Name="ActionSaveSeparator" x:Uid="ActionSaveSeparator"/>
             <MenuItem x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="ActionSaveIllusts_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
@@ -100,7 +110,7 @@
                     <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator x:Uid="ActionLikeIllustSeparator" />
+            <Separator x:Name="ActionLikeIllustSeparator" x:Uid="ActionLikeIllustSeparator" />
             <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
@@ -116,8 +126,8 @@
                     <iconPacks:PackIconModern Kind="HeartOutline" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <Separator x:Uid="ActionLikeUserSeparator" />
-            <MenuItem x:Uid="ActionLikeUser" Header="Follow Selected" Click="ActionFollowAuthor_Click">
+            <Separator x:Name="ActionLikeUserSeparator" x:Uid="ActionLikeUserSeparator" />
+            <MenuItem x:Name="ActionLikeUser" x:Uid="ActionLikeUser" Header="Follow Selected" Click="ActionFollowAuthor_Click">
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="Check" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
@@ -629,6 +639,12 @@
                                             <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
+                                    <MenuItem x:Name="ActionAuthorWebLink" x:Uid="ActionAuthorWebLink" 
+                                          Header="Copy Author Weblink" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconModern Kind="Link" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>                                    
                                     <Separator />
                                     <MenuItem x:Name="ActionSendIllustToInstance" x:Uid="ActionSendIllustToInstance" 
                                           Header="Send Illust To Other Instance" Visibility="Visible" Click="ActionIllustInfo_Click">
@@ -844,6 +860,7 @@
                           IsExpanded="True" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Illust Sets Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
+                          ContextMenuOpening="IllustActions_ContextMenuOpening"
                           Expanded="SubIllustsExpander_Expanded" Collapsed="SubIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
                                           Columns="5" TileWidth="128" TileHeight="128"
@@ -902,20 +919,21 @@
                 </StackPanel>
 
                 <!-- Illust Relatives -->
-                <Expander Grid.Row="5" x:Name="RelativeIllustsExpander" x:Uid="RelativeIllustsExpander" 
+                <Expander Grid.Row="5" x:Name="RelativeItemsExpander" x:Uid="RelativeItemsExpander" 
                           Margin="0,4,0,0"
                           IsExpanded="True" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Relative Illust Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
-                          Expanded="RelativeIllustsExpander_Expanded" Collapsed="RelativeIllustsExpander_Collapsed">
-                    <Common:ImageListGrid x:Name="RelativeIllusts" x:Uid="RelativeIllusts"
+                          ContextMenuOpening="IllustActions_ContextMenuOpening"
+                          Expanded="RelativeItemsExpander_Expanded" Collapsed="RelativeItemsExpander_Collapsed">
+                    <Common:ImageListGrid x:Name="RelativeItems" x:Uid="RelativeItems"
                                           Columns="5" TileWidth="128" TileHeight="128"
                                           Focusable="True"
                                           SelectionMode="Extended"
-                                          SelectionChanged="RelativeIllusts_SelectionChanged" 
-                                          MouseDoubleClick="RelativeIllusts_MouseDoubleClick" 
-                                          MouseWheel="RelativeIllusts_MouseWheel" 
-                                          KeyUp="RelativeIllusts_KeyUp" />
+                                          SelectionChanged="RelativeItems_SelectionChanged" 
+                                          MouseDoubleClick="RelativeItems_MouseDoubleClick" 
+                                          MouseWheel="RelativeItems_MouseWheel" 
+                                          KeyUp="RelativeItems_KeyUp" />
                 </Expander>
                 <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="0,4,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Top" >
@@ -961,14 +979,15 @@
                 </StackPanel>
 
                 <!-- Illust Author Favorites -->
-                <Expander Grid.Row="6" x:Name="FavoriteIllustsExpander" x:Uid="RelativeIllustsExpander" 
+                <Expander Grid.Row="6" x:Name="FavoriteItemsExpander" x:Uid="RelativeItemsExpander" 
                           Margin="0,4,0,0"
                           IsExpanded="True" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Author Favorites Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
-                          Collapsed="FavoriteIllustsExpander_Collapsed"
-                          Expanded="FavoriteIllustsExpander_Expanded">
-                    <Common:ImageListGrid x:Name="FavoriteIllusts" x:Uid="RelativeIllusts"
+                          ContextMenuOpening="IllustActions_ContextMenuOpening"
+                          Collapsed="FavoriteItemsExpander_Collapsed"
+                          Expanded="FavoriteItemsExpander_Expanded">
+                    <Common:ImageListGrid x:Name="FavoriteItems" x:Uid="RelativeItems"
                                           Columns="5" TileWidth="128" TileHeight="128"
                                           Focusable="True"
                                           SelectionMode="Extended"

@@ -344,7 +344,7 @@ namespace PixivWPF.Pages
             if (Contents is ImageItem)
             {
                 if (sender == ActionCopyIllustID)
-                    Commands.CopyIllustIDs.Execute(Contents);
+                    Commands.CopyArtworkIDs.Execute(Contents);
                 else if (sender == ActionOpenIllust)
                     Commands.Open.Execute(Contents.Illust);
                 else if (sender == ActionOpenAuthor)

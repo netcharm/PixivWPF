@@ -1956,7 +1956,7 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("uid:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var id = link.Substring(4).Trim();
-                        var u_link = id.UserLink();
+                        var u_link = id.ArtistLink();
                         var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
                         if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
                     }
@@ -1964,7 +1964,7 @@ namespace PixivWPF.Common
                              link.StartsWith("users/", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var id = Regex.Replace(link, @"(((user)|(users))/(\d+))", "$5", opt).Trim();
-                        var u_link = id.UserLink();
+                        var u_link = id.ArtistLink();
                         var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
                         if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
                     }
@@ -1987,7 +1987,7 @@ namespace PixivWPF.Common
                         if (Regex.IsMatch(user, @"(.+)\s/\s(\d+)\s/\s(.+)", opt))
                         {
                             var uid = Regex.Replace(user, @"(.+)\s/\s(\d+)\s/\s(.+)", "$2", opt);
-                            var u_link = uid.UserLink();
+                            var u_link = uid.ArtistLink();
                             var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={uid}";
                             if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
                         }
@@ -2049,7 +2049,7 @@ namespace PixivWPF.Common
 
                                 if (!IsFile)
                                 {
-                                    var u_link = id.UserLink();
+                                    var u_link = id.ArtistLink();
                                     var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
                                     if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
                                 }
@@ -2076,12 +2076,12 @@ namespace PixivWPF.Common
             return (id < 0 ? string.Empty : $"https://www.pixiv.net/artworks/{id}");
         }
 
-        public static string UserLink(this string uid)
+        public static string ArtistLink(this string uid)
         {
             return (string.IsNullOrEmpty(uid) ? string.Empty : $"https://www.pixiv.net/users/{uid}");
         }
 
-        public static string UserLink(this long uid)
+        public static string ArtistLink(this long uid)
         {
             return (uid < 0 ? string.Empty : $"https://www.pixiv.net/users/{uid}");
         }
@@ -5234,6 +5234,17 @@ namespace PixivWPF.Common
         #endregion
 
         #region UI Element Show/Hide
+        public static string GetUid(this object obj)
+        {
+            string result = string.Empty;
+
+            if(obj is UIElement)
+            {
+                result = (obj as UIElement).Uid;
+            }
+
+            return (result);
+        }
         public static void UpdateTheme(this Window win, Image icon = null)
         {
             try
@@ -5335,57 +5346,72 @@ namespace PixivWPF.Common
 
         public static void Show(this UIElement element, bool show, bool parent = false)
         {
-            if (show)
-                element.Visibility = Visibility.Visible;
-            else
-                element.Visibility = Visibility.Collapsed;
+            if (element is UIElement)
+            {
+                if (show)
+                    element.Visibility = Visibility.Visible;
+                else
+                    element.Visibility = Visibility.Collapsed;
 
-            if (parent && element.GetParentObject() is UIElement)
-                (element.GetParentObject() as UIElement).Visibility = element.Visibility;
+                if (parent && element.GetParentObject() is UIElement)
+                    (element.GetParentObject() as UIElement).Visibility = element.Visibility;
+            }
         }
 
         public static void Show(this UIElement element, bool parent = false)
         {
-            element.Show(true, parent);
+            if (element is UIElement) element.Show(true, parent);
         }
 
         public static void Hide(this UIElement element, bool parent = false)
         {
-            element.Show(false, parent);
+            if(element is UIElement) element.Show(false, parent);
         }
 
         public static void Enable(this Control element, bool state, bool show = true)
         {
-            element.IsEnabled = state;
-            element.Foreground = state ? Theme.AccentBrush : Theme.GrayBrush;
-            if (show)
-                element.Visibility = Visibility.Visible;
-            else
-                element.Visibility = Visibility.Collapsed;
+            if (element is Control)
+            {
+                element.IsEnabled = state;
+                element.Foreground = state ? Theme.AccentBrush : Theme.GrayBrush;
+                if (show)
+                    element.Visibility = Visibility.Visible;
+                else
+                    element.Visibility = Visibility.Collapsed;
+            }
         }
 
         public static void Enable(this Control element)
         {
-            element.IsEnabled = true;
-            element.Foreground = Theme.AccentBrush;
-            element.Visibility = Visibility.Visible;
+            if (element is Control)
+            {
+                element.IsEnabled = true;
+                element.Foreground = Theme.AccentBrush;
+                element.Visibility = Visibility.Visible;
+            }
         }
 
         public static void Disable(this Control element, bool state, bool show = true)
         {
-            element.IsEnabled = !state;
-            element.Foreground = state ? Theme.GrayBrush : Theme.AccentBrush;
-            if (show)
-                element.Visibility = Visibility.Visible;
-            else
-                element.Visibility = Visibility.Collapsed;
+            if (element is Control)
+            {
+                element.IsEnabled = !state;
+                element.Foreground = state ? Theme.GrayBrush : Theme.AccentBrush;
+                if (show)
+                    element.Visibility = Visibility.Visible;
+                else
+                    element.Visibility = Visibility.Collapsed;
+            }
         }
 
         public static void Disable(this Control element)
         {
-            element.IsEnabled = false;
-            element.Foreground = Theme.GrayBrush;
-            element.Visibility = Visibility.Visible;
+            if (element is Control)
+            {
+                element.IsEnabled = false;
+                element.Foreground = Theme.GrayBrush;
+                element.Visibility = Visibility.Visible;
+            }
         }
         #endregion
 
