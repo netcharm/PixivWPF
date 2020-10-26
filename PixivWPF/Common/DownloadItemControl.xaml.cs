@@ -815,7 +815,7 @@ namespace PixivWPF.Common
             if (Downloading is SemaphoreSlim) Downloading.Release();
         }
 
-        private async Task<string> DownloadDirectAsync(bool continuation = true)
+        private async Task<string> DownloadDirectAsync(bool continuation = true, bool restart=false)
         {
             string result = string.Empty;
 
@@ -836,14 +836,13 @@ namespace PixivWPF.Common
                     FailReason = string.Empty;
                     State = DownloadState.Downloading;
 
-                    if (!continuation)
+                    if (restart)
                     {
                         if (_DownloadStream is MemoryStream)
                         {
                             _DownloadStream.Close();
                             _DownloadStream.Dispose();
                             _DownloadStream = null;
-                            continuation = true;
                         }
                     }
 
@@ -955,7 +954,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private async void Start(bool continuation = true)
+        private async void Start(bool continuation = true, bool restart = false)
         {
             setting = Application.Current.LoadSetting();
             HTTP_STREAM_READ_COUNT = setting.DownloadHttpStreamBlockSize;
@@ -1053,6 +1052,7 @@ namespace PixivWPF.Common
         private void Download_Loaded(object sender, RoutedEventArgs e)
         {
             CheckProperties();
+            setting = Application.Current.LoadSetting();
             //PART_DownloadProgress.IsEnabled = true;
             if (AutoStart)
             {
@@ -1060,7 +1060,7 @@ namespace PixivWPF.Common
                 else if (State == DownloadState.Idle) //|| State == DownloadState.Failed)
                 {
                     if (string.IsNullOrEmpty(Url) && !string.IsNullOrEmpty(PART_FileURL.Text)) Url = PART_FileURL.Text;
-                    if(IsStart && !IsDownloading) Start();
+                    if(IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
                 }
             }
         }
@@ -1068,11 +1068,13 @@ namespace PixivWPF.Common
         private void PART_Download_TargetUpdated(object sender, DataTransferEventArgs e)
         {
             CheckProperties();
-            if (IsStart && !IsDownloading) Start();
+            setting = Application.Current.LoadSetting();
+            if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
         }
 
         private async void miActions_Click(object sender, RoutedEventArgs e)
         {
+            setting = Application.Current.LoadSetting();
             if ((sender == miCopyIllustID || sender == PART_CopyIllustID) && !string.IsNullOrEmpty(Url))
             {
                 Commands.CopyArtworkIDs.Execute(Url);
@@ -1091,12 +1093,13 @@ namespace PixivWPF.Common
             }
             else if (sender == miDownload || sender == PART_Download)
             {
-                var continuation = Keyboard.Modifiers == ModifierKeys.Control ? false : true;
-                Start(continuation);
+                var continuation = !(Keyboard.Modifiers == ModifierKeys.Control ? false : true);
+                Start(setting.DownloadWithFailResume && continuation, false);
             }
             else if (sender == miDownloadRestart)
             {
-                Start(false);
+                var continuation = !(Keyboard.Modifiers == ModifierKeys.Control ? false : true);
+                Start(setting.DownloadWithFailResume && continuation, true);
             }
             else if (sender == miRemove || sender == PART_Remove)
             {

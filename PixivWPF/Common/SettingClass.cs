@@ -765,6 +765,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool download_resume = true;
+        public bool DownloadWithFailResume
+        {
+            get { return (Cache is Setting ? Cache.download_resume : download_resume); }
+            set
+            {
+                download_resume = value;
+                if (Cache is Setting) Cache.download_resume = download_resume;
+            }
+        }
+
         private int download_http_timeout = 30;
         public int DownloadHttpTimeout
         {
@@ -1277,7 +1288,7 @@ namespace PixivWPF.Common
             get { return (Cache is Setting ? Cache.local_storage : local_storage); }
             set
             {
-                local_storage = value;
+                local_storage = value.Distinct().ToList();
                 if (Cache is Setting) Cache.local_storage = local_storage;
             }
         }
