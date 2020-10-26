@@ -247,6 +247,41 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region Network
+        public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start=0, long range_count =0)
+        {
+            var setting = LoadSetting(app);
+            HttpClientHandler handler = new HttpClientHandler()
+            {
+                AllowAutoRedirect = true,
+                MaxAutomaticRedirections = 15,
+                //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
+                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
+                UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
+            };
+
+            var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout), MaxResponseContentBufferSize = 100 * 1024 * 1024 };
+            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
+            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
+            httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
+            //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+            httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+            //httpClient.DefaultRequestHeaders.Add("Connection", "Close");
+            httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
+            //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
+            //httpClient.DefaultRequestHeaders.ConnectionClose = true;
+            if(continuation)
+            {
+                var start = $"{range_start}";
+                var end = range_count > 0 ? $"{range_count}" : string.Empty;
+                httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
+            }
+
+            return (httpClient);
+        }
+        #endregion
+
         #region Theme Helper
         public static IList<string> GetAccents(this Application app)
         {
@@ -3735,21 +3770,10 @@ namespace PixivWPF.Common
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
                 setting = Application.Current.LoadSetting();
-                HttpClientHandler handler = new HttpClientHandler()
-                {
-                    AllowAutoRedirect = true,
-                    MaxAutomaticRedirections = 15,
-                    //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
-                    Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
-                    UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
-                };
-
-                using (var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout) })
+                using (var httpClient = Application.Current.GetHttpClient())
                 {
                     try
                     {
-                        httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
-                        httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
                         var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
                         response.EnsureSuccessStatusCode();
                         string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();

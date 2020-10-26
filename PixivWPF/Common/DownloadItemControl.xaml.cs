@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace PixivWPF.Common
@@ -609,21 +610,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private MemoryStream _DownloadStream = null;
         private HttpClient httpClient = null;
-        private async Task<HttpResponseMessage> GetAsyncResponse(string Url)
+        private async Task<HttpResponseMessage> GetAsyncResponse(string Url, bool continuation = false)
         {
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                AllowAutoRedirect = true,
-                MaxAutomaticRedirections = 15,
-                //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
-                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
-                UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
-            };
-
-            httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(HTTP_TIMEOUT), MaxResponseContentBufferSize = 100*1024*1024 };
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
-            httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+            var start = _DownloadStream is MemoryStream ? _DownloadStream.Length : 0;
+            httpClient = Application.Current.GetHttpClient(continuation, start);
             return (await httpClient.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead));
         }
 
@@ -639,6 +631,7 @@ namespace PixivWPF.Common
                 if (Length > 0)
                 {
                     finishedProgress = new Tuple<double, double>(Length, Length);
+                    UpdateProgress();
 
                     using (var cs = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                     {
@@ -697,6 +690,98 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private async Task<string> DownloadStreamAsync(HttpResponseMessage response, bool continuation)
+        {
+            string result = string.Empty;
+            try
+            {
+                UpdateProgress();
+                response.EnsureSuccessStatusCode();
+                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                var length = response.Content.Headers.ContentLength ?? 0;
+                var range = response.Content.Headers.ContentRange ?? default(System.Net.Http.Headers.ContentRangeHeaderValue);
+                var pos = range.From ?? 0;
+                Length =  range.Length ?? 0;
+                if (length > 0)
+                {
+                    finishedProgress = new Tuple<double, double>(Length, Length);
+
+                    if (!continuation || !(_DownloadStream is MemoryStream))
+                    {
+                        _DownloadStream = new MemoryStream();
+                    }
+
+                    using (var cs = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            if (continuation)
+                            {
+                                _DownloadStream.Seek(0, SeekOrigin.Begin);
+                                await _DownloadStream.CopyToAsync(ms);
+                                await _DownloadStream.FlushAsync();
+                                await ms.FlushAsync();
+                                ms.Seek(pos, SeekOrigin.Begin);
+                                _DownloadStream.Seek(pos, SeekOrigin.Begin);
+                            }
+                            lastReceived = ms.Length;
+                            Received = ms.Length;
+                            UpdateProgress();
+
+                            byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
+                            int bytesread = 0;
+                            do
+                            {
+                                if (IsCanceling || State == DownloadState.Failed)
+                                {
+                                    throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
+                                }
+
+                                bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
+                                EndTick = DateTime.Now;
+
+                                if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
+                                {
+                                    lastReceived += bytesread;
+                                    Received += bytesread;
+                                    await _DownloadStream.WriteAsync(bytes, 0, bytesread);
+                                    await ms.WriteAsync(bytes, 0, bytesread);
+                                    UpdateProgress();
+                                }
+                            } while (bytesread > 0 && Received < Length);
+
+                            if (Received == Length && State == DownloadState.Downloading)
+                            {
+                                result = SaveFile(FileName, ms.ToArray());
+                            }
+                            else
+                            {
+                                throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size not matched with server's size.");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    result = await Url.DownloadImage(FileName);
+                    result.Touch(Url);
+                    Length = result.GetFileLength();
+                    if (Length <= 0) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File not exists.");
+                    Received = Length;
+                    State = DownloadState.Finished;
+                }
+            }
+            catch (Exception ex)
+            {
+                FailReason = ex.Message;
+            }
+            finally
+            {
+
+            }
+            return (result);
+        }
+
         private void DownloadFinally(out string result)
         {
             result = string.Empty;
@@ -710,6 +795,9 @@ namespace PixivWPF.Common
             {
                 result = FileName;
                 EndTick = DateTime.Now;
+                _DownloadStream.Close();
+                _DownloadStream.Dispose();
+                _DownloadStream = null;
 
                 if (setting.DownloadCompletedToast)
                     $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
@@ -727,7 +815,7 @@ namespace PixivWPF.Common
             if (Downloading is SemaphoreSlim) Downloading.Release();
         }
 
-        private async Task<string> DownloadDirectAsync()
+        private async Task<string> DownloadDirectAsync(bool continuation = true)
         {
             string result = string.Empty;
 
@@ -748,14 +836,35 @@ namespace PixivWPF.Common
                     FailReason = string.Empty;
                     State = DownloadState.Downloading;
 
-                    lastReceived = 0;
-                    Length = Received = 0;
-                    UpdateProgress();
+                    if (!continuation)
+                    {
+                        if (_DownloadStream is MemoryStream)
+                        {
+                            _DownloadStream.Close();
+                            _DownloadStream.Dispose();
+                            _DownloadStream = null;
+                            continuation = true;
+                        }
+                    }
 
-                    using (var response = await GetAsyncResponse(Url))
+                    if (_DownloadStream is MemoryStream)
+                    {
+                        lastReceived = _DownloadStream.Length;
+                        Received = lastReceived;
+                        UpdateProgress();
+                    }
+                    else
+                    {
+                        _DownloadStream = new MemoryStream();
+                        lastReceived = 0;
+                        Length = Received = 0;
+                        UpdateProgress();
+                    }
+
+                    using (var response = await GetAsyncResponse(Url, continuation))
                     {
                         EndTick = DateTime.Now;
-                        await DownloadStreamAsync(response);
+                        await DownloadStreamAsync(response, continuation);
                     }
                 }
                 catch (Exception ex)
@@ -846,7 +955,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private async void Start()
+        private async void Start(bool continuation = true)
         {
             setting = Application.Current.LoadSetting();
             HTTP_STREAM_READ_COUNT = setting.DownloadHttpStreamBlockSize;
@@ -888,7 +997,7 @@ namespace PixivWPF.Common
                         if (Application.Current.DownloadUsingToken())
                             target_file = await DownloadAsync();
                         else
-                            target_file = await DownloadDirectAsync();
+                            target_file = await DownloadDirectAsync(continuation);
                     }).InvokeAsync();
                 }
             }
@@ -976,13 +1085,18 @@ namespace PixivWPF.Common
             {
                 var illust = Url.GetIllustId().FindIllust();
                 if (illust is Pixeez.Objects.Work)
-                    Commands.Open.Execute(illust);
+                    Commands.OpenWork.Execute(illust);
                 else
-                    Commands.Open.Execute(Url);
+                    Commands.OpenWork.Execute(Url);
             }
             else if (sender == miDownload || sender == PART_Download)
             {
-                Start();
+                var continuation = Keyboard.Modifiers == ModifierKeys.Control ? false : true;
+                Start(continuation);
+            }
+            else if (sender == miDownloadRestart)
+            {
+                Start(false);
             }
             else if (sender == miRemove || sender == PART_Remove)
             {

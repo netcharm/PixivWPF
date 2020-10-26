@@ -59,6 +59,11 @@
                         <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem x:Name="miDownloadRestart" x:Uid="DownloadRestart" Header="Restart Download" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="miOpenImage" x:Uid="OpenFile" Header="View Image" Click="miActions_Click">
                     <MenuItem.Icon>
