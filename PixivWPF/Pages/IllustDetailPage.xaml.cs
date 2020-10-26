@@ -25,6 +25,11 @@ namespace PixivWPF.Pages
 
         public ImageItem Contents { get; set; } = null;
 
+        private const int PAGE_ITEMS = 30;
+        private int page_count = 0;
+        private int page_number = 0;
+        private int page_index = 0;
+        
         private string PreviewImageUrl = string.Empty;
 
         #region WebBrowser Helper
@@ -726,6 +731,8 @@ namespace PixivWPF.Pages
                     PreviewBadge.Show();
                     SubIllustsExpander.Show();
                     SubIllustsExpander.IsExpanded = true;
+                    var total = item.Illust.PageCount;
+                    page_count = (total / PAGE_ITEMS + (total % PAGE_ITEMS > 0 ? 1 : 0)).Value;
                 }
                 else
                 {
@@ -908,7 +915,7 @@ namespace PixivWPF.Pages
         #endregion
 
         #region subillusts/relative illusts/favorite illusts helper
-        private async Task ShowIllustPages(ImageItem item, int index = 0, int start = 0, int count = 30)
+        private async Task ShowIllustPages(ImageItem item, int index = 0, int page = 0, int count = -1)
         {
             try
             {
@@ -916,49 +923,47 @@ namespace PixivWPF.Pages
 
                 if (item.Illust is Pixeez.Objects.Work)
                 {
-                    var total = item.Illust.PageCount;
-                    var pageCount = (total / count + (total % count > 0 ? 1 : 0)).Value;
-                    var pageNum = SubIllusts.Tag is int ? (int)(SubIllusts.Tag) : 0;
+                    if (count < 0) count = PAGE_ITEMS;
+                    //var total = item.Illust.PageCount;
+                    //page_count = (total / count + (total % count > 0 ? 1 : 0)).Value;
 
                     #region Update sub-pages nav button
-                    if (pageNum <= 0)
+                    if (page <= 0)
                     {
-                        pageNum = 0;
+                        page_number = 0;
                         SubIllustPrevPages.Hide();
                     }
                     else
                         SubIllustPrevPages.Show();
 
-                    if (pageNum >= pageCount - 1)
+                    if (page_number >= page_count - 1)
                     {
-                        pageNum = pageCount - 1;
+                        page_number = page_count - 1;
                         SubIllustNextPages.Hide();
                     }
                     else
                         SubIllustNextPages.Show();
 
-                    SubIllusts.Tag = pageNum;
                     this.DoEvents();
                     #endregion
 
-                    start = pageNum * count;
-                    var end = start + count;
-
+                    var idx = page * count;
                     if (item.Illust is Pixeez.Objects.IllustWork)
                     {
                         var subset = item.Illust as Pixeez.Objects.IllustWork;
                         if (subset.meta_pages.Count() > 1)
                         {
-                            total = subset.meta_pages.Count();
-                            var pages = subset.meta_pages.Skip(start).Take(count).ToList();
+                            //total = subset.meta_pages.Count();
+                            //page_count = (total / count + (total % count > 0 ? 1 : 0)).Value;
+
+                            var pages = subset.meta_pages.Skip(idx).Take(count).ToList();
                             SubIllusts.Items.Clear();
-                            for (var i = start; i < end; i++)
+                            for (var i = 0; i < pages.Count; i++)
                             {
-                                if (i == total) break;
-                                var p = pages[i-start];
-                                p.AddTo(SubIllusts.Items, item.Illust, i, item.NextURL);
-                                this.DoEvents();
+                                var p = pages[i];
+                                p.AddTo(SubIllusts.Items, item.Illust, i + idx, item.NextURL);
                             }
+                            this.DoEvents();
                         }
                     }
                     else if (item.Illust is Pixeez.Objects.NormalWork)
@@ -967,23 +972,21 @@ namespace PixivWPF.Pages
                         if (subset.PageCount >= 1 && subset.Metadata == null)
                         {
                             var illust = await item.Illust.RefreshIllust();
-                            if (illust is Pixeez.Objects.Work)
-                            {
-                                item.Illust = illust;
-                            }
+                            if (illust is Pixeez.Objects.Work) item.Illust = illust;
                         }
                         if (item.Illust.Metadata is Pixeez.Objects.Metadata)
                         {
-                            total = item.Illust.Metadata.Pages.Count();
-                            var pages = item.Illust.Metadata.Pages.Skip(start).Take(count).ToList();
+                            //total = item.Illust.Metadata.Pages.Count();
+                            //page_count = (total / count + (total % count > 0 ? 1 : 0)).Value;
+
+                            var pages = item.Illust.Metadata.Pages.Skip(idx).Take(count).ToList();
                             SubIllusts.Items.Clear();
-                            for (var i = start; i < end; i++)
+                            for (var i = 0; i < pages.Count; i++)
                             {
-                                if (i == total) break;
-                                var p = pages[i-start];
-                                p.AddTo(SubIllusts.Items, item.Illust, i, item.NextURL);
-                                this.DoEvents();
+                                var p = pages[i];
+                                p.AddTo(SubIllusts.Items, item.Illust, i + idx, item.NextURL);
                             }
+                            this.DoEvents();
                         }
                     }
                     SubIllusts.UpdateTilesImage();
@@ -1004,11 +1007,11 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ShowIllustPagesAsync(ImageItem item, int index = 0, int start = 0, int count = 30)
+        private async void ShowIllustPagesAsync(ImageItem item, int index = 0, int page = 0, int count = 30)
         {
             await new Action(async () =>
             {
-                await ShowIllustPages(item, index, start, count);
+                await ShowIllustPages(item, index, page, count);
             }).InvokeAsync();
         }
 
@@ -2666,7 +2669,7 @@ namespace PixivWPF.Pages
             if (Contents is ImageItem)
             {
                 if (SubIllusts.Items.Count() <= 0)
-                    ShowIllustPagesAsync(Contents);
+                    ShowIllustPagesAsync(Contents, page_index, page_number);
                 else
                     SubIllusts.UpdateTilesImage();
             }
@@ -2745,20 +2748,17 @@ namespace PixivWPF.Pages
                     var illust = Contents.Illust;
                     if (illust is Pixeez.Objects.Work)
                     {
-                        var pageNum = SubIllusts.Tag is int ? (int)(SubIllusts.Tag) : 0;
-                        var index = 0;
                         if (btn == SubIllustPrevPages)
                         {
-                            pageNum -= 1;
-                            index = 29;
+                            page_number -= 1;
+                            page_index = PAGE_ITEMS - 1;
                         }
                         else if (btn == SubIllustNextPages)
                         {
-                            pageNum += 1;
+                            page_number += 1;
+                            page_index = 0;
                         }
-                        SubIllusts.Tag = pageNum;
-
-                        ShowIllustPagesAsync(Contents, index);
+                        ShowIllustPagesAsync(Contents, page_index, page_number);
                     }
                 }
             }
@@ -3048,83 +3048,56 @@ namespace PixivWPF.Pages
                 var host = menu.PlacementTarget;
                 if (host == SubIllustsExpander || host == SubIllusts)
                 {
-                    var start = SubIllustsExpander.Tag is int ? (int)(SubIllustsExpander.Tag) : 0;
+                    var start = page_number * PAGE_ITEMS;
                     var count = Contents .Count;
-                    foreach (dynamic item in (sender as ContextMenu).Items)
-                    {
-                        if (item is UIElement)
-                        {
-                            var element = item as UIElement;
-                            try
-                            {
-                                if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
-                                {
-                                    if (start > 0) element.Show();
-                                    else element.Hide();
-                                }
-                                else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
-                                {
-                                    if (count - start > 30) element.Show();
-                                    else element.Hide();
-                                }
-                                else if (item.Uid.Equals("ActionNavPageSeparator", StringComparison.CurrentCultureIgnoreCase))
-                                {
-                                    if (count <= 30) element.Hide();
-                                    else element.Show();
-                                }
-
-                                //else if (item.Uid.Equals("ActionLikeIllustSeparator", StringComparison.CurrentCultureIgnoreCase) ||
-                                //         item.Uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
-                                //         item.Uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
-                                //         item.Uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                                //    item.Hide();
-
-                                //else if (item.Uid.Equals("ActionLikeUserSeparator", StringComparison.CurrentCultureIgnoreCase) ||
-                                //         item.Uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
-                                //         item.Uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
-                                //         item.Uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                                //    element.Hide();
-
-                                else if (item.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase))
-                                    item.Header = "Save Selected Pages";
-                                else if (item.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase))
-                                    item.Header = "Save All Pages";
-                            }
-                            catch (Exception) { continue; }
-                        }
-                    }
-                }
-                else if (host == RelativeItemsExpander || host == RelativeItems || host == FavoriteItemsExpander || host == FavoriteItems)
-                {
                     foreach (dynamic item in (sender as ContextMenu).Items)
                     {
                         try
                         {
                             if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                item.Hide();
+                                if (start > 0) (item as UIElement).Show();
+                                else (item as UIElement).Hide();
+                            }
+                            else if (item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                if (count - start > PAGE_ITEMS) (item as UIElement).Show();
+                                else (item as UIElement).Hide();
+                            }
+                            else if (item.Uid.Equals("ActionNavPageSeparator", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                if (count <= PAGE_ITEMS) (item as UIElement).Hide();
+                                else (item as UIElement).Show();
+                            }
+
+                            else if (item.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase))
+                                item.Header = "Save Selected Pages";
+                            else if (item.Uid.Equals("ActionSaveIllustsAll", StringComparison.CurrentCultureIgnoreCase))
+                                item.Header = "Save All Pages";
+                        }
+                        catch (Exception) { continue; }
+                    }
+                }
+                else if (host == RelativeItemsExpander || host == RelativeItems || host == FavoriteItemsExpander || host == FavoriteItems)
+                {
+                    var target = host == RelativeItemsExpander || host == RelativeItems ? RelativeItemsExpander : FavoriteItemsExpander;
+                    foreach (dynamic item in (sender as ContextMenu).Items)
+                    {
+                        try
+                        {
+                            if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                (item as UIElement).Hide();
                             }
                             else if (item.Uid.Equals("ActionNavPageSeparator", StringComparison.CurrentCultureIgnoreCase) ||
                                      item.Uid.Equals("ActionNextPage", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                var next_url = RelativeItemsExpander.Tag as string;
+                                var next_url = target.Tag as string;
                                 if (string.IsNullOrEmpty(next_url))
-                                    item.Hide();
+                                    (item as UIElement).Hide();
                                 else
-                                    item.Show();
+                                    (item as UIElement).Show();
                             }
-
-                            //else if (item.Uid.Equals("ActionLikeIllustSeparator", StringComparison.CurrentCultureIgnoreCase) ||
-                            //         item.Uid.Equals("ActionLikeIllust", StringComparison.CurrentCultureIgnoreCase) ||
-                            //         item.Uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
-                            //         item.Uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
-                            //    item.Show();
-
-                            //else if (item.Uid.Equals("ActionLikeUserSeparator", StringComparison.CurrentCultureIgnoreCase) ||
-                            //         item.Uid.Equals("ActionLikeUser", StringComparison.CurrentCultureIgnoreCase) ||
-                            //         item.Uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
-                            //         item.Uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
-                            //    item.Show();
 
                             else if (item.Uid.Equals("ActionSaveIllusts", StringComparison.CurrentCultureIgnoreCase))
                                 item.Header = "Save Selected Illusts (Default Page)";
@@ -3142,7 +3115,7 @@ namespace PixivWPF.Pages
                         {
                             if (item.Uid.Equals("ActionPrevPage", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                item.Show();
+                                (item as UIElement).Show();
                             }
                         }
                         catch (Exception) { continue; }
@@ -3487,7 +3460,7 @@ namespace PixivWPF.Pages
                         {
                             if (Contents is ImageItem)
                             {
-                                ShowIllustPagesAsync(Contents, 0, SubIllusts.Tag is int ? (int)(SubIllusts.Tag) : 0);
+                                ShowIllustPagesAsync(Contents, page_index, page_number);
                             }
                         }
                         else if (host == RelativeItemsExpander || host == RelativeItems)

@@ -5360,12 +5360,22 @@ namespace PixivWPF.Common
 
         public static void Show(this UIElement element, bool parent = false)
         {
-            if (element is UIElement) element.Show(true, parent);
+            if (element is UIElement) (element as UIElement).Show(true, parent);
+        }
+
+        public static void Show(this object element, bool parent = false)
+        {
+            if (element is UIElement) element.Show(parent);
         }
 
         public static void Hide(this UIElement element, bool parent = false)
         {
             if(element is UIElement) element.Show(false, parent);
+        }
+
+        public static void Hide(this object element, bool parent = false)
+        {
+            if (element is UIElement) (element as UIElement).Hide(parent);
         }
 
         public static void Enable(this Control element, bool state, bool show = true)
