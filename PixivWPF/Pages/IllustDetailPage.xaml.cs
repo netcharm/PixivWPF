@@ -3040,7 +3040,7 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Common ImageListGrid Context Menu
-        private void ActionMenu_Opened(object sender, RoutedEventArgs e)
+        private void MenuGallaryAction_Opened(object sender, RoutedEventArgs e)
         {
             if (sender is ContextMenu)
             {
@@ -3069,8 +3069,8 @@ namespace PixivWPF.Pages
                                 }
                                 else if (item.Uid.Equals("ActionNavPageSeparator", StringComparison.CurrentCultureIgnoreCase))
                                 {
-                                    if (count <= 30) element.Show();
-                                    else element.Hide();
+                                    if (count <= 30) element.Hide();
+                                    else element.Show();
                                 }
 
                                 //else if (item.Uid.Equals("ActionLikeIllustSeparator", StringComparison.CurrentCultureIgnoreCase) ||

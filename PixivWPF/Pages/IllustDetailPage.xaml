@@ -23,7 +23,7 @@
       Unloaded="Page_Unloaded">
 
     <Page.Resources>
-        <ContextMenu x:Name="MenuGallaryAction" x:Key="MenuGallaryAction" Opened="ActionMenu_Opened">
+        <ContextMenu x:Name="MenuGallaryAction" x:Key="MenuGallaryAction" Opened="MenuGallaryAction_Opened">
             <MenuItem x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionCopyIllustID_Click" >
                 <MenuItem.Icon>
                     <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
