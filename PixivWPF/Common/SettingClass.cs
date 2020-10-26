@@ -12,6 +12,40 @@ using Newtonsoft.Json;
 
 namespace PixivWPF.Common
 {
+    // Custom comparer for the Product class
+    class StorageTypeComparer : IEqualityComparer<StorageType>
+    {
+        // Products are equal if their names and product numbers are equal.
+        public bool Equals(StorageType x, StorageType y)
+        {
+
+            //Check whether the compared objects reference the same data.
+            if (ReferenceEquals(x, y)) return true;
+
+            //Check whether any of the compared objects is null.
+            if (ReferenceEquals(x, null) || ReferenceEquals(y, null)) return false;
+
+            //Check whether the products' properties are equal.
+            return (x.Folder.Equals(y.Folder) && x.Cached == y.Cached && x.IncludeSubFolder == y.IncludeSubFolder);
+        }
+
+        // If Equals() returns true for a pair of objects 
+        // then GetHashCode() must return the same value for these objects.
+
+        public int GetHashCode(StorageType storage)
+        {
+            //Check whether the object is null
+            if (ReferenceEquals(storage, null)) return 0;
+
+            //Get hash code for the Name field if it is not null.
+            int hashStorageName = string.IsNullOrEmpty(storage.Folder) ? 0 : storage.Folder.GetHashCode();
+
+            //Calculate the hash code for the Storage.
+            return hashStorageName;
+        }
+
+    }
+
     [JsonObject(MemberSerialization.OptOut)]
     public class Setting
     {
@@ -226,7 +260,7 @@ namespace PixivWPF.Common
                 {
                     if (Cache is Setting)
                     {
-                        UpdateCache(this);
+                        //UpdateCache(this);
 
                         if (string.IsNullOrEmpty(configfile)) configfile = config;
 
@@ -240,6 +274,7 @@ namespace PixivWPF.Common
                             Cache.LocalStorage.Add(new StorageType(Cache.LastFolder, true));
                         }
 
+                        Cache.LocalStorage = Cache.LocalStorage.Distinct(new StorageTypeComparer()).ToList();
                         UpdateContentsTemplete();
 
                         var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
@@ -293,7 +328,7 @@ namespace PixivWPF.Common
                             if (Cache is Setting && text.Length > 20)
                             {
                                 var cache = JsonConvert.DeserializeObject<Setting>(text, dso);
-                                UpdateCache(cache);
+                                //UpdateCache(cache);
                             }
                             else
                             {
@@ -302,6 +337,7 @@ namespace PixivWPF.Common
                                 else
                                     Cache = JsonConvert.DeserializeObject<Setting>(text, dso);
                             }
+                            Cache.LocalStorage = Cache.LocalStorage.Distinct(new StorageTypeComparer()).ToList();
 
                             if (Cache.LocalStorage.Count <= 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
                                 Cache.LocalStorage.Add(new StorageType(Cache.SaveFolder, true));
@@ -1285,10 +1321,10 @@ namespace PixivWPF.Common
         private List<StorageType> local_storage = new List<StorageType>();
         public List<StorageType> LocalStorage
         {
-            get { return (Cache is Setting ? Cache.local_storage : local_storage); }
+            get { return ((Cache is Setting ? Cache.local_storage : local_storage)); }
             set
             {
-                local_storage = value.Distinct().ToList();
+                local_storage = value;
                 if (Cache is Setting) Cache.local_storage = local_storage;
             }
         }
