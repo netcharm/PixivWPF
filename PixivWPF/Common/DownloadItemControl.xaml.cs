@@ -19,7 +19,7 @@ namespace PixivWPF.Common
 {
     public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Remove, Unknown }
 
-    public class DownloadInfo: INotifyPropertyChanged
+    public class DownloadInfo : INotifyPropertyChanged
     {
         private Setting setting = Application.Current.LoadSetting();
 
@@ -86,7 +86,8 @@ namespace PixivWPF.Common
         public bool SingleFile
         {
             get { return singlefile; }
-            set {
+            set
+            {
                 singlefile = value;
                 if (!string.IsNullOrEmpty(FileName))
                 {
@@ -222,7 +223,7 @@ namespace PixivWPF.Common
 
         [DefaultValue(true)]
         public bool AutoStart
-        {            
+        {
             get { return Info.AutoStart; }
             set { Info.AutoStart = value; }
         }
@@ -385,7 +386,8 @@ namespace PixivWPF.Common
 
         private void InitProgress()
         {
-            progress = new Progress<Tuple<double, double>>(i => {
+            progress = new Progress<Tuple<double, double>>(i =>
+            {
                 if ((State == DownloadState.Downloading && EndTick.DeltaSeconds(lastTick) >= 1) ||
                      State == DownloadState.Writing ||
                      State == DownloadState.Finished ||
@@ -679,7 +681,7 @@ namespace PixivWPF.Common
                     State = DownloadState.Finished;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 FailReason = ex.Message;
             }
@@ -701,7 +703,7 @@ namespace PixivWPF.Common
                 var length = response.Content.Headers.ContentLength ?? 0;
                 var range = response.Content.Headers.ContentRange ?? default(System.Net.Http.Headers.ContentRangeHeaderValue);
                 var pos = range.From ?? 0;
-                Length =  range.Length ?? 0;
+                Length = range.Length ?? 0;
                 if (length > 0)
                 {
                     finishedProgress = new Tuple<double, double>(Length, Length);
@@ -815,7 +817,7 @@ namespace PixivWPF.Common
             if (Downloading is SemaphoreSlim) Downloading.Release();
         }
 
-        private async Task<string> DownloadDirectAsync(bool continuation = true, bool restart=false)
+        private async Task<string> DownloadDirectAsync(bool continuation = true, bool restart = false)
         {
             string result = string.Empty;
 
@@ -907,7 +909,7 @@ namespace PixivWPF.Common
                     Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
                     using (var async_response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, Url))
                     {
-                        if(async_response is Pixeez.AsyncResponse)
+                        if (async_response is Pixeez.AsyncResponse)
                         {
                             EndTick = DateTime.Now;
                             await DownloadStreamAsync(async_response.Source);
@@ -996,7 +998,7 @@ namespace PixivWPF.Common
                         if (Application.Current.DownloadUsingToken())
                             target_file = await DownloadAsync();
                         else
-                            target_file = await DownloadDirectAsync(continuation);
+                            target_file = await DownloadDirectAsync(continuation, restart);
                     }).InvokeAsync();
                 }
             }
@@ -1014,7 +1016,7 @@ namespace PixivWPF.Common
             CheckProperties();
         }
 
-        public DownloadItem(string url, bool autostart=true)
+        public DownloadItem(string url, bool autostart = true)
         {
             InitializeComponent();
             setting = Application.Current.LoadSetting();
@@ -1060,7 +1062,7 @@ namespace PixivWPF.Common
                 else if (State == DownloadState.Idle) //|| State == DownloadState.Failed)
                 {
                     if (string.IsNullOrEmpty(Url) && !string.IsNullOrEmpty(PART_FileURL.Text)) Url = PART_FileURL.Text;
-                    if(IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
+                    if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
                 }
             }
         }
@@ -1093,13 +1095,14 @@ namespace PixivWPF.Common
             }
             else if (sender == miDownload || sender == PART_Download)
             {
-                var continuation = !(Keyboard.Modifiers == ModifierKeys.Control ? false : true);
-                Start(setting.DownloadWithFailResume && continuation, false);
+                var continuation = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? !setting.DownloadWithFailResume : setting.DownloadWithFailResume;
+                var restart = Keyboard.Modifiers.HasFlag(ModifierKeys.Control) ? true : false;
+                Start(continuation, restart);
             }
             else if (sender == miDownloadRestart)
             {
-                var continuation = !(Keyboard.Modifiers == ModifierKeys.Control ? false : true);
-                Start(setting.DownloadWithFailResume && continuation, true);
+                var continuation = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? !setting.DownloadWithFailResume : setting.DownloadWithFailResume;
+                Start(continuation, true);
             }
             else if (sender == miRemove || sender == PART_Remove)
             {
