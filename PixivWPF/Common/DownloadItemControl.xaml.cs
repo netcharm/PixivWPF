@@ -699,21 +699,18 @@ namespace PixivWPF.Common
             {
                 UpdateProgress();
                 response.EnsureSuccessStatusCode();
-                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                string ce = response.Content.Headers.ContentEncoding.FirstOrDefault();
                 var length = response.Content.Headers.ContentLength ?? 0;
-                var range = response.Content.Headers.ContentRange ?? default(System.Net.Http.Headers.ContentRangeHeaderValue);
+                var range = response.Content.Headers.ContentRange ?? new System.Net.Http.Headers.ContentRangeHeaderValue(0, 0, length);
                 var pos = range.From ?? 0;
                 Length = range.Length ?? 0;
                 if (length > 0)
                 {
                     finishedProgress = new Tuple<double, double>(Length, Length);
 
-                    if (!continuation || !(_DownloadStream is MemoryStream))
-                    {
-                        _DownloadStream = new MemoryStream();
-                    }
+                    if (!continuation || !(_DownloadStream is MemoryStream)) _DownloadStream = new MemoryStream();
 
-                    using (var cs = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                    using (var cs = ce != null && ce == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                     {
                         using (var ms = new MemoryStream())
                         {
