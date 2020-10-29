@@ -1373,7 +1373,10 @@ namespace PixivWPF.Pages
                     else if (e.IsKey(Key.O, ModifierKeys.Control))
                     {
                         var item = ListImageTiles.SelectedItem as ImageItem;
-                        Commands.OpenDownloaded.Execute(item);
+                        if(item.IsDownloaded)
+                            Commands.OpenDownloaded.Execute(item);
+                        else
+                            Commands.OpenWorkPreview.Execute(item);
                         e.Handled = true;
                     }
                     else if (e.IsKey(Key.H, ModifierKeys.Control))

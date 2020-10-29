@@ -1559,9 +1559,19 @@ namespace PixivWPF.Pages
                     else if (FavoriteItems.IsKeyboardFocusWithin)
                         Commands.OpenDownloaded.Execute(FavoriteItems);
                     else if (Contents.IsWork() && SubIllusts.Items.Count > 0)
-                        Commands.OpenDownloaded.Execute(SubIllusts);
-                    else if(Contents.IsWork())
-                        Commands.OpenDownloaded.Execute(Contents);
+                    {
+                        if (Contents.IsDownloaded)
+                            Commands.OpenDownloaded.Execute(SubIllusts);
+                        else
+                            Commands.OpenWorkPreview.Execute(SubIllusts);
+                    }
+                    else if (Contents.IsWork())
+                    {
+                        if (Contents.IsDownloaded)
+                            Commands.OpenDownloaded.Execute(Contents);
+                        else
+                            Commands.OpenWorkPreview.Execute(Contents);
+                    }
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.H, ModifierKeys.Control))
