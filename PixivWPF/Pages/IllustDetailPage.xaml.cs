@@ -1581,7 +1581,11 @@ namespace PixivWPF.Pages
                 }
                 else if (e.IsKey(Key.S, ModifierKeys.Control))
                 {
-                    if (SubIllusts.Items.Count > 0)
+                    if (RelativeItems.IsKeyboardFocusWithin)
+                        Commands.SaveIllust.Execute(RelativeItems);
+                    else if (FavoriteItems.IsKeyboardFocusWithin)
+                        Commands.SaveIllust.Execute(FavoriteItems);
+                    else if (SubIllusts.Items.Count > 0)
                         Commands.SaveIllust.Execute(SubIllusts);
                     else
                         Commands.SaveIllust.Execute(Contents);
@@ -1589,7 +1593,12 @@ namespace PixivWPF.Pages
                 }
                 else if (e.IsKey(Key.S, new ModifierKeys[] { ModifierKeys.Shift, ModifierKeys.Control }))
                 {
-                    Commands.SaveIllustAll.Execute(Contents);
+                    if (RelativeItems.IsKeyboardFocusWithin)
+                        Commands.SaveIllustAll.Execute(RelativeItems);
+                    else if (FavoriteItems.IsKeyboardFocusWithin)
+                        Commands.SaveIllustAll.Execute(FavoriteItems);
+                    else
+                        Commands.SaveIllustAll.Execute(Contents);
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.N, ModifierKeys.Control))
@@ -1599,22 +1608,22 @@ namespace PixivWPF.Pages
                 }
                 else if (e.IsKey(Key.U, ModifierKeys.Control))
                 {
-                    if (Contents is ImageItem && Contents.IsWork())
+                    if (RelativeItems.IsKeyboardFocusWithin)
+                        Commands.OpenUser.Execute(RelativeItems);
+                    else if (FavoriteItems.IsKeyboardFocusWithin)
+                        Commands.OpenUser.Execute(FavoriteItems);
+                    else if (Contents.IsWork())
                         Commands.OpenUser.Execute(Contents);
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.R, ModifierKeys.Control))
                 {
-                    if (Contents is ImageItem && Contents.IsUser())
-                        RelativeItemsExpander.IsExpanded = true;
-                    //RelativeItemsExpander_Expanded(RelativeItemsExpander, e);
+                    RelativeItemsExpander.IsExpanded = true;
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.F, ModifierKeys.Control))
                 {
-                    if (Contents is ImageItem && Contents.IsUser())
-                        FavoriteItemsExpander.IsExpanded = true;
-                    //FavoriteItemsExpander_Expanded(FavoriteItemsExpander, e);
+                    FavoriteItemsExpander.IsExpanded = true;
                     e.Handled = true;
                 }
                 else e.Handled = false;
