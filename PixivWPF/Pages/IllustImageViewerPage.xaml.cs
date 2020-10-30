@@ -38,6 +38,7 @@ namespace PixivWPF.Pages
         {
             get { return (btnViewFullSize.IsChecked ?? false); }
         }
+        public CustomImageSource PreviewImage { get; private set; } = new CustomImageSource();
 
         internal void UpdateTheme()
         {
@@ -74,7 +75,6 @@ namespace PixivWPF.Pages
                     }
                     else img = preview;
                 }
-
                 Preview.Source = img.Source;
 
                 if (Preview.Source != null)
@@ -120,7 +120,7 @@ namespace PixivWPF.Pages
                         ActionViewPageSep.Hide();
                     }
 
-                    CustomImageSource preview = await GetPreviewImage();
+                    PreviewImage = await GetPreviewImage();
 
                     if (window == null)
                     {
@@ -148,12 +148,14 @@ namespace PixivWPF.Pages
 
         private void ChangeIllustPage(int offset)
         {
-            if (Contents is ImageItem)
+            if (Contents.IsWork())
             {
+                int factor = Keyboard.Modifiers == ModifierKeys.Shift ? 10 : 1;
+
                 var illust = Contents.Illust;
                 int index_p = Contents.Index;
                 if (index_p < 0) index_p = 0;
-                var index_n = Contents.Index+offset;
+                var index_n = Contents.Index + (offset * factor);
                 if (index_n < 0) index_n = 0;
                 if (index_n >= Contents.Count - 1) index_n = Contents.Count - 1;
                 if (index_n == index_p) return;
@@ -181,7 +183,7 @@ namespace PixivWPF.Pages
 
         internal void KeyAction(KeyEventArgs e)
         {
-            Preview_KeyUp(Preview, e);
+            Page_PreviewKeyUp(Preview, e);
         }
 
         public IllustImageViewerPage()
@@ -235,22 +237,35 @@ namespace PixivWPF.Pages
         private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             int offset = 0;
-            int factor = 1;
-            if (Keyboard.Modifiers == ModifierKeys.Shift)
-            {
-                factor = 10;
-            }
             if (e.IsKey(Key.Right) || e.IsKey(Key.Down) || e.IsKey(Key.PageDown))
-                offset = 1 * factor;
+                offset = 1;
             else if (e.IsKey(Key.Left) || e.IsKey(Key.Up) || e.IsKey(Key.PageUp))
-                offset = -1 * factor;
+                offset = -1;
             else if (e.IsKey(Key.Home))
                 offset = -10000;
             else if (e.IsKey(Key.End))
                 offset = 10000;
+            else if (e.IsKey(Key.C, ModifierKeys.Control, false))
+            {
+                ActionIllustInfo_Click(ActionCopyPreview, e);
+                e.Handled = true;
+                return;
+            }
+            else if (e.IsKey(Key.O, ModifierKeys.Control, false))
+            {
+                ActionIllustInfo_Click(ActionOpenCachedWith, e);
+                e.Handled = true;
+                return;
+            }
             else if (e.IsKey(Key.S, ModifierKeys.Control))
             {
                 SaveIllust();
+                return;
+            }
+            else
+            {
+                Commands.KeyProcessor.Execute(new KeyValuePair<object, KeyEventArgs>(Contents, e));
+                e.Handled = true;
                 return;
             }
             ChangeIllustPage(offset);
@@ -258,17 +273,7 @@ namespace PixivWPF.Pages
 
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            int offset = 0;
-            int factor = 1;
-            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-            {
-                factor = 10;
-            }
-            if (e.Delta < 0)
-                offset = 1 * factor;
-            else if (e.Delta > 0)
-                offset = -1 * factor;
-            ChangeIllustPage(offset);
+            ChangeIllustPage(-Math.Sign(e.Delta));
         }
 
         private Point start;
@@ -283,7 +288,7 @@ namespace PixivWPF.Pages
                 {
                     if (e.ClickCount >= 2)
                     {
-                        ActionViewOriginalPage_Click(sender, e);
+                        ActionViewOriginal_Click(ActionViewOriginal, e);
                         e.Handled = true;
                     }
                     else
@@ -296,7 +301,7 @@ namespace PixivWPF.Pages
                 {
                     if (e.ClickCount == 1)
                     {
-                        Preview_MouseWheel(sender, new MouseWheelEventArgs(e.Device as MouseDevice, 0, -60));
+                        ChangeIllustPage(1);
                         e.Handled = true;
                     }
                 }
@@ -304,7 +309,7 @@ namespace PixivWPF.Pages
                 {
                     if (e.ClickCount == 1)
                     {
-                        Preview_MouseWheel(sender, new MouseWheelEventArgs(e.Device as MouseDevice, 0, 60));
+                        ChangeIllustPage(-1);
                         e.Handled = true;
                     }
                 }
@@ -325,47 +330,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void Preview_KeyUp(object sender, KeyEventArgs e)
-        {
-            int offset = 0;
-            int factor = 1;
-
-            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) factor = 10;
-
-            if (e.IsKey(Key.Right) || e.IsKey(Key.Down) || e.IsKey(Key.PageDown))
-                offset = 1 * factor;
-            else if (e.IsKey(Key.Left) || e.IsKey(Key.Up) || e.IsKey(Key.PageUp))
-                offset = -1 * factor;
-            else if (e.IsKey(Key.Home))
-                offset = -10000;
-            else if (e.IsKey(Key.End))
-                offset = 10000;
-            else if (e.IsKey(Key.O, ModifierKeys.Control))
-            {
-                ActionIllustInfo_Click(ActionOpenCachedWith, e);
-                e.Handled = true;
-                return;
-            }
-            else if (e.IsKey(Key.C, ModifierKeys.Control))
-            {
-                ActionIllustInfo_Click(ActionCopyPreview, e);
-                e.Handled = true;
-                return;
-            }
-            else
-            {
-                Commands.KeyProcessor.Execute(new KeyValuePair<object, KeyEventArgs>(Contents, e));
-                e.Handled = true;
-                return;
-            }
-
-            if (offset != 0)
-            {
-                e.Handled = true;
-                ChangeIllustPage(offset);
-            }
-        }
-
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
             if (Contents is ImageItem)
@@ -378,11 +342,17 @@ namespace PixivWPF.Pages
                     Commands.OpenUser.Execute(Contents.User);
                 else if (sender == ActionOpenCachedWith || sender == btnOpenCache)
                 {
-                    Commands.OpenCachedImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+                    if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+                        Commands.OpenCachedImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+                    else
+                        Commands.OpenCachedImage.Execute(PreviewImage);
                 }
                 else if (sender == ActionCopyPreview)
                 {
-                    Commands.CopyImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+                    if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+                        Commands.CopyImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+                    else
+                        Commands.CopyImage.Execute(PreviewImage);
                 }
                 else if (sender == ActionSendIllustToInstance)
                 {
@@ -433,7 +403,7 @@ namespace PixivWPF.Pages
 
         private void ActionViewFullSize_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == ActionViewFullSizePage)
+            if (sender == ActionViewFullSize)
             {
                 btnViewFullSize.IsChecked = !btnViewFullSize.IsChecked.Value;
                 CommonHelper.MouseLeave(btnViewFullSize);
@@ -461,25 +431,25 @@ namespace PixivWPF.Pages
                 InfoBar.Margin = new Thickness(16);
                 ActionBar.Margin = new Thickness(0);
             }
-            ActionViewFullSizePage.IsChecked = IsFullSize;
+            ActionViewFullSize.IsChecked = IsFullSize;
             Page_SizeChanged(null, null);
         }
 
-        private async void ActionViewOriginalPage_Click(object sender, RoutedEventArgs e)
+        private async void ActionViewOriginal_Click(object sender, RoutedEventArgs e)
         {
             if (Contents.IsWork())
             {
                 try
                 {
                     PreviewWait.Show();
-                    if (sender == ActionViewOriginaPage)
+                    if (sender == ActionViewOriginal)
                     {
                         btnViewOriginalPage.IsChecked = !btnViewOriginalPage.IsChecked.Value;
                         CommonHelper.MouseLeave(btnViewOriginalPage);
                     }
-                    ActionViewOriginaPage.IsChecked = IsOriginal;
+                    ActionViewOriginal.IsChecked = IsOriginal;
 
-                    CustomImageSource preview = await GetPreviewImage();
+                    PreviewImage = await GetPreviewImage();
                 }
                 catch (Exception) { }
             }

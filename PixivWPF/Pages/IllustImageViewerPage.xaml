@@ -84,12 +84,12 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator x:Name="ActionViewPageSep" Width="1" />
-                            <MenuItem x:Name="ActionViewOriginaPage" x:Uid="ActionViewOriginaPage" Header="View Original" Click="ActionViewOriginalPage_Click">
+                            <MenuItem x:Name="ActionViewOriginal" x:Uid="ActionViewOriginaPage" Header="View Original" Click="ActionViewOriginal_Click">
                                 <MenuItem.Icon>
                                     <iconPacks:PackIconModern Kind="ArrowExpand" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem x:Name="ActionViewFullSizePage" x:Uid="ActionViewFullSize" Header="View Full Size" Click="ActionViewFullSize_Click">
+                            <MenuItem x:Name="ActionViewFullSize" x:Uid="ActionViewFullSize" Header="View Full Size" Click="ActionViewFullSize_Click">
                                 <MenuItem.Icon>
                                     <iconPacks:PackIconModern Kind="Magnify" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
                                 </MenuItem.Icon>
@@ -142,7 +142,7 @@
                 Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                Click="ActionViewOriginalPage_Click" >
+                Click="ActionViewOriginal_Click" >
                 <iconPacks:PackIconModern Kind="ArrowExpand" Width="32" Height="32" />
             </ToggleButton>
             <ToggleButton x:Name="btnViewFullSize" x:Uid="ViewFullSize"

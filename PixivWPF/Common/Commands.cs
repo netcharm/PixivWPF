@@ -412,6 +412,11 @@ namespace PixivWPF.Common
                     (obj as string).CopyImage();
                 }).InvokeAsync();
             }
+            else if (obj is CustomImageSource)
+            {
+                var img = obj as CustomImageSource;
+                if (!string.IsNullOrEmpty(img.SourcePath) && File.Exists(img.SourcePath)) img.SourcePath.CopyImage();
+            }
             else if (obj is ImageItem)
             {
                 var item = obj as ImageItem;
@@ -500,7 +505,7 @@ namespace PixivWPF.Common
                         }
                     }).InvokeAsync();
                 }
-                else if(obj is ImageItem)
+                else if (obj is ImageItem)
                 {
                     var item = obj as ImageItem;
                     if (item.IsWork())
@@ -531,7 +536,7 @@ namespace PixivWPF.Common
                 if (obj is ImageItem && (obj as ImageItem).IsWork())
                 {
                     var item = obj as ImageItem;
-                    if(item.IsPage()||item.IsPages())
+                    if (item.IsPage() || item.IsPages())
                         item.IsDownloaded = item.Illust.IsDownloadedAsync(item.Index);
                     else
                         item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
@@ -610,8 +615,8 @@ namespace PixivWPF.Common
                 else if (obj is ImageItem)
                 {
                     var item = obj as ImageItem;
-                    if(item.IsWork() || item.IsUser())
-                        OpenUser.Execute(item.User);                    
+                    if (item.IsWork() || item.IsUser())
+                        OpenUser.Execute(item.User);
                 }
                 else if (obj is ImageListGrid)
                 {
@@ -717,34 +722,42 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (obj is ImageItem)
+                if (obj is CustomImageSource)
+                {
+                    var img = obj as CustomImageSource;
+                    if (!string.IsNullOrEmpty(img.SourcePath) && File.Exists(img.SourcePath)) ShellOpenFile.Execute(img.SourcePath);
+                }
+                else if (obj is ImageItem)
                 {
                     var item = obj as ImageItem;
-                    var illust = item.Illust;
-
-                    if (item.Index >= 0)
+                    if (item.IsWork())
                     {
-                        string fp = string.Empty;
-                        item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
-                        string fp_d = item.IsDownloaded ? fp : string.Empty;
-                        string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
-                        string fp_p = illust.GetPreviewUrl(item.Index).GetImageCachePath();
+                        var illust = item.Illust;
 
-                        if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
-                        else if (File.Exists(fp_o)) ShellOpenFile.Execute(fp_o);
-                        else if (File.Exists(fp_p)) ShellOpenFile.Execute(fp_p);
-                    }
-                    else
-                    {
-                        string fp = string.Empty;
-                        item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
-                        string fp_d = item.IsDownloaded ? fp : string.Empty;
-                        string fp_o = illust.GetOriginalUrl().GetImageCachePath();
-                        string fp_p = illust.GetPreviewUrl().GetImageCachePath();
+                        if (item.Index >= 0)
+                        {
+                            string fp = string.Empty;
+                            item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
+                            string fp_d = item.IsDownloaded ? fp : string.Empty;
+                            string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
+                            string fp_p = illust.GetPreviewUrl(item.Index).GetImageCachePath();
 
-                        if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
-                        else if (File.Exists(fp_o)) ShellOpenFile.Execute(fp_o);
-                        else if (File.Exists(fp_p)) ShellOpenFile.Execute(fp_p);
+                            if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
+                            else if (File.Exists(fp_o)) ShellOpenFile.Execute(fp_o);
+                            else if (File.Exists(fp_p)) ShellOpenFile.Execute(fp_p);
+                        }
+                        else
+                        {
+                            string fp = string.Empty;
+                            item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
+                            string fp_d = item.IsDownloaded ? fp : string.Empty;
+                            string fp_o = illust.GetOriginalUrl().GetImageCachePath();
+                            string fp_p = illust.GetPreviewUrl().GetImageCachePath();
+
+                            if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
+                            else if (File.Exists(fp_o)) ShellOpenFile.Execute(fp_o);
+                            else if (File.Exists(fp_p)) ShellOpenFile.Execute(fp_p);
+                        }
                     }
                 }
                 else if (obj is string)
@@ -875,9 +888,11 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand AddDownloadItem { get; } = new DelegateCommand<dynamic>(async obj => {
-            await new Action(() => {
-                OpenDownloadManager.Execute(true);
+        public static ICommand AddDownloadItem { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            await new Action(() =>
+            {
+                OpenDownloadManager.Execute(false);
                 if (_downManager_page is DownloadManagerPage && obj is DownloadParams)
                 {
                     var dp = obj as DownloadParams;
@@ -890,11 +905,12 @@ namespace PixivWPF.Common
         {
             if (obj is bool)
             {
+                var active = (bool)obj;
+
                 var title = $"Download Manager";
                 //if (await title.ActiveByTitle()) return;
-                if (await title.ShowByTitle()) return;
+                if (active ? await title.ActiveByTitle() : await title.ShowByTitle()) return;
 
-                var active = (bool)obj;
                 await new Action(() =>
                 {
                     if (!(_downManager_page is DownloadManagerPage))
@@ -1039,7 +1055,8 @@ namespace PixivWPF.Common
                             await Task.Delay(10);
                             Application.Current.DoEvents();
                         }
-                        await new Action(() => {
+                        await new Action(() =>
+                        {
                             SaveIllust.Execute(item);
                         }).InvokeAsync();
                     }
@@ -1124,7 +1141,8 @@ namespace PixivWPF.Common
                             await Task.Delay(10);
                             Application.Current.DoEvents();
                         }
-                        await new Action(() => {
+                        await new Action(() =>
+                        {
                             SaveIllustAll.Execute(item);
                         }).InvokeAsync();
                     }
@@ -1436,7 +1454,7 @@ namespace PixivWPF.Common
                 }
             }
         });
-        
+
         #region tiles navigation
         public static ICommand RefreshPage { get; } = new DelegateCommand<dynamic>(obj =>
         {
@@ -1548,7 +1566,7 @@ namespace PixivWPF.Common
             else if (obj is MainWindow)
             {
                 var content = (obj as MainWindow).GetWindowContent();
-                if(content is TilesPage) ScrollDownTiles.Execute(content);
+                if (content is TilesPage) ScrollDownTiles.Execute(content);
             }
         });
 
@@ -1614,7 +1632,7 @@ namespace PixivWPF.Common
             }
         });
         #endregion
-        
+
         #region key processiong
         private static long lastKeyUp = Environment.TickCount;
         public static ICommand KeyProcessor { get; } = new DelegateCommand<dynamic>(obj =>
@@ -1627,7 +1645,7 @@ namespace PixivWPF.Common
                     KeyEventArgs e =  obj.Value;
                     if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
                     {
-                        if(!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
+                        if (!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
 
                         if (sender is ImageListGrid || sender is ImageItem)
                         {

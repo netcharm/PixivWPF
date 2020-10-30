@@ -1542,15 +1542,15 @@ namespace PixivWPF.Common
 
         public static bool IsKey(this KeyEventArgs evt, Key key)
         {
-            return (IsKey(evt, key, ModifierKeys.None));
+            return (evt.Key == key || evt.SystemKey == key);
         }
 
-        public static bool IsKey(this KeyEventArgs evt, Key key, ModifierKeys modifier)
+        public static bool IsKey(this KeyEventArgs evt, Key key, ModifierKeys modifier, bool only = true)
         {
-            return ((evt.Key == key || evt.SystemKey == key) && Keyboard.Modifiers == modifier);
+            return ((evt.Key == key || evt.SystemKey == key) && (only ? Keyboard.Modifiers == modifier : Keyboard.Modifiers.HasFlag(modifier)));
         }
 
-        public static bool IsKey(this KeyEventArgs evt, Key key, IEnumerable<ModifierKeys> modifiers)
+        public static bool IsKey(this KeyEventArgs evt, Key key, IEnumerable<ModifierKeys> modifiers, bool only = true)
         {
             return ((evt.Key == key || evt.SystemKey == key) && IsModifiers(modifiers));
         }
@@ -2731,7 +2731,7 @@ namespace PixivWPF.Common
                     var shell = string.IsNullOrEmpty(WinDir) ? "explorer.exe" : Path.Combine(WinDir, "explorer.exe");
                     if (File.Exists(FileName))
                     {
-                        System.Diagnostics.Process.Start(shell, $"/select,\"{FileName}\"");
+                        Process.Start(shell, $"/select,\"{FileName}\"");
                         result = true;
                     }
                     else
@@ -2739,7 +2739,7 @@ namespace PixivWPF.Common
                         var folder = Path.GetDirectoryName(FileName);
                         if (Directory.Exists(folder))
                         {
-                            System.Diagnostics.Process.Start(shell, $"\"{folder}\"");
+                            Process.Start(shell, $"\"{folder}\"");
                             result = true;
                         }
                     }
@@ -2754,7 +2754,7 @@ namespace PixivWPF.Common
                     var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
                     var openwith_exists = File.Exists(OpenWith) ?  true : false;
                     if (UsingOpenWith && openwith_exists)
-                        System.Diagnostics.Process.Start(OpenWith, FileName);
+                        Process.Start(OpenWith, FileName);
                     else
                     {
                         setting = Application.Current.LoadSetting();
@@ -2765,11 +2765,11 @@ namespace PixivWPF.Common
                         {
                             var cmd_found = setting.ShellImageViewer.Where();
                             if(cmd_found.Length > 0)
-                                System.Diagnostics.Process.Start(cmd_found.First(), FileName);
+                                Process.Start(cmd_found.First(), FileName);
                             else
-                                System.Diagnostics.Process.Start(FileName);
+                                Process.Start(FileName);
                         }
-                        else System.Diagnostics.Process.Start(FileName);
+                        else Process.Start(FileName);
                     }
                     result = true;
                 }
