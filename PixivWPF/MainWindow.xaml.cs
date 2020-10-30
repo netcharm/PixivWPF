@@ -522,6 +522,8 @@ namespace PixivWPF
             var menus_fast = new List<MenuItem>() {
                 LiveFilterFast_None,
                 LiveFilterFast_Portrait, LiveFilterFast_Landscape, LiveFilterFast_Square,
+                LiveFilterFast_Size1K, LiveFilterFast_Size2K, LiveFilterFast_Size4K, LiveFilterFast_Size8K,
+                LiveFilterFast_SinglePage, LiveFilterFast_NotSinglePage,
                 LiveFilterFast_InHistory, LiveFilterFast_NotInHistory,
                 LiveFilterFast_CurrentAuthor
             };

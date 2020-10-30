@@ -462,6 +462,14 @@ namespace PixivWPF.Common
                 bool landscape = filter_fast.Equals("landscape") ? true : false;
                 bool square = filter_fast.Equals("square") ? true : false;
 
+                bool singlepage = filter_fast.Equals("singlepage") ? true : false;
+                bool multipages = filter_fast.Equals("notsinglepage") ? true : false;
+
+                bool size_s = filter_fast.Equals("size1k") ? true : false;
+                bool size_m = filter_fast.Equals("size2k") ? true : false;
+                bool size_l = filter_fast.Equals("size4k") ? true : false;
+                bool size_h = filter_fast.Equals("size8k") ? true : false;
+
                 bool in_history = filter_fast.Equals("inhistory") ? true : false;
                 bool not_in_history = filter_fast.Equals("notinhistory") ? true : false;
                 #endregion
@@ -501,8 +509,8 @@ namespace PixivWPF.Common
                             #region work aspect
                             else if (item.IsWork() && (portrait || landscape || square))
                             {
-                                var width = item.Illust.Width;
-                                var height = item.Illust.Height;
+                                var width = item.Illust.Width ?? 0;
+                                var height = item.Illust.Height ?? 0;
                                 if (width > 0 && height > 0)
                                 {
                                     double aspect = (double)width / (double)height;
@@ -513,6 +521,30 @@ namespace PixivWPF.Common
                                     else if (square)
                                         result = result && 0.95 < aspect && aspect < 1.05 ? true : false;
                                 }
+                            }
+                            #endregion
+                            #region size
+                            else if (item.IsWork() && (size_s || size_m || size_l || size_h))
+                            {
+                                var width = item.Illust.Width ?? 0;
+                                var height = item.Illust.Height ?? 0;
+                                if (size_s)
+                                    result = result && width <= 1024 || height <= 1024 ? true : false;
+                                else if (size_m)
+                                    result = result && (width > 1024 && width <= 2048) || (height > 1024 && height <= 2048) ? true : false;
+                                else if (size_l)
+                                    result = result && (width > 2048 && width <= 4096) || (height > 2048 && height <= 4096) ? true : false;
+                                else if (size_h)
+                                    result = result && width >= 4096 || height >= 4096 ? true : false;
+                            }
+                            #endregion
+                            #region pages
+                            else if (item.IsWork() && (singlepage || multipages))
+                            {
+                                if (singlepage)
+                                    result = result && item.Count <= 1 ? true : false;
+                                else if (multipages)
+                                    result = result && item.Count <= 1 ? false : true;
                             }
                             #endregion
                             #region history

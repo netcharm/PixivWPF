@@ -86,6 +86,14 @@
                         <MenuItem x:Name="LiveFilterFast_Landscape" x:Uid="LiveFilterFast_Landscape" Header="Landscape" Click="LiveFilterItem_Click"/>
                         <MenuItem x:Name="LiveFilterFast_Portrait" x:Uid="LiveFilterFast_Portrait" Header="Portrait" Click="LiveFilterItem_Click"/>
                         <MenuItem x:Name="LiveFilterFast_Square" x:Uid="LiveFilterFast_Square" Header="Square" Click="LiveFilterItem_Click"/>
+                        <Separator Visibility="{Binding Visibility, ElementName=LiveFilterFast_SizeSmall, Mode=OneWay}"/>
+                        <MenuItem x:Name="LiveFilterFast_Size1K" x:Uid="LiveFilterFast_Size1K" Header="Small Size (&lt; 1K)" Click="LiveFilterItem_Click"/>
+                        <MenuItem x:Name="LiveFilterFast_Size2K" x:Uid="LiveFilterFast_Size2K" Header="Medium Size (1K ~ 2K)" Click="LiveFilterItem_Click"/>
+                        <MenuItem x:Name="LiveFilterFast_Size4K" x:Uid="LiveFilterFast_Size4K" Header="Large Size (2K ~ 4K)" Click="LiveFilterItem_Click"/>
+                        <MenuItem x:Name="LiveFilterFast_Size8K" x:Uid="LiveFilterFast_Size8K" Header="Huge Size (&gt; 4K)" Click="LiveFilterItem_Click"/>
+                        <Separator Visibility="{Binding Visibility, ElementName=LiveFilterFast_SinglePage, Mode=OneWay}"/>
+                        <MenuItem x:Name="LiveFilterFast_SinglePage" x:Uid="LiveFilterFast_SinglePage" Header="Single Page" Click="LiveFilterItem_Click"/>
+                        <MenuItem x:Name="LiveFilterFast_NotSinglePage" x:Uid="LiveFilterFast_NotSinglePage" Header="Multiple Pages" Click="LiveFilterItem_Click"/>                        
                         <Separator Visibility="{Binding Visibility, ElementName=LiveFilterFast_InHistory, Mode=OneWay}"/>
                         <MenuItem x:Name="LiveFilterFast_InHistory" x:Uid="LiveFilterFast_InHistory" Header="In History" Click="LiveFilterItem_Click"/>
                         <MenuItem x:Name="LiveFilterFast_NotInHistory" x:Uid="LiveFilterFast_NotInHistory" Header="Not In History" Click="LiveFilterItem_Click"/>
