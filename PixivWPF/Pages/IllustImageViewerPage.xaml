@@ -89,6 +89,11 @@
                                     <iconPacks:PackIconModern Kind="ArrowExpand" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem x:Name="ActionViewFullSizePage" x:Uid="ActionViewFullSize" Header="View Full Size" Click="ActionViewFullSize_Click">
+                                <MenuItem.Icon>
+                                    <iconPacks:PackIconModern Kind="Magnify" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <Separator/>
                             <MenuItem x:Name="ActionOpenCachedWith" x:Uid="ActionOpenWith" Header="Open Preview With..." Click="ActionIllustInfo_Click">
                                 <MenuItem.Icon>
@@ -133,13 +138,13 @@
                 Click="ActionViewNextPage_Click" >
                 <iconPacks:PackIconModern Kind="NavigateNext" Width="32" Height="32" />
             </Button>
-            <Button x:Name="btnViewOriginalPage" x:Uid="ViewOriginalPage"
+            <ToggleButton x:Name="btnViewOriginalPage" x:Uid="ViewOriginalPage"
                 Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                 Click="ActionViewOriginalPage_Click" >
                 <iconPacks:PackIconModern Kind="ArrowExpand" Width="32" Height="32" />
-            </Button>
+            </ToggleButton>
             <ToggleButton x:Name="btnViewFullSize" x:Uid="ViewFullSize"
                 Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"

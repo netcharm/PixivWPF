@@ -891,7 +891,8 @@ namespace PixivWPF.Common
             if (obj is bool)
             {
                 var title = $"Download Manager";
-                if (await title.ActiveByTitle()) return;
+                //if (await title.ActiveByTitle()) return;
+                if (await title.ShowByTitle()) return;
 
                 var active = (bool)obj;
                 await new Action(() =>

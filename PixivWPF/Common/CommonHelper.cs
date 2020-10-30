@@ -5454,46 +5454,59 @@ namespace PixivWPF.Common
         {
             if (button is ButtonBase)
             {
-                //button.IsMouseOver
-                button.BorderBrush = Theme.AccentBrush;
-                button.MouseEnter += ToolButton_MouseEnter;
-                button.MouseLeave += ToolButton_MouseLeave;
+                try
+                {
+                    //button.IsMouseOver
+                    button.BorderBrush = Theme.AccentBrush;
+                    button.MouseEnter += ToolButton_MouseEnter;
+                    button.MouseLeave += ToolButton_MouseLeave;
+
+                    if (button is ToggleButton) MouseLeave(button);
+                }
+                catch (Exception) { }
             }
+        }
+
+        public static void MouseEnter(this ButtonBase button)
+        {
+            try
+            {
+                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.Equals("ActionBar") && button.Width >= 32)
+                    button.Foreground = Theme.IdealForegroundBrush;
+
+                if (!(button is ToggleButton) || (button is ToggleButton && !(button as ToggleButton).IsChecked.Value))
+                    button.Background = Theme.SemiTransparentBrush;
+            }
+            catch (Exception) { }
+        }
+
+        public static void MouseLeave(this ButtonBase button)
+        {
+            try
+            {
+                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.Equals("ActionBar") && button.Width >= 32 && button.IsEnabled)
+                    button.Foreground = Theme.AccentBrush;
+
+                if (!(button is ToggleButton) || (button is ToggleButton && !(button as ToggleButton).IsChecked.Value))
+                    button.Background = Theme.TransparentBrush;
+                else if (button is ToggleButton && (button as ToggleButton).IsChecked.Value)
+                {
+                    var bg = new SolidColorBrush(Theme.SemiTransparentColor);
+                    bg.Opacity = 0.4;
+                    button.Background = bg;
+                }
+            }
+            catch (Exception) { }
         }
 
         public static void ToolButton_MouseEnter(object sender, MouseEventArgs e)
         {
-            if (sender is ButtonBase)
-            {
-                var btn = sender as ButtonBase;
-
-                //if (btn.Height >= 32)
-                //    btn.BorderThickness = new Thickness(2);
-                //else
-                //    btn.BorderThickness = new Thickness(0);
-
-                if ((btn.Parent is StackPanel) && (btn.Parent as StackPanel).Name.Equals("ActionBar") && btn.Width >= 32)
-                    btn.Foreground = Theme.IdealForegroundBrush;
-
-                if (!(btn is ToggleButton) || (btn is ToggleButton && !(btn as ToggleButton).IsChecked.Value))
-                    btn.Background = Theme.SemiTransparentBrush;
-            }
+            if (sender is ButtonBase) MouseEnter(sender as ButtonBase);
         }
 
         public static void ToolButton_MouseLeave(object sender, MouseEventArgs e)
         {
-            if (sender is ButtonBase)
-            {
-                var btn = sender as ButtonBase;
-
-                //btn.BorderThickness = new Thickness(0);
-
-                if ((btn.Parent is StackPanel) && (btn.Parent as StackPanel).Name.Equals("ActionBar") && btn.Width >= 32)
-                    btn.Foreground = Theme.AccentBrush;
-
-                if (!(btn is ToggleButton) || (btn is ToggleButton && !(btn as ToggleButton).IsChecked.Value))
-                    btn.Background = Theme.TransparentBrush;
-            }
+            if (sender is ButtonBase) MouseLeave(sender as ButtonBase);
         }
         #endregion
 
@@ -5731,11 +5744,29 @@ namespace PixivWPF.Common
             {
                 foreach (Window win in Application.Current.Windows)
                 {
-                    //if (win.Title.StartsWith(title))
                     if (win.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase))
                     {
                         if (win is MetroWindow) (win as MetroWindow).Active();
                         else win.Activate();
+                        result = true;
+                        break;
+                    }
+                }
+            }).InvokeAsync();
+            return (result);
+        }
+
+        public static async Task<bool> ShowByTitle(this string title)
+        {
+            bool result = false;
+            await new Action(() =>
+            {
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (win is MetroWindow) (win as MetroWindow).Show();
+                        else win.Show();
                         result = true;
                         break;
                     }

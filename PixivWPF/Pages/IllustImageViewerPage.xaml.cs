@@ -30,7 +30,14 @@ namespace PixivWPF.Pages
         public ImageItem Contents { get; set; } = null;
         private string PreviewImageUrl = string.Empty;
         private string OriginalImageUrl = string.Empty;
-        private bool IsOriginal = false;
+        private bool IsOriginal
+        {
+            get { return (btnViewOriginalPage.IsChecked ?? false); }
+        }
+        private bool IsFullSize
+        {
+            get { return (btnViewFullSize.IsChecked ?? false); }
+        }
 
         internal void UpdateTheme()
         {
@@ -43,18 +50,57 @@ namespace PixivWPF.Pages
             btnSavePage.Enable(btnViewNextPage.IsEnabled, btnSavePage.IsVisible);
         }
 
-        internal async void UpdateDetail(ImageItem item)
+        private async Task<CustomImageSource> GetPreviewImage()
         {
+            CustomImageSource img = new CustomImageSource();
             try
             {
                 var setting = Application.Current.LoadSetting();
 
-                PreviewWait.Show();
-                if (item is ImageItem) Contents = item;
-
-                if (Contents.Illust is Pixeez.Objects.Work)
+                if (IsOriginal)
                 {
+                    var original = await OriginalImageUrl.LoadImageFromUrl();
+                    if (original.Source != null) img = original;
+                }
+                else
+                {
+                    var preview = await PreviewImageUrl.LoadImageFromUrl();
+                    if (preview.Source == null ||
+                        preview.Source.Width < setting.PreviewUsingLargeMinWidth ||
+                        preview.Source.Height < setting.PreviewUsingLargeMinHeight)
+                    {
+                        var original = await OriginalImageUrl.LoadImageFromUrl();
+                        if (original.Source != null) img = original;
+                    }
+                    else img = preview;
+                }
+
+                Preview.Source = img.Source;
+
+                if (Preview.Source != null)
+                {
+                    var aspect = Preview.Source.AspectRatio();
+                    PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
+                    Page_SizeChanged(null, null);
+                    PreviewWait.Hide();
+                }
+            }
+            catch (Exception) { }
+            return (img);
+        }
+
+        internal async void UpdateDetail(ImageItem item)
+        {
+            try
+            {
+                PreviewWait.Show();
+                if (item.IsWork())
+                {
+                    Contents = item;
                     var illust = Contents.Illust as Pixeez.Objects.Work;
+
+                    PreviewImageUrl = illust.GetPreviewUrl(Contents.Index, true);
+                    OriginalImageUrl = illust.GetOriginalUrl(Contents.Index);
 
                     if (illust.PageCount > 1)
                     {
@@ -74,31 +120,12 @@ namespace PixivWPF.Pages
                         ActionViewPageSep.Hide();
                     }
 
-                    PreviewImageUrl = illust.GetPreviewUrl(Contents.Index, true);
-                    var img = await PreviewImageUrl.LoadImageFromUrl();
-                    if (img.Source == null || img.Source.Width < setting.PreviewUsingLargeMinWidth || img.Source.Height < setting.PreviewUsingLargeMinHeight)
-                    {
-                        PreviewImageUrl = Contents.Illust.GetOriginalUrl(Contents.Index);
-                        var large = await PreviewImageUrl.LoadImageFromUrl();
-                        if (large.Source != null) img = large;
-                    }
-                    Preview.Source = img.Source;
-
-                    if (Preview.Source != null)
-                    {
-                        var aspect = Preview.Source.AspectRatio();
-                        PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
-                        Page_SizeChanged(null, null);
-                    }
+                    CustomImageSource preview = await GetPreviewImage();
 
                     if (window == null)
                     {
                         window = this.GetActiveWindow();
-                        if (window is Window)
-                        {
-                            //window.KeyUp += Preview_KeyUp;
-                            window.PreviewKeyUp += Page_PreviewKeyUp;
-                        }
+                        if (window is Window) window.PreviewKeyUp += Page_PreviewKeyUp;
                     }
                     else
                     {
@@ -209,19 +236,19 @@ namespace PixivWPF.Pages
         {
             int offset = 0;
             int factor = 1;
-            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            if (Keyboard.Modifiers == ModifierKeys.Shift)
             {
                 factor = 10;
             }
-            if (e.Key == Key.Right || e.Key == Key.Down || e.Key == Key.PageDown)
+            if (e.IsKey(Key.Right) || e.IsKey(Key.Down) || e.IsKey(Key.PageDown))
                 offset = 1 * factor;
-            else if (e.Key == Key.Left || e.Key == Key.Up || e.Key == Key.PageUp)
+            else if (e.IsKey(Key.Left) || e.IsKey(Key.Up) || e.IsKey(Key.PageUp))
                 offset = -1 * factor;
-            else if (e.Key == Key.Home)
+            else if (e.IsKey(Key.Home))
                 offset = -10000;
-            else if (e.Key == Key.End)
+            else if (e.IsKey(Key.End))
                 offset = 10000;
-            else if (e.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+            else if (e.IsKey(Key.S, ModifierKeys.Control))
             {
                 SaveIllust();
                 return;
@@ -406,6 +433,12 @@ namespace PixivWPF.Pages
 
         private void ActionViewFullSize_Click(object sender, RoutedEventArgs e)
         {
+            if (sender == ActionViewFullSizePage)
+            {
+                btnViewFullSize.IsChecked = !btnViewFullSize.IsChecked.Value;
+                CommonHelper.MouseLeave(btnViewFullSize);
+            }
+
             if (btnViewFullSize.IsChecked.Value)
             {
                 PreviewBox.HorizontalAlignment = HorizontalAlignment.Center;
@@ -416,9 +449,6 @@ namespace PixivWPF.Pages
                 PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
                 InfoBar.Margin = new Thickness(16, 16, 16, 32);
                 ActionBar.Margin = new Thickness(0, 0, 16, 16);
-                var bg = new SolidColorBrush(Theme.SemiTransparentColor);
-                bg.Opacity = 0.3;
-                btnViewFullSize.Background = bg;
             }
             else
             {
@@ -430,50 +460,28 @@ namespace PixivWPF.Pages
                 PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
                 InfoBar.Margin = new Thickness(16);
                 ActionBar.Margin = new Thickness(0);
-                btnViewFullSize.Background = Theme.TransparentBrush;
             }
+            ActionViewFullSizePage.IsChecked = IsFullSize;
             Page_SizeChanged(null, null);
         }
 
         private async void ActionViewOriginalPage_Click(object sender, RoutedEventArgs e)
         {
-            if (Contents is ImageItem)
+            if (Contents.IsWork())
             {
-                var preview = Preview.Source;
                 try
                 {
                     PreviewWait.Show();
-                    if (Contents.Illust is Pixeez.Objects.Work)
+                    if (sender == ActionViewOriginaPage)
                     {
-                        var illust = Contents.Illust as Pixeez.Objects.Work;
-                        OriginalImageUrl = illust.GetOriginalUrl(Contents.Index);
-                        var original = await OriginalImageUrl.LoadImageFromUrl();
-                        if (original.Source != null)
-                        {
-                            Preview.Source = original.Source;
-                            IsOriginal = true;
-                        }
-                        else
-                        {
-                            Preview.Source = preview;
-                            IsOriginal = false;
-                        }
-                        if (Preview.Source != null)
-                        {
-                            var aspect = Preview.Source.AspectRatio();
-                            PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
-                            Page_SizeChanged(sender, null);
-                            PreviewWait.Hide();
-                        }
+                        btnViewOriginalPage.IsChecked = !btnViewOriginalPage.IsChecked.Value;
+                        CommonHelper.MouseLeave(btnViewOriginalPage);
                     }
+                    ActionViewOriginaPage.IsChecked = IsOriginal;
+
+                    CustomImageSource preview = await GetPreviewImage();
                 }
-                catch (Exception)
-                {
-                    Preview.Source = preview;
-                }
-                finally
-                {
-                }
+                catch (Exception) { }
             }
         }
     }
