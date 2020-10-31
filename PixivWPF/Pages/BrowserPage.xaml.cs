@@ -66,8 +66,8 @@ namespace PixivWPF.Pages
             {
                 DocumentText = string.Empty.GetHtmlFromTemplate(),
                 Dock = System.Windows.Forms.DockStyle.Fill,
-                WebBrowserShortcutsEnabled = true,
                 ScriptErrorsSuppressed = true,
+                WebBrowserShortcutsEnabled = false,
                 AllowNavigation = true,
                 AllowWebBrowserDrop = false
             };
@@ -81,6 +81,7 @@ namespace PixivWPF.Pages
                     browser.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(WebBrowser_DocumentCompleted);
                     browser.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(WebBrowser_Navigating);
                     browser.ProgressChanged += new System.Windows.Forms.WebBrowserProgressChangedEventHandler(WebBrowser_ProgressChanged);
+                    browser.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(WebBrowser_PreviewKeyDown);
                     TrySetSuppressScriptErrors(webHtml, true);
                 }
             }
@@ -426,6 +427,30 @@ namespace PixivWPF.Pages
             {
                 ex.Message.DEBUG();
             }
+#else
+            catch (Exception) { }
+#endif
+        }
+
+        private void WebBrowser_PreviewKeyDown(object sender, System.Windows.Forms.PreviewKeyDownEventArgs e)
+        {
+            try
+            {
+                if (sender is System.Windows.Forms.WebBrowser)
+                {
+                    var browser = sender as System.Windows.Forms.WebBrowser;
+                    if (e.KeyCode == System.Windows.Forms.Keys.Escape)
+                    {
+                        browser.Stop();
+                    }
+                    else if (e.KeyCode == System.Windows.Forms.Keys.F5)
+                    {
+                        //browser.Refresh();
+                    }
+                }
+            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[BROWSER]"); }
 #else
             catch (Exception) { }
 #endif

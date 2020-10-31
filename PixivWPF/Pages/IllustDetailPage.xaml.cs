@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 
 using MahApps.Metro.IconPacks;
 using PixivWPF.Common;
+using System.Windows.Interop;
 
 namespace PixivWPF.Pages
 {
@@ -286,6 +287,99 @@ namespace PixivWPF.Pages
             }
             catch (Exception) { }
             return (result);
+        }
+
+        private void InitHtmlRenderHost(out WindowsFormsHostEx host, System.Windows.Forms.WebBrowser browser, Panel panel)
+        {
+            try
+            {
+                host = new WindowsFormsHostEx()
+                {
+                    //IsRedirected = true,
+                    //CompositionMode = ,
+                    AllowDrop = false,
+                    MinHeight = 24,
+                    MaxHeight = 480,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch,
+                    Child = browser
+                };
+                if (panel is Panel) panel.Children.Add(host);
+            }
+            catch (Exception) { host = null; }
+        }
+
+        private void InitHtmlRender(out System.Windows.Forms.WebBrowser browser)
+        {
+            browser = new System.Windows.Forms.WebBrowser()
+            {
+                DocumentText = string.Empty.GetHtmlFromTemplate(),
+                Dock = System.Windows.Forms.DockStyle.Fill,
+                ScriptErrorsSuppressed = true,
+                WebBrowserShortcutsEnabled = false,
+                AllowNavigation = true,
+                AllowWebBrowserDrop = false
+            };
+            browser.Navigate("about:blank");
+            browser.Document.Write(string.Empty);
+
+            try
+            {
+                if (browser is System.Windows.Forms.WebBrowser)
+                {
+                    browser.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(WebBrowser_DocumentCompleted);
+                    browser.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(WebBrowser_Navigating);
+                    browser.Navigated += new System.Windows.Forms.WebBrowserNavigatedEventHandler(WebBrowser_Navigated);
+                    browser.ProgressChanged += new System.Windows.Forms.WebBrowserProgressChangedEventHandler(WebBrowser_ProgressChanged);
+                    browser.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(WebBrowser_PreviewKeyDown);
+                }
+            }
+            catch (Exception) { }
+        }
+
+        private void CreateHtmlRender()
+        {
+            try
+            {
+                InitHtmlRender(out IllustTagsHtml);
+                InitHtmlRender(out IllustDescHtml);
+                InitHtmlRenderHost(out tagsHost, IllustTagsHtml, IllustTagsHost);
+                InitHtmlRenderHost(out descHost, IllustDescHtml, IllustDescHost);
+
+                UpdateTheme();
+                this.UpdateLayout();
+            }
+            catch (Exception) { }
+        }
+
+        private void DeleteHtmlRender()
+        {
+            try
+            {
+                if (IllustTagsHtml is System.Windows.Forms.WebBrowser) IllustTagsHtml.Dispose();
+            }
+            catch { }
+            try
+            {
+                if (IllustDescHtml is System.Windows.Forms.WebBrowser) IllustDescHtml.Dispose();
+            }
+            catch { }
+            try
+            {
+                if (tagsHost is WindowsFormsHostEx) tagsHost.Dispose();
+            }
+            catch { }
+            try
+            {
+                if (descHost is WindowsFormsHostEx) descHost.Dispose();
+            }
+            catch { }
+
+            try
+            {
+                if (CommentsViewer is WebBrowser) CommentsViewer.Dispose();
+            }
+            catch { }
         }
         #endregion
 
@@ -1170,97 +1264,6 @@ namespace PixivWPF.Pages
         #endregion
 
         #region WebBrowsre helper routines
-        private void InitHtmlRenderHost(out WindowsFormsHostEx host, System.Windows.Forms.WebBrowser browser, Panel panel)
-        {
-            try
-            {
-                host = new WindowsFormsHostEx()
-                {
-                    //IsRedirected = true,
-                    //CompositionMode = ,
-                    AllowDrop = false,
-                    MinHeight = 24,
-                    MaxHeight = 480,
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
-                    VerticalAlignment = VerticalAlignment.Stretch,
-                    Child = browser
-                };
-                if (panel is Panel) panel.Children.Add(host);
-            }
-            catch (Exception) { host = null; }
-        }
-
-        private void InitHtmlRender(out System.Windows.Forms.WebBrowser browser)
-        {
-            browser = new System.Windows.Forms.WebBrowser()
-            {
-                DocumentText = string.Empty.GetHtmlFromTemplate(),
-                Dock = System.Windows.Forms.DockStyle.Fill,
-                ScriptErrorsSuppressed = true,
-                WebBrowserShortcutsEnabled = true,
-                AllowWebBrowserDrop = false
-            };
-            browser.Navigate("about:blank");
-            browser.Document.Write(string.Empty);
-
-            try
-            {
-                if (browser is System.Windows.Forms.WebBrowser)
-                {
-                    browser.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(WebBrowser_DocumentCompleted);
-                    browser.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(WebBrowser_Navigating);
-                    browser.Navigated += new System.Windows.Forms.WebBrowserNavigatedEventHandler(WebBrowser_Navigated);
-                    browser.ProgressChanged += new System.Windows.Forms.WebBrowserProgressChangedEventHandler(WebBrowser_ProgressChanged);
-                    browser.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(WebBrowser_PreviewKeyDown);
-                }
-            }
-            catch (Exception) { }
-        }
-
-        private void CreateHtmlRender()
-        {
-            try
-            {
-                InitHtmlRender(out IllustTagsHtml);
-                InitHtmlRender(out IllustDescHtml);
-                InitHtmlRenderHost(out tagsHost, IllustTagsHtml, IllustTagsHost);
-                InitHtmlRenderHost(out descHost, IllustDescHtml, IllustDescHost);
-
-                UpdateTheme();
-                this.UpdateLayout();
-            }
-            catch (Exception) { }
-        }
-
-        private void DeleteHtmlRender()
-        {
-            try
-            {
-                if (IllustTagsHtml is System.Windows.Forms.WebBrowser) IllustTagsHtml.Dispose();
-            }
-            catch { }
-            try
-            {
-                if (IllustDescHtml is System.Windows.Forms.WebBrowser) IllustDescHtml.Dispose();
-            }
-            catch { }
-            try
-            {
-                if (tagsHost is WindowsFormsHostEx) tagsHost.Dispose();
-            }
-            catch { }
-            try
-            {
-                if (descHost is WindowsFormsHostEx) descHost.Dispose();
-            }
-            catch { }
-
-            try
-            {
-                if (CommentsViewer is WebBrowser) CommentsViewer.Dispose();
-            }
-            catch { }
-        }
         #endregion
 
         #region Navgition methods
@@ -1933,21 +1936,36 @@ namespace PixivWPF.Pages
                     {
                         var text = GetText(browser);
                         if (sender == IllustTagsHtml) text = text.Replace("#", " ");
-                        if (!string.IsNullOrEmpty(text))
-                            Commands.CopyText.Execute(text);
+                        if (!string.IsNullOrEmpty(text)) Commands.CopyText.Execute(text);
                     }
                     else if (e.Shift && e.KeyCode == System.Windows.Forms.Keys.C)
                     {
-                        var data = new HtmlTextData()
-                        {
-                            Html = GetText(browser, true),
-                            Text = GetText(browser, false)
-                        };
+                        var html = GetText(browser, true).Trim();
+                        var text = GetText(browser, false).Trim();
+                        if (sender == IllustTagsHtml) text = text.Replace("#", " ");
+                        var data = new HtmlTextData() { Html = html, Text = text };
                         Commands.CopyText.Execute(data);
                     }
                     else if (e.KeyCode == System.Windows.Forms.Keys.F5)
                     {
                         WebBrowserRefresh(browser);
+                    }
+                    else
+                    {
+                        Key key;
+                        if (Enum.TryParse<Key>(e.KeyCode.ToString(), out key))
+                        {
+                            var source = new HwndSource(0, 0, 0, 0, 0, "", IntPtr.Zero); // dummy source
+                            //var source = Keyboard.PrimaryDevice.ActiveSource;
+                            var kevt = new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(this), Environment.TickCount, key)
+                            {
+                                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+                                Source = Keyboard.PrimaryDevice.ActiveSource,
+                                Handled = true
+                            };
+                            //this.RaiseEvent(kevt);
+                            Page_KeyUp(this, kevt);
+                        }
                     }
                 }
             }
