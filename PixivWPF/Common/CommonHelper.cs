@@ -1734,7 +1734,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Text process routines
+        #region WebBrowser helper
         public static string GetText(this System.Windows.Forms.WebBrowser browser, bool html = false)
         {
             string result = string.Empty;
@@ -1780,6 +1780,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        #endregion
+
+        #region Text process routines
         public static bool IsFile(this string text)
         {
             var result = false;

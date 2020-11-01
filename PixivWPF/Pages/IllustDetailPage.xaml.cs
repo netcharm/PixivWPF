@@ -126,51 +126,6 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
-        private string GetText(System.Windows.Forms.WebBrowser browser, bool html = false)
-        {
-            string result = string.Empty;
-            try
-            {
-                if (browser is System.Windows.Forms.WebBrowser && browser.Document is System.Windows.Forms.HtmlDocument)
-                {
-                    mshtml.IHTMLDocument2 document = browser.Document.DomDocument as mshtml.IHTMLDocument2;
-                    mshtml.IHTMLSelectionObject currentSelection = document.selection;
-                    if (currentSelection != null && currentSelection.type.Equals("Text"))
-                    {
-                        mshtml.IHTMLTxtRange range = currentSelection.createRange() as mshtml.IHTMLTxtRange;
-                        if (range != null)
-                        {
-                            if (html)
-                                result = range.htmlText;
-                            else
-                                result = range.text;
-                        }
-                    }
-                    else
-                    {
-                        var bodies = browser.Document.GetElementsByTagName("body");
-                        foreach (System.Windows.Forms.HtmlElement body in bodies)
-                        {
-                            if (html)
-                                result = body.InnerHtml;
-                            else
-                                result = body.InnerText;
-                            break;
-                        }
-                    }
-                }
-            }
-#if DEBUG
-            catch (Exception ex)
-            {
-                ex.Message.DEBUG();
-            }
-#else
-            catch (Exception) { }
-#endif
-            return (result);
-        }
-
         private string MakeIllustTagsHtml(ImageItem item)
         {
             var result = string.Empty;
@@ -1412,22 +1367,6 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        private void OpenDownloaded()
-        {
-            try
-            {
-                if (Contents is ImageItem)
-                {
-                    if (IllustDownloaded.Tag is string)
-                    {
-                        var fp = IllustDownloaded.Tag as string;
-                        fp.OpenFileWithShell();
-                    }
-                }
-            }
-            catch (Exception) { }
-        }
-
         internal void KeyAction(KeyEventArgs e)
         {
             Page_KeyUp(this, e);
@@ -1934,14 +1873,14 @@ namespace PixivWPF.Pages
                     var browser = sender as System.Windows.Forms.WebBrowser;
                     if (e.Control && e.KeyCode == System.Windows.Forms.Keys.C)
                     {
-                        var text = GetText(browser);
+                        var text = browser.GetText();
                         if (sender == IllustTagsHtml) text = text.Replace("#", " ");
                         if (!string.IsNullOrEmpty(text)) Commands.CopyText.Execute(text);
                     }
                     else if (e.Shift && e.KeyCode == System.Windows.Forms.Keys.C)
                     {
-                        var html = GetText(browser, true).Trim();
-                        var text = GetText(browser, false).Trim();
+                        var html = browser.GetText(true).Trim();
+                        var text = browser.GetText(false).Trim();
                         if (sender == IllustTagsHtml) text = text.Replace("#", " ");
                         var data = new HtmlTextData() { Html = html, Text = text };
                         Commands.CopyText.Execute(data);
@@ -1992,10 +1931,10 @@ namespace PixivWPF.Pages
                 if (sender == IllustTagSpeech)
                 {
                     is_tag = true;
-                    text = GetText(IllustTagsHtml);
+                    text = IllustTagsHtml.GetText();
                 }
                 else if (sender == IllustDescSpeech)
-                    text = GetText(IllustDescHtml);
+                    text = IllustDescHtml.GetText();
                 else if (sender == IllustTitle)
                     text = IllustTitle.Text;
                 else if (sender == IllustAuthor)
@@ -2022,8 +1961,8 @@ namespace PixivWPF.Pages
                     if (mi.Parent is ContextMenu)
                     {
                         var host = (mi.Parent as ContextMenu).PlacementTarget;
-                        if (host == IllustTagSpeech) { is_tag = true; text = GetText(IllustTagsHtml); }
-                        else if (host == IllustDescSpeech) text = GetText(IllustDescHtml);
+                        if (host == IllustTagSpeech) { is_tag = true; text = IllustTagsHtml.GetText(); }
+                        else if (host == IllustDescSpeech) text = IllustDescHtml.GetText();
                         else if (host == IllustAuthor) text = IllustAuthor.Text;
                         else if (host == IllustTitle) text = IllustTitle.Text;
                         else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
@@ -2071,9 +2010,9 @@ namespace PixivWPF.Pages
                     {
                         var host = (mi.Parent as ContextMenu).PlacementTarget;
                         if (host == IllustTagSpeech)
-                            text = $"\"tag:{string.Join($"\"{Environment.NewLine}\"tag:", GetText(IllustTagsHtml).Trim().Trim('#').Split('#'))}\"";
+                            text = $"\"tag:{string.Join($"\"{Environment.NewLine}\"tag:", IllustTagsHtml.GetText().Trim().Trim('#').Split('#'))}\"";
                         else if (host == IllustDescSpeech)
-                            text = $"\"{string.Join("\" \"", GetText(IllustDescHtml).ParseLinks().ToArray())}\"";
+                            text = $"\"{string.Join("\" \"", IllustDescHtml.GetText().ParseLinks().ToArray())}\"";
                         else if (host == IllustAuthor)
                             text = $"\"user:{IllustAuthor.Text}\"";
                         else if (host == IllustTitle)
@@ -2179,7 +2118,7 @@ namespace PixivWPF.Pages
                 if (sender == IllustTagPedia)
                 {
                     var shell = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
-                    var tags = GetText(IllustTagsHtml).Trim().Trim('#').Split('#');
+                    var tags = IllustTagsHtml.GetText().Trim().Trim('#').Split('#');
                     if (shell)
                         Commands.ShellOpenPixivPedia.Execute(tags);
                     else
