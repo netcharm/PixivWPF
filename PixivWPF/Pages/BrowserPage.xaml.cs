@@ -447,6 +447,28 @@ namespace PixivWPF.Pages
                     {
                         //browser.Refresh();
                     }
+                    else if (e.Control && e.KeyCode == System.Windows.Forms.Keys.C)
+                    {
+                        var text = browser.GetText();
+                        Commands.CopyText.Execute(text);
+                    }
+                    else if (e.Shift && e.KeyCode == System.Windows.Forms.Keys.C)
+                    {
+                        var html = browser.GetText(true).Trim();
+                        var text = browser.GetText(false).Trim();
+                        var data = new HtmlTextData() { Html = html, Text = text };
+                        Commands.CopyText.Execute(data);
+                        //browser.Document.ExecCommand("Copy", false, text);
+                    }
+                    else if (e.Control && e.KeyCode == System.Windows.Forms.Keys.V)
+                    {
+                        var text = Clipboard.GetText();
+                        browser.Document.ExecCommand("Paste", false, text);
+                    }
+                    else if (e.Control && e.KeyCode == System.Windows.Forms.Keys.A)
+                    {
+                        browser.Document.ExecCommand("SelectAll", false, null);
+                    }
                 }
             }
 #if DEBUG

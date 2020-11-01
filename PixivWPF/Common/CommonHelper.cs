@@ -1735,6 +1735,51 @@ namespace PixivWPF.Common
         #endregion
 
         #region Text process routines
+        public static string GetText(this System.Windows.Forms.WebBrowser browser, bool html = false)
+        {
+            string result = string.Empty;
+            try
+            {
+                if (browser is System.Windows.Forms.WebBrowser && browser.Document is System.Windows.Forms.HtmlDocument)
+                {
+                    mshtml.IHTMLDocument2 document = browser.Document.DomDocument as mshtml.IHTMLDocument2;
+                    mshtml.IHTMLSelectionObject currentSelection = document.selection;
+                    if (currentSelection != null && currentSelection.type.Equals("Text"))
+                    {
+                        mshtml.IHTMLTxtRange range = currentSelection.createRange() as mshtml.IHTMLTxtRange;
+                        if (range != null)
+                        {
+                            if (html)
+                                result = range.htmlText;
+                            else
+                                result = range.text;
+                        }
+                    }
+                    else
+                    {
+                        var bodies = browser.Document.GetElementsByTagName("body");
+                        foreach (System.Windows.Forms.HtmlElement body in bodies)
+                        {
+                            if (html)
+                                result = body.InnerHtml;
+                            else
+                                result = body.InnerText;
+                            break;
+                        }
+                    }
+                }
+            }
+#if DEBUG
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+#else
+            catch (Exception) { }
+#endif
+            return (result);
+        }
+
         public static bool IsFile(this string text)
         {
             var result = false;

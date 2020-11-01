@@ -1946,6 +1946,10 @@ namespace PixivWPF.Pages
                         var data = new HtmlTextData() { Html = html, Text = text };
                         Commands.CopyText.Execute(data);
                     }
+                    else if (e.Control && e.KeyCode == System.Windows.Forms.Keys.A)
+                    {
+                        browser.Document.ExecCommand("SelectAll", false, null);
+                    }
                     else if (e.KeyCode == System.Windows.Forms.Keys.F5)
                     {
                         WebBrowserRefresh(browser);
