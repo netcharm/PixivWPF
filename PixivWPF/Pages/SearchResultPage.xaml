@@ -183,7 +183,7 @@
                     <Button 
                         x:Name="SearchFilter" x:Uid="ResultFilter" ToolTip="Results Filter"
                         Visibility="Visible" FontWeight="Normal"
-                        Style="{DynamicResource MahApps.Styles.Button.DropDown}" Background="Transparent" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" 
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         ContextMenu="{StaticResource MenuSearchFilter}"
