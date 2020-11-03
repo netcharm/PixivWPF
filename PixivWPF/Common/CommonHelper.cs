@@ -4985,7 +4985,7 @@ namespace PixivWPF.Common
         public static async Task<Tuple<bool, Pixeez.Objects.Work>> ToggleLike(this Pixeez.Objects.Work illust, bool pub = true)
         {
             var result = await illust.ToggleLikeIllust(pub);
-            UpdateLikeStateAsync((int)(illust.Id.Value), true);
+            UpdateLikeStateAsync((int)(illust.Id.Value), false);
             return (result);
         }
 
