@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Speech.Synthesis;
@@ -814,8 +815,7 @@ namespace PixivWPF.Common
 
         private static SpeechTTS Init()
         {
-            var tts = new SpeechTTS();
-            return (tts);
+            return (new SpeechTTS());
         }
         #endregion
 
@@ -823,12 +823,6 @@ namespace PixivWPF.Common
         public static CultureInfo FindCultureByName(this string lang)
         {
             CultureInfo culture = null;
-            if (string.IsNullOrEmpty(lang)) lang = "unk";
-            else lang = lang.ToLower();
-
-            CultureInfo[] cultures = CultureInfo.GetCultures(CultureTypes.AllCultures & ~CultureTypes.NeutralCultures);
-            CultureInfo[] specific = CultureInfo.GetCultures(CultureTypes.SpecificCultures &~ CultureTypes.UserCustomCulture);
-
             #region Microsoft Language define lite
             //{ "unk","AutoDetect"},
             //{ "zh-Hans","ChineseSimplified"},
@@ -860,6 +854,12 @@ namespace PixivWPF.Common
             #endregion
             try
             {
+                if (string.IsNullOrEmpty(lang)) lang = "unk";
+                else lang = lang.ToLower();
+
+                CultureInfo[] cultures = CultureInfo.GetCultures(CultureTypes.AllCultures & ~CultureTypes.NeutralCultures);
+                CultureInfo[] specific = CultureInfo.GetCultures(CultureTypes.SpecificCultures &~ CultureTypes.UserCustomCulture);
+
                 if (!lang.Equals("unk", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var ret = cultures.Where(c => (
@@ -886,32 +886,35 @@ namespace PixivWPF.Common
             }
             catch (Exception) { culture = null; }
             finally { }
-
             return (culture);
         }
 
         public static string[] LineBreak = new string[] { Environment.NewLine, "\n\r", "\r\n", "\r", "\n", "<br/>", "<br />", "<br>", "</br>" };
         public static void Play(this string text, CultureInfo culture, bool async = true)
         {
-            if (!(t2s is SpeechTTS))
+            try
             {
-                t2s = Init();
-            }
-            if (t2s is SpeechTTS)
-            {
-                if (culture == null)
+                if (!(t2s is SpeechTTS))
                 {
-                    if (SimpleCultureDetect)
-                        t2s.Play(text, "unk", async);
-                    else
-                    {
-                        var tlist = text.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries);
-                        t2s.Play(tlist, culture);
-                    }
+                    t2s = Init();
                 }
-                else
-                    t2s.Play(text, culture, async);
+                if (t2s is SpeechTTS)
+                {
+                    if (culture == null)
+                    {
+                        if (SimpleCultureDetect)
+                            t2s.Play(text, "unk", async);
+                        else
+                        {
+                            var tlist = text.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries);
+                            t2s.Play(tlist, culture);
+                        }
+                    }
+                    else
+                        t2s.Play(text, culture, async);
+                }
             }
+            catch (Exception ex) { Debug.WriteLine(ex.Message); }
         }
 
         public static void Play(this string text, string lang, bool async = true)
@@ -927,22 +930,26 @@ namespace PixivWPF.Common
 
         public static void Play(this IEnumerable<string> texts, CultureInfo culture, bool async = true)
         {
-            if (!(t2s is SpeechTTS))
+            try
             {
-                t2s = Init();
-            }
-            if (t2s is SpeechTTS)
-            {
-                if (culture == null)
+                if (!(t2s is SpeechTTS))
                 {
-                    if (SimpleCultureDetect)
-                        t2s.Play(string.Join(Environment.NewLine, texts), "unk", async);
-                    else
-                        t2s.Play(texts.ToList(), culture);
+                    t2s = Init();
                 }
-                else
-                    t2s.Play(string.Join(Environment.NewLine, texts), culture, async);
+                if (t2s is SpeechTTS)
+                {
+                    if (culture == null)
+                    {
+                        if (SimpleCultureDetect)
+                            t2s.Play(string.Join(Environment.NewLine, texts), "unk", async);
+                        else
+                            t2s.Play(texts.ToList(), culture);
+                    }
+                    else
+                        t2s.Play(string.Join(Environment.NewLine, texts), culture, async);
+                }
             }
+            catch (Exception ex) { Debug.WriteLine(ex.Message); }
         }
 
         public static void Play(this IEnumerable<string> texts, string lang, bool async = true)
@@ -958,17 +965,29 @@ namespace PixivWPF.Common
 
         public static void Pause()
         {
-            if (t2s is SpeechTTS) t2s.Pause();
+            try
+            {
+                if (t2s is SpeechTTS) t2s.Pause();
+            }
+            catch (Exception ex) { Debug.WriteLine(ex.Message); }
         }
 
         public static void Resume()
         {
-            if (t2s is SpeechTTS) t2s.Resume();
+            try
+            {
+                if (t2s is SpeechTTS) t2s.Resume();
+            }
+            catch (Exception ex) { Debug.WriteLine(ex.Message); }
         }
 
         public static void Stop()
         {
-            if (t2s is SpeechTTS) t2s.Stop();
+            try
+            {
+                if (t2s is SpeechTTS) t2s.Stop();
+            }
+            catch (Exception ex) { Debug.WriteLine(ex.Message); }
         }
         #endregion
     }

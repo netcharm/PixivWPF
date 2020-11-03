@@ -1740,33 +1740,28 @@ namespace PixivWPF.Common
             string result = string.Empty;
             try
             {
-                if (browser is System.Windows.Forms.WebBrowser && browser.Document is System.Windows.Forms.HtmlDocument)
+                if (browser is System.Windows.Forms.WebBrowser && 
+                    browser.Document is System.Windows.Forms.HtmlDocument &&
+                    browser.Document.DomDocument is mshtml.IHTMLDocument2)
                 {
+                    StringBuilder sb = new StringBuilder();
                     mshtml.IHTMLDocument2 document = browser.Document.DomDocument as mshtml.IHTMLDocument2;
                     mshtml.IHTMLSelectionObject currentSelection = document.selection;
-                    if (currentSelection != null && currentSelection.type.Equals("Text"))
+                    if (currentSelection != null && currentSelection.type.Equals("Text", StringComparison.CurrentCultureIgnoreCase))
                     {
                         mshtml.IHTMLTxtRange range = currentSelection.createRange() as mshtml.IHTMLTxtRange;
                         if (range != null)
-                        {
-                            if (html)
-                                result = range.htmlText;
-                            else
-                                result = range.text;
-                        }
+                            sb.AppendLine(html ? range.htmlText : range.text);
                     }
                     else
                     {
                         var bodies = browser.Document.GetElementsByTagName("body");
                         foreach (System.Windows.Forms.HtmlElement body in bodies)
                         {
-                            if (html)
-                                result = body.InnerHtml;
-                            else
-                                result = body.InnerText;
-                            break;
+                            sb.AppendLine(html ? body.InnerHtml : body.InnerText);
                         }
                     }
+                    result = sb.Length > 0 ? sb.ToString() : string.Empty;
                 }
             }
 #if DEBUG
@@ -2094,13 +2089,31 @@ namespace PixivWPF.Common
                     }
                     else if (link.StartsWith("searching ", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var search = link.Substring(10).Trim();
+                        var search = link.Substring(10).Trim().TrimEnd('.').Trim();
+                        var s_link = $"{search}";
+                        if (!links.Contains(s_link)) links.Add(s_link);
+                    }
+                    else if (link.StartsWith("searching:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var search = link.Substring(10).Trim().TrimEnd('.').Trim();
+                        var s_link = $"{search}";
+                        if (!links.Contains(s_link)) links.Add(s_link);
+                    }
+                    else if (link.StartsWith("search ", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var search = link.Substring(7).Trim().TrimEnd('.').Trim();
+                        var s_link = $"{search}";
+                        if (!links.Contains(s_link)) links.Add(s_link);
+                    }
+                    else if (link.StartsWith("search:", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var search = link.Substring(7).Trim().TrimEnd('.').Trim();
                         var s_link = $"{search}";
                         if (!links.Contains(s_link)) links.Add(s_link);
                     }
                     else if (link.StartsWith("downloading ", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var down = link.Substring(12).Trim();
+                        var down = link.Substring(12).Trim().TrimEnd('.').Trim();
                         var d_link = down.ArtworkLink();
                         if (!links.Contains(d_link)) links.Add(d_link);
                     }
@@ -4776,103 +4789,12 @@ namespace PixivWPF.Common
         #endregion
 
         #region Like/Unlike Illust helper routines
-        public static async Task<Tuple<bool, Pixeez.Objects.Work>> Like(this Pixeez.Objects.Work illust, bool pub = true)
-        {
-            var result = await illust.LikeIllust(pub);
-            UpdateLikeStateAsync((int)(illust.Id.Value), false);
-            return (result);
-        }
-
-        public static async Task<Tuple<bool, Pixeez.Objects.Work>> UnLike(this Pixeez.Objects.Work illust)
-        {
-            var result = await illust.UnLikeIllust();
-            UpdateLikeStateAsync((int)(illust.Id.Value), false);
-            return (result);
-        }
-
-        public static async Task<bool> LikeIllust(this ImageItem item, bool pub = true)
-        {
-            bool result = false;
-
-            if (item.IsWork())
-            {
-                var ret = await item.Illust.Like(pub);
-                result = ret.Item1;
-                item.Illust = ret.Item2;
-                item.IsFavorited = result;
-            }
-
-            return (result);
-        }
-
-        public static async Task<bool> UnLikeIllust(this ImageItem item, bool pub = true)
-        {
-            bool result = false;
-
-            if (item.IsWork())
-            {
-                var ret = await item.Illust.UnLike();
-                result = ret.Item1;
-                item.Illust = ret.Item2;
-                item.IsFavorited = result;
-            }
-
-            return (result);
-        }
-
-        public static void LikeIllust(this IList<ImageItem> collection, bool pub = true)
-        {
-            LikeIllust(new ObservableCollection<ImageItem>(collection), pub);
-        }
-
-        public static void UnLikeIllust(this IList<ImageItem> collection)
-        {
-            UnLikeIllust(new ObservableCollection<ImageItem>(collection));
-        }
-
-        public static void LikeIllust(this ObservableCollection<ImageItem> collection, bool pub = true)
-        {
-            var opt = new ParallelOptions();
-            opt.MaxDegreeOfParallelism = 5;
-            //var items = collection.Distinct();
-            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
-            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
-            {
-                if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
-                {
-                    var ua = new Action(async()=>
-                    {
-                        try
-                        {
-                            var result = await item.LikeIllust(pub);
-                        }
-                        catch (Exception){}
-                    }).InvokeAsync();
-                }
-            });
-        }
-
-        public static void UnLikeIllust(this ObservableCollection<ImageItem> collection)
-        {
-            var opt = new ParallelOptions();
-            opt.MaxDegreeOfParallelism = 5;
-            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
-            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
-            {
-                if (item is ImageItem && item.Illust is Pixeez.Objects.Work)
-                {
-                    var ua = new Action(async()=>
-                    {
-                        try
-                        {
-                            var result = await item.UnLikeIllust();
-                        }
-                        catch (Exception){}
-                    }).InvokeAsync();
-                }
-            });
-        }
-
+        /// <summary>
+        /// Like Illust Work
+        /// </summary>
+        /// <param name="illust"></param>
+        /// <param name="pub"></param>
+        /// <returns></returns>
         public static async Task<Tuple<bool, Pixeez.Objects.Work>> LikeIllust(this Pixeez.Objects.Work illust, bool pub = true)
         {
             Tuple<bool, Pixeez.Objects.Work> result = new Tuple<bool, Pixeez.Objects.Work>(false, illust);
@@ -4913,6 +4835,60 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static async Task<Tuple<bool, Pixeez.Objects.Work>> Like(this Pixeez.Objects.Work illust, bool pub = true)
+        {
+            var result = await illust.LikeIllust(pub);
+            UpdateLikeStateAsync((int)(illust.Id.Value), false);
+            return (result);
+        }
+
+        public static async Task<bool> LikeIllust(this ImageItem item, bool pub = true)
+        {
+            bool result = false;
+
+            if (item.IsWork())
+            {
+                var ret = await item.Illust.Like(pub);
+                result = ret.Item1;
+                item.Illust = ret.Item2;
+                item.IsFavorited = result;
+            }
+
+            return (result);
+        }
+
+        public static void LikeIllust(this ObservableCollection<ImageItem> collection, bool pub = true)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            //var items = collection.Distinct();
+            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item.IsWork())
+                {
+                    var ua = new Action(async()=>
+                    {
+                        try
+                        {
+                            var result = await item.LikeIllust(pub);
+                        }
+                        catch (Exception){}
+                    }).InvokeAsync();
+                }
+            });
+        }
+
+        public static void LikeIllust(this IList<ImageItem> collection, bool pub = true)
+        {
+            LikeIllust(new ObservableCollection<ImageItem>(collection), pub);
+        }
+
+        /// <summary>
+        /// Unlike Illust Work
+        /// </summary>
+        /// <param name="illust"></param>
+        /// <returns></returns>
         public static async Task<Tuple<bool, Pixeez.Objects.Work>> UnLikeIllust(this Pixeez.Objects.Work illust)
         {
             Tuple<bool, Pixeez.Objects.Work> result = new Tuple<bool, Pixeez.Objects.Work>(false, illust);
@@ -4945,80 +4921,89 @@ namespace PixivWPF.Common
 
             return (result);
         }
-        #endregion
 
-        #region Like/Unlike User helper routines
-        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> Like(this Pixeez.Objects.UserBase user, bool pub = true)
+        public static async Task<Tuple<bool, Pixeez.Objects.Work>> UnLike(this Pixeez.Objects.Work illust)
         {
-            var result = await user.LikeUser(pub);
-            UpdateLikeStateAsync((int)(user.Id.Value), true);
+            var result = await illust.UnLikeIllust();
+            UpdateLikeStateAsync((int)(illust.Id.Value), false);
             return (result);
         }
 
-        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> UnLike(this Pixeez.Objects.UserBase user)
-        {
-            var result = await user.UnLikeUser();
-            UpdateLikeStateAsync((int)(user.Id.Value), true);
-            return (result);
-        }
-
-        public static async Task<bool> LikeUser(this ImageItem item, bool pub = true)
+        public static async Task<bool> UnLikeIllust(this ImageItem item, bool pub = true)
         {
             bool result = false;
 
-            if (item.HasUser())
+            if (item.IsWork())
             {
-                try
-                {
-                    var user = item.User;
-                    var ret = await user.Like(pub);
-                    result = ret.Item1;
-                    item.User = ret.Item2;
-                    if (item.IsUser())
-                    {
-                        item.IsFavorited = result;
-                    }
-                }
-                catch (Exception) { }
+                var ret = await item.Illust.UnLike();
+                result = ret.Item1;
+                item.Illust = ret.Item2;
+                item.IsFavorited = result;
             }
 
             return (result);
         }
 
-        public static async Task<bool> UnLikeUser(this ImageItem item, bool pub = true)
+        public static void UnLikeIllust(this ObservableCollection<ImageItem> collection)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item.IsWork())
+                {
+                    var ua = new Action(async()=>
+                    {
+                        try
+                        {
+                            var result = await item.UnLikeIllust();
+                        }
+                        catch (Exception){}
+                    }).InvokeAsync();
+                }
+            });
+        }
+
+        public static void UnLikeIllust(this IList<ImageItem> collection)
+        {
+            UnLikeIllust(new ObservableCollection<ImageItem>(collection));
+        }
+
+        /// <summary>
+        /// Toggle Illust Work Like State
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="pub"></param>
+        /// <returns></returns>
+        public static async Task<Tuple<bool, Pixeez.Objects.Work>> ToggleLikeIllust(this Pixeez.Objects.Work illust, bool pub = true)
+        {
+            var result = illust.IsLiked() ? await illust.UnLikeIllust() : await illust.LikeIllust(pub);
+            UpdateLikeStateAsync((int)(illust.Id.Value), true);
+            return (result);
+        }
+
+        public static async Task<Tuple<bool, Pixeez.Objects.Work>> ToggleLike(this Pixeez.Objects.Work illust, bool pub = true)
+        {
+            return (await ToggleLikeIllust(illust, pub));
+        }
+
+        public static async Task<bool> ToggleLikeIllust(this ImageItem item, bool pub = true)
         {
             bool result = false;
 
-            if (item.HasUser())
+            if (item.IsWork())
             {
-                try
-                {
-                    var user = item.User;
-                    var ret = await user.UnLike();
-                    result = ret.Item1;
-                    item.User = ret.Item2;
-                    if (item.IsUser())
-                    {
-                        item.IsFavorited = result;
-                    }
-                }
-                catch (Exception) { }
+                var ret = await item.Illust.ToggleLike(pub);
+                result = ret.Item1;
+                item.Illust = ret.Item2;
+                item.IsFavorited = result;
             }
 
             return (result);
         }
 
-        public static void LikeUser(this IList<ImageItem> collection, bool pub = true)
-        {
-            LikeUser(new ObservableCollection<ImageItem>(collection), pub);
-        }
-
-        public static void UnLikeUser(this IList<ImageItem> collection)
-        {
-            UnLikeUser(new ObservableCollection<ImageItem>(collection));
-        }
-
-        public static void LikeUser(this ObservableCollection<ImageItem> collection, bool pub = true)
+        public static void ToggleLikeIllust(this ObservableCollection<ImageItem> collection, bool pub = true)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -5026,13 +5011,13 @@ namespace PixivWPF.Common
             var items = collection.GroupBy(i => i.UserID).Select(g => g.First()).ToList();
             var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
             {
-                if (item is ImageItem && item.User is Pixeez.Objects.UserBase)
+                if (item.IsWork())
                 {
                     var ua = new Action(async()=>
                     {
                         try
                         {
-                            var result = await item.LikeUser(pub);
+                            var result = item.User.IsLiked() ? await item.UnLikeUser(pub) : await item.LikeUser(pub);
                         }
                         catch (Exception){}
                     }).InvokeAsync();
@@ -5040,27 +5025,19 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void UnLikeUser(this ObservableCollection<ImageItem> collection)
+        public static void ToggleLikeIllust(this IList<ImageItem> collection, bool pub = true)
         {
-            var opt = new ParallelOptions();
-            opt.MaxDegreeOfParallelism = 5;
-            var items = collection.GroupBy(i => i.UserID).Select(g => g.First()).ToList();
-            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
-            {
-                if (item is ImageItem && item.User is Pixeez.Objects.UserBase)
-                {
-                    var ua = new Action(async()=>
-                    {
-                        try
-                        {
-                            var result = await item.UnLikeUser();
-                        }
-                        catch (Exception){}
-                    }).InvokeAsync();
-                }
-            });
+            ToggleLikeIllust(new ObservableCollection<ImageItem>(collection), pub);
         }
+        #endregion
 
+        #region Like/Unlike User helper routines
+        /// <summary>
+        /// Like user
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="pub"></param>
+        /// <returns></returns>
         public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> LikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
         {
             Tuple<bool, Pixeez.Objects.UserBase> result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
@@ -5100,6 +5077,69 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> Like(this Pixeez.Objects.UserBase user, bool pub = true)
+        {
+            var result = await user.LikeUser(pub);
+            UpdateLikeStateAsync((int)(user.Id.Value), true);
+            return (result);
+        }
+
+        public static async Task<bool> LikeUser(this ImageItem item, bool pub = true)
+        {
+            bool result = false;
+
+            if (item.HasUser())
+            {
+                try
+                {
+                    var user = item.User;
+                    var ret = await user.Like(pub);
+                    result = ret.Item1;
+                    item.User = ret.Item2;
+                    if (item.IsUser())
+                    {
+                        item.IsFavorited = result;
+                    }
+                }
+                catch (Exception) { }
+            }
+
+            return (result);
+        }
+
+        public static void LikeUser(this ObservableCollection<ImageItem> collection, bool pub = true)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            //var items = collection.Distinct();
+            var items = collection.GroupBy(i => i.UserID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item.HasUser())
+                {
+                    var ua = new Action(async()=>
+                    {
+                        try
+                        {
+                            var result = await item.LikeUser(pub);
+                        }
+                        catch (Exception){}
+                    }).InvokeAsync();
+                }
+            });
+        }
+
+        public static void LikeUser(this IList<ImageItem> collection, bool pub = true)
+        {
+            LikeUser(new ObservableCollection<ImageItem>(collection), pub);
+        }
+
+        /// <summary>
+        /// Unlike user 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="pub"></param>
+        /// <returns></returns>
         public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> UnLikeUser(this Pixeez.Objects.UserBase user)
         {
             Tuple<bool, Pixeez.Objects.UserBase> result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
@@ -5130,6 +5170,131 @@ namespace PixivWPF.Common
                 catch (Exception) { }
             }
             return (result);
+        }
+
+        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> UnLike(this Pixeez.Objects.UserBase user)
+        {
+            var result = await user.UnLikeUser();
+            UpdateLikeStateAsync((int)(user.Id.Value), true);
+            return (result);
+        }
+
+        public static async Task<bool> UnLikeUser(this ImageItem item, bool pub = true)
+        {
+            bool result = false;
+
+            if (item.HasUser())
+            {
+                try
+                {
+                    var user = item.User;
+                    var ret = await user.UnLike();
+                    result = ret.Item1;
+                    item.User = ret.Item2;
+                    if (item.IsUser())
+                    {
+                        item.IsFavorited = result;
+                    }
+                }
+                catch (Exception) { }
+            }
+
+            return (result);
+        }
+
+        public static void UnLikeUser(this ObservableCollection<ImageItem> collection)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            var items = collection.GroupBy(i => i.UserID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item.HasUser())
+                {
+                    var ua = new Action(async()=>
+                    {
+                        try
+                        {
+                            var result = await item.UnLikeUser();
+                        }
+                        catch (Exception){}
+                    }).InvokeAsync();
+                }
+            });
+        }
+
+        public static void UnLikeUser(this IList<ImageItem> collection)
+        {
+            UnLikeUser(new ObservableCollection<ImageItem>(collection));
+        }
+
+        /// <summary>
+        /// Toggle User Like State
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="pub"></param>
+        /// <returns></returns>
+        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> ToggleLikeUser(this Pixeez.Objects.UserBase user, bool pub = true)
+        {
+            var result = user.IsLiked() ? await user.UnLikeUser() : await user.LikeUser(pub);
+            return (result);
+        }
+
+        public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> ToggleLike(this Pixeez.Objects.UserBase user, bool pub = true)
+        {
+            var result = await ToggleLikeUser(user, pub);
+            UpdateLikeStateAsync((int)(user.Id.Value), true);
+            return (result);
+        }
+
+        public static async Task<bool> ToggleLikeUser(this ImageItem item, bool pub = true)
+        {
+            bool result = false;
+
+            if (item.HasUser())
+            {
+                try
+                {
+                    var user = item.User;
+                    var ret =  await ToggleLike(user, pub);
+                    result = ret.Item1;
+                    item.User = ret.Item2;
+                    if (item.IsUser())
+                    {
+                        item.IsFavorited = result;
+                    }
+                }
+                catch (Exception) { }
+            }
+
+            return (result);
+        }
+
+        public static void ToggleLikeUser(this ObservableCollection<ImageItem> collection, bool pub = true)
+        {
+            var opt = new ParallelOptions();
+            opt.MaxDegreeOfParallelism = 5;
+            //var items = collection.Distinct();
+            var items = collection.GroupBy(i => i.UserID).Select(g => g.First()).ToList();
+            var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
+            {
+                if (item.HasUser())
+                {
+                    var ua = new Action(async()=>
+                    {
+                        try
+                        {
+                            var result = await ToggleLike(item.User, pub);
+                        }
+                        catch (Exception){}
+                    }).InvokeAsync();
+                }
+            });
+        }
+
+        public static void ToggleLikeUser(this IList<ImageItem> collection, bool pub = true)
+        {
+            ToggleLikeUser(new ObservableCollection<ImageItem>(collection), pub);
         }
         #endregion
 

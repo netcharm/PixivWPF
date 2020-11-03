@@ -1834,36 +1834,58 @@ namespace PixivWPF.Common
             {
                 setting = Application.Current.LoadSetting();
                 var pub = setting.PrivateFavPrefer ? false : true;
+                var toggle = setting.ToggleFavBookmarkState;
 
                 if (obj is ImageItem)
                 {
                     var item = obj as ImageItem;
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                        await item.LikeIllust(pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        await item.LikeIllust(!pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        await item.UnLikeIllust();
+                    if (toggle)
+                    {
+                        await item.ToggleLikeIllust(pub);
+                    }
+                    else
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            await item.LikeIllust(pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            await item.LikeIllust(!pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            await item.UnLikeIllust();
+                    }
                 }
                 else if (obj is ImageListGrid)
                 {
                     var gallery = obj as ImageListGrid;
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                        gallery.GetSelected().LikeIllust(pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        gallery.GetSelected().LikeIllust(!pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        gallery.GetSelected().UnLikeIllust();
+                    if (toggle)
+                    {
+                        gallery.GetSelected().ToggleLikeIllust(pub);
+                    }
+                    else
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            gallery.GetSelected().LikeIllust(pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            gallery.GetSelected().LikeIllust(!pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            gallery.GetSelected().UnLikeIllust();
+                    }
                 }
                 else if (obj is IList<ImageItem>)
                 {
                     var gallery = obj as IList<ImageItem>;
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                        gallery.LikeIllust(pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        gallery.LikeIllust(!pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        gallery.UnLikeIllust();
+                    if (toggle)
+                    {
+                        gallery.ToggleLikeIllust(pub);
+                    }
+                    else
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            gallery.LikeIllust(pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            gallery.LikeIllust(!pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            gallery.UnLikeIllust();
+                    }
                 }
             }
             catch (Exception ex)
@@ -1933,36 +1955,58 @@ namespace PixivWPF.Common
             {
                 setting = Application.Current.LoadSetting();
                 var pub = setting.PrivateFavPrefer ? false : true;
+                var toggle = setting.ToggleFavBookmarkState;
 
                 if (obj is ImageItem)
                 {
                     var item = obj as ImageItem;
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                        await item.LikeUser(pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        await item.LikeUser(!pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        await item.UnLikeUser();
+                    if (toggle)
+                    {
+                        await item.ToggleLikeUser(pub);
+                    }
+                    else
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            await item.LikeUser(pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            await item.LikeUser(!pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            await item.UnLikeUser();
+                    }
                 }
                 else if (obj is ImageListGrid)
                 {
                     var gallery = obj as ImageListGrid;
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                        gallery.GetSelected().LikeUser(pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        gallery.GetSelected().LikeUser(!pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        gallery.GetSelected().UnLikeUser();
+                    if (toggle)
+                    {
+                        gallery.GetSelected().ToggleLikeUser(pub);
+                    }
+                    else
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            gallery.GetSelected().LikeUser(pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            gallery.GetSelected().LikeUser(!pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            gallery.GetSelected().UnLikeUser();
+                    }
                 }
                 else if (obj is IList<ImageItem>)
                 {
                     var gallery = obj as IList<ImageItem>;
-                    if (Keyboard.Modifiers == ModifierKeys.None)
-                        gallery.LikeUser(pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        gallery.LikeUser(!pub);
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        gallery.UnLikeUser();
+                    if (toggle)
+                    {
+                        gallery.ToggleLikeUser(pub);
+                    }
+                    else
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            gallery.LikeUser(pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            gallery.LikeUser(!pub);
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                            gallery.UnLikeUser();
+                    }
                 }
             }
             catch (Exception ex)
