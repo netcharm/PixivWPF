@@ -4985,7 +4985,7 @@ namespace PixivWPF.Common
 
         public static async Task<Tuple<bool, Pixeez.Objects.Work>> ToggleLike(this Pixeez.Objects.Work illust, bool pub = true)
         {
-            return (await ToggleLikeIllust(illust, pub));
+            return (await illust.ToggleLikeIllust(pub));
         }
 
         public static async Task<bool> ToggleLikeIllust(this ImageItem item, bool pub = true)
@@ -5017,7 +5017,7 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            var result = item.User.IsLiked() ? await item.UnLikeUser(pub) : await item.LikeUser(pub);
+                            var result = await item.ToggleLikeIllust(pub);
                         }
                         catch (Exception){}
                     }).InvokeAsync();
@@ -5242,7 +5242,7 @@ namespace PixivWPF.Common
 
         public static async Task<Tuple<bool, Pixeez.Objects.UserBase>> ToggleLike(this Pixeez.Objects.UserBase user, bool pub = true)
         {
-            var result = await ToggleLikeUser(user, pub);
+            var result = await user.ToggleLikeUser(pub);
             UpdateLikeStateAsync((int)(user.Id.Value), true);
             return (result);
         }
@@ -5256,7 +5256,7 @@ namespace PixivWPF.Common
                 try
                 {
                     var user = item.User;
-                    var ret =  await ToggleLike(user, pub);
+                    var ret =  await user.ToggleLike(pub);
                     result = ret.Item1;
                     item.User = ret.Item2;
                     if (item.IsUser())
@@ -5284,7 +5284,7 @@ namespace PixivWPF.Common
                     {
                         try
                         {
-                            var result = await ToggleLike(item.User, pub);
+                            var result = await item.ToggleLikeUser(pub);
                         }
                         catch (Exception){}
                     }).InvokeAsync();
