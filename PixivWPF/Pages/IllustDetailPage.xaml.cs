@@ -1218,9 +1218,6 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        #region WebBrowsre helper routines
-        #endregion
-
         #region Navgition methods
         private async void UpdateSubPageNav()
         {
