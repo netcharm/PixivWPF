@@ -37,8 +37,10 @@ namespace PixivWPF.Pages
         private bool bCancel = false;
         private WindowsFormsHostEx tagsHost;
         private WindowsFormsHostEx descHost;
+        private WindowsFormsHostEx commentsHost;
         private System.Windows.Forms.WebBrowser IllustDescHtml;
         private System.Windows.Forms.WebBrowser IllustTagsHtml;
+        private System.Windows.Forms.WebBrowser IllustCommentsHtml;
 
         private List<DependencyObject> hitResultsList = new List<DependencyObject>();
         // Return the result of the hit test to the callback.
@@ -297,12 +299,14 @@ namespace PixivWPF.Pages
             try
             {
                 InitHtmlRender(out IllustTagsHtml);
-                InitHtmlRender(out IllustDescHtml);
                 InitHtmlRenderHost(out tagsHost, IllustTagsHtml, IllustTagsHost);
+                InitHtmlRender(out IllustDescHtml);
                 InitHtmlRenderHost(out descHost, IllustDescHtml, IllustDescHost);
+                InitHtmlRender(out IllustCommentsHtml);
+                InitHtmlRenderHost(out commentsHost, IllustCommentsHtml, IllustCommentsHost);
 
                 UpdateTheme();
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception) { }
         }
@@ -316,12 +320,12 @@ namespace PixivWPF.Pages
             catch { }
             try
             {
-                if (IllustDescHtml is System.Windows.Forms.WebBrowser) IllustDescHtml.Dispose();
+                if (tagsHost is WindowsFormsHostEx) tagsHost.Dispose();
             }
             catch { }
             try
             {
-                if (tagsHost is WindowsFormsHostEx) tagsHost.Dispose();
+                if (IllustDescHtml is System.Windows.Forms.WebBrowser) IllustDescHtml.Dispose();
             }
             catch { }
             try
@@ -329,10 +333,14 @@ namespace PixivWPF.Pages
                 if (descHost is WindowsFormsHostEx) descHost.Dispose();
             }
             catch { }
-
             try
             {
-                if (CommentsViewer is WebBrowser) CommentsViewer.Dispose();
+                if (IllustCommentsHtml is System.Windows.Forms.WebBrowser) IllustCommentsHtml.Dispose();
+            }
+            catch { }
+            try
+            {
+                if (commentsHost is WindowsFormsHostEx) commentsHost.Dispose();
             }
             catch { }
         }
@@ -2980,21 +2988,17 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (Contents is ImageItem && Contents.IsWork())
+            if (Contents.IsWork())
             {
                 IllustDetailWait.Show();
 
-                //ShowCommentsInline(tokens, Contents);
-                //CommentsViewer.Language = System.Windows.Markup.XmlLanguage.GetLanguage("zh");
-                CommentsViewer.NavigateToString("about:blank");
+                IllustCommentsHtml.Navigate("about:blank");
 
-                //.Document = string.Empty;
                 var result = await tokens.GetIllustComments(Contents.ID, "0", true);
                 foreach (var comment in result.comments)
                 {
                     //comment.
                 }
-                //CommentsViewer.NavigateToString(comm
 
                 IllustDetailWait.Hide();
             }
@@ -3084,7 +3088,7 @@ namespace PixivWPF.Pages
                         catch (Exception) { continue; }
                     }
                 }
-                else if (host == CommentsExpander || host == CommentsViewer)
+                else if (host == CommentsExpander || host == IllustCommentsHost)
                 {
                     foreach (dynamic item in (sender as ContextMenu).Items)
                     {
@@ -3123,7 +3127,7 @@ namespace PixivWPF.Pages
                     {
                         Commands.CopyArtworkIDs.Execute(FavoriteItems);
                     }
-                    else if (host == CommentsExpander || host == CommentsViewer)
+                    else if (host == CommentsExpander || host == IllustCommentsHost)
                     {
 
                     }
@@ -3146,7 +3150,7 @@ namespace PixivWPF.Pages
                     target = RelativeItems;
                 else if (host == FavoriteItemsExpander || host == FavoriteItems)
                     target = FavoriteItems;
-                else if (host == CommentsExpander || host == CommentsViewer)
+                else if (host == CommentsExpander || host == IllustCommentsHost)
                 {
                 }
 
@@ -3185,7 +3189,7 @@ namespace PixivWPF.Pages
                     {
                         Commands.OpenWork.Execute(FavoriteItems);
                     }
-                    else if (host == CommentsExpander || host == CommentsViewer)
+                    else if (host == CommentsExpander || host == IllustCommentsHost)
                     {
 
                     }
@@ -3274,7 +3278,7 @@ namespace PixivWPF.Pages
                                 Commands.ShellSendToOtherInstance.Execute(ids);
                         }
                     }
-                    else if (host == CommentsExpander || host == CommentsViewer)
+                    else if (host == CommentsExpander || host == IllustCommentsHost)
                     {
 
                     }
@@ -3302,7 +3306,7 @@ namespace PixivWPF.Pages
                     {
 
                     }
-                    else if (host == CommentsExpander || host == CommentsViewer)
+                    else if (host == CommentsExpander || host == IllustCommentsHost)
                     {
 
                     }
@@ -3330,7 +3334,7 @@ namespace PixivWPF.Pages
                     {
                         FavoriteNextPage_Click(FavoriteItems, e);
                     }
-                    else if (host == CommentsExpander || host == CommentsViewer)
+                    else if (host == CommentsExpander || host == IllustCommentsHost)
                     {
 
                     }

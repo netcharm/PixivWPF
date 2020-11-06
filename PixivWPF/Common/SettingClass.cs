@@ -640,8 +640,11 @@ namespace PixivWPF.Common
             {
                 if (SaveUserPass)
                 {
-                    username = value;
-                    if (Cache is Setting) Cache.username = username;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        username = value;
+                        if (Cache is Setting) Cache.username = username;
+                    }
                 }
             }
         }
@@ -658,8 +661,11 @@ namespace PixivWPF.Common
             {
                 if (SaveUserPass)
                 {
-                    password = value;
-                    if (Cache is Setting) Cache.password = password;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        password = value;
+                        if (Cache is Setting) Cache.password = password;
+                    }
                 }
             }
         }
@@ -671,8 +677,11 @@ namespace PixivWPF.Common
             get { return (Cache is Setting ? Cache.username.AesDecrypt(accesstoken) : username.AesDecrypt(accesstoken)); }
             set
             {
-                username = value.AesEncrypt(accesstoken);
-                if (Cache is Setting) Cache.username = username;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    username = value.AesEncrypt(accesstoken);
+                    if (Cache is Setting) Cache.username = username;
+                }
             }
         }
 
@@ -681,8 +690,13 @@ namespace PixivWPF.Common
         public string Pass
         {
             get { return (Cache is Setting ? Cache.password.AesDecrypt(accesstoken) : password.AesDecrypt(accesstoken)); }
-            set { password = value.AesEncrypt(accesstoken);
-                if (Cache is Setting) Cache.password = password;
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    password = value.AesEncrypt(accesstoken);
+                    if (Cache is Setting) Cache.password = password;
+                }
             }
         }
 
@@ -712,8 +726,11 @@ namespace PixivWPF.Common
             get { return (Cache is Setting ? Cache.uid.AesDecrypt(accesstoken) : uid.AesDecrypt(accesstoken)); }
             set
             {
-                uid = value.AesEncrypt(accesstoken);
-                if (Cache is Setting) Cache.uid = uid;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    uid = value.AesEncrypt(accesstoken);
+                    if (Cache is Setting) Cache.uid = uid;
+                }
             }
         }
 
