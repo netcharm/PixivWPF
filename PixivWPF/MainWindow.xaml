@@ -86,7 +86,7 @@
                         <MenuItem x:Name="LiveFilterFast_Landscape" x:Uid="LiveFilterFast_Landscape" Header="Landscape" Click="LiveFilterItem_Click"/>
                         <MenuItem x:Name="LiveFilterFast_Portrait" x:Uid="LiveFilterFast_Portrait" Header="Portrait" Click="LiveFilterItem_Click"/>
                         <MenuItem x:Name="LiveFilterFast_Square" x:Uid="LiveFilterFast_Square" Header="Square" Click="LiveFilterItem_Click"/>
-                        <Separator Visibility="{Binding Visibility, ElementName=LiveFilterFast_SizeSmall, Mode=OneWay}"/>
+                        <Separator Visibility="{Binding Visibility, ElementName=LiveFilterFast_Size1K, Mode=OneWay}"/>
                         <MenuItem x:Name="LiveFilterFast_Size1K" x:Uid="LiveFilterFast_Size1K" Header="Small Size (&lt; 1K)" Click="LiveFilterItem_Click"/>
                         <MenuItem x:Name="LiveFilterFast_Size2K" x:Uid="LiveFilterFast_Size2K" Header="Medium Size (1K ~ 2K)" Click="LiveFilterItem_Click"/>
                         <MenuItem x:Name="LiveFilterFast_Size4K" x:Uid="LiveFilterFast_Size4K" Header="Large Size (2K ~ 4K)" Click="LiveFilterItem_Click"/>

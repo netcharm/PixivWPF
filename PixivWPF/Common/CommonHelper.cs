@@ -1761,7 +1761,7 @@ namespace PixivWPF.Common
                             sb.AppendLine(html ? body.InnerHtml : body.InnerText);
                         }
                     }
-                    result = sb.Length > 0 ? sb.ToString() : string.Empty;
+                    result = sb.Length > 0 ? sb.ToString().Trim() : string.Empty;
                 }
             }
 #if DEBUG

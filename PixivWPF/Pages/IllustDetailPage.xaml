@@ -446,6 +446,7 @@
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                         </Grid>
                         <StackPanel Grid.Column="2" x:Name="IllustDateInfo" Visibility="Collapsed" MinWidth="24" Margin="2,0,0,0"
+                                    ContextMenu="{DynamicResource MenuSpeech}" 
                                     MouseDown="IllustInfo_MouseDown"
                             HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" >
                             <iconPacks:PackIconModern 
