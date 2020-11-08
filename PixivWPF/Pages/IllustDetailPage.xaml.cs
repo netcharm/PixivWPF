@@ -1537,7 +1537,7 @@ namespace PixivWPF.Pages
                         Commands.SaveIllust.Execute(FavoriteItems);
                     else if (SubIllusts.Items.Count > 0)
                         Commands.SaveIllust.Execute(SubIllusts);
-                    else if(Contents.IsWork())
+                    else if (Contents.IsWork())
                         Commands.SaveIllust.Execute(Contents);
                     e.Handled = true;
                 }
@@ -1927,9 +1927,9 @@ namespace PixivWPF.Pages
             catch (Exception) { }
 #endif
         }
-#endregion
+        #endregion
 
-#region Illust Info relatice events/helper routines
+        #region Illust Info relatice events/helper routines
         private void ActionSpeech_Click(object sender, RoutedEventArgs e)
         {
             var text = string.Empty;
@@ -1978,17 +1978,21 @@ namespace PixivWPF.Pages
                         else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
                         else if (host == RelativeItemsExpander || host == RelativeItems)
                         {
+                            List<string> lines = new List<string>();
                             foreach (ImageItem item in RelativeItems.GetSelected())
                             {
-                                text += $"{item.Illust.Title},{Environment.NewLine}";
+                                lines.Add(item.Illust.Title);
                             }
+                            text = string.Join($",{Environment.NewLine}", lines);
                         }
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
+                            List<string> lines = new List<string>();
                             foreach (ImageItem item in FavoriteItems.GetSelected())
                             {
-                                text += $"{item.Illust.Title},{Environment.NewLine}";
+                                lines.Add(item.Illust.Title);
                             }
+                            text = string.Join($",{Environment.NewLine}", lines);
                         }
                     }
                 }
@@ -1998,13 +2002,11 @@ namespace PixivWPF.Pages
 #else
             catch (Exception) { }
 #endif
-            if (culture == null)
-            {
-                if (is_tag)
-                    text = string.Join(Environment.NewLine, text.Trim().Trim('#').Split('#'));
-                else
-                    text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
-            }
+            if (is_tag)
+                text = string.Join(Environment.NewLine, text.Trim().Split(Speech.TagBreak, StringSplitOptions.RemoveEmptyEntries));
+            else
+                text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
+
             if (!string.IsNullOrEmpty(text)) text.Play(culture);
         }
 
@@ -2214,9 +2216,9 @@ namespace PixivWPF.Pages
         {
             AdjustBrowserSize(IllustDescHtml);
         }
-#endregion
+        #endregion
 
-#region Illust Actions
+        #region Illust Actions
         private async void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
             UpdateLikeState();
@@ -2475,9 +2477,9 @@ namespace PixivWPF.Pages
                 }).InvokeAsync();
             }
         }
-#endregion
+        #endregion
 
-#region Following User / Bookmark Illust routines
+        #region Following User / Bookmark Illust routines
         private void IllustActions_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             e.Handled = false;
@@ -2648,9 +2650,9 @@ namespace PixivWPF.Pages
                 }
             }
         }
-#endregion
+        #endregion
 
-#region Illust Multi-Pages related routines
+        #region Illust Multi-Pages related routines
         private void SubIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (Contents is ImageItem)
@@ -2817,9 +2819,9 @@ namespace PixivWPF.Pages
                 if (SubIllusts.SelectedItem is ImageItem) SubIllusts.SelectedItem.Focus();
             }
         }
-#endregion
+        #endregion
 
-#region Relative Panel related routines
+        #region Relative Panel related routines
         private void RelativeItemsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (Contents is ImageItem)
@@ -2902,9 +2904,9 @@ namespace PixivWPF.Pages
                     ShowUserWorksInlineAsync(Contents.User, next_url);
             }
         }
-#endregion
+        #endregion
 
-#region Author Favorite routines
+        #region Author Favorite routines
         private void FavoriteItemsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (Contents is ImageItem)
@@ -2982,9 +2984,9 @@ namespace PixivWPF.Pages
                 ShowFavoriteInlineAsync(Contents.User, next_url);
             }
         }
-#endregion
+        #endregion
 
-#region Illust Comments related routines
+        #region Illust Comments related routines
         private async void CommentsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
@@ -3020,9 +3022,9 @@ namespace PixivWPF.Pages
         {
 
         }
-#endregion
+        #endregion
 
-#region Common ImageListGrid Context Menu
+        #region Common ImageListGrid Context Menu
         private void MenuGallaryAction_Opened(object sender, RoutedEventArgs e)
         {
             if (sender is ContextMenu)
@@ -3486,7 +3488,7 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
-#endregion
+        #endregion
 
     }
 

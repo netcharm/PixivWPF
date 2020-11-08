@@ -74,71 +74,120 @@ namespace PixivWPF.Common
             set
             {
                 toasttype = value;
-                SetButton(value);
+                if(IsLoaded) SetButton(value);
             }
         }
+
+        private CustomToast toast = null;
 
         public CustomButton ButtonOk;
         public CustomButton ButtonCancel;
         public CustomButton ButtonOpenFile;
         public CustomButton ButtonOpenFolder;
 
-        public ToastItem()
-        {
-            InitializeComponent();
-
-            ButtonOk = new CustomButton() { Button = OK, Kind = ButtonOKIcon, Text = ButtonOKLabel };
-            ButtonCancel = new CustomButton() { Button = CANCEL, Kind = ButtonCancelIcon, Text = ButtonCancelLabel };
-            ButtonOpenFile = new CustomButton() { Button = OpenFile, Kind = ButtonOpenFileIcon, Text = ButtonOpenFileLabel };
-            ButtonOpenFolder = new CustomButton() { Button = OpenFolder, Kind = ButtonOpenFolderIcon, Text = ButtonOpenFolderLabel };
-
-            //ItemType = ToastType.OK;
-        }
+        private System.Timers.Timer autoCloseTimer = null;
+        private Setting setting = Application.Current.LoadSetting();
 
         private void SetButton(ToastType type)
         {
-            switch (type)
+            try
             {
-                case ToastType.DOWNLOAD:
-                    ButtonOk.Visiable = false;
-                    ButtonCancel.Visiable = false;
-                    ButtonOpenFile.Visiable = true;
-                    ButtonOpenFolder.Visiable = true;
-                    break;
-                case ToastType.OK:
-                    ButtonOk.Visiable = true;
-                    ButtonCancel.Visiable = false;
-                    ButtonOpenFile.Visiable = false;
-                    ButtonOpenFolder.Visiable = false;
-                    break;
-                case ToastType.OKCANCEL:
-                    ButtonOk.Visiable = true;
-                    ButtonCancel.Visiable = true;
-                    ButtonOpenFile.Visiable = false;
-                    ButtonOpenFolder.Visiable = false;
-                    break;
-                case ToastType.YES:
-                    ButtonOk.Label = "Yes";
-                    ButtonOk.Visiable = true;
-                    ButtonCancel.Visiable = false;
-                    ButtonOpenFile.Visiable = false;
-                    ButtonOpenFolder.Visiable = false;
-                    break;
-                case ToastType.YESNO:
-                    ButtonOk.Label = "Yes";
-                    ButtonOk.Visiable = true;
-                    ButtonCancel.Label = "No";
-                    ButtonCancel.Visiable = true;
-                    ButtonOpenFile.Visiable = false;
-                    ButtonOpenFolder.Visiable = false;
-                    break;
-                default:
-                    ButtonOk.Visiable = true;
-                    ButtonCancel.Visiable = false;
-                    ButtonOpenFile.Visiable = false;
-                    ButtonOpenFolder.Visiable = false;
-                    break;
+                switch (type)
+                {
+                    case ToastType.DOWNLOAD:
+                        ButtonOk.Visiable = false;
+                        ButtonCancel.Visiable = false;
+                        ButtonOpenFile.Visiable = true;
+                        ButtonOpenFolder.Visiable = true;
+                        break;
+                    case ToastType.OK:
+                        ButtonOk.Visiable = true;
+                        ButtonCancel.Visiable = false;
+                        ButtonOpenFile.Visiable = false;
+                        ButtonOpenFolder.Visiable = false;
+                        break;
+                    case ToastType.OKCANCEL:
+                        ButtonOk.Visiable = true;
+                        ButtonCancel.Visiable = true;
+                        ButtonOpenFile.Visiable = false;
+                        ButtonOpenFolder.Visiable = false;
+                        break;
+                    case ToastType.YES:
+                        ButtonOk.Label = "Yes";
+                        ButtonOk.Visiable = true;
+                        ButtonCancel.Visiable = false;
+                        ButtonOpenFile.Visiable = false;
+                        ButtonOpenFolder.Visiable = false;
+                        break;
+                    case ToastType.YESNO:
+                        ButtonOk.Label = "Yes";
+                        ButtonOk.Visiable = true;
+                        ButtonCancel.Label = "No";
+                        ButtonCancel.Visiable = true;
+                        ButtonOpenFile.Visiable = false;
+                        ButtonOpenFolder.Visiable = false;
+                        break;
+                    default:
+                        ButtonOk.Visiable = true;
+                        ButtonCancel.Visiable = false;
+                        ButtonOpenFile.Visiable = false;
+                        ButtonOpenFolder.Visiable = false;
+                        break;
+                }
             }
+            catch (Exception) { }
+        }
+
+        private void SetState(string state, string desc)
+        {
+            if (string.IsNullOrEmpty(state))
+            {
+                State.Text = string.Empty;
+                State.Hide();
+            }
+            else if (state.Equals("Successed", StringComparison.CurrentCultureIgnoreCase) ||
+                     state.Equals("Successes", StringComparison.CurrentCultureIgnoreCase) ||
+                     state.Equals("Succeed", StringComparison.CurrentCultureIgnoreCase))
+            {
+                State.Text = "\uE10B";
+                State.Foreground = Theme.AccentBrush;
+                State.Show();
+            }
+            else if (state.Equals("Failed", StringComparison.CurrentCultureIgnoreCase))
+            {
+                State.Text = "\uE10A";
+                State.Foreground = Theme.ErrorBrush;
+                State.Show();
+            }
+            else
+            {
+                State.Text = string.Empty;
+                State.Hide();
+            }
+
+            if (string.IsNullOrEmpty(desc))
+            {
+                StateDescription.Text = string.Empty;
+                StateDescription.Hide();
+            }
+            else if (desc.Equals("Public", StringComparison.CurrentCultureIgnoreCase))
+            {
+                StateDescription.Text = "\uE1F7";
+                StateDescription.Foreground = State.Foreground;
+                StateDescription.Show();
+            }
+            else if (desc.Equals("Private", StringComparison.CurrentCultureIgnoreCase))
+            {
+                StateDescription.Text = "\uE1F6";
+                StateDescription.Foreground = State.Foreground;
+                StateDescription.Show();
+            }
+            else
+            {
+                StateDescription.Text = string.Empty;
+                StateDescription.Hide();
+            }
+            StateMark.Show();
         }
 
         private async void CheckImageSource()
@@ -160,27 +209,64 @@ namespace PixivWPF.Common
                     else
                     {
                         Preview.Visibility = Visibility.Visible;
-                        OpenPanel.Visibility = Visibility.Visible;                       
+                        OpenPanel.Visibility = Visibility.Visible;
                     }
                 }
             }
         }
 
+        public ToastItem()
+        {
+            InitializeComponent();
+        }
+
         private void Toast_Loaded(object sender, RoutedEventArgs e)
         {
+            ButtonOk = new CustomButton() { Button = OK, Kind = ButtonOKIcon, Text = ButtonOKLabel };
+            ButtonCancel = new CustomButton() { Button = CANCEL, Kind = ButtonCancelIcon, Text = ButtonCancelLabel };
+            ButtonOpenFile = new CustomButton() { Button = OpenFile, Kind = ButtonOpenFileIcon, Text = ButtonOpenFileLabel };
+            ButtonOpenFolder = new CustomButton() { Button = OpenFolder, Kind = ButtonOpenFolderIcon, Text = ButtonOpenFolderLabel };
+
+            autoCloseTimer = new System.Timers.Timer((setting.ToastShowTimes + 1) * 1000) { AutoReset = true, Enabled = false };
+            autoCloseTimer.Elapsed += Timer_Elapsed;
+            autoCloseTimer.Enabled = true;
+
+            StateMark.Hide();
+            if (Tag is CustomToast)
+            {
+                toast = Tag as CustomToast;
+                SetState(toast.State, toast.StateDescription);
+            }
+            
             SetButton(ItemType);
             parentWindow = Window.GetWindow(this);
-            if (parentWindow is Window)
-                parentWindow.Closing += Window_Closing;
+            if (parentWindow is Window) parentWindow.Closing += Window_Closing;
             CheckImageSource();
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            if (autoCloseTimer is System.Timers.Timer)
+            {
+                autoCloseTimer.Enabled = false;
+                autoCloseTimer.Dispose();
+            }
+            if (parentWindow is Window)
+            {
+                if (Preview.Source != null) Preview.Source = null;
+                parentWindow = null;
+            }
+        }
+
+        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            CloseButton_Click(sender, new RoutedEventArgs());
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             if(parentWindow == null) parentWindow = Window.GetWindow(this);
-            this.Visibility = Visibility.Hidden;
-            Preview.Source = null;
-            parentWindow.Close();
+            if (parentWindow is Window) parentWindow.Close();
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
@@ -236,12 +322,5 @@ namespace PixivWPF.Common
                 }
             }
         }
-
-        private void Window_Closing(object sender, CancelEventArgs e)
-        {
-            Preview.Source = null;
-//            e.Cancel = 
-        }
-
     }
 }

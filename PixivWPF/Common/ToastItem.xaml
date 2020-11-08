@@ -11,6 +11,7 @@
              xmlns:local="clr-namespace:PixivWPF.Common"
              x:Name="ToastWindow"
              Loaded="Toast_Loaded"
+             Tag="{Binding Path=., Mode=OneWay, NotifyOnTargetUpdated=True}"
              BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
              BorderThickness="1"
              mc:Ignorable="d"
@@ -27,9 +28,9 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/WPFNotification;component/Assets/CloseButton.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
         </ResourceDictionary>
     </UserControl.Resources>
+
     <UserControl.Triggers>
         <EventTrigger RoutedEvent="Button.Click" SourceName="CloseButton">
             <BeginStoryboard>
@@ -39,6 +40,7 @@
             </BeginStoryboard>
         </EventTrigger>
     </UserControl.Triggers>
+    
     <UserControl.Style>
         <Style TargetType="UserControl">
             <Style.Triggers>
@@ -46,6 +48,7 @@
             </Style.Triggers>
         </Style>
     </UserControl.Style>
+    
     <Grid Background="Transparent">
         <Border x:Name="border" 
                 Tag ="{Binding Path=Type, Mode=OneWay, NotifyOnTargetUpdated=True}"
@@ -99,7 +102,7 @@
                 <StackPanel Grid.Row="2" Grid.Column="1" x:Name="OpenPanel" x:Uid="OpenPanel" Margin="0,0,4,4"
                             Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                     <Button x:Name="OpenFolder" x:Uid="OpenFolder" Margin="0,0,2,0" Click="OpenFolder_Click"
-                            ToolTip="Open File Folder" Tag="{Binding Tag, Mode=OneWay}"
+                            ToolTip="Open File Folder" Tag="{Binding Extra, Mode=OneWay}"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Style="{DynamicResource MahApps.Styles.Button.Square}"  BorderThickness="1"
@@ -112,7 +115,7 @@
                         </StackPanel>
                     </Button>
                     <Button x:Name="OpenFile" x:Uid="OpenFile" Margin="4,0,0,0" Click="OpenFile_Click"
-                            ToolTip="Open File With Default Application" Tag="{Binding Tag, Mode=OneWay}"
+                            ToolTip="Open File With Default Application" Tag="{Binding Extra, Mode=OneWay}"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
@@ -151,6 +154,17 @@
                         </StackPanel>
                     </Button>
                 </StackPanel>
+                <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" x:Name="StateMark" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,4,24" Opacity="0.75">
+                    <TextBlock Grid.Row="0" x:Name="State" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                               Text="" FontSize="48pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <TextBlock Grid.Row="0" x:Name="StateDescription" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,8"
+                               Text="" FontSize="16pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <Grid.Effect>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+                    </Grid.Effect>
+                </Grid>
             </Grid>
         </Border>
     </Grid>

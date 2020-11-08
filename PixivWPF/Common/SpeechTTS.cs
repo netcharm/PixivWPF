@@ -889,6 +889,7 @@ namespace PixivWPF.Common
             return (culture);
         }
 
+        public static char[] TagBreak = new char[] { '#', '@' };
         public static string[] LineBreak = new string[] { Environment.NewLine, "\n\r", "\r\n", "\r", "\n", "<br/>", "<br />", "<br>", "</br>" };
         public static void Play(this string text, CultureInfo culture, bool async = true)
         {

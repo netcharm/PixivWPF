@@ -1265,6 +1265,17 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.downloadmanager_pos = downloadmanager_pos;
             }
         }
+
+        private int toast_delay = 5;
+        public int ToastShowTimes
+        {
+            get { return (Cache is Setting ? Cache.toast_delay : toast_delay); }
+            set
+            {
+                toast_delay = Math.Max(1, Math.Min(value, 100));
+                if (Cache is Setting) Cache.toast_delay = toast_delay;
+            }
+        }
         #endregion
 
         #region Template relative

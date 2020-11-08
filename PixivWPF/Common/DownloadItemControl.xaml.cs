@@ -798,8 +798,9 @@ namespace PixivWPF.Common
                 _DownloadStream.Dispose();
                 _DownloadStream = null;
 
+                var state = "Succeed";
                 if (setting.DownloadCompletedToast)
-                    $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast("Succeed", ThumbnailUrl, FileName);
+                    $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast(state, ThumbnailUrl, FileName, state);
                 if (setting.DownloadCompletedSound && StartTick.DeltaSeconds(EndTick) > setting.DownloadCompletedSoundForElapsedSeconds)
                     this.Sound();
             }

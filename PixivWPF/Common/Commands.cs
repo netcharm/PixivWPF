@@ -1736,6 +1736,7 @@ namespace PixivWPF.Common
                             var win = sender as ContentWindow;
                             if (win.Content is Page)
                             {
+                                lastKeyUp = e.Timestamp - 51;
                                 KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(win.Content, e));
                                 e.Handled = true;
                             }

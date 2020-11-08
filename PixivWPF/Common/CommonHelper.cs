@@ -3983,7 +3983,8 @@ namespace PixivWPF.Common
                 File.SetCreationTime(file, dt);
                 File.SetLastWriteTime(file, dt);
                 File.SetLastAccessTime(file, dt);
-                $"{Path.GetFileName(file)} is saved!".ShowDownloadToast("Successed", file);
+                var state = "Succeed";
+                $"{Path.GetFileName(file)} is saved!".ShowDownloadToast(state, file, state);
 
                 if (Regex.IsMatch(file, @"_ugoira\d+\.", RegexOptions.IgnoreCase))
                 {
@@ -3996,17 +3997,20 @@ namespace PixivWPF.Common
                         File.SetCreationTime(ugoira_file, dt);
                         File.SetLastWriteTime(ugoira_file, dt);
                         File.SetLastAccessTime(ugoira_file, dt);
-                        $"{Path.GetFileName(ugoira_file)} is saved!".ShowDownloadToast("Successed", ugoira_file);
+                        state = "Succeed";
+                        $"{Path.GetFileName(ugoira_file)} is saved!".ShowDownloadToast(state, ugoira_file, state);
                     }
                     else
                     {
-                        $"Save {Path.GetFileName(ugoira_url)} failed!".ShowDownloadToast("Failed", "");
+                        state = "Failed";
+                        $"Save {Path.GetFileName(ugoira_url)} failed!".ShowDownloadToast(state, "", state);
                     }
                 }
             }
             else
             {
-                $"Save {Path.GetFileName(url)} failed!".ShowDownloadToast("Failed", "");
+                var state = "Failed";
+                $"Save {Path.GetFileName(url)} failed!".ShowDownloadToast(state, "", state);
             }
             return (file);
         }
@@ -4826,7 +4830,7 @@ namespace PixivWPF.Common
                         var title = result.Item1 ? "Succeed" : "Failed";
                         var fail = result.Item1 ? "is" : "isn't";
                         var pub_like = pub ? "Public" : "Private";
-                        $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl());
+                        $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl(), title, pub_like);
                     }
                 }
                 catch (Exception) { }
@@ -4913,7 +4917,7 @@ namespace PixivWPF.Common
                         var info = "Unliked";
                         var title = result.Item1 ? "Failed" : "Succeed";
                         var fail = result.Item1 ?  "isn't" : "is";
-                        $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl());
+                        $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl(), title);
                     }
                 }
                 catch (Exception) { }
@@ -5070,7 +5074,7 @@ namespace PixivWPF.Common
                         var title = result.Item1 ? "Succeed" : "Failed";
                         var fail = result.Item1 ?  "is" : "isn't";
                         var pub_like = pub ? "Public" : "Private";
-                        $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".ShowToast(title, user.GetAvatarUrl());
+                        $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".ShowToast(title, user.GetAvatarUrl(), title, pub_like);
                     }
                 }
                 catch (Exception) { }
@@ -5165,7 +5169,7 @@ namespace PixivWPF.Common
                         var info = "Unliked";
                         var title = result.Item1 ? "Failed" : "Succeed";
                         var fail = result.Item1 ?  "isn't" : "is";
-                        $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl());
+                        $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl(), title);
                     }
                 }
                 catch (Exception) { }
@@ -6149,11 +6153,13 @@ namespace PixivWPF.Common
         #region Toast routines
         private static string lastToastTitle = string.Empty;
         private static string lastToastContent = string.Empty;
-        public static void ShowDownloadToast(this string content, string title = "Pixiv", string imgsrc = "", object tag = null)
+        public static void ShowDownloadToast(this string content, string title = "Pixiv", string imgsrc = "", string file = "", string state = "", string state_description = "", object tag = null)
         {
             try
             {
                 if (title.Equals(lastToastTitle) && content.Equals(lastToastContent)) return;
+
+                setting = Application.Current.LoadSetting();
 
                 lastToastTitle = title;
                 lastToastContent = content;
@@ -6162,17 +6168,21 @@ namespace PixivWPF.Common
                 NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
                 NotificationConfiguration cfg = new NotificationConfiguration(
                     //new TimeSpan(0, 0, 30), 
-                    TimeSpan.FromSeconds(3),
+                    TimeSpan.FromSeconds(setting.ToastShowTimes),
                     cfgDefault.Width+32, cfgDefault.Height,
                     "ToastTemplate",
                     //cfgDefault.TemplateName, 
                     cfgDefault.NotificationFlowDirection);
 
-                var newNotification = new DownloadToast()
+                var newNotification = new CustomToast()
                 {
+                    Type = ToastType.DOWNLOAD,
                     Title = title,
                     ImgURL = imgsrc,
                     Message = content,
+                    Extra = string.IsNullOrEmpty(file) ? string.Empty : file,
+                    State = state,
+                    StateDescription = state_description,
                     Tag = tag
                 };
 
@@ -6186,25 +6196,30 @@ namespace PixivWPF.Common
 #endif
         }
 
-        public static void ShowToast(this string content, string title, string imgsrc)
+        public static void ShowToast(this string content, string title, string imgsrc, string state = "", string state_description = "")
         {
             try
             {
+                setting = Application.Current.LoadSetting();
+
                 INotificationDialogService _dialogService = new NotificationDialogService();
                 NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
                 NotificationConfiguration cfg = new NotificationConfiguration(
                     //new TimeSpan(0, 0, 30), 
-                    TimeSpan.FromSeconds(3),
+                    TimeSpan.FromSeconds(setting.ToastShowTimes),
                     cfgDefault.Width + 32, cfgDefault.Height,
                     "ToastTemplate",
                     //cfgDefault.TemplateName, 
                     cfgDefault.NotificationFlowDirection);
 
-                var newNotification = new InfoToast()
+                var newNotification = new CustomToast()
                 {
+                    Type = ToastType.OK,
                     Title = title,
                     ImgURL = imgsrc,
                     Message = content,
+                    State = state,
+                    StateDescription = state_description,
                     Tag = null
                 };
 
@@ -6462,25 +6477,23 @@ namespace PixivWPF.Common
     }
 
     #region Custom Toast 
-    public class DownloadToast : Notification
+    public class CustomToast : Notification
     {
         [Description("Get or Set Toast Type")]
         [Category("Common Properties")]
-        [DefaultValue(ToastType.DOWNLOAD)]
-        public ToastType Type { get; set; } = ToastType.DOWNLOAD;
-
-        //public string ImgURL { get; set; }
-        //public string Message { get; set; }
-        //public string Title { get; set; }
-        public object Tag { get; set; }
-    }
-
-    public class InfoToast : Notification
-    {
-        [Description("Get or Set Toast Type")]
-        [Category("Common Properties")]
-        [DefaultValue(ToastType.OK)]
         public ToastType Type { get; set; } = ToastType.OK;
+
+        [Description("Get or Set Extra Contents")]
+        [Category("Common Properties")]
+        public string Extra { get; set; } = string.Empty;
+
+        [Description("Get or Set State")]
+        [Category("Common Properties")]
+        public string State { get; set; } = string.Empty;
+
+        [Description("Get or Set State Description")]
+        [Category("Common Properties")]
+        public string StateDescription { get; set; } = string.Empty;
 
         //public string ImgURL { get; set; }
         //public string Message { get; set; }
