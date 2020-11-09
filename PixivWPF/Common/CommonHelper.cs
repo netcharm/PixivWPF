@@ -1238,6 +1238,52 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region Toast
+        private static System.Timers.Timer autoCloseTimer = null;
+        private static Dictionary<Window, long> toast_list = new Dictionary<Window, long>();
+        public static void AddToast(this Application app, Window win)
+        {
+            var setting = LoadSetting(app);
+            var now = Environment.TickCount;
+
+            toast_list.Add(win, now);
+
+            if (autoCloseTimer == null)
+            {
+                autoCloseTimer = new System.Timers.Timer(setting.ToastShowTimes * 1000) { AutoReset = true, Enabled = false };
+                autoCloseTimer.Elapsed += Timer_Elapsed;
+                autoCloseTimer.Enabled = true;
+            }
+
+            Timer_Elapsed(app, null);
+        }
+
+        private static async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            await new Action(() =>
+            {
+                var setting = Application.Current.LoadSetting();
+                var now = Environment.TickCount;
+                foreach (var kv in toast_list)
+                {
+                    var delta = Math.Abs(TimeSpan.FromMilliseconds(now - kv.Value).TotalSeconds);
+                    if (delta >= setting.ToastShowTimes + 5)
+                    {
+                        try
+                        {
+                            if (kv.Key is Window)
+                            {
+                                kv.Key.Close();
+                            }
+                            toast_list.Remove(kv.Key);
+                        }
+                        catch (Exception ex) { ex.Message.DEBUG(); }
+                    }
+                }
+            }).InvokeAsync();
+        }
+        #endregion
+
         #region Visit History
         private static ObservableCollection<ImageItem> history = new ObservableCollection<ImageItem>();
         public static ObservableCollection<ImageItem> History { get { return (HistorySource(null)); } }
