@@ -834,6 +834,7 @@ namespace PixivWPF.Pages
                 item.Illust.AddToHistory();
                 Application.Current.DoEvents();
                 IllustDetailWait.Hide();
+                Preview.Focus();
             }
         }
 
@@ -1883,14 +1884,14 @@ namespace PixivWPF.Pages
                     if (e.Control && e.KeyCode == System.Windows.Forms.Keys.C)
                     {
                         var text = browser.GetText();
-                        if (sender == IllustTagsHtml) text = text.Replace("#", " ");
+                        if (sender == IllustTagsHtml) text = text.Replace("#", " ").Trim();
                         if (!string.IsNullOrEmpty(text)) Commands.CopyText.Execute(text);
                     }
                     else if (e.Shift && e.KeyCode == System.Windows.Forms.Keys.C)
                     {
                         var html = browser.GetText(true).Trim();
                         var text = browser.GetText(false).Trim();
-                        if (sender == IllustTagsHtml) text = text.Replace("#", " ");
+                        if (sender == IllustTagsHtml) text = text.Replace("#", " ").Trim();
                         var data = new HtmlTextData() { Html = html, Text = text };
                         Commands.CopyText.Execute(data);
                     }

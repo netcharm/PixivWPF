@@ -51,6 +51,35 @@ namespace PixivWPF.Pages
             btnSavePage.Enable(btnViewNextPage.IsEnabled, btnSavePage.IsVisible);
         }
 
+        private void ChangeIllustPage(int offset)
+        {
+            if (Contents.IsWork())
+            {
+                int factor = Keyboard.Modifiers == ModifierKeys.Shift ? 10 : 1;
+
+                var illust = Contents.Illust;
+                int index_p = Contents.Index;
+                if (index_p < 0) index_p = 0;
+                var index_n = Contents.Index + (offset * factor);
+                if (index_n < 0) index_n = 0;
+                if (index_n >= Contents.Count - 1) index_n = Contents.Count - 1;
+                if (index_n == index_p) return;
+
+                var i = illust.IllustItem();
+                if (i is ImageItem)
+                {
+                    i.NextURL = Contents.NextURL;
+                    i.Thumb = illust.GetThumbnailUrl(index_n);
+                    i.Index = index_n;
+                    i.BadgeValue = (index_n + 1).ToString();
+                    i.Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}";
+                    i.DisplayTitle = false;
+                    i.Tag = Contents.Tag;
+                }
+                UpdateDetail(i);
+            }
+        }
+
         private async Task<CustomImageSource> GetPreviewImage()
         {
             CustomImageSource img = new CustomImageSource();
@@ -143,42 +172,8 @@ namespace PixivWPF.Pages
             finally
             {
                 PreviewWait.Hide();
+                Preview.Focus();
             }
-        }
-
-        private void ChangeIllustPage(int offset)
-        {
-            if (Contents.IsWork())
-            {
-                int factor = Keyboard.Modifiers == ModifierKeys.Shift ? 10 : 1;
-
-                var illust = Contents.Illust;
-                int index_p = Contents.Index;
-                if (index_p < 0) index_p = 0;
-                var index_n = Contents.Index + (offset * factor);
-                if (index_n < 0) index_n = 0;
-                if (index_n >= Contents.Count - 1) index_n = Contents.Count - 1;
-                if (index_n == index_p) return;
-
-                var i = illust.IllustItem();
-                if (i is ImageItem)
-                {
-                    i.NextURL = Contents.NextURL;
-                    i.Thumb = illust.GetThumbnailUrl(index_n);
-                    i.Index = index_n;
-                    i.BadgeValue = (index_n + 1).ToString();
-                    i.Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}";
-                    i.DisplayTitle = false;
-                    i.Tag = Contents.Tag;
-                }
-                UpdateDetail(i);
-            }
-        }
-
-        private void SaveIllust()
-        {
-            if (Contents is ImageItem)
-                Commands.SaveIllust.Execute(Contents);
         }
 
         internal void KeyAction(KeyEventArgs e)
@@ -259,7 +254,8 @@ namespace PixivWPF.Pages
             }
             else if (e.IsKey(Key.S, ModifierKeys.Control))
             {
-                SaveIllust();
+                if (Contents.IsWork()) Commands.SaveIllust.Execute(Contents);
+                e.Handled = true;
                 return;
             }
             else
@@ -398,7 +394,7 @@ namespace PixivWPF.Pages
 
         private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
         {
-            SaveIllust();
+            if (Contents.IsWork()) Commands.SaveIllust.Execute(Contents);
         }
 
         private void ActionViewFullSize_Click(object sender, RoutedEventArgs e)
