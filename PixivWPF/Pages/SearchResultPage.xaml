@@ -79,13 +79,21 @@
                 </MenuItem.Icon>
             </MenuItem>            
             <Separator/>
-            <MenuItem x:Name="ActionNextResultPage" x:Uid="ActionNextResultPage" Header="Open Next Page" Click="ResultNextPage_Click">
+            <MenuItem x:Name="ActionNextResultPage" x:Uid="ActionNextResultPage" Header="Open Next Results Page" Click="ResultNextPage_Click">
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Name="ActionNextResultAppend" x:Uid="ActionNextResultAppend" Header="Append Next Results Page" Click="ResultNextPage_Click"
+                      Visibility="{Binding Visibility, ElementName=ActionNextResultPage, Mode=TwoWay}">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>            
             <Separator/>
             <MenuItem x:Name="ActionResultFilter" x:Uid="ActionResultFilter" Header="Result Filter" Click="SearchFilter_Click" ContextMenu="{StaticResource MenuSearchFilter}">
                 <MenuItem.Icon>
@@ -208,7 +216,7 @@
                         </Button.Content>
                     </Button>
                     <Button 
-                        x:Name="ResultNextPage" x:Uid="ResultNextPage" ToolTip="Next Results Page"
+                        x:Name="ResultNextPage" x:Uid="ResultNextPage" ToolTip="Open Next Results Page"
                         Visibility="Visible" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
@@ -216,6 +224,19 @@
                         Click="ResultNextPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
+                    </Button>
+                    <Button 
+                        x:Name="ResultNextAppend" x:Uid="ResultNextAppend" ToolTip="Append Next Results Page"
+                        Visibility="{Binding Visibility, ElementName=ResultNextPage, Mode=TwoWay}" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
+                        Click="ResultNextPage_Click">
+                        <Button.Content>
+                            <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>

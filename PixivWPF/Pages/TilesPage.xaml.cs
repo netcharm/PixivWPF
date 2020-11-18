@@ -315,6 +315,8 @@ namespace PixivWPF.Pages
                 else
                     ListImageTiles.Items.Filter = null;
 
+                if (detail_page is IllustDetailPage)
+                    detail_page.SetFilter(filter);
             }
             catch (Exception ex)
             {

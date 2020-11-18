@@ -210,6 +210,7 @@ namespace PixivWPF.Pages
             SearchFilter.MouseOverAction();
             ResultPrevPage.MouseOverAction();
             ResultNextPage.MouseOverAction();
+            ResultNextAppend.MouseOverAction();
             SearchRefreshThumb.MouseOverAction();
             #endregion
 
@@ -237,7 +238,9 @@ namespace PixivWPF.Pages
         }
 
         #region Search Result Panel related routines
-        private async void ShowResultInline(Pixeez.Tokens tokens, string content, string filter = "", string next_url = "")
+        List<long?> id_user = new List<long?>();
+        List<long?> id_illust = new List<long?>();
+        private async void ShowResultInline(Pixeez.Tokens tokens, string content, string filter = "", string next_url = "", bool append = false)
         {
             try
             {
@@ -245,10 +248,12 @@ namespace PixivWPF.Pages
 
                 PreviewWait.Show();
 
-                ResultItems.Items.Clear();
-
-                List<long?> id_user = new List<long?>();
-                List<long?> id_illust = new List<long?>();
+                if (!append)
+                {
+                    ResultItems.Items.Clear();
+                    id_user.Clear();
+                    id_illust.Clear();
+                }
 
                 var no_filter = string.IsNullOrEmpty(filter);
                 var filter_string = no_filter ? string.Empty : $" ({filter.Replace("users入り", "+ Favs")})";
@@ -266,9 +271,9 @@ namespace PixivWPF.Pages
                         foreach (var user in relatives)
                         {
                             if (id_user.Contains(user.Id)) continue;
+                            id_user.Add(user.Id);
                             user.Cache();
                             user.AddTo(ResultItems.Items, next_url);
-                            id_user.Add(user.Id);
                             this.DoEvents();
                         }
                         this.DoEvents();
@@ -285,9 +290,9 @@ namespace PixivWPF.Pages
                         foreach (var illust in relatives)
                         {
                             if (id_illust.Contains(illust.Id)) continue;
+                            id_illust.Add(illust.Id);
                             illust.Cache();
                             illust.AddTo(ResultItems.Items, next_url);
-                            id_illust.Add(illust.Id);
                             this.DoEvents();
                         }
                         this.DoEvents();
@@ -339,7 +344,7 @@ namespace PixivWPF.Pages
                 {
                     var query = Regex.Replace(content, @"^Tag:(.*?)$", "$1", RegexOptions.IgnoreCase).Trim();
                     query = string.IsNullOrEmpty(filter) ? query : $"{query} {filter}";
-                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "exact_match_for_tags") : 
+                    var relatives = string.IsNullOrEmpty(next_url) ? await tokens.SearchIllustWorksAsync(query, "exact_match_for_tags") :
                         await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(next_url);
                     next_url = relatives.next_url ?? string.Empty;
 
@@ -719,7 +724,8 @@ namespace PixivWPF.Pages
                 if (ResultExpander.Tag is string)
                     next_url = ResultExpander.Tag as string;
 
-                ShowResultInline(tokens, Contents, result_filter, next_url);
+                var append = sender == ResultNextAppend || sender.GetUid().Equals("ActionNextResultAppend", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+                ShowResultInline(tokens, Contents, result_filter, next_url, append);
             }
             ResultNextPage.Show();
         }

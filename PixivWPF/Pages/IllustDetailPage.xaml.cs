@@ -1073,12 +1073,18 @@ namespace PixivWPF.Pages
             }).InvokeAsync();
         }
 
-        private async Task ShowRelativeInline(ImageItem item, string next_url = "")
+        private List<long?> relative_illusts = new List<long?>();
+        private async Task ShowRelativeInline(ImageItem item, string next_url = "", bool append = false)
         {
             try
             {
                 IllustDetailWait.Show();
-                RelativeItems.Items.Clear();
+                if(!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
+                if (!append)
+                {
+                    RelativeItems.Items.Clear();
+                    relative_illusts.Clear();
+                }
 
                 var tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return;
@@ -1096,6 +1102,8 @@ namespace PixivWPF.Pages
                     RelativeItemsExpander.Tag = next_url;
                     foreach (var illust in relatives.illusts)
                     {
+                        if (relative_illusts.Contains(illust.Id)) continue;
+                        relative_illusts.Add(illust.Id);
                         illust.Cache();
                         illust.AddTo(RelativeItems.Items, relatives.next_url);
                         this.DoEvents();
@@ -1114,20 +1122,25 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ShowRelativeInlineAsync(ImageItem item, string next_url = "")
+        private async void ShowRelativeInlineAsync(ImageItem item, string next_url = "", bool append = false)
         {
             await new Action(async () =>
             {
-                await ShowRelativeInline(item, next_url);
+                await ShowRelativeInline(item, next_url, append);
             }).InvokeAsync();
         }
 
-        private async Task ShowUserWorksInline(Pixeez.Objects.UserBase user, string next_url = "")
+        private async Task ShowUserWorksInline(Pixeez.Objects.UserBase user, string next_url = "", bool append = false)
         {
             try
             {
                 IllustDetailWait.Show();
-                RelativeItems.Items.Clear();
+                if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
+                if (!append)
+                {
+                    RelativeItems.Items.Clear();
+                    relative_illusts.Clear();
+                }
 
                 var tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return;
@@ -1145,6 +1158,8 @@ namespace PixivWPF.Pages
                     RelativeItemsExpander.Tag = next_url;
                     foreach (var illust in relatives.illusts)
                     {
+                        if (relative_illusts.Contains(illust.Id)) continue;
+                        relative_illusts.Add(illust.Id);
                         illust.Cache();
                         illust.AddTo(RelativeItems.Items, relatives.next_url);
                         this.DoEvents();
@@ -1163,21 +1178,27 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ShowUserWorksInlineAsync(Pixeez.Objects.UserBase user, string next_url = "")
+        private async void ShowUserWorksInlineAsync(Pixeez.Objects.UserBase user, string next_url = "", bool append = false)
         {
             await new Action(async () =>
             {
-                await ShowUserWorksInline(user, next_url);
+                await ShowUserWorksInline(user, next_url, append);
             }).InvokeAsync();
         }
 
         private string last_restrict = string.Empty;
-        private async Task ShowFavoriteInline(Pixeez.Objects.UserBase user, string next_url = "")
+        private List<long?> favorite_illusts = new List<long?>();
+        private async Task ShowFavoriteInline(Pixeez.Objects.UserBase user, string next_url = "", bool append = false)
         {
             try
             {
                 IllustDetailWait.Show();
-                FavoriteItems.Items.Clear();
+                if (!(favorite_illusts is List<long?>)) favorite_illusts = new List<long?>();
+                if (!append)
+                {
+                    FavoriteItems.Items.Clear();
+                    favorite_illusts.Clear();
+                }
 
                 var tokens = await CommonHelper.ShowLogin();
                 if (tokens == null) return;
@@ -1194,12 +1215,14 @@ namespace PixivWPF.Pages
                 if (favorites.illusts is Array)
                 {
                     if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
-                        FavoriteNextPage.Visibility = Visibility.Collapsed;
-                    else FavoriteNextPage.Visibility = Visibility.Visible;
+                        FavoriteNextPage.Hide();
+                    else FavoriteNextPage.Show();
 
                     FavoriteItemsExpander.Tag = next_url;
                     foreach (var illust in favorites.illusts)
                     {
+                        if (favorite_illusts.Contains(illust.Id)) continue;
+                        favorite_illusts.Add(illust.Id);
                         illust.Cache();
                         illust.AddTo(FavoriteItems.Items, favorites.next_url);
                         this.DoEvents();
@@ -1218,11 +1241,11 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ShowFavoriteInlineAsync(Pixeez.Objects.UserBase user, string next_url = "")
+        private async void ShowFavoriteInlineAsync(Pixeez.Objects.UserBase user, string next_url = "", bool append = false)
         {
             await new Action(async () =>
             {
-                await ShowFavoriteInline(user, next_url);
+                await ShowFavoriteInline(user, next_url, append);
             }).InvokeAsync();
         }
         #endregion
@@ -1385,7 +1408,7 @@ namespace PixivWPF.Pages
             RelativeItems.Columns = 5;
             FavoriteItems.Columns = 5;
 
-            IllustDetailWait.Visibility = Visibility.Collapsed;
+            IllustDetailWait.Hide();
             btnSubPagePrev.Hide();
             btnSubPageNext.Hide();
 
@@ -1408,10 +1431,12 @@ namespace PixivWPF.Pages
 
             RelativePrevPage.MouseOverAction();
             RelativeNextPage.MouseOverAction();
+            RelativeNextAppend.MouseOverAction();
             RelativeRefresh.MouseOverAction();
 
             FavoritePrevPage.MouseOverAction();
             FavoriteNextPage.MouseOverAction();
+            FavoriteNextAppend.MouseOverAction();
             FavoriteRefresh.MouseOverAction();
             #endregion
 
@@ -2892,17 +2917,18 @@ namespace PixivWPF.Pages
             {
                 next_url = RelativeItemsExpander.Tag as string;
                 if (string.IsNullOrEmpty(next_url))
-                    RelativeNextPage.Visibility = Visibility.Collapsed;
+                    RelativeNextPage.Hide();
                 else
-                    RelativeNextPage.Visibility = Visibility.Visible;
+                    RelativeNextPage.Show();
             }
 
             if (Contents is ImageItem)
             {
+                var append = sender == RelativeNextAppend ? true : false;
                 if (Contents.IsWork())
-                    ShowRelativeInlineAsync(Contents, next_url);
+                    ShowRelativeInlineAsync(Contents, next_url, append);
                 else if (Contents.IsUser())
-                    ShowUserWorksInlineAsync(Contents.User, next_url);
+                    ShowUserWorksInlineAsync(Contents.User, next_url, append);
             }
         }
         #endregion
@@ -2975,14 +3001,15 @@ namespace PixivWPF.Pages
             {
                 next_url = FavoriteItemsExpander.Tag as string;
                 if (string.IsNullOrEmpty(next_url))
-                    FavoriteNextPage.Visibility = Visibility.Collapsed;
+                    FavoriteNextPage.Hide();
                 else
-                    FavoriteNextPage.Visibility = Visibility.Visible;
+                    FavoriteNextPage.Show();
             }
 
             if (Contents is ImageItem)
             {
-                ShowFavoriteInlineAsync(Contents.User, next_url);
+                var append = sender == FavoriteNextAppend ? true : false;
+                ShowFavoriteInlineAsync(Contents.User, next_url, append);
             }
         }
         #endregion
@@ -3326,18 +3353,20 @@ namespace PixivWPF.Pages
             {
                 if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
                 {
-                    var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
+                    var menuitem = sender as MenuItem;
+                    var append = sender.GetUid().Equals("ActionNextAppend", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+                    var host = (menuitem.Parent as ContextMenu).PlacementTarget;
                     if (host == SubIllustsExpander || host == SubIllusts)
                     {
                         SubIllustPagesNav_Click(SubIllustNextPages, e);
                     }
                     else if (host == RelativeItemsExpander || host == RelativeItems)
                     {
-                        RelativeNextPage_Click(RelativeItems, e);
+                        RelativeNextPage_Click(append ? RelativeNextAppend : RelativeNextPage, e);
                     }
                     else if (host == FavoriteItemsExpander || host == FavoriteItems)
                     {
-                        FavoriteNextPage_Click(FavoriteItems, e);
+                        FavoriteNextPage_Click(append ? FavoriteNextAppend : FavoriteNextPage, e);
                     }
                     else if (host == CommentsExpander || host == IllustCommentsHost)
                     {
@@ -3439,6 +3468,7 @@ namespace PixivWPF.Pages
                 if (sender is MenuItem)
                 {
                     var m = sender as MenuItem;
+                    var append = m.Uid.Equals("ActionNextAppend", StringComparison.CurrentCultureIgnoreCase) ? true : false;
                     var host = (m.Parent as ContextMenu).PlacementTarget;
                     if (m.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
                     {

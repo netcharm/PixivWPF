@@ -94,6 +94,14 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionNextAppend" Header="Append Next Page" Click="ActionNextPage_Click" 
+                      Visibility="{Binding Visibility, ElementName=ActionNextPage, Mode=TwoWay}">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>            
             <Separator x:Name="ActionSaveSeparator" x:Uid="ActionSaveSeparator"/>
             <MenuItem x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="ActionSaveIllusts_Click">
                 <MenuItem.Icon>
@@ -965,8 +973,21 @@
                         </Button.Content>
                     </Button>
                     <Button 
+                        x:Name="RelativeNextAppend" x:Uid="RelativeNextAppend"
+                        Visibility="{Binding Visibility, ElementName=RelativeNextPage, Mode=TwoWay}" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
+                        Click="RelativeNextPage_Click">
+                        <Button.Content>
+                            <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
+                    </Button>                    
+                    <Button 
                         x:Name="RelativeRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="Visible" FontWeight="Normal"
+                        Visibility="{Binding Visibility, ElementName=RelativeNextPage, Mode=TwoWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
@@ -1026,8 +1047,21 @@
                         </Button.Content>
                     </Button>
                     <Button 
+                        x:Name="FavoriteNextAppend" x:Uid="FavoriteNextAppend"
+                        Visibility="{Binding Visibility, ElementName=FavoriteNextPage, Mode=TwoWay}" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
+                        Click="FavoriteNextPage_Click">
+                        <Button.Content>
+                            <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
+                    </Button>
+                    <Button 
                         x:Name="FavoriteRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="Visible" FontWeight="Normal"
+                        Visibility="{Binding Visibility, ElementName=FavoriteNextPage, Mode=TwoWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"

@@ -630,7 +630,7 @@ namespace PixivWPF.Common
                 UpdateProgress();
                 response.EnsureSuccessStatusCode();
                 var LastModifiedOffset = response.Content.Headers.LastModified ?? default(DateTimeOffset);
-                LastModified = LastModifiedOffset.DateTime;
+                LastModified = LastModifiedOffset.DateTime.ToLocalTime();
                 string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                 Length = response.Content.Headers.ContentLength ?? 0;
                 if (Length > 0)
@@ -703,7 +703,7 @@ namespace PixivWPF.Common
                 UpdateProgress();
                 response.EnsureSuccessStatusCode();
                 var LastModifiedOffset = response.Content.Headers.LastModified ?? default(DateTimeOffset);
-                LastModified = LastModifiedOffset.DateTime;
+                LastModified = LastModifiedOffset.DateTime.ToLocalTime();
 
                 string ce = response.Content.Headers.ContentEncoding.FirstOrDefault();
                 var length = response.Content.Headers.ContentLength ?? 0;

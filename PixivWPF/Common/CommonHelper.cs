@@ -5533,6 +5533,7 @@ namespace PixivWPF.Common
 
             return (result);
         }
+
         public static void UpdateTheme(this Window win, Image icon = null)
         {
             try
