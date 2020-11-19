@@ -779,6 +779,29 @@ namespace Pixeez
             }
         }
 
+        public async Task AddFollowUser(long user_id, string restrict = "public")
+        {
+            var url = "https://app-api.pixiv.net/v1/user/follow/add";
+            var param = new Dictionary<string, string>
+            {
+                { "user_id", user_id.ToString() },
+                { "restrict", restrict }
+            };
+            using (var res = await SendRequestAsync(MethodType.POST, url, param))
+            {
+                var code = res.Source.EnsureSuccessStatusCode();
+                var result = await res.GetResponseStringAsync();
+
+            }
+        }
+
+        public async Task AddFollowUser(string user_id, string restrict = "public")
+        {
+            long uid = 0;
+            long.TryParse(user_id, out uid);
+            await AddFollowUser(uid, restrict);
+        }
+
         /// <summary>
         /// 可批量解除，逗号分隔
         /// </summary>
@@ -797,6 +820,28 @@ namespace Pixeez
                 var code = res.Source.EnsureSuccessStatusCode();
                 var result = await res.GetResponseStringAsync();
             }
+        }
+
+        public async Task DeleteFollowUser(long user_id)
+        {
+            var url = "https://app-api.pixiv.net/v1/user/follow/delete";
+            var param = new Dictionary<string, string>
+            {
+                { "user_id", user_id.ToString() }
+            };
+            using (var res = await SendRequestAsync(MethodType.POST, url, param))
+            {
+                var code = res.Source.EnsureSuccessStatusCode();
+                var result = await res.GetResponseStringAsync();
+
+            }
+        }
+
+        public async Task DeleteFollowUser(string user_id)
+        {
+            long uid = 0;
+            long.TryParse(user_id, out uid);
+            await DeleteFollowUser(uid);
         }
 
         /// <summary>
@@ -1007,6 +1052,17 @@ namespace Pixeez
         //    string url = "https://public-api.secure.pixiv.net/v1/users/"+ authorid +"/following.json";
         //    await SendRequestWithAuthAsync(MethodType.GET, url, new Dictionary<string, string> { { "page", page.ToString() }, { "per_page", per_page.ToString() } });
         //}
+
+        public async Task<BookmarkDetailRootobject> GetFollowedDetailAsync(long user_id, string restrict = "public")
+        {
+            string url = "https://app-api.pixiv.net/v2/user/following/detail";
+            var dic = new Dictionary<string, string>()
+            {
+                { "user_id", user_id.ToString() },
+                { "restrict", restrict.ToString() }
+            };
+            return await AccessNewApiAsync<BookmarkDetailRootobject>(url, true, dic);
+        }
 
         /// <summary>
         /// <para>Available parameters:</para>
