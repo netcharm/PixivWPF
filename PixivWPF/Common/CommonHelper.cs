@@ -4839,6 +4839,42 @@ namespace PixivWPF.Common
         #endregion
 
         #region Like/Unlike Illust helper routines
+        public class BookmarkState
+        {
+            public bool State { get; set; } = false;
+            public bool IsBookmarked { get; set; } = false;
+            public string Restrict { get; set; } = string.Empty;
+        }
+        public static async Task<BookmarkState> RefreshIllustBookmarkState(this Pixeez.Objects.Work illust)
+        {
+            BookmarkState result = new BookmarkState();
+
+            var tokens = await ShowLogin();
+            if (tokens == null) return (result);
+
+            var bookmarkstate = await tokens.GetBookMarkedDetailAsync(illust.Id??-1);
+            if (bookmarkstate is Pixeez.Objects.BookmarkDetailRootobject && bookmarkstate.bookmark_detail is Pixeez.Objects.BookmarkDetail)
+            {
+                var is_bookmarked = bookmarkstate.bookmark_detail.is_bookmarked;
+                var restrict = bookmarkstate.bookmark_detail.restrict;
+                if (illust is Pixeez.Objects.IllustWork)
+                {
+                    var i = illust as Pixeez.Objects.IllustWork;
+                    i.is_bookmarked = is_bookmarked;
+                }
+                else if (illust is Pixeez.Objects.NormalWork)
+                {
+                    var i = illust as Pixeez.Objects.NormalWork;
+                    i.IsLiked = is_bookmarked;
+                }
+                result.State = true;
+                result.Restrict = restrict;
+                result.IsBookmarked = is_bookmarked;
+            }
+
+            return (result);
+        }
+
         /// <summary>
         /// Like Illust Work
         /// </summary>
@@ -4868,6 +4904,14 @@ namespace PixivWPF.Common
             {
                 try
                 {
+                    //var bs = await illust.RefreshIllustBookmarkState();
+                    //result = new Tuple<bool, Pixeez.Objects.Work>(bs.IsBookmarked, illust);
+                    //var info = "Liked";
+                    //var title = bs.State ? "Succeed" : "Failed";
+                    //var fail = bs.State ? "is" : "isn't";
+                    //var pub_like = bs.Restrict;
+                    //$"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl(), title, pub_like);
+
                     illust = await illust.RefreshIllust();
                     if (illust != null)
                     {
@@ -4956,6 +5000,13 @@ namespace PixivWPF.Common
             {
                 try
                 {
+                    //var bs = await illust.RefreshIllustBookmarkState();
+                    //result = new Tuple<bool, Pixeez.Objects.Work>(bs.IsBookmarked, illust);
+                    //var info = "Unliked";
+                    //var title = result.Item1 ? "Failed" : "Succeed";
+                    //var fail = result.Item1 ?  "isn't" : "is";
+                    //$"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl(), title);
+
                     illust = await illust.RefreshIllust();
                     if (illust != null)
                     {

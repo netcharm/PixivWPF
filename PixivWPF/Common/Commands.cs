@@ -666,21 +666,22 @@ namespace PixivWPF.Common
                     {
                         var illust = item.Illust;
 
+                        string fp = string.Empty;
                         if (item.Count > 1)
                         {
-                            string fp = string.Empty;
                             if (item.IsPage() || item.IsPages())
                                 illust.IsDownloadedAsync(out fp, item.Index);
-                            else if (item.IsWork())
+                            else
                                 illust.IsPartDownloadedAsync(out fp);
-                            fp.OpenFileWithShell();
                         }
                         else
                         {
-                            string fp = string.Empty;
                             illust.IsPartDownloadedAsync(out fp);
-                            fp.OpenFileWithShell();
                         }
+                        if (string.IsNullOrEmpty(fp))
+                            OpenWorkPreview.Execute(item);
+                        else
+                            fp.OpenFileWithShell();
                     }
                 }
                 else if (obj is ImageListGrid)
