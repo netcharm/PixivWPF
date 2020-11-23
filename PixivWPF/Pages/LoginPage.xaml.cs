@@ -97,6 +97,8 @@ namespace PixivWPF.Pages
         {
             if(window == null) window = this.GetActiveWindow();
 
+            setting = Application.Current.LoadSetting();
+
             var user = edUser.Text.Trim();
             var pass = edPass.Password.Trim();
             var proxy = edProxy.Text.Trim();
@@ -122,8 +124,8 @@ namespace PixivWPF.Pages
                     var refreshtoken = Application.Current.RefreshToken();
 
                     //var deviceId = Application.Current.GetDeviceId();
-                    tokens = Pixeez.Auth.AuthorizeWithAccessToken(accesstoken, proxy, useproxy);
-                    var result = await Pixeez.Auth.AuthorizeAsync(user, pass, refreshtoken, proxyserver, useproxy);
+                    tokens = Pixeez.Auth.AuthorizeWithAccessToken(accesstoken, proxy, setting.ProxyBypass, useproxy);
+                    var result = await Pixeez.Auth.AuthorizeAsync(user, pass, refreshtoken, proxyserver, setting.ProxyBypass, useproxy);
                     if (!string.IsNullOrEmpty(result.Authorize.AccessToken))
                     {
                         accesstoken = result.Authorize.AccessToken;

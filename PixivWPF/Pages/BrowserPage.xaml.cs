@@ -159,9 +159,13 @@ namespace PixivWPF.Pages
             {
                 if (IsSkip(url.AbsolutePath)) return;
 
+                setting = Application.Current.LoadSetting();
+
                 webHtml.Stop();
                 HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(currentUri);
-                if (setting.UsingProxy) myRequest.Proxy = new WebProxy(setting.Proxy);
+                if (setting.UsingProxy) myRequest.Proxy = new WebProxy(setting.Proxy, true, setting.ProxyBypass);
+                myRequest.Timeout = setting.DownloadHttpTimeout;
+                myRequest.KeepAlive = true;
 
                 //using (HttpWebResponse myResponse = (HttpWebResponse)await myRequest.GetResponseAsync())
                 //{
@@ -177,10 +181,10 @@ namespace PixivWPF.Pages
             {
                 if (ex.Message.Contains("404"))
                 {
-                    webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
+                    if (webHtml.DocumentText.Length <= 1024)
+                        webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
                 }
-                else ex.Message.ShowMessageBox("ERROR[BROWSER]!");
-                
+                else ex.Message.ShowMessageBox("ERROR[BROWSER]!");                
             }
         }
 
@@ -200,7 +204,7 @@ namespace PixivWPF.Pages
             }
         }
         
-        private async void WebBrowerReplaceImageSource(System.Windows.Forms.WebBrowser browser)
+        private async void WebBrowserReplaceImageSource(System.Windows.Forms.WebBrowser browser)
         {
             try
             {
@@ -369,7 +373,7 @@ namespace PixivWPF.Pages
                 {
                     var browser = sender as System.Windows.Forms.WebBrowser;
 
-                    WebBrowerReplaceImageSource(browser);
+                    WebBrowserReplaceImageSource(browser);
                 }
             }
             catch (Exception) { }
@@ -419,7 +423,7 @@ namespace PixivWPF.Pages
                         }
                         catch (Exception) { continue; }
                     }
-                    WebBrowerReplaceImageSource(browser);
+                    WebBrowserReplaceImageSource(browser);
                 }
             }
 #if DEBUG

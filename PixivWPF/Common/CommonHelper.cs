@@ -1373,6 +1373,48 @@ namespace PixivWPF.Common
             }
         }
 
+        public static void HistoryAdd(this Application app, ImageItem item, ObservableCollection<ImageItem> source)
+        {
+            if (source is ObservableCollection<ImageItem>)
+            {
+                try
+                {
+                    long new_id = -1;
+                    long.TryParse(item.ID, out new_id);
+                    if (source.Count() > 0)
+                    {
+                        var last_item = source.First();
+                        long last_id = -1;
+                        long.TryParse(last_item.ID, out last_id);
+                        if (last_id == new_id) return;
+                    }
+                    var items = source.Where(i => i.IsUser() || i.IsWork()).Distinct();
+                    var found = items.Where(i => i.ID.Equals(new_id.ToString()));
+                    if (found.Count() >= 1)
+                    {
+                        var i = found.FirstOrDefault();
+                        i.User = item.User;
+                        i.Illust = item.Illust;
+                        i.IsFollowed = item.IsFollowed;
+                        i.IsFavorited = item.IsFavorited;
+                        i.IsDownloaded = item.IsDownloaded;
+                        source.Move(source.IndexOf(i), 0);
+                    }
+                    else
+                    {
+                        source.Insert(0, item);
+                        var setting = app.LoadSetting();
+                        if (source.Count > setting.HistoryLimit) source.Remove(source.Last());
+                    }
+                    HistoryUpdate(app, source);
+                }
+                catch (Exception ex)
+                {
+                    ex.Message.ShowMessageBox("ERROR[HISTORY]");
+                }
+            }
+        }
+
         public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust)
         {
             app.HistoryAdd(illust, history);
@@ -1381,6 +1423,14 @@ namespace PixivWPF.Common
         public static void HistoryAdd(this Application app, Pixeez.Objects.UserBase user)
         {
             app.HistoryAdd(user, history);
+        }
+
+        public static void HistoryAdd(this Application app, ImageItem item)
+        {
+            if (item.IsWork() || item.IsUser())
+            {
+                app.HistoryAdd(item, history);
+            }
         }
 
         public static void HistoryAdd(this Application app, dynamic item)
@@ -1654,7 +1704,7 @@ namespace PixivWPF.Common
                 try
                 {
                     setting = Application.Current.LoadSetting();
-                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
+                    var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
                     setting.AccessToken = authResult.Authorize.AccessToken;
                     setting.RefreshToken = authResult.Authorize.RefreshToken;
                     setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
@@ -1671,7 +1721,7 @@ namespace PixivWPF.Common
                         try
                         {
                             setting = Application.Current.LoadSetting();
-                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.UsingProxy);
+                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
                             setting.AccessToken = authResult.Authorize.AccessToken;
                             setting.RefreshToken = authResult.Authorize.RefreshToken;
                             setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
@@ -1713,7 +1763,7 @@ namespace PixivWPF.Common
                     setting = Application.Current.LoadSetting();
                     if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
                     {
-                        result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
+                        result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
                     }
                     else
                     {
@@ -1725,7 +1775,7 @@ namespace PixivWPF.Common
                             }
                             catch (Exception)
                             {
-                                result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.UsingProxy);
+                                result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
                             }
                         }
                         else
@@ -2826,7 +2876,7 @@ namespace PixivWPF.Common
 
             return (result);
         }
-
+        
         public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false)
         {
             bool result = false;
@@ -2870,11 +2920,19 @@ namespace PixivWPF.Common
                         var IsImage = ext_imgs_more.Contains(ext) || ext_imgs.Contains(ext) ? true : false;
                         if (alt_viewer && IsImage)
                         {
-                            var cmd_found = setting.ShellImageViewer.Where();
-                            if(cmd_found.Length > 0)
-                                Process.Start(cmd_found.First(), FileName);
+                            if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) || 
+                                !setting.ShellImageViewerCmd.ToLower().Contains(setting.ShellImageViewer.ToLower()))
+                                setting.ShellImageViewerCmd = setting.ShellImageViewer;
+                            if (!File.Exists(setting.ShellImageViewerCmd))
+                            {
+                                var cmd_found = setting.ShellImageViewerCmd.Where();
+                                if (cmd_found.Length > 0) setting.ShellImageViewerCmd = cmd_found.First();
+                            }
+                            var args = string.IsNullOrEmpty(setting.ShellImageViewerParams) ? $"{setting.ShellImageViewerParams} {FileName}" : FileName;
+                            if (string.IsNullOrEmpty(setting.ShellImageViewerCmd))
+                                Process.Start(FileName); 
                             else
-                                Process.Start(FileName);
+                                Process.Start(setting.ShellImageViewerCmd, args);
                         }
                         else Process.Start(FileName);
                     }
@@ -4136,7 +4194,7 @@ namespace PixivWPF.Common
             var useproxy = setting.UsingProxy;
             HttpClientHandler handler = new HttpClientHandler()
             {
-                Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
+                Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, setting.ProxyBypass),
                 UseProxy = string.IsNullOrEmpty(proxy) || !useproxy ? false : true
             };
             using (HttpClient client = new HttpClient(handler))
@@ -4521,6 +4579,16 @@ namespace PixivWPF.Common
         #endregion
 
         #region History routines
+        public static void AddToHistory(this ImageItem item)
+        {
+            //Commands.AddToHistory.Execute(illust);
+            var win = "History".GetWindowByTitle();
+            if (win is ContentWindow && win.Content is HistoryPage)
+                (win.Content as HistoryPage).AddToHistory(item);
+            else
+                Application.Current.HistoryAdd(item);
+        }
+
         public static void AddToHistory(this Pixeez.Objects.Work illust)
         {
             //Commands.AddToHistory.Execute(illust);

@@ -568,6 +568,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private string[] proxy_bypass = new string[] { "127.0.0.1", "localhost", "0.0.0.0", "192.168.1.*", "10.0.0.*" };
+        public string[] ProxyBypass
+        {
+            get { return (Cache is Setting ? Cache.proxy_bypass : proxy_bypass); }
+            set
+            {
+                proxy_bypass = value;
+                if (Cache is Setting) Cache.proxy_bypass = proxy_bypass;
+            }
+        }
+
         private bool using_proxy = false;
         public bool UsingProxy
         {
@@ -1228,6 +1239,28 @@ namespace PixivWPF.Common
             {
                 shell_image_viewer = value;
                 if (Cache is Setting) Cache.shell_image_viewer = shell_image_viewer;
+            }
+        }
+        private string shell_image_viewer_cmd = string.Empty;
+        [JsonIgnore]
+        public string ShellImageViewerCmd
+        {
+            get { return (Cache is Setting ? Cache.shell_image_viewer_cmd : shell_image_viewer_cmd); }
+            set
+            {
+                shell_image_viewer_cmd = value;
+                if (Cache is Setting) Cache.shell_image_viewer_cmd = shell_image_viewer_cmd;
+            }
+        }
+
+        private string shell_image_viewer_params = string.Empty;
+        public string ShellImageViewerParams
+        {
+            get { return (Cache is Setting ? Cache.shell_image_viewer_params : shell_image_viewer_params); }
+            private set
+            {
+                shell_image_viewer_params = value;
+                if (Cache is Setting) Cache.shell_image_viewer_params = shell_image_viewer_params;
             }
         }
 

@@ -839,7 +839,8 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                item.Illust.AddToHistory();
+                //item.Illust.AddToHistory();
+                item.AddToHistory();
                 Application.Current.DoEvents();
                 IllustDetailWait.Hide();
                 Preview.Focus();
@@ -973,7 +974,8 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                item.User.AddToHistory();
+                //item.User.AddToHistory();
+                item.AddToHistory();
                 Application.Current.DoEvents();
                 IllustDetailWait.Hide();
             }

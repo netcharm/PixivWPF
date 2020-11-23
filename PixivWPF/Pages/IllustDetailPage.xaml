@@ -86,16 +86,15 @@
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>                        
-            <MenuItem x:Uid="ActionNextPage" Header="Open Next Page" Click="ActionNextPage_Click" >
+            </MenuItem>
+            <MenuItem x:Name="ActionNextPage" x:Uid="ActionNextPage" Header="Open Next Page" Click="ActionNextPage_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionNextAppend" Header="Append Next Page" Click="ActionNextPage_Click" 
-                      Visibility="{Binding Visibility, ElementName=ActionNextPage, Mode=TwoWay}">
+            <MenuItem x:Uid="ActionNextAppend" Header="Append Next Page" Click="ActionNextPage_Click" >
                 <MenuItem.Icon>
                     <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"

@@ -30,8 +30,6 @@ namespace PixivWPF.Pages
 
         private string result_filter = string.Empty;
 
-        private Dictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new Dictionary<string, Tuple<MenuItem, MenuItem>>();
-
         public string Contents { get; set; } = string.Empty;
 
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -59,10 +57,21 @@ namespace PixivWPF.Pages
                 HistoryItems.UpdateLikeState(illustid, is_user);
         }
 
+        public void AddToHistory(ImageItem item)
+        {
+            if (HistoryItems.Items is ObservableCollection<ImageItem>)
+            {
+                Application.Current.HistoryAdd(item);
+                Application.Current.HistoryAdd(item, HistoryItems.Items);
+                UpdateDetail();
+            }
+        }
+
         public void AddToHistory(Pixeez.Objects.Work illust)
         {
             if(HistoryItems.Items is ObservableCollection<ImageItem>)
             {
+                illust.AddTo(HistoryItems.Items);
                 //Application.Current.HistoryAdd(illust);
                 Application.Current.HistoryAdd(illust, HistoryItems.Items);
                 UpdateDetail();

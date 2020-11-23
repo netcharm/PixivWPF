@@ -1744,26 +1744,31 @@ namespace PixivWPF.Common
                         }
                         else if (sender is TilesPage)
                         {
+                            lastKeyUp = e.Timestamp - 51;
                             (sender as TilesPage).KeyAction(e);
                             e.Handled = true;
                         }
                         else if (sender is IllustDetailPage)
                         {
+                            lastKeyUp = e.Timestamp - 51;
                             (sender as IllustDetailPage).KeyAction(e);
                             e.Handled = true;
                         }
                         else if (sender is IllustImageViewerPage)
                         {
+                            lastKeyUp = e.Timestamp - 51;
                             (sender as IllustImageViewerPage).KeyAction(e);
                             e.Handled = true;
                         }
                         else if (sender is HistoryPage)
                         {
+                            lastKeyUp = e.Timestamp - 51;
                             (sender as HistoryPage).KeyAction(e);
                             e.Handled = true;
                         }
                         else if (sender is SearchResultPage)
                         {
+                            lastKeyUp = e.Timestamp - 51;
                             (sender as SearchResultPage).KeyAction(e);
                             e.Handled = true;
                         }
