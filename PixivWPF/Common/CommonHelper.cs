@@ -715,9 +715,9 @@ namespace PixivWPF.Common
                                 titles.AddRange(dm.Unfinished());
                             }
                         }
-                        else if (win.Title.StartsWith("PIXIV Login", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
                         //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        //else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Title.StartsWith("PIXIV Login", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Title.StartsWith("History", StringComparison.CurrentCultureIgnoreCase)) continue;
@@ -2065,6 +2065,8 @@ namespace PixivWPF.Common
 
                 mr.Add(Regex.Matches(content, @"(Searching\s)(.*?)$", opt));
 
+                mr.Add(Regex.Matches(content, @"(Preview\sID:\s)(\d+),(.*?)$", opt));
+
                 mr.Add(Regex.Matches(content, @"(Downloading:\s)(.*?)$", opt));
 
                 if (!Regex.IsMatch(content, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(download:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
@@ -2116,6 +2118,11 @@ namespace PixivWPF.Common
                         link = m.Groups[2].Value.Trim();
                         if (!links.Contains(link)) links.Add(link);
                     }
+                    else if (link.StartsWith("preview", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        link = m.Groups[2].Value.Trim().ArtworkLink();
+                        if (!string.IsNullOrEmpty(link) && !links.Contains(link)) links.Add(link);
+                    }
                     else if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                     {
                         //link = Uri.UnescapeDataString(WebUtility.HtmlDecode(link));
@@ -2128,7 +2135,7 @@ namespace PixivWPF.Common
                             id = Regex.Replace(id, @"(\d+),\s(.+?)", "$1", opt);
                         var a_link = id.ArtworkLink();
                         var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
-                        if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
+                        if (!string.IsNullOrEmpty(a_link) && !links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
                     }
                     else if (link.StartsWith("illust/", StringComparison.CurrentCultureIgnoreCase) ||
                              link.StartsWith("illusts/", StringComparison.CurrentCultureIgnoreCase) ||
@@ -2137,14 +2144,14 @@ namespace PixivWPF.Common
                         var id = Regex.Replace(link, @"(((illust)|(illusts)|(artworks))/(\d+))", "$6", opt).Trim();
                         var a_link = id.ArtworkLink();
                         var a_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={id}";
-                        if (!links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
+                        if (!string.IsNullOrEmpty(a_link) && !links.Contains(a_link) && !links.Contains(a_link_o)) links.Add(a_link);
                     }
                     else if (link.StartsWith("uid:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var id = link.Substring(4).Trim();
                         var u_link = id.ArtistLink();
                         var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
-                        if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
+                        if (!string.IsNullOrEmpty(u_link) && !links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
                     }
                     else if (link.StartsWith("user/", StringComparison.CurrentCultureIgnoreCase) ||
                              link.StartsWith("users/", StringComparison.CurrentCultureIgnoreCase))
@@ -2152,7 +2159,7 @@ namespace PixivWPF.Common
                         var id = Regex.Replace(link, @"(((user)|(users))/(\d+))", "$5", opt).Trim();
                         var u_link = id.ArtistLink();
                         var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={id}";
-                        if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
+                        if (!string.IsNullOrEmpty(u_link) && !links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
                     }
                     //(UserID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)
                     else if (link.StartsWith("tag:", StringComparison.CurrentCultureIgnoreCase))
@@ -2175,7 +2182,7 @@ namespace PixivWPF.Common
                             var uid = Regex.Replace(user, @"(.+)\s/\s(\d+)\s/\s(.+)", "$2", opt);
                             var u_link = uid.ArtistLink();
                             var u_link_o = $"https://www.pixiv.net/member_illust.php?mode=medium&id={uid}";
-                            if (!links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
+                            if (!string.IsNullOrEmpty(u_link) && !links.Contains(u_link) && !links.Contains(u_link_o)) links.Add(u_link);
                         }
                         else
                         {
@@ -2222,20 +2229,20 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("downloading ", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var down = link.Substring(12).Trim().TrimEnd('.').Trim();
-                        var d_link = down.ArtworkLink();
-                        if (!links.Contains(d_link)) links.Add(d_link);
+                        var a_link = down.ArtworkLink();
+                        if (!string.IsNullOrEmpty(a_link) && !links.Contains(a_link)) links.Add(a_link);
                     }
                     else if (link.StartsWith("download:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var down = link.Substring(9).Trim();
-                        var d_link = down.ArtworkLink();
-                        if (!links.Contains(d_link)) links.Add(d_link);
+                        var a_link = down.ArtworkLink();
+                        if (!string.IsNullOrEmpty(a_link) && !links.Contains(a_link)) links.Add(a_link);
                     }
                     else if (link.StartsWith("downloading:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var down = link.Substring(12).Trim();
-                        var d_link = down.ArtworkLink();
-                        if (!links.Contains(d_link)) links.Add(d_link);
+                        var a_link = down.ArtworkLink();
+                        if (!string.IsNullOrEmpty(a_link) && !links.Contains(a_link)) links.Add(a_link);
                     }
                     else
                     {
@@ -2272,7 +2279,8 @@ namespace PixivWPF.Common
 
         public static string ArtworkLink(this string id)
         {
-            return (string.IsNullOrEmpty(id) ? string.Empty : $"https://www.pixiv.net/artworks/{id}");
+            long iid = -1;
+            return (string.IsNullOrEmpty(id) || !long.TryParse(id, out iid) || iid < 0 ? string.Empty : $"https://www.pixiv.net/artworks/{id}");
         }
 
         public static string ArtworkLink(this long id)
@@ -2280,14 +2288,15 @@ namespace PixivWPF.Common
             return (id < 0 ? string.Empty : $"https://www.pixiv.net/artworks/{id}");
         }
 
-        public static string ArtistLink(this string uid)
+        public static string ArtistLink(this string id)
         {
-            return (string.IsNullOrEmpty(uid) ? string.Empty : $"https://www.pixiv.net/users/{uid}");
+            long uid = -1;
+            return (string.IsNullOrEmpty(id) || !long.TryParse(id, out uid) || uid < 0 ? string.Empty : $"https://www.pixiv.net/users/{id}");
         }
 
-        public static string ArtistLink(this long uid)
+        public static string ArtistLink(this long id)
         {
-            return (uid < 0 ? string.Empty : $"https://www.pixiv.net/users/{uid}");
+            return (id < 0 ? string.Empty : $"https://www.pixiv.net/users/{id}");
         }
 
         public static string TagLink(this string tag)
