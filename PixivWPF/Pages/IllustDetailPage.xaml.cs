@@ -790,7 +790,7 @@ namespace PixivWPF.Pages
                 SubIllustsExpander.IsExpanded = false;
                 SubIllusts.Items.Clear();
                 PreviewBadge.Badge = item.Illust.PageCount;
-                if (item.Illust is Pixeez.Objects.Work && item.Illust.PageCount > 1)
+                if (item.IsWork() && item.Illust.PageCount > 1)
                 {
                     item.Index = 0;
                     PreviewBadge.Show();

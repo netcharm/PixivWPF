@@ -239,14 +239,6 @@
     </mah:MetroWindow.RightWindowCommands>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
 
-        <Frame Grid.Column="0" x:Name="ContentFrame">
-            <Frame.CacheMode>
-                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
-            </Frame.CacheMode>
-        </Frame>
     </Grid>
 </mah:MetroWindow>

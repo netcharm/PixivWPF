@@ -779,22 +779,34 @@ namespace PixivWPF.Common
                             if (win.Content is IllustDetailPage)
                             {
                                 var page = win.Content as IllustDetailPage;
-                                if (page.Contents is ImageItem)
+                                if (page.Contents.IsWork())
                                     MinimizedWindow(win as MetroWindow, page.Contents, condition);
-                                else if (page.Contents is ImageItem)
+                                else if (page.Tag is ImageItem)
                                     MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
                             }
                             else if (win.Content is IllustImageViewerPage)
                             {
                                 var page = win.Content as IllustImageViewerPage;
-                                if (page.Contents is ImageItem)
+                                if (page.Contents.IsWork())
                                     MinimizedWindow(win as MetroWindow, page.Contents, condition);
-                                else if (page.Contents is ImageItem)
+                                else if (page.Tag is ImageItem)
                                     MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
                             }
-                            await Task.Delay(1);
-                            DoEvents();
                         }
+                        else if(win is MainWindow && win.Content is TilesPage)
+                        {
+                            var page = win.Content as TilesPage;
+                            if(page.IllustDetail.Content is IllustDetailPage)
+                            {
+                                var detail = page.IllustDetail.Content as IllustDetailPage;
+                                if(detail.Contents.IsWork())
+                                    MinimizedWindow(win as MetroWindow, detail.Contents, condition);
+                                else if (detail.Tag is ImageItem)
+                                    MinimizedWindow(win as MetroWindow, detail.Tag as ImageItem, condition);
+                            }
+                        }
+                        await Task.Delay(1);
+                        DoEvents();
                     }
                     catch (Exception) { continue; }
                     finally
@@ -6173,13 +6185,8 @@ namespace PixivWPF.Common
             {
                 if (window is MainWindow)
                 {
-                    if (window.Content is Grid &&
-                       (window.Content as Grid).Children.Count > 0 &&
-                       (window.Content as Grid).Children[0] is Frame &&
-                       ((window.Content as Grid).Children[0] as Frame).Content is TilesPage)
-                    {
-                        result = ((window.Content as Grid).Children[0] as Frame).Content;
-                    }                    
+                    if (window.Content is TilesPage)
+                        result = window.Content;
                 }
                 else if(window is ContentWindow)
                 {

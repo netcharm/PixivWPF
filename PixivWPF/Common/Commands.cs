@@ -488,7 +488,7 @@ namespace PixivWPF.Common
                         var item = illust.IllustItem();
                         if (item is ImageItem)
                         {
-                            var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Tag = item, Contents = item };
+                            var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Contents = item, Tag = item };
                             var viewer = new ContentWindow()
                             {
                                 Title = title,
@@ -547,7 +547,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new IllustImageViewerPage() { FontFamily = setting.FontFamily, Tag = item, Contents = item };
+                        var page = new IllustImageViewerPage() { FontFamily = setting.FontFamily, Contents = item, Tag = item };
                         var viewer = new ContentWindow()
                         {
                             Title = $"{title}",
@@ -967,7 +967,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new SearchResultPage() { FontFamily = setting.FontFamily, Tag = content, Contents = content };
+                        var page = new SearchResultPage() { FontFamily = setting.FontFamily, Contents = content, Tag = content };
                         var viewer = new ContentWindow()
                         {
                             Title = title,

@@ -26,9 +26,7 @@ namespace PixivWPF
         private Setting setting = Application.Current.LoadSetting();
         public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
 
-        public Frame MainContent = null;
-
-        private Pages.TilesPage pagetiles = null;
+        public Pages.TilesPage Contents { get; set; } = null;
 
         private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {"a", "b" };
         public ObservableCollection<string> AutoSuggestList
@@ -45,35 +43,22 @@ namespace PixivWPF
 
         public void UpdateIllustTagsAsync()
         {
-            if (ContentFrame.Content is Pages.TilesPage)
-            {
-                var tiles = ContentFrame.Content as Pages.TilesPage;
-                tiles.UpdateIllustTags();
-            }
+            if (Contents is Pages.TilesPage) Contents.UpdateIllustTags();
         }
 
         public void UpdateIllustDescAsync()
         {
-            if (ContentFrame.Content is Pages.TilesPage)
-            {
-                var tiles = ContentFrame.Content as Pages.TilesPage;
-                tiles.UpdateIllustDesc();
-            }
+            if (Contents is Pages.TilesPage) Contents.UpdateIllustDesc();
         }
 
         public void UpdateWebContentAsync()
         {
-            if (ContentFrame.Content is Pages.TilesPage)
-            {
-                var tiles = ContentFrame.Content as Pages.TilesPage;
-                tiles.UpdateWebContent();
-            }
+            if (Contents is Pages.TilesPage) Contents.UpdateWebContent();
         }
 
         public void UpdateTheme()
         {
-            //if (pagenav is Pages.NavPage) pagenav.CheckPage();
-            if (pagetiles is Pages.TilesPage) pagetiles.UpdateTheme();
+            if (Contents is Pages.TilesPage) Contents.UpdateTheme();
         }
 
         public void UpdateTitle(string title)
@@ -96,13 +81,12 @@ namespace PixivWPF
 
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
-            if (ContentFrame.Content is Pages.TilesPage)
+            if (Contents is Pages.TilesPage)
             {
-                var tiles = ContentFrame.Content as Pages.TilesPage;
-                tiles.UpdateDownloadStateAsync(illustid, exists);
-                if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
+                Contents.UpdateDownloadStateAsync(illustid, exists);
+                if (Contents.IllustDetail.Content is Pages.IllustDetailPage)
                 {
-                    var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
+                    var detail = Contents.IllustDetail.Content as Pages.IllustDetailPage;
                     detail.UpdateDownloadStateAsync(illustid, exists);
                 }
             }
@@ -110,13 +94,12 @@ namespace PixivWPF
 
         public void UpdateLikeState(int illustid = -1, bool is_user = false)
         {
-            if (ContentFrame.Content is Pages.TilesPage)
+            if (Contents is Pages.TilesPage)
             {
-                var tiles = ContentFrame.Content as Pages.TilesPage;
-                tiles.UpdateLikeStateAsync(illustid, is_user);
-                if (tiles.IllustDetail.Content is Pages.IllustDetailPage)
+                Contents.UpdateLikeStateAsync(illustid, is_user);
+                if (Contents.IllustDetail.Content is Pages.IllustDetailPage)
                 {
-                    var detail = tiles.IllustDetail.Content as Pages.IllustDetailPage;
+                    var detail = Contents.IllustDetail.Content as Pages.IllustDetailPage;
                     detail.UpdateLikeStateAsync(illustid, is_user);
                 }
             }
@@ -124,34 +107,22 @@ namespace PixivWPF
 
         public void PrevIllust()
         {
-            if(pagetiles is Pages.TilesPage)
-            {
-                pagetiles.PrevIllust();
-            }
+            if(Contents is Pages.TilesPage) Contents.PrevIllust();
         }
 
         public void NextIllust()
         {
-            if (pagetiles is Pages.TilesPage)
-            {
-                pagetiles.NextIllust();
-            }
+            if (Contents is Pages.TilesPage) Contents.NextIllust();
         }
 
         public void PrevIllustPage()
         {
-            if (pagetiles is Pages.TilesPage)
-            {
-                pagetiles.PrevIllustPage();
-            }
+            if (Contents is Pages.TilesPage) Contents.PrevIllustPage();
         }
 
         public void NextIllustPage()
         {
-            if (pagetiles is Pages.TilesPage)
-            {
-                pagetiles.NextIllustPage();
-            }
+            if (Contents is Pages.TilesPage) Contents.NextIllustPage();
         }
 
         #region Named Pipe Heler
@@ -264,15 +235,10 @@ namespace PixivWPF
             CommandToggleTheme.ItemsSource = Application.Current.GetAccentColorList();
             CommandToggleTheme.SelectedIndex = Application.Current.GetAccentIndex();
 
-            MainContent = ContentFrame;
+            Contents = new Pages.TilesPage() { FontFamily = FontFamily };
+            Content = Contents;
 
-            pagetiles = new Pages.TilesPage() { FontFamily = FontFamily, Tag = ContentFrame };
-
-            ContentFrame.Content = pagetiles;
-
-            ContentFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
-
-            NavPageTitle.Text = pagetiles.TargetPage.ToString();
+            NavPageTitle.Text = Contents.TargetPage.ToString();
 
             LastWindowStates.Enqueue(WindowState.Normal);
 
@@ -380,13 +346,13 @@ namespace PixivWPF
             {
                 if (sender == CommandNavRefresh)
                 {
-                    UpdateTitle(pagetiles.TargetPage.ToString());
-                    pagetiles.ShowImages(pagetiles.TargetPage, false, pagetiles.GetLastSelectedID());
-                    CommandFilter.ToolTip = $"Tiles Count: {pagetiles.GetTilesCount()}";
+                    UpdateTitle(Contents.TargetPage.ToString());
+                    Contents.ShowImages(Contents.TargetPage, false, Contents.GetLastSelectedID());
+                    CommandFilter.ToolTip = $"Tiles Count: {Contents.GetTilesCount()}";
                 }
                 else if (sender == CommandNavRefreshThumb)
                 {
-                    pagetiles.UpdateTilesThumb();
+                    Contents.UpdateTilesThumb();
                 }
             }
             catch { }
@@ -394,7 +360,7 @@ namespace PixivWPF
 
         private void CommandNavDate_Click(object sender, RoutedEventArgs e)
         {
-            var title = pagetiles.TargetPage.ToString();
+            var title = Contents.TargetPage.ToString();
             if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
             {
                 //var point = CommandNavDate.PointToScreen(Mouse.GetPosition(CommandNavDate));
@@ -408,14 +374,14 @@ namespace PixivWPF
                 {
                     LastSelectedDate = CommonHelper.SelectedDate;
                     NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
-                    pagetiles.ShowImages(pagetiles.TargetPage, false, pagetiles.GetLastSelectedID());
+                    Contents.ShowImages(Contents.TargetPage, false, Contents.GetLastSelectedID());
                 }
             }
         }
 
         internal void CommandNavNext_Click(object sender, RoutedEventArgs e)
         {
-            pagetiles.ShowImages(pagetiles.TargetPage, true, pagetiles.GetLastSelectedID());
+            Contents.ShowImages(Contents.TargetPage, true, Contents.GetLastSelectedID());
         }
 
         private void CommandSearch_Click(object sender, RoutedEventArgs e)
@@ -492,8 +458,8 @@ namespace PixivWPF
 
         private void LiveFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
-            if (pagetiles is Pages.TilesPage)
-                CommandFilter.ToolTip = $"Tiles Count: {pagetiles.GetTilesCount()}";
+            if (Contents is Pages.TilesPage)
+                CommandFilter.ToolTip = $"Tiles Count: {Contents.GetTilesCount()}";
             else CommandFilter.ToolTip = $"Live Filter";
         }
 
@@ -724,8 +690,7 @@ namespace PixivWPF
                 SanityOption_IncludeUnder = LiveFilterSanity_OptIncludeUnder.IsChecked
             };
 
-            if (pagetiles is Pages.TilesPage)
-                pagetiles.SetFilter(filter);
+            if (Contents is Pages.TilesPage) Contents.SetFilter(filter);
         }
     }
 

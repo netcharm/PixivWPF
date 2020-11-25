@@ -1261,8 +1261,6 @@ namespace PixivWPF.Pages
 
                     if (item is ImageItem)
                     {
-                        //UpdateLikeStateAsync(Convert.ToInt32(item.Illust.Id ?? -1), item.IsUser());
-                        //UpdateDownloadStateAsync(Convert.ToInt32(item.Illust.Id ?? -1));
                         if (item.IsUser())
                         {
                             item.IsDownloaded = false;

@@ -61,7 +61,6 @@ namespace PixivWPF.Pages
         {
             if (HistoryItems.Items is ObservableCollection<ImageItem>)
             {
-                Application.Current.HistoryAdd(item);
                 Application.Current.HistoryAdd(item, HistoryItems.Items);
                 UpdateDetail();
             }
@@ -71,8 +70,6 @@ namespace PixivWPF.Pages
         {
             if(HistoryItems.Items is ObservableCollection<ImageItem>)
             {
-                illust.AddTo(HistoryItems.Items);
-                //Application.Current.HistoryAdd(illust);
                 Application.Current.HistoryAdd(illust, HistoryItems.Items);
                 UpdateDetail();
             }            
