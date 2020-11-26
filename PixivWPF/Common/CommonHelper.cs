@@ -248,7 +248,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Network
-        public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start=0, long range_count =0)
+        public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
         {
             var setting = LoadSetting(app);
             HttpClientHandler handler = new HttpClientHandler()
@@ -256,11 +256,12 @@ namespace PixivWPF.Common
                 AllowAutoRedirect = true,
                 MaxAutomaticRedirections = 15,
                 //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
-                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, new string[] { "127.0.0.1", "localhost", "192.168.1" }),
+                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass),
                 UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
             };
 
             var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout), MaxResponseContentBufferSize = 100 * 1024 * 1024 };
+            //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
             httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
             httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
             httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
@@ -279,6 +280,40 @@ namespace PixivWPF.Common
             }
 
             return (httpClient);
+        }
+
+        public static WebRequest GetWebRequest(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        {
+            var setting = LoadSetting(app);
+
+            var webRequest = WebRequest.Create(string.Empty);
+            webRequest.Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass);
+
+            //webRequest.ContentType = "application/octet-stream";
+            //webRequest.Headers.Add("Content-Type", "application/octet-stream");
+            webRequest.Headers.Add("App-OS", "ios");
+            webRequest.Headers.Add("App-OS-Version", "12.2");
+            webRequest.Headers.Add("App-Version", "7.6.2");
+            webRequest.Headers.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
+            //webRequest.Headers.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+            webRequest.Headers.Add("Referer", "https://app-api.pixiv.net/");
+            //webRequest.Headers.Add("Connection", "Close");
+            webRequest.Headers.Add("Connection", "Keep-Alive");
+            //webRequest.Headers.Add("Keep-Alive", "300");
+            if (continuation)
+            {
+                var start = $"{range_start}";
+                var end = range_count > 0 ? $"{range_count}" : string.Empty;
+                webRequest.Headers.Add("Range", $"bytes={start}-{end}");
+            }
+
+            return (webRequest);
+        }
+
+        public static async Task<WebResponse> GetWebResponse(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        {
+            var client = GetWebRequest(app, continuation, range_start, range_count);
+            return(await client.GetResponseAsync());
         }
         #endregion
 
@@ -4183,53 +4218,51 @@ namespace PixivWPF.Common
         {
             ImageSource result = null;
 
-            var uri = new Uri(url);
-            var webRequest = WebRequest.CreateDefault(uri);
+            var ContentType = string.Empty;
             var ext = Path.GetExtension(url).ToLower();
             switch (ext)
             {
                 case ".jpeg":
                 case ".jpg":
-                    webRequest.ContentType = "image/jpeg";
+                    ContentType = "image/jpeg";
                     break;
                 case ".png":
-                    webRequest.ContentType = "image/png";
+                    ContentType = "image/png";
                     break;
                 case ".bmp":
-                    webRequest.ContentType = "image/bmp";
+                    ContentType = "image/bmp";
                     break;
                 case ".gif":
-                    webRequest.ContentType = "image/gif";
+                    ContentType = "image/gif";
+                    break;
+                case ".webp":
+                    ContentType = "image/webp";
                     break;
                 case ".tiff":
                 case ".tif":
-                    webRequest.ContentType = "image/tiff";
+                    ContentType = "image/tiff";
                     break;
                 default:
-                    webRequest.ContentType = "application/octet-stream";
+                    ContentType = "application/octet-stream";
                     break;
             }
-
-            setting = Application.Current.LoadSetting();
-            var proxy = setting.Proxy;
-            var useproxy = setting.UsingProxy;
-            HttpClientHandler handler = new HttpClientHandler()
+            try
             {
-                Proxy = string.IsNullOrEmpty(proxy) ? null : new WebProxy(proxy, true, setting.ProxyBypass),
-                UseProxy = string.IsNullOrEmpty(proxy) || !useproxy ? false : true
-            };
-            using (HttpClient client = new HttpClient(handler))
-            {
-                HttpResponseMessage response = await client.GetAsync(url);
-                byte[] content = await response.Content.ReadAsByteArrayAsync();
-                //return "data:image/png;base64," + Convert.ToBase64String(content);
-                BitmapImage image = new BitmapImage();
-                image.BeginInit();
-                image.StreamSource = new MemoryStream(content);
-                image.EndInit();
-                image.Freeze();
-                result = image;
+                using (HttpClient client = Application.Current.GetHttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("Content-Type", ContentType);
+                    HttpResponseMessage response = await client.GetAsync(url);
+                    byte[] content = await response.Content.ReadAsByteArrayAsync();
+                    //return "data:image/png;base64," + Convert.ToBase64String(content);
+                    BitmapImage image = new BitmapImage();
+                    image.BeginInit();
+                    image.StreamSource = new MemoryStream(content);
+                    image.EndInit();
+                    image.Freeze();
+                    result = image;
+                }
             }
+            catch (Exception) { }
 
             return (result);
         }

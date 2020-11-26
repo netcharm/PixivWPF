@@ -980,9 +980,9 @@ namespace PixivWPF.Pages
                 IllustDetailWait.Hide();
             }
         }
-#endregion
+        #endregion
 
-#region subillusts/relative illusts/favorite illusts helper
+        #region subillusts/relative illusts/favorite illusts helper
         private async Task ShowIllustPages(ImageItem item, int index = 0, int page = 0, int count = -1)
         {
             try
@@ -995,7 +995,7 @@ namespace PixivWPF.Pages
                     //var total = item.Illust.PageCount;
                     //page_count = (total / count + (total % count > 0 ? 1 : 0)).Value;
 
-#region Update sub-pages nav button
+                    #region Update sub-pages nav button
                     if (page <= 0)
                     {
                         page_number = 0;
@@ -1013,7 +1013,7 @@ namespace PixivWPF.Pages
                         SubIllustNextPages.Show();
 
                     this.DoEvents();
-#endregion
+                    #endregion
 
                     var idx = page * count;
                     if (item.Illust is Pixeez.Objects.IllustWork)
@@ -1089,7 +1089,7 @@ namespace PixivWPF.Pages
             try
             {
                 IllustDetailWait.Show();
-                if(!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
+                if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
                 if (!append)
                 {
                     RelativeItems.Items.Clear();
@@ -1258,9 +1258,9 @@ namespace PixivWPF.Pages
                 await ShowFavoriteInline(user, next_url, append);
             }).InvokeAsync();
         }
-#endregion
+        #endregion
 
-#region Navgition methods
+        #region Navgition methods
         private async void UpdateSubPageNav()
         {
             try
@@ -1404,7 +1404,7 @@ namespace PixivWPF.Pages
         {
             return ($"{RelativeItems.ItemsCount} / {FavoriteItems.ItemsCount}");
         }
-#endregion
+        #endregion
 
         internal void KeyAction(KeyEventArgs e)
         {
@@ -1427,7 +1427,7 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-#region ToolButton MouseOver action
+            #region ToolButton MouseOver action
             IllustTagPedia.MouseOverAction();
             IllustTagSpeech.MouseOverAction();
             IllustTagRefresh.MouseOverAction();
@@ -1448,7 +1448,7 @@ namespace PixivWPF.Pages
             FavoriteNextPage.MouseOverAction();
             FavoriteNextAppend.MouseOverAction();
             FavoriteRefresh.MouseOverAction();
-#endregion
+            #endregion
 
             if (Contents is ImageItem) UpdateDetail(Contents);
         }
@@ -1647,7 +1647,7 @@ namespace PixivWPF.Pages
             }
         }
 
-#region WebBrowser Events Handle
+        #region WebBrowser Events Handle
         private void WebBrowserRefresh(System.Windows.Forms.WebBrowser browser)
         {
             try
@@ -1963,9 +1963,9 @@ namespace PixivWPF.Pages
             catch (Exception) { }
 #endif
         }
-#endregion
+        #endregion
 
-#region Illust Info relatice events/helper routines
+        #region Illust Info relatice events/helper routines
         private void ActionSpeech_Click(object sender, RoutedEventArgs e)
         {
             var text = string.Empty;
@@ -2252,9 +2252,9 @@ namespace PixivWPF.Pages
         {
             AdjustBrowserSize(IllustDescHtml);
         }
-#endregion
+        #endregion
 
-#region Illust Actions
+        #region Illust Actions
         private async void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
             UpdateLikeState();
@@ -2513,9 +2513,9 @@ namespace PixivWPF.Pages
                 }).InvokeAsync();
             }
         }
-#endregion
+        #endregion
 
-#region Following User / Bookmark Illust routines
+        #region Following User / Bookmark Illust routines
         private void IllustActions_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             e.Handled = false;
@@ -2686,9 +2686,9 @@ namespace PixivWPF.Pages
                 }
             }
         }
-#endregion
+        #endregion
 
-#region Illust Multi-Pages related routines
+        #region Illust Multi-Pages related routines
         private void SubIllustsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (Contents is ImageItem)
@@ -2855,9 +2855,9 @@ namespace PixivWPF.Pages
                 if (SubIllusts.SelectedItem is ImageItem) SubIllusts.SelectedItem.Focus();
             }
         }
-#endregion
+        #endregion
 
-#region Relative Panel related routines
+        #region Relative Panel related routines
         private void RelativeItemsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (Contents is ImageItem)
@@ -2941,9 +2941,9 @@ namespace PixivWPF.Pages
                     ShowUserWorksInlineAsync(Contents.User, next_url, append);
             }
         }
-#endregion
+        #endregion
 
-#region Author Favorite routines
+        #region Author Favorite routines
         private void FavoriteItemsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             if (Contents is ImageItem)
@@ -3022,9 +3022,9 @@ namespace PixivWPF.Pages
                 ShowFavoriteInlineAsync(Contents.User, next_url, append);
             }
         }
-#endregion
+        #endregion
 
-#region Illust Comments related routines
+        #region Illust Comments related routines
         private async void CommentsExpander_Expanded(object sender, RoutedEventArgs e)
         {
             var tokens = await CommonHelper.ShowLogin();
@@ -3060,9 +3060,9 @@ namespace PixivWPF.Pages
         {
 
         }
-#endregion
+        #endregion
 
-#region Common ImageListGrid Context Menu
+        #region Common ImageListGrid Context Menu
         private void MenuGallaryAction_Opened(object sender, RoutedEventArgs e)
         {
             if (sender is ContextMenu)
@@ -3529,7 +3529,7 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
-#endregion
+        #endregion
 
     }
 

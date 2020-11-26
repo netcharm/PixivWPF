@@ -167,13 +167,6 @@ namespace PixivWPF.Pages
                 myRequest.Timeout = setting.DownloadHttpTimeout;
                 myRequest.KeepAlive = true;
 
-                //using (HttpWebResponse myResponse = (HttpWebResponse)await myRequest.GetResponseAsync())
-                //{
-                //    using (StreamReader sr = new StreamReader(myResponse.GetResponseStream()))
-                //    {
-                //        webHtml.DocumentText = await sr.ReadToEndAsync();
-                //    }
-                //}
                 HttpWebResponse myResponse = (HttpWebResponse)await myRequest.GetResponseAsync();
                 webHtml.DocumentStream = myResponse.GetResponseStream();
             }
@@ -184,7 +177,8 @@ namespace PixivWPF.Pages
                     if (webHtml.DocumentText.Length <= 1024)
                         webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
                 }
-                else ex.Message.ShowMessageBox("ERROR[BROWSER]!");                
+                else ex.Message.ShowMessageBox("ERROR[BROWSER]!");
+                if(webHtml.DocumentStream is Stream) webHtml.DocumentStream.Close();
             }
         }
 
