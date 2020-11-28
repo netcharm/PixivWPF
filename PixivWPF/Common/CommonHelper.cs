@@ -778,7 +778,7 @@ namespace PixivWPF.Common
         {
             await new Action(() =>
             {
-                if (item.IsWork())
+                if (item.IsWork() && win.WindowState != WindowState.Minimized)
                 {
                     if (r18.Contains(condition))
                     {
@@ -883,7 +883,12 @@ namespace PixivWPF.Common
                         }
                         else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Setting.LoadTags(false, true);
+                            Setting.LoadCustomTags(true);
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Setting.LoadCustomWidecardTags(true);
                             //lastConfigEventTick = DateTime.Now;
                         }
                         else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
@@ -904,7 +909,13 @@ namespace PixivWPF.Common
                         }
                         else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Setting.LoadTags(false, true);
+                            //Setting.LoadTags(false, true);
+                            Setting.LoadCustomTags(true);
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Setting.LoadCustomWidecardTags(true);
                             //lastConfigEventTick = DateTime.Now;
                         }
                         else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
@@ -922,7 +933,12 @@ namespace PixivWPF.Common
                     }
                     else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Setting.LoadTags(false, true);
+                        Setting.LoadCustomTags(true);
+                        //lastConfigEventTick = DateTime.Now;
+                    }
+                    else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Setting.LoadCustomWidecardTags(true);
                         //lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
@@ -965,7 +981,13 @@ namespace PixivWPF.Common
                     else if (fn_o.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) ||
                         fn_n.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Setting.LoadTags(false, true);
+                        Setting.LoadCustomTags(true);
+                        //lastConfigEventTick = DateTime.Now;
+                    }
+                    else if (fn_o.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase) ||
+                        fn_n.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Setting.LoadCustomWidecardTags(true);
                         //lastConfigEventTick = DateTime.Now;
                     }
                     else if (fn_o.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) ||
@@ -1733,6 +1755,7 @@ namespace PixivWPF.Common
 
         public static Dictionary<string, string> TagsCache = new Dictionary<string, string>();
         public static Dictionary<string, string> TagsT2S = new Dictionary<string, string>();
+        public static Dictionary<string, string> TagsWildecardT2S = new Dictionary<string, string>();
 
         public static DateTime SelectedDate { get; set; } = DateTime.Now;
 
@@ -2555,10 +2578,28 @@ namespace PixivWPF.Common
                         result = translated;
                     }
                 }
+
                 if (TagsT2S is Dictionary<string, string>)
                 {
                     if (TagsT2S.ContainsKey(tag)) result = TagsT2S[tag];
                     else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
+
+                    var pattern = $@"/{tag}/";
+                    if(TagsT2S.ContainsKey(pattern))
+                        result = Regex.Replace(result, tag, TagsT2S[pattern], RegexOptions.IgnoreCase);
+                }
+
+                if(TagsWildecardT2S is Dictionary<string, string>)
+                {
+                    foreach(var kv in TagsWildecardT2S)
+                    {
+                        var k = kv.Key;
+                        var v = kv.Value;
+                        if (k.StartsWith("/") && k.EndsWith("/"))
+                            result = Regex.Replace(result, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
+                        else
+                            result = result.Replace(k, v);
+                    }
                 }
             }
             catch (Exception) { }
@@ -6162,9 +6203,9 @@ namespace PixivWPF.Common
                 try
                 {
                     if (window is MainWindow)
-                        window.WindowState = (window as MainWindow).LastWindowStates.Dequeue();
+                        (window as MainWindow).RestoreWindowState();
                     else if (window is ContentWindow)
-                        window.WindowState = (window as ContentWindow).LastWindowStates.Dequeue();
+                        (window as ContentWindow).RestoreWindowState();
                 }
                 catch (Exception)
                 {

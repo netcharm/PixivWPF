@@ -24,7 +24,12 @@ namespace PixivWPF
         private static System.Diagnostics.Process CurrentProcess = Application.Current.Process();
 
         private Setting setting = Application.Current.LoadSetting();
-        public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
+        private Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
+        public void RestoreWindowState()
+        {
+            if (LastWindowStates is Queue<WindowState> && LastWindowStates.Count > 0)
+                LastWindowStates.Dequeue();
+        }
 
         public Pages.TilesPage Contents { get; set; } = null;
 
@@ -309,12 +314,12 @@ namespace PixivWPF
         }
 
         private long lastKeyUp = Environment.TickCount;
-        private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
+        private void MainWindow_KeyUp(object sender, KeyEventArgs e)
         {
             Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(sender, e));
         }
 
-        private void MetroWindow_StateChanged(object sender, EventArgs e)
+        private void MainWindow_StateChanged(object sender, EventArgs e)
         {
             LastWindowStates.Enqueue(this.WindowState);
             if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();

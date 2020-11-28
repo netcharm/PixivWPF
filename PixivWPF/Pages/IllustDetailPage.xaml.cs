@@ -353,6 +353,7 @@ namespace PixivWPF.Pages
             {
                 if (Contents is ImageItem && Contents.IsWork())
                 {
+                    IllustTitle.ToolTip = IllustTitle.Text.TranslatedTag();
                     WebBrowserRefresh(IllustTagsHtml);
                 }
             }
@@ -2101,6 +2102,8 @@ namespace PixivWPF.Pages
                                 Application.Current.LoadTags(false, true);
                             else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                                 Application.Current.LoadSetting().CustomTagsFile.OpenFileWithShell();
+                            else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+                                Application.Current.LoadSetting().CustomWildcardTagsFile.OpenFileWithShell();
                         }
                         else if (host == IllustDescSpeech)
                         {
@@ -2123,6 +2126,8 @@ namespace PixivWPF.Pages
                         Application.Current.LoadTags(false, true);
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                         Application.Current.LoadSetting().CustomTagsFile.OpenFileWithShell();
+                    else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+                        Application.Current.LoadSetting().CustomWildcardTagsFile.OpenFileWithShell();
                 }
                 else if (sender == IllustDescRefresh)
                 {

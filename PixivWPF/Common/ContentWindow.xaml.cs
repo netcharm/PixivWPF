@@ -23,7 +23,12 @@ namespace PixivWPF.Common
     /// </summary>
     public partial class ContentWindow : MetroWindow
     {
-        public Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
+        private Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
+        public void RestoreWindowState()
+        {
+            if (LastWindowStates is Queue<WindowState> && LastWindowStates.Count > 0)
+                LastWindowStates.Dequeue();
+        }
 
         public void SetDropBoxState(bool state)
         {

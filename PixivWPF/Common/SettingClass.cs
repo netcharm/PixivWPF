@@ -90,6 +90,20 @@ namespace PixivWPF.Common
             get { return (TagsReadWrite.CurrentCount <= 0 ? true : false); }
         }
 
+        private static SemaphoreSlim CustomTagsReadWrite = new SemaphoreSlim(1, 1);
+        [JsonIgnore]
+        public static bool IsCustomTagsBusy
+        {
+            get { return (CustomTagsReadWrite.CurrentCount <= 0 ? true : false); }
+        }
+
+        private static SemaphoreSlim CustomWildcardTagsReadWrite = new SemaphoreSlim(1, 1);
+        [JsonIgnore]
+        public static bool IsCustomWildcardTagsBusy
+        {
+            get { return (CustomWildcardTagsReadWrite.CurrentCount <= 0 ? true : false); }
+        }
+
         private static string config = "config.json";
         [JsonIgnore]
         public string ConfigFile
@@ -122,6 +136,17 @@ namespace PixivWPF.Common
             set { tagsfile_t2s = Path.GetFileName(value); }
         }
 
+        private static string tagsfile_t2s_widecard = "tags_t2s_widecard.json";
+        public string CustomWildcardTagsFile
+        {
+            get
+            {
+                if (IsConfigBusy) return (tagsfile_t2s_widecard);
+                else return (Path.IsPathRooted(tagsfile_t2s_widecard) ? tagsfile_t2s_widecard : Path.Combine(AppPath, tagsfile_t2s_widecard));
+            }
+            set { tagsfile_t2s_widecard = Path.GetFileName(value); }
+        }
+
         private string last_opened = "last_opened.json";
         public string LastOpenedFile
         {
@@ -145,110 +170,6 @@ namespace PixivWPF.Common
             {
                 custom_template_file = Path.GetFileName(value);
                 if (Cache is Setting) Cache.custom_template_file = custom_template_file;
-            }
-        }
-
-        public static void UpdateCache(Setting new_setting)
-        {
-            if (Cache is Setting && new_setting is Setting && new_setting.Update > 0)
-            {
-                if (Cache.NoConfirmExit != new_setting.NoConfirmExit)
-                    Cache.NoConfirmExit = new_setting.NoConfirmExit;
-
-                if (Cache.AutoExpand != new_setting.AutoExpand)
-                    Cache.AutoExpand = new_setting.AutoExpand;
-                if (Cache.SeamlessViewInMainWindow != new_setting.SeamlessViewInMainWindow)
-                    Cache.SeamlessViewInMainWindow = new_setting.SeamlessViewInMainWindow;
-                if (Cache.ShowUserBackgroundImage != new_setting.ShowUserBackgroundImage)
-                    Cache.ShowUserBackgroundImage = new_setting.ShowUserBackgroundImage;
-                if (Cache.PreviewUsingLargeMinWidth != new_setting.PreviewUsingLargeMinWidth)
-                    Cache.PreviewUsingLargeMinWidth = new_setting.PreviewUsingLargeMinWidth;
-                if (Cache.PreviewUsingLargeMinHeight != new_setting.PreviewUsingLargeMinHeight)
-                    Cache.PreviewUsingLargeMinHeight = new_setting.PreviewUsingLargeMinHeight;
-
-                if (Cache.DownloadByAPI != new_setting.DownloadByAPI)
-                    Cache.DownloadByAPI = new_setting.DownloadByAPI;
-                if (Cache.DownloadUsingProxy != new_setting.DownloadUsingProxy)
-                    Cache.DownloadUsingProxy = new_setting.DownloadUsingProxy;
-                if (Cache.DownloadHttpTimeout != new_setting.DownloadHttpTimeout)
-                    Cache.DownloadHttpTimeout = new_setting.DownloadHttpTimeout;
-                if (Cache.DownloadHttpStreamBlockSize != new_setting.DownloadHttpStreamBlockSize)
-                    Cache.DownloadHttpStreamBlockSize = new_setting.DownloadHttpStreamBlockSize;
-                if (Cache.DownloadTimeSpan != new_setting.DownloadTimeSpan)
-                    Cache.DownloadTimeSpan = new_setting.DownloadTimeSpan;
-                if (Cache.DownloadWaitingTime != new_setting.DownloadWaitingTime)
-                    Cache.DownloadWaitingTime = new_setting.DownloadWaitingTime;
-                if (Cache.DownloadCompletedToast != new_setting.DownloadCompletedToast)
-                    Cache.DownloadCompletedToast = new_setting.DownloadCompletedToast;
-                if (Cache.DownloadCompletedSound != new_setting.DownloadCompletedSound)
-                    Cache.DownloadCompletedSound = new_setting.DownloadCompletedSound;
-                if (Cache.DownloadCompletedSoundForElapsedSeconds != new_setting.DownloadCompletedSoundForElapsedSeconds)
-                    Cache.DownloadCompletedSoundForElapsedSeconds = new_setting.DownloadCompletedSoundForElapsedSeconds;
-
-                if (Cache.PrivateFavPrefer != new_setting.PrivateFavPrefer)
-                    Cache.PrivateFavPrefer = new_setting.PrivateFavPrefer;
-                if (Cache.PrivateBookmarkPrefer != new_setting.PrivateBookmarkPrefer)
-                    Cache.PrivateBookmarkPrefer = new_setting.PrivateBookmarkPrefer;
-
-                if (Cache.OpenWithSelectionOrder != new_setting.OpenWithSelectionOrder)
-                    Cache.OpenWithSelectionOrder = new_setting.OpenWithSelectionOrder;
-                if (Cache.AllForSelectionNone != new_setting.AllForSelectionNone)
-                    Cache.AllForSelectionNone = new_setting.AllForSelectionNone;
-
-                if (Cache.SaveUserPass != new_setting.SaveUserPass)
-                    Cache.SaveUserPass = new_setting.SaveUserPass;
-
-                if (Cache.UsingProxy != new_setting.UsingProxy)
-                    Cache.UsingProxy = new_setting.UsingProxy;
-                if (!Cache.Proxy.Equals(new_setting.Proxy, StringComparison.CurrentCultureIgnoreCase))
-                    Cache.Proxy = new_setting.Proxy;
-
-                if (!Cache.CurrentTheme.Equals(new_setting.CurrentTheme, StringComparison.CurrentCultureIgnoreCase))
-                    Cache.CurrentTheme = new_setting.CurrentTheme;
-                if (!Cache.CurrentAccent.Equals(new_setting.CurrentAccent, StringComparison.CurrentCultureIgnoreCase))
-                    Cache.CurrentAccent = new_setting.CurrentAccent;
-
-                if (!Cache.FontName.Equals(new_setting.FontName, StringComparison.CurrentCultureIgnoreCase))
-                    Cache.FontName = new_setting.FontName;
-
-                if (!Cache.ShellSearchBridgeApplication.Equals(new_setting.ShellSearchBridgeApplication, StringComparison.CurrentCultureIgnoreCase))
-                    Cache.ShellSearchBridgeApplication = new_setting.ShellSearchBridgeApplication;
-                if (!Cache.ShellPixivPediaApplication.Equals(new_setting.ShellPixivPediaApplication, StringComparison.CurrentCultureIgnoreCase))
-                    Cache.ShellPixivPediaApplication = new_setting.ShellPixivPediaApplication;
-                if (!Cache.ShellPixivPediaApplicationArgs.Equals(new_setting.ShellPixivPediaApplicationArgs, StringComparison.CurrentCultureIgnoreCase))
-                    Cache.ShellPixivPediaApplicationArgs = new_setting.ShellPixivPediaApplicationArgs;
-                if (!Cache.ShellImageViewer.Equals(new_setting.ShellImageViewer, StringComparison.CurrentCultureIgnoreCase))
-                    Cache.ShellImageViewer = new_setting.ShellImageViewer;
-                if (!Cache.ShellImageViewerEnabled == new_setting.ShellImageViewerEnabled)
-                    Cache.ShellImageViewerEnabled = new_setting.ShellImageViewerEnabled;
-
-                if (!Cache.ContentsTemplateFile.Equals(new_setting.ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
-                    Cache.ContentsTemplateFile = new_setting.ContentsTemplateFile;
-
-                Cache.DropBoxPosition = new_setting.DropBoxPosition;
-                Cache.DownloadManagerPosition = new_setting.DownloadManagerPosition;
-
-                if (Cache.HistoryLimit != new_setting.HistoryLimit && new_setting.HistoryLimit >= 0)
-                    Cache.HistoryLimit = new_setting.HistoryLimit;
-                if (Cache.HistoryMax != new_setting.HistoryMax && new_setting.HistoryMax >= 0)
-                    Cache.HistoryMax = new_setting.HistoryMax;
-
-                if (Cache.SpeechPreferList != new_setting.SpeechPreferList)
-                    Cache.SpeechPreferList = new_setting.SpeechPreferList;
-                if (Cache.SpeechChineseSimplifiedPrefer != new_setting.SpeechChineseSimplifiedPrefer)
-                    Cache.SpeechChineseSimplifiedPrefer = new_setting.SpeechChineseSimplifiedPrefer;
-                if (Cache.SpeechSimpleDetectCulture != new_setting.SpeechSimpleDetectCulture)
-                    Cache.SpeechSimpleDetectCulture = new_setting.SpeechSimpleDetectCulture;
-                if (Cache.SpeechPlayMixedCultureInline != new_setting.SpeechPlayMixedCultureInline)
-                    Cache.SpeechPlayMixedCultureInline = new_setting.SpeechPlayMixedCultureInline;
-
-                if (Cache.SpeechAltPlayMixedCulture != new_setting.SpeechAltPlayMixedCulture)
-                    Cache.SpeechAltPlayMixedCulture = new_setting.SpeechAltPlayMixedCulture;
-                if (Cache.SpeechAutoChangeSpeedWhenRepeatPlay != new_setting.SpeechAutoChangeSpeedWhenRepeatPlay)
-                    Cache.SpeechAutoChangeSpeedWhenRepeatPlay = new_setting.SpeechAutoChangeSpeedWhenRepeatPlay;
-
-                if (Cache.LocalStorage != new_setting.LocalStorage)
-                    Cache.LocalStorage = new_setting.LocalStorage;
             }
         }
 
@@ -444,7 +365,9 @@ namespace PixivWPF.Common
                 {
                     var default_tags = Cache is Setting ? Cache.TagsFile : tagsfile;
                     var custom_tags = Cache is Setting ? Cache.CustomTagsFile : tagsfile_t2s;
-                    force = force || (CommonHelper.TagsCache.Count <= 0 && CommonHelper.TagsT2S.Count <= 0);
+                    var custom_widecard_tags = Cache is Setting ? Cache.CustomWildcardTagsFile : tagsfile_t2s_widecard;
+
+                    force = force || CommonHelper.TagsCache.Count <= 0;
                     var filetime = custom_tags.GetFileTime("m");
                     if (!File.Exists(custom_tags)) filetime = lastTagsUpdate + TimeSpan.FromSeconds(1);
 
@@ -463,6 +386,40 @@ namespace PixivWPF.Common
                             }
                             catch (Exception ex) { ex.Message.DEBUG(); }
                         }
+
+                        LoadCustomTags(force);
+
+                        LoadCustomWidecardTags(force);
+
+                        if (tags_changed) CommonHelper.UpdateIllustTagsAsync();
+                    }
+                }
+                catch (Exception ex) { ex.Message.DEBUG(); }
+                finally
+                {
+                    TagsReadWrite.Release();
+                }
+            }
+        }
+
+        private static DateTime lastCustomTagsUpdate = default(DateTime);
+        public static void LoadCustomTags(bool force = false)
+        {
+            if (CustomTagsReadWrite.Wait(0))
+            {
+                try
+                {
+                    var custom_tags = Cache is Setting ? Cache.CustomTagsFile : tagsfile_t2s;
+
+                    force = force || CommonHelper.TagsT2S.Count <= 0;
+                    var filetime = custom_tags.GetFileTime("m");
+                    if (!File.Exists(custom_tags)) filetime = lastTagsUpdate + TimeSpan.FromSeconds(1);
+
+                    if (force && lastCustomTagsUpdate.DeltaMilliseconds(filetime) > 5)
+                    {
+                        lastCustomTagsUpdate = filetime;
+
+                        bool tags_changed = false;
 
                         if (File.Exists(custom_tags))
                         {
@@ -497,7 +454,64 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.Message.DEBUG(); }
                 finally
                 {
-                    TagsReadWrite.Release();
+                    CustomTagsReadWrite.Release();
+                }
+            }
+        }
+
+        private static DateTime lastCustomWildcardTagsUpdate = default(DateTime);
+        public static void LoadCustomWidecardTags(bool force = false)
+        {
+            if (CustomWildcardTagsReadWrite.Wait(0))
+            {
+                try
+                {
+                    var custom_widecard_tags = Cache is Setting ? Cache.CustomWildcardTagsFile : tagsfile_t2s_widecard;
+
+                    force = force || CommonHelper.TagsWildecardT2S.Count <= 0;
+                    var filetime = custom_widecard_tags.GetFileTime("m");
+                    if (!File.Exists(custom_widecard_tags)) filetime = lastTagsUpdate + TimeSpan.FromSeconds(1);
+
+                    if (force && lastCustomWildcardTagsUpdate.DeltaMilliseconds(filetime) > 5)
+                    {
+                        lastCustomWildcardTagsUpdate = filetime;
+
+                        bool tags_changed = false;
+                        if (File.Exists(custom_widecard_tags))
+                        {
+                            try
+                            {
+                                var tags_t2s_widecard = File.ReadAllText(custom_widecard_tags);
+                                CommonHelper.TagsWildecardT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s_widecard);
+                                var keys = CommonHelper.TagsWildecardT2S.Keys.ToList();
+                                foreach (var k in keys)
+                                {
+                                    CommonHelper.TagsWildecardT2S[k.Trim()] = CommonHelper.TagsWildecardT2S[k].Trim();
+                                }
+                                tags_changed = true;
+                            }
+                            catch (Exception ex) { ex.Message.DEBUG(); }
+                        }
+                        else
+                        {
+                            try
+                            {
+                                if (CommonHelper.TagsWildecardT2S is Dictionary<string, string>)
+                                {
+                                    CommonHelper.TagsWildecardT2S.Clear();
+                                    tags_changed = true;
+                                }
+                            }
+                            catch (Exception ex) { ex.Message.DEBUG(); }
+                        }
+
+                        if (tags_changed) CommonHelper.UpdateIllustTagsAsync();
+                    }
+                }
+                catch (Exception ex) { ex.Message.DEBUG(); }
+                finally
+                {
+                    CustomWildcardTagsReadWrite.Release();
                 }
             }
         }

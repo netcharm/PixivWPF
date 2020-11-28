@@ -20,9 +20,9 @@
                  TextOptions.TextFormattingMode="Display"
                  AllowDrop="True"
                  WindowStartupLocation="CenterScreen" MinWidth="1484" MinHeight="720" Width="1484" Height="964"
-                 KeyUp="MetroWindow_KeyUp"
+                 KeyUp="MainWindow_KeyUp"
                  PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
-                 StateChanged="MetroWindow_StateChanged" 
+                 StateChanged="MainWindow_StateChanged" 
                  Closing="MainWindow_Closing" >
 
     <mah:MetroWindow.Resources>
