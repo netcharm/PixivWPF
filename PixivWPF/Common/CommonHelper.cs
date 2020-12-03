@@ -215,7 +215,7 @@ namespace PixivWPF.Common
 
         public static void SaveSetting(this Application app)
         {
-            if (Setting.Instance is Setting) Setting.Instance.Save();
+            if (Setting.Instance is Setting) Setting.Instance.Save(true);
             return;
         }
 

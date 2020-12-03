@@ -14,9 +14,28 @@ namespace PixivWPF
     /// </summary>
     public partial class App : Application
     {
+        // Custom Submission Event handler
+        void Settings_CustomSubmissionEvent(object sender, NBug.Events.CustomSubmissionEventArgs e)
+        {
+            //your sumbmission code here...
+            //.....
+            try
+            {
+                Application.Current.SaveSetting();
+            }
+            catch (Exception) { }
+            //tell NBug if submission was successfull or not
+            e.Result = true;
+        }
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             var setting = Application.Current.LoadSetting(true);
-        }
+
+            //add handler on application load
+            NBug.Settings.CustomSubmissionEvent += Settings_CustomSubmissionEvent;
+            AppDomain.CurrentDomain.UnhandledException += NBug.Handler.UnhandledException;
+            Application.Current.DispatcherUnhandledException += NBug.Handler.DispatcherUnhandledException;
+        }    
     }
 }
