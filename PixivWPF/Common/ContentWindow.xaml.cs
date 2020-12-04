@@ -70,6 +70,11 @@ namespace PixivWPF.Common
             CommandPageRefresh.Hide();
             CommandFilter.Hide();
 
+            if (Content is BrowerPage)
+                CommandPageRead.Show();
+            else
+                CommandPageRead.Hide();
+
             if (Content is IllustDetailPage ||
                 Content is IllustImageViewerPage ||
                 Content is SearchResultPage ||
@@ -161,6 +166,14 @@ namespace PixivWPF.Common
                 Commands.RefreshPage.Execute(Content);
             else if(sender == CommandPageRefreshThumb)
                 Commands.RefreshPageThumb.Execute(Content);
+        }
+
+        private void CommandPageRead_Click(object sender, RoutedEventArgs e)
+        {
+            if (Content is BrowerPage)
+            {
+                (Content as BrowerPage).ReadText();
+            }
         }
 
         private void CommandLogin_Click(object sender, RoutedEventArgs e)
@@ -478,7 +491,6 @@ namespace PixivWPF.Common
                 SanityOption_IncludeUnder = LiveFilterSanity_OptIncludeUnder.IsChecked
             };
 
-
             if (Content is IllustDetailPage)
                 (Content as IllustDetailPage).SetFilter(filter);
             else if (Content is SearchResultPage)
@@ -486,5 +498,6 @@ namespace PixivWPF.Common
             else if (Content is HistoryPage)
                 (Content as HistoryPage).SetFilter(filter);
         }
+
     }
 }

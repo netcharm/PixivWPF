@@ -841,21 +841,17 @@ namespace PixivWPF.Common
                     FailReason = string.Empty;
                     State = DownloadState.Downloading;
 
-                    if (restart)
+                    if (restart && _DownloadStream is MemoryStream)
                     {
-                        if (_DownloadStream is MemoryStream)
-                        {
-                            _DownloadStream.Close();
-                            _DownloadStream.Dispose();
-                            _DownloadStream = null;
-                        }
+                        _DownloadStream.Close();
+                        _DownloadStream.Dispose();
+                        _DownloadStream = null;
                     }
 
                     if (_DownloadStream is MemoryStream)
                     {
                         lastReceived = _DownloadStream.Length;
                         Received = lastReceived;
-                        UpdateProgress();
                     }
                     else
                     {
@@ -863,8 +859,8 @@ namespace PixivWPF.Common
                         StartTick = DateTime.Now;
                         lastReceived = 0;
                         Length = Received = 0;
-                        UpdateProgress();
                     }
+                    UpdateProgress();
 
                     using (var response = await GetAsyncResponse(Url, continuation))
                     {
@@ -905,21 +901,17 @@ namespace PixivWPF.Common
                     FailReason = string.Empty;
                     State = DownloadState.Downloading;
 
-                    if (restart)
+                    if (restart && _DownloadStream is MemoryStream)
                     {
-                        if (_DownloadStream is MemoryStream)
-                        {
-                            _DownloadStream.Close();
-                            _DownloadStream.Dispose();
-                            _DownloadStream = null;
-                        }
+                        _DownloadStream.Close();
+                        _DownloadStream.Dispose();
+                        _DownloadStream = null;
                     }
 
                     if (_DownloadStream is MemoryStream)
                     {
                         lastReceived = _DownloadStream.Length;
                         Received = lastReceived;
-                        UpdateProgress();
                     }
                     else
                     {
@@ -927,8 +919,8 @@ namespace PixivWPF.Common
                         StartTick = DateTime.Now;
                         lastReceived = 0;
                         Length = Received = 0;
-                        UpdateProgress();
                     }
+                    UpdateProgress();
 
                     Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
                     using (var async_response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, Url))

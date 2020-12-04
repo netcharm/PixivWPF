@@ -38,6 +38,17 @@ namespace PixivWPF.Pages
 
         public string Contents { get; set; } = string.Empty;
 
+        public void ReadText()
+        {
+            try
+            {
+                var text = webHtml.GetText();
+                text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
+                if (!string.IsNullOrEmpty(text)) text.Play();
+            }
+            catch (Exception) { }
+        }
+
         internal void UpdateTheme()
         {
             if (webHtml is System.Windows.Forms.WebBrowser)

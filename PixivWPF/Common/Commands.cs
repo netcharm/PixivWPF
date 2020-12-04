@@ -50,6 +50,7 @@ namespace PixivWPF.Common
         private const int HEIGHT_DEF = 900;
         private const int HEIGHT_MAX = 1024;
         private const int WIDTH_DEF = 1280;
+        private const int WIDTH_PEDIA = 1024;
 
         private static bool IsPagesGallary(ImageListGrid gallery)
         {
@@ -2037,7 +2038,7 @@ namespace PixivWPF.Common
                 var viewer = new ContentWindow()
                 {
                     Title = title,
-                    Width = WIDTH_DEF,
+                    Width = WIDTH_PEDIA,
                     Height = HEIGHT_DEF,
                     FontFamily = setting.FontFamily,
                     Content = page
