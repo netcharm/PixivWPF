@@ -7,7 +7,7 @@
       xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
       mc:Ignorable="d" 
-      d:DesignHeight="400" d:DesignWidth="368"
+      d:DesignHeight="520" d:DesignWidth="368"
       Title="IllustImageViewerPage" 
       PreviewKeyUp="Page_PreviewKeyUp" 
       SizeChanged="Page_SizeChanged"
@@ -36,81 +36,99 @@
                     <Image x:Name="Preview" x:Uid="Preview" Stretch="None" 
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Viewbox>
-                <Rectangle Grid.Row="0" 
-                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 
-                           MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" MouseMove="Preview_MouseMove">
-                    <Rectangle.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionIllustInfo_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="ActionCopyPreview" x:Uid="ActionCopyImage" Header="Copy Preview" Click="ActionIllustInfo_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="ActionOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionIllustInfo_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="NewWindow" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="ActionOpenAuthor" x:Uid="ActionOpenAuthor" Header="Open Author" Click="ActionIllustInfo_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="PeopleProfile" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <Separator/>
-                            <MenuItem x:Name="ActionSendIllustToInstance" x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionIllustInfo_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="ActionSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionIllustInfo_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <Separator/>
-                            <MenuItem x:Name="ActionViewPrevPage" x:Uid="ActionViewPrevPage" Header="Previous Page" Click="ActionViewPrevPage_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="ActionViewNextPage" x:Uid="ActionViewNextPage" Header="Next Page" Click="ActionViewNextPage_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <Separator x:Name="ActionViewPageSep" Width="1" />
-                            <MenuItem x:Name="ActionViewOriginal" x:Uid="ActionViewOriginaPage" Header="View Original" Click="ActionViewOriginal_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="ArrowExpand" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="ActionViewFullSize" x:Uid="ActionViewFullSize" Header="View Full Size" Click="ActionViewFullSize_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="Magnify" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <Separator/>
-                            <MenuItem x:Name="ActionOpenCachedWith" x:Uid="ActionOpenWith" Header="Open Preview With..." Click="ActionIllustInfo_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <Separator/>
-                            <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Image" Click="ActionSaveIllust_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                        </ContextMenu>
-                    </Rectangle.ContextMenu>
-                </Rectangle>
             </Grid>
         </ScrollViewer>
+
+        <!-- Illust Open Progress Prompt -->
+        <mah:ProgressRing Grid.Row="0" Grid.RowSpan="3"
+                          x:Name="PreviewWait"
+                          Width="128" Height="128" Opacity="0.62" 
+                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                          Visibility="Hidden"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+        <!-- Preview Context Menu Container -->
+        <Rectangle Grid.Row="0" 
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 
+                           MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" MouseMove="Preview_MouseMove">
+            <Rectangle.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionIllustInfo_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ActionCopyPreview" x:Uid="ActionCopyImage" Header="Copy Preview" Click="ActionIllustInfo_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ActionOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionIllustInfo_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="NewWindow" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ActionOpenAuthor" x:Uid="ActionOpenAuthor" Header="Open Author" Click="ActionIllustInfo_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="PeopleProfile" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem x:Name="ActionSendIllustToInstance" x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionIllustInfo_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ActionSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionIllustInfo_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem x:Name="ActionViewPrevPage" x:Uid="ActionViewPrevPage" Header="Previous Page" Click="ActionViewPrevPage_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ActionViewNextPage" x:Uid="ActionViewNextPage" Header="Next Page" Click="ActionViewNextPage_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator x:Name="ActionViewPageSep" Width="1" />
+                    <MenuItem x:Name="ActionViewOriginal" x:Uid="ActionViewOriginaPage" Header="View Original" Click="ActionViewOriginal_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="ArrowExpand" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ActionViewFullSize" x:Uid="ActionViewFullSize" Header="View Full Size" Click="ActionViewFullSize_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="Magnify" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem x:Name="ActionRefreshPreview" x:Uid="ActionRefreshPreview" Header="Refresh Preview" Click="ActionIllustInfo_Click">
+                        <MenuItem.Icon>
+                            <TextBlock Margin="4,0,0,0"
+                                       Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                                       Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </MenuItem.Icon>
+                    </MenuItem>                    
+                    <MenuItem x:Name="ActionOpenCachedWith" x:Uid="ActionOpenWith" Header="Open Preview With..." Click="ActionIllustInfo_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Image" Click="ActionSaveIllust_Click">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </Rectangle.ContextMenu>
+        </Rectangle>
 
         <StackPanel Grid.Row="0" x:Name="InfoBar"
                     Orientation="Horizontal" 
@@ -122,6 +140,7 @@
                                       Width="16" Height="16"/>
             <TextBlock x:Name="PreviewSize" x:Uid="PreviewSize" Margin="2,0,4,0" Foreground="{DynamicResource MahApps.Brushes.Text}"/>
         </StackPanel>
+
         <StackPanel Grid.Row="0" x:Name="ActionBar"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom">
             <Button x:Name="btnViewPrevPage" x:Uid="ViewPrevPage"
@@ -152,6 +171,13 @@
                 Click="ActionViewFullSize_Click" >
                 <iconPacks:PackIconModern Kind="Magnify" Width="32" Height="32" />
             </ToggleButton>
+            <Button x:Name="btnOpenIllust" x:Uid="OpenIllust"
+                Width="64" Height="64" 
+                Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                Click="ActionIllustInfo_Click" >
+                <iconPacks:PackIconModern Kind="NewWindow" Width="32" Height="32" />
+            </Button>
             <Button x:Name="btnOpenCache" x:Uid="OpenCache"
                 Width="64" Height="64" 
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
@@ -168,12 +194,5 @@
             </Button>
         </StackPanel>
 
-        <!-- Illust Open Progress Prompt -->
-        <mah:ProgressRing Grid.Row="0" Grid.RowSpan="3"
-                          x:Name="PreviewWait"
-                          Width="128" Height="128" Opacity="0.62" 
-                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                          Visibility="Hidden"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </Page>

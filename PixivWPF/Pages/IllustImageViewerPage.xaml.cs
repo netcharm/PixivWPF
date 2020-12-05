@@ -94,10 +94,11 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
-                    var preview = await PreviewImageUrl.LoadImageFromUrl();
-                    if (preview.Source == null ||
-                        preview.Source.Width < setting.PreviewUsingLargeMinWidth ||
-                        preview.Source.Height < setting.PreviewUsingLargeMinHeight)
+                    var preview = await PreviewImageUrl.LoadImageFromUrl();                   
+                    if (setting.SmartPreview && 
+                        (preview.Source == null ||
+                         preview.Source.Width < setting.PreviewUsingLargeMinWidth ||
+                         preview.Source.Height < setting.PreviewUsingLargeMinHeight))
                     {
                         var original = await OriginalImageUrl.LoadImageFromUrl();
                         if (original.Source != null) img = original;
@@ -196,6 +197,7 @@ namespace PixivWPF.Pages
                 btnViewNextPage.MouseOverAction();
                 btnViewOriginalPage.MouseOverAction();
                 btnViewFullSize.MouseOverAction();
+                btnOpenIllust.MouseOverAction();
                 btnOpenCache.MouseOverAction();
                 btnSavePage.MouseOverAction();
                 #endregion
@@ -332,7 +334,7 @@ namespace PixivWPF.Pages
             {
                 if (sender == ActionCopyIllustID)
                     Commands.CopyArtworkIDs.Execute(Contents);
-                else if (sender == ActionOpenIllust)
+                else if (sender == ActionOpenIllust || sender == btnOpenIllust)
                     Commands.Open.Execute(Contents.Illust);
                 else if (sender == ActionOpenAuthor)
                     Commands.OpenUser.Execute(Contents.User);
@@ -364,6 +366,10 @@ namespace PixivWPF.Pages
                         Commands.SendToOtherInstance.Execute(id);
                     else
                         Commands.ShellSendToOtherInstance.Execute(id);
+                }
+                else if(sender == ActionRefreshPreview)
+                {
+                    UpdateDetail(Contents);
                 }
             }
         }

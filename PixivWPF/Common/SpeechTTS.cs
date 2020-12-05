@@ -415,6 +415,9 @@ namespace PixivWPF.Common
         {
             if (synth == null) return;
 
+            if (CancelRequested)
+                synth.SpeakAsyncCancelAll();
+
             if (SpeakProgress is Action<SpeakProgressEventArgs>) await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
             {
                 SpeakProgress(e);
@@ -436,6 +439,8 @@ namespace PixivWPF.Common
                 {
                     SpeakCompleted(e);
                 }, DispatcherPriority.Background);
+                lastPrompt = null;
+                CancelRequested = false;
             }
         }
         #endregion
@@ -478,6 +483,9 @@ namespace PixivWPF.Common
                     if (SPEECH_SLOW) synth.Rate = Math.Max(-10, Math.Min(PlaySlowRate, 10));
                     else synth.Rate = Math.Max(-10, Math.Min(PlayNormalRate, 10));
                 }
+
+                // Configure the audio output. 
+                synth.SetOutputToDefaultAudioDevice();
 
                 if (async)
                     lastPrompt = synth.SpeakAsync(text);  // Asynchronous
@@ -544,6 +552,9 @@ namespace PixivWPF.Common
                     else synth.Rate = Math.Max(-10, Math.Min(PlayNormalRate, 10));
                 }
 
+                // Configure the audio output. 
+                synth.SetOutputToDefaultAudioDevice();
+
                 if (async)
                     lastPrompt = synth.SpeakAsync(prompt);  // Asynchronous
                 else
@@ -569,11 +580,11 @@ namespace PixivWPF.Common
 
         public void Play(IEnumerable<string> contents, CultureInfo locale = null)
         {
+            PlayQueue.Clear();
             if (AltPlayMixedCulture)
             {
                 if (contents is IEnumerable<string>)
                 {
-                    PlayQueue.Clear();
                     if (AutoChangeSpeechSpeed)
                     {
                         var speech_text = string.Join(Environment.NewLine, contents);
@@ -617,8 +628,7 @@ namespace PixivWPF.Common
             }
             else
             {
-                PlayQueue.Clear();
-                var prompt = new PromptBuilder();
+                var prompt = new PromptBuilder(CultureInfo.CurrentCulture);
                 prompt.ClearContent();
                 foreach (var text in contents)
                 {
@@ -627,6 +637,7 @@ namespace PixivWPF.Common
                     {
                         var sentences = SliceByCulture(text, locale);
                         var culture = locale == null ? sentences.FirstOrDefault().Value : locale;
+                        prompt.StartStyle(new PromptStyle());
                         prompt.StartParagraph(culture);
                         foreach (var kv in sentences)
                         {
@@ -634,19 +645,26 @@ namespace PixivWPF.Common
                             var new_culture = kv.Value;
                             if (string.IsNullOrEmpty(new_text)) continue;
                             prompt.StartVoice(GetCustomVoiceName(new_culture));
+                            prompt.StartSentence(new_culture);
                             prompt.AppendText(new_text);
+                            prompt.EndSentence();
                             prompt.EndVoice();
                         }
                         prompt.EndParagraph();
+                        prompt.EndStyle();
                     }
                     else
                     {
                         var culture = locale == null ? DetectCulture(text) : locale;
+                        prompt.StartStyle(new PromptStyle());
                         prompt.StartParagraph(culture);
                         prompt.StartVoice(GetCustomVoiceName(culture));
+                        prompt.StartSentence(culture);
                         prompt.AppendText(text);
+                        prompt.EndSentence();
                         prompt.EndVoice();
                         prompt.EndParagraph();
+                        prompt.EndStyle();
                     }
                 }
                 Play(prompt, locale);
@@ -682,6 +700,7 @@ namespace PixivWPF.Common
             catch (Exception) { }
         }
 
+        private bool CancelRequested = false;
         public void Stop()
         {
             try
@@ -690,14 +709,15 @@ namespace PixivWPF.Common
                 {
                     if (synth.State != SynthesizerState.Ready)
                     {
+                        CancelRequested = true;
                         if (lastPrompt is Prompt)
                         {
                             synth.SpeakAsyncCancel(lastPrompt);
-                            Thread.Sleep(100);
+                            //Thread.Sleep(100);
                         }
                         synth.SpeakAsyncCancelAll();
-                        Thread.Sleep(100);
-                        synth.Resume();
+                        Thread.Sleep(50);
+                        //synth.Resume();
                     }
                 }
             }
@@ -891,7 +911,7 @@ namespace PixivWPF.Common
 
         public static char[] TagBreak = new char[] { '#', '@' };
         public static string[] LineBreak = new string[] { Environment.NewLine, "\n\r", "\r\n", "\r", "\n", "<br/>", "<br />", "<br>", "</br>" };
-        public static void Play(this string text, CultureInfo culture, bool async = true)
+        public static async void Play(this string text, CultureInfo culture, bool async = true)
         {
             try
             {
@@ -901,18 +921,22 @@ namespace PixivWPF.Common
                 }
                 if (t2s is SpeechTTS)
                 {
-                    if (culture == null)
+                    await new Action(() =>
                     {
-                        if (SimpleCultureDetect)
-                            t2s.Play(text, "unk", async);
-                        else
+                        Stop();
+                        if (culture == null)
                         {
-                            var tlist = text.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries);
-                            t2s.Play(tlist, culture);
+                            if (SimpleCultureDetect)
+                                t2s.Play(text, "unk", async);
+                            else
+                            {
+                                var tlist = text.Split(LineBreak, StringSplitOptions.RemoveEmptyEntries);
+                                t2s.Play(tlist, culture);
+                            }
                         }
-                    }
-                    else
-                        t2s.Play(text, culture, async);
+                        else
+                            t2s.Play(text, culture, async);
+                    }).InvokeAsync();
                 }
             }
             catch (Exception ex) { Debug.WriteLine(ex.Message); }
@@ -929,7 +953,7 @@ namespace PixivWPF.Common
             Play(text, culture, true);
         }
 
-        public static void Play(this IEnumerable<string> texts, CultureInfo culture, bool async = true)
+        public static async void Play(this IEnumerable<string> texts, CultureInfo culture, bool async = true)
         {
             try
             {
@@ -939,15 +963,19 @@ namespace PixivWPF.Common
                 }
                 if (t2s is SpeechTTS)
                 {
-                    if (culture == null)
+                    await new Action(() =>
                     {
-                        if (SimpleCultureDetect)
-                            t2s.Play(string.Join(Environment.NewLine, texts), "unk", async);
+                        Stop();
+                        if (culture == null)
+                        {
+                            if (SimpleCultureDetect)
+                                t2s.Play(string.Join(Environment.NewLine, texts), "unk", async);
+                            else
+                                t2s.Play(texts.ToList(), culture);
+                        }
                         else
-                            t2s.Play(texts.ToList(), culture);
-                    }
-                    else
-                        t2s.Play(string.Join(Environment.NewLine, texts), culture, async);
+                            t2s.Play(string.Join(Environment.NewLine, texts), culture, async);
+                    }).InvokeAsync();
                 }
             }
             catch (Exception ex) { Debug.WriteLine(ex.Message); }

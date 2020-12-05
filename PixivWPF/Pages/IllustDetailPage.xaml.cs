@@ -98,6 +98,8 @@ namespace PixivWPF.Pages
                     result = descHost;
                 else if (browser == IllustTagsHtml)
                     result = tagsHost;
+                else if (browser == IllustCommentsHtml)
+                    result = commentsHost;
             }
             catch (Exception) { }
             return (result);
@@ -228,7 +230,7 @@ namespace PixivWPF.Pages
             return (result);
         }
 
-        private string MakeUserCommentHtml(Pixeez.Objects.UserInfo info)
+        private string MakeUserDescHtml(Pixeez.Objects.UserInfo info)
         {
             var result = string.Empty;
             try
@@ -1130,6 +1132,8 @@ namespace PixivWPF.Pages
             finally
             {
                 IllustDetailWait.Hide();
+                if (RelativeItems.Items.Count > 0) RelativeRefresh.Show();
+                else RelativeRefresh.Hide();
             }
         }
 
@@ -1186,6 +1190,8 @@ namespace PixivWPF.Pages
             finally
             {
                 IllustDetailWait.Hide();
+                if (RelativeItems.Items.Count > 0) RelativeRefresh.Show();
+                else RelativeRefresh.Hide();
             }
         }
 
@@ -1249,6 +1255,8 @@ namespace PixivWPF.Pages
             finally
             {
                 IllustDetailWait.Hide();
+                if (FavoriteItems.Items.Count > 0) FavoriteItems.Show();
+                else FavoriteItems.Hide();
             }
         }
 
@@ -1415,7 +1423,10 @@ namespace PixivWPF.Pages
         public IllustDetailPage()
         {
             InitializeComponent();
+        }
 
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
             RelativeItems.Columns = 5;
             FavoriteItems.Columns = 5;
 
@@ -1424,10 +1435,7 @@ namespace PixivWPF.Pages
             btnSubPageNext.Hide();
 
             CreateHtmlRender();
-        }
 
-        private void Page_Loaded(object sender, RoutedEventArgs e)
-        {
             #region ToolButton MouseOver action
             IllustTagPedia.MouseOverAction();
             IllustTagSpeech.MouseOverAction();
@@ -1664,7 +1672,7 @@ namespace PixivWPF.Pages
                 else if (browser == IllustDescHtml)
                 {
                     if (Contents.IsUser())
-                        contents = MakeUserCommentHtml(UserInfo);
+                        contents = MakeUserDescHtml(UserInfo);
                     else if (Contents.IsWork())
                         contents = MakeIllustDescHtml(Contents);
                 }
@@ -2471,7 +2479,10 @@ namespace PixivWPF.Pages
                         var img = await PreviewImageUrl.LoadImageFromUrl();
                         if (item.IsSameIllust(Contents))
                         {
-                            if (img.Source == null || img.Source.Width < setting.PreviewUsingLargeMinWidth || img.Source.Height < setting.PreviewUsingLargeMinHeight)
+                            if (setting.SmartPreview && 
+                                (img.Source == null || 
+                                 img.Source.Width < setting.PreviewUsingLargeMinWidth || 
+                                 img.Source.Height < setting.PreviewUsingLargeMinHeight))
                             {
                                 PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
                                 var large = await PreviewImageUrl.LoadImageFromUrl();

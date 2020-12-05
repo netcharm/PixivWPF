@@ -213,10 +213,17 @@ namespace PixivWPF.Common
             //return (!force && Setting.Instance is Setting ? Setting.Instance : Setting.Load(force));
         }
 
-        public static void SaveSetting(this Application app)
+        public static void SaveSetting(this Application app, bool full = false)
         {
-            if (Setting.Instance is Setting) Setting.Instance.Save(true);
-            return;
+            try
+            {
+                var setting = app.LoadSetting();
+                if (setting is Setting) setting.Save(full);
+            }
+            catch (Exception)
+            {
+                if (Setting.Instance is Setting) Setting.Instance.Save(full);
+            }
         }
 
         public static async void LoadTags(this Application app, bool all = false, bool force = false)

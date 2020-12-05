@@ -96,7 +96,8 @@
             </MenuItem>
             <MenuItem x:Uid="ActionNextAppend" Header="Append Next Page" Click="ActionNextPage_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    <TextBlock Margin="4,0,0,0" 
+                               Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
@@ -986,7 +987,7 @@
                     </Button>                    
                     <Button 
                         x:Name="RelativeRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="{Binding Visibility, ElementName=RelativeNextPage, Mode=TwoWay}" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
@@ -1060,7 +1061,7 @@
                     </Button>
                     <Button 
                         x:Name="FavoriteRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
-                        Visibility="{Binding Visibility, ElementName=FavoriteNextPage, Mode=TwoWay}" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
@@ -1114,7 +1115,7 @@
                     </Button>
                     <Button 
                         x:Name="btnCommentRefresh" x:Uid="ActionRefreshComment" ToolTip="Refresh Comment"
-                        Visibility="Visible" FontWeight="Normal"
+                        Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"

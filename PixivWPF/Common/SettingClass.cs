@@ -1014,6 +1014,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool smart_show_preview = true;
+        public bool SmartPreview
+        {
+            get { return (Cache is Setting ? Cache.smart_show_preview : smart_show_preview); }
+            set
+            {
+                smart_show_preview = value;
+                if (Cache is Setting) Cache.smart_show_preview = smart_show_preview;
+            }
+        }
+
         private int preview_min_width = 360;
         public int PreviewUsingLargeMinWidth
         {

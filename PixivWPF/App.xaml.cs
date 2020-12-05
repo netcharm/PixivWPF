@@ -21,7 +21,7 @@ namespace PixivWPF
             //.....
             try
             {
-                Application.Current.SaveSetting();
+                this.SaveSetting(true);
             }
             catch (Exception) { }
             //tell NBug if submission was successfull or not
@@ -30,7 +30,7 @@ namespace PixivWPF
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            var setting = Application.Current.LoadSetting(true);
+            var setting = this.LoadSetting(true);
 
             //add handler on application load
             NBug.Settings.CustomSubmissionEvent += Settings_CustomSubmissionEvent;
