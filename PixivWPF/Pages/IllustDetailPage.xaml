@@ -89,7 +89,8 @@
             </MenuItem>
             <MenuItem x:Name="ActionNextPage" x:Uid="ActionNextPage" Header="Open Next Page" Click="ActionNextPage_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    <TextBlock Margin="4,0,0,0" 
+                               Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
@@ -238,173 +239,173 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <!-- Illust Preview -->
-                <Grid Grid.Row="0" Width="Auto" Height="Auto" Visibility="Collapsed">
+                <Grid Grid.Row="0" x:Name="PreviewViewer" Width="Auto" Height="Auto" Visibility="Collapsed">
                     <Grid.Background>
                         <ImageBrush ImageSource="pack://application:,,,/PixivWPF;component/Resources/CheckboardPattern_32.png" 
                         TileMode="Tile"  Opacity="0.10" 
                         ViewportUnits="Absolute" Viewport="0,0,32,32"/>
                     </Grid.Background>
-                    <Viewbox x:Name="PreviewViewer" StretchDirection="DownOnly">
+                    <Viewbox x:Name="PreviewViewbox" StretchDirection="DownOnly">
                         <Image x:Name="Preview" x:Uid="Preview" Stretch="None" 
                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                SnapsToDevicePixels="True" />
                     </Viewbox>
-                </Grid>
-                <Grid Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"
+                    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"
                       Visibility="{Binding Visibility, Mode=OneWay, ElementName=IllustSanityInfo}">
-                    <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4">
-                        <Grid.Effect>
-                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
-                        </Grid.Effect>
-                        <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
+                        <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4">
+                            <Grid.Effect>
+                                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+                            </Grid.Effect>
+                            <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets" Margin="0" Padding="0"
+                            <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets" Margin="0" Padding="0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                    </Grid>
-                    <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4">
-                        <Grid.Effect>
-                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
-                        </Grid.Effect>
-                        <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
+                        </Grid>
+                        <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4">
+                            <Grid.Effect>
+                                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+                            </Grid.Effect>
+                            <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                            <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                    </Grid>
-                    <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4">
-                        <Grid.Effect>
-                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
-                        </Grid.Effect>
-                        <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
+                        </Grid>
+                        <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4">
+                            <Grid.Effect>
+                                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+                            </Grid.Effect>
+                            <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                            <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                    </Grid>
-                    <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4">
-                        <Grid.Effect>
-                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
-                        </Grid.Effect>
-                        <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
+                        </Grid>
+                        <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4">
+                            <Grid.Effect>
+                                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+                            </Grid.Effect>
+                            <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                            <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        </Grid>
                     </Grid>
-                </Grid>
-                <ContentControl Grid.Row="0" x:Name="PreviewBox" >
-                    <ContentControl.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem x:Name="PreviewCopyIllustID" x:Uid="ActionCopyIllustID" 
+                    <ContentControl Grid.Row="0" x:Name="PreviewBox" >
+                        <ContentControl.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="PreviewCopyIllustID" x:Uid="ActionCopyIllustID" 
                                 Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="PreviewCopyImage" x:Uid="ActionCopyImage" 
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="PreviewCopyImage" x:Uid="ActionCopyImage" 
                                 Header="Copy Preview" Visibility="Visible" Click="ActionIllustInfo_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>                            
-                            <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <Separator/>
-                            <MenuItem x:Name="PreviewSendIllustToInstance" x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionSendToOtherInstance_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="PreviewSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionSendToOtherInstance_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>                            
-                            <Separator/>
-                            <MenuItem x:Name="PreviewRefresh" x:Uid="ActionRefreshPreview" Header="Refresh Illust Preview" Click="ActionRefreshPreview_Click">
-                                <MenuItem.Icon>
-                                    <TextBlock Margin="4,0,0,0"
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem x:Name="PreviewSendIllustToInstance" x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionSendToOtherInstance_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="PreviewSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionSendToOtherInstance_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem x:Name="PreviewRefresh" x:Uid="ActionRefreshPreview" Header="Refresh Illust Preview" Click="ActionRefreshPreview_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Margin="4,0,0,0"
                                         Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <Separator/>
-                            <MenuItem x:Name="PreviewOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illust" Click="ActionOpenIllust_Click">
-                                <MenuItem.Icon>
-                                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                        </ContextMenu>
-                    </ContentControl.ContextMenu>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width=".25*" />
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width=".25*" />
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" x:Name="btnSubPagePrev" x:Uid="btnSubPagePrev"
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem x:Name="PreviewOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illust" Click="ActionOpenIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </ContentControl.ContextMenu>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width=".25*" />
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width=".25*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" x:Name="btnSubPagePrev" x:Uid="btnSubPagePrev"
                                 Width="auto" Visibility="Collapsed"
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                 HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                                 Background="Transparent" Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                                 BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                                 Click="SubPageNav_Clicked">
-                            <Button.Content>
-                                <iconPacks:PackIconModern Kind="NavigatePrevious" Width="32" Height="32" />
-                            </Button.Content>
-                        </Button>
-                        <Button Grid.Column="2" x:Name="btnSubPageNext" x:Uid="btnSubPageNext"
+                                <Button.Content>
+                                    <iconPacks:PackIconModern Kind="NavigatePrevious" Width="32" Height="32" />
+                                </Button.Content>
+                            </Button>
+                            <Button Grid.Column="2" x:Name="btnSubPageNext" x:Uid="btnSubPageNext"
                                 Width="auto" Visibility="Collapsed"
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                 HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
                                 Background="Transparent" Foreground="{DynamicResource MahApps.Brushes.Accent}" 
                                 BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                                 Click="SubPageNav_Clicked">
-                            <Button.Content>
-                                <iconPacks:PackIconModern Kind="NavigateNext" Width="32" Height="32" />
-                            </Button.Content>
-                        </Button>
-                        <mah:ProgressRing Grid.Column="1" x:Name="PreviewWait"
+                                <Button.Content>
+                                    <iconPacks:PackIconModern Kind="NavigateNext" Width="32" Height="32" />
+                                </Button.Content>
+                            </Button>
+                            <mah:ProgressRing Grid.Column="1" x:Name="PreviewWait"
                                           Width="64" Height="64" Opacity="0.67" 
                                           Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                           Visibility="Hidden"
                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <Rectangle Grid.Column="0" Grid.ColumnSpan="3" x:Name="PreviewRect" x:Uid="PreviewRect"
+                            <Rectangle Grid.Column="0" Grid.ColumnSpan="3" x:Name="PreviewRect" x:Uid="PreviewRect"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent"
                                    MouseLeftButtonDown="PreviewRect_MouseLeftButtonDown"/>
-                    </Grid>
-                </ContentControl>
-                <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge" 
+                        </Grid>
+                    </ContentControl>
+                    <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge" 
                             BadgePlacementMode="BottomRight" Margin="0,0,16,16" 
                             FontSize="16" FontFamily="Consolas" 
                             Visibility="{Binding Badge}" 
                             BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
+                </Grid>
 
                 <!-- Illust Author Info -->
                 <Grid Grid.Row="1" Margin="0,8,0,0">
@@ -775,7 +776,7 @@
                           Margin="0,4,0,0"
                           IsExpanded="True" ExpandDirection="Down"
                           Header="Tags" Visibility="Collapsed" Expanded="IllustTagExpander_Expanded">
-                    <StackPanel x:Name="IllustTagsHost"  Orientation="Vertical" AllowDrop="False"/>
+                    <StackPanel x:Name="IllustTagsHost"  Orientation="Vertical" AllowDrop="False"/>                    
                 </Expander>
                 <StackPanel Grid.Row="2" x:Name="TagPanel" 
                             Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"

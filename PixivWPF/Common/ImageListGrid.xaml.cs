@@ -93,6 +93,7 @@ namespace PixivWPF.Common
             get { return (ImageList); }
             set
             {
+                if(ImageList is ObservableCollection<ImageItem>) ImageList.Clear();
                 ImageList = value;
                 PART_ImageTiles.ItemsSource = value;
                 NotifyPropertyChanged("ItemsChanged");
@@ -309,11 +310,64 @@ namespace PixivWPF.Common
             //TileHeight = 128;
         }
 
+        [Description("Get or Set Wait Ring State")]
+        [Category("Common Properties")]
+        public bool IsReady
+        {
+            get { return (PART_ImageTilesWait.Visibility != Visibility.Visible); }
+            set
+            {
+                if (value) Ready();
+                else Wait();
+            }
+        }
+
+        public void Wait()
+        {
+            PART_ImageTilesWait.Show();
+        }
+
+        public void Ready()
+        {
+            PART_ImageTilesWait.Hide();
+        }
+
         public void Cancel()
         {
             if (cancelTokenSource is CancellationTokenSource)
             {
                 cancelTokenSource.Cancel(true);
+            }
+        }
+
+        public void Refresh()
+        {
+            PART_ImageTiles.Items.Refresh();
+            //CollectionViewSource.GetDefaultView(this).Refresh();
+        }
+
+        public void Filtering(string filter)
+        {
+            if (PART_ImageTiles.Items.CanFilter)
+            {
+                if (string.IsNullOrEmpty(filter))
+                    PART_ImageTiles.Items.Filter = null;
+                else
+                    PART_ImageTiles.Items.Filter = filter.GetFilter();
+            }
+        }
+
+        public void Invalidate(ScrollViewer Viewer = null)
+        {
+            PART_ImageTiles.InvalidateVisual();
+            //PART_ImageTiles.InvalidateArrange();
+            //PART_ImageTiles.InvalidateMeasure();
+            //PART_ImageTiles.UpdateLayout();
+
+            if (Viewer is ScrollViewer)
+            {
+                Viewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
+                //Viewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             }
         }
 
@@ -326,23 +380,6 @@ namespace PixivWPF.Common
                 //PART_ImageTilesWait.Show();
                 lastTask = await Items.UpdateTilesThumb(lastTask, cancelTokenSource, parallel, updating_semaphore);
                 //if (lastTask.IsCompleted) PART_ImageTilesWait.Hide();
-            }
-        }
-
-        public void Refresh()
-        {
-            PART_ImageTiles.Items.Refresh();
-            //CollectionViewSource.GetDefaultView(this).Refresh();
-        }
-        
-        public void Filtering(string filter)
-        {
-            if (PART_ImageTiles.Items.CanFilter)
-            {
-                if (string.IsNullOrEmpty(filter))
-                    PART_ImageTiles.Items.Filter = null;
-                else
-                    PART_ImageTiles.Items.Filter = filter.GetFilter();
             }
         }
 

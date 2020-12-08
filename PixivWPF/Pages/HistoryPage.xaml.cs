@@ -98,7 +98,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                HistoryWait.Show();
+                HistoryItems.Wait();
                 if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     HistoryItems.Items.Clear();
@@ -131,7 +131,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                HistoryWait.Hide();
+                HistoryItems.Ready();
                 Application.Current.DoEvents();
             }
         }

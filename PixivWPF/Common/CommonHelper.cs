@@ -254,76 +254,6 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Network
-        public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
-        {
-            var setting = LoadSetting(app);
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                AllowAutoRedirect = true,
-                MaxAutomaticRedirections = 15,
-                //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
-                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass),
-                UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
-            };
-
-            var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout), MaxResponseContentBufferSize = 100 * 1024 * 1024 };
-            //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
-            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
-            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
-            httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
-            //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
-            httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
-            //httpClient.DefaultRequestHeaders.Add("Connection", "Close");
-            httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
-            //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
-            //httpClient.DefaultRequestHeaders.ConnectionClose = true;
-            if(continuation)
-            {
-                var start = $"{range_start}";
-                var end = range_count > 0 ? $"{range_count}" : string.Empty;
-                httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
-            }
-
-            return (httpClient);
-        }
-
-        public static WebRequest GetWebRequest(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
-        {
-            var setting = LoadSetting(app);
-
-            var webRequest = WebRequest.Create(string.Empty);
-            webRequest.Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass);
-
-            //webRequest.ContentType = "application/octet-stream";
-            //webRequest.Headers.Add("Content-Type", "application/octet-stream");
-            webRequest.Headers.Add("App-OS", "ios");
-            webRequest.Headers.Add("App-OS-Version", "12.2");
-            webRequest.Headers.Add("App-Version", "7.6.2");
-            webRequest.Headers.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
-            //webRequest.Headers.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
-            webRequest.Headers.Add("Referer", "https://app-api.pixiv.net/");
-            //webRequest.Headers.Add("Connection", "Close");
-            webRequest.Headers.Add("Connection", "Keep-Alive");
-            //webRequest.Headers.Add("Keep-Alive", "300");
-            if (continuation)
-            {
-                var start = $"{range_start}";
-                var end = range_count > 0 ? $"{range_count}" : string.Empty;
-                webRequest.Headers.Add("Range", $"bytes={start}-{end}");
-            }
-
-            return (webRequest);
-        }
-
-        public static async Task<WebResponse> GetWebResponse(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
-        {
-            var client = GetWebRequest(app, continuation, range_start, range_count);
-            return(await client.GetResponseAsync());
-        }
-        #endregion
-
         #region Theme Helper
         public static IList<string> GetAccents(this Application app)
         {
@@ -701,163 +631,6 @@ namespace PixivWPF.Common
         public static string PipeServerName(this Application app)
         {
             return (PipeName);
-        }
-        #endregion
-
-        #region Window Helper
-        private static string[] r15 = new string[] { "xxx", "r18", "r17", "r15", "18+", "17+", "15+" };
-        private static string[] r17 = new string[] { "xxx", "r18", "r17", "18+", "17+", };
-        private static string[] r18 = new string[] { "xxx", "r18", "18+"};
-
-        public static MainWindow GetMainWindow(this Application app)
-        {
-            MainWindow result = null;
-            try
-            {
-                if (app.MainWindow is MainWindow)
-                    result = app.MainWindow as MainWindow;
-            }
-            catch (Exception) { }
-            return (result);
-        }
-
-        public static PixivLoginDialog GetLoginWindow(this Application app)
-        {
-            PixivLoginDialog result = null;
-
-            foreach(var win in app.Windows)
-            {
-                if (win is PixivLoginDialog)
-                {
-                    result = win as PixivLoginDialog;
-                    result.Topmost = true;
-                    result.Show();
-                    result.Activate();
-                }
-            }
-
-            return (result);
-        }
-
-        public static IList<string> OpenedWindowTitles(this Application app)
-        {
-            List<string> titles = new List<string>();
-            try
-            {
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win is MainWindow) continue;
-                    else if (win is ContentWindow)
-                    {
-                        if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            if (win.Content is DownloadManagerPage)
-                            {
-                                var dm = win.Content as DownloadManagerPage;
-                                titles.AddRange(dm.Unfinished());
-                            }
-                        }
-                        //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        //else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (win.Title.StartsWith("PIXIV Login", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (win.Title.StartsWith("History", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else titles.Add(win.Title);
-                    }
-                    else continue;
-                }
-            }
-            catch (Exception) { }
-            return (titles);
-        }
-
-        public static void SetTitle(this Application app, string title)
-        {
-            if (Application.Current.MainWindow is MetroWindow)
-            {
-                var win = Application.Current.MainWindow as MetroWindow;
-                win.Title = title;
-            }
-        }
-
-        private static async void MinimizedWindow(MetroWindow win, ImageItem item, string condition)
-        {
-            await new Action(() =>
-            {
-                if (item.IsWork() && win.WindowState != WindowState.Minimized)
-                {
-                    if (r18.Contains(condition))
-                    {
-                        if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
-                    }
-                    else if (r17.Contains(condition))
-                    {
-                        if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
-                        else if (item.Sanity.Equals("17+")) win.WindowState = WindowState.Minimized;
-                    }
-                    else if (r15.Contains(condition))
-                    {
-                        if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
-                        else if (item.Sanity.Equals("17+")) win.WindowState = WindowState.Minimized;
-                        else if (item.Sanity.Equals("15+")) win.WindowState = WindowState.Minimized;
-                    }
-                }
-            }).InvokeAsync();
-        }
-
-        public static async void MinimizedWindows(this Application app, string condition = "")
-        {
-            if (string.IsNullOrEmpty(condition)) return;
-            await new Action(async () =>
-            {
-                condition = condition.ToLower();
-                foreach (Window win in Application.Current.Windows)
-                {
-                    try
-                    {
-                        if (win is ContentWindow)
-                        {
-                            if (win.Content is IllustDetailPage)
-                            {
-                                var page = win.Content as IllustDetailPage;
-                                if (page.Contents.IsWork())
-                                    MinimizedWindow(win as MetroWindow, page.Contents, condition);
-                                else if (page.Tag is ImageItem)
-                                    MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
-                            }
-                            else if (win.Content is IllustImageViewerPage)
-                            {
-                                var page = win.Content as IllustImageViewerPage;
-                                if (page.Contents.IsWork())
-                                    MinimizedWindow(win as MetroWindow, page.Contents, condition);
-                                else if (page.Tag is ImageItem)
-                                    MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
-                            }
-                        }
-                        else if(win is MainWindow && win.Content is TilesPage)
-                        {
-                            var page = win.Content as TilesPage;
-                            if(page.IllustDetail.Content is IllustDetailPage)
-                            {
-                                var detail = page.IllustDetail.Content as IllustDetailPage;
-                                if(detail.Contents.IsWork())
-                                    MinimizedWindow(win as MetroWindow, detail.Contents, condition);
-                                else if (detail.Tag is ImageItem)
-                                    MinimizedWindow(win as MetroWindow, detail.Tag as ImageItem, condition);
-                            }
-                        }
-                        await Task.Delay(1);
-                        DoEvents();
-                    }
-                    catch (Exception) { continue; }
-                    finally
-                    {
-                        await Task.Delay(1);
-                        DoEvents();
-                    }
-                }
-            }).InvokeAsync();
         }
         #endregion
 
@@ -1314,6 +1087,163 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region Window Helper
+        private static string[] r15 = new string[] { "xxx", "r18", "r17", "r15", "18+", "17+", "15+" };
+        private static string[] r17 = new string[] { "xxx", "r18", "r17", "18+", "17+", };
+        private static string[] r18 = new string[] { "xxx", "r18", "18+"};
+
+        public static MainWindow GetMainWindow(this Application app)
+        {
+            MainWindow result = null;
+            try
+            {
+                if (app.MainWindow is MainWindow)
+                    result = app.MainWindow as MainWindow;
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static PixivLoginDialog GetLoginWindow(this Application app)
+        {
+            PixivLoginDialog result = null;
+
+            foreach (var win in app.Windows)
+            {
+                if (win is PixivLoginDialog)
+                {
+                    result = win as PixivLoginDialog;
+                    result.Topmost = true;
+                    result.Show();
+                    result.Activate();
+                }
+            }
+
+            return (result);
+        }
+
+        public static IList<string> OpenedWindowTitles(this Application app)
+        {
+            List<string> titles = new List<string>();
+            try
+            {
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win is MainWindow) continue;
+                    else if (win is ContentWindow)
+                    {
+                        if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            if (win.Content is DownloadManagerPage)
+                            {
+                                var dm = win.Content as DownloadManagerPage;
+                                titles.AddRange(dm.Unfinished());
+                            }
+                        }
+                        //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        //else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Title.StartsWith("PIXIV Login", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Title.StartsWith("History", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else titles.Add(win.Title);
+                    }
+                    else continue;
+                }
+            }
+            catch (Exception) { }
+            return (titles);
+        }
+
+        public static void SetTitle(this Application app, string title)
+        {
+            if (Application.Current.MainWindow is MetroWindow)
+            {
+                var win = Application.Current.MainWindow as MetroWindow;
+                win.Title = title;
+            }
+        }
+
+        private static async void MinimizedWindow(MetroWindow win, ImageItem item, string condition)
+        {
+            await new Action(() =>
+            {
+                if (item.IsWork() && win.WindowState != WindowState.Minimized)
+                {
+                    if (r18.Contains(condition))
+                    {
+                        if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
+                    }
+                    else if (r17.Contains(condition))
+                    {
+                        if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
+                        else if (item.Sanity.Equals("17+")) win.WindowState = WindowState.Minimized;
+                    }
+                    else if (r15.Contains(condition))
+                    {
+                        if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
+                        else if (item.Sanity.Equals("17+")) win.WindowState = WindowState.Minimized;
+                        else if (item.Sanity.Equals("15+")) win.WindowState = WindowState.Minimized;
+                    }
+                }
+            }).InvokeAsync();
+        }
+
+        public static async void MinimizedWindows(this Application app, string condition = "")
+        {
+            if (string.IsNullOrEmpty(condition)) return;
+            await new Action(async () =>
+            {
+                condition = condition.ToLower();
+                foreach (Window win in Application.Current.Windows)
+                {
+                    try
+                    {
+                        if (win is ContentWindow)
+                        {
+                            if (win.Content is IllustDetailPage)
+                            {
+                                var page = win.Content as IllustDetailPage;
+                                if (page.Contents.IsWork())
+                                    MinimizedWindow(win as MetroWindow, page.Contents, condition);
+                                else if (page.Tag is ImageItem)
+                                    MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
+                            }
+                            else if (win.Content is IllustImageViewerPage)
+                            {
+                                var page = win.Content as IllustImageViewerPage;
+                                if (page.Contents.IsWork())
+                                    MinimizedWindow(win as MetroWindow, page.Contents, condition);
+                                else if (page.Tag is ImageItem)
+                                    MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
+                            }
+                        }
+                        else if (win is MainWindow && win.Content is TilesPage)
+                        {
+                            var page = win.Content as TilesPage;
+                            if (page.IllustDetail.Content is IllustDetailPage)
+                            {
+                                var detail = page.IllustDetail.Content as IllustDetailPage;
+                                if (detail.Contents.IsWork())
+                                    MinimizedWindow(win as MetroWindow, detail.Contents, condition);
+                                else if (detail.Tag is ImageItem)
+                                    MinimizedWindow(win as MetroWindow, detail.Tag as ImageItem, condition);
+                            }
+                        }
+                        await Task.Delay(1);
+                        DoEvents();
+                    }
+                    catch (Exception) { continue; }
+                    finally
+                    {
+                        await Task.Delay(1);
+                        DoEvents();
+                    }
+                }
+            }).InvokeAsync();
+        }
+        #endregion
+
         #region Toast
         private static System.Timers.Timer autoCloseTimer = null;
         private static Dictionary<Window, long> toast_list = new Dictionary<Window, long>();
@@ -1357,6 +1287,76 @@ namespace PixivWPF.Common
                     }
                 }
             }).InvokeAsync();
+        }
+        #endregion
+
+        #region Network
+        public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        {
+            var setting = LoadSetting(app);
+            HttpClientHandler handler = new HttpClientHandler()
+            {
+                AllowAutoRedirect = true,
+                MaxAutomaticRedirections = 15,
+                //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
+                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass),
+                UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
+            };
+
+            var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout), MaxResponseContentBufferSize = 100 * 1024 * 1024 };
+            //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
+            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
+            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
+            httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
+            //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+            httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+            //httpClient.DefaultRequestHeaders.Add("Connection", "Close");
+            httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
+            //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
+            //httpClient.DefaultRequestHeaders.ConnectionClose = true;
+            if (continuation)
+            {
+                var start = $"{range_start}";
+                var end = range_count > 0 ? $"{range_count}" : string.Empty;
+                httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
+            }
+
+            return (httpClient);
+        }
+
+        public static WebRequest GetWebRequest(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        {
+            var setting = LoadSetting(app);
+
+            var webRequest = WebRequest.Create(string.Empty);
+            webRequest.Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass);
+
+            //webRequest.ContentType = "application/octet-stream";
+            //webRequest.Headers.Add("Content-Type", "application/octet-stream");
+            webRequest.Headers.Add("App-OS", "ios");
+            webRequest.Headers.Add("App-OS-Version", "12.2");
+            webRequest.Headers.Add("App-Version", "7.6.2");
+            webRequest.Headers.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
+            //webRequest.Headers.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+            webRequest.Headers.Add("Referer", "https://app-api.pixiv.net/");
+            //webRequest.Headers.Add("Connection", "Close");
+            webRequest.Headers.Add("Connection", "Keep-Alive");
+            //webRequest.Headers.Add("Keep-Alive", "300");
+            if (continuation)
+            {
+                var start = $"{range_start}";
+                var end = range_count > 0 ? $"{range_count}" : string.Empty;
+                webRequest.Headers.Add("Range", $"bytes={start}-{end}");
+            }
+
+            return (webRequest);
+        }
+
+        public static async Task<WebResponse> GetWebResponse(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        {
+            var client = GetWebRequest(app, continuation, range_start, range_count);
+            return (await client.GetResponseAsync());
         }
         #endregion
 
@@ -1514,19 +1514,20 @@ namespace PixivWPF.Common
             if(item is Pixeez.Objects.Work) app.HistoryAdd(item as Pixeez.Objects.Work);
             else if (item is Pixeez.Objects.User) app.HistoryAdd(item as Pixeez.Objects.User);
             else if (item is Pixeez.Objects.UserBase) app.HistoryAdd(item as Pixeez.Objects.UserBase);
-            else if(item is ImageItem)
-            {
-                var i = item as ImageItem;
-                if (i.IsUser()) app.HistoryAdd(i.User);
-                else if (i.IsWork()) app.HistoryAdd(i.Illust);
-            }
+            else if(item is ImageItem) app.HistoryAdd(item as ImageItem);
         }
 
         public static void HistoryUpdate(this Application app, ObservableCollection<ImageItem> source = null)
         {
-            if (source is ObservableCollection<ImageItem>)
+            if (source is ObservableCollection<ImageItem> && source != history)
             {
-                history = new ObservableCollection<ImageItem>(source);
+                if (history is ObservableCollection<ImageItem>)
+                {
+                    history.Clear();
+                    history.AddRange(source);
+                }
+                else
+                    history = new ObservableCollection<ImageItem>(source);
             }
             else
             {
@@ -5851,7 +5852,7 @@ namespace PixivWPF.Common
 
         public static void Hide(this ProgressRing progress)
         {
-            progress.Show(false);
+            progress.Show(false, false);
         }
 
         public static void Show(this UIElement element, bool show, bool parent = false)

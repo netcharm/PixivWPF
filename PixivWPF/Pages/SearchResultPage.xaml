@@ -79,17 +79,19 @@
                 </MenuItem.Icon>
             </MenuItem>            
             <Separator/>
-            <MenuItem x:Name="ActionNextResultPage" x:Uid="ActionNextResultPage" Header="Open Next Results Page" Click="ResultNextPage_Click">
+            <MenuItem x:Name="ActionNextResultPage" x:Uid="ActionNextResultPage" Header="Open Next Page" Click="ResultNextPage_Click">
                 <MenuItem.Icon>
-                    <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    <TextBlock Margin="4,0,0,0" 
+                               Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Name="ActionNextResultAppend" x:Uid="ActionNextResultAppend" Header="Append Next Results Page" Click="ResultNextPage_Click"
+            <MenuItem x:Name="ActionNextResultAppend" x:Uid="ActionNextResultAppend" Header="Append Next Page" Click="ResultNextPage_Click"
                       Visibility="{Binding Visibility, ElementName=ActionNextResultPage, Mode=TwoWay}">
                 <MenuItem.Icon>
-                    <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    <TextBlock Margin="4,0,0,0" 
+                               Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>

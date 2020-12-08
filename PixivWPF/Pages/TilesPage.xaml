@@ -22,103 +22,6 @@
       PreviewMouseWheel="Page_PreviewMouseWheel">
 
     <Page.Resources>
-        <CollectionViewSource x:Key="ActiveImageTiles" Source="{Binding local:ImageList, Mode=OneWay, IsAsync=True}" Filter="OnlyActiveItems"/>
-        
-        <DataTemplate x:Key="ImageTileTemplate" x:Name="ImageTile" x:Uid="ImageTile">
-            <StackPanel>
-                <Grid Background="{DynamicResource MahApps.Brushes.Accent}" 
-                      ToolTip="{Binding ToolTip, Mode=OneWay}"
-                      Width="128" Tag="{Binding Path='', Mode=OneWay}" Margin="0,4,0,4">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="128"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Border Grid.Row="0" x:Name="PART_Mask" Opacity="0.67"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                            Background="{DynamicResource MahApps.Brushes.IdealForeground}" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"/>
-                    <mah:ProgressRing Grid.Row="0" x:Name="PART_Progress"
-                                      Width="72" Height="72" Opacity="0.67" 
-                                      HorizontalAlignment="Center" VerticalAlignment="Center"                         
-                                      Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                    <Image Grid.Row="0" x:Name="PART_Thumbnail"
-                           Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
-                           TargetUpdated="TileImage_TargetUpdated"
-                           Tag="{Binding Illust, Mode=OneWay}"
-                           Stretch="Uniform" Width="128" Height="128"
-                           HorizontalAlignment="Center" VerticalAlignment="Center">
-                    </Image>
-                    <iconPacks:PackIconModern 
-                        Grid.Row="0"
-                        Kind="Heart" 
-                        Width="28" Height="24" Margin="0,0,6,8" 
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
-                        HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                        Visibility="{Binding FavMarkVisibility, Mode=OneWay}" >
-                        <iconPacks:PackIconModern.Effect>
-                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="9"/>
-                        </iconPacks:PackIconModern.Effect>
-                    </iconPacks:PackIconModern>
-                    <iconPacks:PackIconModern 
-                        Grid.Row="0" x:Name="PART_Favorite" 
-                        Kind="Heart" 
-                        Width="24" Height="24" Margin="0,0,8,8" 
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" 
-                        HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                        Visibility="{Binding FavMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}"
-                        TargetUpdated="TileImage_TargetUpdated">
-                        <iconPacks:PackIconModern.Effect>
-                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
-                        </iconPacks:PackIconModern.Effect>
-                    </iconPacks:PackIconModern>
-                    <iconPacks:PackIconModern 
-                        Grid.Row="0" x:Name="PART_Follow" 
-                        Kind="Check"
-                        Width="16" Height="16" Margin="0,0,12,12" 
-                        HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
-                        Visibility="{Binding FollowMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}" 
-                        TargetUpdated="TileImage_TargetUpdated">
-                        <iconPacks:PackIconModern.Effect>
-                            <DropShadowEffect x:Name="PART_Follow_Shadow" ShadowDepth="0" Color="{DynamicResource MahApps.Colors.Accent}" Opacity="1" BlurRadius="10"/>
-                        </iconPacks:PackIconModern.Effect>
-                    </iconPacks:PackIconModern>
-                    <mah:Badged Grid.Row="0" 
-                                Badge="{Binding BadgeValue, Mode=OneWay}" 
-                                BadgePlacementMode="TopRight" Margin="0,16,16,0"
-                                FontSize="16" FontFamily="Consolas" 
-                                Visibility="{Binding BadgeVisibility, Mode=OneWay}"
-                                BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
-                    <Grid Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" 
-                                   Text="{Binding Subject, Mode=OneWay}" 
-                                   Background="{DynamicResource MahApps.Brushes.Accent}"
-                                   Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
-                        <iconPacks:PackIconModern Grid.Column="1" 
-                                                  Kind="Download" x:Name="PART_IllustDownloaded" 
-                                                  Width="16" Height="16"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                  SourceUpdated="TileImage_TargetUpdated"
-                                                  Background="{DynamicResource MahApps.Brushes.Accent}"
-                                                  Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
-                                                  Tag="{Binding IsDownloaded, Mode=OneWay, NotifyOnSourceUpdated=True}"
-                                                  Visibility="{Binding IsDownloadedVisibility, Mode=OneWay}"/>
-                    </Grid>
-                </Grid>
-            </StackPanel>
-        </DataTemplate>
-
-        <!--<ContextMenu x:Key="ActionsMenu">
-            <MenuItem x:Name="ActionOpenIllustSet" x:Uid="ActionOpenIllustSet" Header="Open Illust Set" Visibility="Collapsed" Click="ActionOpenIllustSet_Click"/>
-            <MenuItem x:Name="ActionIllustUserInfo" x:Uid="ActionIllustUserInfo" Header="Author Info" Visibility="Collapsed" Click="ActionIllustUserInfo_Click"/>
-            <MenuItem x:Name="ActionIllustRelative" x:Uid="ActionIllustRelative" Header="Relative Illust" Click="ActionIllustRelative_Click"/>
-            <Separator />
-            <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click"/>
-        </ContextMenu>-->
-
         <!--  This is the template for all menu items. In this sample we use the glyph items.  -->
         <DataTemplate x:Key="HamburgerMenuGlyphItem" DataType="{x:Type mah:HamburgerMenuGlyphItem}">
             <DockPanel Height="30" LastChildFill="True">
@@ -178,44 +81,18 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <ListView Grid.Column="0"
-            x:Name="ListImageTiles" x:Uid="ImageTiles"
-            BorderBrush="Transparent"
-            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="48,0,0,0" Width="Auto"
-            HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
-            Focusable="True"
-            IsSynchronizedWithCurrentItem="true"
-            ItemsSource="{Binding Source={StaticResource ActiveImageTiles}, IsAsync=True, NotifyOnTargetUpdated=True}" 
-            ItemTemplate="{DynamicResource ImageTileTemplate}"
-            ScrollViewer.IsDeferredScrollingEnabled="False"
-            SelectionMode="Single"
-            Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
-            VirtualizingPanel.IsVirtualizing="True"
-            VirtualizingPanel.IsContainerVirtualizable="True"
-            VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-            VirtualizingPanel.CacheLength ="50"
-            VirtualizingPanel.CacheLengthUnit="Item"
-            VirtualizingPanel.VirtualizationMode="Recycling"
-            VirtualizingPanel.ScrollUnit="Item"
-            mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
-            MouseDoubleClick="ListImageTiles_MouseDoubleClick"
-            SelectionChanged="ImageTiles_SelectionChanged">
-            <ListView.CacheMode>
-                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
-            </ListView.CacheMode>
-            <ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="5" Grid.IsSharedSizeScope="True" 
-                                HorizontalAlignment="Center" VerticalAlignment="Top" 
-                                ScrollViewer.CanContentScroll="True" UseLayoutRounding="True">
-                        <UniformGrid.CacheMode>
-                            <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
-                        </UniformGrid.CacheMode>
-                    </UniformGrid>
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-        </ListView>
-
+        <ScrollViewer Grid.Column="0" x:Name="TilesViewer" Margin="48,0,0,0"
+                      HorizontalAlignment="Left" VerticalAlignment="Stretch" 
+                      HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top"                       
+                      VerticalScrollBarVisibility="Auto">
+            <!-- Tiles List -->
+            <Common:ImageListGrid
+                x:Name="ListImageTiles" x:Uid="ImageTiles"
+                Columns="5" TileWidth="128" TileHeight="128"
+                SelectionMode="Single"
+                SelectionChanged="ImageTiles_SelectionChanged" />
+        </ScrollViewer>
+        
         <mah:ProgressRing Grid.Column="0" 
                           x:Name="ImageTilesWait" 
                           Width="128" Height="128" 
@@ -225,7 +102,7 @@
 
         
         <!-- Pixiv Catgory Menu -->
-        <mah:HamburgerMenu Grid.Column="0" x:Name="PixivCatgoryMenu"
+        <mah:HamburgerMenu Grid.Column="0" x:Name="PixivCatgoryMenu" Margin="0"
                            PanePlacement="Left" DisplayMode="CompactOverlay"
                            IsPaneOpen="True" ShowSelectionIndicator="True" OpenPaneLength="280"
                            CanResizeOpenPane="False" VerticalScrollBarOnLeftSide="False"
