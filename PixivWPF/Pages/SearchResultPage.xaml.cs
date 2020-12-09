@@ -132,7 +132,7 @@ namespace PixivWPF.Pages
 
         public dynamic GetTilesCount()
         {
-            return (ResultItems.ItemsCount);
+            return ($"{ResultItems.ItemsCount}({ResultItems.Items.Count})");
         }
 
         public void PrevIllust()
@@ -216,6 +216,15 @@ namespace PixivWPF.Pages
 
             window = Window.GetWindow(this);
             if (!string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ResultItems.Items.Clear();
+            }
+            catch (Exception) { }
         }
 
         private void Page_PreviewKeyUp(object sender, KeyEventArgs e)

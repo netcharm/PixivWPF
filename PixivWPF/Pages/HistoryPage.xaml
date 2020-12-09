@@ -10,7 +10,7 @@
       mc:Ignorable="d" 
       d:DesignHeight="300" d:DesignWidth="300"
       Title="HistoryPage" 
-      Loaded="Page_Loaded"
+      Loaded="Page_Loaded" Unloaded="Page_Unloaded"
       PreviewKeyUp="Page_PreviewKeyUp"
       PreviewMouseDown="Page_PreviewMouseDown"
       SizeChanged="Page_SizeChanged">
