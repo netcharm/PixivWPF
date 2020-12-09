@@ -850,7 +850,8 @@ namespace PixivWPF.Common
             }
             else if (State == DownloadState.Downloading)
             {
-                FailReason = "Unkonwn failed reason when downloading.";
+                if(string.IsNullOrEmpty(FailReason))
+                    FailReason = "Unkonwn failed reason when downloading.";
                 State = DownloadState.Failed;
             }
 
