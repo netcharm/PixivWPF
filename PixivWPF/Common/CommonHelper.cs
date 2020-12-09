@@ -5281,7 +5281,7 @@ namespace PixivWPF.Common
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
             //var items = collection.Distinct();
-            var items = collection.GroupBy(i => i.UserID).Select(g => g.First()).ToList();
+            var items = collection.GroupBy(i => i.ID).Select(g => g.First()).ToList();
             var ret = Parallel.ForEach(items, opt, (item, loopstate, elementIndex) =>
             {
                 if (item.IsWork())

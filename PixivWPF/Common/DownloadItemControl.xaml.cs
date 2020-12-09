@@ -613,11 +613,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private MemoryStream _DownloadStream = null;
+        //private MemoryStream _DownloadStream = null;
+        private byte[] _DownloadBuffer = null;
         private HttpClient httpClient = null;
         private async Task<HttpResponseMessage> GetAsyncResponse(string Url, bool continuation = false)
         {
-            var start = _DownloadStream is MemoryStream ? _DownloadStream.Length : 0;
+            var start = _DownloadBuffer is byte[] ? _DownloadBuffer.Length : 0;
             httpClient = Application.Current.GetHttpClient(continuation, start);
             return (await httpClient.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead));
         }
@@ -625,22 +626,22 @@ namespace PixivWPF.Common
         private async Task<string> DownloadStreamAsync(HttpResponseMessage response)
         {
             string result = string.Empty;
-            try
+            using (var ms = new MemoryStream())
             {
-                UpdateProgress();
-                response.EnsureSuccessStatusCode();
-                var LastModifiedOffset = response.Content.Headers.LastModified ?? default(DateTimeOffset);
-                LastModified = LastModifiedOffset.DateTime.ToLocalTime();
-                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
-                Length = response.Content.Headers.ContentLength ?? 0;
-                if (Length > 0)
+                try
                 {
-                    finishedProgress = new Tuple<double, double>(Length, Length);
                     UpdateProgress();
-
-                    using (var cs = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                    response.EnsureSuccessStatusCode();
+                    var LastModifiedOffset = response.Content.Headers.LastModified ?? default(DateTimeOffset);
+                    LastModified = LastModifiedOffset.DateTime.ToLocalTime();
+                    string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                    Length = response.Content.Headers.ContentLength ?? 0;
+                    if (Length > 0)
                     {
-                        using (var ms = new MemoryStream())
+                        finishedProgress = new Tuple<double, double>(Length, Length);
+                        UpdateProgress();
+
+                        using (var cs = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                         {
                             byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
                             int bytesread = 0;
@@ -673,24 +674,24 @@ namespace PixivWPF.Common
                             }
                         }
                     }
+                    else
+                    {
+                        result = await Url.DownloadImage(FileName);
+                        result.Touch(Url);
+                        Length = result.GetFileLength();
+                        if (Length <= 0) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File not exists.");
+                        Received = Length;
+                        State = DownloadState.Finished;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    result = await Url.DownloadImage(FileName);
-                    result.Touch(Url);
-                    Length = result.GetFileLength();
-                    if (Length <= 0) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File not exists.");
-                    Received = Length;
-                    State = DownloadState.Finished;
+                    FailReason = ex.Message;
                 }
-            }
-            catch (Exception ex)
-            {
-                FailReason = ex.Message;
-            }
-            finally
-            {
+                finally
+                {
 
+                }
             }
             return (result);
         }
@@ -698,37 +699,36 @@ namespace PixivWPF.Common
         private async Task<string> DownloadStreamAsync(HttpResponseMessage response, bool continuation)
         {
             string result = string.Empty;
-            try
+            using (var ms = new MemoryStream())
             {
-                UpdateProgress();
-                response.EnsureSuccessStatusCode();
-                var LastModifiedOffset = response.Content.Headers.LastModified ?? default(DateTimeOffset);
-                LastModified = LastModifiedOffset.DateTime.ToLocalTime();
-
-                string ce = response.Content.Headers.ContentEncoding.FirstOrDefault();
-                var length = response.Content.Headers.ContentLength ?? 0;
-                var range = response.Content.Headers.ContentRange ?? new System.Net.Http.Headers.ContentRangeHeaderValue(0, 0, length);
-                var pos = range.From ?? 0;
-                Length = range.Length ?? 0;
-                if (length > 0)
+                try
                 {
-                    finishedProgress = new Tuple<double, double>(Length, Length);
-
-                    if (!continuation || !(_DownloadStream is MemoryStream)) _DownloadStream = new MemoryStream();
-
-                    using (var cs = ce != null && ce == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                    if (continuation && _DownloadBuffer is byte[])
                     {
-                        using (var ms = new MemoryStream())
+                        await ms.WriteAsync(_DownloadBuffer, 0, _DownloadBuffer.Length);
+                        await ms.FlushAsync();
+                    }
+
+                    UpdateProgress();
+                    response.EnsureSuccessStatusCode();
+                    var LastModifiedOffset = response.Content.Headers.LastModified ?? default(DateTimeOffset);
+                    LastModified = LastModifiedOffset.DateTime.ToLocalTime();
+
+                    string ce = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                    var length = response.Content.Headers.ContentLength ?? 0;
+                    var range = response.Content.Headers.ContentRange ?? new System.Net.Http.Headers.ContentRangeHeaderValue(0, 0, length);
+                    var pos = range.From ?? 0;
+                    Length = range.Length ?? 0;
+                    if (length > 0)
+                    {
+                        ms.Seek(pos, SeekOrigin.Begin);
+
+                        finishedProgress = new Tuple<double, double>(Length, Length);
+
+                        //if (!continuation || !(_DownloadBuffer is byte[])) _DownloadBuffer = new byte[Length];
+
+                        using (var cs = ce != null && ce == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                         {
-                            if (continuation)
-                            {
-                                _DownloadStream.Seek(0, SeekOrigin.Begin);
-                                await _DownloadStream.CopyToAsync(ms);
-                                await _DownloadStream.FlushAsync();
-                                await ms.FlushAsync();
-                                ms.Seek(pos, SeekOrigin.Begin);
-                                _DownloadStream.Seek(pos, SeekOrigin.Begin);
-                            }
                             lastReceived = ms.Length;
                             Received = ms.Length;
                             UpdateProgress();
@@ -749,7 +749,6 @@ namespace PixivWPF.Common
                                 {
                                     lastReceived += bytesread;
                                     Received += bytesread;
-                                    await _DownloadStream.WriteAsync(bytes, 0, bytesread);
                                     await ms.WriteAsync(bytes, 0, bytesread);
                                     UpdateProgress();
                                 }
@@ -757,7 +756,8 @@ namespace PixivWPF.Common
 
                             if (Received == Length && State == DownloadState.Downloading)
                             {
-                                result = SaveFile(FileName, ms.ToArray());
+                                _DownloadBuffer = ms.ToArray();
+                                result = SaveFile(FileName, _DownloadBuffer);
                             }
                             else
                             {
@@ -765,26 +765,61 @@ namespace PixivWPF.Common
                             }
                         }
                     }
+                    else
+                    {
+                        result = await Url.DownloadImage(FileName);
+                        result.Touch(Url);
+                        Length = result.GetFileLength();
+                        if (Length <= 0) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File not exists.");
+                        Received = Length;
+                        State = DownloadState.Finished;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    result = await Url.DownloadImage(FileName);
-                    result.Touch(Url);
-                    Length = result.GetFileLength();
-                    if (Length <= 0) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File not exists.");
-                    Received = Length;
-                    State = DownloadState.Finished;
+                    FailReason = ex.Message;
                 }
-            }
-            catch (Exception ex)
-            {
-                FailReason = ex.Message;
-            }
-            finally
-            {
-
+                finally
+                {
+                    if(State != DownloadState.Finished)
+                        _DownloadBuffer = ms.ToArray();
+                }
             }
             return (result);
+        }
+
+        private void DownloadPreProcess(bool restart = false)
+        {
+            if (string.IsNullOrEmpty(Url)) throw new Exception($"Download URL is unknown!");
+            if (!CanDownload) throw new Exception($"Download task can't start now!");
+
+            IsStart = false;
+            Canceling = false;
+
+            cancelSource = new CancellationTokenSource();
+            cancelToken = cancelSource.Token;
+
+            FailReason = string.Empty;
+            State = DownloadState.Downloading;
+
+            if (restart && _DownloadBuffer is byte[])
+            {
+                Array.Clear(_DownloadBuffer, 0, _DownloadBuffer.Length);
+                _DownloadBuffer = null;
+            }
+
+            if (_DownloadBuffer is byte[])
+            {
+                lastReceived = _DownloadBuffer.Length;
+                Received = lastReceived;
+            }
+            else
+            {
+                StartTick = DateTime.Now;
+                lastReceived = 0;
+                Length = Received = 0;
+            }
+            UpdateProgress();
         }
 
         private void DownloadFinally(out string result)
@@ -800,9 +835,12 @@ namespace PixivWPF.Common
             {
                 result = FileName;
                 EndTick = DateTime.Now;
-                _DownloadStream.Close();
-                _DownloadStream.Dispose();
-                _DownloadStream = null;
+
+                if (_DownloadBuffer is byte[])
+                {
+                    Array.Clear(_DownloadBuffer, 0, _DownloadBuffer.Length);
+                    _DownloadBuffer = null;
+                }
 
                 var state = "Succeed";
                 if (setting.DownloadCompletedToast)
@@ -829,38 +867,7 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    if (string.IsNullOrEmpty(Url)) throw new Exception($"Download URL is unknown!");
-                    if (!CanDownload) throw new Exception($"Download task can't start now!");
-
-                    IsStart = false;
-                    Canceling = false;
-
-                    cancelSource = new CancellationTokenSource();
-                    cancelToken = cancelSource.Token;
-
-                    FailReason = string.Empty;
-                    State = DownloadState.Downloading;
-
-                    if (restart && _DownloadStream is MemoryStream)
-                    {
-                        _DownloadStream.Close();
-                        _DownloadStream.Dispose();
-                        _DownloadStream = null;
-                    }
-
-                    if (_DownloadStream is MemoryStream)
-                    {
-                        lastReceived = _DownloadStream.Length;
-                        Received = lastReceived;
-                    }
-                    else
-                    {
-                        _DownloadStream = new MemoryStream();
-                        StartTick = DateTime.Now;
-                        lastReceived = 0;
-                        Length = Received = 0;
-                    }
-                    UpdateProgress();
+                    DownloadPreProcess(restart);
 
                     using (var response = await GetAsyncResponse(Url, continuation))
                     {
@@ -889,38 +896,7 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    if (string.IsNullOrEmpty(Url)) throw new Exception($"Download URL is unknown!");
-                    if (!CanDownload) throw new Exception($"Download task can't start now!");
-
-                    IsStart = false;
-                    Canceling = false;
-
-                    cancelSource = new CancellationTokenSource();
-                    cancelToken = cancelSource.Token;
-
-                    FailReason = string.Empty;
-                    State = DownloadState.Downloading;
-
-                    if (restart && _DownloadStream is MemoryStream)
-                    {
-                        _DownloadStream.Close();
-                        _DownloadStream.Dispose();
-                        _DownloadStream = null;
-                    }
-
-                    if (_DownloadStream is MemoryStream)
-                    {
-                        lastReceived = _DownloadStream.Length;
-                        Received = lastReceived;
-                    }
-                    else
-                    {
-                        _DownloadStream = new MemoryStream();
-                        StartTick = DateTime.Now;
-                        lastReceived = 0;
-                        Length = Received = 0;
-                    }
-                    UpdateProgress();
+                    DownloadPreProcess(restart);
 
                     Pixeez.Tokens tokens = await CommonHelper.ShowLogin();
                     using (var async_response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, Url))
