@@ -6343,16 +6343,27 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private static Dictionary<string, string> _MessageDialogList = new Dictionary<string, string>();
+        public static bool IsMessagePopup(this string title, string content = "")
+        {
+            var result = _MessageDialogList.ContainsKey(title) || _MessageDialogList.ContainsValue(content);
+            return (result);
+        }
+
         public static async void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             await Task.Delay(1);
+            _MessageDialogList[title] = content;
             MessageBox.Show(content, title, MessageBoxButton.OK, image);
+            _MessageDialogList.Remove(title);
         }
 
         public static async Task<bool> ShowMessageDialog(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             await Task.Delay(1);
+            _MessageDialogList[title] = content;
             var ret = MessageBox.Show(content, title, MessageBoxButton.OKCancel, image);
+            _MessageDialogList.Remove(title);
             return (ret == MessageBoxResult.OK || ret == MessageBoxResult.Yes ? true: false);
         }
 

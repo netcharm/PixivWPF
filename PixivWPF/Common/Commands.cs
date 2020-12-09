@@ -916,7 +916,7 @@ namespace PixivWPF.Common
                 await new Action(() =>
                 {
                     if (!(_downManager_page is DownloadManagerPage))
-                        _downManager_page = new DownloadManagerPage() { AutoStart = false };
+                        _downManager_page = new DownloadManagerPage() { AutoStart = true };
 
                     setting = Application.Current.LoadSetting();
                     var viewer = new ContentWindow()

@@ -34,7 +34,7 @@ namespace PixivWPF.Pages
         private Setting setting = Application.Current.LoadSetting();
 
         [DefaultValue(true)]
-        public bool AutoStart { get; set; }
+        public bool AutoStart { get; set; } = true;
 
         [DefaultValue(5)]
         public uint MaxJobs { get; set; } = 10;
@@ -118,7 +118,7 @@ namespace PixivWPF.Pages
                 if (jobs_count < MaxJobs)
                 {
                     //if (states_job.Contains(item.State)) continue;
-                    item.IsStart = true;
+                    if(item.AutoStart) item.IsStart = true;
                     jobs_count++;
                 }
             }

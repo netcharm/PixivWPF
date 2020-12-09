@@ -109,9 +109,28 @@ namespace PixivWPF.Common
             set
             {
                 start = value;
+                Start();
                 NotifyPropertyChanged("IsStart");
             }
         }
+
+        public async void Start()
+        {
+            if (Instance is DownloadItem)
+            {
+                try
+                {
+                    await new Action(() =>
+                    {
+                        setting = Application.Current.LoadSetting();
+                        if (start && !Instance.IsDownloading) Instance.Start(setting.DownloadWithFailResume);
+                    }).InvokeAsync();
+                }
+                catch (Exception) { }
+            }
+        }
+
+        public DownloadItem Instance { get; set; } = null;
 
         public string FailReason { get; set; } = string.Empty;
 
@@ -443,6 +462,7 @@ namespace PixivWPF.Common
                 try
                 {
                     Info = Tag as DownloadInfo;
+                    Info.Instance = this;
 
                     UpdateProgress();
 
@@ -949,18 +969,26 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private async void Start(bool continuation = true, bool restart = false)
+        public async void Start(bool continuation = true, bool restart = false)
         {
             setting = Application.Current.LoadSetting();
             HTTP_STREAM_READ_COUNT = setting.DownloadHttpStreamBlockSize;
             HTTP_TIMEOUT = setting.DownloadHttpTimeout > 5 ? setting.DownloadHttpTimeout : 5;
+
+            IsStart = false;
+            AutoStart = false;
+
+            var basename = Path.GetFileName(FileName);
+            var msg_title = $"Warnning ({basename})";
+            var msg_content = "Overwrite exists?";
+            if (msg_title.IsMessagePopup(msg_content)) return;
 
             bool delta = true;
             if (File.Exists(FileName))
             {
                 delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan ? true : false;
                 if (!delta) return;
-                if (!(await "Overwrite exists?".ShowMessageDialog("Warnning", MessageBoxImage.Warning))) return;
+                if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) return;
             }
 
             if (IsDownloading) await Cancel();
@@ -1002,7 +1030,7 @@ namespace PixivWPF.Common
             InitializeComponent();
             setting = Application.Current.LoadSetting();
 
-            Info = new DownloadInfo();
+            Info = new DownloadInfo() { Instance = this };
 
             InitProgress();
 
@@ -1014,7 +1042,7 @@ namespace PixivWPF.Common
             InitializeComponent();
             setting = Application.Current.LoadSetting();
 
-            Info = new DownloadInfo();
+            Info = new DownloadInfo() { Instance = this };
 
             InitProgress();
 
@@ -1032,7 +1060,9 @@ namespace PixivWPF.Common
             if (info is DownloadInfo)
                 Info = info;
             else
-                Info = new DownloadInfo();
+                Info = new DownloadInfo() { Instance = this };
+
+            Info.Instance = this;
 
             InitProgress();
 
