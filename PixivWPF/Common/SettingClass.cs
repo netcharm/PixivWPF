@@ -854,6 +854,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private int download_buffer_update_frequency = 30;
+        public int DownloadBufferUpdateFrequency
+        {
+            get { return (Cache is Setting ? Cache.download_buffer_update_frequency : download_buffer_update_frequency); }
+            set
+            {
+                download_buffer_update_frequency = value;
+                if (Cache is Setting) Cache.download_buffer_update_frequency = download_buffer_update_frequency;
+            }
+        }
+
         private int download_http_timeout = 30;
         public int DownloadHttpTimeout
         {

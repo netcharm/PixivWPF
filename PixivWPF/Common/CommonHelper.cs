@@ -97,6 +97,9 @@ namespace PixivWPF.Common
         public double X { get; } = 96.0;
         public double Y { get; } = 96.0;
 
+        private static DPI dpi = new DPI();
+        public static DPI Default { get { return (dpi); } }
+
         public DPI()
         {
             var dpi = BySystemParameters();
@@ -1294,16 +1297,25 @@ namespace PixivWPF.Common
         public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
         {
             var setting = LoadSetting(app);
+            var buffersize = 100 * 1024 * 1024;
             HttpClientHandler handler = new HttpClientHandler()
             {
                 AllowAutoRedirect = true,
+                AutomaticDecompression = DecompressionMethods.Deflate,
+                UseCookies = true,
                 MaxAutomaticRedirections = 15,
+                MaxConnectionsPerServer = 30,
+                MaxRequestContentBufferSize = buffersize,
                 //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
                 Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass),
                 UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
             };
 
-            var httpClient = new HttpClient(handler, true) { Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout), MaxResponseContentBufferSize = 100 * 1024 * 1024 };
+            var httpClient = new HttpClient(handler, true)
+            {
+                Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout),
+                MaxResponseContentBufferSize = buffersize
+            };
             //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
             httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
             httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
@@ -1623,6 +1635,29 @@ namespace PixivWPF.Common
                 return (index >= 0 ? users.Skip(index).Take(1).FirstOrDefault() : null);
             }
             else return (null);
+        }
+        #endregion
+
+        #region Null Preview/Avatar
+        private static WriteableBitmap NullPreview = null;
+        private static WriteableBitmap NullAvatar = null;
+
+        public static BitmapSource GetNullPreview(this Application app)
+        {
+            if (!(NullPreview is WriteableBitmap))
+            {
+                NullPreview = new WriteableBitmap(300, 300, DPI.Default.X, DPI.Default.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
+            }
+            return (NullPreview);
+        }
+
+        public static BitmapSource GetNullAvatar(this Application app)
+        {
+            if (!(NullAvatar is WriteableBitmap))
+            {
+                NullAvatar = new WriteableBitmap(64, 64, DPI.Default.X, DPI.Default.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
+            }
+            return (NullAvatar);
         }
         #endregion
 
@@ -3046,6 +3081,24 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+
+        public static IEnumerable<string> GetDownloadInfo(this DownloadInfo item)
+        {
+            List<string> result = new List<string>();
+            if (item is DownloadInfo)
+            {
+                var di = item as DownloadInfo;
+                var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason:{di.FailReason}";
+                var delta = di.EndTime - di.StartTime;
+                var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / 1024.0 / delta.TotalSeconds;
+                result.Add($"URL    : {di.Url}");
+                result.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
+                result.Add($"State  : {di.State}{fail}");
+                result.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.Days * 24 + delta.Hours}:{delta.Minutes}:{delta.Seconds} s");
+                result.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate:0.00} KB/s");
+            }
+            return (result);
+        }
         #endregion
 
         #region Get Illust Work DateTime
@@ -3176,6 +3229,7 @@ namespace PixivWPF.Common
                 var bmp = new BitmapImage();
                 bmp.BeginInit();
                 bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.CreateOptions = BitmapCreateOptions.DelayCreation;
                 bmp.StreamSource = stream;
                 bmp.EndInit();
                 bmp.Freeze();
@@ -4003,7 +4057,7 @@ namespace PixivWPF.Common
             ImageSource result = null;
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
-                using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, 65536))
                 {
                     await new Action(async () =>
                     {

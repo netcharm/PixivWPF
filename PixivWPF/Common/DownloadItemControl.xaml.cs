@@ -23,6 +23,17 @@ namespace PixivWPF.Common
     {
         private Setting setting = Application.Current.LoadSetting();
 
+        private string tooltip = string.Empty;
+        public string ToolTip
+        {
+            get { return (tooltip); }
+            set
+            {
+                tooltip = value;
+                NotifyPropertyChanged("Tooltip");
+            }
+        }
+
         public DateTime AddedTimeStamp { get; set; } = DateTime.Now;
 
         [DefaultValue(false)]
@@ -180,18 +191,9 @@ namespace PixivWPF.Common
     {
         private Setting setting = Application.Current.LoadSetting();
 
-        private int HTTP_STREAM_READ_COUNT = 8192;
-        private int HTTP_TIMEOUT = 60;
-
-        private Tuple<double, double> finishedProgress;
-
-        private CancellationTokenSource cancelSource = null;
-        private CancellationToken cancelToken;
-
-        private SemaphoreSlim Downloading = new SemaphoreSlim(1, 1);
-
         private DownloadInfo Info { get; set; }
 
+        #region member properties
         public bool Canceling
         {
             get { return (Info is DownloadInfo ? Info.Canceled : false); }
@@ -380,7 +382,9 @@ namespace PixivWPF.Common
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+        #endregion
 
+        #region Progress helper
         private DateTime StartTick
         {
             get { return (Info is DownloadInfo ? Info.StartTime : default(DateTime)); }
@@ -397,12 +401,8 @@ namespace PixivWPF.Common
         private double lastRate = 0;
         private double lastRateA = 0;
         private long lastReceived = 0;
+        private Tuple<double, double> finishedProgress;
         internal IProgress<Tuple<double, double>> progress = null;
-
-        internal void UpdateState()
-        {
-            CheckProperties();
-        }
 
         private void InitProgress()
         {
@@ -454,7 +454,9 @@ namespace PixivWPF.Common
         {
             if (progress is IProgress<Tuple<double, double>>) progress.Report(Progress);
         }
+        #endregion
 
+        #region Update state helper
         private void CheckProperties()
         {
             if (Tag is DownloadInfo)
@@ -540,98 +542,20 @@ namespace PixivWPF.Common
             }
         }
 
-        public void Refresh()
+        public void UpdateDownloadState()
         {
             CheckProperties();
         }
+        #endregion
 
-        private async Task Cancel()
-        {
-            if (!Canceling)
-            {
-                Canceling = true;
-                if (cancelSource is CancellationTokenSource && !cancelSource.IsCancellationRequested)
-                {
-                    cancelSource.Cancel();
-                    await Task.Delay(1000);
-                    Application.Current.DoEvents();
-                }
-                try
-                {
-                    if (httpClient is HttpClient)
-                    {
-                        httpClient.CancelPendingRequests();
-                        httpClient.Dispose();
-                        httpClient = null;
-                    }
-                }
-                catch (Exception) { }
-            }
-        }
+        #region Downloading helper
+        private int HTTP_STREAM_READ_COUNT = 8192;
+        private int HTTP_TIMEOUT = 60;
 
-        private string SaveFile(string FileName, byte[] bytes)
-        {
-            var result = FileName;
-            try
-            {
-                State = DownloadState.Writing;
-                UpdateProgress();
-                File.WriteAllBytes(FileName, bytes);
-                File.SetCreationTime(FileName, FileTime);
-                File.SetLastWriteTime(FileName, FileTime);
-                File.SetLastAccessTime(FileName, FileTime);
-                PART_OpenFile.IsEnabled = true;
-                PART_OpenFolder.IsEnabled = true;
-                FailReason = $"downloaded from remote site.";
-                State = DownloadState.Finished;
-            }
-            catch (Exception ex)
-            {
-                FailReason = ex.Message;
-                State = DownloadState.Failed;
-                if (!IsCanceling) throw new Exception($"Download {Path.GetFileName(FileName)} Failed!");
-            }
-            finally
-            {
-                UpdateProgress();
-            }
-            return (result);
-        }
+        private CancellationTokenSource cancelSource = null;
+        private CancellationToken cancelToken;
 
-        private string SaveFile(string FileName, string source)
-        {
-            var result = FileName;
-            try
-            {
-                if (File.Exists(source))
-                {
-                    StartTick = DateTime.Now;
-                    State = DownloadState.Writing;
-                    var fi = new FileInfo(source);
-                    Length = Received = fi.Length;
-                    finishedProgress = new Tuple<double, double>(Received, Length);
-                    File.Copy(source, FileName, true);
-                    File.SetCreationTime(FileName, FileTime);
-                    File.SetLastWriteTime(FileName, FileTime);
-                    File.SetLastAccessTime(FileName, FileTime);
-                    PART_OpenFile.IsEnabled = true;
-                    PART_OpenFolder.IsEnabled = true;
-                    FailReason = $"copied from cached image.";
-                    State = DownloadState.Finished;
-                }
-            }
-            catch (Exception ex)
-            {
-                FailReason = ex.Message;
-                State = DownloadState.Failed;
-                if (!IsCanceling) throw new Exception($"Download {Path.GetFileName(FileName)} Failed!");
-            }
-            finally
-            {
-                UpdateProgress();
-            }
-            return (result);
-        }
+        private SemaphoreSlim Downloading = new SemaphoreSlim(1, 1);
 
         //private MemoryStream _DownloadStream = null;
         private byte[] _DownloadBuffer = null;
@@ -723,6 +647,8 @@ namespace PixivWPF.Common
             {
                 try
                 {
+                    var lastUpdateBuffer = DateTime.Now;
+
                     if (continuation && _DownloadBuffer is byte[])
                     {
                         await ms.WriteAsync(_DownloadBuffer, 0, _DownloadBuffer.Length);
@@ -744,8 +670,6 @@ namespace PixivWPF.Common
                         ms.Seek(pos, SeekOrigin.Begin);
 
                         finishedProgress = new Tuple<double, double>(Length, Length);
-
-                        //if (!continuation || !(_DownloadBuffer is byte[])) _DownloadBuffer = new byte[Length];
 
                         using (var cs = ce != null && ce == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                         {
@@ -770,6 +694,11 @@ namespace PixivWPF.Common
                                     lastReceived += bytesread;
                                     Received += bytesread;
                                     await ms.WriteAsync(bytes, 0, bytesread);
+                                    if (EndTick.DeltaSeconds(lastUpdateBuffer) >= setting.DownloadBufferUpdateFrequency)
+                                    {
+                                        _DownloadBuffer = ms.ToArray();
+                                        lastUpdateBuffer = EndTick;
+                                    }
                                     UpdateProgress();
                                 }
                             } while (bytesread > 0 && Received < Length);
@@ -875,6 +804,17 @@ namespace PixivWPF.Common
                 State = DownloadState.Failed;
             }
 
+            try
+            {
+                if (httpClient is HttpClient)
+                {
+                    httpClient.CancelPendingRequests();
+                    httpClient.Dispose();
+                    httpClient = null;
+                }
+            }
+            catch (Exception) { }
+
             if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
             cancelSource = null;
             if (Downloading is SemaphoreSlim) Downloading.Release();
@@ -969,6 +909,70 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private string SaveFile(string FileName, byte[] bytes)
+        {
+            var result = FileName;
+            try
+            {
+                State = DownloadState.Writing;
+                UpdateProgress();
+                File.WriteAllBytes(FileName, bytes);
+                File.SetCreationTime(FileName, FileTime);
+                File.SetLastWriteTime(FileName, FileTime);
+                File.SetLastAccessTime(FileName, FileTime);
+                PART_OpenFile.IsEnabled = true;
+                PART_OpenFolder.IsEnabled = true;
+                FailReason = $"downloaded from remote site.";
+                State = DownloadState.Finished;
+            }
+            catch (Exception ex)
+            {
+                FailReason = ex.Message;
+                State = DownloadState.Failed;
+                if (!IsCanceling) throw new Exception($"Download {Path.GetFileName(FileName)} Failed!");
+            }
+            finally
+            {
+                UpdateProgress();
+            }
+            return (result);
+        }
+
+        private string SaveFile(string FileName, string source)
+        {
+            var result = FileName;
+            try
+            {
+                if (File.Exists(source))
+                {
+                    StartTick = DateTime.Now;
+                    State = DownloadState.Writing;
+                    var fi = new FileInfo(source);
+                    Length = Received = fi.Length;
+                    finishedProgress = new Tuple<double, double>(Received, Length);
+                    File.Copy(source, FileName, true);
+                    File.SetCreationTime(FileName, FileTime);
+                    File.SetLastWriteTime(FileName, FileTime);
+                    File.SetLastAccessTime(FileName, FileTime);
+                    PART_OpenFile.IsEnabled = true;
+                    PART_OpenFolder.IsEnabled = true;
+                    FailReason = $"copied from cached image.";
+                    State = DownloadState.Finished;
+                }
+            }
+            catch (Exception ex)
+            {
+                FailReason = ex.Message;
+                State = DownloadState.Failed;
+                if (!IsCanceling) throw new Exception($"Download {Path.GetFileName(FileName)} from {source} Failed!");
+            }
+            finally
+            {
+                UpdateProgress();
+            }
+            return (result);
+        }
+
         public async void Start(bool continuation = true, bool restart = false)
         {
             setting = Application.Current.LoadSetting();
@@ -1025,6 +1029,31 @@ namespace PixivWPF.Common
             }
         }
 
+        private async Task Cancel()
+        {
+            if (!Canceling)
+            {
+                Canceling = true;
+                if (cancelSource is CancellationTokenSource && !cancelSource.IsCancellationRequested)
+                {
+                    cancelSource.Cancel();
+                    await Task.Delay(250);
+                    Application.Current.DoEvents();
+                }
+                try
+                {
+                    if (httpClient is HttpClient)
+                    {
+                        httpClient.CancelPendingRequests();
+                        httpClient.Dispose();
+                        httpClient = null;
+                    }
+                }
+                catch (Exception) { }
+            }
+        }
+        #endregion
+
         public DownloadItem()
         {
             InitializeComponent();
@@ -1069,11 +1098,6 @@ namespace PixivWPF.Common
             CheckProperties();
         }
 
-        public void UpdateDownloadState()
-        {
-            CheckProperties();
-        }
-
         private void Download_Loaded(object sender, RoutedEventArgs e)
         {
             CheckProperties();
@@ -1087,6 +1111,15 @@ namespace PixivWPF.Common
                     if (string.IsNullOrEmpty(Url) && !string.IsNullOrEmpty(PART_FileURL.Text)) Url = PART_FileURL.Text;
                     if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
                 }
+            }
+        }
+
+        private void Download_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            if (Info is DownloadInfo)
+            {
+                Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
+                this.ToolTip = Info.ToolTip;
             }
         }
 

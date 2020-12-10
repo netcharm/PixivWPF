@@ -21,7 +21,6 @@ namespace PixivWPF.Common
 
         private Dictionary<string, string> _caches = new Dictionary<string, string>();
         private string _CacheFolder = string.Empty;
-        private string _CacheDB = string.Empty;
 
         public CacheImage()
         {
@@ -106,11 +105,6 @@ namespace PixivWPF.Common
             {
                 result = await file.LoadImageFromFile();
             }
-            else if (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp))
-            {
-                result = await fp.LoadImageFromFile();
-                if (result.Source is ImageSource) _caches[url] = fp.TrimStart(trimchars);
-            }
             else
             {
                 file = GetImagePath(url);
@@ -121,6 +115,13 @@ namespace PixivWPF.Common
                     _caches[url] = file.Replace(_CacheFolder, "").TrimStart(trimchars);
                 }
             }
+
+            if (!(result.Source is ImageSource) && (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp)))
+            {
+                result = await fp.LoadImageFromFile();
+                if (result.Source is ImageSource) _caches[url] = fp.TrimStart(trimchars);
+            }
+
             if (result.Source is ImageSource && !string.IsNullOrEmpty(id))
             {
                 loadedImageHashTable[result.GetHashCode()] = id;

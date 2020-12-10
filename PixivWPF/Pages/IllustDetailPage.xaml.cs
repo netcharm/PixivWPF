@@ -9,7 +9,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 using MahApps.Metro.IconPacks;
 using PixivWPF.Common;
@@ -269,7 +268,6 @@ namespace PixivWPF.Pages
             {
                 host = new WindowsFormsHostEx()
                 {
-                    //IsRedirected = true,
                     //CompositionMode = ,
                     AllowDrop = false,
                     MinHeight = 24,
@@ -278,7 +276,11 @@ namespace PixivWPF.Pages
                     VerticalAlignment = VerticalAlignment.Stretch,
                     Child = browser
                 };
-                if (panel is Panel) panel.Children.Add(host);
+                if (panel is Panel)
+                {
+                    panel.Children.Add(host);
+                    AdjustBrowserSize(browser);
+                }
             }
             catch (Exception) { host = null; }
         }
@@ -289,7 +291,6 @@ namespace PixivWPF.Pages
             {
                 host = new System.Windows.Forms.Integration.WindowsFormsHost()
                 {
-                    //IsRedirected = true,
                     //CompositionMode = ,
                     AllowDrop = false,
                     MinHeight = 24,
@@ -298,7 +299,11 @@ namespace PixivWPF.Pages
                     VerticalAlignment = VerticalAlignment.Stretch,
                     Child = browser
                 };
-                if (panel is Panel) panel.Children.Add(host);
+                if (panel is Panel)
+                {
+                    panel.Children.Add(host);
+                    AdjustBrowserSize(browser);
+                }
             }
             catch (Exception) { host = null; }
         }
@@ -386,31 +391,34 @@ namespace PixivWPF.Pages
         {
             try
             {
-                await new Action(() =>
+                if (browser is System.Windows.Forms.WebBrowser)
                 {
-                    var contents = string.Empty;
-                    if (browser == IllustTagsHtml)
+                    await new Action(() =>
                     {
-                        if (Contents.IsUser())
-                            contents = MakeUserInfoHtml(UserInfo);
-                        else if (Contents.IsWork())
-                            contents = MakeIllustTagsHtml(Contents);
-                    }
-                    else if (browser == IllustDescHtml)
-                    {
-                        if (Contents.IsUser())
-                            contents = MakeUserDescHtml(UserInfo);
-                        else if (Contents.IsWork())
-                            contents = MakeIllustDescHtml(Contents);
-                    }
-                    if (!string.IsNullOrEmpty(contents))
-                    {
-                        browser.DocumentText = contents;
-                        browser.Document.Write(string.Empty);
-                        AdjustBrowserSize(browser);
+                        var contents = string.Empty;
+                        if (browser == IllustTagsHtml)
+                        {
+                            if (Contents.IsUser())
+                                contents = MakeUserInfoHtml(UserInfo);
+                            else if (Contents.IsWork())
+                                contents = MakeIllustTagsHtml(Contents);
+                        }
+                        else if (browser == IllustDescHtml)
+                        {
+                            if (Contents.IsUser())
+                                contents = MakeUserDescHtml(UserInfo);
+                            else if (Contents.IsWork())
+                                contents = MakeIllustDescHtml(Contents);
+                        }
+                        if (!string.IsNullOrEmpty(contents))
+                        {
+                            browser.DocumentText = contents;
+                            browser.Document.Write(string.Empty);
+                            AdjustBrowserSize(browser);
+                        }
                         browser.WebBrowserShortcutsEnabled = false;
-                    }
-                }).InvokeAsync();
+                    }).InvokeAsync();
+                }
             }
             catch (Exception) { }
         }
@@ -745,8 +753,7 @@ namespace PixivWPF.Pages
                 PreviewViewer.Show(true);
                 PreviewBox.ToolTip = item.ToolTip;
 
-                var dpi = new DPI();
-                Preview.Source = new WriteableBitmap(300, 300, dpi.X, dpi.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
+                Preview.Source = Application.Current.GetNullPreview();
                 PreviewWait.Show();
 
                 string stat_viewed = "????";
@@ -782,7 +789,7 @@ namespace PixivWPF.Pages
                 IllustStatInfo.ToolTip = string.Join("\r", stat_tip).Trim();
 
                 IllustAuthor.Text = item.Illust.User.Name;
-                IllustAuthorAvator.Source = new WriteableBitmap(64, 64, dpi.X, dpi.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
+                IllustAuthorAvator.Source = Application.Current.GetNullAvatar();
                 IllustAuthorAvatorWait.Show();
 
                 IllustTitle.Text = $"{item.Illust.Title}";
@@ -920,12 +927,19 @@ namespace PixivWPF.Pages
         private string user_backgroundimage_url = string.Empty;
         public async void UpdateUserBackground()
         {
-            if (setting.ShowUserBackgroundImage)
+            if (Contents.IsUser())
             {
-                if (string.IsNullOrEmpty(user_backgroundimage_url))
+                if (setting.ShowUserBackgroundImage && string.IsNullOrEmpty(user_backgroundimage_url))
                 {
-                    Preview.Source = (await user_backgroundimage_url.LoadImageFromUrl()).Source;
+                    PreviewWait.Show();
                     PreviewViewer.Show();
+                    Preview.Source = (await user_backgroundimage_url.LoadImageFromUrl()).Source;
+                }
+                else
+                {
+                    PreviewWait.Hide();
+                    PreviewViewer.Hide();
+                    Preview.Source = null;
                 }
             }
         }
@@ -937,6 +951,8 @@ namespace PixivWPF.Pages
             {
                 IllustDetailWait.Show();
                 this.DoEvents();
+
+                PreviewViewer.Hide();
 
                 var user = item.User;
                 UserInfo = user.FindUserInfo();
@@ -953,12 +969,6 @@ namespace PixivWPF.Pages
                     await user.RefreshUser();
                 }
 
-                PreviewWait.Hide();
-                PreviewViewer.Hide();
-                Preview.Source = null;
-
-                user_backgroundimage_url = nprof.background_image_url is string ? nprof.background_image_url as string : nuser.GetPreviewUrl();
-                UpdateUserBackground();
 
                 IllustSizeIcon.Kind = PackIconModernKind.Image;
                 IllustSize.Text = $"{nprof.total_illusts + nprof.total_manga}";
@@ -969,11 +979,8 @@ namespace PixivWPF.Pages
 
                 IllustTitle.Text = string.Empty;
                 IllustAuthor.Text = nuser.Name;
-                IllustAuthorAvator.Source = (await nuser.GetAvatarUrl().LoadImageFromUrl()).Source;
-                if (IllustAuthorAvator.Source != null)
-                {
-                    IllustAuthorAvatorWait.Hide();
-                }
+                IllustAuthorAvator.Source = Application.Current.GetNullAvatar();
+                IllustAuthorAvatorWait.Show();
 
                 FollowAuthor.Show();
                 UpdateFollowMark(nuser);
@@ -1032,7 +1039,9 @@ namespace PixivWPF.Pages
                 FavoriteNextPage.Hide();
                 FavoriteItemsExpander.IsExpanded = false;
 
-                IllustDetailWait.Hide();
+                ActionRefreshAvator(item);
+                user_backgroundimage_url = nprof.background_image_url is string ? nprof.background_image_url as string : nuser.GetPreviewUrl();
+                UpdateUserBackground();
             }
             catch (Exception ex)
             {
@@ -1630,9 +1639,16 @@ namespace PixivWPF.Pages
                         Commands.OpenDownloaded.Execute(RelativeItems);
                     else if (FavoriteItems.IsKeyboardFocusWithin)
                         Commands.OpenDownloaded.Execute(FavoriteItems);
-                    else if (Contents.IsWork() && SubIllusts.Items.Count > 0)
+                    else if (Contents.IsWork())
                     {
-                        if (SubIllusts.SelectedItems.Count > 0)
+                        if(SubIllusts.Items.Count <= 0)
+                        {
+                            if (Contents.IsDownloaded)
+                                Commands.OpenDownloaded.Execute(Contents);
+                            else
+                                Commands.OpenWorkPreview.Execute(Contents);
+                        }
+                        else if (SubIllusts.SelectedItems.Count > 0)
                         {
                             foreach (var item in SubIllusts.GetSelected())
                             {
@@ -1649,13 +1665,6 @@ namespace PixivWPF.Pages
                             else
                                 Commands.OpenWorkPreview.Execute(SubIllusts.Items[0]);
                         }
-                    }
-                    else if (Contents.IsWork())
-                    {
-                        if (Contents.IsDownloaded)
-                            Commands.OpenDownloaded.Execute(Contents);
-                        else
-                            Commands.OpenWorkPreview.Execute(Contents);
                     }
                     e.Handled = true;
                 }
@@ -2200,7 +2209,7 @@ namespace PixivWPF.Pages
                 else if (sender == IllustDescRefresh)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
-                        RefreshHtmlRender(IllustTagsHtml);
+                        RefreshHtmlRender(IllustDescHtml);
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
                         Application.Current.LoadCustomTemplate();
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))

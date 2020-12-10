@@ -379,16 +379,12 @@ namespace PixivWPF.Common
                 {
                     if (item is DownloadInfo)
                     {
-                        var di = item as DownloadInfo;
-                        var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason:{di.FailReason}";
-                        var delta = di.EndTime - di.StartTime;
-                        var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / 1024.0 / delta.TotalSeconds;
-                        targets.Add($"URL    : {di.Url}");
-                        targets.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
-                        targets.Add($"State  : {di.State}{fail}");
-                        targets.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.Days * 24 + delta.Hours}:{delta.Minutes}:{delta.Seconds} s");
-                        targets.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate:0.00} KB/s");
-                        targets.Add(sep);
+                        var info = (item as DownloadInfo).GetDownloadInfo();
+                        if (info.Count() > 0)
+                        {
+                            targets.AddRange(info);
+                            targets.Add(sep);
+                        }
                     }
                 }
                 targets.Add("");
