@@ -124,20 +124,24 @@ namespace PixivWPF.Pages
                 {
                     await new Action(async () =>
                     {
-                        int h_min = 96;
-                        int h_max = 480;
-
-                        var host = GetHtmlHost(browser);
-                        if (host is System.Windows.Forms.Integration.WindowsFormsHost)
+                        try
                         {
-                            h_min = (int)(host.MinHeight);
-                            h_max = (int)(host.MaxHeight);
+                            int h_min = 96;
+                            int h_max = 480;
+
+                            var host = GetHtmlHost(browser);
+                            if (host is System.Windows.Forms.Integration.WindowsFormsHost)
+                            {
+                                h_min = (int)(host.MinHeight);
+                                h_max = (int)(host.MaxHeight);
+                            }
+                            await Task.Delay(1);
+                            var size = browser.Document.Body.ScrollRectangle.Size;
+                            var offset = browser.Document.Body.OffsetRectangle.Top;
+                            if (offset <= 0) offset = 16;
+                            browser.Height = Math.Min(Math.Max(size.Height, h_min), h_max) + offset * 2;
                         }
-                        await Task.Delay(1);
-                        var size = browser.Document.Body.ScrollRectangle.Size;
-                        var offset = browser.Document.Body.OffsetRectangle.Top;
-                        if (offset <= 0) offset = 16;
-                        browser.Height = Math.Min(Math.Max(size.Height, h_min), h_max) + offset * 2;
+                        catch (Exception) { }
                     }).InvokeAsync();
                 }
             }
@@ -310,20 +314,21 @@ namespace PixivWPF.Pages
 
         private void InitHtmlRender(out System.Windows.Forms.WebBrowser browser)
         {
-            browser = new System.Windows.Forms.WebBrowser()
-            {
-                DocumentText = string.Empty.GetHtmlFromTemplate(),
-                Dock = System.Windows.Forms.DockStyle.Fill,
-                ScriptErrorsSuppressed = true,
-                WebBrowserShortcutsEnabled = false,
-                AllowNavigation = true,
-                AllowWebBrowserDrop = false
-            };
-            browser.Navigate("about:blank");
-            browser.Document.Write(string.Empty);
-
+            browser = null;
             try
             {
+                browser = new System.Windows.Forms.WebBrowser()
+                {
+                    DocumentText = string.Empty.GetHtmlFromTemplate(),
+                    Dock = System.Windows.Forms.DockStyle.Fill,
+                    ScriptErrorsSuppressed = true,
+                    WebBrowserShortcutsEnabled = false,
+                    AllowNavigation = true,
+                    AllowWebBrowserDrop = false
+                };
+                browser.Navigate("about:blank");
+                browser.Document.Write(string.Empty);
+
                 if (browser is System.Windows.Forms.WebBrowser)
                 {
                     browser.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(WebBrowser_DocumentCompleted);
