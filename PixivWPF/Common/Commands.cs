@@ -1428,18 +1428,26 @@ namespace PixivWPF.Common
             Application.Current.SaveTags();
         });
 
-        public static ICommand SaveOpenedWindows { get; } = new DelegateCommand(async () =>
+        private static DateTime lastSaveOpenedWindows = setting.LastOpenedFile.GetFileTime();
+        public static ICommand SaveOpenedWindows { get; } = new DelegateCommand<bool?>(async obj =>
         {
+            var force = obj is bool ? (bool)obj : false;
             await new Action(() =>
             {
                 try
                 {
                     setting = Application.Current.LoadSetting();
-                    IList<string> titles = Application.Current.OpenedWindowTitles();
-                    if (titles.Count > 0)
+                    var now = DateTime.Now;
+                    //if (setting.LastOpenedFile.GetFileTime().DeltaSeconds(now) > setting.LastOpenedFileAutoSaveFrequency)
+                    if (force || now.DeltaSeconds(lastSaveOpenedWindows) > setting.LastOpenedFileAutoSaveFrequency)
                     {
-                        var links = JsonConvert.SerializeObject(titles, Formatting.Indented);
-                        File.WriteAllText(setting.LastOpenedFile, links, new UTF8Encoding(true));
+                        IList<string> titles = Application.Current.OpenedWindowTitles();
+                        if (titles.Count > 0)
+                        {
+                            var links = JsonConvert.SerializeObject(titles, Formatting.Indented);
+                            File.WriteAllText(setting.LastOpenedFile, links, new UTF8Encoding(true));
+                            lastSaveOpenedWindows = now;
+                        }
                     }
                 }
                 catch (Exception) { }

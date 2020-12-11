@@ -391,10 +391,19 @@
                                 </Button.Content>
                             </Button>
                             <mah:ProgressRing Grid.Column="1" x:Name="PreviewWait"
-                                          Width="64" Height="64" Opacity="0.67" 
-                                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                          Visibility="Hidden"
-                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                Width="96" Height="96" Opacity="0.67" 
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                Visibility="Hidden"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <!-- Loading Mark -->
+                            <TextBlock Grid.Column="1" x:Name="PreviewLoadingMark"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Text="&#xEDE4;" FontSize="48" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" Opacity="0.75"
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" >
+                                <TextBlock.Effect>
+                                    <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
                             <Rectangle Grid.Column="0" Grid.ColumnSpan="3" x:Name="PreviewRect" x:Uid="PreviewRect"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent"
                                    MouseLeftButtonDown="PreviewRect_MouseLeftButtonDown"/>
@@ -418,14 +427,24 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvator" 
+                    <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvatar" 
                        Width="64" Height="64" Stretch="Uniform"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    <mah:ProgressRing Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvatorWait"
-                          Width="48" Height="48" Opacity="0.67" 
-                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                          Visibility="Hidden"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <mah:ProgressRing Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvatarWait"
+                        Width="48" Height="48" Opacity="0.67" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" 
+                        Visibility="Hidden"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <!-- Loading Mark -->
+                    <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="AvatarLoadingMark"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Text="&#xEDE4;" FontSize="24" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" Opacity="0.75"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" 
+                        Visibility="Collapsed">
+                        <TextBlock.Effect>
+                            <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
                     <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInfo" x:Uid="btnAuthorInto"
                             Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
                             Background="Transparent" Foreground="Transparent"
@@ -542,13 +561,13 @@
                                         <MenuItem.Icon>
                                             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="4,0,0,0">
                                                 <iconPacks:PackIconModern 
-                                                                          Kind="Heart" Width="22" Height="22" 
-                                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                          Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                                    Kind="Heart" Width="22" Height="22" 
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                                                 <iconPacks:PackIconModern 
-                                                                          Kind="Lock" Width="8" Height="8"
-                                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                          Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                                                    Kind="Lock" Width="8" Height="8"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
                                             </Grid>
                                         </MenuItem.Icon>
                                     </MenuItem>                                        
@@ -595,13 +614,13 @@
                                         <MenuItem.Icon>
                                             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="4,0,0,0">
                                                 <iconPacks:PackIconModern 
-                                                                          Kind="Check" Width="22" Height="22" 
-                                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                          Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                                    Kind="Check" Width="22" Height="22" 
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                                                 <iconPacks:PackIconModern 
-                                                                          Kind="Lock" Width="8" Height="8" Margin="14,12,0,0"
-                                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                          Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                                    Kind="Lock" Width="8" Height="8" Margin="14,12,0,0"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                                             </Grid>
                                         </MenuItem.Icon>
                                     </MenuItem>

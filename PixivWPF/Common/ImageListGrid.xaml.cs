@@ -310,6 +310,12 @@ namespace PixivWPF.Common
             //TileHeight = 128;
         }
 
+        //~ImageListGrid()
+        //{
+        //    PART_ImageTiles.Items.Clear();
+        //    if (ImageList is ObservableCollection<ImageItem>) ImageList.Clear();
+        //}
+
         [Description("Get or Set Wait Ring State")]
         [Category("Common Properties")]
         public bool IsReady

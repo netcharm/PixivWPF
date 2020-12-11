@@ -149,6 +149,9 @@ namespace PixivWPF.Common
         public DateTime EndTime { get; internal set; } = DateTime.Now;
         public DateTime LastModified { get; internal set; }
 
+        public double DownRateCurrent { get; set; } = 0;
+        public double DownRateAverage { get; set; } = 0;
+
         public DownloadInfo()
         {
             setting = Application.Current.LoadSetting();
@@ -266,7 +269,7 @@ namespace PixivWPF.Common
 
         public Tuple<double, double> Progress
         {
-            get { return (Info is DownloadInfo ? Info.Progress : new Tuple<double, double>(0, 0)); }
+            get { return (Info is DownloadInfo ? Info.Progress : new Tuple<double, double>(Received, Length)); }
         }
 
         public long Received
@@ -425,6 +428,11 @@ namespace PixivWPF.Common
                         lastRates.Enqueue(rateC);
                         if (lastRates.Count > lastRatesCount) lastRates.Dequeue();
                         if (rateC > 0 || deltaC >= 1) lastRate = lastRates.Average();
+                        if(Info is DownloadInfo)
+                        {
+                            Info.DownRateCurrent = lastRate;
+                            Info.DownRateAverage = rateA;
+                        }
 
                         var percent = total > 0 ? received / total : 0;
                         PART_DownloadProgress.Value = percent * 100;
@@ -730,8 +738,11 @@ namespace PixivWPF.Common
                 }
                 finally
                 {
-                    if(State != DownloadState.Finished)
+                    if (State != DownloadState.Finished)
+                    {
                         _DownloadBuffer = ms.ToArray();
+                        Received = _DownloadBuffer.Length;
+                    }
                 }
             }
             return (result);

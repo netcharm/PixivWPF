@@ -760,6 +760,7 @@ namespace PixivWPF.Pages
 
                 Preview.Source = Application.Current.GetNullPreview();
                 PreviewWait.Show();
+                PreviewLoadingMark.Show();
 
                 string stat_viewed = "????";
                 string stat_favorited = "????";
@@ -794,8 +795,9 @@ namespace PixivWPF.Pages
                 IllustStatInfo.ToolTip = string.Join("\r", stat_tip).Trim();
 
                 IllustAuthor.Text = item.Illust.User.Name;
-                IllustAuthorAvator.Source = Application.Current.GetNullAvatar();
-                IllustAuthorAvatorWait.Show();
+                IllustAuthorAvatar.Source = Application.Current.GetNullAvatar();
+                IllustAuthorAvatarWait.Show();
+                AvatarLoadingMark.Show();
 
                 IllustTitle.Text = $"{item.Illust.Title}";
                 IllustTitle.ToolTip = IllustTitle.Text.TranslatedTag();
@@ -937,12 +939,14 @@ namespace PixivWPF.Pages
                 if (setting.ShowUserBackgroundImage && string.IsNullOrEmpty(user_backgroundimage_url))
                 {
                     PreviewWait.Show();
+                    PreviewLoadingMark.Show();
                     PreviewViewer.Show();
                     Preview.Source = (await user_backgroundimage_url.LoadImageFromUrl()).Source;
                 }
                 else
                 {
                     PreviewWait.Hide();
+                    PreviewLoadingMark.Hide();
                     PreviewViewer.Hide();
                     Preview.Source = null;
                 }
@@ -974,7 +978,6 @@ namespace PixivWPF.Pages
                     await user.RefreshUser();
                 }
 
-
                 IllustSizeIcon.Kind = PackIconModernKind.Image;
                 IllustSize.Text = $"{nprof.total_illusts + nprof.total_manga}";
                 IllustViewedIcon.Kind = PackIconModernKind.Check;
@@ -984,8 +987,9 @@ namespace PixivWPF.Pages
 
                 IllustTitle.Text = string.Empty;
                 IllustAuthor.Text = nuser.Name;
-                IllustAuthorAvator.Source = Application.Current.GetNullAvatar();
-                IllustAuthorAvatorWait.Show();
+                IllustAuthorAvatar.Source = Application.Current.GetNullAvatar();
+                IllustAuthorAvatarWait.Show();
+                AvatarLoadingMark.Show();
 
                 FollowAuthor.Show();
                 UpdateFollowMark(nuser);
@@ -1567,6 +1571,7 @@ namespace PixivWPF.Pages
                 SubIllusts.Items.Clear();
                 RelativeItems.Items.Clear();
                 FavoriteItems.Items.Clear();
+                Preview.Source = null;
             }
             catch (Exception) { }
         }
@@ -2535,6 +2540,8 @@ namespace PixivWPF.Pages
                 setting = Application.Current.LoadSetting();
 
                 PreviewWait.Show();
+                PreviewLoadingMark.Show();
+
                 await new Action(async () =>
                 {
                     try
@@ -2551,21 +2558,19 @@ namespace PixivWPF.Pages
 
                         PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index);
                         var img = await PreviewImageUrl.LoadImageFromUrl();
-                        if (item.IsSameIllust(Contents))
+                        if (setting.SmartPreview &&
+                            (img.Source == null ||
+                             img.Source.Width < setting.PreviewUsingLargeMinWidth ||
+                             img.Source.Height < setting.PreviewUsingLargeMinHeight))
                         {
-                            if (setting.SmartPreview &&
-                                (img.Source == null ||
-                                 img.Source.Width < setting.PreviewUsingLargeMinWidth ||
-                                 img.Source.Height < setting.PreviewUsingLargeMinHeight))
-                            {
-                                PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
-                                var large = await PreviewImageUrl.LoadImageFromUrl();
-                                if (large.Source != null) img = large;
-                            }
-                            if (img.Source != null && item.IsSameIllust(Contents))
-                            {
-                                if (item.Index == Contents.Index) Preview.Source = img.Source;
-                            }
+                            PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
+                            var large = await PreviewImageUrl.LoadImageFromUrl();
+                            if (large.Source != null) img = large;
+                        }
+                        if (img.Source != null && item.IsSameIllust(Contents))
+                        {
+                            Preview.Source = img.Source;
+                            PreviewLoadingMark.Hide();
                         }
                     }
                     catch (Exception) { }
@@ -2586,6 +2591,9 @@ namespace PixivWPF.Pages
         {
             if (item is ImageItem)
             {
+                IllustAuthorAvatarWait.Show();
+                AvatarLoadingMark.Show();
+
                 await new Action(async () =>
                 {
                     try
@@ -2594,9 +2602,9 @@ namespace PixivWPF.Pages
                         var img =  await item.User.GetAvatarUrl().LoadImageFromUrl();
                         if (c_item.IsSameIllust(Contents))
                         {
-                            IllustAuthorAvator.Source = img.Source;
-                            if (IllustAuthorAvator.Source != null) IllustAuthorAvatorWait.Hide();
-                            else IllustAuthorAvatorWait.Disable();
+                            IllustAuthorAvatar.Source = img.Source;
+                            if (IllustAuthorAvatar.Source != null) IllustAuthorAvatarWait.Hide();
+                            else IllustAuthorAvatarWait.Disable();
                         }
                     }
                     catch (Exception) { }

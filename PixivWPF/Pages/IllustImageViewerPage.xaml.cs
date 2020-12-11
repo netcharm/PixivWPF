@@ -85,6 +85,9 @@ namespace PixivWPF.Pages
             CustomImageSource img = new CustomImageSource();
             try
             {
+                PreviewWait.Show();
+                PreviewLoadingMark.Show();
+
                 var setting = Application.Current.LoadSetting();
 
                 if (IsOriginal)
@@ -109,13 +112,17 @@ namespace PixivWPF.Pages
 
                 if (Preview.Source != null)
                 {
+                    PreviewLoadingMark.Hide();
                     var aspect = Preview.Source.AspectRatio();
                     PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
                     Page_SizeChanged(null, null);
-                    PreviewWait.Hide();
                 }
             }
             catch (Exception) { }
+            finally
+            {
+                PreviewWait.Hide();
+            }
             return (img);
         }
 
@@ -123,7 +130,6 @@ namespace PixivWPF.Pages
         {
             try
             {
-                PreviewWait.Show();
                 if (item.IsWork())
                 {
                     Contents = item;
@@ -172,7 +178,6 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                PreviewWait.Hide();
                 Preview.Focus();
             }
         }
@@ -208,6 +213,11 @@ namespace PixivWPF.Pages
 
                 if (Contents is ImageItem) UpdateDetail(Contents);
             }
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            Preview.Source = null;
         }
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -250,7 +260,10 @@ namespace PixivWPF.Pages
             }
             else if (e.IsKey(Key.O, ModifierKeys.Control, false))
             {
-                ActionIllustInfo_Click(ActionOpenCachedWith, e);
+                if (Contents.IsDownloaded)
+                    Commands.OpenDownloaded.Execute(Contents);
+                else
+                    ActionIllustInfo_Click(ActionOpenCachedWith, e);
                 e.Handled = true;
                 return;
             }
@@ -443,7 +456,6 @@ namespace PixivWPF.Pages
             {
                 try
                 {
-                    PreviewWait.Show();
                     if (sender == ActionViewOriginal)
                     {
                         btnViewOriginalPage.IsChecked = !btnViewOriginalPage.IsChecked.Value;
@@ -456,5 +468,6 @@ namespace PixivWPF.Pages
                 catch (Exception) { }
             }
         }
+
     }
 }

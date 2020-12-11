@@ -11,7 +11,7 @@
       Title="IllustImageViewerPage" 
       PreviewKeyUp="Page_PreviewKeyUp" 
       SizeChanged="Page_SizeChanged"
-      Loaded="Page_Loaded">
+      Loaded="Page_Loaded" Unloaded="Page_Unloaded">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -29,7 +29,16 @@
         <ScrollViewer Grid.Row="0" x:Name="PreviewScroll" 
                       HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Grid>
-                <Viewbox x:Name="PreviewBox"
+                <!-- Loading Mark -->
+                <TextBlock Grid.Row="0" x:Name="PreviewLoadingMark"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Text="&#xEDE4;" FontSize="64" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" Opacity="0.75"
+                    Foreground="{DynamicResource MahApps.Brushes.Accent}" >
+                    <TextBlock.Effect>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                <Viewbox Grid.Row="0" x:Name="PreviewBox"
                      Width="Auto" Height="Auto"
                      StretchDirection="DownOnly" 
                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch">

@@ -1299,7 +1299,7 @@ namespace PixivWPF.Common
                 }
             }).InvokeAsync();
 
-            //Commands.SaveOpenedWindows.Execute(null);
+            Commands.SaveOpenedWindows.Execute(null);
         }
         #endregion
 
@@ -3753,27 +3753,30 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(local.Folder)) continue;
 
                 var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
-                folder.UpdateDownloadedListCacheAsync(local.Cached);
+                if (Directory.Exists(folder))
+                {
+                    folder.UpdateDownloadedListCacheAsync(local.Cached);
 
-                var f = Path.Combine(folder, file);
-                if (local.Cached)
-                {
-                    if (f.DownoadedCacheExistsAsync())
+                    var f = Path.Combine(folder, file);
+                    if (local.Cached)
                     {
-                        filepath = f;
-                        f.Touch(url);
-                        result = true;
-                        break;
+                        if (f.DownoadedCacheExistsAsync())
+                        {
+                            filepath = f;
+                            f.Touch(url);
+                            result = true;
+                            break;
+                        }
                     }
-                }
-                else
-                {
-                    if (File.Exists(f))
+                    else
                     {
-                        filepath = f;
-                        f.Touch(url);
-                        result = true;
-                        break;
+                        if (File.Exists(f))
+                        {
+                            filepath = f;
+                            f.Touch(url);
+                            result = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -3886,7 +3889,6 @@ namespace PixivWPF.Common
         {
             bool result = false;
             var file = url.GetImageName(true);
-            int[] range = Enumerable.Range(0, 250).ToArray();
 
             filepath = string.Empty;
             foreach (var local in setting.LocalStorage)
@@ -3894,54 +3896,40 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(local.Folder)) continue;
 
                 var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
-                folder.UpdateDownloadedListCacheAsync(local.Cached);
+                if (Directory.Exists(folder))
+                {
+                    folder.UpdateDownloadedListCacheAsync(local.Cached);
 
-                var f = Path.Combine(folder, file);
-                if (local.Cached)
-                {
-                    if (f.DownoadedCacheExistsAsync())
-                    {
-                        filepath = f;
-                        f.Touch(url);
-                        result = true;
-                        break;
-                    }
-                }
-                else
-                {
-                    if (File.Exists(f))
-                    {
-                        filepath = f;
-                        f.Touch(url);
-                        result = true;
-                        break;
-                    }
-                }
-
-                var fn = Path.GetFileNameWithoutExtension(file);
-                var fe = Path.GetExtension(file);
-                foreach (var fc in range)
-                {
-                    var fp = Path.Combine(folder, $"{fn}_{fc}{fe}");
+                    var f = Path.Combine(folder, file);
                     if (local.Cached)
                     {
-                        if (fp.DownoadedCacheExistsAsync())
+                        if (f.DownoadedCacheExistsAsync())
                         {
-                            filepath = fp;
-                            fp.Touch(url);
+                            filepath = f;
+                            f.Touch(url);
                             result = true;
                             break;
                         }
                     }
                     else
                     {
-                        if (File.Exists(fp))
+                        if (File.Exists(f))
                         {
-                            filepath = fp;
-                            fp.Touch(url);
+                            filepath = f;
+                            f.Touch(url);
                             result = true;
                             break;
                         }
+                    }
+
+                    var fn = Path.GetFileNameWithoutExtension(file);
+                    var files = Directory.GetFiles(folder, $"{fn}_*.*");
+                    if (files.Length > 0)
+                    {
+                        foreach (var fc in files)
+                            fc.Touch(url);
+                        filepath = files.First();
+                        result = true;
                     }
                 }
                 if (result) break;
@@ -4141,6 +4129,7 @@ namespace PixivWPF.Common
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
+                if (tokens == null) tokens = await ShowLogin();
                 using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
                 {
                     if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
@@ -4201,8 +4190,8 @@ namespace PixivWPF.Common
                     if (unc > 0) file = file.Substring(0, unc - 1);
                     else if (unc == 0) file = file.Substring(8);
 
-                    if (string.IsNullOrEmpty(await url.DownloadImage(file, overwrite)))
-                        result = !string.IsNullOrEmpty(await url.DownloadImage(file, tokens, overwrite));
+                    //if (string.IsNullOrEmpty(await url.DownloadImage(file, overwrite)))
+                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, tokens, overwrite));
                 }
                 catch (Exception ex)
                 {
@@ -4681,7 +4670,7 @@ namespace PixivWPF.Common
 
             try
             {
-                if (long.Parse(item.ID) == long.Parse(item_now.ID)) result = true;
+                if (long.Parse(item.ID) == long.Parse(item_now.ID) && item.Index == item_now.Index) result = true;
             }
             catch (Exception) { }
 

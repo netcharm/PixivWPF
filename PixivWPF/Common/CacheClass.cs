@@ -80,21 +80,6 @@ namespace PixivWPF.Common
 
         public async Task<CustomImageSource> GetImage(string url, bool login = false)
         {
-            if (login)
-            {
-                var tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return (new CustomImageSource(null, string.Empty));
-
-                return (await GetImageLogin(url, tokens));
-            }
-            else
-            {
-                return (await GetImageDirect(url));
-            }
-        }
-
-        public async Task<CustomImageSource> GetImageDirect(string url)
-        {
             CustomImageSource result = new CustomImageSource();
             var file = GetCacheFile(url);
             var fp = string.Empty;
@@ -108,58 +93,15 @@ namespace PixivWPF.Common
             else
             {
                 file = GetImagePath(url);
-                var success = await url.SaveImage(file, false);
-                if (success)
-                {
-                    result = await file.LoadImageFromFile();
-                    _caches[url] = file.Replace(_CacheFolder, "").TrimStart(trimchars);
-                }
+                var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, false) : await url.SaveImage(file, false);
+                if (success) result = await file.LoadImageFromFile();
             }
 
             if (!(result.Source is ImageSource) && (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp)))
             {
                 result = await fp.LoadImageFromFile();
-                if (result.Source is ImageSource) _caches[url] = fp.TrimStart(trimchars);
             }
 
-            if (result.Source is ImageSource && !string.IsNullOrEmpty(id))
-            {
-                loadedImageHashTable[result.GetHashCode()] = id;
-                loadedImageFileTable[result.GetHashCode()] = fn;
-            }
-            return (result);
-        }
-
-        public async Task<CustomImageSource> GetImageLogin(string url, Pixeez.Tokens tokens)
-        {
-            CustomImageSource result = new CustomImageSource();
-            var file = GetCacheFile(url);
-            var fp = string.Empty;
-            var id = url.GetIllustId();
-            var fn = url.GetImageId();
-
-            if (!string.IsNullOrEmpty(file))
-            {
-                result = await file.LoadImageFromFile();
-            }
-            else if (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp))
-            {
-                result = await fp.LoadImageFromFile();
-                if (result.Source is ImageSource) _caches[url] = fp.TrimStart(trimchars);
-            }
-            else
-            {
-                tokens = await CommonHelper.ShowLogin();
-                if (tokens == null) return (result);
-
-                file = GetImagePath(url);
-                var success = await url.SaveImage(tokens, file, false);
-                if (success)
-                {
-                    result = await file.LoadImageFromFile();
-                    _caches[url] = file.Replace(_CacheFolder, "").TrimStart(trimchars);
-                }
-            }
             if (result.Source is ImageSource && !string.IsNullOrEmpty(id))
             {
                 loadedImageHashTable[result.GetHashCode()] = id;

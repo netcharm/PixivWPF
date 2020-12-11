@@ -158,6 +158,17 @@ namespace PixivWPF.Common
             set { last_opened = Path.GetFileName(value); }
         }
 
+        private int last_opened_autosave_frequency = 30;
+        public int LastOpenedFileAutoSaveFrequency
+        {
+            get { return (Cache is Setting ? Cache.last_opened_autosave_frequency : last_opened_autosave_frequency); }
+            set
+            {
+                last_opened_autosave_frequency = value;
+                if (Cache is Setting) Cache.last_opened_autosave_frequency = last_opened_autosave_frequency;
+            }
+        }
+
         private string custom_template_file = "contents-template.html";
         public string ContentsTemplateFile
         {
@@ -205,7 +216,7 @@ namespace PixivWPF.Common
 
                         if (full)
                         {
-                            Commands.SaveOpenedWindows.Execute(null);
+                            Commands.SaveOpenedWindows.Execute(true);
                         }
                     }
                 }

@@ -27,7 +27,7 @@ namespace PixivWPF.Common
         public void RestoreWindowState()
         {
             if (LastWindowStates is Queue<WindowState> && LastWindowStates.Count > 0)
-                LastWindowStates.Dequeue();
+                WindowState = LastWindowStates.Dequeue();
         }
 
         public void SetDropBoxState(bool state)
@@ -158,7 +158,7 @@ namespace PixivWPF.Common
 
         private void MetroWindow_StateChanged(object sender, EventArgs e)
         {
-            LastWindowStates.Enqueue(this.WindowState);
+            LastWindowStates.Enqueue(WindowState);
             if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
         }
 
