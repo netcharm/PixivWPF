@@ -94,6 +94,8 @@ namespace PixivWPF.Common
                 CommandToggleDropbox.IsChecked = true;
 
             this.AdjustWindowPos();
+
+            Commands.SaveOpenedWindows.Execute(null);
         }
 
         private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)

@@ -1299,7 +1299,7 @@ namespace PixivWPF.Common
                 }
             }).InvokeAsync();
 
-            Commands.SaveOpenedWindows.Execute(null);
+            //Commands.SaveOpenedWindows.Execute(null);
         }
         #endregion
 
