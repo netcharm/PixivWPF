@@ -1247,23 +1247,31 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Toast
-        private static System.Timers.Timer autoCloseTimer = null;
+        #region Timed Tasks
+        private static System.Timers.Timer autoTaskTimer = null;
         private static Dictionary<Window, long> toast_list = new Dictionary<Window, long>();
+
+        private static void InitTaskTimer()
+        {
+            try
+            {
+                var setting = LoadSetting(Application.Current);
+                if (autoTaskTimer == null)
+                {
+                    autoTaskTimer = new System.Timers.Timer(setting.ToastShowTimes * 1000) { AutoReset = true, Enabled = false };
+                    autoTaskTimer.Elapsed += Timer_Elapsed;
+                    autoTaskTimer.Enabled = true;
+                }
+            }
+            catch (Exception) { }
+        }
+
         public static void AddToast(this Application app, Window win)
         {
-            var setting = LoadSetting(app);
+            InitTaskTimer();
+
             var now = Environment.TickCount;
-
             toast_list.Add(win, now);
-
-            if (autoCloseTimer == null)
-            {
-                autoCloseTimer = new System.Timers.Timer(setting.ToastShowTimes * 1000) { AutoReset = true, Enabled = false };
-                autoCloseTimer.Elapsed += Timer_Elapsed;
-                autoCloseTimer.Enabled = true;
-            }
-
             Timer_Elapsed(app, null);
         }
 
@@ -1290,6 +1298,8 @@ namespace PixivWPF.Common
                     }
                 }
             }).InvokeAsync();
+
+            Commands.SaveOpenedWindows.Execute(null);
         }
         #endregion
 
@@ -1523,10 +1533,10 @@ namespace PixivWPF.Common
 
         public static void HistoryAdd(this Application app, dynamic item)
         {
-            if(item is Pixeez.Objects.Work) app.HistoryAdd(item as Pixeez.Objects.Work);
+            if (item is Pixeez.Objects.Work) app.HistoryAdd(item as Pixeez.Objects.Work);
             else if (item is Pixeez.Objects.User) app.HistoryAdd(item as Pixeez.Objects.User);
             else if (item is Pixeez.Objects.UserBase) app.HistoryAdd(item as Pixeez.Objects.UserBase);
-            else if(item is ImageItem) app.HistoryAdd(item as ImageItem);
+            else if (item is ImageItem) app.HistoryAdd(item as ImageItem);
         }
 
         public static void HistoryUpdate(this Application app, ObservableCollection<ImageItem> source = null)
@@ -1935,7 +1945,7 @@ namespace PixivWPF.Common
             catch (Exception) { }
             return (result);
         }
-        
+
         public static bool DownloadUsingToken(this Application app)
         {
             var setting = Application.Current.LoadSetting();
@@ -1949,7 +1959,7 @@ namespace PixivWPF.Common
             string result = string.Empty;
             try
             {
-                if (browser is System.Windows.Forms.WebBrowser && 
+                if (browser is System.Windows.Forms.WebBrowser &&
                     browser.Document is System.Windows.Forms.HtmlDocument &&
                     browser.Document.DomDocument is mshtml.IHTMLDocument2)
                 {
@@ -2628,13 +2638,13 @@ namespace PixivWPF.Common
                     else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
 
                     var pattern = $@"/{tag}/";
-                    if(TagsT2S.ContainsKey(pattern))
+                    if (TagsT2S.ContainsKey(pattern))
                         result = Regex.Replace(result, tag, TagsT2S[pattern], RegexOptions.IgnoreCase);
                 }
 
-                if(TagsWildecardT2S is Dictionary<string, string>)
+                if (TagsWildecardT2S is Dictionary<string, string>)
                 {
-                    foreach(var kv in TagsWildecardT2S)
+                    foreach (var kv in TagsWildecardT2S)
                     {
                         var k = kv.Key;
                         var v = kv.Value;
@@ -3016,7 +3026,7 @@ namespace PixivWPF.Common
 
             return (result);
         }
-        
+
         public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false)
         {
             bool result = false;
@@ -3060,7 +3070,7 @@ namespace PixivWPF.Common
                         var IsImage = ext_imgs_more.Contains(ext) || ext_imgs.Contains(ext) ? true : false;
                         if (alt_viewer && IsImage)
                         {
-                            if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) || 
+                            if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
                                 !setting.ShellImageViewerCmd.ToLower().Contains(setting.ShellImageViewer.ToLower()))
                                 setting.ShellImageViewerCmd = setting.ShellImageViewer;
                             if (!File.Exists(setting.ShellImageViewerCmd))
@@ -3070,7 +3080,7 @@ namespace PixivWPF.Common
                             }
                             var args = string.IsNullOrEmpty(setting.ShellImageViewerParams) ? $"{setting.ShellImageViewerParams} {FileName}" : FileName;
                             if (string.IsNullOrEmpty(setting.ShellImageViewerCmd))
-                                Process.Start(FileName); 
+                                Process.Start(FileName);
                             else
                                 Process.Start(setting.ShellImageViewerCmd, args);
                         }
@@ -5665,7 +5675,7 @@ namespace PixivWPF.Common
 
         public static Pixeez.Objects.Work FindIllust(this Pixeez.Objects.Work work)
         {
-            return(FindIllust(work));
+            return (FindIllust(work));
         }
 
         public static Pixeez.Objects.UserBase FindUser(this long id)
@@ -5802,7 +5812,7 @@ namespace PixivWPF.Common
         {
             string result = string.Empty;
 
-            if(obj is UIElement)
+            if (obj is UIElement)
             {
                 result = (obj as UIElement).Uid;
             }
@@ -5935,7 +5945,7 @@ namespace PixivWPF.Common
 
         public static void Hide(this UIElement element, bool parent = false)
         {
-            if(element is UIElement) element.Show(false, parent);
+            if (element is UIElement) element.Show(false, parent);
         }
 
         public static void Hide(this object element, bool parent = false)
@@ -6333,7 +6343,7 @@ namespace PixivWPF.Common
                     if (window.Content is TilesPage)
                         result = window.Content;
                 }
-                else if(window is ContentWindow)
+                else if (window is ContentWindow)
                 {
                     if (window.Content is Page)
                         result = window.Content;
@@ -6347,7 +6357,7 @@ namespace PixivWPF.Common
         #region Dialog/MessageBox routines
         public static string ChangeSaveTarget(this string file)
         {
-            return(ChangeSaveFolder(file));
+            return (ChangeSaveFolder(file));
         }
 
         public static string ChangeSaveFolder(string file = "")
@@ -6418,7 +6428,7 @@ namespace PixivWPF.Common
             _MessageDialogList[title] = content;
             var ret = MessageBox.Show(content, title, MessageBoxButton.OKCancel, image);
             _MessageDialogList.Remove(title);
-            return (ret == MessageBoxResult.OK || ret == MessageBoxResult.Yes ? true: false);
+            return (ret == MessageBoxResult.OK || ret == MessageBoxResult.Yes ? true : false);
         }
 
         public static async Task ShowMessageBoxAsync(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)

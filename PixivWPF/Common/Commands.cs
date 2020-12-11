@@ -1164,24 +1164,11 @@ namespace PixivWPF.Common
                         }
                         else if (Keyboard.Modifiers == ModifierKeys.Shift)
                         {
-                            setting = Application.Current.LoadSetting();
-                            IList<string> titles = Application.Current.OpenedWindowTitles();
-                            if (titles.Count > 0)
-                            {
-                                var links = JsonConvert.SerializeObject(titles, Formatting.Indented);
-                                File.WriteAllText(setting.LastOpenedFile, links, new UTF8Encoding(true));
-                            }
+                            SaveOpenedWindows.Execute(null);
                         }
                         else if (Keyboard.Modifiers == ModifierKeys.Alt)
                         {
-                            setting = Application.Current.LoadSetting();
-                            var opened = File.ReadAllText(setting.LastOpenedFile);
-                            IList<string> titles = JsonConvert.DeserializeObject<IList<string>>(opened);
-                            if (titles.Count > 0)
-                            {
-                                var links = string.Join(Environment.NewLine, titles).ParseLinks();
-                                OpenSearch.Execute(links);
-                            }
+                            LoadLastOpenedWindows.Execute(null);
                         }
                         else if (Keyboard.Modifiers == ModifierKeys.None)
                             CommonHelper.SetDropBoxState(true.ShowDropBox());
@@ -1439,6 +1426,43 @@ namespace PixivWPF.Common
         public static ICommand SaveTags { get; } = new DelegateCommand(() =>
         {
             Application.Current.SaveTags();
+        });
+
+        public static ICommand SaveOpenedWindows { get; } = new DelegateCommand(async () =>
+        {
+            await new Action(() =>
+            {
+                try
+                {
+                    setting = Application.Current.LoadSetting();
+                    IList<string> titles = Application.Current.OpenedWindowTitles();
+                    if (titles.Count > 0)
+                    {
+                        var links = JsonConvert.SerializeObject(titles, Formatting.Indented);
+                        File.WriteAllText(setting.LastOpenedFile, links, new UTF8Encoding(true));
+                    }
+                }
+                catch (Exception) { }
+            }).InvokeAsync();
+        });
+
+        public static ICommand LoadLastOpenedWindows { get; } = new DelegateCommand(async () =>
+        {
+            await new Action(() =>
+            {
+                try
+                {
+                    setting = Application.Current.LoadSetting();
+                    var opened = File.ReadAllText(setting.LastOpenedFile);
+                    IList<string> titles = JsonConvert.DeserializeObject<IList<string>>(opened);
+                    if (titles.Count > 0)
+                    {
+                        var links = string.Join(Environment.NewLine, titles).ParseLinks();
+                        OpenSearch.Execute(links);
+                    }
+                }
+                catch (Exception) { }
+            }).InvokeAsync();
         });
 
         public static ICommand Speech { get; } = new DelegateCommand<dynamic>(obj =>

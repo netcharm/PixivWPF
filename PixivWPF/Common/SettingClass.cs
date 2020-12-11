@@ -205,9 +205,7 @@ namespace PixivWPF.Common
 
                         if (full)
                         {
-                            IList<string> titles = Application.Current.OpenedWindowTitles();
-                            var links = JsonConvert.SerializeObject(titles, Formatting.Indented);
-                            File.WriteAllText(Cache.LastOpenedFile, links, new UTF8Encoding(true));
+                            Commands.SaveOpenedWindows.Execute(null);
                         }
                     }
                 }
