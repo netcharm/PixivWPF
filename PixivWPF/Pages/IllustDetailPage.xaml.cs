@@ -656,12 +656,12 @@ namespace PixivWPF.Pages
                             FavoriteItems.UpdateTilesImage();
                             if (Contents.IsWork())
                             {
-                                ActionRefreshAvator(Contents);
+                                ActionRefreshAvatar(Contents);
                                 ActionRefreshPreview_Click(this, new RoutedEventArgs());
                             }
                             else if (Contents.IsUser())
                             {
-                                ActionRefreshAvator(Contents);
+                                ActionRefreshAvatar(Contents);
                                 UpdateUserBackground();
                             }
                         }
@@ -911,7 +911,7 @@ namespace PixivWPF.Pages
                 CommentsExpander.Hide();
 #endif
                 await Task.Delay(1);
-                ActionRefreshAvator(item);
+                ActionRefreshAvatar(item);
                 if (!SubIllustsExpander.IsExpanded)
                     ActionRefreshPreview_Click(this, new RoutedEventArgs());
             }
@@ -1048,7 +1048,7 @@ namespace PixivWPF.Pages
                 FavoriteNextPage.Hide();
                 FavoriteItemsExpander.IsExpanded = false;
 
-                ActionRefreshAvator(item);
+                ActionRefreshAvatar(item);
                 user_backgroundimage_url = nprof.background_image_url is string ? nprof.background_image_url as string : nuser.GetPreviewUrl();
                 UpdateUserBackground();
             }
@@ -2465,7 +2465,7 @@ namespace PixivWPF.Pages
                     if (Keyboard.Modifiers == ModifierKeys.Control)
                         Commands.ShellSendToOtherInstance.Execute(Contents.User);
                     else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        ActionRefreshAvator(Contents);
+                        ActionRefreshAvatar(Contents);
                     else if (Contents.IsWork())
                         Commands.OpenUser.Execute(Contents.User);
                 }
@@ -2587,7 +2587,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ActionRefreshAvator(ImageItem item)
+        private async void ActionRefreshAvatar(ImageItem item)
         {
             if (item is ImageItem)
             {
@@ -2602,9 +2602,14 @@ namespace PixivWPF.Pages
                         var img =  await item.User.GetAvatarUrl().LoadImageFromUrl();
                         if (c_item.IsSameIllust(Contents))
                         {
-                            IllustAuthorAvatar.Source = img.Source;
-                            if (IllustAuthorAvatar.Source != null) IllustAuthorAvatarWait.Hide();
-                            else IllustAuthorAvatarWait.Disable();
+                            if (img.Source != null)
+                            {
+                                IllustAuthorAvatar.Source = img.Source;
+                                IllustAuthorAvatarWait.Hide();
+                                AvatarLoadingMark.Hide();
+                            }
+                            else
+                                IllustAuthorAvatarWait.Disable();
                         }
                     }
                     catch (Exception) { }
