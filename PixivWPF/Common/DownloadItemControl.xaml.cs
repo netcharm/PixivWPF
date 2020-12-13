@@ -19,6 +19,16 @@ namespace PixivWPF.Common
 {
     public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Remove, Unknown }
 
+    public class ProgressInfo
+    {
+        ulong Received { get; set; } = 0;
+        ulong Length { get; set; } = 0;
+        ulong CurrentRate { get; set; } = 0;
+        ulong AverageRate { get; set; } = 0;
+        ulong MaxRate { get; set; } = 0;
+        ulong MinRate { get; set; } = 0;
+    }
+
     public class DownloadInfo : INotifyPropertyChanged
     {
         private Setting setting = Application.Current.LoadSetting();
@@ -74,6 +84,11 @@ namespace PixivWPF.Common
         public string FileName { get; set; } = string.Empty;
         public string FolderName { get { return string.IsNullOrEmpty(FileName) ? string.Empty : Path.GetDirectoryName(FileName); } }
         public DateTime FileTime { get; set; } = DateTime.Now;
+
+        [DefaultValue(0)]
+        public long Received { get; set; } = 0;
+        [DefaultValue(0)]
+        public long Length { get; set; } = 0;
         public double ProgressPercent { get { return Length > 0 ? Received / Length * 100 : 0; } }
         public Tuple<double, double> Progress
         {
@@ -85,10 +100,6 @@ namespace PixivWPF.Common
                 NotifyPropertyChanged("ProgressChanged");
             }
         }
-        [DefaultValue(0)]
-        public long Received { get; set; } = 0;
-        [DefaultValue(0)]
-        public long Length { get; set; } = 0;
         [DefaultValue(true)]
         public bool Overwrite { get; set; } = true;
 

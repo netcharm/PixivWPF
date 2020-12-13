@@ -153,10 +153,10 @@ namespace PixivWPF.Pages
             return (id);
         }
 
-        protected internal async void UpdateTilesThumb()
+        protected internal async void UpdateTilesThumb(bool overwrite = false)
         {
             this.DoEvents();
-            lastTask = await ListImageTiles.Items.UpdateTilesThumb(lastTask, cancelTokenSource, 5);
+            lastTask = await ListImageTiles.Items.UpdateTilesThumb(lastTask, overwrite, cancelTokenSource, 5);
         }
 
         public void UpdateTiles()

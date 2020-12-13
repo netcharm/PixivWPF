@@ -8,23 +8,16 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/Generic.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.Buttons.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.FlatButton.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Clean/WindowButtons.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Clean/WindowButtonCommands.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Clean/WindowCommands.xaml"/>
-
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/Thumb.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/MetroWindow.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/Badged.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Themes/DropDownButton.xaml"/>
+                
                 <!-- Accent and AppTheme setting -->
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml"/>
-                
-                <ResourceDictionary Source="/WPFNotification;component/Assets/NotificationUI.xaml"/>
 
+                <!-- NotificationUI -->
+                <ResourceDictionary Source="/WPFNotification;component/Assets/NotificationUI.xaml"/>
+                <!-- NotificationUI -> ToastUI -->
                 <ResourceDictionary Source="pack://application:,,,/Common/ToastUI.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <ScaleTransform x:Key="FontStretchSemiCondensed" ScaleX="0.75" />

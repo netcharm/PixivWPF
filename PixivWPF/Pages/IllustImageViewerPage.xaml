@@ -29,15 +29,6 @@
         <ScrollViewer Grid.Row="0" x:Name="PreviewScroll" 
                       HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Grid>
-                <!-- Loading Mark -->
-                <TextBlock Grid.Row="0" x:Name="PreviewLoadingMark"
-                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Text="&#xEDE4;" FontSize="64" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" Opacity="0.75"
-                    Foreground="{DynamicResource MahApps.Brushes.Accent}" >
-                    <TextBlock.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
-                    </TextBlock.Effect>
-                </TextBlock>
                 <Viewbox Grid.Row="0" x:Name="PreviewBox"
                      Width="Auto" Height="Auto"
                      StretchDirection="DownOnly" 
@@ -55,7 +46,16 @@
                           Foreground="{DynamicResource MahApps.Brushes.Accent}"
                           Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
+        <!-- Loading Mark -->
+        <TextBlock Grid.Row="0" x:Name="PreviewLoadingMark"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding Path=Visibility, ElementName=PreviewWait, Mode=OneWay}"
+                    Text="&#xEDE4;" FontSize="64" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" Opacity="0.75"
+                    Foreground="{DynamicResource MahApps.Brushes.Accent}" >
+            <TextBlock.Effect>
+                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
+            </TextBlock.Effect>
+        </TextBlock>
         <!-- Preview Context Menu Container -->
         <Rectangle Grid.Row="0" 
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 

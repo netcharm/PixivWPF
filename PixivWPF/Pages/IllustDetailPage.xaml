@@ -391,22 +391,22 @@
                                 </Button.Content>
                             </Button>
                             <mah:ProgressRing Grid.Column="1" x:Name="PreviewWait"
-                                Width="96" Height="96" Opacity="0.67" 
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                Visibility="Hidden"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                Width="96" Height="96" Opacity="0.75" Visibility="Collapsed"                                              
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <!-- Loading Mark -->
                             <TextBlock Grid.Column="1" x:Name="PreviewLoadingMark"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Text="&#xEDE4;" FontSize="48" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" Opacity="0.75"
+                                HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.75" 
+                                Visibility="{Binding Path=Visibility, ElementName=PreviewWait, Mode=OneWay}"
+                                Text="&#xEDE4;" FontSize="48" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}" >
                                 <TextBlock.Effect>
                                     <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
                                 </TextBlock.Effect>
                             </TextBlock>
                             <Rectangle Grid.Column="0" Grid.ColumnSpan="3" x:Name="PreviewRect" x:Uid="PreviewRect"
-                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent"
-                                   MouseLeftButtonDown="PreviewRect_MouseLeftButtonDown"/>
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent"
+                                MouseLeftButtonDown="PreviewRect_MouseLeftButtonDown"/>
                         </Grid>
                     </ContentControl>
                     <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge" 
@@ -431,21 +431,20 @@
                        Width="64" Height="64" Stretch="Uniform"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <mah:ProgressRing Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvatarWait"
-                        Width="48" Height="48" Opacity="0.67" 
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" 
-                        Visibility="Hidden"
-                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        Width="48" Height="48" Opacity="0.67" Visibility="Collapsed"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                     <!-- Loading Mark -->
                     <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="AvatarLoadingMark"
                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Visibility="{Binding Path=Visibility, ElementName=IllustAuthorAvatarWait, Mode=OneWay}"
                         Text="&#xEDE4;" FontSize="24" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" Opacity="0.75"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" 
-                        Visibility="Collapsed">
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}">
                         <TextBlock.Effect>
                             <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
                         </TextBlock.Effect>
                     </TextBlock>
-                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInfo" x:Uid="btnAuthorInto"
+                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInfo" x:Uid="btnAuthorInfo"
                             Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
                             Background="Transparent" Foreground="Transparent"
                             Click="ActionIllustAuthourInfo_Click"/>
@@ -541,7 +540,7 @@
                         <Button x:Name="BookmarkIllust" x:Uid="BookmarkIllust" Click="ActionIllust_Click"
                                 ToolTip="Bookmark Illust"
                                 ContextMenuOpening="IllustActions_ContextMenuOpening"
-                                Visibility="Hidden" Width="64" Height="64"
+                                Visibility="Collapsed" Width="64" Height="64"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Tag="{x:Static iconPacks:PackIconModernKind.HeartOutline}"
@@ -594,7 +593,7 @@
                         <Button x:Name="FollowAuthor" x:Uid="FollowAuthor" Margin="4,0,0,0" Click="ActionIllust_Click"
                                 ToolTip="Follow Author" 
                                 ContextMenuOpening="IllustActions_ContextMenuOpening" 
-                                Visibility="Hidden" Width="64" Height="64"
+                                Visibility="Collapsed" Width="64" Height="64"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Tag="{x:Static iconPacks:PackIconModernKind.Add}"
@@ -642,7 +641,7 @@
                         <Button x:Name="IllustActions" x:Uid="IllustActions" Margin="4,0,0,0" Click="ActionIllust_Click"
                                 ToolTip="Illust Actions"
                                 ContextMenuOpening="IllustActions_ContextMenuOpening"
-                                Visibility="Hidden" Width="64" Height="64"
+                                Visibility="Collapsed" Width="64" Height="64"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Style="{DynamicResource MahApps.Styles.Button.Circle}"
@@ -1156,9 +1155,8 @@
         
         <!-- Illust Open Progress Prompt -->
         <mah:ProgressRing Grid.Column="0" x:Name="IllustDetailWait"
-                          Width="128" Height="128" Opacity="0.62" 
-                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                          Visibility="Hidden"
+                          Width="128" Height="128" Opacity="0.62" Visibility="Collapsed"
+                          Foreground="{DynamicResource MahApps.Brushes.Accent}"                          
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </Page>

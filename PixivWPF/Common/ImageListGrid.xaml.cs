@@ -377,14 +377,14 @@ namespace PixivWPF.Common
             }
         }
 
-        public async void UpdateTilesImage(int parallel = 5, SemaphoreSlim updating_semaphore = null)
+        public async void UpdateTilesImage(bool overwrite = false, int parallel = 5, SemaphoreSlim updating_semaphore = null)
         {
             Application.Current.DoEvents();
-            var needUpdate = Items.Where(item => item.Source == null);
+            var needUpdate = Items.Where(item => item.Source == null || overwrite);
             if (needUpdate.Count() > 0)
             {
                 //PART_ImageTilesWait.Show();
-                lastTask = await Items.UpdateTilesThumb(lastTask, cancelTokenSource, parallel, updating_semaphore);
+                lastTask = await Items.UpdateTilesThumb(lastTask, overwrite, cancelTokenSource, parallel, updating_semaphore);
                 //if (lastTask.IsCompleted) PART_ImageTilesWait.Hide();
             }
         }
@@ -412,7 +412,6 @@ namespace PixivWPF.Common
                 var image = sender as Image;
                 if (e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    //var mask = image.FindName("PART_Mask") as Border;
                     var progressObj = image.FindName("PART_Progress");
                     if (progressObj is ProgressRing)
                     {
@@ -436,12 +435,16 @@ namespace PixivWPF.Common
                         if (tile.Tag is TaskStatus)
                         {
                             var state = (TaskStatus)tile.Tag;
-                            if (state == TaskStatus.RanToCompletion)
-                                progress.Hide();
-                            else if (state == TaskStatus.Created)
+                            if (state == TaskStatus.Created || state == TaskStatus.Running)
+                            {
                                 progress.Show();
+                            }
+                            else if (state == TaskStatus.RanToCompletion)
+                            {
+                                progress.Hide();
+                            }
                             else
-                                progress.Pause();
+                                progress.Disable();
                         }
                     }
                 }

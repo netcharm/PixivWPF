@@ -68,20 +68,20 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public string GetCacheFile(string url)
+        public string GetCacheFile(string url, bool overwrite = false)
         {
             var file = string.Empty;
-            if (url.IsCached())
+            if (url.IsCached() && !overwrite)
             {
                 file = Path.Combine(_CacheFolder, _caches[url].TrimStart(trimchars));
             }
             return (file);
         }
 
-        public async Task<CustomImageSource> GetImage(string url, bool login = false)
+        public async Task<CustomImageSource> GetImage(string url, bool overwrite = false, bool login = false)
         {
             CustomImageSource result = new CustomImageSource();
-            var file = GetCacheFile(url);
+            var file = GetCacheFile(url, overwrite);
             var fp = string.Empty;
             var id = url.GetIllustId();
             var fn = url.GetImageId();
@@ -93,7 +93,7 @@ namespace PixivWPF.Common
             else
             {
                 file = GetImagePath(url);
-                var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, false) : await url.SaveImage(file, false);
+                var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite);
                 if (success) result = await file.LoadImageFromFile();
             }
 

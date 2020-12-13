@@ -34,19 +34,6 @@
                 <Border Grid.Row="0" x:Name="PART_Mask" Opacity="0.67"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                         Background="{DynamicResource MahApps.Brushes.IdealForeground}" BorderBrush="{DynamicResource MahApps.Brushes.Accent}" />
-                <mah:ProgressRing Grid.Row="0" x:Name="PART_Progress"
-                                  Width="72" Height="72" Opacity="0.67" 
-                                  HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                  Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                <!-- Loading Mark -->
-                <TextBlock Grid.Row="0" x:Name="PART_ThumbnailLoadingMark"
-                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Text="&#xEDE4;" FontSize="36" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" Opacity="0.75"
-                    Foreground="{DynamicResource MahApps.Brushes.Accent}" >
-                    <TextBlock.Effect>
-                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
-                    </TextBlock.Effect>
-                </TextBlock>
                 <Image Grid.Row="0" x:Name="PART_Thumbnail"                       
                        Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
                        TargetUpdated="TileImage_TargetUpdated"
@@ -55,6 +42,20 @@
                        Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <mah:ProgressRing Grid.Row="0" x:Name="PART_Progress"
+                                  Width="72" Height="72" Opacity="0.67" 
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                  Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                <!-- Loading Mark -->
+                <TextBlock Grid.Row="0" x:Name="PART_LoadingMark"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" 
+                    Visibility="{Binding Path=Visibility, ElementName=PART_Progress, Mode=OneWay}"
+                    Text="&#xEDE4;" FontSize="36" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" Opacity="0.75"
+                    Foreground="{DynamicResource MahApps.Brushes.Accent}" >
+                    <TextBlock.Effect>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
+                    </TextBlock.Effect>
+                </TextBlock>
                 <!-- User Mark -->
                 <TextBlock Grid.Row="0" 
                            HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,8" 
@@ -196,12 +197,10 @@
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ListView>
-        <mah:ProgressRing Grid.Row="0" 
-                          x:Name="PART_ImageTilesWait" 
-                          Width="128" Height="128" 
+        <mah:ProgressRing Grid.Row="0" x:Name="PART_ImageTilesWait" 
+                          Width="128" Height="128" Opacity="0.9" Visibility="Collapsed"
                           Foreground="{DynamicResource MahApps.Brushes.Accent}"
                           Background="Transparent"
-                          Opacity="0.9" Visibility="Hidden"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </UserControl>

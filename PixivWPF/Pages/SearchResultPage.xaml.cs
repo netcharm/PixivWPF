@@ -96,7 +96,7 @@ namespace PixivWPF.Pages
 
         public void UpdateThumb()
         {
-            ResultItems.UpdateTilesImage();
+            ResultItems.UpdateTilesImage(Keyboard.Modifiers == ModifierKeys.Alt);
         }
 
         public void SetFilter(string filter)
@@ -503,7 +503,7 @@ namespace PixivWPF.Pages
                 {
                     if (host == ResultExpander || host == ResultItems)
                     {
-                        ResultItems.UpdateTilesImage();
+                        ResultItems.UpdateTilesImage(Keyboard.Modifiers == ModifierKeys.Alt);
                     }
                 }
             }

@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace PixivWPF.Common
@@ -60,7 +61,12 @@ namespace PixivWPF.Common
         public Pixeez.Objects.Work Illust { get; set; }
         public string AccessToken { get; set; }
         public string NextURL { get; set; } = string.Empty;
-        public TaskStatus State { get; internal set; } = TaskStatus.Created;
+        private TaskStatus state = TaskStatus.Created;
+        public TaskStatus State
+        {
+            get { return (state); }
+            internal set { state = value; NotifyPropertyChanged("State"); }
+        }
 
         public Visibility FavMarkVisibility { get; set; } = Visibility.Collapsed;
         [Description("Get or Set Illust IsFavorited State")]
@@ -757,13 +763,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async void UpdateTilesImageTask(this IEnumerable<ImageItem> items, CancellationToken cancelToken = default(CancellationToken), int parallel = 5, SemaphoreSlim update_semaphore = null)
+        public static async void UpdateTilesImageTask(this IEnumerable<ImageItem> items, bool overwrite = false, CancellationToken cancelToken = default(CancellationToken), int parallel = 5, SemaphoreSlim update_semaphore = null)
         {
             try
             {
                 if (update_semaphore == null || await update_semaphore.WaitAsync(10))
                 {
-                    var needUpdate = items.Where(item => item.Source == null);
+                    var needUpdate = items.Where(item => item.Source == null || overwrite);
                     if (Application.Current != null && needUpdate.Count() > 0)
                     {
                         if (parallel <= 0) parallel = 1;
@@ -786,16 +792,17 @@ namespace PixivWPF.Common
                                     {
                                         try
                                         {
-                                            if (item.Source == null)
+                                            if (item.Source == null || overwrite)
                                             {
                                                 Random rnd = new Random();
                                                 await Task.Delay(rnd.Next(1, 50));
                                                 Application.Current.DoEvents();
 
                                                 if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                                if (item.Source == null)
+                                                if (item.Source == null || overwrite)
                                                 {
-                                                    var img = await item.Thumb.LoadImageFromUrl();
+                                                    item.State = TaskStatus.Running;
+                                                    var img = await item.Thumb.LoadImageFromUrl(overwrite);
                                                     if (item.Source == null) item.Source = img.Source;
                                                     if(item.Source is ImageSource)
                                                         item.State = TaskStatus.RanToCompletion;
@@ -886,7 +893,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async Task<Task> UpdateTilesThumb(this IEnumerable<ImageItem> items, Task task, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5, SemaphoreSlim update_semaphore = null)
+        public static async Task<Task> UpdateTilesThumb(this IEnumerable<ImageItem> items, Task task, bool overwrite = false, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5, SemaphoreSlim update_semaphore = null)
         {
             Task result = null;
             try
@@ -908,8 +915,8 @@ namespace PixivWPF.Common
                         cancelSource = new CancellationTokenSource();
                         result = new Task(() =>
                         {
-                            items.UpdateTilesImageTask(cancelSource.Token, parallel, update_semaphore);
-                        }, cancelSource.Token, TaskCreationOptions.PreferFairness);                        
+                            items.UpdateTilesImageTask(overwrite, cancelSource.Token, parallel, update_semaphore);
+                        }, cancelSource.Token, TaskCreationOptions.PreferFairness);
                         result.Start();
                     }).InvokeAsync();
                 }
@@ -986,6 +993,7 @@ namespace PixivWPF.Common
                             Caption = illust.Caption,
                             ToolTip = $"📅[{illust.GetDateTime()}]{tooltip}",
                             IsDownloaded = illust == null ? false : illust.IsPartDownloadedAsync(),
+                            State = TaskStatus.Created,
                             Tag = illust
                         };
                     }

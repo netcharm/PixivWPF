@@ -259,7 +259,7 @@ namespace PixivWPF.Pages
                             if (item is DownloadInfo)
                                 targets.Add(item as DownloadInfo);
                         }
-                        var needUpdate = targets.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished);
+                        var needUpdate = targets.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished && item.State != DownloadState.NonExists);
                         if (needUpdate.Count() > 0)
                         {
                             var opt = new ParallelOptions();
@@ -273,7 +273,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        var needUpdate = items.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished);
+                        var needUpdate = items.Where(item => item.State != DownloadState.Downloading && item.State != DownloadState.Finished && item.State != DownloadState.NonExists);
                         if (needUpdate.Count() > 0)
                         {
                             var opt = new ParallelOptions();

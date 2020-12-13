@@ -94,7 +94,7 @@ namespace PixivWPF.Pages
         }
 
         private SemaphoreSlim CanUpdating = new SemaphoreSlim(1, 1);
-        private void ShowHistory()
+        private void ShowHistory(bool overwrite = false)
         {
             try
             {
@@ -115,7 +115,7 @@ namespace PixivWPF.Pages
                     UpdateDownloadState();
                     Application.Current.DoEvents();
                 }
-                HistoryItems.UpdateTilesImage(5, CanUpdating);
+                HistoryItems.UpdateTilesImage(overwrite, 5, CanUpdating);
             }
             catch (Exception ex)
             {
@@ -140,8 +140,10 @@ namespace PixivWPF.Pages
         {
             try
             {
+                var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
+
                 if (CanUpdating is SemaphoreSlim && CanUpdating.CurrentCount == 0) CanUpdating.Release();
-                HistoryItems.UpdateTilesImage(5, CanUpdating);
+                HistoryItems.UpdateTilesImage(overwrite, 5, CanUpdating);
                 Application.Current.DoEvents();
             }
             catch (Exception) { }
@@ -335,20 +337,22 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
+                var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
+
                 var m = sender as MenuItem;
                 var host = (m.Parent as ContextMenu).PlacementTarget;
                 if (m.Uid.Equals("ActionRefresh", StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (host == HistoryItems)
                     {
-                        ShowHistory();
+                        ShowHistory(overwrite);
                     }
                 }
                 else if (m.Uid.Equals("ActionRefreshThumb", StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (host == HistoryItems)
                     {
-                        HistoryItems.UpdateTilesImage();
+                        HistoryItems.UpdateTilesImage(overwrite);
                     }
                 }
             }

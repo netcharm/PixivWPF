@@ -643,6 +643,7 @@ namespace PixivWPF.Pages
 
         public async void UpdateThumb(bool full = false)
         {
+            var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
             await new Action(() =>
             {
                 try
@@ -651,18 +652,18 @@ namespace PixivWPF.Pages
                     {
                         if (full)
                         {
-                            SubIllusts.UpdateTilesImage();
-                            RelativeItems.UpdateTilesImage();
-                            FavoriteItems.UpdateTilesImage();
+                            SubIllusts.UpdateTilesImage(overwrite);
+                            RelativeItems.UpdateTilesImage(overwrite);
+                            FavoriteItems.UpdateTilesImage(overwrite);
                             if (Contents.IsWork())
                             {
-                                ActionRefreshAvatar(Contents);
-                                ActionRefreshPreview_Click(this, new RoutedEventArgs());
+                                ActionRefreshAvatar(Contents, overwrite);
+                                ActionRefreshPreview(Contents, overwrite);
                             }
                             else if (Contents.IsUser())
                             {
-                                ActionRefreshAvatar(Contents);
-                                UpdateUserBackground();
+                                ActionRefreshAvatar(Contents, overwrite);
+                                UpdateUserBackground(Contents, overwrite);
                             }
                         }
                         else
@@ -670,11 +671,11 @@ namespace PixivWPF.Pages
                             if (Contents.IsWork() || Contents.IsUser())
                             {
                                 if (SubIllusts.IsKeyboardFocusWithin)
-                                    SubIllusts.UpdateTilesImage();
+                                    SubIllusts.UpdateTilesImage(overwrite);
                                 else if (RelativeItems.IsKeyboardFocusWithin)
-                                    RelativeItems.UpdateTilesImage();
+                                    RelativeItems.UpdateTilesImage(overwrite);
                                 else if (FavoriteItems.IsKeyboardFocusWithin)
-                                    FavoriteItems.UpdateTilesImage();
+                                    FavoriteItems.UpdateTilesImage(overwrite);
                                 else
                                 {
                                     UpdateThumb(true);
@@ -760,7 +761,7 @@ namespace PixivWPF.Pages
 
                 Preview.Source = Application.Current.GetNullPreview();
                 PreviewWait.Show();
-                PreviewLoadingMark.Show();
+                //PreviewLoadingMark.Show();
 
                 string stat_viewed = "????";
                 string stat_favorited = "????";
@@ -797,7 +798,6 @@ namespace PixivWPF.Pages
                 IllustAuthor.Text = item.Illust.User.Name;
                 IllustAuthorAvatar.Source = Application.Current.GetNullAvatar();
                 IllustAuthorAvatarWait.Show();
-                AvatarLoadingMark.Show();
 
                 IllustTitle.Text = $"{item.Illust.Title}";
                 IllustTitle.ToolTip = IllustTitle.Text.TranslatedTag();
@@ -913,7 +913,7 @@ namespace PixivWPF.Pages
                 await Task.Delay(1);
                 ActionRefreshAvatar(item);
                 if (!SubIllustsExpander.IsExpanded)
-                    ActionRefreshPreview_Click(this, new RoutedEventArgs());
+                    ActionRefreshPreview(item);
             }
             catch (OperationCanceledException) { }
             catch (ObjectDisposedException) { }
@@ -932,21 +932,21 @@ namespace PixivWPF.Pages
         }
 
         private string user_backgroundimage_url = string.Empty;
-        public async void UpdateUserBackground()
+        public async void UpdateUserBackground(ImageItem item, bool overwrite = false)
         {
-            if (Contents.IsUser())
+            if (item.IsUser())
             {
                 if (setting.ShowUserBackgroundImage && string.IsNullOrEmpty(user_backgroundimage_url))
                 {
                     PreviewWait.Show();
-                    PreviewLoadingMark.Show();
+                    //PreviewLoadingMark.Show();
                     PreviewViewer.Show();
-                    Preview.Source = (await user_backgroundimage_url.LoadImageFromUrl()).Source;
+                    Preview.Source = (await user_backgroundimage_url.LoadImageFromUrl(overwrite)).Source;
                 }
                 else
                 {
                     PreviewWait.Hide();
-                    PreviewLoadingMark.Hide();
+                    //PreviewLoadingMark.Hide();
                     PreviewViewer.Hide();
                     Preview.Source = null;
                 }
@@ -989,7 +989,6 @@ namespace PixivWPF.Pages
                 IllustAuthor.Text = nuser.Name;
                 IllustAuthorAvatar.Source = Application.Current.GetNullAvatar();
                 IllustAuthorAvatarWait.Show();
-                AvatarLoadingMark.Show();
 
                 FollowAuthor.Show();
                 UpdateFollowMark(nuser);
@@ -1050,7 +1049,7 @@ namespace PixivWPF.Pages
 
                 ActionRefreshAvatar(item);
                 user_backgroundimage_url = nprof.background_image_url is string ? nprof.background_image_url as string : nuser.GetPreviewUrl();
-                UpdateUserBackground();
+                UpdateUserBackground(item);
             }
             catch (Exception ex)
             {
@@ -2227,12 +2226,17 @@ namespace PixivWPF.Pages
                 }
                 else if (sender == SubIllustRefresh)
                 {
-                    SubIllusts.UpdateTilesImage();
+                    if (Keyboard.Modifiers == ModifierKeys.None)
+                        SubIllusts.UpdateTilesImage();
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        SubIllusts.UpdateTilesImage(true);
                 }
                 else if (sender == RelativeRefresh)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         RelativeItems.UpdateTilesImage();
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        RelativeItems.UpdateTilesImage(true);
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                         RelativeItemsExpander_Expanded(sender, e);
                 }
@@ -2240,6 +2244,8 @@ namespace PixivWPF.Pages
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
                         FavoriteItems.UpdateTilesImage();
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        FavoriteItems.UpdateTilesImage(true);
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                         FavoriteItemsExpander_Expanded(sender, e);
                 }
@@ -2464,8 +2470,10 @@ namespace PixivWPF.Pages
                 {
                     if (Keyboard.Modifiers == ModifierKeys.Control)
                         Commands.ShellSendToOtherInstance.Execute(Contents.User);
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
                         ActionRefreshAvatar(Contents);
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        ActionRefreshAvatar(Contents, true);
                     else if (Contents.IsWork())
                         Commands.OpenUser.Execute(Contents.User);
                 }
@@ -2533,80 +2541,80 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
+        private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
         {
-            if (Contents is ImageItem)
+            var overwrite = Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control ? true : false;
+            ActionRefreshPreview(Contents, overwrite);
+        }
+
+        private async void ActionRefreshPreview(ImageItem item, bool overwrite = false)
+        {
+            if (item is ImageItem)
             {
-                setting = Application.Current.LoadSetting();
+                setting = Application.Current.LoadSetting();               
 
                 PreviewWait.Show();
-                PreviewLoadingMark.Show();
-
                 await new Action(async () =>
                 {
                     try
                     {
-                        var item = Contents;
+                        var c_item = item;
                         if (SubIllusts.SelectedItem is ImageItem)
                         {
-                            item = SubIllusts.SelectedItem as ImageItem;
-                            Contents.Index = item.Index;
+                            c_item = SubIllusts.SelectedItem as ImageItem;
+                            item.Index = c_item.Index;
                         }
 
-                        lastSelectionItem = item;
+                        lastSelectionItem = c_item;
                         lastSelectionChanged = DateTime.Now;
 
-                        PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index);
-                        var img = await PreviewImageUrl.LoadImageFromUrl();
+                        PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index);
+                        var img = await PreviewImageUrl.LoadImageFromUrl(overwrite);
                         if (setting.SmartPreview &&
                             (img.Source == null ||
                              img.Source.Width < setting.PreviewUsingLargeMinWidth ||
                              img.Source.Height < setting.PreviewUsingLargeMinHeight))
                         {
-                            PreviewImageUrl = item.Illust.GetPreviewUrl(item.Index, true);
-                            var large = await PreviewImageUrl.LoadImageFromUrl();
+                            PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, true);
+                            var large = await PreviewImageUrl.LoadImageFromUrl(overwrite);
                             if (large.Source != null) img = large;
                         }
-                        if (img.Source != null && item.IsSameIllust(Contents))
+                        if (img.Source != null && c_item.IsSameIllust(item))
                         {
                             Preview.Source = img.Source;
-                            PreviewLoadingMark.Hide();
+                            PreviewWait.Hide();
                         }
+                        else PreviewWait.Disable();
                     }
                     catch (Exception) { }
                     finally
                     {
                         if (Preview.Source != null)
-                        {
                             Preview.Show();
-                            PreviewWait.Hide();
-                        }
-                        else PreviewWait.Disable();
+                        else
+                            PreviewWait.Disable();
                     }
                 }).InvokeAsync();
             }
         }
 
-        private async void ActionRefreshAvatar(ImageItem item)
+        private async void ActionRefreshAvatar(ImageItem item, bool overwrite = false)
         {
             if (item is ImageItem)
             {
                 IllustAuthorAvatarWait.Show();
-                AvatarLoadingMark.Show();
-
                 await new Action(async () =>
                 {
                     try
                     {
-                        var c_item = Contents;
-                        var img =  await item.User.GetAvatarUrl().LoadImageFromUrl();
-                        if (c_item.IsSameIllust(Contents))
+                        var c_item = item;
+                        var img =  await item.User.GetAvatarUrl().LoadImageFromUrl(overwrite);
+                        if (c_item.IsSameIllust(item))
                         {
                             if (img.Source != null)
                             {
                                 IllustAuthorAvatar.Source = img.Source;
                                 IllustAuthorAvatarWait.Hide();
-                                AvatarLoadingMark.Hide();
                             }
                             else
                                 IllustAuthorAvatarWait.Disable();

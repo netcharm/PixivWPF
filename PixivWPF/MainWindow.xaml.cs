@@ -356,7 +356,8 @@ namespace PixivWPF
                 }
                 else if (sender == CommandNavRefreshThumb)
                 {
-                    Contents.UpdateTilesThumb();
+                    var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
+                    Contents.UpdateTilesThumb(overwrite);
                 }
             }
             catch { }

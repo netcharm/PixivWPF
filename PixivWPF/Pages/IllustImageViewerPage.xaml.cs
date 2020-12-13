@@ -80,25 +80,24 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async Task<CustomImageSource> GetPreviewImage()
+        private async Task<CustomImageSource> GetPreviewImage(bool overwrite = false)
         {
             CustomImageSource img = new CustomImageSource();
             try
             {
                 PreviewWait.Show();
-                PreviewLoadingMark.Show();
 
                 var setting = Application.Current.LoadSetting();
 
                 if (IsOriginal)
                 {
-                    var original = await OriginalImageUrl.LoadImageFromUrl();
+                    var original = await OriginalImageUrl.LoadImageFromUrl(overwrite);
                     if (original.Source != null) img = original;
                 }
                 else
                 {
-                    var preview = await PreviewImageUrl.LoadImageFromUrl();                   
-                    if (setting.SmartPreview && 
+                    var preview = await PreviewImageUrl.LoadImageFromUrl(overwrite);
+                    if (setting.SmartPreview &&
                         (preview.Source == null ||
                          preview.Source.Width < setting.PreviewUsingLargeMinWidth ||
                          preview.Source.Height < setting.PreviewUsingLargeMinHeight))
@@ -108,25 +107,27 @@ namespace PixivWPF.Pages
                     }
                     else img = preview;
                 }
-                Preview.Source = img.Source;
 
-                if (Preview.Source != null)
+                if (img.Source != null)
                 {
-                    PreviewLoadingMark.Hide();
+                    Preview.Source = img.Source;
                     var aspect = Preview.Source.AspectRatio();
                     PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
                     Page_SizeChanged(null, null);
+                    PreviewWait.Hide();
                 }
+                else PreviewWait.Disable();
             }
             catch (Exception) { }
             finally
             {
-                PreviewWait.Hide();
+                if (Preview.Source == null)
+                    PreviewWait.Disable();
             }
             return (img);
         }
 
-        internal async void UpdateDetail(ImageItem item)
+        internal async void UpdateDetail(ImageItem item, bool overwrite = false)
         {
             try
             {
@@ -156,7 +157,7 @@ namespace PixivWPF.Pages
                         ActionViewPageSep.Hide();
                     }
 
-                    PreviewImage = await GetPreviewImage();
+                    PreviewImage = await GetPreviewImage(overwrite);
 
                     if (window == null)
                     {
@@ -380,9 +381,9 @@ namespace PixivWPF.Pages
                     else
                         Commands.ShellSendToOtherInstance.Execute(id);
                 }
-                else if(sender == ActionRefreshPreview)
+                else if (sender == ActionRefreshPreview)
                 {
-                    UpdateDetail(Contents);
+                    UpdateDetail(Contents, Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control);
                 }
             }
         }

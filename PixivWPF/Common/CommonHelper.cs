@@ -4066,23 +4066,23 @@ namespace PixivWPF.Common
             return (new CustomImageSource(result, file));
         }
 
-        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool login = false)
+        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false)
         {
             CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
-                result = await cache.GetImage(url, login);
+                result = await cache.GetImage(url, overwrite, login);
             }
             return (result);
         }
 
-        public static async Task<CustomImageSource> LoadImageFromUri(this Uri uri, Pixeez.Tokens tokens = null)
+        public static async Task<CustomImageSource> LoadImageFromUri(this Uri uri, bool overwrite = false, Pixeez.Tokens tokens = null)
         {
             CustomImageSource result = new CustomImageSource();
             if (uri.IsUnc || uri.IsFile)
                 result = await LoadImageFromFile(uri.LocalPath);
-            else
-                result = await LoadImageFromUrl(uri.OriginalString, false);
+            else if(!(uri.IsLoopback||uri.IsAbsoluteUri))
+                result = await LoadImageFromUrl(uri.OriginalString, overwrite, false);
             return (result);
         }
 
@@ -5888,7 +5888,6 @@ namespace PixivWPF.Common
 
         public static void Pause(this ProgressRing progress)
         {
-            progress.IsEnabled = false;
             progress.IsActive = false;
         }
 
@@ -5896,6 +5895,12 @@ namespace PixivWPF.Common
         {
             progress.IsEnabled = true;
             progress.IsActive = true;
+        }
+
+        public static void Disable(this ProgressRing progress)
+        {
+            progress.IsEnabled = false;
+            progress.IsActive = false;
         }
 
         public static void Show(this ProgressRing progress, bool active = true)
