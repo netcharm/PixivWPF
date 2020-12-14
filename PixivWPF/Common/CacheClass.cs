@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using PixivWPF.Common;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,10 +17,10 @@ namespace PixivWPF.Common
     {
         private Setting setting = Application.Current.LoadSetting();
         private char[] trimchars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
-        private Dictionary<int, string> loadedImageHashTable = new Dictionary<int, string>();
-        private Dictionary<int, string> loadedImageFileTable = new Dictionary<int, string>();
+        private ConcurrentDictionary<int, string> loadedImageHashTable = new ConcurrentDictionary<int, string>();
+        private ConcurrentDictionary<int, string> loadedImageFileTable = new ConcurrentDictionary<int, string>();
 
-        private Dictionary<string, string> _caches = new Dictionary<string, string>();
+        private ConcurrentDictionary<string, string> _caches = new ConcurrentDictionary<string, string>();
         private string _CacheFolder = string.Empty;
 
         public CacheImage()
@@ -59,9 +60,10 @@ namespace PixivWPF.Common
             bool result = false;
             try
             {
+                var value = string.Empty;
                 var local = _caches.ContainsKey(url) ? Path.Combine(_CacheFolder, _caches[url].TrimStart(trimchars)) : GetImagePath(url);
                 if (File.Exists(local)) _caches[url] = local.Replace(_CacheFolder, "").TrimStart(trimchars);
-                else _caches.Remove(url);
+                else _caches.TryRemove(url, out value);
                 result = _caches.ContainsKey(url);
             }
             catch (Exception) { }

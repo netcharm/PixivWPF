@@ -775,6 +775,7 @@ namespace PixivWPF.Common
                         if (parallel <= 0) parallel = 1;
                         else if (parallel >= needUpdate.Count()) parallel = needUpdate.Count();
 
+                        Random rnd = new Random();
                         var opt = new ParallelOptions();
                         //opt.TaskScheduler = TaskScheduler.Current;
                         opt.MaxDegreeOfParallelism = parallel;
@@ -784,95 +785,41 @@ namespace PixivWPF.Common
                         {
                             var ret = Parallel.ForEach(needUpdate, opt, async (item, loopstate, elementIndex) =>
                             {
+                                if (cancelToken.IsCancellationRequested)
+                                    opt.CancellationToken.ThrowIfCancellationRequested();
+                                await Task.Delay(rnd.Next(1, 50));
                                 await new Action(async () =>
                                 {
-                                    if (cancelToken.IsCancellationRequested)
-                                        opt.CancellationToken.ThrowIfCancellationRequested();
-                                    else
+                                    try
                                     {
-                                        try
+                                        if (item.Count <= 1) item.BadgeValue = string.Empty;
+                                        if (item.Source == null || overwrite)
                                         {
-                                            if (item.Source == null || overwrite)
-                                            {
-                                                Random rnd = new Random();
-                                                await Task.Delay(rnd.Next(1, 50));
-                                                Application.Current.DoEvents();
-
-                                                if (item.Count <= 1) item.BadgeValue = string.Empty;
-                                                if (item.Source == null || overwrite)
-                                                {
-                                                    item.State = TaskStatus.Running;
-                                                    var img = await item.Thumb.LoadImageFromUrl(overwrite);
-                                                    if (item.Source == null) item.Source = img.Source;
-                                                    if(item.Source is ImageSource)
-                                                        item.State = TaskStatus.RanToCompletion;
-                                                    else
-                                                        item.State = TaskStatus.Faulted;
-                                                    Application.Current.DoEvents();
-                                                }
-                                            }
+                                            item.State = TaskStatus.Running;
+                                            var img = await item.Thumb.LoadImageFromUrl(overwrite);
+                                            if (item.Source == null) item.Source = img.Source;
+                                            if(item.Source is ImageSource)
+                                                item.State = TaskStatus.RanToCompletion;
+                                            else
+                                                item.State = TaskStatus.Faulted;
                                         }
+                                    }
 #if DEBUG
-                                        catch (Exception ex)
-                                        {
-                                            $"Download Thumbnail Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-                                            item.State = TaskStatus.Faulted;
-                                        }
+                                    catch (Exception ex)
+                                    {
+                                        $"Download Thumbnail Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                        item.State = TaskStatus.Faulted;
+                                    }
 #else
                                         catch(Exception){ }
 #endif
-                                        finally
-                                        {
-                                            if (item.Source == null && item.Thumb.IsCached())
-                                                item.Source = (await item.Thumb.GetImageCachePath().LoadImageFromFile()).Source;
-                                        }
+                                    finally
+                                    {
+                                        if (item.Source == null && item.Thumb.IsCached())
+                                            item.Source = (await item.Thumb.GetImageCachePath().LoadImageFromFile()).Source;
+                                        Application.Current.DoEvents();
                                     }
                                 }).InvokeAsync();
-
-    //                            await Task.Run(async ()=>
-    //                            {
-    //                                if (cancelToken.IsCancellationRequested)
-    //                                    opt.CancellationToken.ThrowIfCancellationRequested();
-    //                                else
-    //                                {
-    //                                    try
-    //                                    {
-    //                                        if (item.Count <= 1) item.BadgeValue = string.Empty;
-    //                                        if (item.Source == null)
-    //                                        {
-    //                                            Random rnd = new Random();
-    //                                            await Task.Delay(rnd.Next(10, 1000));
-    //                                            item.DoEvents();
-
-    //                                            if (item.Source == null)
-    //                                            {
-    //                                                var img = await item.Thumb.LoadImageFromUrl();
-    //                                                if (item.Source == null) item.Source = img.Source;
-    //                                                if(item.Source is ImageSource)
-    //                                                    item.State = TaskStatus.RanToCompletion;
-    //                                                else
-    //                                                    item.State = TaskStatus.Faulted;
-    //                                                item.DoEvents();
-    //                                            }
-    //                                        }
-    //                                    }
-    //#if DEBUG
-    //                                    catch (Exception ex)
-    //                                    {
-    //                                        $"Download Thumbnail Failed:\n{ex.Message}".ShowMessageBox("ERROR");
-    //                                        item.State = TaskStatus.Faulted;
-    //                                    }
-    //#else
-    //                                    catch(Exception){ }
-    //#endif
-    //                                    finally
-    //                                    {
-    //                                        if (item.Source == null && item.Thumb.IsCached())
-    //                                            item.Source = (await item.Thumb.GetImageCachePath().LoadImageFromFile()).Source;
-    //                                    }
-    //                                }
-    //                            });
-
                             });
                         }
                     }
@@ -913,11 +860,15 @@ namespace PixivWPF.Common
                     await new Action(() =>
                     {
                         cancelSource = new CancellationTokenSource();
-                        result = new Task(() =>
+                        result = Task.Factory.StartNew(delegate
                         {
                             items.UpdateTilesImageTask(overwrite, cancelSource.Token, parallel, update_semaphore);
                         }, cancelSource.Token, TaskCreationOptions.PreferFairness);
-                        result.Start();
+                        //result.Start();
+                        //await result.ContinueWith((t) =>
+                        //{
+                        //    //SignalCompletion(sw);
+                        //}).InvokeAsync();
                     }).InvokeAsync();
                 }
             }
@@ -932,7 +883,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        public static ImageItem IllustItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "")
+        public static ImageItem WorkItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "")
         {
             ImageItem result = null;
             try
@@ -993,7 +944,6 @@ namespace PixivWPF.Common
                             Caption = illust.Caption,
                             ToolTip = $"📅[{illust.GetDateTime()}]{tooltip}",
                             IsDownloaded = illust == null ? false : illust.IsPartDownloadedAsync(),
-                            State = TaskStatus.Created,
                             Tag = illust
                         };
                     }
@@ -1133,7 +1083,7 @@ namespace PixivWPF.Common
                     var url = illust.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var i = illust.IllustItem(url, nexturl);
+                        var i = illust.WorkItem(url, nexturl);
                         if (i is ImageItem)
                         {
                             i.ToolTip = $"№[{Collection.Count + 1}], {i.ToolTip}";
@@ -1159,7 +1109,7 @@ namespace PixivWPF.Common
                     var url = pages.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var i = illust.IllustItem(url, nexturl);
+                        var i = illust.WorkItem(url, nexturl);
                         if (i is ImageItem)
                         {
                             //i.Thumb = url;
@@ -1196,7 +1146,7 @@ namespace PixivWPF.Common
                     var url = page.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var i = illust.IllustItem(url, nexturl);
+                        var i = illust.WorkItem(url, nexturl);
                         if (i is ImageItem)
                         {
                             //i.Thumb = url;

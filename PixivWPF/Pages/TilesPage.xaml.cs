@@ -341,7 +341,10 @@ namespace PixivWPF.Pages
         public TilesPage()
         {
             InitializeComponent();
+        }
 
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
             setting = Application.Current.LoadSetting();
 
             window = this.GetActiveWindow();
@@ -357,7 +360,6 @@ namespace PixivWPF.Pages
 
             PixivCatgoryMenu.IsPaneOpen = false;
             PixivCatgoryMenu.SelectedIndex = 0;
-            //ShowImages();
         }
 
         internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
@@ -489,14 +491,14 @@ namespace PixivWPF.Pages
         #region Show category
         private async void ShowRecommanded(string nexturl = null)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -553,21 +555,21 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowLatest(string nexturl = null)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -605,21 +607,21 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowTrendingTags(string nexturl = null)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -657,21 +659,21 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowFeeds(long uid, string nexturl = null)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -709,22 +711,22 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowFeeds(string nexturl = null)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var force = setting.MyInfo is Pixeez.Objects.User ? false : true;
             var tokens = await CommonHelper.ShowLogin(force);
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -764,21 +766,21 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowFavorite(string nexturl = null, bool IsPrivate = false)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin(setting.MyInfo == null && IsPrivate);
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -821,21 +823,21 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowFollowing(string nexturl = null, bool IsPrivate = false)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -873,21 +875,21 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowRankingAll(string nexturl = null, string condition = "daily")
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -937,21 +939,21 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowRanking(string nexturl = null, string condition = "day")
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -996,7 +998,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
@@ -1028,14 +1030,14 @@ namespace PixivWPF.Pages
 
         private async void ShowMyFollower(long uid, string nexturl = null)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -1076,21 +1078,21 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowMyFollowing(long uid, string nexturl = null, bool IsPrivate = false)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -1132,21 +1134,21 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowMyPixiv(long uid, string nexturl = null)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -1187,21 +1189,21 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
 
         private async void ShowMyBlacklist(long uid, string nexturl = null)
         {
-            ImageTilesWait.Show();
+            ListImageTiles.Wait();
             var tokens = await CommonHelper.ShowLogin();
-            ImageTilesWait.Hide();
+            ListImageTiles.Ready();
             if (tokens == null) return;
 
             try
             {
-                ImageTilesWait.Show();
+                ListImageTiles.Wait();
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
@@ -1242,7 +1244,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                ImageTilesWait.Hide();
+                ListImageTiles.Ready();
                 KeepLastSelected(lastSelectedId);
             }
         }
@@ -1532,18 +1534,23 @@ namespace PixivWPF.Pages
 
         }
 
+        private object lastInvokedItem = null;
         private void PixivCatgoryMenu_ItemInvoked(object sender, HamburgerMenuItemInvokedEventArgs args)
         {
-            //return;
+            if (!PixivCatgoryMenu.IsLoaded) return;
+
             var item = args.InvokedItem;
             var idx = PixivCatgoryMenu.SelectedIndex;
-            if(PixivCatgoryMenu.IsPaneOpen) PixivCatgoryMenu.IsPaneOpen = false;
+
+
+            if (PixivCatgoryMenu.IsPaneOpen) PixivCatgoryMenu.IsPaneOpen = false;
 
             if (item == miAbout)
             {
                 args.Handled = true;
                 PixivCatgoryMenu.SelectedIndex = idx;
             }
+            else if (PixivCatgoryMenu.SelectedItem == lastInvokedItem) return;
             #region Common
             else if (item == miPixivRecommanded)
             {
@@ -1656,6 +1663,8 @@ namespace PixivWPF.Pages
                 ShowImages(PixivPage.MyBlacklistUser, false);
             }
             #endregion
+
+            if (!args.Handled) lastInvokedItem = item;
         }
     }
 }

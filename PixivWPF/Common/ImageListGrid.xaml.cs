@@ -412,10 +412,11 @@ namespace PixivWPF.Common
                 var image = sender as Image;
                 if (e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var progressObj = image.FindName("PART_Progress");
-                    if (progressObj is ProgressRing)
+                    //var progress = image.FindByName<ProgressRing>("PART_Progress");
+                    //if (progress is ProgressRing)
+                    var progress = image.FindByName<ProgressRingCloud>("PART_Progress");
+                    if (progress is ProgressRingCloud)
                     {
-                        var progress = progressObj as ProgressRing;
                         if (image.Source == null)
                             progress.Show();
                         else
@@ -428,24 +429,22 @@ namespace PixivWPF.Common
                 var tile = sender as Grid;
                 if (e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var progressObj = tile.FindName("PART_Progress");
-                    if (progressObj is ProgressRing)
+                    //var progress = tile.FindByName<ProgressRing>("PART_Progress");
+                    //if (tile.Tag is ImageItem && progress is ProgressRing)
+                    var progress = tile.FindByName<ProgressRingCloud>("PART_Progress");
+                    if (tile.Tag is ImageItem && progress is ProgressRingCloud)
                     {
-                        var progress = progressObj as ProgressRing;
-                        if (tile.Tag is TaskStatus)
+                        var item = tile.Tag as ImageItem;
+                        if (item.State == TaskStatus.Created || item.State == TaskStatus.Running)
                         {
-                            var state = (TaskStatus)tile.Tag;
-                            if (state == TaskStatus.Created || state == TaskStatus.Running)
-                            {
-                                progress.Show();
-                            }
-                            else if (state == TaskStatus.RanToCompletion)
-                            {
-                                progress.Hide();
-                            }
-                            else
-                                progress.Disable();
+                            progress.Show();
                         }
+                        else if (item.State == TaskStatus.RanToCompletion)
+                        {
+                            progress.Hide();
+                        }
+                        else
+                            progress.Disable();
                     }
                 }
             }

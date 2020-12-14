@@ -17,6 +17,7 @@
       AllowDrop="True"
       d:DesignHeight="700" d:DesignWidth="1420"
       Title="Image Master Detail Viewer"
+      Loaded="Page_Loaded"
       PreviewKeyUp="Page_PreviewKeyUp"
       PreviewMouseDown="Page_PreviewMouseDown"
       PreviewMouseWheel="Page_PreviewMouseWheel">
@@ -81,39 +82,35 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <ScrollViewer Grid.Column="0" x:Name="TilesViewer" Margin="48,0,0,0"
-                      HorizontalAlignment="Left" VerticalAlignment="Stretch" 
-                      HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top"                       
-                      VerticalScrollBarVisibility="Auto">
+        <ScrollViewer 
+            Grid.Column="0" x:Name="TilesViewer" Margin="48,0,0,0"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top"
+            VerticalScrollBarVisibility="Auto">
             <!-- Tiles List -->
             <Common:ImageListGrid
                 x:Name="ListImageTiles" x:Uid="ImageTiles"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 Columns="5" TileWidth="128" TileHeight="128"
                 SelectionMode="Single"
                 SelectionChanged="ImageTiles_SelectionChanged" />
         </ScrollViewer>
-        
-        <mah:ProgressRing Grid.Column="0" 
-                          x:Name="ImageTilesWait" 
-                          Width="128" Height="128" 
-                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                          Opacity="0.9" Visibility="Hidden"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-        
         <!-- Pixiv Catgory Menu -->
-        <mah:HamburgerMenu Grid.Column="0" x:Name="PixivCatgoryMenu" Margin="0"
-                           PanePlacement="Left" DisplayMode="CompactOverlay"
-                           IsPaneOpen="True" ShowSelectionIndicator="True" OpenPaneLength="280"
-                           CanResizeOpenPane="False" VerticalScrollBarOnLeftSide="False"
-                           Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
-                           Background="{DynamicResource MahApps.HamburgerMenu.Pane.Background}"
-                           PaneForeground="{DynamicResource MahApps.Brushes.IdealForeground}"
-                           PaneBackground="{DynamicResource MahApps.Brushes.Accent}"
-                           HamburgerButtonHelpText="Change Pixiv Category"
-                           ItemTemplate="{StaticResource HamburgerMenuIconItem}"
-                           OptionsItemTemplate="{StaticResource HamburgerMenuIconItem}"
-                           ItemInvoked="PixivCatgoryMenu_ItemInvoked">
+        <mah:HamburgerMenu 
+            Grid.Column="0" x:Name="PixivCatgoryMenu" Margin="0"
+            HorizontalAlignment="Left" VerticalAlignment="Stretch"
+            PanePlacement="Left" DisplayMode="CompactOverlay"
+            IsPaneOpen="True" ShowSelectionIndicator="True" OpenPaneLength="280"
+            CanResizeOpenPane="False" VerticalScrollBarOnLeftSide="False"
+            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+            Background="{DynamicResource MahApps.HamburgerMenu.Pane.Background}"
+            PaneForeground="{DynamicResource MahApps.Brushes.IdealForeground}"
+            PaneBackground="{DynamicResource MahApps.Brushes.Accent}"
+            HamburgerButtonHelpText="Change Pixiv Category"
+            ItemTemplate="{StaticResource HamburgerMenuIconItem}"
+            OptionsItemTemplate="{StaticResource HamburgerMenuIconItem}"
+            ItemInvoked="PixivCatgoryMenu_ItemInvoked">
             <!--  Header  -->
             <mah:HamburgerMenu.HamburgerButtonTemplate>
                 <DataTemplate>

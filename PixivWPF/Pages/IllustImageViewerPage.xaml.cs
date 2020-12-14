@@ -65,7 +65,7 @@ namespace PixivWPF.Pages
                 if (index_n >= Contents.Count - 1) index_n = Contents.Count - 1;
                 if (index_n == index_p) return;
 
-                var i = illust.IllustItem();
+                var i = illust.WorkItem();
                 if (i is ImageItem)
                 {
                     i.NextURL = Contents.NextURL;

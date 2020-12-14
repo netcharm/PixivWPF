@@ -170,6 +170,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Common\ProgressRingCloud.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Common\ToastItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -207,6 +211,9 @@
     </Compile>
     <Compile Include="Common\LoginDialog.xaml.cs">
       <DependentUpon>LoginDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Common\ProgressRingCloud.xaml.cs">
+      <DependentUpon>ProgressRingCloud.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\ShaderEffects.cs" />
     <Compile Include="Common\SpeechTTS.cs" />

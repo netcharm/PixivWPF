@@ -6,6 +6,7 @@ using System.Windows.Media;
 
 using MahApps.Metro;
 using ControlzEx.Theming;
+using System.Collections.Concurrent;
 
 namespace PixivWPF.Common
 {
@@ -116,8 +117,8 @@ namespace PixivWPF.Common
             }
         }
 
-        private static Dictionary<string, Color> accent_colors = new Dictionary<string, Color>();
-        public static Dictionary<string, Color> AllAccentColors
+        private static ConcurrentDictionary<string, Color> accent_colors = new ConcurrentDictionary<string, Color>();
+        public static ConcurrentDictionary<string, Color> AllAccentColors
         {
             get
             {

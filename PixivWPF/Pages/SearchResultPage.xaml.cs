@@ -2,6 +2,7 @@
 using PixivWPF.Common;
 using Prism.Commands;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -32,7 +33,7 @@ namespace PixivWPF.Pages
 
         private MenuItem ActionResultFilter = null;
         private ContextMenu ContextMenuResultFilter = null;
-        private Dictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new Dictionary<string, Tuple<MenuItem, MenuItem>>();
+        private ConcurrentDictionary<string, Tuple<MenuItem, MenuItem>> filter_items = new ConcurrentDictionary<string, Tuple<MenuItem, MenuItem>>();
 
         public string Contents { get; set; } = string.Empty;
 
@@ -255,7 +256,7 @@ namespace PixivWPF.Pages
             {
                 if (string.IsNullOrEmpty(content)) return;
 
-                PreviewWait.Show();
+                SearchWait.Show();
 
                 if (!append)
                 {
@@ -446,7 +447,7 @@ namespace PixivWPF.Pages
             {
                 if (window is ContentWindow)
                 {
-                    PreviewWait.Hide();
+                    SearchWait.Hide();
                     (window as MetroWindow).AdjustWindowPos();
                 }
             }
@@ -636,7 +637,7 @@ namespace PixivWPF.Pages
 
         private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)
         {
-            PreviewWait.Hide();
+            SearchWait.Hide();
             if (ResultNextPage is Button) ResultNextPage.Hide();
         }
 

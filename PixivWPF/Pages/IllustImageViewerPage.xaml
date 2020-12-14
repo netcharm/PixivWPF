@@ -3,10 +3,17 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:PixivWPF.Pages"
       xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
       xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+      xmlns:Common="clr-namespace:PixivWPF.Common"
+      xmlns:local="clr-namespace:PixivWPF.Pages"
       mc:Ignorable="d" 
+      VisualTextRenderingMode="Auto"
+      RenderOptions.BitmapScalingMode="HighQuality"
+      RenderOptions.CachingHint="Cache"
+      RenderOptions.ClearTypeHint="Enabled"
+      RenderOptions.EdgeMode="Aliased"
+      TextOptions.TextFormattingMode="Display"
       d:DesignHeight="520" d:DesignWidth="368"
       Title="IllustImageViewerPage" 
       PreviewKeyUp="Page_PreviewKeyUp" 
@@ -40,22 +47,12 @@
         </ScrollViewer>
 
         <!-- Illust Open Progress Prompt -->
-        <mah:ProgressRing Grid.Row="0" Grid.RowSpan="3"
-                          x:Name="PreviewWait"
-                          Width="128" Height="128" Opacity="0.62" 
-                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                          Visibility="Hidden"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <!-- Loading Mark -->
-        <TextBlock Grid.Row="0" x:Name="PreviewLoadingMark"
-                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Visibility="{Binding Path=Visibility, ElementName=PreviewWait, Mode=OneWay}"
-                    Text="&#xEDE4;" FontSize="64" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" Opacity="0.75"
-                    Foreground="{DynamicResource MahApps.Brushes.Accent}" >
-            <TextBlock.Effect>
-                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
-            </TextBlock.Effect>
-        </TextBlock>
+        <Common:ProgressRingCloud 
+            Grid.Row="0" Grid.RowSpan="3" x:Name="PreviewWait" Size="128" Visibility="Collapsed"
+            Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
+            ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
+            VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
         <!-- Preview Context Menu Container -->
         <Rectangle Grid.Row="0" 
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 
@@ -202,6 +199,5 @@
                 <iconPacks:PackIconModern Kind="Save" Width="32" Height="32" />
             </Button>
         </StackPanel>
-
     </Grid>
 </Page>

@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Media;
 
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 namespace PixivWPF.Common
 {
@@ -390,7 +391,7 @@ namespace PixivWPF.Common
                             try
                             {
                                 var tags = File.ReadAllText(default_tags);
-                                CommonHelper.TagsCache = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags);
+                                CommonHelper.TagsCache = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags);
                                 tags_changed = true;
                             }
                             catch (Exception ex) { ex.Message.DEBUG(); }
@@ -435,7 +436,7 @@ namespace PixivWPF.Common
                             try
                             {
                                 var tags_t2s = File.ReadAllText(custom_tags);
-                                CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
+                                CommonHelper.TagsT2S = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags_t2s);
                                 var keys = CommonHelper.TagsT2S.Keys.ToList();
                                 foreach (var k in keys)
                                 {
@@ -449,7 +450,7 @@ namespace PixivWPF.Common
                         {
                             try
                             {
-                                if (CommonHelper.TagsT2S is Dictionary<string, string>)
+                                if (CommonHelper.TagsT2S is ConcurrentDictionary<string, string>)
                                 {
                                     CommonHelper.TagsT2S.Clear();
                                     tags_changed = true;
@@ -491,7 +492,7 @@ namespace PixivWPF.Common
                             try
                             {
                                 var tags_t2s_widecard = File.ReadAllText(custom_widecard_tags);
-                                CommonHelper.TagsWildecardT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s_widecard);
+                                CommonHelper.TagsWildecardT2S = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags_t2s_widecard);
                                 var keys = CommonHelper.TagsWildecardT2S.Keys.ToList();
                                 foreach (var k in keys)
                                 {
@@ -505,7 +506,7 @@ namespace PixivWPF.Common
                         {
                             try
                             {
-                                if (CommonHelper.TagsWildecardT2S is Dictionary<string, string>)
+                                if (CommonHelper.TagsWildecardT2S is ConcurrentDictionary<string, string>)
                                 {
                                     CommonHelper.TagsWildecardT2S.Clear();
                                     tags_changed = true;

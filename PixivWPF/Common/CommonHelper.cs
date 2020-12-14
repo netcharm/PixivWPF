@@ -37,6 +37,7 @@ using WPFNotification.Services;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Pages;
+using System.Collections.Concurrent;
 
 namespace PixivWPF.Common
 {
@@ -638,7 +639,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Config files Watchdog
-        private static Dictionary<string, FileSystemWatcher> _watchers = new Dictionary<string, FileSystemWatcher>();
+        private static ConcurrentDictionary<string, FileSystemWatcher> _watchers = new ConcurrentDictionary<string, FileSystemWatcher>();
         //private static DateTime lastConfigEventTick = DateTime.Now;
         //private static string lastConfigEventFile = string.Empty;
         //private static WatcherChangeTypes lastConfigEventType = WatcherChangeTypes.All;
@@ -844,7 +845,7 @@ namespace PixivWPF.Common
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static void ReleaseAppWatcher(this Application app)
         {
-            if (_watchers is Dictionary<string, FileSystemWatcher>)
+            if (_watchers is ConcurrentDictionary<string, FileSystemWatcher>)
             {
                 foreach (var w in _watchers)
                 {
@@ -1249,7 +1250,7 @@ namespace PixivWPF.Common
 
         #region Timed Tasks
         private static System.Timers.Timer autoTaskTimer = null;
-        private static Dictionary<Window, long> toast_list = new Dictionary<Window, long>();
+        private static ConcurrentDictionary<Window, long> toast_list = new ConcurrentDictionary<Window, long>();
 
         private static void InitTaskTimer()
         {
@@ -1269,9 +1270,8 @@ namespace PixivWPF.Common
         public static void AddToast(this Application app, Window win)
         {
             InitTaskTimer();
-
             var now = Environment.TickCount;
-            toast_list.Add(win, now);
+            toast_list[win] = now;
             Timer_Elapsed(app, null);
         }
 
@@ -1289,10 +1289,9 @@ namespace PixivWPF.Common
                         try
                         {
                             if (kv.Key is Window)
-                            {
                                 kv.Key.Close();
-                            }
-                            toast_list.Remove(kv.Key);
+                            long value = 0L;
+                            toast_list.TryRemove(kv.Key, out value);
                         }
                         catch (Exception ex) { ex.Message.DEBUG(); }
                     }
@@ -1417,7 +1416,7 @@ namespace PixivWPF.Common
                     }
                     else
                     {
-                        source.Insert(0, illust.IllustItem());
+                        source.Insert(0, illust.WorkItem());
                         var setting = app.LoadSetting();
                         if (source.Count > setting.HistoryLimit) source.Remove(source.Last());
                     }
@@ -1802,13 +1801,13 @@ namespace PixivWPF.Common
     {
         private static Setting setting = Application.Current.LoadSetting();
         private static CacheImage cache = new CacheImage();
-        public static Dictionary<long?, Pixeez.Objects.Work> IllustCache = new Dictionary<long?, Pixeez.Objects.Work>();
-        public static Dictionary<long?, Pixeez.Objects.UserBase> UserCache = new Dictionary<long?, Pixeez.Objects.UserBase>();
-        public static Dictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new Dictionary<long?, Pixeez.Objects.UserInfo>();
+        public static ConcurrentDictionary<long?, Pixeez.Objects.Work> IllustCache = new ConcurrentDictionary<long?, Pixeez.Objects.Work>();
+        public static ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
+        public static ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
 
-        public static Dictionary<string, string> TagsCache = new Dictionary<string, string>();
-        public static Dictionary<string, string> TagsT2S = new Dictionary<string, string>();
-        public static Dictionary<string, string> TagsWildecardT2S = new Dictionary<string, string>();
+        public static ConcurrentDictionary<string, string> TagsCache = new ConcurrentDictionary<string, string>();
+        public static ConcurrentDictionary<string, string> TagsT2S = new ConcurrentDictionary<string, string>();
+        public static ConcurrentDictionary<string, string> TagsWildecardT2S = new ConcurrentDictionary<string, string>();
 
         public static DateTime SelectedDate { get; set; } = DateTime.Now;
 
@@ -2615,7 +2614,7 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(tag)) return (string.Empty);
 
                 result = tag;
-                if (TagsCache is Dictionary<string, string>)
+                if (TagsCache is ConcurrentDictionary<string, string>)
                 {
                     if (string.IsNullOrEmpty(translated) || tag.Equals(translated, StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -2632,7 +2631,7 @@ namespace PixivWPF.Common
                     }
                 }
 
-                if (TagsT2S is Dictionary<string, string>)
+                if (TagsT2S is ConcurrentDictionary<string, string>)
                 {
                     if (TagsT2S.ContainsKey(tag)) result = TagsT2S[tag];
                     else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
@@ -2642,7 +2641,7 @@ namespace PixivWPF.Common
                         result = Regex.Replace(result, tag, TagsT2S[pattern], RegexOptions.IgnoreCase);
                 }
 
-                if (TagsWildecardT2S is Dictionary<string, string>)
+                if (TagsWildecardT2S is ConcurrentDictionary<string, string>)
                 {
                     foreach (var kv in TagsWildecardT2S)
                     {
@@ -2685,7 +2684,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        public static void UpdateIllustTags(this Dictionary<string, string> tags)
+        public static void UpdateIllustTags(this ConcurrentDictionary<string, string> tags)
         {
             UpdateIllustTagsAsync();
         }
@@ -3272,7 +3271,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Downloaded Cache routines
-        private static Dictionary<string, bool> _cachedDownloadedList = new Dictionary<string, bool>();
+        private static ConcurrentDictionary<string, bool> _cachedDownloadedList = new ConcurrentDictionary<string, bool>();
         internal static void UpdateDownloadedListCache(this string folder, bool cached = true)
         {
             if (Directory.Exists(folder) && cached)
@@ -3338,8 +3337,9 @@ namespace PixivWPF.Common
         {
             try
             {
+                bool cached = false;
                 if (_cachedDownloadedList.ContainsKey(file))
-                    _cachedDownloadedList.Remove(file);
+                    _cachedDownloadedList.TryRemove(file, out cached);
             }
             catch (Exception) { }
         }
@@ -3358,7 +3358,7 @@ namespace PixivWPF.Common
         }
 
         // Define the event handlers.
-        private static Dictionary<string, FileSystemWatcher> _watchers = new Dictionary<string, FileSystemWatcher>();
+        private static ConcurrentDictionary<string, FileSystemWatcher> _watchers = new ConcurrentDictionary<string, FileSystemWatcher>();
         private static DateTime lastDownloadEventTick = DateTime.Now;
         private static string lastDownloadEventFile = string.Empty;
         private static WatcherChangeTypes lastDownloadEventType = WatcherChangeTypes.All;
@@ -3447,7 +3447,7 @@ namespace PixivWPF.Common
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static void InitDownloadedWatcher(this IEnumerable<StorageType> storages)
         {
-            Dictionary<string, StorageType> items = new Dictionary<string, StorageType>();
+            ConcurrentDictionary<string, StorageType> items = new ConcurrentDictionary<string, StorageType>();
             foreach (var ls in storages)
             {
                 var folder = Path.GetFullPath(ls.Folder.MacroReplace("%ID%", "")).TrimEnd('\\');
@@ -3457,7 +3457,7 @@ namespace PixivWPF.Common
                     if (parent is StorageType && parent.IncludeSubFolder) ls.Cached = true;
                     continue;
                 }
-                items.Add(ls.Folder.TrimEnd('\\'), ls);
+                items.TryAdd(ls.Folder.TrimEnd('\\'), ls);
             }
 
             storages.ReleaseDownloadedWatcher();
@@ -3512,7 +3512,7 @@ namespace PixivWPF.Common
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public static void ReleaseDownloadedWatcher(this IEnumerable<StorageType> storages)
         {
-            if (_watchers is Dictionary<string, FileSystemWatcher>)
+            if (_watchers is ConcurrentDictionary<string, FileSystemWatcher>)
             {
                 foreach (var w in _watchers)
                 {
@@ -4537,23 +4537,23 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private static Dictionary<string, string[]> exts = new Dictionary<string, string[]>()
+        {
+            { ".png", new string[] { ".png", "image/png", "PNG" } },
+            { ".bmp", new string[] { ".bmp", "image/bmp", "image/bitmap" } },
+            { ".gif", new string[] { ".gif", "image/gif", "image/gif89" } },
+            { ".tif", new string[] { ".tif", "image/tiff", "image/tif", ".tiff" } },
+            { ".tiff", new string[] { ".tif", "image/tiff", "image/tif", ".tiff" } },
+            { ".jpg", new string[] { ".jpg", "image/jpg", "image/jpeg", ".jpeg" } },
+            { ".jpeg", new string[] { ".jpg", "image/jpg", "image/jpeg", ".jpeg" } },
+        };
+
         public static async void CopyImage(this string file)
         {
             try
             {
                 if (File.Exists(file))
                 {
-                    Dictionary<string, string[]> exts = new Dictionary<string, string[]>()
-                    {
-                        { ".png", new string[] { ".png", "image/png", "PNG" } },
-                        { ".bmp", new string[] { ".bmp", "image/bmp", "image/bitmap" } },
-                        { ".gif", new string[] { ".gif", "image/gif", "image/gif89" } },
-                        { ".tif", new string[] { ".tif", "image/tiff", "image/tif", ".tiff" } },
-                        { ".tiff", new string[] { ".tif", "image/tiff", "image/tif", ".tiff" } },
-                        { ".jpg", new string[] { ".jpg", "image/jpg", "image/jpeg", ".jpeg" } },
-                        { ".jpeg", new string[] { ".jpg", "image/jpg", "image/jpeg", ".jpeg" } },
-                    };
-
                     var ext = Path.GetExtension(file).ToLower();
                     ClipboardBuffer = file.ToBytes();
                     var bs = await ClipboardBuffer.ToBitmapSource();
@@ -6401,10 +6401,10 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static Dictionary<string, string> _MessageDialogList = new Dictionary<string, string>();
+        private static ConcurrentDictionary<string, string> _MessageDialogList = new ConcurrentDictionary<string, string>();
         public static bool IsMessagePopup(this string title, string content = "")
         {
-            var result = _MessageDialogList.ContainsKey(title) || _MessageDialogList.ContainsValue(content);
+            var result = _MessageDialogList.ContainsKey(title) && _MessageDialogList[title].Equals(content);
             return (result);
         }
 
@@ -6413,7 +6413,8 @@ namespace PixivWPF.Common
             await Task.Delay(1);
             _MessageDialogList[title] = content;
             MessageBox.Show(content, title, MessageBoxButton.OK, image);
-            _MessageDialogList.Remove(title);
+            var value = string.Empty;
+            _MessageDialogList.TryRemove(title, out value);
         }
 
         public static async Task<bool> ShowMessageDialog(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
@@ -6421,7 +6422,8 @@ namespace PixivWPF.Common
             await Task.Delay(1);
             _MessageDialogList[title] = content;
             var ret = MessageBox.Show(content, title, MessageBoxButton.OKCancel, image);
-            _MessageDialogList.Remove(title);
+            var value = string.Empty;
+            _MessageDialogList.TryRemove(title, out value);
             return (ret == MessageBoxResult.OK || ret == MessageBoxResult.Yes ? true : false);
         }
 
@@ -7104,9 +7106,6 @@ namespace PixivWPF.Common
         {
 #if DEBUG
             Debug.WriteLine(contents);
-#else
-            if (IsConsole) Console.WriteLine(contents);
-            else Debug.WriteLine(contents);
 #endif
         }
 
@@ -7121,6 +7120,18 @@ namespace PixivWPF.Common
         #endregion
 
         #region WPF UI Helper
+        public static T FindByName<T>(this FrameworkElement element, string name)
+        {
+            T result = default(T);
+            try
+            {
+                var ret = element.FindName(name);
+                if (ret is T) result = (T)ret;
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
         public static DependencyObject GetVisualChildFromTreePath(this DependencyObject dpo, int[] path)
         {
             if (path.Length == 0) return dpo;

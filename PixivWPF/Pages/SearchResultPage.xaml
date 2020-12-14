@@ -261,12 +261,11 @@
         </ScrollViewer>
 
         <!-- Illust Searching Progress Prompt -->
-        <mah:ProgressRing Grid.Column="0"
-                          x:Name="PreviewWait"
-                          Width="128" Height="128" Opacity="0.62" 
-                          Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                          Visibility="Hidden"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Common:ProgressRingCloud 
+            Grid.Column="0" x:Name="SearchWait" Size="128" Visibility="Collapsed"
+            Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
+            ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
+            VerticalAlignment="Center" HorizontalAlignment="Center"/>        
 
     </Grid>
 </Page>

@@ -482,7 +482,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var item = illust.IllustItem();
+                        var item = illust.WorkItem();
                         if (item is ImageItem)
                         {
                             var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Contents = item, Tag = item };
@@ -1532,9 +1532,10 @@ namespace PixivWPF.Common
             }
             else if (obj is IllustImageViewerPage)
             {
+                var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
                 var page = obj as IllustImageViewerPage;
                 if (page.Contents is ImageItem)
-                    page.UpdateDetail(page.Contents);
+                    page.UpdateDetail(page.Contents, overwrite);
             }
             else if (obj is SearchResultPage)
             {

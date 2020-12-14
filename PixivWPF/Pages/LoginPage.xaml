@@ -53,8 +53,12 @@
             </Grid>
         </StackPanel>
         <mah:ProgressRing x:Name="LoginWait" 
-                          Width="96" Height="96" 
-                          IsEnabled="False" IsActive="False" Visibility="Collapsed"
-                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+            Width="96" Height="96" IsEnabled="False" IsActive="False" Opacity="0.67" Visibility="Collapsed"
+            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+            HorizontalAlignment="Center" VerticalAlignment="Center">
+            <mah:ProgressRing.Effect>
+                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
+            </mah:ProgressRing.Effect>            
+        </mah:ProgressRing>
     </Grid>
 </Page>

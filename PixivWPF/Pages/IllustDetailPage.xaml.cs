@@ -657,13 +657,13 @@ namespace PixivWPF.Pages
                             FavoriteItems.UpdateTilesImage(overwrite);
                             if (Contents.IsWork())
                             {
-                                ActionRefreshAvatar(Contents, overwrite);
-                                ActionRefreshPreview(Contents, overwrite);
+                                ActionRefreshAvatar(overwrite);
+                                ActionRefreshPreview(overwrite);
                             }
                             else if (Contents.IsUser())
                             {
-                                ActionRefreshAvatar(Contents, overwrite);
-                                UpdateUserBackground(Contents, overwrite);
+                                ActionRefreshAvatar(overwrite);
+                                UpdateUserBackground(overwrite);
                             }
                         }
                         else
@@ -911,9 +911,9 @@ namespace PixivWPF.Pages
                 CommentsExpander.Hide();
 #endif
                 await Task.Delay(1);
-                ActionRefreshAvatar(item);
+                ActionRefreshAvatar();
                 if (!SubIllustsExpander.IsExpanded)
-                    ActionRefreshPreview(item);
+                    ActionRefreshPreview();
             }
             catch (OperationCanceledException) { }
             catch (ObjectDisposedException) { }
@@ -932,9 +932,9 @@ namespace PixivWPF.Pages
         }
 
         private string user_backgroundimage_url = string.Empty;
-        public async void UpdateUserBackground(ImageItem item, bool overwrite = false)
+        public async void UpdateUserBackground(bool overwrite = false)
         {
-            if (item.IsUser())
+            if (Contents.IsUser())
             {
                 if (setting.ShowUserBackgroundImage && string.IsNullOrEmpty(user_backgroundimage_url))
                 {
@@ -1047,9 +1047,9 @@ namespace PixivWPF.Pages
                 FavoriteNextPage.Hide();
                 FavoriteItemsExpander.IsExpanded = false;
 
-                ActionRefreshAvatar(item);
+                ActionRefreshAvatar();
                 user_backgroundimage_url = nprof.background_image_url is string ? nprof.background_image_url as string : nuser.GetPreviewUrl();
-                UpdateUserBackground(item);
+                UpdateUserBackground();
             }
             catch (Exception ex)
             {
@@ -2471,9 +2471,9 @@ namespace PixivWPF.Pages
                     if (Keyboard.Modifiers == ModifierKeys.Control)
                         Commands.ShellSendToOtherInstance.Execute(Contents.User);
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        ActionRefreshAvatar(Contents);
+                        ActionRefreshAvatar();
                     else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        ActionRefreshAvatar(Contents, true);
+                        ActionRefreshAvatar(true);
                     else if (Contents.IsWork())
                         Commands.OpenUser.Execute(Contents.User);
                 }
@@ -2544,12 +2544,12 @@ namespace PixivWPF.Pages
         private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
         {
             var overwrite = Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control ? true : false;
-            ActionRefreshPreview(Contents, overwrite);
+            ActionRefreshPreview(overwrite);
         }
 
-        private async void ActionRefreshPreview(ImageItem item, bool overwrite = false)
+        private async void ActionRefreshPreview(bool overwrite = false)
         {
-            if (item is ImageItem)
+            if (Contents is ImageItem)
             {
                 setting = Application.Current.LoadSetting();               
 
@@ -2558,15 +2558,14 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        var c_item = item;
+                        var c_item = Contents;
                         if (SubIllusts.SelectedItem is ImageItem)
                         {
                             c_item = SubIllusts.SelectedItem as ImageItem;
-                            item.Index = c_item.Index;
+                            Contents.Index = c_item.Index;
+                            lastSelectionItem = c_item;
+                            lastSelectionChanged = DateTime.Now;
                         }
-
-                        lastSelectionItem = c_item;
-                        lastSelectionChanged = DateTime.Now;
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index);
                         var img = await PreviewImageUrl.LoadImageFromUrl(overwrite);
@@ -2579,7 +2578,8 @@ namespace PixivWPF.Pages
                             var large = await PreviewImageUrl.LoadImageFromUrl(overwrite);
                             if (large.Source != null) img = large;
                         }
-                        if (img.Source != null && c_item.IsSameIllust(item))
+
+                        if (img.Source != null && c_item.IsSameIllust(Contents))
                         {
                             Preview.Source = img.Source;
                             PreviewWait.Hide();
@@ -2598,18 +2598,18 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void ActionRefreshAvatar(ImageItem item, bool overwrite = false)
+        private async void ActionRefreshAvatar(bool overwrite = false)
         {
-            if (item is ImageItem)
+            if (Contents is ImageItem)
             {
                 IllustAuthorAvatarWait.Show();
                 await new Action(async () =>
                 {
                     try
                     {
-                        var c_item = item;
-                        var img =  await item.User.GetAvatarUrl().LoadImageFromUrl(overwrite);
-                        if (c_item.IsSameIllust(item))
+                        var c_item = Contents;
+                        var img =  await Contents.User.GetAvatarUrl().LoadImageFromUrl(overwrite);
+                        if (c_item.IsSameIllust(Contents))
                         {
                             if (img.Source != null)
                             {
