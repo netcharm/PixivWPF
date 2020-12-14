@@ -31,6 +31,7 @@ namespace PixivWPF.Pages
         private int page_index = 0;
 
         private string PreviewImageUrl = string.Empty;
+        private string AvatarImageUrl = string.Empty;
 
         private string CurrentRelativeURL = string.Empty;
         private string NextRelativeURL = string.Empty;
@@ -49,9 +50,9 @@ namespace PixivWPF.Pages
         private WindowsFormsHostEx descHost;
         private WindowsFormsHostEx commentsHost;
 #endif
-        private System.Windows.Forms.WebBrowser IllustDescHtml;
-        private System.Windows.Forms.WebBrowser IllustTagsHtml;
-        private System.Windows.Forms.WebBrowser IllustCommentsHtml;
+        private WebBrowserEx IllustDescHtml;
+        private WebBrowserEx IllustTagsHtml;
+        private WebBrowserEx IllustCommentsHtml;
 
         private List<DependencyObject> hitResultsList = new List<DependencyObject>();
         // Return the result of the hit test to the callback.
@@ -312,12 +313,12 @@ namespace PixivWPF.Pages
             catch (Exception) { host = null; }
         }
 
-        private void InitHtmlRender(out System.Windows.Forms.WebBrowser browser)
+        private void InitHtmlRender(out WebBrowserEx browser)
         {
             browser = null;
             try
             {
-                browser = new System.Windows.Forms.WebBrowser()
+                browser = new WebBrowserEx()
                 {
                     DocumentText = string.Empty.GetHtmlFromTemplate(),
                     Dock = System.Windows.Forms.DockStyle.Fill,
@@ -362,32 +363,24 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (IllustTagsHtml is System.Windows.Forms.WebBrowser) IllustTagsHtml.Dispose();
-            }
-            catch { }
-            try
-            {
-                if (tagsHost is WindowsFormsHostEx) tagsHost.Dispose();
-            }
-            catch { }
-            try
-            {
-                if (IllustDescHtml is System.Windows.Forms.WebBrowser) IllustDescHtml.Dispose();
-            }
-            catch { }
-            try
-            {
-                if (descHost is WindowsFormsHostEx) descHost.Dispose();
-            }
-            catch { }
-            try
-            {
-                if (IllustCommentsHtml is System.Windows.Forms.WebBrowser) IllustCommentsHtml.Dispose();
-            }
-            catch { }
-            try
-            {
-                if (commentsHost is WindowsFormsHostEx) commentsHost.Dispose();
+                var hosts = new WindowsFormsHostEx[] {tagsHost, descHost,commentsHost };
+                var wbs = new WebBrowserEx[] { IllustTagsHtml, IllustDescHtml, IllustCommentsHtml };
+                for (var i = 0; i < wbs.Length; i++)
+                {
+                    if (wbs[i] is WebBrowserEx)
+                    {
+                        wbs[i].Dispose(true);
+                        wbs[i] = null;
+                    }
+                }
+                for (var i = 0; i < hosts.Length; i++)
+                {
+                    if (hosts[i] is WindowsFormsHostEx)
+                    {
+                        hosts[i].Dispose();
+                        hosts[i] = null;
+                    }
+                }
             }
             catch { }
         }
@@ -760,8 +753,6 @@ namespace PixivWPF.Pages
                 PreviewBox.ToolTip = item.ToolTip;
 
                 Preview.Source = Application.Current.GetNullPreview();
-                PreviewWait.Show();
-                //PreviewLoadingMark.Show();
 
                 string stat_viewed = "????";
                 string stat_favorited = "????";
@@ -938,15 +929,20 @@ namespace PixivWPF.Pages
             {
                 if (setting.ShowUserBackgroundImage && string.IsNullOrEmpty(user_backgroundimage_url))
                 {
-                    PreviewWait.Show();
-                    //PreviewLoadingMark.Show();
-                    PreviewViewer.Show();
-                    Preview.Source = (await user_backgroundimage_url.LoadImageFromUrl(overwrite)).Source;
+                    try
+                    {
+                        PreviewViewer.Show();
+                        PreviewWait.Wait();
+                        var bg = await user_backgroundimage_url.LoadImageFromUrl(overwrite);
+                        if (bg.Source == null) PreviewWait.Fail();
+                        else PreviewWait.Ready();
+                        Preview.Source = bg.Source;
+                    }
+                    catch (Exception) { PreviewWait.Fail(); }
                 }
                 else
                 {
-                    PreviewWait.Hide();
-                    //PreviewLoadingMark.Hide();
+                    PreviewWait.Ready();
                     PreviewViewer.Hide();
                     Preview.Source = null;
                 }
@@ -2551,13 +2547,14 @@ namespace PixivWPF.Pages
         {
             if (Contents is ImageItem)
             {
-                setting = Application.Current.LoadSetting();               
+                setting = Application.Current.LoadSetting();
 
-                PreviewWait.Wait();
+                Preview.Show();
                 await new Action(async () =>
                 {
                     try
                     {
+                        PreviewWait.Wait();
                         var c_item = Contents;
                         if (SubIllusts.SelectedItem is ImageItem)
                         {
@@ -2586,13 +2583,10 @@ namespace PixivWPF.Pages
                         }
                         else PreviewWait.Fail();
                     }
-                    catch (Exception) { }
+                    catch (Exception) { PreviewWait.Fail(); }
                     finally
                     {
-                        if (Preview.Source != null)
-                            Preview.Show();
-                        else
-                            PreviewWait.Fail();
+                        if (Preview.Source == null) PreviewWait.Fail();                            
                     }
                 }).InvokeAsync();
             }
@@ -2602,13 +2596,14 @@ namespace PixivWPF.Pages
         {
             if (Contents is ImageItem)
             {
-                IllustAuthorAvatarWait.Wait();
                 await new Action(async () =>
                 {
                     try
                     {
+                        IllustAuthorAvatarWait.Wait();
                         var c_item = Contents;
-                        var img =  await Contents.User.GetAvatarUrl().LoadImageFromUrl(overwrite);
+                        AvatarImageUrl = Contents.User.GetAvatarUrl();
+                        var img =  await AvatarImageUrl.LoadImageFromUrl(overwrite);
                         if (c_item.IsSameIllust(Contents))
                         {
                             if (img.Source != null)
@@ -2616,11 +2611,14 @@ namespace PixivWPF.Pages
                                 IllustAuthorAvatar.Source = img.Source;
                                 IllustAuthorAvatarWait.Ready();
                             }
-                            else
-                                IllustAuthorAvatarWait.Fail();
+                            else IllustAuthorAvatarWait.Fail();
                         }
                     }
-                    catch (Exception) { }
+                    catch (Exception) { IllustAuthorAvatarWait.Fail(); }
+                    finally
+                    {
+                        if (IllustAuthorAvatar.Source == null) IllustAuthorAvatarWait.Fail();
+                    }
                 }).InvokeAsync();
             }
         }

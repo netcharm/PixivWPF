@@ -1163,6 +1163,10 @@ namespace PixivWPF.Common
             {
                 Commands.CopyDownloadInfo.Execute(Info);
             }
+            else if(sender == miRefreshThumb)
+            {
+                Thumbnail = (await ThumbnailUrl.LoadImageFromUrl()).Source;
+            }
             else if ((sender == miOpenIllust || sender == PART_OpenIllust) && !string.IsNullOrEmpty(Url))
             {
                 var illust = Url.GetIllustId().FindIllust();

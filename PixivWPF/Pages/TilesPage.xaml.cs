@@ -544,6 +544,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -596,6 +597,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -648,6 +650,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -700,6 +703,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -755,6 +759,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -812,6 +817,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -864,6 +870,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -928,6 +935,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -987,6 +995,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -1067,6 +1076,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -1123,6 +1133,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -1178,6 +1189,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");
@@ -1233,6 +1245,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ListImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
                     "No Result".ShowMessageBox("INFO");

@@ -119,6 +119,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                HistoryItems.Fail();
                 if (ex is NullReferenceException)
                 {
                     //"No Result".ShowMessageBox("WARNING");

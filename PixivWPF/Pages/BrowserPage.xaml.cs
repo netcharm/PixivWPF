@@ -29,7 +29,7 @@ namespace PixivWPF.Pages
     {
         private bool bCancel = false;
         private WindowsFormsHostEx webHost;
-        private System.Windows.Forms.WebBrowser webHtml;
+        private WebBrowserEx webHtml;
         private Uri currentUri = null;
         private string titleWord = string.Empty;
 
@@ -56,7 +56,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void InitHtmlRenderHost(out WindowsFormsHostEx host, System.Windows.Forms.WebBrowser browser, Panel panel)
+        private void InitHtmlRenderHost(out WindowsFormsHostEx host, WebBrowserEx browser, Panel panel)
         {
             host = new WindowsFormsHostEx()
             {
@@ -71,9 +71,9 @@ namespace PixivWPF.Pages
             if(panel is Panel) panel.Children.Add(host);
         }
 
-        private void InitHtmlRender(out System.Windows.Forms.WebBrowser browser)
+        private void InitHtmlRender(out WebBrowserEx browser)
         {
-            browser = new System.Windows.Forms.WebBrowser()
+            browser = new WebBrowserEx()
             {
                 DocumentText = string.Empty.GetHtmlFromTemplate(),
                 Dock = System.Windows.Forms.DockStyle.Fill,
@@ -112,7 +112,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (webHtml is System.Windows.Forms.WebBrowser) webHtml.Dispose();
+                if (webHtml is System.Windows.Forms.WebBrowser) webHtml.Dispose(true);
             }
             catch { }
             try

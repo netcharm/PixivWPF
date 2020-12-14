@@ -86,6 +86,15 @@ namespace PixivWPF.Common
 
     public enum AutoExpandMode { OFF = 0, ON, AUTO, SINGLEPAGE };
 
+    public class WebBrowserEx : System.Windows.Forms.WebBrowser
+    {
+        internal new void Dispose(bool disposing)
+        {
+            // call WebBrower.Dispose(bool)
+            base.Dispose(disposing);
+        }
+    }
+
     public class HtmlTextData
     {
         public string Html { get; set; } = string.Empty;
@@ -983,6 +992,16 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
         }
+
+        public static async Task InvokeAsync(this Action action, CancellationToken cancelToken)
+        {
+            try
+            {
+                Dispatcher dispatcher = action.AppDispatcher();
+                await dispatcher.InvokeAsync(action, DispatcherPriority.Background, cancelToken);
+            }
+            catch (Exception) { }
+        }
         #endregion
 
         #region AES Encrypt/Decrypt helper
@@ -1811,8 +1830,7 @@ namespace PixivWPF.Common
 
         public static DateTime SelectedDate { get; set; } = DateTime.Now;
 
-        private static List<string> ext_imgs_more = new List<string>() { ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
-        private static List<string> ext_imgs = new List<string>() { ".png", ".jpg" };
+        private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
         internal static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         internal static string[] trim_str = new string[] { Environment.NewLine };
 
@@ -2067,7 +2085,7 @@ namespace PixivWPF.Common
 
         public static string ParseID(this string searchContent)
         {
-            var patten =  @"((UserID)|(IllustID)|(User)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)|(Downloading)):(.*?)$";
+            var patten =  @"((UserID)|(IllustID)|(User)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)|(Downloading)):\s*(.*?)$";
             string result = searchContent;
             if (!string.IsNullOrEmpty(result))
             {
@@ -2643,15 +2661,15 @@ namespace PixivWPF.Common
 
                 if (TagsWildecardT2S is ConcurrentDictionary<string, string>)
                 {
+                    var alpha = Regex.IsMatch(result, @"^[\u0020-\u007E]*$", RegexOptions.IgnoreCase);
+                    var text = alpha ? tag : result;
                     foreach (var kv in TagsWildecardT2S)
-                    {
+                    {                        
                         var k = kv.Key;
                         var v = kv.Value;
-                        if (k.StartsWith("/") && k.EndsWith("/"))
-                            result = Regex.Replace(result, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
-                        else
-                            result = result.Replace(k, v);
+                        text = Regex.Replace(text, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
                     }
+                    result = alpha && !text.Equals(result) ? $"{text}/{result}" : text;
                 }
             }
             catch (Exception) { }
@@ -3065,8 +3083,7 @@ namespace PixivWPF.Common
                     {
                         setting = Application.Current.LoadSetting();
                         var alt_viewer = Keyboard.Modifiers == ModifierKeys.Alt ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
-                        var ext = Path.GetExtension(FileName).ToLower();
-                        var IsImage = ext_imgs_more.Contains(ext) || ext_imgs.Contains(ext) ? true : false;
+                        var IsImage = ext_imgs.Contains(Path.GetExtension(FileName).ToLower()) ? true : false;
                         if (alt_viewer && IsImage)
                         {
                             if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
@@ -3282,7 +3299,7 @@ namespace PixivWPF.Common
                     var files = Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories);
                     foreach (var f in files)
                     {
-                        if (ext_imgs.Contains(Path.GetExtension(f)))
+                        if (ext_imgs.Contains(Path.GetExtension(f).ToLower()))
                             _cachedDownloadedList[f] = cached;
                     }
                 }
@@ -4644,7 +4661,7 @@ namespace PixivWPF.Common
 
             try
             {
-                if (long.Parse(item.ID) == id) result = true;
+                result = long.Parse(item.ID) == id;
             }
             catch (Exception) { }
 
@@ -4657,7 +4674,7 @@ namespace PixivWPF.Common
 
             try
             {
-                if (long.Parse(item.ID) == (id ?? -1)) result = true;
+                result = long.Parse(item.ID) == (id ?? -1);
             }
             catch (Exception) { }
 
@@ -4670,7 +4687,7 @@ namespace PixivWPF.Common
 
             try
             {
-                if (long.Parse(item.ID) == long.Parse(item_now.ID) && item.Index == item_now.Index) result = true;
+                result = long.Parse(item.ID) == long.Parse(item_now.ID) && item.Index == item_now.Index;
             }
             catch (Exception) { }
 

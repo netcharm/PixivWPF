@@ -37,6 +37,14 @@
                         </Grid>
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem x:Name="miRefreshThumb" x:Uid="miRefreshThumb" Header="Refresh Thumbnail" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <TextBlock Margin="4,0,0,0"
+                        Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="miOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="miActions_Click">
                     <MenuItem.Icon>
@@ -88,7 +96,13 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*" MinWidth="468"/>
         </Grid.ColumnDefinitions>
-       
+
+        <local:ProgressRingCloud 
+            Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_ThumbnailWait" Size="128" 
+            Visibility="Visible" IsActive="False"
+            Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
+            ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
+            VerticalAlignment="Center" HorizontalAlignment="Center"/>
         <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_Preview" x:Uid="Preview"
                Source="{Binding Path=Thumbnail, Mode=OneWay}"
                Width="128" Height="128" Margin="2,2,4,2"

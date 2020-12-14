@@ -256,7 +256,7 @@ namespace PixivWPF.Pages
             {
                 if (string.IsNullOrEmpty(content)) return;
 
-                SearchWait.Show();
+                ResultItems.Wait();
 
                 if (!append)
                 {
@@ -267,7 +267,7 @@ namespace PixivWPF.Pages
 
                 var no_filter = string.IsNullOrEmpty(filter);
                 var filter_string = no_filter ? string.Empty : $" ({filter.Replace("users入り", "+ Favs")})";
-                ResultExpander.Header = $"Search Results{filter_string}";
+                ResultExpander.Header = $"Search Results{filter_string}, {content}";
 
                 if (content.StartsWith("UserID:", StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -433,6 +433,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
+                ResultItems.Fail();
                 if (ex is NullReferenceException)
                 {
                     //"No Result".ShowMessageBox("WARNING");
@@ -447,7 +448,7 @@ namespace PixivWPF.Pages
             {
                 if (window is ContentWindow)
                 {
-                    SearchWait.Hide();
+                    ResultItems.Ready();
                     (window as MetroWindow).AdjustWindowPos();
                 }
             }
@@ -637,7 +638,7 @@ namespace PixivWPF.Pages
 
         private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)
         {
-            SearchWait.Hide();
+            ResultItems.Ready();
             if (ResultNextPage is Button) ResultNextPage.Hide();
         }
 

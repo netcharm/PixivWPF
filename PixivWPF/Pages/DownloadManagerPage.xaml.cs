@@ -172,10 +172,13 @@ namespace PixivWPF.Pages
             bool result = false;
             try
             {
-                if (string.IsNullOrEmpty(item.Url))
-                    result = true;
-                else
-                    result = items.Where(i => i.Url.Equals(item.Url, StringComparison.CurrentCultureIgnoreCase)).Count() > 0;
+                lock (items)
+                {
+                    if (string.IsNullOrEmpty(item.Url))
+                        result = true;
+                    else
+                        result = items.Where(i => i.Url.Equals(item.Url, StringComparison.CurrentCultureIgnoreCase)).Count() > 0;
+                }
             }
             catch (Exception) { }
             return (result);
@@ -185,8 +188,11 @@ namespace PixivWPF.Pages
         {
             if (item is DownloadInfo)// && !IsExists(item))
             {
-                items.Add(item);
-                DownloadItems.ScrollIntoView(item);
+                lock (items)
+                {
+                    items.Add(item);
+                    DownloadItems.ScrollIntoView(item);
+                }
             }
         }
 
