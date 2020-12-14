@@ -107,8 +107,9 @@ namespace PixivWPF.Common
         {
             lock (this)
             {
-                Visibility = Visibility.Visible;
                 IsActive = true;
+                IsEnabled = true;
+                Visibility = Visibility.Visible;
             }
         }
 
@@ -116,6 +117,8 @@ namespace PixivWPF.Common
         {
             lock (this)
             {
+                IsActive = false;
+                IsEnabled = false;
                 Visibility = Visibility.Collapsed;
             }
         }
@@ -128,6 +131,21 @@ namespace PixivWPF.Common
                 IsEnabled = false;
                 Visibility = Visibility.Visible;
             }
+        }
+
+        public void Wait()
+        {
+            Show();
+        }
+
+        public void Ready()
+        {
+            Hide();
+        }
+
+        public void Fail()
+        {
+            Disable();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

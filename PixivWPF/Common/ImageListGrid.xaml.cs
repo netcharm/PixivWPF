@@ -330,12 +330,17 @@ namespace PixivWPF.Common
 
         public void Wait()
         {
-            PART_ImageTilesWait.Show();
+            PART_ImageTilesWait.Wait();
         }
 
         public void Ready()
         {
-            PART_ImageTilesWait.Hide();
+            PART_ImageTilesWait.Ready();
+        }
+
+        public void Fail()
+        {
+            PART_ImageTilesWait.Fail();
         }
 
         public void Cancel()
