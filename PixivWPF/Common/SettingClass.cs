@@ -853,6 +853,28 @@ namespace PixivWPF.Common
             }
         }
 
+        private int download_tasks_max_simultaneous = 20;
+        public int DownloadMaxSimultaneous
+        {
+            get { return (Cache is Setting ? Cache.download_tasks_max_simultaneous : download_tasks_max_simultaneous); }
+            set
+            {
+                download_tasks_max_simultaneous = Math.Min(50, Math.Max(1, value));
+                if (Cache is Setting) Cache.download_tasks_max_simultaneous = download_tasks_max_simultaneous;
+            }
+        }
+
+        private int download_tasks_simultaneous = 10;
+        public int DownloadSimultaneous
+        {
+            get { return (Cache is Setting ? Cache.download_tasks_simultaneous : download_tasks_simultaneous); }
+            set
+            {
+                download_tasks_simultaneous = Math.Min(50, Math.Max(1, value));
+                if (Cache is Setting) Cache.download_tasks_simultaneous = download_tasks_simultaneous;
+            }
+        }
+
         private bool download_resume = true;
         public bool DownloadWithFailResume
         {

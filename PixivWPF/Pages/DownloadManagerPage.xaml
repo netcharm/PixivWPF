@@ -1,4 +1,5 @@
 ﻿<Page x:Class="PixivWPF.Pages.DownloadManagerPage"
+      x:Name="page" 
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -23,7 +24,7 @@
                 BorderThickness="1"/>
         </DataTemplate>
     </Page.Resources>
-    
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -35,7 +36,10 @@
         <TextBlock Grid.Row="0" x:Name="PART_DownloadState" Margin="2,4,2,4" HorizontalAlignment="Left" VerticalAlignment="Center"/>
         <StackPanel Grid.Row="0" Margin="2,4,2,4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
             <Slider x:Name="PART_MaxJobs" HorizontalAlignment="Right" VerticalAlignment="Center" Width="133" Margin="4,10" 
-                    Minimum="1" SmallChange="1" LargeChange="5" Value="10" Maximum="25" ValueChanged="PART_MaxJobs_ValueChanged"/>
+                    Minimum="1" SmallChange="1" LargeChange="5" 
+                    Value="{Binding Path=SimultaneousJobs, ElementName=page, IsAsync=True, Mode=TwoWay}" 
+                    Maximum="{Binding Path=MaxSimultaneousJobs, ElementName=page, IsAsync=True, Mode=OneWay}" 
+                    ValueChanged="PART_MaxJobs_ValueChanged"/>
             <Button x:Name="PART_ChangeFolder" x:Uid="ChangeFolder" Margin="2,0,2,0" Click="PART_ChangeFolder_Click"
                     ToolTip="Change Destination Save Folder"
                     HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -67,7 +71,7 @@
                     <iconPacks:PackIconModern Kind="ClipboardPaper" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" Grid.Column="0" Grid.Row="0"/>
                     <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="8" Height="8" Margin="4,6,0,0" Grid.Column="0" Grid.Row="0"/>
                 </Grid>
-            </Button>            
+            </Button>
             <Button x:Name="PART_CopyID" x:Uid="CopyID" Margin="2,0,2,0" Click="PART_CopyID_Click"
                     ToolTip="Copy All/Selected Items ID To Clipboard"
                     HorizontalAlignment="Right" VerticalAlignment="Center"

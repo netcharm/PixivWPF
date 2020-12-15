@@ -30,14 +30,20 @@ namespace PixivWPF
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            //NBug.Settings.Destinations.Add(new NBug.Core.Submission.Custom.Custom());
-            NBug.Settings.CustomSubmissionEvent += Settings_CustomSubmissionEvent;
+            try
+            {
+                NBug.Settings.Destinations.Add(new NBug.Core.Submission.Custom.Custom());
+                NBug.Settings.CustomSubmissionEvent += Settings_CustomSubmissionEvent;
 
-            //add handler on application load
-            AppDomain.CurrentDomain.UnhandledException += NBug.Handler.UnhandledException;
-            Application.Current.DispatcherUnhandledException += NBug.Handler.DispatcherUnhandledException;
-
-            var setting = this.LoadSetting(true);
+                //add handler on application load
+                AppDomain.CurrentDomain.UnhandledException += NBug.Handler.UnhandledException;
+                Application.Current.DispatcherUnhandledException += NBug.Handler.DispatcherUnhandledException;
+            }
+            catch { }
+            finally
+            {
+                var setting = this.LoadSetting(true);
+            }
         }
     }
 }

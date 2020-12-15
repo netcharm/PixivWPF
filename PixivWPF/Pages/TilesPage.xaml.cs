@@ -37,6 +37,7 @@ namespace PixivWPF.Pages
         internal Task lastTask = null;
         internal CancellationTokenSource cancelTokenSource;
 
+        #region Update UI helper
         internal void UpdateTheme()
         {
             if (detail_page is IllustDetailPage)
@@ -141,6 +142,17 @@ namespace PixivWPF.Pages
             e.Accepted = true;
         }
 
+        protected internal async void UpdateTilesThumb(bool overwrite = false)
+        {
+            this.DoEvents();
+            lastTask = await ListImageTiles.Items.UpdateTilesThumb(lastTask, overwrite, cancelTokenSource, 5);
+        }
+
+        public void UpdateTiles()
+        {
+            ShowImages(TargetPage, false, GetLastSelectedID());
+        }
+
         internal string GetLastSelectedID()
         {
             string id = lastSelectedId;
@@ -151,17 +163,6 @@ namespace PixivWPF.Pages
                 id = ListImageTiles.SelectedItem is ImageItem ? (ListImageTiles.SelectedItem as ImageItem).ID : lastSelectedId;
             }
             return (id);
-        }
-
-        protected internal async void UpdateTilesThumb(bool overwrite = false)
-        {
-            this.DoEvents();
-            lastTask = await ListImageTiles.Items.UpdateTilesThumb(lastTask, overwrite, cancelTokenSource, 5);
-        }
-
-        public void UpdateTiles()
-        {
-            ShowImages(TargetPage, false, GetLastSelectedID());
         }
 
         private void KeepLastSelected(string id)
@@ -193,7 +194,9 @@ namespace PixivWPF.Pages
                 TilesViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
             }
         }
-        
+        #endregion
+
+        #region Navigation helper
         public void PrevIllust()
         {
             if (this is TilesPage)
@@ -294,7 +297,9 @@ namespace PixivWPF.Pages
             }
             catch (Exception) { }
         }
+        #endregion
 
+        #region Live Filter helper
         public void SetFilter(string filter)
         {
             try
@@ -324,6 +329,7 @@ namespace PixivWPF.Pages
                 ex.Message.DEBUG();
             }
         }
+        #endregion
 
         public dynamic GetTilesCount()
         {

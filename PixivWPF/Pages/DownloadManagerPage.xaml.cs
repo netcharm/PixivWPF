@@ -36,8 +36,11 @@ namespace PixivWPF.Pages
         [DefaultValue(true)]
         public bool AutoStart { get; set; } = true;
 
-        [DefaultValue(5)]
-        public uint MaxJobs { get; set; } = 10;
+        [DefaultValue(10)]
+        public int SimultaneousJobs { get { return (setting.DownloadSimultaneous); } set { setting.DownloadSimultaneous = value; } }
+
+        [DefaultValue(25)]
+        public int MaxSimultaneousJobs { get { return (setting.DownloadMaxSimultaneous); } }
 
         private TimerCallback tcb = null;
         private Timer timer = null;
@@ -90,39 +93,50 @@ namespace PixivWPF.Pages
         public DownloadManagerPage()
         {
             InitializeComponent();
-            setting = Application.Current.LoadSetting();
+        }
 
-            DataContext = this;
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            setting = Application.Current.LoadSetting();
+            if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
+            if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
 
             tcb = timerCallback;
             timer = new Timer(tcb);
             timer.Change(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(1000));
 
-            PART_MaxJobs.Value = MaxJobs;
-
             DownloadItems.ItemsSource = items;
-        }
-
-        private void Page_Loaded(object sender, RoutedEventArgs e)
-        {
             window = Window.GetWindow(this);
         }
 
-        private void timerCallback(object stateInfo)
+        private async void timerCallback(object stateInfo)
         {
-            //if (IsIdle) return;
-            var jobs_count = items.Where(i => i.State == DownloadState.Downloading || i.State == DownloadState.Writing).Count();
-            var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);//|| item.State == DownloadState.Failed);
-            foreach (var item in pre_jobs)
+            try
             {
-                if (jobs_count < MaxJobs)
+                await new Action(() =>
                 {
-                    //if (states_job.Contains(item.State)) continue;
-                    if(item.AutoStart) item.IsStart = true;
-                    jobs_count++;
-                }
+                    if (IsLoaded)
+                    {
+                        setting = Application.Current.LoadSetting();
+                        if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
+                        if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
+
+                        var jobs_count = items.Where(i => i.State == DownloadState.Downloading || i.State == DownloadState.Writing).Count();
+                        var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);//|| item.State == DownloadState.Failed);
+                    foreach (var item in pre_jobs)
+                        {
+                            if (jobs_count < SimultaneousJobs)
+                            {
+                            //if (states_job.Contains(item.State)) continue;
+                            if (item.AutoStart) item.IsStart = true;
+                                jobs_count++;
+                            }
+                        }
+                        UpdateStateInfo();
+                    }
+                }).InvokeAsync();
             }
-            UpdateStateInfo();
+            catch (Exception) { }
         }
 
         private async void UpdateStateInfo()
@@ -245,10 +259,26 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void PART_MaxJobs_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void PART_ChangeFolder_Click(object sender, RoutedEventArgs e)
         {
-            MaxJobs = Convert.ToUInt32(PART_MaxJobs.Value);
-            PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {MaxJobs}";
+            Application.Current.SaveTarget(string.Empty);
+        }
+
+        private async void PART_MaxJobs_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            try
+            {
+                await new Action(() =>
+                {
+                    if (IsLoaded)
+                    {
+                        setting = Application.Current.LoadSetting();
+                        SimultaneousJobs = Convert.ToInt32(PART_MaxJobs.Value);
+                        PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {SimultaneousJobs} / {MaxSimultaneousJobs}";
+                    }
+                }).InvokeAsync();
+            }
+            catch (Exception) { }
         }
 
         private async void PART_DownloadAll_Click(object sender, RoutedEventArgs e)
@@ -269,7 +299,7 @@ namespace PixivWPF.Pages
                         if (needUpdate.Count() > 0)
                         {
                             var opt = new ParallelOptions();
-                            opt.MaxDegreeOfParallelism = (int)MaxJobs;
+                            opt.MaxDegreeOfParallelism = (int)SimultaneousJobs;
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
                                 item.IsStart = true;
@@ -283,7 +313,7 @@ namespace PixivWPF.Pages
                         if (needUpdate.Count() > 0)
                         {
                             var opt = new ParallelOptions();
-                            opt.MaxDegreeOfParallelism = (int)MaxJobs;
+                            opt.MaxDegreeOfParallelism = (int)SimultaneousJobs;
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
                                 item.IsStart = true;
@@ -321,11 +351,6 @@ namespace PixivWPF.Pages
                 }).InvokeAsync();
             }
             catch (Exception) { }
-        }
-
-        private void PART_ChangeFolder_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.SaveTarget(string.Empty);
         }
 
         private async void PART_CopyID_Click(object sender, RoutedEventArgs e)

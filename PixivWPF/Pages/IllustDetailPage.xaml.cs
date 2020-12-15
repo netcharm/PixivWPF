@@ -363,7 +363,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                var hosts = new WindowsFormsHostEx[] {tagsHost, descHost,commentsHost };
+                var hosts = new System.Windows.Forms.Integration.WindowsFormsHost[] { tagsHost, descHost, commentsHost };
                 var wbs = new WebBrowserEx[] { IllustTagsHtml, IllustDescHtml, IllustCommentsHtml };
                 for (var i = 0; i < wbs.Length; i++)
                 {
@@ -2554,15 +2554,12 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        PreviewWait.Wait();
-                        var c_item = Contents;
-                        if (SubIllusts.SelectedItem is ImageItem)
-                        {
-                            c_item = SubIllusts.SelectedItem as ImageItem;
-                            Contents.Index = c_item.Index;
-                            lastSelectionItem = c_item;
-                            lastSelectionChanged = DateTime.Now;
-                        }
+                        var c_item = SubIllusts.SelectedItem is ImageItem ? SubIllusts.SelectedItem as ImageItem : Contents;
+                        Contents.Index = c_item.Index;
+                        lastSelectionItem = c_item;
+                        lastSelectionChanged = DateTime.Now;
+
+                        if(c_item.IsSameIllust(Contents)) PreviewWait.Wait();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index);
                         var img = await PreviewImageUrl.LoadImageFromUrl(overwrite);
@@ -2576,12 +2573,15 @@ namespace PixivWPF.Pages
                             if (large.Source != null) img = large;
                         }
 
-                        if (img.Source != null && c_item.IsSameIllust(Contents))
+                        if (c_item.IsSameIllust(Contents))
                         {
-                            Preview.Source = img.Source;
-                            PreviewWait.Ready();
-                        }
-                        else PreviewWait.Fail();
+                            if (img.Source != null)
+                            {
+                                Preview.Source = img.Source;
+                                PreviewWait.Ready();
+                            }
+                            else PreviewWait.Fail();
+                        }                        
                     }
                     catch (Exception) { PreviewWait.Fail(); }
                     finally
