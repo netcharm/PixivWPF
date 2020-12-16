@@ -53,15 +53,15 @@ namespace PixivWPF.Common
 
         [Description("Get or Set Image Tiles Select Item")]
         [Category("Common Properties")]
-        public ImageItem SelectedItem
+        public PixivItem SelectedItem
         {
-            get { return PART_ImageTiles.SelectedItem is ImageItem ? PART_ImageTiles.SelectedItem as ImageItem : null; }
+            get { return PART_ImageTiles.SelectedItem is PixivItem ? PART_ImageTiles.SelectedItem as PixivItem : null; }
             set { PART_ImageTiles.SelectedItem = value; }
         }
 
         [Description("Get or Set Image Tiles Select Items")]
         [Category("Common Properties")]
-        public IList<ImageItem> SelectedItems
+        public IList<PixivItem> SelectedItems
         {
             get
             {
@@ -70,7 +70,7 @@ namespace PixivWPF.Common
                 else
                 {
                     System.Collections.IList items = (System.Collections.IList)PART_ImageTiles.SelectedItems;
-                    var collection = items.Cast<ImageItem>();
+                    var collection = items.Cast<PixivItem>();
                     //IList<ImageItem> collection = (IList<ImageItem>)PART_ImageTiles.SelectedItems;
                     return (collection.ToList());
                 }
@@ -85,15 +85,15 @@ namespace PixivWPF.Common
             set { PART_ImageTiles.SelectionMode = value; }
         }
 
-        private ObservableCollection<ImageItem> ImageList = new ObservableCollection<ImageItem>();
+        private ObservableCollection<PixivItem> ImageList = new ObservableCollection<PixivItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
-        public ObservableCollection<ImageItem> Items
+        public ObservableCollection<PixivItem> Items
         {
             get { return (ImageList); }
             set
             {
-                if(ImageList is ObservableCollection<ImageItem>) ImageList.Clear();
+                if(ImageList is ObservableCollection<PixivItem>) ImageList.Clear();
                 ImageList = value;
                 PART_ImageTiles.ItemsSource = value;
                 NotifyPropertyChanged("ItemsChanged");
@@ -437,9 +437,9 @@ namespace PixivWPF.Common
                     //var progress = tile.FindByName<ProgressRing>("PART_Progress");
                     //if (tile.Tag is ImageItem && progress is ProgressRing)
                     var progress = tile.FindByName<ProgressRingCloud>("PART_Progress");
-                    if (tile.Tag is ImageItem && progress is ProgressRingCloud)
+                    if (tile.Tag is PixivItem && progress is ProgressRingCloud)
                     {
-                        var item = tile.Tag as ImageItem;
+                        var item = tile.Tag as PixivItem;
                         if (item.State == TaskStatus.Created || item.State == TaskStatus.Running)
                         {
                             progress.Show();

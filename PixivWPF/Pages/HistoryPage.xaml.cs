@@ -57,9 +57,9 @@ namespace PixivWPF.Pages
                 HistoryItems.UpdateLikeState(illustid, is_user);
         }
 
-        public void AddToHistory(ImageItem item)
+        public void AddToHistory(PixivItem item)
         {
-            if (HistoryItems.Items is ObservableCollection<ImageItem>)
+            if (HistoryItems.Items is ObservableCollection<PixivItem>)
             {
                 Application.Current.HistoryAdd(item, HistoryItems.Items);
                 UpdateDetail();
@@ -68,7 +68,7 @@ namespace PixivWPF.Pages
 
         public void AddToHistory(Pixeez.Objects.Work illust)
         {
-            if(HistoryItems.Items is ObservableCollection<ImageItem>)
+            if(HistoryItems.Items is ObservableCollection<PixivItem>)
             {
                 Application.Current.HistoryAdd(illust, HistoryItems.Items);
                 UpdateDetail();
@@ -77,7 +77,7 @@ namespace PixivWPF.Pages
 
         public void AddToHistory(Pixeez.Objects.User user)
         {
-            if (HistoryItems.Items is ObservableCollection<ImageItem>)
+            if (HistoryItems.Items is ObservableCollection<PixivItem>)
             {
                 Application.Current.HistoryAdd(user, HistoryItems.Items);
                 UpdateDetail();
@@ -86,7 +86,7 @@ namespace PixivWPF.Pages
 
         public void AddToHistory(Pixeez.Objects.UserBase user)
         {
-            if (HistoryItems.Items is ObservableCollection<ImageItem>)
+            if (HistoryItems.Items is ObservableCollection<PixivItem>)
             {
                 Application.Current.HistoryAdd(user, HistoryItems.Items);
                 UpdateDetail();
@@ -379,7 +379,7 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (ImageItem item in HistoryItems.SelectedItems)
+                foreach (PixivItem item in HistoryItems.SelectedItems)
                 {
                     Commands.OpenDownloaded.Execute(item);
                 }
@@ -398,7 +398,7 @@ namespace PixivWPF.Pages
                     var host = (mi.Parent as ContextMenu).PlacementTarget;
                     if (host == HistoryItems)
                     {
-                        foreach (ImageItem item in HistoryItems.SelectedItems)
+                        foreach (PixivItem item in HistoryItems.SelectedItems)
                         {
                             text += $"{item.Subject},\r\n";
                         }
@@ -418,7 +418,7 @@ namespace PixivWPF.Pages
                     uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
                     uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    IList<ImageItem> items = new List<ImageItem>();
+                    IList<PixivItem> items = new List<PixivItem>();
                     var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                     if (host == HistoryItems) items = HistoryItems.GetSelectedIllusts();
                     try
@@ -451,7 +451,7 @@ namespace PixivWPF.Pages
                     uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
                     uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    IList<ImageItem> items = new List<ImageItem>();
+                    IList<PixivItem> items = new List<PixivItem>();
                     var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                     if (host == HistoryItems) items = HistoryItems.GetSelected();
                     try

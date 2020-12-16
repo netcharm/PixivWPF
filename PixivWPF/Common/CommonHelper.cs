@@ -1187,7 +1187,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static async void MinimizedWindow(MetroWindow win, ImageItem item, string condition)
+        private static async void MinimizedWindow(MetroWindow win, PixivItem item, string condition)
         {
             await new Action(() =>
             {
@@ -1229,16 +1229,16 @@ namespace PixivWPF.Common
                                 var page = win.Content as IllustDetailPage;
                                 if (page.Contents.IsWork())
                                     MinimizedWindow(win as MetroWindow, page.Contents, condition);
-                                else if (page.Tag is ImageItem)
-                                    MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
+                                else if (page.Tag is PixivItem)
+                                    MinimizedWindow(win as MetroWindow, page.Tag as PixivItem, condition);
                             }
                             else if (win.Content is IllustImageViewerPage)
                             {
                                 var page = win.Content as IllustImageViewerPage;
                                 if (page.Contents.IsWork())
                                     MinimizedWindow(win as MetroWindow, page.Contents, condition);
-                                else if (page.Tag is ImageItem)
-                                    MinimizedWindow(win as MetroWindow, page.Tag as ImageItem, condition);
+                                else if (page.Tag is PixivItem)
+                                    MinimizedWindow(win as MetroWindow, page.Tag as PixivItem, condition);
                             }
                         }
                         else if (win is MainWindow && win.Content is TilesPage)
@@ -1249,8 +1249,8 @@ namespace PixivWPF.Common
                                 var detail = page.IllustDetail.Content as IllustDetailPage;
                                 if (detail.Contents.IsWork())
                                     MinimizedWindow(win as MetroWindow, detail.Contents, condition);
-                                else if (detail.Tag is ImageItem)
-                                    MinimizedWindow(win as MetroWindow, detail.Tag as ImageItem, condition);
+                                else if (detail.Tag is PixivItem)
+                                    MinimizedWindow(win as MetroWindow, detail.Tag as PixivItem, condition);
                             }
                         }
                         await Task.Delay(1);
@@ -1401,12 +1401,12 @@ namespace PixivWPF.Common
         #endregion
 
         #region Visit History
-        private static ObservableCollection<ImageItem> history = new ObservableCollection<ImageItem>();
-        public static ObservableCollection<ImageItem> History { get { return (HistorySource(null)); } }
+        private static ObservableCollection<PixivItem> history = new ObservableCollection<PixivItem>();
+        public static ObservableCollection<PixivItem> History { get { return (HistorySource(null)); } }
 
-        public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<ImageItem> source)
+        public static void HistoryAdd(this Application app, Pixeez.Objects.Work illust, ObservableCollection<PixivItem> source)
         {
-            if (source is ObservableCollection<ImageItem>)
+            if (source is ObservableCollection<PixivItem>)
             {
                 try
                 {
@@ -1448,9 +1448,9 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void HistoryAdd(this Application app, Pixeez.Objects.UserBase user, ObservableCollection<ImageItem> source)
+        public static void HistoryAdd(this Application app, Pixeez.Objects.UserBase user, ObservableCollection<PixivItem> source)
         {
-            if (source is ObservableCollection<ImageItem>)
+            if (source is ObservableCollection<PixivItem>)
             {
                 try
                 {
@@ -1489,9 +1489,9 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void HistoryAdd(this Application app, ImageItem item, ObservableCollection<ImageItem> source)
+        public static void HistoryAdd(this Application app, PixivItem item, ObservableCollection<PixivItem> source)
         {
-            if (source is ObservableCollection<ImageItem>)
+            if (source is ObservableCollection<PixivItem>)
             {
                 try
                 {
@@ -1541,7 +1541,7 @@ namespace PixivWPF.Common
             app.HistoryAdd(user, history);
         }
 
-        public static void HistoryAdd(this Application app, ImageItem item)
+        public static void HistoryAdd(this Application app, PixivItem item)
         {
             if (item.IsWork() || item.IsUser())
             {
@@ -1554,20 +1554,20 @@ namespace PixivWPF.Common
             if (item is Pixeez.Objects.Work) app.HistoryAdd(item as Pixeez.Objects.Work);
             else if (item is Pixeez.Objects.User) app.HistoryAdd(item as Pixeez.Objects.User);
             else if (item is Pixeez.Objects.UserBase) app.HistoryAdd(item as Pixeez.Objects.UserBase);
-            else if (item is ImageItem) app.HistoryAdd(item as ImageItem);
+            else if (item is PixivItem) app.HistoryAdd(item as PixivItem);
         }
 
-        public static void HistoryUpdate(this Application app, ObservableCollection<ImageItem> source = null)
+        public static void HistoryUpdate(this Application app, ObservableCollection<PixivItem> source = null)
         {
-            if (source is ObservableCollection<ImageItem> && source != history)
+            if (source is ObservableCollection<PixivItem> && source != history)
             {
-                if (history is ObservableCollection<ImageItem>)
+                if (history is ObservableCollection<PixivItem>)
                 {
                     history.Clear();
                     history.AddRange(source);
                 }
                 else
-                    history = new ObservableCollection<ImageItem>(source);
+                    history = new ObservableCollection<PixivItem>(source);
             }
             else
             {
@@ -1576,7 +1576,7 @@ namespace PixivWPF.Common
             }
         }
 
-        private static void UpdateHistoryFromCache(IEnumerable<ImageItem> items)
+        private static void UpdateHistoryFromCache(IEnumerable<PixivItem> items)
         {
             foreach (var item in items)
             {
@@ -1601,10 +1601,10 @@ namespace PixivWPF.Common
             }
         }
 
-        public static IEnumerable<ImageItem> HistoryList(this Application app, bool full_update = false)
+        public static IEnumerable<PixivItem> HistoryList(this Application app, bool full_update = false)
         {
-            var result = new List<ImageItem>();
-            if (history is ObservableCollection<ImageItem>)
+            var result = new List<PixivItem>();
+            if (history is ObservableCollection<PixivItem>)
             {
                 if (full_update)
                     UpdateHistoryFromCache(history);
@@ -1618,9 +1618,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static ObservableCollection<ImageItem> HistorySource(this Application app, bool full_update = false)
+        public static ObservableCollection<PixivItem> HistorySource(this Application app, bool full_update = false)
         {
-            if (history is ObservableCollection<ImageItem>)
+            if (history is ObservableCollection<PixivItem>)
             {
                 if (full_update)
                     UpdateHistoryFromCache(history);
@@ -1633,7 +1633,7 @@ namespace PixivWPF.Common
             return (history);
         }
 
-        public static ImageItem HistoryRecent(this Application app, int num = 0)
+        public static PixivItem HistoryRecent(this Application app, int num = 0)
         {
             if (history.Count > 0)
             {
@@ -1643,7 +1643,7 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static ImageItem HistoryRecentIllust(this Application app, int num = 0)
+        public static PixivItem HistoryRecentIllust(this Application app, int num = 0)
         {
             if (history.Count > 0)
             {
@@ -1654,7 +1654,7 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static ImageItem HistoryRecentUser(this Application app, int num = 0)
+        public static PixivItem HistoryRecentUser(this Application app, int num = 0)
         {
             if (history.Count > 0)
             {
@@ -3606,7 +3606,7 @@ namespace PixivWPF.Common
             catch (Exception) { }
         }
 
-        public static async void UpdateDownloadStateAsync(this ObservableCollection<ImageItem> collection, int? illustid = null, bool? exists = null)
+        public static async void UpdateDownloadStateAsync(this ObservableCollection<PixivItem> collection, int? illustid = null, bool? exists = null)
         {
             await new Action(() =>
             {
@@ -3614,7 +3614,7 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
-        public static void UpdateDownloadState(this ObservableCollection<ImageItem> collection, int? illustid = null, bool? exists = null)
+        public static void UpdateDownloadState(this ObservableCollection<PixivItem> collection, int? illustid = null, bool? exists = null)
         {
             try
             {
@@ -3803,7 +3803,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region IsPartDownloaded
-        internal static bool IsPartDownloadedAsync(this ImageItem item)
+        internal static bool IsPartDownloadedAsync(this PixivItem item)
         {
             if (item.Illust is Pixeez.Objects.Work)
                 return (item.Illust.GetOriginalUrl().IsPartDownloadedAsync());
@@ -3811,7 +3811,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsPartDownloaded(this ImageItem item)
+        internal static bool IsPartDownloaded(this PixivItem item)
         {
             if (item.Illust is Pixeez.Objects.Work)
                 return (item.Illust.GetOriginalUrl().IsPartDownloaded());
@@ -3819,7 +3819,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsPartDownloadedAsync(this ImageItem item, out string filepath)
+        internal static bool IsPartDownloadedAsync(this PixivItem item, out string filepath)
         {
             if (item.Illust is Pixeez.Objects.Work)
                 return (item.Illust.GetOriginalUrl().IsPartDownloadedAsync(out filepath));
@@ -3830,7 +3830,7 @@ namespace PixivWPF.Common
             }
         }
 
-        internal static bool IsPartDownloaded(this ImageItem item, out string filepath)
+        internal static bool IsPartDownloaded(this PixivItem item, out string filepath)
         {
             if (item.Illust is Pixeez.Objects.Work)
                 return (item.Illust.GetOriginalUrl().IsPartDownloaded(out filepath));
@@ -4643,7 +4643,7 @@ namespace PixivWPF.Common
             return (cache.IsSameIllust(hash, $"{id ?? -1}"));
         }
 
-        public static bool IsSameIllust(this ImageItem item, int hash)
+        public static bool IsSameIllust(this PixivItem item, int hash)
         {
             bool result = false;
 
@@ -4655,7 +4655,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameIllust(this ImageItem item, long id)
+        public static bool IsSameIllust(this PixivItem item, long id)
         {
             bool result = false;
 
@@ -4668,7 +4668,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameIllust(this ImageItem item, long? id)
+        public static bool IsSameIllust(this PixivItem item, long? id)
         {
             bool result = false;
 
@@ -4681,7 +4681,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsSameIllust(this ImageItem item, ImageItem item_now)
+        public static bool IsSameIllust(this PixivItem item, PixivItem item_now)
         {
             bool result = false;
 
@@ -4694,9 +4694,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<ImageItem> GetSelected(this ImageListGrid gallery, bool WithSelectionOrder, bool NonForAll = false)
+        public static IList<PixivItem> GetSelected(this ImageListGrid gallery, bool WithSelectionOrder, bool NonForAll = false)
         {
-            var result = new List<ImageItem>();
+            var result = new List<PixivItem>();
             try
             {
                 if (Keyboard.Modifiers == ModifierKeys.Control) WithSelectionOrder = !WithSelectionOrder;
@@ -4717,33 +4717,33 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IList<ImageItem> GetSelected(this ImageListGrid gallery, bool NonForAll)
+        public static IList<PixivItem> GetSelected(this ImageListGrid gallery, bool NonForAll)
         {
             setting = Application.Current.LoadSetting();
             return (GetSelected(gallery, setting.OpenWithSelectionOrder, NonForAll));
         }
 
-        public static IList<ImageItem> GetSelected(this ImageListGrid gallery)
+        public static IList<PixivItem> GetSelected(this ImageListGrid gallery)
         {
             setting = Application.Current.LoadSetting();
             return (GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone));
         }
 
-        public static IList<ImageItem> GetSelected(this ImageListGrid gallery, ImageItemType type)
+        public static IList<PixivItem> GetSelected(this ImageListGrid gallery, ImageItemType type)
         {
             setting = Application.Current.LoadSetting();
             var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
             return (selected.Where(i => i.ItemType == type).ToList());
         }
 
-        public static IList<ImageItem> GetSelectedIllusts(this ImageListGrid gallery)
+        public static IList<PixivItem> GetSelectedIllusts(this ImageListGrid gallery)
         {
             setting = Application.Current.LoadSetting();
             var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
             return (selected.Where(i => i.IsWork()).ToList());
         }
 
-        public static IList<ImageItem> GetSelectedUsers(this ImageListGrid gallery)
+        public static IList<PixivItem> GetSelectedUsers(this ImageListGrid gallery)
         {
             setting = Application.Current.LoadSetting();
             var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
@@ -4752,7 +4752,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region History routines
-        public static void AddToHistory(this ImageItem item)
+        public static void AddToHistory(this PixivItem item)
         {
             //Commands.AddToHistory.Execute(illust);
             var win = "History".GetWindowByTitle();
@@ -5035,7 +5035,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsLiked(this ImageItem item)
+        public static bool IsLiked(this PixivItem item)
         {
             var result = false;
             if (item.IsUser()) result = item.User.IsLiked();
@@ -5043,7 +5043,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> Like(this ImageItem item, bool pub = true)
+        public static async Task<bool> Like(this PixivItem item, bool pub = true)
         {
             if (item.IsWork())
             {
@@ -5060,7 +5060,7 @@ namespace PixivWPF.Common
             else return false;
         }
 
-        public static async Task<bool> UnLike(this ImageItem item, bool pub = true)
+        public static async Task<bool> UnLike(this PixivItem item, bool pub = true)
         {
             if (item.IsWork())
             {
@@ -5177,7 +5177,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> LikeIllust(this ImageItem item, bool pub = true)
+        public static async Task<bool> LikeIllust(this PixivItem item, bool pub = true)
         {
             bool result = false;
 
@@ -5192,7 +5192,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void LikeIllust(this ObservableCollection<ImageItem> collection, bool pub = true)
+        public static void LikeIllust(this ObservableCollection<PixivItem> collection, bool pub = true)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -5214,9 +5214,9 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void LikeIllust(this IList<ImageItem> collection, bool pub = true)
+        public static void LikeIllust(this IList<PixivItem> collection, bool pub = true)
         {
-            LikeIllust(new ObservableCollection<ImageItem>(collection), pub);
+            LikeIllust(new ObservableCollection<PixivItem>(collection), pub);
         }
 
         /// <summary>
@@ -5271,7 +5271,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> UnLikeIllust(this ImageItem item, bool pub = true)
+        public static async Task<bool> UnLikeIllust(this PixivItem item, bool pub = true)
         {
             bool result = false;
 
@@ -5286,7 +5286,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void UnLikeIllust(this ObservableCollection<ImageItem> collection)
+        public static void UnLikeIllust(this ObservableCollection<PixivItem> collection)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -5307,9 +5307,9 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void UnLikeIllust(this IList<ImageItem> collection)
+        public static void UnLikeIllust(this IList<PixivItem> collection)
         {
-            UnLikeIllust(new ObservableCollection<ImageItem>(collection));
+            UnLikeIllust(new ObservableCollection<PixivItem>(collection));
         }
 
         /// <summary>
@@ -5331,7 +5331,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> ToggleLikeIllust(this ImageItem item, bool pub = true)
+        public static async Task<bool> ToggleLikeIllust(this PixivItem item, bool pub = true)
         {
             bool result = false;
 
@@ -5346,7 +5346,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ToggleLikeIllust(this ObservableCollection<ImageItem> collection, bool pub = true)
+        public static void ToggleLikeIllust(this ObservableCollection<PixivItem> collection, bool pub = true)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -5368,9 +5368,9 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void ToggleLikeIllust(this IList<ImageItem> collection, bool pub = true)
+        public static void ToggleLikeIllust(this IList<PixivItem> collection, bool pub = true)
         {
-            ToggleLikeIllust(new ObservableCollection<ImageItem>(collection), pub);
+            ToggleLikeIllust(new ObservableCollection<PixivItem>(collection), pub);
         }
         #endregion
 
@@ -5427,7 +5427,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> LikeUser(this ImageItem item, bool pub = true)
+        public static async Task<bool> LikeUser(this PixivItem item, bool pub = true)
         {
             bool result = false;
 
@@ -5450,7 +5450,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void LikeUser(this ObservableCollection<ImageItem> collection, bool pub = true)
+        public static void LikeUser(this ObservableCollection<PixivItem> collection, bool pub = true)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -5472,9 +5472,9 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void LikeUser(this IList<ImageItem> collection, bool pub = true)
+        public static void LikeUser(this IList<PixivItem> collection, bool pub = true)
         {
-            LikeUser(new ObservableCollection<ImageItem>(collection), pub);
+            LikeUser(new ObservableCollection<PixivItem>(collection), pub);
         }
 
         /// <summary>
@@ -5522,7 +5522,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> UnLikeUser(this ImageItem item, bool pub = true)
+        public static async Task<bool> UnLikeUser(this PixivItem item, bool pub = true)
         {
             bool result = false;
 
@@ -5545,7 +5545,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void UnLikeUser(this ObservableCollection<ImageItem> collection)
+        public static void UnLikeUser(this ObservableCollection<PixivItem> collection)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -5566,9 +5566,9 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void UnLikeUser(this IList<ImageItem> collection)
+        public static void UnLikeUser(this IList<PixivItem> collection)
         {
-            UnLikeUser(new ObservableCollection<ImageItem>(collection));
+            UnLikeUser(new ObservableCollection<PixivItem>(collection));
         }
 
         /// <summary>
@@ -5590,7 +5590,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> ToggleLikeUser(this ImageItem item, bool pub = true)
+        public static async Task<bool> ToggleLikeUser(this PixivItem item, bool pub = true)
         {
             bool result = false;
 
@@ -5613,7 +5613,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ToggleLikeUser(this ObservableCollection<ImageItem> collection, bool pub = true)
+        public static void ToggleLikeUser(this ObservableCollection<PixivItem> collection, bool pub = true)
         {
             var opt = new ParallelOptions();
             opt.MaxDegreeOfParallelism = 5;
@@ -5635,9 +5635,9 @@ namespace PixivWPF.Common
             });
         }
 
-        public static void ToggleLikeUser(this IList<ImageItem> collection, bool pub = true)
+        public static void ToggleLikeUser(this IList<PixivItem> collection, bool pub = true)
         {
-            ToggleLikeUser(new ObservableCollection<ImageItem>(collection), pub);
+            ToggleLikeUser(new ObservableCollection<PixivItem>(collection), pub);
         }
         #endregion
 
@@ -5771,9 +5771,9 @@ namespace PixivWPF.Common
             list.Items.UpdateLikeState(illustid, is_user);
         }
 
-        public static void UpdateLikeState(this ObservableCollection<ImageItem> collection, int illustid = -1, bool is_user = false)
+        public static void UpdateLikeState(this ObservableCollection<PixivItem> collection, int illustid = -1, bool is_user = false)
         {
-            foreach (ImageItem item in collection)
+            foreach (PixivItem item in collection)
             {
                 int item_id = -1;
                 int.TryParse(item.ID, out item_id);

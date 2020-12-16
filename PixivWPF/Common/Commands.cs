@@ -182,14 +182,14 @@ namespace PixivWPF.Common
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
                     {
-                        if (page.Contents is ImageItem && page.Contents.IsWork())
+                        if (page.Contents is PixivItem && page.Contents.IsWork())
                             CopyText.Execute($"{prefix}{page.Contents.ID}");
                     }
                 }
             }
-            else if (obj is ImageItem)
+            else if (obj is PixivItem)
             {
-                var item = obj as ImageItem;
+                var item = obj as PixivItem;
                 if (item.IsWork())
                 {
                     CopyText.Execute($"{prefix}{item.ID}");
@@ -234,14 +234,14 @@ namespace PixivWPF.Common
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
                     {
-                        if (page.Contents is ImageItem)
+                        if (page.Contents is PixivItem)
                             CopyText.Execute($"{prefix}{page.Contents.UserID}");
                     }
                 }
             }
-            else if (obj is ImageItem)
+            else if (obj is PixivItem)
             {
-                var item = obj as ImageItem;
+                var item = obj as PixivItem;
                 if (item.IsWork())
                 {
                     CopyText.Execute($"{prefix}{item.UserID}");
@@ -288,14 +288,14 @@ namespace PixivWPF.Common
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
                     {
-                        if (page.Contents is ImageItem && page.Contents.IsWork())
+                        if (page.Contents is PixivItem && page.Contents.IsWork())
                             CopyText.Execute($"{page.Contents.ID.ArtworkLink()}");
                     }
                 }
             }
-            else if (obj is ImageItem)
+            else if (obj is PixivItem)
             {
-                var item = obj as ImageItem;
+                var item = obj as PixivItem;
                 if (item.IsWork())
                 {
                     CopyText.Execute(item.ID.ArtworkLink());
@@ -339,14 +339,14 @@ namespace PixivWPF.Common
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
                     {
-                        if (page.Contents is ImageItem)
+                        if (page.Contents is PixivItem)
                             CopyText.Execute($"{page.Contents.UserID.ArtistLink()}");
                     }
                 }
             }
-            else if (obj is ImageItem)
+            else if (obj is PixivItem)
             {
-                var item = obj as ImageItem;
+                var item = obj as PixivItem;
                 CopyText.Execute(item.UserID.ArtistLink());
             }
             else if (obj is IEnumerable<string>)
@@ -414,9 +414,9 @@ namespace PixivWPF.Common
                 var img = obj as CustomImageSource;
                 if (!string.IsNullOrEmpty(img.SourcePath) && File.Exists(img.SourcePath)) img.SourcePath.CopyImage();
             }
-            else if (obj is ImageItem)
+            else if (obj is PixivItem)
             {
-                var item = obj as ImageItem;
+                var item = obj as PixivItem;
                 if (item.IsWork())
                 {
                     string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCachePath();
@@ -433,11 +433,11 @@ namespace PixivWPF.Common
 
         public static ICommand OpenItem { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if (obj is ImageItem)
+            if (obj is PixivItem)
             {
                 try
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     if (item.IsWork())
                     {
                         if (item.IsPage() || item.IsPages())
@@ -483,7 +483,7 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var item = illust.WorkItem();
-                        if (item is ImageItem)
+                        if (item is PixivItem)
                         {
                             var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Contents = item, Tag = item };
                             var viewer = new ContentWindow()
@@ -502,9 +502,9 @@ namespace PixivWPF.Common
                         }
                     }).InvokeAsync();
                 }
-                else if (obj is ImageItem)
+                else if (obj is PixivItem)
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     if (item.IsWork())
                         OpenWork.Execute(item.Illust);
                 }
@@ -530,9 +530,9 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (obj is ImageItem && (obj as ImageItem).IsWork())
+                if (obj is PixivItem && (obj as PixivItem).IsWork())
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     if (item.IsPage() || item.IsPages())
                         item.IsDownloaded = item.Illust.IsDownloadedAsync(item.Index);
                     else
@@ -609,9 +609,9 @@ namespace PixivWPF.Common
                         Application.Current.DoEvents();
                     }).InvokeAsync();
                 }
-                else if (obj is ImageItem)
+                else if (obj is PixivItem)
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     if (item.IsWork() || item.IsUser())
                         OpenUser.Execute(item.User);
                 }
@@ -656,9 +656,9 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (obj is ImageItem)
+                if (obj is PixivItem)
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     if (item.IsWork())
                     {
                         var illust = item.Illust;
@@ -695,11 +695,11 @@ namespace PixivWPF.Common
                         }
                     }).InvokeAsync();
                 }
-                else if (obj is IList<ImageItem>)
+                else if (obj is IList<PixivItem>)
                 {
                     await new Action(async () =>
                     {
-                        var gallery = obj as IList<ImageItem>;
+                        var gallery = obj as IList<PixivItem>;
                         foreach (var item in gallery)
                         {
                             await new Action(() =>
@@ -725,9 +725,9 @@ namespace PixivWPF.Common
                     var img = obj as CustomImageSource;
                     if (!string.IsNullOrEmpty(img.SourcePath) && File.Exists(img.SourcePath)) ShellOpenFile.Execute(img.SourcePath);
                 }
-                else if (obj is ImageItem)
+                else if (obj is PixivItem)
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     if (item.IsWork())
                     {
                         var illust = item.Illust;
@@ -782,11 +782,11 @@ namespace PixivWPF.Common
                         }
                     }).InvokeAsync();
                 }
-                else if (obj is IList<ImageItem>)
+                else if (obj is IList<PixivItem>)
                 {
                     await new Action(async () =>
                     {
-                        var gallery = obj as IList<ImageItem>;
+                        var gallery = obj as IList<PixivItem>;
                         foreach (var item in gallery)
                         {
                             await new Action(() =>
@@ -868,7 +868,7 @@ namespace PixivWPF.Common
             {
                 OpenGallery.Execute(obj);
             }
-            else if (obj is ImageItem)
+            else if (obj is PixivItem)
             {
                 OpenItem.Execute(obj);
             }
@@ -1004,11 +1004,11 @@ namespace PixivWPF.Common
 
         public static ICommand SaveIllust { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if (obj is ImageItem)
+            if (obj is PixivItem)
             {
                 await new Action(async () =>
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     if (item.IsWork())
                     {
                         if (string.IsNullOrEmpty(setting.LastFolder))
@@ -1064,11 +1064,11 @@ namespace PixivWPF.Common
 
         public static ICommand SaveIllustAll { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if (obj is ImageItem)
+            if (obj is PixivItem)
             {
                 await new Action(async () =>
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     if (item.IsWork())
                     {
                         if (string.IsNullOrEmpty(setting.LastFolder))
@@ -1221,9 +1221,9 @@ namespace PixivWPF.Common
             {
                 SendToOtherInstance.Execute($"uid:{(obj as Pixeez.Objects.UserBase).Id}");
             }
-            else if (obj is ImageItem)
+            else if (obj is PixivItem)
             {
-                var item = obj as ImageItem;
+                var item = obj as PixivItem;
                 if (item.IsWork()) SendToOtherInstance.Execute(item.Illust);
                 else if (item.IsUser()) SendToOtherInstance.Execute(item.User);
             }
@@ -1253,7 +1253,7 @@ namespace PixivWPF.Common
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
                     {
-                        if (page.Contents is ImageItem && page.Contents.IsWork())
+                        if (page.Contents is PixivItem && page.Contents.IsWork())
                             SendToOtherInstance.Execute(page.Contents);
                     }
                 }
@@ -1296,9 +1296,9 @@ namespace PixivWPF.Common
             {
                 ShellSendToOtherInstance.Execute($"uid:{(obj as Pixeez.Objects.UserBase).Id}");
             }
-            else if (obj is ImageItem)
+            else if (obj is PixivItem)
             {
-                var item = obj as ImageItem;
+                var item = obj as PixivItem;
                 if (item.IsUser()) ShellSendToOtherInstance.Execute(item.User);
                 else if (item.IsWork()) ShellSendToOtherInstance.Execute(item.Illust);
             }
@@ -1320,7 +1320,7 @@ namespace PixivWPF.Common
                     var page = gallery.TryFindParent<IllustDetailPage>();
                     if (page is IllustDetailPage)
                     {
-                        if (page.Contents is ImageItem && page.Contents.IsWork())
+                        if (page.Contents is PixivItem && page.Contents.IsWork())
                             ShellSendToOtherInstance.Execute(page.Contents);
                     }
                 }
@@ -1409,9 +1409,9 @@ namespace PixivWPF.Common
                 }
                 catch (Exception) { }
             }
-            else if (obj is ImageItem)
+            else if (obj is PixivItem)
             {
-                var item = obj as ImageItem;
+                var item = obj as PixivItem;
                 string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCachePath();
                 if (!string.IsNullOrEmpty(fp))
                 {
@@ -1491,13 +1491,13 @@ namespace PixivWPF.Common
             if (obj is IllustDetailPage)
             {
                 var page = obj as IllustDetailPage;
-                if (page.Contents is ImageItem)
+                if (page.Contents is PixivItem)
                     page.UpdateDetail(page.Contents);
             }
             else if (obj is IllustImageViewerPage)
             {
                 var page = obj as IllustImageViewerPage;
-                if (page.Contents is ImageItem)
+                if (page.Contents is PixivItem)
                     page.UpdateDetail(page.Contents);
             }
             else if (obj is SearchResultPage)
@@ -1534,7 +1534,7 @@ namespace PixivWPF.Common
             {
                 var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
                 var page = obj as IllustImageViewerPage;
-                if (page.Contents is ImageItem)
+                if (page.Contents is PixivItem)
                     page.UpdateDetail(page.Contents, overwrite);
             }
             else if (obj is SearchResultPage)
@@ -1678,7 +1678,7 @@ namespace PixivWPF.Common
                     {
                         if (!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
 
-                        if (sender is ImageListGrid || sender is ImageItem)
+                        if (sender is ImageListGrid || sender is PixivItem)
                         {
                             if (e.IsKey(Key.Enter))
                             {
@@ -1817,9 +1817,9 @@ namespace PixivWPF.Common
                 setting = Application.Current.LoadSetting();
                 var pub = setting.PrivateBookmarkPrefer ? false : true;
 
-                if (obj is ImageItem)
+                if (obj is PixivItem)
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     await item.LikeIllust(pub);
                 }
                 else if (obj is ImageListGrid)
@@ -1827,9 +1827,9 @@ namespace PixivWPF.Common
                     var gallery = obj as ImageListGrid;
                     gallery.GetSelected().LikeIllust(pub);
                 }
-                else if (obj is IList<ImageItem>)
+                else if (obj is IList<PixivItem>)
                 {
-                    var gallery = obj as IList<ImageItem>;
+                    var gallery = obj as IList<PixivItem>;
                     gallery.LikeIllust(pub);
                 }
             }
@@ -1843,9 +1843,9 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (obj is ImageItem)
+                if (obj is PixivItem)
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     await item.UnLikeIllust();
                 }
                 else if (obj is ImageListGrid)
@@ -1853,9 +1853,9 @@ namespace PixivWPF.Common
                     var gallery = obj as ImageListGrid;
                     gallery.GetSelected().UnLikeIllust();
                 }
-                else if (obj is IList<ImageItem>)
+                else if (obj is IList<PixivItem>)
                 {
-                    var gallery = obj as IList<ImageItem>;
+                    var gallery = obj as IList<PixivItem>;
                     gallery.UnLikeIllust();
                 }
             }
@@ -1873,9 +1873,9 @@ namespace PixivWPF.Common
                 var pub = setting.PrivateFavPrefer ? false : true;
                 var toggle = setting.ToggleFavBookmarkState;
 
-                if (obj is ImageItem)
+                if (obj is PixivItem)
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     if (toggle)
                     {
                         await item.ToggleLikeIllust(pub);
@@ -1907,9 +1907,9 @@ namespace PixivWPF.Common
                             gallery.GetSelected().UnLikeIllust();
                     }
                 }
-                else if (obj is IList<ImageItem>)
+                else if (obj is IList<PixivItem>)
                 {
-                    var gallery = obj as IList<ImageItem>;
+                    var gallery = obj as IList<PixivItem>;
                     if (toggle)
                     {
                         gallery.ToggleLikeIllust(pub);
@@ -1938,9 +1938,9 @@ namespace PixivWPF.Common
                 setting = Application.Current.LoadSetting();
                 var pub = setting.PrivateFavPrefer ? false : true;
 
-                if (obj is ImageItem)
+                if (obj is PixivItem)
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     await item.LikeUser(pub);
                 }
                 else if (obj is ImageListGrid)
@@ -1948,9 +1948,9 @@ namespace PixivWPF.Common
                     var gallery = obj as ImageListGrid;
                     gallery.GetSelected().LikeUser(pub);
                 }
-                else if (obj is IList<ImageItem>)
+                else if (obj is IList<PixivItem>)
                 {
-                    var gallery = obj as IList<ImageItem>;
+                    var gallery = obj as IList<PixivItem>;
                     gallery.LikeUser(pub);
                 }
             }
@@ -1964,9 +1964,9 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (obj is ImageItem)
+                if (obj is PixivItem)
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     await item.UnLikeUser();
                 }
                 else if (obj is ImageListGrid)
@@ -1974,9 +1974,9 @@ namespace PixivWPF.Common
                     var gallery = obj as ImageListGrid;
                     gallery.GetSelected().UnLikeUser();
                 }
-                else if (obj is IList<ImageItem>)
+                else if (obj is IList<PixivItem>)
                 {
-                    var gallery = obj as IList<ImageItem>;
+                    var gallery = obj as IList<PixivItem>;
                     gallery.UnLikeUser();
                 }
             }
@@ -1994,9 +1994,9 @@ namespace PixivWPF.Common
                 var pub = setting.PrivateFavPrefer ? false : true;
                 var toggle = setting.ToggleFavBookmarkState;
 
-                if (obj is ImageItem)
+                if (obj is PixivItem)
                 {
-                    var item = obj as ImageItem;
+                    var item = obj as PixivItem;
                     if (toggle)
                     {
                         await item.ToggleLikeUser(pub);
@@ -2028,9 +2028,9 @@ namespace PixivWPF.Common
                             gallery.GetSelected().UnLikeUser();
                     }
                 }
-                else if (obj is IList<ImageItem>)
+                else if (obj is IList<PixivItem>)
                 {
-                    var gallery = obj as IList<ImageItem>;
+                    var gallery = obj as IList<PixivItem>;
                     if (toggle)
                     {
                         gallery.ToggleLikeUser(pub);

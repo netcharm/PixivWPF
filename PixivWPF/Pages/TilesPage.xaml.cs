@@ -109,7 +109,7 @@ namespace PixivWPF.Pages
 
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
-            if (ListImageTiles.Items is ObservableCollection<ImageItem>)
+            if (ListImageTiles.Items is ObservableCollection<PixivItem>)
             {
                 ListImageTiles.Items.UpdateDownloadStateAsync();
             }
@@ -136,7 +136,7 @@ namespace PixivWPF.Pages
         {
             e.Accepted = false;
 
-            var item = e.Item as ImageItem;
+            var item = e.Item as PixivItem;
             if (item.Source == null) return;
 
             e.Accepted = true;
@@ -159,8 +159,8 @@ namespace PixivWPF.Pages
             if (ListImageTiles.Items.Count > 0)
             {
                 if (ListImageTiles.SelectedIndex == 0 && string.IsNullOrEmpty(lastSelectedId))
-                    lastSelectedId = (ListImageTiles.Items[0] as ImageItem).ID;
-                id = ListImageTiles.SelectedItem is ImageItem ? (ListImageTiles.SelectedItem as ImageItem).ID : lastSelectedId;
+                    lastSelectedId = (ListImageTiles.Items[0] as PixivItem).ID;
+                id = ListImageTiles.SelectedItem is PixivItem ? (ListImageTiles.SelectedItem as PixivItem).ID : lastSelectedId;
             }
             return (id);
         }
@@ -173,9 +173,9 @@ namespace PixivWPF.Pages
                 {
                     foreach (var item in ListImageTiles.Items)
                     {
-                        if (item is ImageItem)
+                        if (item is PixivItem)
                         {
-                            var ID = (item as ImageItem).ID;
+                            var ID = (item as PixivItem).ID;
                             if (ID.Equals(id, StringComparison.CurrentCultureIgnoreCase))
                             {
                                 ListImageTiles.SelectedItem = item;
@@ -249,7 +249,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (ListImageTiles.SelectedItem is ImageItem)
+                if (ListImageTiles.SelectedItem is PixivItem)
                 {
                     ScrollViewer scrollViewer = ListImageTiles.GetVisualChild<ScrollViewer>();
                     if (scrollViewer != null)
@@ -274,7 +274,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (ListImageTiles.SelectedItem is ImageItem)
+                if (ListImageTiles.SelectedItem is PixivItem)
                 {
                     //int count = 0;
                     //var index = FirstInView(out count);
@@ -1276,11 +1276,11 @@ namespace PixivWPF.Pages
                 var idx = ListImageTiles.SelectedIndex;
                 if (idx < 0) return;
 
-                if (ListImageTiles.SelectedItem is ImageItem)
+                if (ListImageTiles.SelectedItem is PixivItem)
                 {
-                    var item = ListImageTiles.SelectedItem as ImageItem;
+                    var item = ListImageTiles.SelectedItem as PixivItem;
 
-                    if (item is ImageItem)
+                    if (item is PixivItem)
                     {
                         if (item.IsUser())
                         {
@@ -1295,8 +1295,8 @@ namespace PixivWPF.Pages
                             item.IsFollowed = item.User.IsLiked();
                         }
 
-                        var ID_O = detail_page.Tag is ImageItem ? (detail_page.Tag as ImageItem).ID : string.Empty;
-                        var ID_N = item is ImageItem ? item.ID : string.Empty;
+                        var ID_O = detail_page.Tag is PixivItem ? (detail_page.Tag as PixivItem).ID : string.Empty;
+                        var ID_N = item is PixivItem ? item.ID : string.Empty;
 
                         if (string.IsNullOrEmpty(ID_O) || !ID_O.Equals(ID_N, StringComparison.CurrentCultureIgnoreCase))
                         {
@@ -1383,9 +1383,9 @@ namespace PixivWPF.Pages
                     }
                     else if (e.IsKey(Key.S, ModifierKeys.Control))
                     {
-                        if (ListImageTiles.SelectedItem is ImageItem)
+                        if (ListImageTiles.SelectedItem is PixivItem)
                         {
-                            var item = ListImageTiles.SelectedItem as ImageItem;
+                            var item = ListImageTiles.SelectedItem as PixivItem;
                             if (item.IsWork())
                                 Commands.SaveIllust.Execute(item);
                         }
@@ -1393,9 +1393,9 @@ namespace PixivWPF.Pages
                     }
                     else if (e.IsKey(Key.O, ModifierKeys.Control))
                     {
-                        if (ListImageTiles.SelectedItem is ImageItem)
+                        if (ListImageTiles.SelectedItem is PixivItem)
                         {
-                            var item = ListImageTiles.SelectedItem as ImageItem;
+                            var item = ListImageTiles.SelectedItem as PixivItem;
                             if (item.IsDownloaded)
                                 Commands.OpenDownloaded.Execute(item);
                             else

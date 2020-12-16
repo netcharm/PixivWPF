@@ -519,7 +519,7 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (ImageItem item in ResultItems.SelectedItems)
+                foreach (PixivItem item in ResultItems.SelectedItems)
                 {
                     Commands.SaveIllust.Execute(item);
                 }
@@ -530,7 +530,7 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (ImageItem item in ResultItems.SelectedItems)
+                foreach (PixivItem item in ResultItems.SelectedItems)
                 {
                     Commands.SaveIllustAll.Execute(item);
                 }
@@ -541,7 +541,7 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (ImageItem item in ResultItems.SelectedItems)
+                foreach (PixivItem item in ResultItems.SelectedItems)
                 {
                     Commands.OpenDownloaded.Execute(item);
                 }
@@ -560,7 +560,7 @@ namespace PixivWPF.Pages
                     var host = (mi.Parent as ContextMenu).PlacementTarget;
                     if (host == ResultExpander || host == ResultItems)
                     {
-                        foreach (ImageItem item in ResultItems.SelectedItems)
+                        foreach (PixivItem item in ResultItems.SelectedItems)
                         {
                             text += $"{item.Subject},\r\n";
                         }
@@ -579,7 +579,7 @@ namespace PixivWPF.Pages
                 uid.Equals("ActionLikeIllustPrivate", StringComparison.CurrentCultureIgnoreCase) ||
                 uid.Equals("ActionUnLikeIllust", StringComparison.CurrentCultureIgnoreCase))
             {
-                IList<ImageItem> items = new List<ImageItem>();
+                IList<PixivItem> items = new List<PixivItem>();
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                 if (host == ResultItems || host == ResultExpander) items = ResultItems.GetSelectedIllusts();
                 try
@@ -609,7 +609,7 @@ namespace PixivWPF.Pages
                 uid.Equals("ActionLikeUserPrivate", StringComparison.CurrentCultureIgnoreCase) ||
                 uid.Equals("ActionUnLikeUser", StringComparison.CurrentCultureIgnoreCase))
             {
-                IList<ImageItem> items = new List<ImageItem>();
+                IList<PixivItem> items = new List<PixivItem>();
                 var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                 if (host == ResultItems || host == ResultExpander) items = ResultItems.GetSelected();
                 try

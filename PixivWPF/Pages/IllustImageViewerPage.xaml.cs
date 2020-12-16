@@ -27,7 +27,7 @@ namespace PixivWPF.Pages
     {
         private Window window = null;
 
-        public ImageItem Contents { get; set; } = null;
+        public PixivItem Contents { get; set; } = null;
         private string PreviewImageUrl = string.Empty;
         private string OriginalImageUrl = string.Empty;
         private bool IsOriginal
@@ -66,7 +66,7 @@ namespace PixivWPF.Pages
                 if (index_n == index_p) return;
 
                 var i = illust.WorkItem();
-                if (i is ImageItem)
+                if (i is PixivItem)
                 {
                     i.NextURL = Contents.NextURL;
                     i.Thumb = illust.GetThumbnailUrl(index_n);
@@ -127,7 +127,7 @@ namespace PixivWPF.Pages
             return (img);
         }
 
-        internal async void UpdateDetail(ImageItem item, bool overwrite = false)
+        internal async void UpdateDetail(PixivItem item, bool overwrite = false)
         {
             try
             {
@@ -212,7 +212,7 @@ namespace PixivWPF.Pages
                 window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
                 window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom + (32 - titleheight % 32);
 
-                if (Contents is ImageItem) UpdateDetail(Contents);
+                if (Contents is PixivItem) UpdateDetail(Contents);
             }
         }
 
@@ -344,7 +344,7 @@ namespace PixivWPF.Pages
 
         private void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
-            if (Contents is ImageItem)
+            if (Contents is PixivItem)
             {
                 if (sender == ActionCopyIllustID)
                     Commands.CopyArtworkIDs.Execute(Contents);

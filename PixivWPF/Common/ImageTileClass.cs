@@ -31,9 +31,9 @@ namespace PixivWPF.Common
         public bool SanityOption_IncludeUnder { get; set; } = true;
     }
 
-    public class ImageItem : FrameworkElement, INotifyPropertyChanged
+    public class PixivItem : FrameworkElement, INotifyPropertyChanged
     {
-        ~ImageItem()
+        ~PixivItem()
         {
             if (source is ImageSource) source = null;
         }
@@ -224,9 +224,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            result = (obj as ImageItem).IsUser() ? true : false;
+                            result = (obj as PixivItem).IsUser() ? true : false;
                         }
                         return (result);
                     });
@@ -236,9 +236,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            result = (obj as ImageItem).IsWork() ? true : false;
+                            result = (obj as PixivItem).IsWork() ? true : false;
                         }
                         return (result);
                     });
@@ -250,9 +250,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            result = (obj as ImageItem).IsFavorited ? true : false;
+                            result = (obj as PixivItem).IsFavorited ? true : false;
                         }
                         return (result);
                     });
@@ -265,9 +265,9 @@ namespace PixivWPF.Common
                         filter_action = new Func<object, bool>(obj =>
                         {
                             var result = true;
-                            if (obj is ImageItem)
+                            if (obj is PixivItem)
                             {
-                                var item = (obj as ImageItem);
+                                var item = (obj as PixivItem);
                                 if (item.IsWork()) {
                                     var illust = item.Illust;
                                     if(illust is Pixeez.Objects.IllustWork)
@@ -291,9 +291,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            result = (obj as ImageItem).IsFavorited ? false : true;
+                            result = (obj as PixivItem).IsFavorited ? false : true;
                         }
                         return (result);
                     });
@@ -303,9 +303,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            result = (obj as ImageItem).IsFollowed ? true : false;
+                            result = (obj as PixivItem).IsFollowed ? true : false;
                         }
                         return (result);
                     });
@@ -315,9 +315,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            result = (obj as ImageItem).IsFollowed ? false : true;
+                            result = (obj as PixivItem).IsFollowed ? false : true;
                         }
                         return (result);
                     });
@@ -327,9 +327,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            result = (obj as ImageItem).IsDownloaded ? true : false;
+                            result = (obj as PixivItem).IsDownloaded ? true : false;
                         }
                         return (result);
                     });
@@ -339,9 +339,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            result = (obj as ImageItem).IsDownloaded ? false : true;
+                            result = (obj as PixivItem).IsDownloaded ? false : true;
                         }
                         return (result);
                     });
@@ -353,9 +353,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            var item = obj as ImageItem;
+                            var item = obj as PixivItem;
                             if (item.Sanity.Equals("all", StringComparison.CurrentCultureIgnoreCase)) result = true;
                             else result = false;
                         }
@@ -367,9 +367,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            var item = obj as ImageItem;
+                            var item = obj as PixivItem;
                             if (item.Sanity.Equals("18+", StringComparison.CurrentCultureIgnoreCase)) result = true;
                             else result = false;
                         }
@@ -381,9 +381,9 @@ namespace PixivWPF.Common
                     filter_action = new Func<object, bool>(obj =>
                     {
                         var result = true;
-                        if (obj is ImageItem)
+                        if (obj is PixivItem)
                         {
-                            var item = obj as ImageItem;
+                            var item = obj as PixivItem;
                             if (item.Sanity.Equals("15+", StringComparison.CurrentCultureIgnoreCase)) result = true;
                             else result = false;
                         }
@@ -487,9 +487,9 @@ namespace PixivWPF.Common
                 filter_action = new Func<object, bool>(obj =>
                 {
                     var result = true;
-                    if (obj is ImageItem)
+                    if (obj is PixivItem)
                     {
-                        var item = obj as ImageItem;
+                        var item = obj as PixivItem;
                         #region filter by type
                         if (user || work)
                         {
@@ -680,11 +680,11 @@ namespace PixivWPF.Common
         #endregion
 
         #region Tile Update Helper
-        public static void UpdateTiles(this ObservableCollection<ImageItem> collection, ImageItem item = null)
+        public static void UpdateTiles(this ObservableCollection<PixivItem> collection, PixivItem item = null)
         {
-            if (collection is ObservableCollection<ImageItem>)
+            if (collection is ObservableCollection<PixivItem>)
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     int idx = collection.IndexOf(item);
                     if (idx >= 0 && idx < collection.Count())
@@ -700,14 +700,14 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void UpdateTiles(this ObservableCollection<ImageItem> collection, IEnumerable<ImageItem> items)
+        public static void UpdateTiles(this ObservableCollection<PixivItem> collection, IEnumerable<PixivItem> items)
         {
-            if (collection is ObservableCollection<ImageItem>)
+            if (collection is ObservableCollection<PixivItem>)
             {
-                if (items is IEnumerable<ImageItem>)
+                if (items is IEnumerable<PixivItem>)
                 {
                     var count = collection.Count();
-                    foreach (ImageItem sub in items)
+                    foreach (PixivItem sub in items)
                     {
                         int idx = collection.IndexOf(sub);
                         if (idx >= 0 && idx < count)
@@ -763,7 +763,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async void UpdateTilesImageTask(this IEnumerable<ImageItem> items, bool overwrite = false, CancellationToken cancelToken = default(CancellationToken), int parallel = 5, SemaphoreSlim update_semaphore = null)
+        public static async void UpdateTilesImageTask(this IEnumerable<PixivItem> items, bool overwrite = false, CancellationToken cancelToken = default(CancellationToken), int parallel = 5, SemaphoreSlim update_semaphore = null)
         {
             try
             {
@@ -840,7 +840,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async Task<Task> UpdateTilesThumb(this IEnumerable<ImageItem> items, Task task, bool overwrite = false, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5, SemaphoreSlim update_semaphore = null)
+        public static async Task<Task> UpdateTilesThumb(this IEnumerable<PixivItem> items, Task task, bool overwrite = false, CancellationTokenSource cancelSource = default(CancellationTokenSource), int parallel = 5, SemaphoreSlim update_semaphore = null)
         {
             Task result = null;
             try
@@ -883,9 +883,9 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        public static ImageItem WorkItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "")
+        public static PixivItem WorkItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "")
         {
-            ImageItem result = null;
+            PixivItem result = null;
             try
             {
                 if (illust is Pixeez.Objects.Work)
@@ -921,7 +921,7 @@ namespace PixivWPF.Common
                         tooltip = string.IsNullOrEmpty(illust.Title) ? $"{uname}{state}{tags}{tooltip}" : $"{illust.Title}{uname}{state}{tags}{tooltip}";
                         //var title = string.Join(" ", Regex.Split(illust.Title, @"(?:\r\n|\n|\r)"));
                         var title = Regex.Replace(illust.Title, @"[\n\r]", "", RegexOptions.IgnoreCase);
-                        result = new ImageItem()
+                        result = new PixivItem()
                         {
                             ItemType = ImageItemType.Work,
                             NextURL = nexturl,
@@ -956,9 +956,9 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static ImageItem UserItem(this Pixeez.Objects.UserBase user, string nexturl = "")
+        public static PixivItem UserItem(this Pixeez.Objects.UserBase user, string nexturl = "")
         {
-            ImageItem result = null;
+            PixivItem result = null;
             try
             {
                 if (user is Pixeez.Objects.User)
@@ -990,7 +990,7 @@ namespace PixivWPF.Common
 
                     var url = nu.GetAvatarUrl();
 
-                    result = new ImageItem()
+                    result = new PixivItem()
                     {
                         ItemType = ImageItemType.User,
                         NextURL = nexturl,
@@ -1037,7 +1037,7 @@ namespace PixivWPF.Common
 
                     var url = nu.GetAvatarUrl();
 
-                    result = new ImageItem()
+                    result = new PixivItem()
                     {
                         ItemType = ImageItemType.User,
                         NextURL = nexturl,
@@ -1064,7 +1064,7 @@ namespace PixivWPF.Common
         }
 
         #region Image Tile Add Helper
-        public static async void AddTo(this IList<Pixeez.Objects.Work> works, IList<ImageItem> Collection, string nexturl = "")
+        public static async void AddTo(this IList<Pixeez.Objects.Work> works, IList<PixivItem> Collection, string nexturl = "")
         {
             foreach (var illust in works)
             {
@@ -1074,17 +1074,17 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void AddTo(this Pixeez.Objects.Work illust, IList<ImageItem> Collection, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.Work illust, IList<PixivItem> Collection, string nexturl = "")
         {
             try
             {
-                if (illust is Pixeez.Objects.Work && Collection is IList<ImageItem>)
+                if (illust is Pixeez.Objects.Work && Collection is IList<PixivItem>)
                 {
                     var url = illust.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
                         var i = illust.WorkItem(url, nexturl);
-                        if (i is ImageItem)
+                        if (i is PixivItem)
                         {
                             i.ToolTip = $"№[{Collection.Count + 1}], {i.ToolTip}";
                             Collection.Add(i);
@@ -1100,17 +1100,17 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void AddTo(this Pixeez.Objects.MetaPages pages, IList<ImageItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.MetaPages pages, IList<PixivItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
         {
             try
             {
-                if (pages is Pixeez.Objects.MetaPages && Collection is IList<ImageItem>)
+                if (pages is Pixeez.Objects.MetaPages && Collection is IList<PixivItem>)
                 {
                     var url = pages.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
                         var i = illust.WorkItem(url, nexturl);
-                        if (i is ImageItem)
+                        if (i is PixivItem)
                         {
                             //i.Thumb = url;
                             i.ItemType = ImageItemType.Pages;
@@ -1137,17 +1137,17 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void AddTo(this Pixeez.Objects.Page page, IList<ImageItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.Page page, IList<PixivItem> Collection, Pixeez.Objects.Work illust, int index, string nexturl = "")
         {
             try
             {
-                if (page is Pixeez.Objects.Page && Collection is IList<ImageItem>)
+                if (page is Pixeez.Objects.Page && Collection is IList<PixivItem>)
                 {
                     var url = page.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
                         var i = illust.WorkItem(url, nexturl);
-                        if (i is ImageItem)
+                        if (i is PixivItem)
                         {
                             //i.Thumb = url;
                             i.ItemType = ImageItemType.Page;
@@ -1174,11 +1174,11 @@ namespace PixivWPF.Common
             }
         }
 
-        public static async void AddTo(this Pixeez.Objects.User user, IList<ImageItem> Collection, string nexturl = "")
+        public static async void AddTo(this Pixeez.Objects.User user, IList<PixivItem> Collection, string nexturl = "")
         {
             try
             {
-                if (user is Pixeez.Objects.User && Collection is IList<ImageItem>)
+                if (user is Pixeez.Objects.User && Collection is IList<PixivItem>)
                 {
                     var u = user.UserItem(nexturl);
                     Collection.Add(u);
@@ -1647,12 +1647,12 @@ namespace PixivWPF.Common
         #endregion
 
         #region Misc Helper
-        public static bool IsUser(this ImageItem item)
+        public static bool IsUser(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.User) result = item.User is Pixeez.Objects.UserBase ? true : false;
                 }
@@ -1661,12 +1661,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsWork(this ImageItem item)
+        public static bool IsWork(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.Manga ||
                         item.ItemType == ImageItemType.Work ||
@@ -1680,12 +1680,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsPage(this ImageItem item)
+        public static bool IsPage(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.Page)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
@@ -1695,12 +1695,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsPages(this ImageItem item)
+        public static bool IsPages(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.Pages)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
@@ -1710,12 +1710,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool HasUser(this ImageItem item)
+        public static bool HasUser(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.Manga ||
                         item.ItemType == ImageItemType.Work ||
@@ -1730,12 +1730,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool HasIllust(this ImageItem item)
+        public static bool HasIllust(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.Manga ||
                         item.ItemType == ImageItemType.Work ||
@@ -1749,12 +1749,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool HasPages(this ImageItem item)
+        public static bool HasPages(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.Manga ||
                         item.ItemType == ImageItemType.Work ||
@@ -1768,12 +1768,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsManga(this ImageItem item)
+        public static bool IsManga(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.Manga) result = true;
                 }
@@ -1782,12 +1782,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsNovel(this ImageItem item)
+        public static bool IsNovel(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.Novel) result = true;
                 }
@@ -1796,12 +1796,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsBook(this ImageItem item)
+        public static bool IsBook(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.Manga || item.ItemType == ImageItemType.Novel) result = true;
                 }
@@ -1810,12 +1810,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool IsNone(this ImageItem item)
+        public static bool IsNone(this PixivItem item)
         {
             bool result = false;
             try
             {
-                if (item is ImageItem)
+                if (item is PixivItem)
                 {
                     if (item.ItemType == ImageItemType.None) result = true;
                 }
