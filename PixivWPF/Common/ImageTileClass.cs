@@ -17,7 +17,7 @@ using System.Windows.Media;
 
 namespace PixivWPF.Common
 {
-    public enum ImageItemType { None, User, Works, Work, Pages, Page, Manga, Novel }
+    public enum PixivItemType { None, User, Works, Work, Pages, Page, Manga, Novel }
 
     public class FilterParam
     {
@@ -38,7 +38,7 @@ namespace PixivWPF.Common
             if (source is ImageSource) source = null;
         }
 
-        public ImageItemType ItemType { get; set; } = ImageItemType.None;
+        public PixivItemType ItemType { get; set; } = PixivItemType.None;
 
         private ImageSource source = null;
         public ImageSource Source
@@ -923,7 +923,7 @@ namespace PixivWPF.Common
                         var title = Regex.Replace(illust.Title, @"[\n\r]", "", RegexOptions.IgnoreCase);
                         result = new PixivItem()
                         {
-                            ItemType = ImageItemType.Work,
+                            ItemType = PixivItemType.Work,
                             NextURL = nexturl,
                             Thumb = url,
                             Index = -1,
@@ -992,7 +992,7 @@ namespace PixivWPF.Common
 
                     result = new PixivItem()
                     {
-                        ItemType = ImageItemType.User,
+                        ItemType = PixivItemType.User,
                         NextURL = nexturl,
                         Thumb = url,
                         BadgeValue = nu.Stats == null ? null : nu.Stats.Works.Value.ToString(),
@@ -1039,7 +1039,7 @@ namespace PixivWPF.Common
 
                     result = new PixivItem()
                     {
-                        ItemType = ImageItemType.User,
+                        ItemType = PixivItemType.User,
                         NextURL = nexturl,
                         Thumb = url,
                         BadgeValue = null,
@@ -1113,7 +1113,7 @@ namespace PixivWPF.Common
                         if (i is PixivItem)
                         {
                             //i.Thumb = url;
-                            i.ItemType = ImageItemType.Pages;
+                            i.ItemType = PixivItemType.Pages;
                             i.DisplayTitle = false;
                             i.Index = index;
                             i.Count = illust.PageCount ?? 0;
@@ -1150,7 +1150,7 @@ namespace PixivWPF.Common
                         if (i is PixivItem)
                         {
                             //i.Thumb = url;
-                            i.ItemType = ImageItemType.Page;
+                            i.ItemType = PixivItemType.Page;
                             i.DisplayTitle = false;
                             i.Index = index;
                             i.Count = illust.PageCount ?? 0;
@@ -1654,7 +1654,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.User) result = item.User is Pixeez.Objects.UserBase ? true : false;
+                    if (item.ItemType == PixivItemType.User) result = item.User is Pixeez.Objects.UserBase ? true : false;
                 }
             }
             catch (Exception) { }
@@ -1668,11 +1668,11 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.Manga ||
-                        item.ItemType == ImageItemType.Work ||
-                        item.ItemType == ImageItemType.Works ||
-                        item.ItemType == ImageItemType.Page ||
-                        item.ItemType == ImageItemType.Pages)
+                    if (item.ItemType == PixivItemType.Manga ||
+                        item.ItemType == PixivItemType.Work ||
+                        item.ItemType == PixivItemType.Works ||
+                        item.ItemType == PixivItemType.Page ||
+                        item.ItemType == PixivItemType.Pages)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }
@@ -1687,7 +1687,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.Page)
+                    if (item.ItemType == PixivItemType.Page)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }
@@ -1702,7 +1702,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.Pages)
+                    if (item.ItemType == PixivItemType.Pages)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }
@@ -1717,12 +1717,12 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.Manga ||
-                        item.ItemType == ImageItemType.Work ||
-                        item.ItemType == ImageItemType.Works ||
-                        item.ItemType == ImageItemType.Page ||
-                        item.ItemType == ImageItemType.Pages ||
-                        item.ItemType == ImageItemType.User)
+                    if (item.ItemType == PixivItemType.Manga ||
+                        item.ItemType == PixivItemType.Work ||
+                        item.ItemType == PixivItemType.Works ||
+                        item.ItemType == PixivItemType.Page ||
+                        item.ItemType == PixivItemType.Pages ||
+                        item.ItemType == PixivItemType.User)
                         result = item.User is Pixeez.Objects.UserBase ? true : false;
                 }
             }
@@ -1737,11 +1737,11 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.Manga ||
-                        item.ItemType == ImageItemType.Work ||
-                        item.ItemType == ImageItemType.Works ||
-                        item.ItemType == ImageItemType.Page ||
-                        item.ItemType == ImageItemType.Pages)
+                    if (item.ItemType == PixivItemType.Manga ||
+                        item.ItemType == PixivItemType.Work ||
+                        item.ItemType == PixivItemType.Works ||
+                        item.ItemType == PixivItemType.Page ||
+                        item.ItemType == PixivItemType.Pages)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }
@@ -1756,11 +1756,11 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.Manga ||
-                        item.ItemType == ImageItemType.Work ||
-                        item.ItemType == ImageItemType.Works ||
-                        item.ItemType == ImageItemType.Page ||
-                        item.ItemType == ImageItemType.Pages)
+                    if (item.ItemType == PixivItemType.Manga ||
+                        item.ItemType == PixivItemType.Work ||
+                        item.ItemType == PixivItemType.Works ||
+                        item.ItemType == PixivItemType.Page ||
+                        item.ItemType == PixivItemType.Pages)
                         result = item.Count > 1 ? true : false;
                 }
             }
@@ -1775,7 +1775,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.Manga) result = true;
+                    if (item.ItemType == PixivItemType.Manga) result = true;
                 }
             }
             catch (Exception) { }
@@ -1789,7 +1789,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.Novel) result = true;
+                    if (item.ItemType == PixivItemType.Novel) result = true;
                 }
             }
             catch (Exception) { }
@@ -1803,7 +1803,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.Manga || item.ItemType == ImageItemType.Novel) result = true;
+                    if (item.ItemType == PixivItemType.Manga || item.ItemType == PixivItemType.Novel) result = true;
                 }
             }
             catch (Exception) { }
@@ -1817,7 +1817,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == ImageItemType.None) result = true;
+                    if (item.ItemType == PixivItemType.None) result = true;
                 }
             }
             catch (Exception) { }

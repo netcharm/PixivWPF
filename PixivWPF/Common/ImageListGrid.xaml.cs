@@ -71,7 +71,7 @@ namespace PixivWPF.Common
                 {
                     System.Collections.IList items = (System.Collections.IList)PART_ImageTiles.SelectedItems;
                     var collection = items.Cast<PixivItem>();
-                    //IList<ImageItem> collection = (IList<ImageItem>)PART_ImageTiles.SelectedItems;
+                    //IList<PixivItem> collection = (IList<PixivItem>)PART_ImageTiles.SelectedItems;
                     return (collection.ToList());
                 }
             }
@@ -313,7 +313,7 @@ namespace PixivWPF.Common
         //~ImageListGrid()
         //{
         //    PART_ImageTiles.Items.Clear();
-        //    if (ImageList is ObservableCollection<ImageItem>) ImageList.Clear();
+        //    if (PixivList is ObservableCollection<PixivItem>) PixivList.Clear();
         //}
 
         [Description("Get or Set Wait Ring State")]
@@ -435,7 +435,7 @@ namespace PixivWPF.Common
                 if (e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase))
                 {
                     //var progress = tile.FindByName<ProgressRing>("PART_Progress");
-                    //if (tile.Tag is ImageItem && progress is ProgressRing)
+                    //if (tile.Tag is PixivItem && progress is ProgressRing)
                     var progress = tile.FindByName<ProgressRingCloud>("PART_Progress");
                     if (tile.Tag is PixivItem && progress is ProgressRingCloud)
                     {

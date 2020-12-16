@@ -4729,7 +4729,7 @@ namespace PixivWPF.Common
             return (GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone));
         }
 
-        public static IList<PixivItem> GetSelected(this ImageListGrid gallery, ImageItemType type)
+        public static IList<PixivItem> GetSelected(this ImageListGrid gallery, PixivItemType type)
         {
             setting = Application.Current.LoadSetting();
             var selected = GetSelected(gallery, setting.OpenWithSelectionOrder, setting.AllForSelectionNone);
