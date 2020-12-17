@@ -207,6 +207,30 @@ namespace PixivWPF.Common
 
         private DownloadInfo Info { get; set; }
 
+        private async void RefreshThumbnail(bool overwrite = false)
+        {
+            await new Action(async () =>
+            {
+                try
+                {
+                    PART_ThumbnailWait.Wait();
+
+                    var img = await ThumbnailUrl.LoadImageFromUrl(overwrite);
+                    if (img.Source != null)
+                    {
+                        Thumbnail = img.Source;
+                        PART_ThumbnailWait.Ready();
+                    }
+                    else PART_ThumbnailWait.Fail();
+                }
+                catch (Exception) { PART_ThumbnailWait.Fail(); }
+                finally
+                {
+                    if (Thumbnail == null) PART_ThumbnailWait.Fail();
+                }
+            }).InvokeAsync();
+        }
+
         #region member properties
         public bool Canceling
         {
@@ -439,7 +463,7 @@ namespace PixivWPF.Common
                         lastRates.Enqueue(rateC);
                         if (lastRates.Count > lastRatesCount) lastRates.Dequeue();
                         if (rateC > 0 || deltaC >= 1) lastRate = lastRates.Average();
-                        if(Info is DownloadInfo)
+                        if (Info is DownloadInfo)
                         {
                             Info.DownRateCurrent = lastRate;
                             Info.DownRateAverage = rateA;
@@ -821,7 +845,7 @@ namespace PixivWPF.Common
             }
             else if (State == DownloadState.Downloading)
             {
-                if(string.IsNullOrEmpty(FailReason))
+                if (string.IsNullOrEmpty(FailReason))
                     FailReason = "Unkonwn failed reason when downloading.";
                 State = DownloadState.Failed;
             }
@@ -1163,9 +1187,9 @@ namespace PixivWPF.Common
             {
                 Commands.CopyDownloadInfo.Execute(Info);
             }
-            else if(sender == miRefreshThumb)
+            else if (sender == miRefreshThumb || sender == PART_ThumbnailWait)
             {
-                Thumbnail = (await ThumbnailUrl.LoadImageFromUrl()).Source;
+                RefreshThumbnail();
             }
             else if ((sender == miOpenIllust || sender == PART_OpenIllust) && !string.IsNullOrEmpty(Url))
             {

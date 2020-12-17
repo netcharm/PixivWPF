@@ -1173,7 +1173,7 @@ namespace PixivWPF.Common
                         else if (Keyboard.Modifiers == ModifierKeys.None)
                             CommonHelper.SetDropBoxState(true.ShowDropBox());
                     }
-                }).InvokeAsync();
+                }).InvokeAsync(true);
             }
         });
 
@@ -1392,7 +1392,7 @@ namespace PixivWPF.Common
                     await new Action(() =>
                     {
                         content.OpenFileWithShell();
-                    }).InvokeAsync();
+                    }).InvokeAsync(true);
                 }
             }
             else if (obj is Uri)
@@ -1418,7 +1418,7 @@ namespace PixivWPF.Common
                     await new Action(() =>
                     {
                         fp.OpenFileWithShell();
-                    }).InvokeAsync();
+                    }).InvokeAsync(true);
                 }
             }
         });
@@ -1546,6 +1546,11 @@ namespace PixivWPF.Common
             {
                 var page = obj as HistoryPage;
                 page.UpdateThumb();
+            }
+            else if (obj is BrowerPage)
+            {
+                var page = obj as BrowerPage;
+                page.UpdateDetail(page.Contents);
             }
             else if (obj is TilesPage)
             {

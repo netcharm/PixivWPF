@@ -71,7 +71,10 @@ namespace PixivWPF.Common
             CommandFilter.Hide();
 
             if (Content is BrowerPage)
+            {
                 CommandPageRead.Show();
+                CommandPageRefreshThumb.ToolTip = "Refresh";
+            }
             else
                 CommandPageRead.Hide();
 

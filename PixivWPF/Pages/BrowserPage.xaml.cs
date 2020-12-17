@@ -166,31 +166,36 @@ namespace PixivWPF.Pages
 
         private async void GetHtmlContents(Uri url)
         {
-            try
+            if (IsSkip(url.AbsolutePath)) return;
+            setting = Application.Current.LoadSetting();
+
+            await new Action(async () =>
             {
-                if (IsSkip(url.AbsolutePath)) return;
-
-                setting = Application.Current.LoadSetting();
-
-                webHtml.Stop();
-                HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(currentUri);
-                if (setting.UsingProxy) myRequest.Proxy = new WebProxy(setting.Proxy, true, setting.ProxyBypass);
-                myRequest.Timeout = setting.DownloadHttpTimeout;
-                myRequest.KeepAlive = true;
-
-                HttpWebResponse myResponse = (HttpWebResponse)await myRequest.GetResponseAsync();
-                webHtml.DocumentStream = myResponse.GetResponseStream();
-            }
-            catch(Exception ex)
-            {
-                if (ex.Message.Contains("404"))
+                try
                 {
-                    if (webHtml.DocumentText.Length <= 1024)
-                        webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
+                    BrowserWait.Wait();
+
+                    webHtml.Stop();
+                    HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(currentUri);
+                    if (setting.UsingProxy) myRequest.Proxy = new WebProxy(setting.Proxy, true, setting.ProxyBypass);
+                    myRequest.Timeout = setting.DownloadHttpTimeout;
+                    myRequest.KeepAlive = true;
+
+                    HttpWebResponse myResponse = (HttpWebResponse)await myRequest.GetResponseAsync();
+                    webHtml.DocumentStream = myResponse.GetResponseStream();
                 }
-                else ex.Message.ShowMessageBox("ERROR[BROWSER]!");
-                if(webHtml.DocumentStream is Stream) webHtml.DocumentStream.Close();
-            }
+                catch (Exception ex)
+                {
+                    if (webHtml.DocumentStream is Stream) webHtml.DocumentStream.Close();
+                    if (ex.Message.Contains("404"))
+                    {
+                        if (webHtml.DocumentText.Length <= 1024)
+                            webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
+                    }
+                    else ex.Message.ShowMessageBox("ERROR[BROWSER]!");
+                    BrowserWait.Fail();
+                }
+            }).InvokeAsync();
         }
 
         internal async void UpdateDetail(string content)
@@ -231,7 +236,8 @@ namespace PixivWPF.Pages
                                         else if (src.IsPixivImage())
                                         {
                                             var img = await src.LoadImageFromUrl();
-                                            if (!string.IsNullOrEmpty(img.SourcePath)) imgElemt.SetAttribute("src", new Uri(img.SourcePath).AbsoluteUri);
+                                            if (!string.IsNullOrEmpty(img.SourcePath) && !string.IsNullOrEmpty(img.SourcePath))
+                                                imgElemt.SetAttribute("src", new Uri(img.SourcePath).AbsoluteUri);
                                         }
                                     }
                                     catch (Exception) { }
@@ -424,6 +430,7 @@ namespace PixivWPF.Pages
                     {
                         try
                         {
+                            if (string.IsNullOrEmpty(link.GetAttribute("href"))) continue;
                             link.Click += WebBrowser_LinkClick;
                         }
                         catch (Exception) { continue; }
@@ -434,11 +441,16 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex)
             {
+                BrowserWait.Fail();
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception) { }
+            catch (Exception) { BrowserWait.Fail(); }
 #endif
+            finally
+            {
+                BrowserWait.Ready();
+            }
         }
 
         private void WebBrowser_PreviewKeyDown(object sender, System.Windows.Forms.PreviewKeyDownEventArgs e)
@@ -515,5 +527,9 @@ namespace PixivWPF.Pages
             DeleteHtmlRender();
         }
 
+        private void BrowserWait_ReloadClick(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
+        }
     }
 }

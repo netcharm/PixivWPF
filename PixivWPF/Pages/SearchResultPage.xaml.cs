@@ -52,7 +52,8 @@ namespace PixivWPF.Pages
 
         public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
         {
-            await new Action(() => {
+            await new Action(() =>
+            {
                 UpdateLikeState(illustid, is_user);
             }).InvokeAsync();
         }
@@ -79,13 +80,16 @@ namespace PixivWPF.Pages
                         if (!ResultExpander.IsExpanded) ResultExpander.IsExpanded = true;
 
                         var tokens = await CommonHelper.ShowLogin();
-                        if (tokens == null) return;
+                        if (tokens == null) throw (new Exception("No Token"));
 
                         ShowResultInline(tokens, Contents, result_filter);
                     }
                     if (ResultNextPage is Button) ResultNextPage.Show();
                 }
-                catch (Exception) { }
+                catch (Exception ex)
+                {
+                    ResultExpander.Header = $"Search Results, ERROR: {ex.Message}";
+                }
                 finally
                 {
                     CanUpdateing.Release();
@@ -181,7 +185,7 @@ namespace PixivWPF.Pages
                     if (item is MenuItem && item.Name.Equals("ActionResultFilter", StringComparison.CurrentCultureIgnoreCase))
                     {
                         ActionResultFilter = item;
-                        if((item as MenuItem).Items.Count > 0)
+                        if ((item as MenuItem).Items.Count > 0)
                             ((item as MenuItem).Items[0] as MenuItem).IsChecked = true;
                         break;
                     }
@@ -509,7 +513,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            else if(sender == SearchRefreshThumb)
+            else if (sender == SearchRefreshThumb)
             {
                 ResultItems.UpdateTilesImage();
             }
@@ -633,7 +637,7 @@ namespace PixivWPF.Pages
 
         private void ResultExpander_Expanded(object sender, RoutedEventArgs e)
         {
-            if(Contents is string && !string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
+            if (Contents is string && !string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
         }
 
         private void ResultExpander_Collapsed(object sender, RoutedEventArgs e)

@@ -5,14 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"             
-             xmlns:local="clr-namespace:PixivWPF.Common"
+             xmlns:local="clr-namespace:PixivWPF.Common"             
              x:Name="PART_Wait"
              mc:Ignorable="d"              
              Width="{Binding Size, IsAsync=True, RelativeSource={RelativeSource Self}}"
              Height="{Binding Size, IsAsync=True, RelativeSource={RelativeSource Self}}"
              d:DesignHeight="300" d:DesignWidth="300"
              Loaded="WaitRing_Loaded">
-    
+
     <Grid x:Name="PART_Grid"
         IsEnabled="{Binding Path=IsEnabled, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}" 
         Width="{Binding Path=Width, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}"
@@ -42,9 +42,10 @@
             HorizontalAlignment="Center" VerticalAlignment="Center">
         </mah:ProgressRing>
         <!-- Loading Mark -->
-        <TextBlock Grid.Row="0" Grid.Column="0" x:Name="PART_Mark"
+        <TextBlock 
+            Grid.Row="0" Grid.Column="0" x:Name="PART_Mark"
             Text="&#xEDE4;" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets"
-            FontSize="{Binding Path=Width, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True, Converter={mah:MathDivideConverter}, ConverterParameter='2'}" 
+            FontSize="{Binding Path=Width, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True, Converter={mah:MathMultiplyConverter}, ConverterParameter='0.5'}" 
             Opacity="{Binding Path=Opacity, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
             Visibility="{Binding Path=Visibility, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
             Foreground="{Binding Path=Foreground, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
@@ -52,5 +53,16 @@
             HorizontalAlignment="{Binding Path=HorizontalAlignment, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}" 
             VerticalAlignment="{Binding Path=VerticalAlignment, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}">
         </TextBlock>
+        <Button 
+            Grid.Row="0" Grid.Column="0" x:Name="PART_Reload" Visibility="Collapsed"
+            Click="PART_Reload_Click" 
+            Opacity="{Binding Path=Opacity, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}" 
+            Width="{Binding Path=Width, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"
+            Height="{Binding Path=Height, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"           
+            Foreground="{Binding Path=Foreground, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
+            Background="{Binding Path=Background, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
+            HorizontalAlignment="Center" VerticalAlignment="Center"
+            HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+        </Button>
     </Grid>
 </UserControl>

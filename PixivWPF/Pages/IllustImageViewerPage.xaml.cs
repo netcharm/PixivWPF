@@ -85,10 +85,11 @@ namespace PixivWPF.Pages
             CustomImageSource img = new CustomImageSource();
             try
             {
-                PreviewWait.Show();
-
                 var setting = Application.Current.LoadSetting();
 
+                PreviewWait.Wait();
+
+                var c_item = Contents;
                 if (IsOriginal)
                 {
                     var original = await OriginalImageUrl.LoadImageFromUrl(overwrite);
@@ -108,21 +109,23 @@ namespace PixivWPF.Pages
                     else img = preview;
                 }
 
-                if (img.Source != null)
+                if (c_item.IsSameIllust(Contents))
                 {
-                    Preview.Source = img.Source;
-                    var aspect = Preview.Source.AspectRatio();
-                    PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
-                    Page_SizeChanged(null, null);
-                    PreviewWait.Hide();
+                    if (img.Source != null)
+                    {
+                        Preview.Source = img.Source;
+                        var aspect = Preview.Source.AspectRatio();
+                        PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
+                        Page_SizeChanged(null, null);
+                        PreviewWait.Ready();
+                    }
+                    else PreviewWait.Fail();
                 }
-                else PreviewWait.Disable();
             }
             catch (Exception) { }
             finally
             {
-                if (Preview.Source == null)
-                    PreviewWait.Disable();
+                if (Preview.Source == null) PreviewWait.Fail();
             }
             return (img);
         }
@@ -207,6 +210,11 @@ namespace PixivWPF.Pages
                 btnOpenCache.MouseOverAction();
                 btnSavePage.MouseOverAction();
                 #endregion
+
+                //PreviewWait.ReloadEnabled = true;
+                //PreviewWait.ReloadAction = new Action(() => {
+                //    UpdateDetail(Contents, Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control);
+                //});
 
                 var titleheight = window is MetroWindow ? (window as MetroWindow).TitleBarHeight : 0;
                 window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
@@ -381,7 +389,7 @@ namespace PixivWPF.Pages
                     else
                         Commands.ShellSendToOtherInstance.Execute(id);
                 }
-                else if (sender == ActionRefreshPreview)
+                else if (sender == ActionRefreshPreview || sender == PreviewWait)
                 {
                     UpdateDetail(Contents, Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control);
                 }

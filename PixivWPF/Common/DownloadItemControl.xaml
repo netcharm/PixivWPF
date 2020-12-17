@@ -99,7 +99,7 @@
 
         <local:ProgressRingCloud 
             Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_ThumbnailWait" Size="128" 
-            Visibility="Visible" IsActive="False"
+            Visibility="Visible" IsActive="False" ReloadEnabled="True" ReloadClick="miActions_Click"
             Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
             ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
             VerticalAlignment="Center" HorizontalAlignment="Center"/>

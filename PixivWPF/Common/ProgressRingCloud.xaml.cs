@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -32,6 +33,26 @@ namespace PixivWPF.Common
         public static readonly DependencyProperty IsActiveProperty = DependencyProperty.Register(
             "IsActive", typeof( bool ), typeof( ProgressRingCloud ), new PropertyMetadata( true )
         );
+
+        [Description("Reload Enabled State"), Category("Behavior")]
+        public bool ReloadEnabled
+        {
+            get { return ((bool)GetValue(ReloadEnabledProperty)); }
+            set { SetCurrentValue(ReloadEnabledProperty, value); }
+        }
+        public static readonly DependencyProperty ReloadEnabledProperty = DependencyProperty.Register(
+            "ReloadEnabled", typeof( bool ), typeof( ProgressRingCloud ), new PropertyMetadata( false )
+        );
+        public Action ReloadAction { get; set; } = null;
+
+        public event RoutedEventHandler ReloadClick
+        {
+            //add { PART_Reload.AddHandler(ButtonBase.ClickEvent, value); }
+            //remove { PART_Reload.RemoveHandler(ButtonBase.ClickEvent, value); }
+            add { AddHandler(ButtonBase.ClickEvent, value); }
+            remove { RemoveHandler(ButtonBase.ClickEvent, value); }
+        }
+        public static readonly RoutedEvent ReloadClickEvent = ButtonBase.ClickEvent.AddOwner(typeof(ProgressRingCloud));
 
         [Localizability(LocalizationCategory.None, Readability = Readability.Unreadable)]
         [TypeConverter(typeof(LengthConverter))]
@@ -93,6 +114,11 @@ namespace PixivWPF.Common
             "ShadowOpacity", typeof( double ), typeof( ProgressRingCloud ), new PropertyMetadata( 1.0 )
         );
 
+        public bool IsShown { get { return (Visibility == Visibility.Visible); } }
+        public bool IsWait { get { return (Visibility == Visibility.Visible && IsActive == true); } }
+        public bool IsFail { get { return (Visibility == Visibility.Visible && IsActive == false); } }
+        public bool IsReady { get { return (Visibility == Visibility.Collapsed && IsActive == false); } }
+
         public ProgressRingCloud()
         {
             InitializeComponent();
@@ -108,8 +134,10 @@ namespace PixivWPF.Common
             lock (this)
             {
                 IsActive = true;
-                IsEnabled = true;
+                //IsEnabled = true;
                 Visibility = Visibility.Visible;
+                PART_Reload.Visibility = Visibility.Collapsed;
+                PART_Mark.Text = "\uEDE4";
             }
         }
 
@@ -118,8 +146,10 @@ namespace PixivWPF.Common
             lock (this)
             {
                 IsActive = false;
-                IsEnabled = false;
+                //IsEnabled = false;
                 Visibility = Visibility.Collapsed;
+                PART_Reload.Visibility = Visibility.Collapsed;
+                PART_Mark.Text = "\uEDE4";
             }
         }
 
@@ -128,8 +158,10 @@ namespace PixivWPF.Common
             lock (this)
             {
                 IsActive = false;
-                IsEnabled = false;
+                //IsEnabled = false;
                 Visibility = Visibility.Visible;
+                PART_Reload.Visibility = ReloadEnabled ? Visibility.Visible : Visibility.Collapsed;
+                PART_Mark.Text = ReloadEnabled ? "\uE149" : "\uEDE4";
             }
         }
 
@@ -159,5 +191,13 @@ namespace PixivWPF.Common
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        private async void PART_Reload_Click(object sender, RoutedEventArgs e)
+        {
+            if (ReloadEnabled && ReloadAction is Action)
+            {
+                e.Handled = true;
+                await ReloadAction.InvokeAsync();
+            }
+        }
     }
 }

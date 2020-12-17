@@ -389,14 +389,15 @@
                                     <iconPacks:PackIconModern Kind="NavigateNext" Width="32" Height="32" />
                                 </Button.Content>
                             </Button>
-                            <Common:ProgressRingCloud 
-                                Grid.Column="1" x:Name="PreviewWait" Size="96" Visibility="Collapsed"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
-                                ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
-                                VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             <Rectangle Grid.Column="0" Grid.ColumnSpan="3" x:Name="PreviewRect" x:Uid="PreviewRect"
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent"
                                 MouseLeftButtonDown="PreviewRect_MouseLeftButtonDown"/>
+                            <Common:ProgressRingCloud 
+                                Grid.Column="1" x:Name="PreviewWait" Size="96" Visibility="Collapsed" 
+                                ReloadEnabled="True" ReloadClick="ActionRefreshPreview_Click"
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
+                                ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
+                                VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         </Grid>
                     </ContentControl>
                     <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge" 
@@ -420,15 +421,16 @@
                     <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvatar" 
                        Width="64" Height="64" Stretch="Uniform"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    <Common:ProgressRingCloud 
-                        Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="IllustAuthorAvatarWait" Size="48" Visibility="Collapsed"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
-                        ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
-                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorInfo" x:Uid="btnAuthorInfo"
+                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorAvatar" x:Uid="btnAuthorAvatar"
                             Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
                             Background="Transparent" Foreground="Transparent"
                             Click="ActionIllustAuthourInfo_Click"/>
+                    <Common:ProgressRingCloud 
+                        Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="AuthorAvatarWait" Size="48" Visibility="Collapsed" 
+                        ReloadEnabled="True" ReloadClick="ActionIllustAuthourInfo_Click"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
+                        ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
+                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
 
                     <Grid Grid.Row="0" Grid.Column="1">
                         <Grid.ColumnDefinitions>

@@ -82,7 +82,7 @@ namespace PixivWPF.Pages
             List<string> result = new List<string>();
 
             var unfinished = items.Where(i => i.State != DownloadState.Finished);
-            foreach(var item in unfinished)
+            foreach (var item in unfinished)
             {
                 result.Add($"Downloading: {item.Url.ParseID()}");
             }
@@ -123,12 +123,12 @@ namespace PixivWPF.Pages
 
                         var jobs_count = items.Where(i => i.State == DownloadState.Downloading || i.State == DownloadState.Writing).Count();
                         var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);//|| item.State == DownloadState.Failed);
-                    foreach (var item in pre_jobs)
+                        foreach (var item in pre_jobs)
                         {
                             if (jobs_count < SimultaneousJobs)
                             {
-                            //if (states_job.Contains(item.State)) continue;
-                            if (item.AutoStart) item.IsStart = true;
+                                //if (states_job.Contains(item.State)) continue;
+                                if (item.AutoStart) item.IsStart = true;
                                 jobs_count++;
                             }
                         }
@@ -382,7 +382,7 @@ namespace PixivWPF.Pages
                     }
                 }
                 Commands.CopyDownloadInfo.Execute(dis);
-            }).InvokeAsync();
+            }).InvokeAsync(true);
         }
     }
 }

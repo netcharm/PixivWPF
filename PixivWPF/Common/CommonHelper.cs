@@ -983,25 +983,52 @@ namespace PixivWPF.Common
             await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
         }
 
-        public static async Task InvokeAsync(this Action action)
+        public static async Task InvokeAsync(this Action action, bool realtime = false)
         {
             try
             {
                 Dispatcher dispatcher = action.AppDispatcher();
-                await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+                if (realtime)
+                    await dispatcher.InvokeAsync(action, DispatcherPriority.Send);
+                else
+                    await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
             }
             catch (Exception) { }
         }
 
-        public static async Task InvokeAsync(this Action action, CancellationToken cancelToken)
+        public static async Task InvokeAsync(this Action action, CancellationToken cancelToken, bool realtime = false)
         {
             try
             {
                 Dispatcher dispatcher = action.AppDispatcher();
-                await dispatcher.InvokeAsync(action, DispatcherPriority.Background, cancelToken);
+                if (realtime)
+                    await dispatcher.InvokeAsync(action, DispatcherPriority.Send, cancelToken);
+                else
+                    await dispatcher.InvokeAsync(action, DispatcherPriority.Background, cancelToken);
             }
             catch (Exception) { }
         }
+
+        public static async Task InvokeAsync(this Action action, DispatcherPriority priority)
+        {
+            try
+            {
+                Dispatcher dispatcher = action.AppDispatcher();
+                await dispatcher.InvokeAsync(action, priority);
+            }
+            catch (Exception) { }
+        }
+
+        public static async Task InvokeAsync(this Action action, DispatcherPriority priority, CancellationToken cancelToken)
+        {
+            try
+            {
+                Dispatcher dispatcher = action.AppDispatcher();
+                await dispatcher.InvokeAsync(action, priority, cancelToken);
+            }
+            catch (Exception) { }
+        }
+
         #endregion
 
         #region AES Encrypt/Decrypt helper
@@ -1209,7 +1236,7 @@ namespace PixivWPF.Common
                         else if (item.Sanity.Equals("15+")) win.WindowState = WindowState.Minimized;
                     }
                 }
-            }).InvokeAsync();
+            }).InvokeAsync(true);
         }
 
         public static async void MinimizedWindows(this Application app, string condition = "")
@@ -1263,7 +1290,7 @@ namespace PixivWPF.Common
                         DoEvents();
                     }
                 }
-            }).InvokeAsync();
+            }).InvokeAsync(true);
         }
         #endregion
 
@@ -1928,11 +1955,11 @@ namespace PixivWPF.Common
                 }
                 catch (Exception ex)
                 {
-                    //await ex.Message.ShowMessageBoxAsync("ERROR");
                     ex.Message.ShowMessageBox("ERROR");
                 }
                 finally
                 {
+                    if(result == null) "Request Token Error!".ShowToast("ERROR");
                     CanShowLogin.Release();
                 }
             }
@@ -2013,7 +2040,7 @@ namespace PixivWPF.Common
 
         #endregion
 
-        #region Text process routines
+        #region Link parsing/genaration helper
         public static bool IsFile(this string text)
         {
             var result = false;
@@ -2431,6 +2458,62 @@ namespace PixivWPF.Common
         {
             return (string.IsNullOrEmpty(tag) ? string.Empty : Uri.EscapeUriString($"https://www.pixiv.net/tags/{tag}"));
         }
+        #endregion
+
+        #region Text process routines
+        public static string TranslatedTag(this string tag, string translated = default(string))
+        {
+            var result = tag;
+            try
+            {
+                tag = string.IsNullOrEmpty(tag) ? string.Empty : tag.Trim();
+                translated = string.IsNullOrEmpty(translated) ? string.Empty : translated.Trim();
+                if (string.IsNullOrEmpty(tag)) return (string.Empty);
+
+                result = tag;
+                if (TagsCache is ConcurrentDictionary<string, string>)
+                {
+                    if (string.IsNullOrEmpty(translated) || tag.Equals(translated, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (TagsCache.ContainsKey(tag))
+                        {
+                            var tag_t = TagsCache[tag];
+                            if (!string.IsNullOrEmpty(tag_t)) result = tag_t;
+                        }
+                    }
+                    else
+                    {
+                        TagsCache[tag] = translated;
+                        result = translated;
+                    }
+                }
+
+                if (TagsT2S is ConcurrentDictionary<string, string>)
+                {
+                    if (TagsT2S.ContainsKey(tag)) result = TagsT2S[tag];
+                    else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
+
+                    var pattern = $@"/{tag}/";
+                    if (TagsT2S.ContainsKey(pattern))
+                        result = Regex.Replace(result, tag, TagsT2S[pattern], RegexOptions.IgnoreCase);
+                }
+
+                if (TagsWildecardT2S is ConcurrentDictionary<string, string>)
+                {
+                    var alpha = Regex.IsMatch(result, @"^[\u0020-\u007E]*$", RegexOptions.IgnoreCase);
+                    var text = alpha ? tag : result;
+                    foreach (var kv in TagsWildecardT2S)
+                    {
+                        var k = kv.Key;
+                        var v = kv.Value;
+                        text = Regex.Replace(text, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
+                    }
+                    result = alpha && !Regex.IsMatch(text, result, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
 
         public static string InsertLineBreak(this string text, int lineLength)
         {
@@ -2620,60 +2703,6 @@ namespace PixivWPF.Common
             template = Regex.Replace(template, @"{%\s*?contents\s*?%}", contents, RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
             return (template.ToString());
-        }
-
-        public static string TranslatedTag(this string tag, string translated = default(string))
-        {
-            var result = tag;
-            try
-            {
-                tag = string.IsNullOrEmpty(tag) ? string.Empty : tag.Trim();
-                translated = string.IsNullOrEmpty(translated) ? string.Empty : translated.Trim();
-                if (string.IsNullOrEmpty(tag)) return (string.Empty);
-
-                result = tag;
-                if (TagsCache is ConcurrentDictionary<string, string>)
-                {
-                    if (string.IsNullOrEmpty(translated) || tag.Equals(translated, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        if (TagsCache.ContainsKey(tag))
-                        {
-                            var tag_t = TagsCache[tag];
-                            if (!string.IsNullOrEmpty(tag_t)) result = tag_t;
-                        }
-                    }
-                    else
-                    {
-                        TagsCache[tag] = translated;
-                        result = translated;
-                    }
-                }
-
-                if (TagsT2S is ConcurrentDictionary<string, string>)
-                {
-                    if (TagsT2S.ContainsKey(tag)) result = TagsT2S[tag];
-                    else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
-
-                    var pattern = $@"/{tag}/";
-                    if (TagsT2S.ContainsKey(pattern))
-                        result = Regex.Replace(result, tag, TagsT2S[pattern], RegexOptions.IgnoreCase);
-                }
-
-                if (TagsWildecardT2S is ConcurrentDictionary<string, string>)
-                {
-                    var alpha = Regex.IsMatch(result, @"^[\u0020-\u007E]*$", RegexOptions.IgnoreCase);
-                    var text = alpha ? tag : result;
-                    foreach (var kv in TagsWildecardT2S)
-                    {                        
-                        var k = kv.Key;
-                        var v = kv.Value;
-                        text = Regex.Replace(text, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
-                    }
-                    result = alpha && !text.Equals(result) ? $"{text}/{result}" : text;
-                }
-            }
-            catch (Exception) { }
-            return (result);
         }
 
         public static async void UpdateIllustTagsAsync()
