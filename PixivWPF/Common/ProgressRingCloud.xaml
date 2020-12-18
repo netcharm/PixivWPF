@@ -50,8 +50,7 @@
             Visibility="{Binding Path=Visibility, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
             Foreground="{Binding Path=Foreground, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
             Background="{Binding Path=Background, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
-            HorizontalAlignment="{Binding Path=HorizontalAlignment, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}" 
-            VerticalAlignment="{Binding Path=VerticalAlignment, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}">
+            HorizontalAlignment="Center" VerticalAlignment="Center">
         </TextBlock>
         <Button 
             Grid.Row="0" Grid.Column="0" x:Name="PART_Reload" Visibility="Collapsed"
