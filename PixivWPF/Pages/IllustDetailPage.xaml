@@ -933,7 +933,7 @@
 
                 <!-- Illust Relatives -->
                 <Expander Grid.Row="5" x:Name="RelativeItemsExpander" x:Uid="RelativeItemsExpander" 
-                          Margin="0,4,0,0"
+                          Margin="0,4,0,0" MaxHeight="970"
                           IsExpanded="True" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Relative Illust Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
@@ -1006,7 +1006,7 @@
 
                 <!-- Illust Author Favorites -->
                 <Expander Grid.Row="6" x:Name="FavoriteItemsExpander" x:Uid="RelativeItemsExpander" 
-                          Margin="0,4,0,0"
+                          Margin="0,4,0,0" MaxHeight="970"
                           IsExpanded="True" ExpandDirection="Down"
                           Visibility="Collapsed" Header="Author Favorites Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
@@ -1080,7 +1080,7 @@
 
                 <!-- Illust Comments  -->
                 <Expander Grid.Row="7" x:Name="CommentsExpander" x:Uid="CommentsExpander" 
-                          Margin="0,4,0,0"
+                          Margin="0,4,0,0" MaxHeight="970"
                           IsExpanded="True" ExpandDirection="Down"                          
                           Visibility="Collapsed" Header="Comments"
                           ContextMenu="{StaticResource MenuGallaryAction}"

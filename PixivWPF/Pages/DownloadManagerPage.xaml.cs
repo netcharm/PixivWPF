@@ -210,7 +210,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal async void Add(string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        internal void Add(string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
             if (!IsExists(url))
             {
@@ -220,7 +220,6 @@ namespace PixivWPF.Pages
                     SingleFile = is_meta_single_page,
                     Overwrite = overwrite,
                     ThumbnailUrl = thumb,
-                    Thumbnail = (await thumb.LoadImageFromUrl()).Source,
                     Url = url,
                     FileTime = dt
                 };

@@ -170,6 +170,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Common\PixivItemTile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Common\ProgressRingCloud.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -193,7 +197,9 @@
     <Compile Include="Common\CacheClass.cs" />
     <Compile Include="Common\ClipboardHelper.cs" />
     <Compile Include="Common\Commands.cs" />
-    <Compile Include="Common\CommonHelper.cs" />
+    <Compile Include="Common\CommonHelper.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Common\DateTimePicker.xaml.cs">
       <DependentUpon>DateTimePicker.xaml</DependentUpon>
     </Compile>
@@ -211,6 +217,9 @@
     </Compile>
     <Compile Include="Common\LoginDialog.xaml.cs">
       <DependentUpon>LoginDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Common\PixivItemTile.xaml.cs">
+      <DependentUpon>PixivItemTile.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\ProgressRingCloud.xaml.cs">
       <DependentUpon>ProgressRingCloud.xaml</DependentUpon>

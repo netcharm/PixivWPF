@@ -2504,14 +2504,14 @@ namespace PixivWPF.Common
                     var text = alpha ? tag : result;
                     foreach (var kv in TagsWildecardT2S)
                     {
-                        var k = kv.Key;
+                        var k = kv.Key.Replace(" ", "\\s");
                         var v = kv.Value;
                         text = Regex.Replace(text, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
                     }
                     result = alpha && !Regex.IsMatch(text, result, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { ex.Message.DEBUG(); }
             return (result);
         }
 
@@ -6538,6 +6538,7 @@ namespace PixivWPF.Common
         {
             try
             {
+                if (Application.Current.GetMainWindow() == null) return;
                 if (title.Equals(lastToastTitle) && content.Equals(lastToastContent)) return;
 
                 setting = Application.Current.LoadSetting();
@@ -6581,6 +6582,8 @@ namespace PixivWPF.Common
         {
             try
             {
+                if (Application.Current.GetMainWindow() == null) return;
+
                 setting = Application.Current.LoadSetting();
 
                 INotificationDialogService _dialogService = new NotificationDialogService();
@@ -6618,10 +6621,14 @@ namespace PixivWPF.Common
         {
             try
             {
+                if (Application.Current.GetMainWindow() == null) return;
+
+                setting = Application.Current.LoadSetting();
+
                 INotificationDialogService _dialogService = new NotificationDialogService();
                 NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
                 NotificationConfiguration cfg = new NotificationConfiguration(
-                    TimeSpan.FromSeconds(3),
+                    TimeSpan.FromSeconds(setting.ToastShowTimes),
                     cfgDefault.Width + 32, cfgDefault.Height,
                     "ToastTemplate",
                     //cfgDefault.TemplateName, 

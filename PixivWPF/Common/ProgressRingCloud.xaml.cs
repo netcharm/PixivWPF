@@ -54,7 +54,7 @@ namespace PixivWPF.Common
         }
         public static readonly RoutedEvent ReloadClickEvent = ButtonBase.ClickEvent.AddOwner(typeof(ProgressRingCloud));
 
-        [Localizability(LocalizationCategory.None, Readability = Readability.Unreadable)]
+        [Localizability(LocalizationCategory.None, Readability = Readability.Readable)]
         [TypeConverter(typeof(LengthConverter))]
         [Description("Size"), Category("Layout")]
         public double Size

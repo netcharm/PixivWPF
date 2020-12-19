@@ -528,7 +528,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp);
+                        var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, item.Illust.PageCount<=1);
                         if (download)
                         {
                             IllustDownloaded.Show();

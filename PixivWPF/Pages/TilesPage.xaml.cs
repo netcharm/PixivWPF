@@ -190,8 +190,6 @@ namespace PixivWPF.Pages
                     ListImageTiles.SelectedIndex = 0;
                     ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
                 }
-                //ListImageTiles.Invalidate(TilesViewer);
-                TilesViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
             }
         }
         #endregion
@@ -1546,11 +1544,6 @@ namespace PixivWPF.Pages
                 }
 #endif
             }
-        }
-
-        private void ImageTilesViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
-        {
-
         }
 
         private object lastInvokedItem = null;

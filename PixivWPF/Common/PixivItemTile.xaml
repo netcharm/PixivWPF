@@ -1,0 +1,135 @@
+﻿<UserControl x:Class="PixivWPF.Common.PixivItemTile" x:Name="PART_PixivItemTile"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"             
+             xmlns:local="clr-namespace:PixivWPF.Common"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <!--Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"-->
+    <Grid x:Name="PART_Tile" Background="{DynamicResource MahApps.Brushes.Accent}"
+        Margin="0,4,0,4" ToolTip="{Binding ToolTip, Mode=OneWay}"
+        Width="{Binding Path=Size, ElementName=PART_PixivItemTile, Mode=TwoWay, IsAsync=True}"
+        Tag="{Binding Path=., Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" TargetUpdated="TileImage_TargetUpdated">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="128"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" x:Name="PART_Mask" Opacity="0.67"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+            Background="{DynamicResource MahApps.Brushes.IdealForeground}" 
+            BorderBrush="{DynamicResource MahApps.Brushes.Accent}" />
+        <Image Grid.Row="0" x:Name="PART_Thumbnail"                       
+            Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
+            TargetUpdated="TileImage_TargetUpdated"
+            Tag="{Binding Illust, Mode=OneWay}"
+            Stretch="Uniform" 
+            Width="{Binding Path=Size, ElementName=PART_PixivItemTile, Mode=TwoWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
+            Height="{Binding Path=Size, ElementName=PART_PixivItemTile, Mode=TwoWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
+            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <local:ProgressRingCloud
+            Grid.Row="0" x:Name="PART_Progress" Size="72"
+            Foreground="{DynamicResource MahApps.Brushes.Accent}" 
+            Background="Transparent" Opacity="0.75"
+            ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" 
+            ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
+            VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <!-- User Mark -->
+        <TextBlock Grid.Row="0" 
+                           HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,8" 
+                           Text="&#xE187;" FontSize="24" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets" 
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                           Visibility="{Binding UserMarkVisibility, Mode=OneWay}" >
+            <TextBlock.Effect>
+                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
+            </TextBlock.Effect>
+        </TextBlock>
+        <!-- Favorited Mark -->
+        <iconPacks:PackIconModern 
+                    Grid.Row="0"
+                    Kind="Heart" 
+                    Width="28" Height="24" Margin="0,0,6,8" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                    Visibility="{Binding FavMarkVisibility, Mode=OneWay}" >
+            <iconPacks:PackIconModern.Effect>
+                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="9"/>
+            </iconPacks:PackIconModern.Effect>
+        </iconPacks:PackIconModern>
+        <iconPacks:PackIconModern 
+            Grid.Row="0" x:Name="PART_Favorite" 
+            Kind="Heart"
+            Width="24" Height="24" Margin="0,0,8,8" 
+            HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+            Visibility="{Binding FavMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}" 
+            TargetUpdated="TileImage_TargetUpdated">
+            <iconPacks:PackIconModern.Effect>
+                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+            </iconPacks:PackIconModern.Effect>
+        </iconPacks:PackIconModern>
+        <!-- Follow Mark -->
+        <iconPacks:PackIconModern 
+                    Grid.Row="0" x:Name="PART_Follow" 
+                    Kind="Check"
+                    Width="16" Height="16" Margin="0,0,12,12" 
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                    Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                    Visibility="{Binding FollowMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}" 
+                    TargetUpdated="TileImage_TargetUpdated">
+            <iconPacks:PackIconModern.Effect>
+                <DropShadowEffect x:Name="PART_Follow_Shadow" ShadowDepth="0" Color="{DynamicResource MahApps.Colors.Accent}" Opacity="1" BlurRadius="10"/>
+            </iconPacks:PackIconModern.Effect>
+        </iconPacks:PackIconModern>
+        <!-- Download Mark -->
+        <iconPacks:PackIconModern 
+            Grid.Row="0"
+            Kind="Download" 
+            Width="28" Height="28" Margin="0,0,6,6" 
+            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
+            HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+            Visibility="{Binding IsDownloadedVisibilityAlt, Mode=OneWay}" >
+            <iconPacks:PackIconModern.Effect>
+                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="9"/>
+            </iconPacks:PackIconModern.Effect>
+        </iconPacks:PackIconModern>
+        <iconPacks:PackIconModern 
+            Grid.Row="0" x:Name="PART_IllustDownloadedAlt" 
+            Kind="Download" 
+            Width="24" Height="24" Margin="0,0,8,8" 
+            HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+            Visibility="{Binding IsDownloadedVisibilityAlt, Mode=OneWay}">
+            <iconPacks:PackIconModern.Effect>
+                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+            </iconPacks:PackIconModern.Effect>
+        </iconPacks:PackIconModern>
+        <mah:Badged Grid.Row="0"
+                Badge="{Binding BadgeValue, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
+                BadgePlacementMode="TopRight" Margin="0,16,16,0" 
+                FontSize="16" FontFamily="Consolas" 
+                TargetUpdated="TileBadge_TargetUpdated"
+                Tag="{Binding DisplayBadge, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
+                Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
+                BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
+        <Grid Grid.Row="1" Visibility="{Binding Path=TitleVisibility, ElementName=PART_PixivItemTile, Mode=TwoWay, IsAsync=True}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" 
+                Text="{Binding Subject, Mode=OneWay}" 
+                Background="{DynamicResource MahApps.Brushes.Accent}"
+                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+            <iconPacks:PackIconModern Grid.Column="1" 
+                Kind="Download" x:Name="PART_IllustDownloaded" 
+                Width="16" Height="16"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Background="{DynamicResource MahApps.Brushes.Accent}"
+                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                Visibility="{Binding IsDownloadedVisibility, Mode=OneWay}"/>
+        </Grid>
+    </Grid>
+</UserControl>

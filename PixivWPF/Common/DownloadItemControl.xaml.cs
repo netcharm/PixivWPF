@@ -121,7 +121,12 @@ namespace PixivWPF.Common
         }
 
         public ImageSource Thumbnail { get; set; } = null;
-        public string ThumbnailUrl { get; set; } = string.Empty;
+        private string thumbnail_url = string.Empty;
+        public string ThumbnailUrl
+        {
+            get { return (thumbnail_url); }
+            set { thumbnail_url = value; RefreshThumbnail(); }
+        }
 
         private bool start = false;
         [DefaultValue(false)]
@@ -186,6 +191,31 @@ namespace PixivWPF.Common
             NotifyPropertyChanged("StateChanged");
         }
 
+        public async void RefreshThumbnail(bool overwrite = false)
+        {
+            await new Action(async () =>
+            {
+                try
+                {
+                    if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Wait();
+
+                    var img = await ThumbnailUrl.LoadImageFromUrl(overwrite);
+                    if (img.Source != null)
+                    {
+                        Thumbnail = img.Source;
+                        if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Ready();
+                    }
+                    else if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail();
+                }
+                catch (Exception) { if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail(); }
+                finally
+                {
+                    if (Thumbnail == null && Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail();
+                    NotifyPropertyChanged("Thumbnail");
+                }
+            }).InvokeAsync();
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
@@ -206,30 +236,6 @@ namespace PixivWPF.Common
         private Setting setting = Application.Current.LoadSetting();
 
         private DownloadInfo Info { get; set; }
-
-        private async void RefreshThumbnail(bool overwrite = false)
-        {
-            await new Action(async () =>
-            {
-                try
-                {
-                    PART_ThumbnailWait.Wait();
-
-                    var img = await ThumbnailUrl.LoadImageFromUrl(overwrite);
-                    if (img.Source != null)
-                    {
-                        Thumbnail = img.Source;
-                        PART_ThumbnailWait.Ready();
-                    }
-                    else PART_ThumbnailWait.Fail();
-                }
-                catch (Exception) { PART_ThumbnailWait.Fail(); }
-                finally
-                {
-                    if (Thumbnail == null) PART_ThumbnailWait.Fail();
-                }
-            }).InvokeAsync();
-        }
 
         #region member properties
         public bool Canceling
@@ -1174,6 +1180,11 @@ namespace PixivWPF.Common
             CheckProperties();
             setting = Application.Current.LoadSetting();
             if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
+            if (sender == PART_Preview)
+            {
+                if (PART_Preview.Source == null) PART_ThumbnailWait.Wait();
+                else PART_ThumbnailWait.Ready();
+            }
         }
 
         private async void miActions_Click(object sender, RoutedEventArgs e)
@@ -1189,7 +1200,7 @@ namespace PixivWPF.Common
             }
             else if (sender == miRefreshThumb || sender == PART_ThumbnailWait)
             {
-                RefreshThumbnail();
+                if(Info is DownloadInfo ) Info.RefreshThumbnail();
             }
             else if ((sender == miOpenIllust || sender == PART_OpenIllust) && !string.IsNullOrEmpty(Url))
             {

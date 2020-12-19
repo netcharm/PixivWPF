@@ -77,7 +77,7 @@
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>            
+            </MenuItem>
             <Separator/>
             <MenuItem x:Name="ActionNextResultPage" x:Uid="ActionNextResultPage" Header="Open Next Page" Click="ResultNextPage_Click">
                 <MenuItem.Icon>
@@ -95,7 +95,7 @@
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>            
+            </MenuItem>
             <Separator/>
             <MenuItem x:Name="ActionResultFilter" x:Uid="ActionResultFilter" Header="Result Filter" Click="SearchFilter_Click" ContextMenu="{StaticResource MenuSearchFilter}">
                 <MenuItem.Icon>
@@ -113,7 +113,7 @@
                 <MenuItem x:Name="ActionFilter_20000users" x:Uid="SearchFilter_20000users" Header="20000~30000 Favs" Click="SearchFilter_Click"/>
                 <MenuItem x:Name="ActionFilter_30000users" x:Uid="SearchFilter_30000users" Header="30000~50000 Favs" Click="SearchFilter_Click"/>
                 <MenuItem x:Name="ActionFilter_50000users" x:Uid="SearchFilter_50000users" Header="50000+ Favs" Click="SearchFilter_Click"/>
-            </MenuItem>            
+            </MenuItem>
             <Separator/>
             <MenuItem x:Name="ActionSaveResult" x:Uid="ActionSaveIllusts" Header="Save Selected Illusts (Default Page)" Click="ActionSaveResult_Click" >
                 <MenuItem.Icon>
@@ -164,33 +164,30 @@
             </MenuItem>
         </ContextMenu>
     </Page.Resources>
-    
-    <Grid>
-        <ScrollViewer Grid.Column="0" Margin="4,4,4,4"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                      HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top" 
-                      VerticalScrollBarVisibility="Auto">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
 
-                <!-- Illust Searched Results -->
-                <Expander Grid.Row="0" x:Name="ResultExpander" x:Uid="ResultItemsExpander" 
-                          Margin="0,4,0,0"
-                          IsExpanded="true" ExpandDirection="Down"
-                          Visibility="Visible" Header="Search Results"
-                          ContextMenu="{StaticResource MenuSearchResult}"
-                          Expanded="ResultExpander_Expanded" Collapsed="ResultExpander_Collapsed">
-                    <Common:ImageListGrid x:Name="ResultItems" x:Uid="ResultItems"
-                                          Columns="5" TileWidth="128" TileHeight="128"
-                                          SelectionMode="Extended"
-                                          SelectionChanged="ResultItems_SelectionChanged" 
-                                          MouseDoubleClick="ResultItems_MouseDoubleClick" />
-                </Expander>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,4,0,0" 
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!-- Illust Searched Results -->
+        <Expander 
+            Grid.Row="0" x:Name="ResultExpander" x:Uid="ResultItemsExpander" 
+            Margin="0,4,0,0" MaxHeight="970"
+            IsExpanded="true" ExpandDirection="Down" 
+            Visibility="Visible" Header="Search Results"
+            ContextMenu="{StaticResource MenuSearchResult}"
+            Expanded="ResultExpander_Expanded" Collapsed="ResultExpander_Collapsed">
+            <Common:ImageListGrid 
+                x:Name="ResultItems" x:Uid="ResultItems"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                Columns="5" TileWidth="128" TileHeight="128"
+                SelectionMode="Extended"
+                SelectionChanged="ResultItems_SelectionChanged" 
+                MouseDoubleClick="ResultItems_MouseDoubleClick" />
+        </Expander>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,4,0,0" 
                             HorizontalAlignment="Right" VerticalAlignment="Top">
-                    <Button 
+            <Button 
                         x:Name="SearchFilter" x:Uid="ResultFilter" ToolTip="Results Filter"
                         Visibility="Visible" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent" 
@@ -198,67 +195,64 @@
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         ContextMenu="{StaticResource MenuSearchFilter}"
                         Click="SearchFilter_Click">
-                        <Button.Content>
-                            <TextBlock Text="&#xE16E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                <Button.Content>
+                    <TextBlock Text="&#xE16E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button.Content>
-                    </Button>
-                    <Button 
+                </Button.Content>
+            </Button>
+            <Button 
                         x:Name="ResultPrevPage" x:Uid="ResultPrevPage" ToolTip="Previous Results Page"
                         Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="SearchResultPrevPage_Click">
-                        <Button.Content>
-                            <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                <Button.Content>
+                    <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button.Content>
-                    </Button>
-                    <Button 
+                </Button.Content>
+            </Button>
+            <Button 
                         x:Name="ResultNextPage" x:Uid="ResultNextPage" ToolTip="Open Next Results Page"
                         Visibility="Visible" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ResultNextPage_Click">
-                        <Button.Content>
-                            <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                <Button.Content>
+                    <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button.Content>
-                    </Button>
-                    <Button 
+                </Button.Content>
+            </Button>
+            <Button 
                         x:Name="ResultNextAppend" x:Uid="ResultNextAppend" ToolTip="Append Next Results Page"
                         Visibility="{Binding Visibility, ElementName=ResultNextPage, Mode=TwoWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ResultNextPage_Click">
-                        <Button.Content>
-                            <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                <Button.Content>
+                    <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button.Content>
-                    </Button>
-                    <Button 
+                </Button.Content>
+            </Button>
+            <Button 
                         x:Name="SearchRefreshThumb" x:Uid="RefreshThumbnail" ToolTip="Refresh Thumbnails"
                         Visibility="Visible" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
                         Click="ActionRefreshResult_Click">
-                        <Button.Content>
-                            <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                <Button.Content>
+                    <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button.Content>
-                    </Button>
-                </StackPanel>
-            </Grid>
-        </ScrollViewer>
-
+                </Button.Content>
+            </Button>
+        </StackPanel>
     </Grid>
 </Page>

@@ -24,7 +24,7 @@
             <!--Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"-->
             <Grid x:Name="PART_Tile" Background="{DynamicResource MahApps.Brushes.Accent}"
                   Margin="0,4,0,4"
-                  Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"                                          
+                  Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" Height="Auto"
                   ToolTip="{Binding ToolTip, Mode=OneWay}"
                   Tag="{Binding Path=., Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" TargetUpdated="TileImage_TargetUpdated">
                 <Grid.RowDefinitions>
@@ -149,19 +149,19 @@
 
     <Grid>
         <ListView 
-            x:Name="PART_ImageTiles" x:Uid="ImageTiles"
+            x:Name="PART_ImageTiles" x:Uid="ImageTiles" Grid.IsSharedSizeScope="True" 
             BorderBrush="Transparent" Margin="0"
+            ScrollViewer.VerticalScrollBarVisibility="Auto"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
             HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
             Focusable="True" ClipToBounds="True" 
-            Grid.IsSharedSizeScope="True" UseLayoutRounding="True" ScrollViewer.CanContentScroll="True"
+            UseLayoutRounding="True" ScrollViewer.CanContentScroll="True"
             IsSynchronizedWithCurrentItem="true"
             ItemsSource="{Binding Items, Mode=OneWay, IsAsync=True, NotifyOnSourceUpdated=True}" 
             ItemTemplate="{DynamicResource PART_ImageTileTemplate}"
             ScrollViewer.IsDeferredScrollingEnabled="False"
             SelectionMode="{Binding SelectionMode, Mode=OneWay}"                  
             Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
-            Template="{StaticResource PART_NoScroll}"
             VirtualizingPanel.IsVirtualizing="True"
             VirtualizingPanel.IsContainerVirtualizable="True"
             VirtualizingPanel.IsVirtualizingWhenGrouping="True"

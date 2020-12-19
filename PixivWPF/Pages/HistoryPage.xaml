@@ -119,23 +119,13 @@
     </Page.Resources>
 
     <Grid>
-        <ScrollViewer Grid.Column="0" Margin="4,4,4,4"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                      HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top"                       
-                      VerticalScrollBarVisibility="Auto">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- History Results -->
-                <Common:ImageListGrid x:Name="HistoryItems" x:Uid="HistoryItems"
-                    Columns="5" TileWidth="128" TileHeight="128"
-                    SelectionMode="Extended"
-                    ContextMenu="{StaticResource MenuGallaryAction}"
-                    MouseDoubleClick="HistoryIllusts_MouseDoubleClick" />
-            </Grid>
-        </ScrollViewer>
-
+        <!-- History Results -->
+        <Common:ImageListGrid 
+            x:Name="HistoryItems" x:Uid="HistoryItems"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+            Columns="5" TileWidth="128" TileHeight="128"
+            SelectionMode="Extended"
+            ContextMenu="{StaticResource MenuGallaryAction}"
+            MouseDoubleClick="HistoryIllusts_MouseDoubleClick" />
     </Grid>
 </Page>

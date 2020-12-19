@@ -458,7 +458,11 @@ namespace PixivWPF.Common
                             }
                             catch (Exception ex) { ex.Message.DEBUG(); }
                         }
-                        if (tags_changed) CommonHelper.UpdateIllustTagsAsync();
+                        if (tags_changed)
+                        {
+                            CommonHelper.UpdateIllustTagsAsync();
+                            "CustomTags Reloaded".ShowToast("INFO");
+                        }
                     }
                 }
                 catch (Exception ex) { ex.Message.DEBUG(); }
@@ -515,7 +519,11 @@ namespace PixivWPF.Common
                             catch (Exception ex) { ex.Message.DEBUG(); }
                         }
 
-                        if (tags_changed) CommonHelper.UpdateIllustTagsAsync();
+                        if (tags_changed)
+                        {
+                            CommonHelper.UpdateIllustTagsAsync();
+                            "CustomWildcardTags Reloaded".ShowToast("INFO");
+                        }
                     }
                 }
                 catch (Exception ex) { ex.Message.DEBUG(); }
