@@ -155,7 +155,7 @@
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
             HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
             Focusable="True" ClipToBounds="True" 
-            UseLayoutRounding="True" ScrollViewer.CanContentScroll="True"
+            UseLayoutRounding="True"
             IsSynchronizedWithCurrentItem="true"
             ItemsSource="{Binding Items, Mode=OneWay, IsAsync=True, NotifyOnSourceUpdated=True}" 
             ItemTemplate="{DynamicResource PART_ImageTileTemplate}"

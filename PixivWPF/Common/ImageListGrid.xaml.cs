@@ -251,16 +251,38 @@ namespace PixivWPF.Common
         public delegate void MouseWheelEventHandler(object sender, MouseWheelEventArgs e);
         private void PART_ImageTiles_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (e.Handled) return;
-            MouseWheel?.Invoke(sender, e);
+            if (!e.Handled)
+            {
+                if (MouseWheel != null) MouseWheel?.Invoke(sender, e);
+                else
+                {
+                    e.Handled = true;
+                    var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
+                    eventArg.RoutedEvent = MouseWheelEvent;
+                    eventArg.Source = this;
+                    var parent = ((Control)sender).Parent as UIElement;
+                    parent.RaiseEvent(eventArg);
+                }
+            }
         }
 
         public new event PreviewMouseWheelEventHandler PreviewMouseWheel;
         public delegate void PreviewMouseWheelEventHandler(object sender, MouseWheelEventArgs e);
         private void PART_ImageTiles_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (e.Handled) return;
-            PreviewMouseWheel?.Invoke(sender, e);
+            if (!e.Handled)
+            {
+                if(PreviewMouseWheel!=null) PreviewMouseWheel?.Invoke(sender, e);
+                else
+                {
+                    e.Handled = true;
+                    var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
+                    eventArg.RoutedEvent = MouseWheelEvent;
+                    eventArg.Source = this;
+                    var parent = ((Control)sender).Parent as UIElement;
+                    parent.RaiseEvent(eventArg);
+                }
+            }
         }
 
         public new event MouseDownEventHandler MouseDown;
@@ -269,30 +291,6 @@ namespace PixivWPF.Common
         {
             if (e.Handled) return;
             MouseDown?.Invoke(sender, e);
-            //if (MouseDown is MouseDownEventHandler)
-            //{
-            //    MouseDown?.Invoke(sender, e);
-            //}
-            //else
-            //{
-            //    if (PART_ImageTiles.SelectedIndex < 0)
-            //    {
-            //        PART_ImageTiles.SelectedIndex = 0;
-            //        e.Handled = true;
-            //    }
-            //    else if (e.XButton1 == MouseButtonState.Pressed)
-            //    {
-            //        PART_ImageTiles.Items.MoveCurrentToNext();
-            //        PART_ImageTiles.ScrollIntoView(PART_ImageTiles.SelectedItem);
-            //        e.Handled = true;
-            //    }
-            //    else if (e.XButton2 == MouseButtonState.Pressed)
-            //    {
-            //        PART_ImageTiles.Items.MoveCurrentToPrevious();
-            //        PART_ImageTiles.ScrollIntoView(PART_ImageTiles.SelectedItem);
-            //        e.Handled = true;
-            //    }
-            //}
         }
 
         internal Task lastTask = null;
