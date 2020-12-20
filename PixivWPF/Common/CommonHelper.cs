@@ -3314,9 +3314,13 @@ namespace PixivWPF.Common
             {
                 if (result is ImageSource)
                 {
-                    var dpi = new DPI();
-                    if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
-                        result = await ConvertBitmapDPI(result, dpi.X, dpi.Y);
+                    try
+                    {
+                        var dpi = new DPI();
+                        if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
+                            result = await ConvertBitmapDPI(result, dpi.X, dpi.Y);
+                    }
+                    catch (Exception) { }
                 }
             }
             return (result);
@@ -5795,6 +5799,8 @@ namespace PixivWPF.Common
                             (w.Content as IllustDetailPage).UpdateLikeStateAsync(illustid, is_user);
                         else if (w.Content is SearchResultPage)
                             (w.Content as SearchResultPage).UpdateLikeStateAsync(illustid, is_user);
+                        else if (w.Content is DownloadManagerPage)
+                            (w.Content as DownloadManagerPage).UpdateLikeStateAsync(illustid, is_user);
                         else if (w.Content is HistoryPage)
                             (w.Content as HistoryPage).UpdateLikeStateAsync(illustid, is_user);
                     }
@@ -6626,10 +6632,12 @@ namespace PixivWPF.Common
 #endif
         }
 
-        public async static void ShowToast(this string content, string title)
+        public async static void ShowToast(this string content, string title, bool messagebox=false)
         {
             try
             {
+                if (messagebox) { content.ShowMessageBox(title); return; }
+
                 setting = Application.Current.LoadSetting();
 
                 INotificationDialogService _dialogService = new NotificationDialogService();

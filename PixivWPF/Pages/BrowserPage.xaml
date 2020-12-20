@@ -5,6 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:Common="clr-namespace:PixivWPF.Common"
       xmlns:local="clr-namespace:PixivWPF.Pages"
+      xmlns:interop="clr-namespace:Microsoft.DwayneNeed.Interop;assembly=Microsoft.DwayneNeed"
       mc:Ignorable="d" 
       d:DesignHeight="300" d:DesignWidth="300"
       Loaded="Page_Loaded"
@@ -12,13 +13,20 @@
       Title="WebviewPage">
 
     <Grid>
-        <Grid x:Name="BrowserHost" AllowDrop="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 
-        </Grid>
+        <interop:AirspaceDecorator 
+            AirspaceMode="Redirect" x:Name="BrowserHostP"
+            Background="Transparent"
+            IsInputRedirectionEnabled="True"
+            IsOutputRedirectionEnabled="True">
+            <!--your winforms control or webbrowser here here-->
+            <Grid x:Name="BrowserHost" AllowDrop="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            </Grid>
+        </interop:AirspaceDecorator>
 
         <!-- Illust Open Progress Prompt -->
         <Common:ProgressRingCloud 
-            Grid.Column="0" x:Name="BrowserWait" Size="128" Visibility="Collapsed"
+            x:Name="BrowserWait" Size="128" Visibility="Collapsed"
             ReloadEnabled="True" ReloadClick="BrowserWait_ReloadClick"
             Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
             ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"

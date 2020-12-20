@@ -63,6 +63,7 @@ namespace PixivWPF.Pages
                 //IsRedirected = true,
                 //CompositionMode = ,
                 AllowDrop = false,
+                Background = new SolidColorBrush(Colors.Transparent),
                 MinHeight = 24,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch,
@@ -191,9 +192,13 @@ namespace PixivWPF.Pages
                     {
                         if (webHtml.DocumentText.Length <= 1024)
                             webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
+                        BrowserWait.Ready();
                     }
-                    else ex.Message.ShowMessageBox("ERROR[BROWSER]!");
-                    BrowserWait.Fail();
+                    else
+                    {
+                        ex.Message.ShowToast("ERROR[BROWSER]!");
+                        BrowserWait.Fail();
+                    }
                 }
             }).InvokeAsync();
         }
@@ -220,20 +225,21 @@ namespace PixivWPF.Pages
             {
                 if (browser is System.Windows.Forms.WebBrowser && browser.Document != null)
                 {
+                    var no_img = new Uri(System.IO.Path.Combine(Application.Current.GetRoot(), "no_image.png")).AbsoluteUri;
                     foreach (System.Windows.Forms.HtmlElement imgElemt in browser.Document.Images)
                     {
                         try
                         {
                             var src = imgElemt.GetAttribute("src");
-                            if (!string.IsNullOrEmpty(src))
+                            if (string.IsNullOrEmpty(src) || src.ToLower().Contains("no_image_p.svg"))
+                                imgElemt.SetAttribute("src", no_img);
+                            else
                             {
                                 await new Action(async () =>
                                 {
                                     try
                                     {
-                                        if (src.ToLower().Contains("no_image_p.svg"))
-                                            imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.GetRoot(), "no_image.png")).AbsoluteUri);
-                                        else if (src.IsPixivImage())
+                                        if (src.IsPixivImage())
                                         {
                                             var img = await src.LoadImageFromUrl();
                                             if (!string.IsNullOrEmpty(img.SourcePath) && !string.IsNullOrEmpty(img.SourcePath))
@@ -383,7 +389,6 @@ namespace PixivWPF.Pages
                 if (sender is System.Windows.Forms.WebBrowser)
                 {
                     var browser = sender as System.Windows.Forms.WebBrowser;
-
                     WebBrowserReplaceImageSource(browser);
                 }
             }
@@ -403,13 +408,14 @@ namespace PixivWPF.Pages
                 {
                     if (e.Url.AbsolutePath != "blank")
                     {
-                        await new Action(() =>
+                        if (IsSkip(e.Url.AbsolutePath)) return;
+                        currentUri = new Uri(currentUri, e.Url.AbsolutePath);
+                        if (currentUri.IsAbsoluteUri || currentUri.IsFile)
                         {
-                            if (IsSkip(e.Url.AbsolutePath)) return;
-
-                            currentUri = new Uri(currentUri, e.Url.AbsolutePath);
-                            GetHtmlContents(currentUri);
-                        }).InvokeAsync();
+                            await new Action(() => {
+                                GetHtmlContents(currentUri);
+                            }).InvokeAsync();
+                        }
                         e.Cancel = true;
                     }
                 }

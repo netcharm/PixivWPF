@@ -79,6 +79,9 @@
       <HintPath>..\packages\MahApps.Metro.IconPacks.Modern.4.8.0\lib\net47\MahApps.Metro.IconPacks.Modern.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.DwayneNeed">
+      <HintPath>..\..\_refs\Microsoft.DwayneNeed.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAPICodePack-Core.1.1.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
       <Private>True</Private>

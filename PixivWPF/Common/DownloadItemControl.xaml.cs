@@ -76,8 +76,33 @@ namespace PixivWPF.Common
             {
                 if (string.IsNullOrEmpty(value)) return;
                 url = value;
+                UpdateLikeState();
                 FileName = Application.Current.SaveTarget(url.GetImageName(singlefile));
                 NotifyPropertyChanged("UrlChanged");
+            }
+        }
+
+        public string IllustSID { get { return (Url.GetIllustId()); } }
+        public Pixeez.Objects.Work Illust { get { return (IllustSID.FindIllust()); } }
+        public long IllustID
+        {
+            get
+            {
+                var id = -1L;
+                long.TryParse(Url.GetIllustId(), out id);
+                return (id);
+            }
+        }
+        public long UserID
+        {
+            get
+            {
+                var id = -1L;
+                if (Illust is Pixeez.Objects.Work && Illust.User is Pixeez.Objects.UserBase)
+                {
+                    id = Illust.User.Id ?? -1L;
+                }
+                return (id);
             }
         }
 
@@ -126,6 +151,20 @@ namespace PixivWPF.Common
         {
             get { return (thumbnail_url); }
             set { thumbnail_url = value; RefreshThumbnail(); }
+        }
+
+        private bool is_fav = false;
+        public bool IsFav
+        {
+            get { return (is_fav); }
+            set { is_fav = value;  NotifyPropertyChanged("IsFav"); }
+        }
+
+        private bool is_follow = false;
+        public bool IsFollow
+        {
+            get { return (is_follow); }
+            set { is_follow = value; NotifyPropertyChanged("IsFollow"); }
         }
 
         private bool start = false;
@@ -184,6 +223,21 @@ namespace PixivWPF.Common
                 NotifyPropertyChanged("StateChanged");
                 NotifyPropertyChanged();
             }
+        }
+
+        public void UpdateLikeState()
+        {
+            try
+            {
+                var illust = Url.GetIllustId().FindIllust();
+                if (illust is Pixeez.Objects.Work)
+                {
+                    IsFav = illust.IsLiked();
+                    IsFollow = illust.User.IsLiked();
+                    NotifyPropertyChanged();
+                }
+            }
+            catch (Exception) { }
         }
 
         public void RefreshState()
@@ -594,6 +648,17 @@ namespace PixivWPF.Common
         public void UpdateDownloadState()
         {
             CheckProperties();
+        }
+
+        public async void UpdateLikeState()
+        {
+            await new Action(() =>
+            {
+                if (Info is DownloadInfo)
+                {
+                    Info.UpdateLikeState();
+                }
+            }).InvokeAsync();
         }
         #endregion
 
@@ -1171,7 +1236,7 @@ namespace PixivWPF.Common
             if (Info is DownloadInfo)
             {
                 Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
-                this.ToolTip = Info.ToolTip;
+                ToolTip = Info.ToolTip;
             }
         }
 

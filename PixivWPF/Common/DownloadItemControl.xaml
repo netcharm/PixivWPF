@@ -15,6 +15,9 @@
              TextOptions.TextFormattingMode="Display"
              Loaded="Download_Loaded"
              d:DesignHeight="140" d:DesignWidth="600">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="Bool2Vis"/>
+    </UserControl.Resources>
     <Grid Margin="2" ToolTipOpening="Download_ToolTipOpening" ToolTip="{Binding Path=ToolTip, Mode=TwoWay, IsAsync=True}">
         <Grid.ContextMenu>
             <ContextMenu>
@@ -101,6 +104,54 @@
                Source="{Binding Path=Thumbnail, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" TargetUpdated="PART_Download_TargetUpdated"
                Width="128" Height="128" Margin="2,2,4,2"
                Stretch="Uniform"/>
+        <!-- Follow Mark Glow -->
+        <iconPacks:PackIconModern 
+            Grid.Row="0" Grid.Column="0" Grid.RowSpan="5"
+            Kind="Check"
+            Width="20" Height="20" Margin="0,0,10,10" 
+            HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+            Visibility="{Binding IsFollow, Mode=OneWay, Converter={StaticResource Bool2Vis}}">
+            <iconPacks:PackIconModern.Effect>
+                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.Accent}" Opacity="1" BlurRadius="9"/>
+            </iconPacks:PackIconModern.Effect>
+        </iconPacks:PackIconModern>
+        <!-- Favorited Mark Glow -->
+        <iconPacks:PackIconModern 
+            Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" 
+            Kind="Heart" 
+            Width="28" Height="28" Margin="0,0,6,6" 
+            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
+            HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+            Visibility="{Binding IsFav, Mode=OneWay, Converter={StaticResource Bool2Vis}}" >
+            <iconPacks:PackIconModern.Effect>
+                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="9"/>
+            </iconPacks:PackIconModern.Effect>
+        </iconPacks:PackIconModern>
+        <!-- Favorited Mark -->
+        <iconPacks:PackIconModern 
+            Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_Favorite" 
+            Kind="Heart"
+            Width="24" Height="24" Margin="0,0,8,8" 
+            HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+            Visibility="{Binding IsFav, Mode=OneWay, Converter={StaticResource Bool2Vis}}">
+            <iconPacks:PackIconModern.Effect>
+                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
+            </iconPacks:PackIconModern.Effect>
+        </iconPacks:PackIconModern>
+        <!-- Follow Mark -->
+        <iconPacks:PackIconModern 
+            Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_Follow" 
+            Kind="Check"
+            Width="16" Height="16" Margin="0,0,12,12" 
+            HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+            Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+            Visibility="{Binding IsFollow, Mode=OneWay, Converter={StaticResource Bool2Vis}}">
+            <iconPacks:PackIconModern.Effect>
+                <DropShadowEffect x:Name="PART_Follow_Shadow" ShadowDepth="0" Color="{DynamicResource MahApps.Colors.Accent}" Opacity="1" BlurRadius="10"/>
+            </iconPacks:PackIconModern.Effect>
+        </iconPacks:PackIconModern>
         <local:ProgressRingCloud 
             Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_ThumbnailWait" Size="96" 
             Visibility="Visible" IsActive="False" ReloadEnabled="True" ReloadClick="miActions_Click"

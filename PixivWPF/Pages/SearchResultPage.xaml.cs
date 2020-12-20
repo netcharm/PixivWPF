@@ -426,6 +426,8 @@ namespace PixivWPF.Pages
                 }
                 if (ResultItems.Items.Count() <= 1 && no_filter)
                 {
+                    if (ResultItems.Items.Count() <= 0) "No Result".ShowToast("INFO");
+
                     if (window != null)
                     {
                         Application.Current.DoEvents();
@@ -444,7 +446,7 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR");
                 }
             }
             finally

@@ -42,11 +42,6 @@
                        Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <local:ProgressRingCloud
-                    Grid.Row="0" x:Name="PART_Progress" Size="72"
-                    Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
-                    ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
-                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
                 <!-- User Mark -->
                 <TextBlock Grid.Row="0" 
                            HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,8" 
@@ -57,11 +52,23 @@
                         <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="10"/>
                     </TextBlock.Effect>
                 </TextBlock>
-                <!-- Favorited Mark -->
+                <!-- Follow Mark Glow -->
+                <iconPacks:PackIconModern 
+                    Grid.Row="0"
+                    Kind="Check"
+                    Width="20" Height="20" Margin="0,0,10,10" 
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                    Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                    Visibility="{Binding FollowMarkVisibility, Mode=OneWay}">
+                    <iconPacks:PackIconModern.Effect>
+                        <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.Accent}" Opacity="1" BlurRadius="9"/>
+                    </iconPacks:PackIconModern.Effect>
+                </iconPacks:PackIconModern>
+                <!-- Favorited Mark Glow -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0"
                     Kind="Heart" 
-                    Width="28" Height="24" Margin="0,0,6,8" 
+                    Width="28" Height="28" Margin="0,0,6,6" 
                     Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Visibility="{Binding FavMarkVisibility, Mode=OneWay}" >
@@ -69,13 +76,14 @@
                         <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="9"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>
+                <!-- Favorited Mark -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0" x:Name="PART_Favorite" 
                     Kind="Heart"
                     Width="24" Height="24" Margin="0,0,8,8" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                    Visibility="{Binding FavMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}" 
+                    Visibility="{Binding FavMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}"
                     TargetUpdated="TileImage_TargetUpdated">
                     <iconPacks:PackIconModern.Effect>
                         <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
@@ -88,13 +96,13 @@
                     Width="16" Height="16" Margin="0,0,12,12" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
-                    Visibility="{Binding FollowMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}" 
+                    Visibility="{Binding FollowMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}"
                     TargetUpdated="TileImage_TargetUpdated">
                     <iconPacks:PackIconModern.Effect>
                         <DropShadowEffect x:Name="PART_Follow_Shadow" ShadowDepth="0" Color="{DynamicResource MahApps.Colors.Accent}" Opacity="1" BlurRadius="10"/>
                     </iconPacks:PackIconModern.Effect>
                 </iconPacks:PackIconModern>
-                <!-- Download Mark -->
+                <!-- Download Mark Glow -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0"
                     Kind="Download" 
@@ -105,7 +113,8 @@
                     <iconPacks:PackIconModern.Effect>
                         <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="9"/>
                     </iconPacks:PackIconModern.Effect>
-                </iconPacks:PackIconModern>                
+                </iconPacks:PackIconModern>
+                <!-- Download Mark -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0" x:Name="PART_IllustDownloadedAlt" 
                     Kind="Download" 
@@ -143,6 +152,11 @@
                                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                               Visibility="{Binding IsDownloadedVisibility, Mode=OneWay}"/>
                 </Grid>
+                <local:ProgressRingCloud
+                    Grid.Row="0" x:Name="PART_Progress" Size="72"
+                    Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
+                    ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
