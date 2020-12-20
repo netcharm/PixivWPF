@@ -1147,10 +1147,17 @@ namespace PixivWPF.Common
             MainWindow result = null;
             try
             {
-                if (app.MainWindow is MainWindow)
-                    result = app.MainWindow as MainWindow;
+                //if (app.MainWindow is MainWindow)
+                //    result = app.MainWindow as MainWindow;
+                app.Dispatcher.Invoke(() =>
+                {
+                    var win = Application.Current.MainWindow;
+                    if (win is MainWindow) result = win as MainWindow;
+                });
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+            }
             return (result);
         }
 
@@ -6534,11 +6541,10 @@ namespace PixivWPF.Common
         #region Toast routines
         private static string lastToastTitle = string.Empty;
         private static string lastToastContent = string.Empty;
-        public static void ShowDownloadToast(this string content, string title = "Pixiv", string imgsrc = "", string file = "", string state = "", string state_description = "", object tag = null)
+        public async static void ShowDownloadToast(this string content, string title = "Pixiv", string imgsrc = "", string file = "", string state = "", string state_description = "", object tag = null)
         {
             try
             {
-                if (Application.Current.GetMainWindow() == null) return;
                 if (title.Equals(lastToastTitle) && content.Equals(lastToastContent)) return;
 
                 setting = Application.Current.LoadSetting();
@@ -6568,8 +6574,10 @@ namespace PixivWPF.Common
                     Tag = tag
                 };
 
-                _dialogService.ClearNotifications();
-                _dialogService.ShowNotificationWindow(newNotification, cfg);
+                await new Action(() => {
+                    _dialogService.ClearNotifications();
+                    _dialogService.ShowNotificationWindow(newNotification, cfg);
+                }).InvokeAsync(true);
             }
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
@@ -6578,12 +6586,10 @@ namespace PixivWPF.Common
 #endif
         }
 
-        public static void ShowToast(this string content, string title, string imgsrc, string state = "", string state_description = "")
+        public async static void ShowToast(this string content, string title, string imgsrc, string state = "", string state_description = "")
         {
             try
             {
-                if (Application.Current.GetMainWindow() == null) return;
-
                 setting = Application.Current.LoadSetting();
 
                 INotificationDialogService _dialogService = new NotificationDialogService();
@@ -6607,8 +6613,11 @@ namespace PixivWPF.Common
                     Tag = null
                 };
 
-                _dialogService.ClearNotifications();
-                _dialogService.ShowNotificationWindow(newNotification, cfg);
+                await new Action(() => {
+                    _dialogService.ClearNotifications();
+                    _dialogService.ShowNotificationWindow(newNotification, cfg);
+                }).InvokeAsync(true);
+
             }
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
@@ -6617,12 +6626,10 @@ namespace PixivWPF.Common
 #endif
         }
 
-        public static void ShowToast(this string content, string title)
+        public async static void ShowToast(this string content, string title)
         {
             try
             {
-                if (Application.Current.GetMainWindow() == null) return;
-
                 setting = Application.Current.LoadSetting();
 
                 INotificationDialogService _dialogService = new NotificationDialogService();
@@ -6634,14 +6641,16 @@ namespace PixivWPF.Common
                     //cfgDefault.TemplateName, 
                     cfgDefault.NotificationFlowDirection);
 
-                var newNotification = new Notification()
+                var newNotification = new CustomToast()
                 {
                     Title = title,
                     Message = content
                 };
 
-                _dialogService.ClearNotifications();
-                _dialogService.ShowNotificationWindow(newNotification, cfg);
+                await new Action(() => {
+                    _dialogService.ClearNotifications();
+                    _dialogService.ShowNotificationWindow(newNotification, cfg);
+                }).InvokeAsync(true);                
             }
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }

@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 
 using MahApps.Metro.IconPacks;
+using WPFNotification.Model;
 
 namespace PixivWPF.Common
 {
@@ -51,6 +52,8 @@ namespace PixivWPF.Common
                 }
             }
         }
+
+        public bool HasImage { get; set; } = true;
 
         public Button Button { get; set; }
         public PackIconModern Kind { get; set; }
@@ -212,19 +215,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(url))
                 {
                     if (Preview.Source == null)
-                        Preview.Source = (await url.GetImageCachePath().LoadImageFromFile()).Source;
-                    if (Preview.Source == null)
                         Preview.Source = (await url.LoadImageFromUrl()).Source;
-                    if (Preview.Source == null)
-                    {
-                        Preview.Visibility = Visibility.Collapsed;
-                        OpenPanel.Visibility = Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        Preview.Visibility = Visibility.Visible;
-                        OpenPanel.Visibility = Visibility.Visible;
-                    }
                 }
             }
         }
@@ -258,13 +249,16 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
 
-            //try
-            //{
-            //    autoCloseTimer = new System.Timers.Timer((setting.ToastShowTimes + 1) * 1000) { AutoReset = true, Enabled = false };
-            //    autoCloseTimer.Elapsed += Timer_Elapsed;
-            //    autoCloseTimer.Enabled = true;
-            //}
-            //catch (Exception) { }
+            try
+            {
+                if (Tag is Notification)
+                {
+                    var toast = Tag as Notification;
+                    if (string.IsNullOrEmpty(toast.ImgURL)) Preview.Hide();
+                    else Preview.Show();
+                }
+            }
+            catch (Exception) { }
 
             try
             {

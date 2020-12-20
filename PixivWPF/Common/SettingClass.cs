@@ -60,6 +60,9 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public static Setting Instance { get { return (Cache); } }
 
+        [JsonIgnore]
+        public static bool StartUp { get; internal set; } = false;
+
         public bool NoConfirmExit { get; set; } = true;
         #endregion
 
@@ -314,6 +317,8 @@ namespace PixivWPF.Common
 #endif
                             #endregion
                             result = Cache;
+
+                            if (StartUp) "Config Setting Reloaded".ShowToast("INFO");
                         }
                         if (loadtags) LoadTags(true, true);
                     }
@@ -325,6 +330,7 @@ namespace PixivWPF.Common
 #endif
                 finally
                 {
+                    StartUp = true;
                     CanConfigRead.Release();
                 }
             }
@@ -461,7 +467,7 @@ namespace PixivWPF.Common
                         if (tags_changed)
                         {
                             CommonHelper.UpdateIllustTagsAsync();
-                            "CustomTags Reloaded".ShowToast("INFO");
+                            if (StartUp) "Custom Translation Tags Reloaded".ShowToast("INFO");
                         }
                     }
                 }
@@ -522,7 +528,7 @@ namespace PixivWPF.Common
                         if (tags_changed)
                         {
                             CommonHelper.UpdateIllustTagsAsync();
-                            "CustomWildcardTags Reloaded".ShowToast("INFO");
+                            if(StartUp) "Custom Translation Wildcard Tags Reloaded".ShowToast("INFO");
                         }
                     }
                 }

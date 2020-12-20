@@ -275,7 +275,14 @@ namespace PixivWPF.Common
                 if(PreviewMouseWheel!=null) PreviewMouseWheel?.Invoke(sender, e);
                 else
                 {
-                    e.Handled = true;
+                    //e.Handled = true;
+                    //if(PART_ImageTiles.Items.Count()>
+                    var viewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                    if(viewer is ScrollViewer)
+                    {
+                        e.Handled = viewer.ComputedVerticalScrollBarVisibility == Visibility.Visible ? false : true;
+                    }
+
                     var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
                     eventArg.RoutedEvent = MouseWheelEvent;
                     eventArg.Source = this;
