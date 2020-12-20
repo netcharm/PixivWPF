@@ -9,7 +9,13 @@
       xmlns:Common="clr-namespace:PixivWPF.Common"
       xmlns:local="clr-namespace:PixivWPF.Pages"
       Loaded="Page_Loaded"
-      mc:Ignorable="d" 
+      mc:Ignorable="d"
+      VisualTextRenderingMode="Auto"
+      RenderOptions.BitmapScalingMode="HighQuality"
+      RenderOptions.CachingHint="Cache"
+      RenderOptions.ClearTypeHint="Enabled"
+      RenderOptions.EdgeMode="Aliased"
+      TextOptions.TextFormattingMode="Display"      
       d:DesignWidth="800" d:DesignHeight="525"
       Title="Download Manager">
 
