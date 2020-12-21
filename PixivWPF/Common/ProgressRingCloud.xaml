@@ -32,11 +32,11 @@
         <mah:ProgressRing 
             Grid.Row="0" Grid.Column="0" x:Name="PART_Ring"
             IsEnabled="{Binding Path=IsEnabled, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}" 
+            IsActive="{Binding Path=IsActive, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}" 
             Visibility="{Binding Path=Visibility, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"
             Opacity="{Binding Path=Opacity, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}" 
             Width="{Binding Path=Width, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"
             Height="{Binding Path=Height, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"
-            IsActive="{Binding Path=IsActive, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}" 
             Foreground="{Binding Path=Foreground, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}"
             Background="{Binding Path=Background, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}"
             HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -54,7 +54,7 @@
         </TextBlock>
         <Button 
             Grid.Row="0" Grid.Column="0" x:Name="PART_Reload" Visibility="Collapsed"
-            Click="PART_Reload_Click" 
+            Click="PART_Reload_Click" MouseEnter="PART_Reload_MouseEnter" MouseLeave="PART_Reload_MouseLeave" 
             Opacity="{Binding Path=Opacity, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}" 
             Width="{Binding Path=Width, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"
             Height="{Binding Path=Height, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"           

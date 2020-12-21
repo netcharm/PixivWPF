@@ -79,6 +79,7 @@ namespace PixivWPF.Pages
                 DocumentText = string.Empty.GetHtmlFromTemplate(),
                 Dock = System.Windows.Forms.DockStyle.Fill,
                 ScriptErrorsSuppressed = true,
+                IgnoreAllError = true,
                 WebBrowserShortcutsEnabled = false,
                 AllowNavigation = true,
                 AllowWebBrowserDrop = false

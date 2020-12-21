@@ -323,6 +323,7 @@ namespace PixivWPF.Pages
                     DocumentText = string.Empty.GetHtmlFromTemplate(),
                     Dock = System.Windows.Forms.DockStyle.Fill,
                     ScriptErrorsSuppressed = true,
+                    IgnoreAllError = true,
                     WebBrowserShortcutsEnabled = false,
                     AllowNavigation = true,
                     AllowWebBrowserDrop = false
@@ -2472,7 +2473,7 @@ namespace PixivWPF.Pages
 
         private void ActionIllustAuthourInfo_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == ActionIllustAuthorInfo || sender == btnAuthorAvatar || sender == AuthorAvatarWait)
+            if (sender == ActionIllustAuthorInfo || sender == btnAuthorAvatar)
             {
                 if (Contents is PixivItem)
                 {
@@ -2485,6 +2486,13 @@ namespace PixivWPF.Pages
                     else if (Contents.IsWork())
                         Commands.OpenUser.Execute(Contents.User);
                 }
+            }
+            else if(sender == AuthorAvatarWait)
+            {
+                if (Keyboard.Modifiers == ModifierKeys.None)
+                    ActionRefreshAvatar();
+                else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                    ActionRefreshAvatar(true);
             }
             else if (sender == ActionIllustAuthorFollowing)
             {

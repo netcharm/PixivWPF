@@ -93,6 +93,36 @@ namespace PixivWPF.Common
             // call WebBrower.Dispose(bool)
             base.Dispose(disposing);
         }
+
+        private bool ignore_all_error = false;
+        public bool IgnoreAllError
+        {
+            get { return (ignore_all_error); }
+            set
+            {
+                ignore_all_error = value;
+                if (value) SuppressedAllError();
+            }
+        }
+
+        /// <summary>
+        /// code from -> https://stackoverflow.com/a/13788814/1842521
+        /// </summary>
+        private void SuppressedAllError()
+        {
+            ScriptErrorsSuppressed = true;
+
+            try
+            {
+                FieldInfo field = typeof(WebBrowser).GetField("_axIWebBrowser2", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (field != null)
+                {
+                    object axIWebBrowser2 = field.GetValue(this);
+                    axIWebBrowser2.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, axIWebBrowser2, new object[] { true });
+                }
+            }
+            catch (Exception) { }
+        }
     }
 
     public class HtmlTextData
@@ -2655,8 +2685,10 @@ namespace PixivWPF.Common
                         html.AppendLine("      @media screen and(-ms-high-contrast: active), (-ms-high-contrast: none) {");
                         html.AppendLine("      .tag{color:{% accentcolor %} !important;background-color:rgba({% accentcolor_rgb %}, 0.1);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {% accentcolor %};border-left-width:5px;overflow-wrap:break-word;}");
                         html.AppendLine("      }");
-
                         html.AppendLine("    </STYLE>");
+                        html.AppendLine("    <SCRIPT>");
+                        html.AppendLine("      window.alert = function () { }");
+                        html.AppendLine("    </SCRIPT>");
                         html.AppendLine("  </HEAD>");
                         html.AppendLine("<BODY>");
                         html.AppendLine("{% contents %}");

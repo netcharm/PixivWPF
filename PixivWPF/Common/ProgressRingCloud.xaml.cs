@@ -43,6 +43,47 @@ namespace PixivWPF.Common
         public static readonly DependencyProperty ReloadEnabledProperty = DependencyProperty.Register(
             "ReloadEnabled", typeof( bool ), typeof( ProgressRingCloud ), new PropertyMetadata( false )
         );
+
+        [Description("Reload Symbol"), Category("Appearance")]
+        public string ReloadSymbol
+        {
+            get { return ((string)GetValue(ReloadSymbolProperty)); }
+            set { SetCurrentValue(ReloadSymbolProperty, value); }
+        }
+        public static readonly DependencyProperty ReloadSymbolProperty = DependencyProperty.Register(
+            "ReloadSymbol", typeof( string ), typeof( ProgressRingCloud ), new PropertyMetadata( "\uE149" )
+        );
+
+        [Description("Reload Symbol FontFamily"), Category("Appearance")]
+        public FontFamily ReloadSymbolFontFamily
+        {
+            get { return ((FontFamily)GetValue(ReloadSymbolFontFamilyProperty)); }
+            set { SetCurrentValue(ReloadSymbolFontFamilyProperty, value); }
+        }
+        public static readonly DependencyProperty ReloadSymbolFontFamilyProperty = DependencyProperty.Register(
+            "ReloadSymbolFontFamily", typeof( FontFamily ), typeof( ProgressRingCloud ), new PropertyMetadata( new FontFamily("Segoe MDL2 Assets") )
+        );
+
+        [Description("Wait Symbol"), Category("Appearance")]
+        public string WaitSymbol
+        {
+            get { return ((string)GetValue(WaitSymbolProperty)); }
+            set { SetCurrentValue(WaitSymbolProperty, value); }
+        }
+        public static readonly DependencyProperty WaitSymbolProperty = DependencyProperty.Register(
+            "WaitSymbol", typeof( string ), typeof( ProgressRingCloud ), new PropertyMetadata( "\uEDE4" )
+        );
+
+        [Description("Wait Symbol FontFamily"), Category("Appearance")]
+        public FontFamily WaitSymbolFontFamily
+        {
+            get { return ((FontFamily)GetValue(WaitSymbolFontFamilyProperty)); }
+            set { SetCurrentValue(WaitSymbolFontFamilyProperty, value); }
+        }
+        public static readonly DependencyProperty WaitSymbolFontFamilyProperty = DependencyProperty.Register(
+            "WaitSymbolFontFamily", typeof( FontFamily ), typeof( ProgressRingCloud ), new PropertyMetadata( new FontFamily("Segoe MDL2 Assets") )
+        );
+
         public Action ReloadAction { get; set; } = null;
 
         public event RoutedEventHandler ReloadClick
@@ -134,10 +175,10 @@ namespace PixivWPF.Common
             lock (this)
             {
                 IsActive = true;
-                //IsEnabled = true;
                 Visibility = Visibility.Visible;
-                PART_Reload.Visibility = Visibility.Collapsed;
-                PART_Mark.Text = "\uEDE4";
+                PART_Reload.Visibility = ReloadEnabled ? Visibility.Visible : Visibility.Collapsed;
+                PART_Mark.Text = WaitSymbol;
+                PART_Mark.FontFamily = WaitSymbolFontFamily;
             }
         }
 
@@ -146,10 +187,10 @@ namespace PixivWPF.Common
             lock (this)
             {
                 IsActive = false;
-                //IsEnabled = false;
                 Visibility = Visibility.Collapsed;
                 PART_Reload.Visibility = Visibility.Collapsed;
-                PART_Mark.Text = "\uEDE4";
+                PART_Mark.Text = WaitSymbol;
+                PART_Mark.FontFamily = WaitSymbolFontFamily;
             }
         }
 
@@ -158,10 +199,10 @@ namespace PixivWPF.Common
             lock (this)
             {
                 IsActive = false;
-                //IsEnabled = false;
                 Visibility = Visibility.Visible;
                 PART_Reload.Visibility = ReloadEnabled ? Visibility.Visible : Visibility.Collapsed;
-                PART_Mark.Text = ReloadEnabled ? "\uE149" : "\uEDE4";
+                PART_Mark.Text = ReloadEnabled ? ReloadSymbol : WaitSymbol;
+                PART_Mark.FontFamily = ReloadEnabled ? ReloadSymbolFontFamily : WaitSymbolFontFamily;
             }
         }
 
@@ -197,6 +238,29 @@ namespace PixivWPF.Common
             {
                 e.Handled = true;
                 await ReloadAction.InvokeAsync();
+            }
+        }
+
+        private void PART_Reload_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (IsWait)
+            {
+                PART_Mark.Text = ReloadEnabled ? ReloadSymbol : WaitSymbol;
+                PART_Mark.FontFamily = ReloadEnabled ? ReloadSymbolFontFamily : WaitSymbolFontFamily;
+            }
+        }
+
+        private void PART_Reload_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (IsFail)
+            {
+                PART_Mark.Text = ReloadEnabled ? ReloadSymbol : WaitSymbol;
+                PART_Mark.FontFamily = ReloadEnabled ? ReloadSymbolFontFamily : WaitSymbolFontFamily;
+            }
+            else
+            {
+                PART_Mark.Text = WaitSymbol;
+                PART_Mark.FontFamily = WaitSymbolFontFamily;
             }
         }
     }
