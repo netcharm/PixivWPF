@@ -2541,9 +2541,10 @@ namespace PixivWPF.Common
                     var text = alpha ? tag : result;
                     foreach (var kv in TagsWildecardT2S)
                     {
-                        var k = kv.Key.Replace(" ", "\\s");
+                        var k = kv.Key.Replace(" ", "\\s").Trim('/');
                         var v = kv.Value;
-                        text = Regex.Replace(text, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
+                        if(!Regex.IsMatch(text, k, RegexOptions.IgnoreCase))
+                          text = Regex.Replace(text, $@"{k}", v, RegexOptions.IgnoreCase);
                     }
                     result = alpha && !Regex.IsMatch(text, result, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                 }
@@ -3150,7 +3151,7 @@ namespace PixivWPF.Common
                     else
                     {
                         setting = Application.Current.LoadSetting();
-                        var alt_viewer = Keyboard.Modifiers == ModifierKeys.Alt ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
+                        var alt_viewer = Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
                         var IsImage = ext_imgs.Contains(Path.GetExtension(FileName).ToLower()) ? true : false;
                         if (alt_viewer && IsImage)
                         {

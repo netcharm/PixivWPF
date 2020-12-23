@@ -43,7 +43,7 @@ namespace PixivWPF
 
         public void SetDropBoxState(bool state)
         {
-            CommandToggleDropbox.IsChecked = state;
+            CommandDropbox.IsChecked = state;
         }
 
         public void UpdateIllustTagsAsync()
@@ -391,6 +391,26 @@ namespace PixivWPF
             Contents.ShowImages(Contents.TargetPage, true, Contents.GetLastSelectedID());
         }
 
+        private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.OpenDownloadManager.Execute(true);
+        }
+
+        private void CommandDropbox_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.OpenDropBox.Execute(sender);
+        }
+
+        private void CommandDropbox_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Commands.OpenDropBox.Execute(sender);
+        }
+
+        private void CommandHistory_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.OpenHistory.Execute(null);
+        }
+
         private void CommandSearch_Click(object sender, RoutedEventArgs e)
         {
             Commands.OpenSearch.Execute(SearchBox.Text);
@@ -446,21 +466,6 @@ namespace PixivWPF
                 e.Handled = true;
                 Commands.OpenSearch.Execute(SearchBox.Text);
             }
-        }
-
-        private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)
-        {
-            Commands.OpenDownloadManager.Execute(true);
-        }
-
-        private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
-        {
-            Commands.OpenDropBox.Execute(sender);
-        }
-
-        private void CommandHistory_Click(object sender, RoutedEventArgs e)
-        {
-            Commands.OpenHistory.Execute(null);
         }
 
         private void LiveFilter_ToolTipOpening(object sender, ToolTipEventArgs e)

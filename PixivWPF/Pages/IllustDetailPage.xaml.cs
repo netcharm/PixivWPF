@@ -2555,6 +2555,10 @@ namespace PixivWPF.Pages
                     Commands.OpenWorkPreview.Execute(SubIllusts);
                 }
             }
+            else if(sender == PreviewCacheOpen)
+            {
+                    Commands.OpenCachedImage.Execute(Contents.Illust.GetPreviewUrl().GetImageCachePath());
+            }
         }
 
         private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)

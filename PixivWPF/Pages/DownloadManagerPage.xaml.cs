@@ -384,7 +384,7 @@ namespace PixivWPF.Pages
                         targets.Add((item as DownloadInfo).FileName.ParseLink().ParseID());
                 }
                 Commands.CopyArtworkIDs.Execute(targets);
-            }).InvokeAsync();
+            }).InvokeAsync(true);
         }
 
         private async void PART_CopyInfo_Click(object sender, RoutedEventArgs e)

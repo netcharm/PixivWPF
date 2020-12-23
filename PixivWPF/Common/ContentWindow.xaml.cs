@@ -32,7 +32,7 @@ namespace PixivWPF.Common
 
         public void SetDropBoxState(bool state)
         {
-            CommandToggleDropbox.IsChecked = state;
+            CommandDropbox.IsChecked = state;
         }
 
         public void UpdateTheme(MetroWindow win = null)
@@ -92,9 +92,9 @@ namespace PixivWPF.Common
             }
 
             if (this.DropBoxExists() == null)
-                CommandToggleDropbox.IsChecked = false;
+                CommandDropbox.IsChecked = false;
             else
-                CommandToggleDropbox.IsChecked = true;
+                CommandDropbox.IsChecked = true;
 
             this.AdjustWindowPos();
 
@@ -191,7 +191,12 @@ namespace PixivWPF.Common
             Commands.OpenDownloadManager.Execute(true);
         }
 
-        private void CommandToggleDropbox_Click(object sender, RoutedEventArgs e)
+        private void CommandDropbox_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.OpenDropBox.Execute(sender);
+        }
+
+        private void CommandDropbox_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             Commands.OpenDropBox.Execute(sender);
         }

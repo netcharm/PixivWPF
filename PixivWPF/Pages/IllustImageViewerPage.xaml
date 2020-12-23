@@ -113,17 +113,15 @@
         <!-- Illust Preview -->
         <ScrollViewer Grid.Row="0" x:Name="PreviewScroll" 
                       HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
-            <Grid>
-                <Viewbox Grid.Row="0" x:Name="PreviewBox"
+            <Viewbox x:Name="PreviewBox"
                      Width="Auto" Height="Auto"
                      StretchDirection="DownOnly" 
                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <Image x:Name="Preview" x:Uid="Preview" Stretch="None" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Viewbox>
-            </Grid>
+                <Image x:Name="Preview" x:Uid="Preview" Stretch="None" 
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Viewbox>
         </ScrollViewer>
-       
+
         <!-- Preview Context Menu Container -->
         <Rectangle Grid.Row="0" 
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 

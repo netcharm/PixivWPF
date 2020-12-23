@@ -312,26 +312,14 @@
                     <ContentControl Grid.Row="0" x:Name="PreviewBox" >
                         <ContentControl.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Name="PreviewCopyIllustID" x:Uid="ActionCopyIllustID" 
-                                Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                <MenuItem x:Name="PreviewCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Visibility="Visible" Click="ActionIllustInfo_Click">
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
-                                <MenuItem x:Name="PreviewCopyImage" x:Uid="ActionCopyImage" 
-                                Header="Copy Preview" Visibility="Visible" Click="ActionIllustInfo_Click">
+                                <MenuItem x:Name="PreviewCopyImage" x:Uid="ActionCopyImage" Header="Copy Preview" Visibility="Visible" Click="ActionIllustInfo_Click">
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionOpenIllust_Click">
-                                    <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
-                                    <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <Separator/>
@@ -346,15 +334,33 @@
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <Separator/>
-                                <MenuItem x:Name="PreviewRefresh" x:Uid="ActionRefreshPreview" Header="Refresh Illust Preview" Click="ActionRefreshPreview_Click">
+                                <MenuItem x:Name="PreviewRefresh" x:Uid="ActionRefreshPreview" Header="Refresh Preview" Click="ActionRefreshPreview_Click">
                                     <MenuItem.Icon>
-                                        <TextBlock Margin="4,0,0,0"
-                                        Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock
+                                            Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Preview Window" Click="ActionOpenIllust_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock
+                                            Text="&#xE158;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="PreviewCacheOpen" x:Uid="ActionOpenPreview" Header="Open Preview With..." Click="ActionOpenIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <Separator/>
+                                <MenuItem x:Name="PreviewSave" x:Uid="ActionSaveIllust" Header="Save Illust" Click="ActionSaveIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem x:Name="PreviewOpenDownloaded" x:Uid="ActionOpenDownloaded" Header="Open Downloaded Illust" Click="ActionOpenIllust_Click">
                                     <MenuItem.Icon>
                                         <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>

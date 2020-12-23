@@ -171,9 +171,9 @@
                     Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
-            <ToggleButton x:Name="CommandToggleDropbox" 
+            <ToggleButton x:Name="CommandDropbox" 
                           ToolTip="Open Drop Box"
-                          Click="CommandToggleDropbox_Click" >
+                          Click="CommandDropbox_Click" MouseRightButtonDown="CommandDropbox_MouseRightButtonDown">
                 <TextBlock 
                     Text="&#xE167;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>

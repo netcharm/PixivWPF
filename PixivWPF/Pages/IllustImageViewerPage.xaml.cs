@@ -252,6 +252,8 @@ namespace PixivWPF.Pages
 
         private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
         {
+            e.Handled = false;
+
             int offset = 0;
             if (e.IsKey(Key.Right) || e.IsKey(Key.Down) || e.IsKey(Key.PageDown))
                 offset = 1;
@@ -265,7 +267,6 @@ namespace PixivWPF.Pages
             {
                 ActionIllustInfo_Click(ActionCopyPreview, e);
                 e.Handled = true;
-                return;
             }
             else if (e.IsKey(Key.O, ModifierKeys.Control, false))
             {
@@ -274,21 +275,19 @@ namespace PixivWPF.Pages
                 else
                     ActionIllustInfo_Click(ActionOpenCachedWith, e);
                 e.Handled = true;
-                return;
             }
             else if (e.IsKey(Key.S, ModifierKeys.Control))
             {
                 if (Contents.IsWork()) Commands.SaveIllust.Execute(Contents);
                 e.Handled = true;
-                return;
             }
             else
             {
                 Commands.KeyProcessor.Execute(new KeyValuePair<object, KeyEventArgs>(Contents, e));
                 e.Handled = true;
-                return;
             }
-            ChangeIllustPage(offset);
+
+            if (!e.Handled) ChangeIllustPage(offset);
         }
 
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)

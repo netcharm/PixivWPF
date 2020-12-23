@@ -1158,7 +1158,7 @@ namespace PixivWPF.Common
                 {
                     if (sender is System.Windows.Controls.Primitives.ToggleButton)
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Control)
+                        if (Keyboard.Modifiers == ModifierKeys.Control || Mouse.RightButton == MouseButtonState.Pressed)
                         {
                             IList<string> titles = Application.Current.OpenedWindowTitles();
                             if (titles.Count > 0) CopyText.Execute($"{string.Join(Environment.NewLine, titles)}{Environment.NewLine}");

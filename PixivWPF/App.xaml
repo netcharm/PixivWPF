@@ -1,6 +1,8 @@
 <Application x:Class="PixivWPF.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"	
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:mahs="http://metro.mahapps.com/winfx/xaml/shared"
              xmlns:local="clr-namespace:PixivWPF"
              StartupUri="MainWindow.xaml"
              Startup="Application_Startup">

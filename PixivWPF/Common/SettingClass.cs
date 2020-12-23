@@ -450,7 +450,11 @@ namespace PixivWPF.Common
                                 }
                                 tags_changed = true;
                             }
-                            catch (Exception ex) { ex.Message.DEBUG(); }
+                            catch (Exception ex)
+                            { 
+                                ex.Message.DEBUG();
+                                $"Custom Translation Tags Loading Error:\n{ex.Message}".ShowToast("ERROR[Tags]");
+                            }
                         }
                         else
                         {
@@ -510,7 +514,11 @@ namespace PixivWPF.Common
                                 }
                                 tags_changed = true;
                             }
-                            catch (Exception ex) { ex.Message.DEBUG(); }
+                            catch (Exception ex)
+                            { 
+                                ex.Message.DEBUG();
+                                $"Custom Translation Wildcard Tags Loading Error:\n{ex.Message}".ShowToast("ERROR[Tags]");
+                            }
                         }
                         else
                         {
