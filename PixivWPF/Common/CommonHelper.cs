@@ -3151,7 +3151,7 @@ namespace PixivWPF.Common
                     else
                     {
                         setting = Application.Current.LoadSetting();
-                        var alt_viewer = Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
+                        var alt_viewer = (int)(Keyboard.Modifiers & (ModifierKeys.Alt | ModifierKeys.Control)) == 3 ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
                         var IsImage = ext_imgs.Contains(Path.GetExtension(FileName).ToLower()) ? true : false;
                         if (alt_viewer && IsImage)
                         {
