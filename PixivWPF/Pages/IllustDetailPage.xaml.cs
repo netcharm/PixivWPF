@@ -30,8 +30,9 @@ namespace PixivWPF.Pages
         private int page_number = 0;
         private int page_index = 0;
 
-        private string PreviewImageUrl = string.Empty;
-        private string AvatarImageUrl = string.Empty;
+        private string PreviewImageUrl { get; set; } = string.Empty;
+        private string PreviewImagePath { get; set; } = string.Empty;
+        private string AvatarImageUrl { get; set; } = string.Empty;
 
         private string CurrentRelativeURL = string.Empty;
         private string NextRelativeURL = string.Empty;
@@ -754,6 +755,7 @@ namespace PixivWPF.Pages
                 PreviewBox.ToolTip = item.ToolTip;
 
                 Preview.Source = Application.Current.GetNullPreview();
+                PreviewImagePath = string.Empty;
 
                 string stat_viewed = "????";
                 string stat_favorited = "????";
@@ -2555,9 +2557,9 @@ namespace PixivWPF.Pages
                     Commands.OpenWorkPreview.Execute(SubIllusts);
                 }
             }
-            else if(sender == PreviewCacheOpen)
+            else if(sender == PreviewCacheOpen && Preview.Source != null)
             {
-                    Commands.OpenCachedImage.Execute(Contents.Illust.GetPreviewUrl().GetImageCachePath());
+                Commands.OpenCachedImage.Execute(string.IsNullOrEmpty(PreviewImagePath) ? Contents.Illust.GetPreviewUrl().GetImageCachePath() : PreviewImagePath);
             }
         }
 
@@ -2602,6 +2604,7 @@ namespace PixivWPF.Pages
                             if (img.Source != null)
                             {
                                 Preview.Source = img.Source;
+                                PreviewImagePath = img.SourcePath;
                                 PreviewWait.Ready();
                             }
                             else PreviewWait.Fail();
