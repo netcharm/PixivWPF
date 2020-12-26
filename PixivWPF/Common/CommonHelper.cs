@@ -643,11 +643,11 @@ namespace PixivWPF.Common
             return (MachineID);
         }
 
-        private static System.Diagnostics.Process CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
+        private static Process CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
 
-        public static System.Diagnostics.Process Process(this Application app)
+        public static Process Process(this Application app)
         {
-            if (!(CurrentProcess is System.Diagnostics.Process))
+            if (!(CurrentProcess is Process))
                 CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
             return (CurrentProcess);
         }
@@ -1396,7 +1396,7 @@ namespace PixivWPF.Common
                 AutomaticDecompression = DecompressionMethods.Deflate,
                 UseCookies = true,
                 MaxAutomaticRedirections = 15,
-                MaxConnectionsPerServer = 30,
+                //MaxConnectionsPerServer = 30,
                 MaxRequestContentBufferSize = buffersize,
                 //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
                 Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass),
@@ -2541,10 +2541,14 @@ namespace PixivWPF.Common
                     var text = alpha ? tag : result;
                     foreach (var kv in TagsWildecardT2S)
                     {
-                        var k = kv.Key.Replace(" ", "\\s").Trim('/');
+                        var k = kv.Key.Replace(" ", "\\s");
                         var v = kv.Value;
-                        if(!Regex.IsMatch(text, k, RegexOptions.IgnoreCase))
-                          text = Regex.Replace(text, $@"{k}", v, RegexOptions.IgnoreCase);
+                        if ((k.StartsWith("/") && k.EndsWith("/")) ||
+                            string.IsNullOrEmpty(translated) ||
+                            text.Equals(tag, StringComparison.CurrentCultureIgnoreCase) ||
+                            text.IndexOf(v, 0, StringComparison.OrdinalIgnoreCase) < 0)
+                            text = Regex.Replace(text, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
+                        if (k.StartsWith("/") && k.EndsWith("/")) result = Regex.Replace(result, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
                     }
                     result = alpha && !Regex.IsMatch(text, result, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                 }
@@ -3066,7 +3070,7 @@ namespace PixivWPF.Common
             var shell = Path.Combine(Application.Current.GetRoot(), setting.ShellSearchBridgeApplication);
             if (File.Exists(shell))
             {
-                System.Diagnostics.Process.Start(shell, contents);
+                Process.Start(shell, contents);
             }
         }
 
@@ -3088,11 +3092,11 @@ namespace PixivWPF.Common
                     $"--user-data-dir=\"{Path.Combine(Application.Current.GetRoot(), ".web")}\"",
                     $"--url=\"{currentUri}\""
                 };
-                System.Diagnostics.Process.Start(shell, string.Join(" ", args));
+                Process.Start(shell, string.Join(" ", args));
             }
             else
             {
-                System.Diagnostics.Process.Start(currentUri);
+                Process.Start(currentUri);
             }
         }
 
@@ -3102,7 +3106,7 @@ namespace PixivWPF.Common
 
             try
             {
-                System.Diagnostics.Process.Start(url);
+                Process.Start(url);
                 result = true;
             }
             catch (Exception ex)

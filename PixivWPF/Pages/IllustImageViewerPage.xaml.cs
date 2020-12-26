@@ -126,6 +126,7 @@ namespace PixivWPF.Pages
             finally
             {
                 if (Preview.Source == null) PreviewWait.Fail();
+                Focus();
             }
             return (img);
         }

@@ -20,9 +20,16 @@
                 <!-- NotificationUI -> ToastUI -->
                 <ResourceDictionary Source="pack://application:,,,/Common/ToastUI.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            
             <ScaleTransform x:Key="FontStretchSemiCondensed" ScaleX="0.75" />
             <ScaleTransform x:Key="FontStretchCondensed" ScaleX="0.8" />
             <ScaleTransform x:Key="FontStretchExpanded" ScaleX="1.2" />
+            
+            <BooleanToVisibilityConverter x:Key="Bool2Vis"/>
+            <DropShadowEffect x:Key="DropGlow" Color="{DynamicResource MahApps.Colors.IdealForeground}" ShadowDepth="0" Opacity="1" BlurRadius="9"/>
+            <DropShadowEffect x:Key="DropMark" Color="{DynamicResource MahApps.Colors.Accent}" ShadowDepth="0" Opacity="1" BlurRadius="9"/>
+            <BlurEffect x:Key="BlurGlow" Radius="9" RenderingBias="Quality" KernelType="Gaussian"/>
+            <BlurEffect x:Key="BlurMark" Radius="5" RenderingBias="Quality" KernelType="Gaussian"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

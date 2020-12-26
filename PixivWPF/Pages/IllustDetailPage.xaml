@@ -252,10 +252,7 @@
                     </Viewbox>
                     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"
                       Visibility="{Binding Visibility, Mode=OneWay, ElementName=IllustSanityInfo}">
-                        <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4">
-                            <Grid.Effect>
-                                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
-                            </Grid.Effect>
+                        <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4" Effect="{DynamicResource DropGlow}">
                             <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
@@ -266,10 +263,7 @@
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                         </Grid>
-                        <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4">
-                            <Grid.Effect>
-                                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
-                            </Grid.Effect>
+                        <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4" Effect="{DynamicResource DropGlow}">
                             <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
@@ -280,10 +274,7 @@
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                         </Grid>
-                        <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4">
-                            <Grid.Effect>
-                                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
-                            </Grid.Effect>
+                        <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4" Effect="{DynamicResource DropGlow}">
                             <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
@@ -294,10 +285,7 @@
                             Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                         </Grid>
-                        <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4">
-                            <Grid.Effect>
-                                <DropShadowEffect ShadowDepth="0" Color="{DynamicResource MahApps.Colors.IdealForeground}" Opacity="1" BlurRadius="5"/>
-                            </Grid.Effect>
+                        <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4" Effect="{DynamicResource DropGlow}">
                             <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                             LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"

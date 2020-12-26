@@ -439,8 +439,6 @@ namespace PixivWPF.Common
                 var tile = sender as Grid;
                 if (e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    //var progress = tile.FindByName<ProgressRing>("PART_Progress");
-                    //if (tile.Tag is PixivItem && progress is ProgressRing)
                     var progress = tile.FindByName<ProgressRingCloud>("PART_Progress");
                     if (tile.Tag is PixivItem && progress is ProgressRingCloud)
                     {
@@ -458,45 +456,67 @@ namespace PixivWPF.Common
                     }
                 }
             }
+            else if (sender is Border)
+            {
+                var border = sender as Border;
+                if (e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var progress = border.FindByName<ProgressRingCloud>("PART_Progress");
+                    if (border.Tag is TaskStatus && progress is ProgressRingCloud)
+                    {
+                        var state = (TaskStatus)border.Tag;
+                        if (state == TaskStatus.Created || state == TaskStatus.Running)
+                        {
+                            progress.Show();
+                        }
+                        else if (state == TaskStatus.RanToCompletion)
+                        {
+                            progress.Hide();
+                        }
+                        else
+                            progress.Disable();
+                    }
+                }
+            }
             else if (sender is PackIconModern)
             {
 #if DEBUG
-                var icon = sender as PackIconModern;
-                if (e.Property.Name.Equals("Visibility", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    var follow = icon.FindName("PART_Follow");
-                    var fav = icon.FindName("PART_Favorite");
-                    if (follow is PackIconModern && fav is PackIconModern)
-                    {
-                        var follow_mark = follow as PackIconModern;
-                        var follow_effect = follow_mark.FindName("PART_Follow_Shadow");
-                        var fav_mark = fav as PackIconModern;
-                        if (fav_mark.Visibility == Visibility.Visible)
-                        {
-                            follow_mark.Height = 16;
-                            follow_mark.Width = 16;
-                            follow_mark.Margin = new Thickness(0, 0, 12, 12);
-                            follow_mark.Foreground = Common.Theme.WhiteBrush;
-                            if (follow_effect is System.Windows.Media.Effects.DropShadowEffect)
-                            {
-                                var shadow = follow_effect as System.Windows.Media.Effects.DropShadowEffect;
-                                shadow.Color = Common.Theme.AccentColor;
-                            }
-                        }
-                        else
-                        {
-                            follow_mark.Height = 24;
-                            follow_mark.Width = 24;
-                            follow_mark.Margin = new Thickness(0, 0, 8, 8);
-                            follow_mark.Foreground = Common.Theme.AccentBrush;
-                            if (follow_effect is System.Windows.Media.Effects.DropShadowEffect)
-                            {
-                                var shadow = follow_effect as System.Windows.Media.Effects.DropShadowEffect;
-                                shadow.Color = Common.Theme.WhiteColor;
-                            }
-                        }
-                    }
-                }
+                //var icon = sender as PackIconModern;
+                //if (e.Property.Name.Equals("Visibility", StringComparison.CurrentCultureIgnoreCase))
+                //{
+                //    var follow = icon.FindName("PART_Follow");
+                //    var fav = icon.FindName("PART_Favorite");
+                //    if (follow is PackIconModern && fav is PackIconModern)
+                //    {
+                //        var follow_mark = follow as PackIconModern;
+                //        var follow_effect = follow_mark.FindName("PART_Follow_Shadow");
+                //        var fav_mark = fav as PackIconModern;
+                //        if (fav_mark.Visibility == Visibility.Visible)
+                //        {
+                //            follow_mark.Height = 16;
+                //            follow_mark.Width = 16;
+                //            follow_mark.Margin = new Thickness(0, 0, 12, 12);
+                //            follow_mark.Foreground = Common.Theme.WhiteBrush;
+                //            if (follow_effect is System.Windows.Media.Effects.DropShadowEffect)
+                //            {
+                //                var shadow = follow_effect as System.Windows.Media.Effects.DropShadowEffect;
+                //                shadow.Color = Common.Theme.AccentColor;
+                //            }
+                //        }
+                //        else
+                //        {
+                //            follow_mark.Height = 24;
+                //            follow_mark.Width = 24;
+                //            follow_mark.Margin = new Thickness(0, 0, 8, 8);
+                //            follow_mark.Foreground = Common.Theme.AccentBrush;
+                //            if (follow_effect is System.Windows.Media.Effects.DropShadowEffect)
+                //            {
+                //                var shadow = follow_effect as System.Windows.Media.Effects.DropShadowEffect;
+                //                shadow.Color = Common.Theme.WhiteColor;
+                //            }
+                //        }
+                //    }
+                //}
 #endif
             }
         }

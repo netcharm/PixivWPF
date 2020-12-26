@@ -117,24 +117,30 @@
                 </StackPanel>
             </Button>
         </StackPanel>
-        <ListView Grid.Row="1"  x:Name="DownloadItems" x:Uid="DownloadItems"
-                  IsSynchronizedWithCurrentItem="True"
-                  Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
-                  BorderThickness="0"
-                  VirtualizingPanel.CacheLength ="0"
-                  VirtualizingPanel.CacheLengthUnit="Item"
-                  VirtualizingPanel.IsVirtualizing="True"
-                  VirtualizingPanel.IsContainerVirtualizable="True"
-                  VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                  VirtualizingPanel.VirtualizationMode="Standard"
-                  VirtualizingPanel.ScrollUnit="Item"                 
-                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                  ScrollViewer.IsDeferredScrollingEnabled="False"
-                  SelectionMode="Extended"
-                  TargetUpdated="DownloadItem_TargetUpdated"
-                  ItemsSource="{Binding Items, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
-                  ItemTemplate="{DynamicResource DownloadItemTemplate}">
+        <ListView 
+            Grid.Row="1"  x:Name="DownloadItems" x:Uid="DownloadItems"
+            BorderThickness="0"
+            Focusable="True" ClipToBounds="True" UseLayoutRounding="True" 
+            ScrollViewer.CanContentScroll="True"
+            ScrollViewer.IsDeferredScrollingEnabled="False"
+            ScrollViewer.VerticalScrollBarVisibility="Auto"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+            IsSynchronizedWithCurrentItem="true"
+            ItemsSource="{Binding Items, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
+            ItemTemplate="{DynamicResource DownloadItemTemplate}"
+            SelectionMode="Extended"
+            Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
+            VirtualizingPanel.CacheLength ="9"
+            VirtualizingPanel.CacheLengthUnit="Item"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.IsContainerVirtualizable="True"
+            VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            VirtualizingPanel.ScrollUnit="Item"                 
+            TargetUpdated="DownloadItem_TargetUpdated">
+            <ListView.CacheMode>
+                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+            </ListView.CacheMode>            
         </ListView>
     </Grid>
 </Page>
