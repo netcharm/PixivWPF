@@ -710,8 +710,12 @@ namespace PixivWPF.Common
                                     throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
                                 }
 
-                                bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
-                                EndTick = DateTime.Now;
+                                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                                using (cts.Token.Register(() => cs.Close()))
+                                {
+                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cts.Token).ConfigureAwait(false);
+                                    EndTick = DateTime.Now;
+                                }
 
                                 if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
                                 {
@@ -800,8 +804,12 @@ namespace PixivWPF.Common
                                     throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
                                 }
 
-                                bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelToken);
-                                EndTick = DateTime.Now;
+                                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                                using (cts.Token.Register(() => cs.Close()))
+                                {
+                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cts.Token).ConfigureAwait(false);
+                                    EndTick = DateTime.Now;
+                                }
 
                                 if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
                                 {

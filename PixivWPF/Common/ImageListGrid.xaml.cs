@@ -422,8 +422,6 @@ namespace PixivWPF.Common
                 var image = sender as Image;
                 if (e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    //var progress = image.FindByName<ProgressRing>("PART_Progress");
-                    //if (progress is ProgressRing)
                     var progress = image.FindByName<ProgressRingCloud>("PART_Progress");
                     if (progress is ProgressRingCloud)
                     {
@@ -477,47 +475,6 @@ namespace PixivWPF.Common
                             progress.Disable();
                     }
                 }
-            }
-            else if (sender is PackIconModern)
-            {
-#if DEBUG
-                //var icon = sender as PackIconModern;
-                //if (e.Property.Name.Equals("Visibility", StringComparison.CurrentCultureIgnoreCase))
-                //{
-                //    var follow = icon.FindName("PART_Follow");
-                //    var fav = icon.FindName("PART_Favorite");
-                //    if (follow is PackIconModern && fav is PackIconModern)
-                //    {
-                //        var follow_mark = follow as PackIconModern;
-                //        var follow_effect = follow_mark.FindName("PART_Follow_Shadow");
-                //        var fav_mark = fav as PackIconModern;
-                //        if (fav_mark.Visibility == Visibility.Visible)
-                //        {
-                //            follow_mark.Height = 16;
-                //            follow_mark.Width = 16;
-                //            follow_mark.Margin = new Thickness(0, 0, 12, 12);
-                //            follow_mark.Foreground = Common.Theme.WhiteBrush;
-                //            if (follow_effect is System.Windows.Media.Effects.DropShadowEffect)
-                //            {
-                //                var shadow = follow_effect as System.Windows.Media.Effects.DropShadowEffect;
-                //                shadow.Color = Common.Theme.AccentColor;
-                //            }
-                //        }
-                //        else
-                //        {
-                //            follow_mark.Height = 24;
-                //            follow_mark.Width = 24;
-                //            follow_mark.Margin = new Thickness(0, 0, 8, 8);
-                //            follow_mark.Foreground = Common.Theme.AccentBrush;
-                //            if (follow_effect is System.Windows.Media.Effects.DropShadowEffect)
-                //            {
-                //                var shadow = follow_effect as System.Windows.Media.Effects.DropShadowEffect;
-                //                shadow.Color = Common.Theme.WhiteColor;
-                //            }
-                //        }
-                //    }
-                //}
-#endif
             }
         }
 

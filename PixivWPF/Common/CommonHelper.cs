@@ -2543,12 +2543,14 @@ namespace PixivWPF.Common
                     {
                         var k = kv.Key.Replace(" ", "\\s");
                         var v = kv.Value;
-                        if ((k.StartsWith("/") && k.EndsWith("/")) ||
-                            string.IsNullOrEmpty(translated) ||
-                            text.Equals(tag, StringComparison.CurrentCultureIgnoreCase) ||
-                            text.IndexOf(v, 0, StringComparison.OrdinalIgnoreCase) < 0)
+                        if (text.IndexOf(v, 0, StringComparison.OrdinalIgnoreCase) < 0)
                             text = Regex.Replace(text, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
-                        if (k.StartsWith("/") && k.EndsWith("/")) result = Regex.Replace(result, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
+
+                        if (k.StartsWith("/") && k.EndsWith("/"))
+                        {
+                            text = Regex.Replace(text, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
+                            result = Regex.Replace(result, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
+                        }
                     }
                     result = alpha && !Regex.IsMatch(text, result, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                 }

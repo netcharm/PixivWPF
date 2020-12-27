@@ -58,13 +58,16 @@ namespace PixivWPF.Pages
             UpdateDownloadState();
         }
 
-        private void UpdateDownloadState(int? illustid = null, bool? exists = null)
+        private async void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
-            foreach (var item in Items)
+            foreach (var item in Items.ToArray())
             {
                 if (item is DownloadInfo)
                 {
-                    item.UpdateDownloadState(illustid, exists);
+                    await new Action(() =>
+                    {
+                        item.UpdateDownloadState(illustid, exists);
+                    }).InvokeAsync();
                 }
             }
         }
@@ -77,24 +80,24 @@ namespace PixivWPF.Pages
             });
         }
 
-        public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
-        {
-            await Task.Run(() =>
-            {
-                UpdateLikeState(illustid, is_user);
-            });
-        }
-
         public async void UpdateLikeState(int illustid = -1, bool is_user = false)
         {
             var needUpdate = is_user ? items.Where(i => i.UserID == illustid) : items.Where(i => i.IllustID == illustid);
-            foreach (var item in needUpdate)
+            foreach (var item in needUpdate.ToArray())
             {
                 await new Action(() =>
                 {
                     item.UpdateLikeState();
                 }).InvokeAsync();
             }
+        }
+
+        public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        {
+            await Task.Run(() =>
+            {
+                UpdateLikeState(illustid, is_user);
+            });
         }
 
         public IEnumerable<string> Unfinished()
