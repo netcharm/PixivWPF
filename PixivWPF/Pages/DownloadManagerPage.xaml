@@ -139,7 +139,7 @@
             VirtualizingPanel.ScrollUnit="Item"                 
             TargetUpdated="DownloadItem_TargetUpdated">
             <ListView.CacheMode>
-                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+                <BitmapCache EnableClearType="True" RenderAtScale="2.0" SnapsToDevicePixels="True" />
             </ListView.CacheMode>            
         </ListView>
     </Grid>

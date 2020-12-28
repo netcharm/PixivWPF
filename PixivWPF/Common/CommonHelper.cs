@@ -1419,7 +1419,7 @@ namespace PixivWPF.Common
             httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
             //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
             //httpClient.DefaultRequestHeaders.ConnectionClose = true;
-            if (continuation)
+            if (continuation && range_start > 0)
             {
                 var start = $"{range_start}";
                 var end = range_count > 0 ? $"{range_count}" : string.Empty;
@@ -3287,7 +3287,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public async static Task<BitmapSource> ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
+        public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
         {
             if (dpiX == source.DpiX || dpiY == source.DpiY) return (source);
 
@@ -3308,29 +3308,27 @@ namespace PixivWPF.Common
                     PngBitmapEncoder pngEnc = new PngBitmapEncoder();
                     pngEnc.Frames.Add(BitmapFrame.Create(nbmp));
                     pngEnc.Save(ms);
-                    var pngDec = new PngBitmapDecoder(ms, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                    var pngDec = new PngBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
                     result = pngDec.Frames[0];
+                    result.Freeze();
                 }
             }
             catch (Exception ex)
             {
-                //await ex.Message.ShowMessageBoxAsync("ERROR");
-                await Task.Delay(1);
                 ex.Message.ShowMessageBox("ERROR");
             }
             return result;
         }
 
-        public async static Task<ImageSource> ToImageSource(this Stream stream)
+        public static ImageSource ToImageSource(this Stream stream)
         {
-            //await imgStream.GetResponseStreamAsync();
             BitmapSource result = null;
             try
             {
                 var bmp = new BitmapImage();
                 bmp.BeginInit();
                 bmp.CacheOption = BitmapCacheOption.OnLoad;
-                bmp.CreateOptions = BitmapCreateOptions.DelayCreation;
+                bmp.CreateOptions = BitmapCreateOptions.None;
                 bmp.StreamSource = stream;
                 bmp.EndInit();
                 bmp.Freeze();
@@ -3342,7 +3340,8 @@ namespace PixivWPF.Common
                 var ret = ex.Message;
                 try
                 {
-                    result = BitmapFrame.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                    result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                    result.Freeze();
                 }
                 catch (Exception exx)
                 {
@@ -3357,7 +3356,7 @@ namespace PixivWPF.Common
                     {
                         var dpi = new DPI();
                         if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
-                            result = await ConvertBitmapDPI(result, dpi.X, dpi.Y);
+                            result = ConvertBitmapDPI(result, dpi.X, dpi.Y);
                     }
                     catch (Exception) { }
                 }
@@ -4148,18 +4147,19 @@ namespace PixivWPF.Common
 
         public static async Task<CustomImageSource> LoadImageFromFile(this string file)
         {
-            ImageSource result = null;
+            CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
-                using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, 65536))
+                await new Action(() =>
                 {
-                    await new Action(async () =>
+                    using (var stream = File.OpenRead(file))
                     {
-                        result = await stream.ToImageSource();
-                    }).InvokeAsync();
-                }
+                        result.Source = stream.ToImageSource();
+                        result.SourcePath = file;
+                    }
+                }).InvokeAsync();
             }
-            return (new CustomImageSource(result, file));
+            return (result);
         }
 
         public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false)
@@ -4484,8 +4484,27 @@ namespace PixivWPF.Common
             ImageSource result = null;
             using (var stream = await response.GetResponseStreamAsync())
             {
-                result = await stream.ToImageSource();
+                result = stream.ToImageSource();
             }
+            return (result);
+        }
+
+        public static async Task<ImageSource> ToImageSource(this ImageSource source, double width, double height)
+        {
+            ImageSource result = source;
+            try
+            {
+                if (source is BitmapSource && width > 0 && height > 0)
+                {
+                    await new Action(() =>
+                    {
+                        var scale = new ScaleTransform(width / source.Width, height / source.Height);
+                        result = new TransformedBitmap(source as BitmapSource, scale);
+                        result.Freeze();
+                    }).InvokeAsync(true);
+                }
+            }
+            catch (Exception) { }
             return (result);
         }
 
@@ -7199,6 +7218,25 @@ namespace PixivWPF.Common
         #endregion
 
         #region Misc Helper
+        public static void Dispose<T>(this T[] array)
+        {
+            array.Clear();
+            array = null;
+        }
+
+        public static void Clear<T>(this T[] array)
+        {
+            try
+            {
+                if (array is Array)
+                {
+                    Array.Clear(array, 0, array.Length);
+                    Array.Resize<T>(ref array, 0);
+                }
+            }
+            catch (Exception) { }
+        }
+
         public static bool IsConsole
         {
             get

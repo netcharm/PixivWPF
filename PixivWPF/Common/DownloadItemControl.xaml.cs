@@ -728,7 +728,7 @@ namespace PixivWPF.Common
 
                             if (Received == Length && State == DownloadState.Downloading)
                             {
-                                result = SaveFile(FileName, ms.ToArray());
+                                result = await SaveFile(FileName, ms.ToArray());
                             }
                             else
                             {
@@ -783,7 +783,7 @@ namespace PixivWPF.Common
                     var range = response.Content.Headers.ContentRange ?? new System.Net.Http.Headers.ContentRangeHeaderValue(0, 0, length);
                     var pos = range.From ?? 0;
                     Length = range.Length ?? 0;
-                    if (length > 0)
+                    if (Length > 0 && length > 0)
                     {
                         ms.Seek(pos, SeekOrigin.Begin);
 
@@ -828,7 +828,7 @@ namespace PixivWPF.Common
                             if (Received == Length && State == DownloadState.Downloading)
                             {
                                 _DownloadBuffer = ms.ToArray();
-                                result = SaveFile(FileName, _DownloadBuffer);
+                                result = await SaveFile(FileName, _DownloadBuffer);
                             }
                             else
                             {
@@ -849,6 +849,7 @@ namespace PixivWPF.Common
                 catch (Exception ex)
                 {
                     FailReason = ex.Message;
+                    if (FailReason.Contains("416")) _DownloadBuffer.Dispose();
                 }
                 finally
                 {
@@ -876,11 +877,7 @@ namespace PixivWPF.Common
             FailReason = string.Empty;
             State = DownloadState.Downloading;
 
-            if (restart && _DownloadBuffer is byte[])
-            {
-                Array.Clear(_DownloadBuffer, 0, _DownloadBuffer.Length);
-                _DownloadBuffer = null;
-            }
+            if (restart && _DownloadBuffer is byte[]) _DownloadBuffer.Dispose();
 
             if (_DownloadBuffer is byte[])
             {
@@ -910,11 +907,7 @@ namespace PixivWPF.Common
                 result = FileName;
                 EndTick = DateTime.Now;
 
-                if (_DownloadBuffer is byte[])
-                {
-                    Array.Clear(_DownloadBuffer, 0, _DownloadBuffer.Length);
-                    _DownloadBuffer = null;
-                }
+                if (_DownloadBuffer is byte[]) _DownloadBuffer.Dispose();
 
                 var state = "Succeed";
                 if (setting.DownloadCompletedToast)
@@ -1011,7 +1004,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private string DownloadFromFile(string file)
+        private async Task<string> DownloadFromFile(string file)
         {
             string result = string.Empty;
 
@@ -1022,7 +1015,7 @@ namespace PixivWPF.Common
                 StartTick = DateTime.Now;
                 FailReason = string.Empty;
                 State = DownloadState.Downloading;
-                SaveFile(FileName, file);
+                result = await SaveFile(FileName, file);
             }
             catch (Exception) { }
             finally
@@ -1034,27 +1027,30 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private string SaveFile(string FileName, byte[] bytes)
+        private async Task<string> SaveFile(string FileName, byte[] bytes)
         {
             var result = FileName;
             try
             {
-                State = DownloadState.Writing;
-                UpdateProgress();
-                File.WriteAllBytes(FileName, bytes);
-                File.SetCreationTime(FileName, FileTime);
-                File.SetLastWriteTime(FileName, FileTime);
-                File.SetLastAccessTime(FileName, FileTime);
-                PART_OpenFile.IsEnabled = true;
-                PART_OpenFolder.IsEnabled = true;
-                FailReason = $"downloaded from remote site.";
-                State = DownloadState.Finished;
+                await new Action(() =>
+                {
+                    State = DownloadState.Writing;
+                    UpdateProgress();
+                    File.WriteAllBytes(FileName, bytes);
+                    File.SetCreationTime(FileName, FileTime);
+                    File.SetLastWriteTime(FileName, FileTime);
+                    File.SetLastAccessTime(FileName, FileTime);
+                    PART_OpenFile.IsEnabled = true;
+                    PART_OpenFolder.IsEnabled = true;
+                    FailReason = $"downloaded from remote site.";
+                    State = DownloadState.Finished;
+                }).InvokeAsync(true);
             }
             catch (Exception ex)
             {
                 FailReason = ex.Message;
                 State = DownloadState.Failed;
-                if (!IsCanceling) throw new Exception($"Download {Path.GetFileName(FileName)} Failed!");
+                if (!IsCanceling) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! Error is {FailReason}");
             }
             finally
             {
@@ -1063,33 +1059,36 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private string SaveFile(string FileName, string source)
+        private async Task<string> SaveFile(string FileName, string source)
         {
             var result = FileName;
             try
             {
                 if (File.Exists(source))
                 {
-                    StartTick = DateTime.Now;
-                    State = DownloadState.Writing;
-                    var fi = new FileInfo(source);
-                    Length = Received = fi.Length;
-                    finishedProgress = new Tuple<double, double>(Received, Length);
-                    File.Copy(source, FileName, true);
-                    File.SetCreationTime(FileName, FileTime);
-                    File.SetLastWriteTime(FileName, FileTime);
-                    File.SetLastAccessTime(FileName, FileTime);
-                    PART_OpenFile.IsEnabled = true;
-                    PART_OpenFolder.IsEnabled = true;
-                    FailReason = $"copied from cached image.";
-                    State = DownloadState.Finished;
+                    await new Action(() =>
+                    {
+                        StartTick = DateTime.Now;
+                        State = DownloadState.Writing;
+                        var fi = new FileInfo(source);
+                        Length = Received = fi.Length;
+                        finishedProgress = new Tuple<double, double>(Received, Length);
+                        File.Copy(source, FileName, true);
+                        File.SetCreationTime(FileName, FileTime);
+                        File.SetLastWriteTime(FileName, FileTime);
+                        File.SetLastAccessTime(FileName, FileTime);
+                        PART_OpenFile.IsEnabled = true;
+                        PART_OpenFolder.IsEnabled = true;
+                        FailReason = $"copied from cached image.";
+                        State = DownloadState.Finished;
+                    }).InvokeAsync(true);
                 }
             }
             catch (Exception ex)
             {
                 FailReason = ex.Message;
                 State = DownloadState.Failed;
-                if (!IsCanceling) throw new Exception($"Download {Path.GetFileName(FileName)} from {source} Failed!");
+                if (!IsCanceling) throw new Exception($"Download {Path.GetFileName(FileName)} from {source} Failed! Error is {FailReason}");
             }
             finally
             {
@@ -1131,7 +1130,7 @@ namespace PixivWPF.Common
                 {
                     if (await Downloading.WaitAsync(setting.DownloadWaitingTime))
                     {
-                        target_file = DownloadFromFile(fc);
+                        target_file = await DownloadFromFile(fc);
                     }
                 }).InvokeAsync();
             }

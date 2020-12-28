@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace PixivWPF.Common
 {
@@ -35,10 +36,16 @@ namespace PixivWPF.Common
     {
         ~PixivItem()
         {
-            if (source is ImageSource) source = null;
+            if (source is ImageSource)
+            {
+                source = null;
+            }
         }
 
         public PixivItemType ItemType { get; set; } = PixivItemType.None;
+
+        public double TileWidth { get; set; } = 128.0;
+        public double TileHeight { get; set; } = 128.0;
 
         private ImageSource source = null;
         public ImageSource Source
@@ -46,8 +53,15 @@ namespace PixivWPF.Common
             get { return source; }
             set
             {
-                source = value;
-                NotifyPropertyChanged();
+                if (value is ImageSource)
+                {
+                    if (value.Width > TileWidth || value.Height > TileHeight)
+                        source = Resize(value, TileWidth, TileHeight);
+                    else
+                        source = value;
+                }
+                else source = value;
+                NotifyPropertyChanged("Source");
             }
         }
         public string Thumb { get; set; }
@@ -194,6 +208,22 @@ namespace PixivWPF.Common
 
         public string Sanity { get; set; } = "all";
         public bool IsR18 { get { return (Sanity.Equals("18+")); } }
+
+        private ImageSource Resize(ImageSource source, double width, double height)
+        {
+            ImageSource result = source;
+            try
+            {
+                if (source is BitmapSource && width > 0 && height > 0)
+                {
+                    var scale = new ScaleTransform(width / source.Width, height / source.Height);
+                    result = new TransformedBitmap(source as BitmapSource, scale);
+                    result.Freeze();
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")

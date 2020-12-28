@@ -85,17 +85,17 @@ namespace PixivWPF.Common
             set { PART_ImageTiles.SelectionMode = value; }
         }
 
-        private ObservableCollection<PixivItem> ImageList = new ObservableCollection<PixivItem>();
+        private ObservableCollection<PixivItem> ItemList = new ObservableCollection<PixivItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
         public ObservableCollection<PixivItem> Items
         {
-            get { return (ImageList); }
+            get { return (ItemList); }
             set
             {
-                if(ImageList is ObservableCollection<PixivItem>) ImageList.Clear();
-                ImageList = value;
-                PART_ImageTiles.ItemsSource = value;
+                if(ItemList is ObservableCollection<PixivItem>) ItemList.Clear();
+                ItemList = value;
+                PART_ImageTiles.ItemsSource = ItemList;
                 NotifyPropertyChanged("ItemsChanged");
             }
         }
@@ -309,17 +309,8 @@ namespace PixivWPF.Common
 
             cancelTokenSource = new CancellationTokenSource();
 
-            PART_ImageTiles.ItemsSource = ImageList;
-            //Columns = 5;
-            //TileWidth = 128;
-            //TileHeight = 128;
+            PART_ImageTiles.ItemsSource = ItemList;
         }
-
-        //~ImageListGrid()
-        //{
-        //    PART_ImageTiles.Items.Clear();
-        //    if (PixivList is ObservableCollection<PixivItem>) PixivList.Clear();
-        //}
 
         [Description("Get or Set Wait Ring State")]
         [Category("Common Properties")]
@@ -360,6 +351,43 @@ namespace PixivWPF.Common
         {
             PART_ImageTiles.Items.Refresh();
             //CollectionViewSource.GetDefaultView(this).Refresh();
+        }
+
+        public void Clear()
+        {
+            if (ItemList is ObservableCollection<PixivItem>)
+            {
+                try
+                {
+                    foreach (var item in PART_ImageTiles.ItemsSource)
+                    {
+                        if (item is PixivItem) (item as PixivItem).Source = null;
+                    }
+                    PART_ImageTiles.ItemsSource = null;
+                }
+                catch (Exception) { }
+
+                try
+                {
+                    foreach (var item in PART_ImageTiles.Items)
+                    {
+                        if (item is PixivItem) (item as PixivItem).Source = null;
+                    }
+                }
+                catch (Exception) { }
+
+                try
+                {
+                    foreach (var item in ItemList)
+                    {
+                        item.Source = null;
+                    }
+                    ItemList.Clear();
+                    PART_ImageTiles.ItemsSource = ItemList;
+                }
+                catch (Exception) { }
+                GC.Collect();
+            }
         }
 
         public void Filtering(string filter)
@@ -426,7 +454,16 @@ namespace PixivWPF.Common
                     if (progress is ProgressRingCloud)
                     {
                         if (image.Source == null)
+                        {
+                            var tile = image.FindByName<Grid>("PART_Tile");
+                            if (tile is Grid && tile.Tag is PixivItem)
+                            {
+                                var item = tile.Tag as PixivItem;
+                                item.TileWidth = image.DesiredSize.Width;
+                                item.TileHeight = image.DesiredSize.Height;
+                            }
                             progress.Show();
+                        }
                         else
                             progress.Hide();
                     }
@@ -443,6 +480,12 @@ namespace PixivWPF.Common
                         var item = tile.Tag as PixivItem;
                         if (item.State == TaskStatus.Created || item.State == TaskStatus.Running)
                         {
+                            var image = tile.FindByName<Image>("PART_Thumbnail");
+                            if (image is Image)
+                            {
+                                item.TileWidth = image.DesiredSize.Width;
+                                item.TileHeight = image.DesiredSize.Height;
+                            }
                             progress.Show();
                         }
                         else if (item.State == TaskStatus.RanToCompletion)

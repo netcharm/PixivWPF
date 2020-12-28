@@ -155,28 +155,26 @@
             ItemTemplate="{DynamicResource PART_ImageTileTemplate}"
             SelectionMode="{Binding SelectionMode, Mode=OneWay}"                  
             Style="{DynamicResource MahApps.Styles.ListView.Virtualized}"
-            VirtualizingPanel.CacheLength ="150"
+            VirtualizingPanel.CacheLength ="30"
             VirtualizingPanel.CacheLengthUnit="Item"
             VirtualizingPanel.IsVirtualizing="True"
             VirtualizingPanel.IsContainerVirtualizable="True"
             VirtualizingPanel.IsVirtualizingWhenGrouping="True"
             VirtualizingPanel.VirtualizationMode="Recycling"
             VirtualizingPanel.ScrollUnit="Item"
-            mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True" 
             KeyUp="PART_ImageTiles_KeyUp" 
             MouseWheel="PART_ImageTiles_MouseWheel" MouseDown="PART_ImageTiles_MouseDown"
             PreviewMouseWheel="PART_ImageTiles_PreviewMouseWheel"
             SelectionChanged="PART_ImageTiles_SelectionChanged" >
             <ListView.CacheMode>
-                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+                <BitmapCache EnableClearType="True" SnapsToDevicePixels="True" />
             </ListView.CacheMode>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <!--<WrapPanel ItemWidth="136" MinWidth="600"/>-->
                     <UniformGrid x:Name="PART_ImageTiles_UniformGrid" 
                         ClipToBounds="True" Focusable="True" Height="Auto" Width="Auto"
                         HorizontalAlignment="Center" VerticalAlignment="Top"
-                        Grid.IsSharedSizeScope="True" UseLayoutRounding="True" ScrollViewer.CanContentScroll="True"
+                        Grid.IsSharedSizeScope="True"
                         Columns="{Binding Path=Columns, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>

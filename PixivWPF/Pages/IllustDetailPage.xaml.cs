@@ -866,7 +866,7 @@ namespace PixivWPF.Pages
 
                 SubIllusts.Tag = 0;
                 SubIllustsExpander.IsExpanded = false;
-                SubIllusts.Items.Clear();
+                SubIllusts.Clear();
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.IsWork() && item.Illust.PageCount > 1)
                 {
@@ -887,13 +887,13 @@ namespace PixivWPF.Pages
                 RelativeItemsExpander.Header = "Related Illusts";
                 RelativeItemsExpander.IsExpanded = false;
                 RelativeItemsExpander.Show();
-                RelativeItems.Items.Clear();
+                RelativeItems.Clear();
                 RelativeNextPage.Hide();
 
                 FavoriteItemsExpander.Header = "Author Favorite";
                 FavoriteItemsExpander.IsExpanded = false;
                 FavoriteItemsExpander.Show();
-                FavoriteItems.Items.Clear();
+                FavoriteItems.Clear();
                 FavoriteNextPage.Hide();
 #if DEBUG
                 CommentsExpander.IsExpanded = false;
@@ -1031,7 +1031,7 @@ namespace PixivWPF.Pages
                     IllustDescExpander.Hide();
                 }
 
-                SubIllusts.Items.Clear();
+                SubIllusts.Clear();
                 SubIllustsExpander.IsExpanded = false;
                 SubIllustsExpander.Hide();
                 PreviewBadge.Hide();
@@ -1073,8 +1073,6 @@ namespace PixivWPF.Pages
                 if (item.Illust is Pixeez.Objects.Work)
                 {
                     if (count < 0) count = PAGE_ITEMS;
-                    //var total = item.Illust.PageCount;
-                    //page_count = (total / count + (total % count > 0 ? 1 : 0)).Value;
 
                     #region Update sub-pages nav button
                     if (page <= 0)
@@ -1102,11 +1100,8 @@ namespace PixivWPF.Pages
                         var subset = item.Illust as Pixeez.Objects.IllustWork;
                         if (subset.meta_pages.Count() > 1)
                         {
-                            //total = subset.meta_pages.Count();
-                            //page_count = (total / count + (total % count > 0 ? 1 : 0)).Value;
-
                             var pages = subset.meta_pages.Skip(idx).Take(count).ToList();
-                            SubIllusts.Items.Clear();
+                            SubIllusts.Clear();
                             for (var i = 0; i < pages.Count; i++)
                             {
                                 var p = pages[i];
@@ -1125,11 +1120,8 @@ namespace PixivWPF.Pages
                         }
                         if (item.Illust.Metadata is Pixeez.Objects.Metadata)
                         {
-                            //total = item.Illust.Metadata.Pages.Count();
-                            //page_count = (total / count + (total % count > 0 ? 1 : 0)).Value;
-
                             var pages = item.Illust.Metadata.Pages.Skip(idx).Take(count).ToList();
-                            SubIllusts.Items.Clear();
+                            SubIllusts.Clear();
                             for (var i = 0; i < pages.Count; i++)
                             {
                                 var p = pages[i];
@@ -1173,7 +1165,7 @@ namespace PixivWPF.Pages
                 if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
                 if (!append)
                 {
-                    RelativeItems.Items.Clear();
+                    RelativeItems.Clear();
                     relative_illusts.Clear();
                 }
 
@@ -1238,7 +1230,7 @@ namespace PixivWPF.Pages
                 if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
                 if (!append)
                 {
-                    RelativeItems.Items.Clear();
+                    RelativeItems.Clear();
                     relative_illusts.Clear();
                 }
 
@@ -1305,7 +1297,7 @@ namespace PixivWPF.Pages
                 if (!(favorite_illusts is List<long?>)) favorite_illusts = new List<long?>();
                 if (!append)
                 {
-                    FavoriteItems.Items.Clear();
+                    FavoriteItems.Clear();
                     favorite_illusts.Clear();
                 }
 
@@ -1575,9 +1567,9 @@ namespace PixivWPF.Pages
             try
             {
                 DeleteHtmlRender();
-                SubIllusts.Items.Clear();
-                RelativeItems.Items.Clear();
-                FavoriteItems.Items.Clear();
+                SubIllusts.Clear();
+                RelativeItems.Clear();
+                FavoriteItems.Clear();
                 Preview.Source = null;
             }
             catch (Exception) { }

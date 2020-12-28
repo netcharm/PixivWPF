@@ -360,7 +360,7 @@ namespace PixivWPF.Pages
             UpdateTheme();
 
             ids.Clear();
-            ListImageTiles.Items.Clear();
+            ListImageTiles.Clear();
 
             PixivCatgoryMenu.IsPaneOpen = false;
             PixivCatgoryMenu.SelectedIndex = 0;
@@ -375,14 +375,17 @@ namespace PixivWPF.Pages
                 NextURL = null;
                 TargetPage = target;
                 ids.Clear();
-                ListImageTiles.Items.Clear();
+                ListImageTiles.Clear();
             }
             if (target != PixivPage.My && !IsAppend)
             {
                 NextURL = null;
                 ids.Clear();
-                ListImageTiles.Items.Clear();
+                ListImageTiles.Clear();
             }
+            GC.Collect();
+            //GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
+            GC.WaitForPendingFinalizers();
             GC.Collect();
 
             var win = Application.Current.GetMainWindow();

@@ -204,7 +204,7 @@ namespace PixivWPF.Pages
                 if (HistoryItems.IsCurrentBeforeFirst)
                     HistoryItems.MoveCurrentToLast();
                 else
-                    HistoryItems.ItemsCollection.MoveCurrentToPrevious();
+                    HistoryItems.MoveCurrentToPrevious();
                 HistoryItems.ScrollIntoView(HistoryItems.SelectedItem);
             }
         }
