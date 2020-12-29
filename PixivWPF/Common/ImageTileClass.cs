@@ -818,7 +818,7 @@ namespace PixivWPF.Common
                                 if (cancelToken.IsCancellationRequested)
                                     opt.CancellationToken.ThrowIfCancellationRequested();
                                 await Task.Delay(rnd.Next(1, 50));
-                                await new Action(async () =>
+                                await new Action(async() =>
                                 {
                                     try
                                     {
@@ -841,12 +841,12 @@ namespace PixivWPF.Common
                                         item.State = TaskStatus.Faulted;
                                     }
 #else
-                                        catch(Exception){ }
+                                    catch(Exception){ }
 #endif
                                     finally
                                     {
                                         if (item.Source == null && item.Thumb.IsCached())
-                                            item.Source = (await item.Thumb.GetImageCachePath().LoadImageFromFile()).Source;
+                                            item.Source = (item.Thumb.GetImageCachePath().LoadImageFromFile()).Source;
                                         Application.Current.DoEvents();
                                     }
                                 }).InvokeAsync();

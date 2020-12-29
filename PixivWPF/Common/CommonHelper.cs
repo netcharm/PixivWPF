@@ -1876,11 +1876,6 @@ namespace PixivWPF.Common
         #endregion
     }
 
-    public static class PixeezExtensions
-    {
-
-    }
-
     public static class CommonHelper
     {
         private static Setting setting = Application.Current.LoadSetting();
@@ -4146,19 +4141,16 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<CustomImageSource> LoadImageFromFile(this string file)
+        public static CustomImageSource LoadImageFromFile(this string file)
         {
             CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
-                await new Action(() =>
+                using (var stream = File.OpenRead(file))
                 {
-                    using (var stream = File.OpenRead(file))
-                    {
-                        result.Source = stream.ToImageSource();
-                        result.SourcePath = file;
-                    }
-                }).InvokeAsync();
+                    result.Source = stream.ToImageSource();
+                    result.SourcePath = file;
+                }
             }
             return (result);
         }
@@ -4177,8 +4169,8 @@ namespace PixivWPF.Common
         {
             CustomImageSource result = new CustomImageSource();
             if (uri.IsUnc || uri.IsFile)
-                result = await LoadImageFromFile(uri.LocalPath);
-            else if(!(uri.IsLoopback||uri.IsAbsoluteUri))
+                result = LoadImageFromFile(uri.LocalPath);
+            else if (!(uri.IsLoopback || uri.IsAbsoluteUri))
                 result = await LoadImageFromUrl(uri.OriginalString, overwrite, false);
             return (result);
         }
