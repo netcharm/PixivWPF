@@ -113,6 +113,12 @@ namespace PixivWPF.Common
                 if (Application.Current.GetLoginWindow() != null) e.Cancel = true;
             }
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[CLOSEWIN]"); }
+            finally
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
         }
 
         private void MetroWindow_DragOver(object sender, DragEventArgs e)

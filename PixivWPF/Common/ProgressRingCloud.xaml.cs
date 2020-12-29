@@ -31,7 +31,8 @@ namespace PixivWPF.Common
             set { SetCurrentValue(IsActiveProperty, value); /*NotifyPropertyChanged("IsActive");*/ }
         }
         public static readonly DependencyProperty IsActiveProperty = DependencyProperty.Register(
-            "IsActive", typeof( bool ), typeof( ProgressRingCloud ), new PropertyMetadata( true )
+            "IsActive", typeof( bool ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( true, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         [Description("Reload Enabled State"), Category("Behavior")]
@@ -41,7 +42,8 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ReloadEnabledProperty, value); }
         }
         public static readonly DependencyProperty ReloadEnabledProperty = DependencyProperty.Register(
-            "ReloadEnabled", typeof( bool ), typeof( ProgressRingCloud ), new PropertyMetadata( false )
+            "ReloadEnabled", typeof( bool ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( false, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         [Description("Reload Symbol"), Category("Appearance")]
@@ -51,7 +53,8 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ReloadSymbolProperty, value); }
         }
         public static readonly DependencyProperty ReloadSymbolProperty = DependencyProperty.Register(
-            "ReloadSymbol", typeof( string ), typeof( ProgressRingCloud ), new PropertyMetadata( "\uE149" )
+            "ReloadSymbol", typeof( string ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( "\uE149", new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         [Description("Reload Symbol FontFamily"), Category("Appearance")]
@@ -61,7 +64,8 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ReloadSymbolFontFamilyProperty, value); }
         }
         public static readonly DependencyProperty ReloadSymbolFontFamilyProperty = DependencyProperty.Register(
-            "ReloadSymbolFontFamily", typeof( FontFamily ), typeof( ProgressRingCloud ), new PropertyMetadata( new FontFamily("Segoe MDL2 Assets") )
+            "ReloadSymbolFontFamily", typeof( FontFamily ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( new FontFamily("Segoe MDL2 Assets"), new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         [Description("Wait Symbol"), Category("Appearance")]
@@ -71,7 +75,8 @@ namespace PixivWPF.Common
             set { SetCurrentValue(WaitSymbolProperty, value); }
         }
         public static readonly DependencyProperty WaitSymbolProperty = DependencyProperty.Register(
-            "WaitSymbol", typeof( string ), typeof( ProgressRingCloud ), new PropertyMetadata( "\uEDE4" )
+            "WaitSymbol", typeof( string ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( "\uEDE4", new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         [Description("Wait Symbol FontFamily"), Category("Appearance")]
@@ -81,7 +86,19 @@ namespace PixivWPF.Common
             set { SetCurrentValue(WaitSymbolFontFamilyProperty, value); }
         }
         public static readonly DependencyProperty WaitSymbolFontFamilyProperty = DependencyProperty.Register(
-            "WaitSymbolFontFamily", typeof( FontFamily ), typeof( ProgressRingCloud ), new PropertyMetadata( new FontFamily("Segoe MDL2 Assets") )
+            "WaitSymbolFontFamily", typeof( FontFamily ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( new FontFamily("Segoe MDL2 Assets"), new PropertyChangedCallback(OnPropertyChanged) )
+        );
+
+        [Description("Wait/Task State"), Category("Behavior")]
+        public TaskStatus State
+        {
+            get { return ((TaskStatus)GetValue(StateProperty)); }
+            set { SetCurrentValue(StateProperty, value); /*NotifyPropertyChanged("State");*/ }
+        }
+        public static readonly DependencyProperty StateProperty = DependencyProperty.Register(
+            "State", typeof( TaskStatus ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( TaskStatus.RanToCompletion, new PropertyChangedCallback(OnPropertyChanged))
         );
 
         public Action ReloadAction { get; set; } = null;
@@ -112,7 +129,8 @@ namespace PixivWPF.Common
             }
         }
         public static readonly DependencyProperty SizeProperty = DependencyProperty.Register(
-            "Size", typeof( double ), typeof( ProgressRingCloud ), new PropertyMetadata( 64.0 )
+            "Size", typeof( double ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( 64.0, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         [Description("Shadow Color"), Category("Appearance")]
@@ -122,7 +140,8 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ShadowColorProperty, value); /*NotifyPropertyChanged("ShadowColor");*/ }
         }
         public static readonly DependencyProperty ShadowColorProperty = DependencyProperty.Register(
-            "ShadowColor", typeof( Color ), typeof( ProgressRingCloud ), new PropertyMetadata( default(Color) )
+            "ShadowColor", typeof( Color ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( default(Color), new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         [Description("Shadow Depth"), Category("Appearance")]
@@ -132,7 +151,8 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ShadowDepthProperty, value); /*NotifyPropertyChanged("ShadowDepth");*/ }
         }
         public static readonly DependencyProperty ShadowDepthProperty = DependencyProperty.Register(
-            "ShadowDepth", typeof( double ), typeof( ProgressRingCloud ), new PropertyMetadata( 0.0 )
+            "ShadowDepth", typeof( double ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( 0.0, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         [Description("Shadow Blur Radius"), Category("Appearance")]
@@ -142,7 +162,8 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ShadowBlurRadiusProperty, value); /*NotifyPropertyChanged("ShadowBlurRadius");*/ }
         }
         public static readonly DependencyProperty ShadowBlurRadiusProperty = DependencyProperty.Register(
-            "ShadowBlurRadius", typeof( double ), typeof( ProgressRingCloud ), new PropertyMetadata( 5.0 )
+            "ShadowBlurRadius", typeof( double ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( 5.0, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         [Description("Shadow Opacity"), Category("Appearance")]
@@ -152,7 +173,8 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ShadowOpacityProperty, value); /*NotifyPropertyChanged("ShadowOpacity");*/ }
         }
         public static readonly DependencyProperty ShadowOpacityProperty = DependencyProperty.Register(
-            "ShadowOpacity", typeof( double ), typeof( ProgressRingCloud ), new PropertyMetadata( 1.0 )
+            "ShadowOpacity", typeof( double ), typeof( ProgressRingCloud ), 
+            new PropertyMetadata( 1.0, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         public bool IsShown { get { return (Visibility == Visibility.Visible); } }
@@ -170,7 +192,7 @@ namespace PixivWPF.Common
             //PART_Ring.Visibility = this.Visibility;
         }
 
-        public void Show()
+        private void _Show_()
         {
             lock (this)
             {
@@ -182,7 +204,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public void Hide()
+        private void _Hide_()
         {
             lock (this)
             {
@@ -194,7 +216,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public void Disable()
+        private void _Disable_()
         {
             lock (this)
             {
@@ -206,19 +228,59 @@ namespace PixivWPF.Common
             }
         }
 
-        public void Wait()
+        public void Show()
         {
-            Show();
+            State = TaskStatus.Running;
+            _Show_();
         }
 
-        public void Ready()
+        public void Hide()
         {
-            Hide();
+            State = TaskStatus.RanToCompletion;
+            _Hide_();
         }
 
         public void Fail()
         {
-            Disable();
+            State = TaskStatus.Faulted;
+            _Disable_();
+        }
+
+        public void UpdateState()
+        {
+            switch(State)
+            {
+                case TaskStatus.Created:
+                    _Show_();
+                    break;
+                case TaskStatus.Running:
+                    _Show_();
+                    break;
+                case TaskStatus.RanToCompletion:
+                    _Hide_();
+                    break;
+                default:
+                    _Disable_();
+                    break;
+            }
+        }
+
+        private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ProgressRingCloud)
+            {
+                var ring = d as ProgressRingCloud;
+                if (e.Property.Name.Equals("State"))
+                {
+                    ring.UpdateState();
+                }
+                else if (e.Property.Name.Equals("Size"))
+                {
+                    ring.Width = (double)e.NewValue;
+                    ring.Height = (double)e.NewValue;
+                }
+            }
+            //NotifyPropertyChanged(e.Property.Name);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

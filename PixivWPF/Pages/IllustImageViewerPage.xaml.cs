@@ -87,7 +87,7 @@ namespace PixivWPF.Pages
             {
                 var setting = Application.Current.LoadSetting();
 
-                PreviewWait.Wait();
+                PreviewWait.Show();
 
                 var c_item = Contents;
                 if (IsOriginal)
@@ -117,7 +117,7 @@ namespace PixivWPF.Pages
                         var aspect = Preview.Source.AspectRatio();
                         PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
                         Page_SizeChanged(null, null);
-                        PreviewWait.Ready();
+                        PreviewWait.Hide();
                     }
                     else PreviewWait.Fail();
                 }

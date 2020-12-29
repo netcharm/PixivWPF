@@ -47,6 +47,8 @@ namespace PixivWPF.Pages
         //private bool IsIdle = true;
         private bool IsUpdating = false;
 
+        private SemaphoreSlim CanAddItem = new SemaphoreSlim(1, 1);
+
         private ObservableCollection<DownloadInfo> items = new ObservableCollection<DownloadInfo>();
         public ObservableCollection<DownloadInfo> Items
         {
@@ -123,6 +125,7 @@ namespace PixivWPF.Pages
             setting = Application.Current.LoadSetting();
             if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
             if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
+            PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {SimultaneousJobs} / {MaxSimultaneousJobs}";
 
             tcb = timerCallback;
             timer = new Timer(tcb);
@@ -130,6 +133,15 @@ namespace PixivWPF.Pages
 
             DownloadItems.ItemsSource = items;
             window = Window.GetWindow(this);
+
+            //if (string.IsNullOrEmpty(setting.LastFolder))
+            //{
+            //    if (await CanAddItem.WaitAsync(-1))
+            //    {
+            //        Application.Current.SaveTarget();
+            //        if (CanAddItem is SemaphoreSlim) CanAddItem.Release();
+            //    }
+            //}
         }
 
         private async void timerCallback(object stateInfo)
@@ -150,7 +162,6 @@ namespace PixivWPF.Pages
                         {
                             if (jobs_count < SimultaneousJobs)
                             {
-                                //if (states_job.Contains(item.State)) continue;
                                 if (item.AutoStart) item.IsStart = true;
                                 jobs_count++;
                             }
@@ -233,20 +244,34 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal void Add(string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        internal async void Add(string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
-            if (!IsExists(url))
+            setting = Application.Current.LoadSetting();
+            if (string.IsNullOrEmpty(setting.LastFolder))
             {
-                var item = new DownloadInfo()
+                if (await CanAddItem.WaitAsync(-1))
                 {
-                    AutoStart = AutoStart,
-                    SingleFile = is_meta_single_page,
-                    Overwrite = overwrite,
-                    ThumbnailUrl = thumb,
-                    Url = url,
-                    FileTime = dt
-                };
-                Add(item);
+                    Application.Current.SaveTarget();
+                    if (CanAddItem is SemaphoreSlim) CanAddItem.Release();
+                }
+            }
+
+            if (await CanAddItem.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)))
+            {
+                if (!IsExists(url))
+                {
+                    var item = new DownloadInfo()
+                    {
+                        AutoStart = AutoStart,
+                        SingleFile = is_meta_single_page,
+                        Overwrite = overwrite,
+                        ThumbnailUrl = thumb,
+                        Url = url,
+                        FileTime = dt
+                    };
+                    Add(item);
+                    if (CanAddItem is SemaphoreSlim) CanAddItem.Release();
+                }
             }
         }
 

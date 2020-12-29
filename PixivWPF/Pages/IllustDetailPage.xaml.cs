@@ -748,7 +748,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                IllustDetailWait.Wait();
+                IllustDetailWait.Show();
                 this.DoEvents();
 
                 PreviewViewer.Show(true);
@@ -920,7 +920,7 @@ namespace PixivWPF.Pages
                 //item.Illust.AddToHistory();
                 item.AddToHistory();
                 Application.Current.DoEvents();
-                IllustDetailWait.Ready();
+                IllustDetailWait.Hide();
                 Preview.Focus();
             }
         }
@@ -935,17 +935,17 @@ namespace PixivWPF.Pages
                     try
                     {
                         PreviewViewer.Show();
-                        PreviewWait.Wait();
+                        PreviewWait.Show();
                         var bg = await user_backgroundimage_url.LoadImageFromUrl(overwrite);
                         if (bg.Source == null) PreviewWait.Fail();
-                        else PreviewWait.Ready();
+                        else PreviewWait.Hide();
                         Preview.Source = bg.Source;
                     }
                     catch (Exception) { PreviewWait.Fail(); }
                 }
                 else
                 {
-                    PreviewWait.Ready();
+                    PreviewWait.Hide();
                     PreviewViewer.Hide();
                     Preview.Source = null;
                 }
@@ -957,7 +957,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                IllustDetailWait.Wait();
+                IllustDetailWait.Show();
                 this.DoEvents();
 
                 PreviewViewer.Hide();
@@ -1059,7 +1059,7 @@ namespace PixivWPF.Pages
                 //item.User.AddToHistory();
                 item.AddToHistory();
                 Application.Current.DoEvents();
-                IllustDetailWait.Ready();
+                IllustDetailWait.Hide();
             }
         }
         #endregion
@@ -2577,7 +2577,7 @@ namespace PixivWPF.Pages
                         lastSelectionItem = c_item;
                         lastSelectionChanged = DateTime.Now;
 
-                        if (c_item.IsSameIllust(Contents)) PreviewWait.Wait();
+                        if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index);
                         var img = await PreviewImageUrl.LoadImageFromUrl(overwrite);
@@ -2597,7 +2597,7 @@ namespace PixivWPF.Pages
                             {
                                 Preview.Source = img.Source;
                                 PreviewImagePath = img.SourcePath;
-                                PreviewWait.Ready();
+                                PreviewWait.Hide();
                             }
                             else PreviewWait.Fail();
                         }
@@ -2619,7 +2619,7 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
-                        AuthorAvatarWait.Wait();
+                        AuthorAvatarWait.Show();
                         btnAuthorAvatar.Show(AuthorAvatarWait.IsFail);
 
                         var c_item = Contents;
@@ -2630,7 +2630,7 @@ namespace PixivWPF.Pages
                             if (img.Source != null)
                             {
                                 IllustAuthorAvatar.Source = img.Source;
-                                AuthorAvatarWait.Ready();
+                                AuthorAvatarWait.Hide();
                             }
                             else AuthorAvatarWait.Fail();
                         }

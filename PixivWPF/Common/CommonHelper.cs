@@ -234,6 +234,12 @@ namespace PixivWPF.Common
         public ImageSource Source { get; set; } = null;
         public string SourcePath { get; set; } = string.Empty;
 
+        ~CustomImageSource()
+        {
+            Source = null;
+            SourcePath = string.Empty;
+        }
+
         public CustomImageSource()
         {
         }
@@ -294,7 +300,11 @@ namespace PixivWPF.Common
 
         public static string SaveTarget(this Application app, string file = "")
         {
-            return (CommonHelper.ChangeSaveTarget(file));
+            string result = file;
+
+            result = CommonHelper.ChangeSaveTarget(file);
+
+            return (result);
         }
         #endregion
 
@@ -2284,6 +2294,7 @@ namespace PixivWPF.Common
                 }
             }
 
+            var download_links = new List<string>();
             foreach (var mi in mr)
             {
                 if (mi.Count <= 0) continue;
@@ -2292,10 +2303,22 @@ namespace PixivWPF.Common
                     ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
                     continue;
                 }
+                var linkexists = false;
 
                 foreach (Match m in mi)
                 {
                     var link = m.Groups[1].Value.Trim().Trim(trim_char);
+                    var downloads = Application.Current.OpenedWindowTitles();
+                    downloads = downloads.Concat(download_links).ToList();
+                    foreach(var di in downloads)
+                    {
+                        if (di.Contains(link))
+                        {
+                            linkexists = true;
+                            break;
+                        }
+                    }
+                    if (linkexists) continue;
 
                     if (link.Equals("user-profile", StringComparison.CurrentCultureIgnoreCase)) break;
                     else if (link.Equals("background", StringComparison.CurrentCultureIgnoreCase) || link.Equals("workspace", StringComparison.CurrentCultureIgnoreCase))
@@ -2417,20 +2440,30 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("downloading ", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var down = link.Substring(12).Trim().TrimEnd('.').Trim();
-                        var a_link = down.ArtworkLink();
-                        if (!string.IsNullOrEmpty(a_link) && !links.Contains(a_link)) links.Add(a_link);
+                        if (!download_links.Contains(down))
+                        {
+                            download_links.Add(down);
+                            Commands.SaveIllust.Execute(down);
+                        }
                     }
                     else if (link.StartsWith("download:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var down = link.Substring(9).Trim();
-                        var a_link = down.ArtworkLink();
-                        if (!string.IsNullOrEmpty(a_link) && !links.Contains(a_link)) links.Add(a_link);
+                        if (!download_links.Contains(down))
+                        {
+                            download_links.Add(down);
+                            Commands.SaveIllust.Execute(down);
+                        }
                     }
+                    else if(link.Equals("downloading", StringComparison.CurrentCultureIgnoreCase)) continue;
                     else if (link.StartsWith("downloading:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var down = link.Substring(12).Trim();
-                        var a_link = down.ArtworkLink();
-                        if (!string.IsNullOrEmpty(a_link) && !links.Contains(a_link)) links.Add(a_link);
+                        if (!download_links.Contains(down))
+                        {
+                            download_links.Add(down);
+                            Commands.SaveIllust.Execute(down);
+                        }
                     }
                     else
                     {
@@ -2457,6 +2490,7 @@ namespace PixivWPF.Common
                         catch { }
                     }
                 }
+                if (linkexists) continue;
             }
             if (links.Count <= 0)
             {
@@ -3185,7 +3219,7 @@ namespace PixivWPF.Common
             if (item is DownloadInfo)
             {
                 var di = item as DownloadInfo;
-                var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason:{di.FailReason}";
+                var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason: {di.FailReason.Replace(Environment.NewLine, $"\t{Environment.NewLine}")}".Trim();
                 var delta = di.EndTime - di.StartTime;
                 var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / 1024.0 / delta.TotalSeconds;
                 result.Add($"URL    : {di.Url}");
@@ -3367,16 +3401,20 @@ namespace PixivWPF.Common
         {
             if (Directory.Exists(folder) && cached)
             {
-                if (!_cachedDownloadedList.ContainsKey(folder))
+                try
                 {
-                    _cachedDownloadedList[folder] = cached;
-                    var files = Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories);
-                    foreach (var f in files)
+                    if (!_cachedDownloadedList.ContainsKey(folder))
                     {
-                        if (ext_imgs.Contains(Path.GetExtension(f).ToLower()))
-                            _cachedDownloadedList[f] = cached;
+                        _cachedDownloadedList[folder] = cached;
+                        var files = Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories);
+                        foreach (var f in files)
+                        {
+                            if (ext_imgs.Contains(Path.GetExtension(f).ToLower()))
+                                _cachedDownloadedList[f] = cached;
+                        }
                     }
                 }
+                catch (Exception) { }
             }
         }
 
@@ -6456,6 +6494,15 @@ namespace PixivWPF.Common
             catch (Exception) { }
             return (result);
         }
+        
+        public static bool WindowExists(string title)
+        {
+            bool result = false;
+
+            //HWND hDlgExists = FindWindow(0, "MyDialogTitle"); // hDlgExists will be NULL if dlg is not exist.
+
+            return (result);
+        }
         #endregion
 
         #region Dialog/MessageBox routines
@@ -6487,7 +6534,9 @@ namespace PixivWPF.Common
                     ShowPlacesList = true
                 };
 
-                if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+                Window dm = GetWindowByTitle("Download Manager");
+                if (!(dm is ContentWindow)) dm = Application.Current.MainWindow;
+                if (dlg.ShowDialog(dm) == CommonFileDialogResult.Ok)
                 {
                     setting.LastFolder = dlg.FileName;
                     result = dlg.FileName;
@@ -7217,7 +7266,26 @@ namespace PixivWPF.Common
             array = null;
         }
 
+        public static void Dispose<T>(this T[] array, ref T[] target)
+        {
+            target.Clear(ref target);
+            target = null;
+        }
+
         public static void Clear<T>(this T[] array)
+        {
+            try
+            {
+                if (array is Array)
+                {
+                    Array.Clear(array, 0, array.Length);
+                    Array.Resize<T>(ref array, 0);
+                }
+            }
+            catch (Exception) { }
+        }
+
+        public static void Clear<T>(this T[] array, ref T[] target)
         {
             try
             {

@@ -326,12 +326,12 @@ namespace PixivWPF.Common
 
         public void Wait()
         {
-            PART_ImageTilesWait.Wait();
+            PART_ImageTilesWait.Show();
         }
 
         public void Ready()
         {
-            PART_ImageTilesWait.Ready();
+            PART_ImageTilesWait.Hide();
         }
 
         public void Fail()
@@ -421,9 +421,12 @@ namespace PixivWPF.Common
             var needUpdate = Items.Where(item => item.Source == null || overwrite);
             if (needUpdate.Count() > 0)
             {
-                //PART_ImageTilesWait.Show();
+                foreach (var item in ItemList)
+                {
+                    if (item.TileWidth != TileWidth) item.TileWidth = TileWidth;
+                    if (item.TileHeight != TileHeight) item.TileHeight = TileHeight;
+                }
                 lastTask = await Items.UpdateTilesThumb(lastTask, overwrite, cancelTokenSource, parallel, updating_semaphore);
-                //if (lastTask.IsCompleted) PART_ImageTilesWait.Hide();
             }
         }
 
@@ -445,79 +448,13 @@ namespace PixivWPF.Common
         private void TileImage_TargetUpdated(object sender, DataTransferEventArgs e)
         {
             if (e.Property == null) return;
-            if (sender is Image)
+            if (sender is Image && e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
             {
-                var image = sender as Image;
-                if (e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    var progress = image.FindByName<ProgressRingCloud>("PART_Progress");
-                    if (progress is ProgressRingCloud)
-                    {
-                        if (image.Source == null)
-                        {
-                            var tile = image.FindByName<Grid>("PART_Tile");
-                            if (tile is Grid && tile.Tag is PixivItem)
-                            {
-                                var item = tile.Tag as PixivItem;
-                                item.TileWidth = image.DesiredSize.Width;
-                                item.TileHeight = image.DesiredSize.Height;
-                            }
-                            progress.Show();
-                        }
-                        else
-                            progress.Hide();
-                    }
-                }
+
             }
-            else if(sender is Grid)
+            else if (sender is ProgressRingCloud && e.Property.Name.Equals("State", StringComparison.CurrentCultureIgnoreCase))
             {
-                var tile = sender as Grid;
-                if (e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    var progress = tile.FindByName<ProgressRingCloud>("PART_Progress");
-                    if (tile.Tag is PixivItem && progress is ProgressRingCloud)
-                    {
-                        var item = tile.Tag as PixivItem;
-                        if (item.State == TaskStatus.Created || item.State == TaskStatus.Running)
-                        {
-                            var image = tile.FindByName<Image>("PART_Thumbnail");
-                            if (image is Image)
-                            {
-                                item.TileWidth = image.DesiredSize.Width;
-                                item.TileHeight = image.DesiredSize.Height;
-                            }
-                            progress.Show();
-                        }
-                        else if (item.State == TaskStatus.RanToCompletion)
-                        {
-                            progress.Hide();
-                        }
-                        else
-                            progress.Disable();
-                    }
-                }
-            }
-            else if (sender is Border)
-            {
-                var border = sender as Border;
-                if (e.Property.Name.Equals("Tag", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    var progress = border.FindByName<ProgressRingCloud>("PART_Progress");
-                    if (border.Tag is TaskStatus && progress is ProgressRingCloud)
-                    {
-                        var state = (TaskStatus)border.Tag;
-                        if (state == TaskStatus.Created || state == TaskStatus.Running)
-                        {
-                            progress.Show();
-                        }
-                        else if (state == TaskStatus.RanToCompletion)
-                        {
-                            progress.Hide();
-                        }
-                        else
-                            progress.Disable();
-                    }
-                }
+                (sender as ProgressRingCloud).UpdateState();
             }
         }
 

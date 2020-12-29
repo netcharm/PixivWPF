@@ -33,7 +33,6 @@
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" x:Name="PART_Mask" Opacity="0.67"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                        Tag="{Binding Path=State, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" TargetUpdated="TileImage_TargetUpdated"
                         Background="{DynamicResource MahApps.Brushes.IdealForeground}" BorderBrush="{DynamicResource MahApps.Brushes.Accent}" />
                 <Image Grid.Row="0" x:Name="PART_Thumbnail"                       
                        Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
@@ -133,6 +132,7 @@
                 </Grid>
                 <local:ProgressRingCloud
                     Grid.Row="0" x:Name="PART_Progress" Size="72"
+                    State="{Binding Path=State, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" TargetUpdated="TileImage_TargetUpdated"
                     Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
                     ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="9" ShadowDepth="1" ShadowOpacity="1"
                     VerticalAlignment="Center" HorizontalAlignment="Center"/>

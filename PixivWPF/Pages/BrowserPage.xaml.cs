@@ -175,7 +175,7 @@ namespace PixivWPF.Pages
             {
                 try
                 {
-                    BrowserWait.Wait();
+                    BrowserWait.Show();
 
                     webHtml.Stop();
                     HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(currentUri);
@@ -193,7 +193,7 @@ namespace PixivWPF.Pages
                     {
                         if (webHtml.DocumentText.Length <= 1024)
                             webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
-                        BrowserWait.Ready();
+                        BrowserWait.Hide();
                     }
                     else
                     {
@@ -456,7 +456,7 @@ namespace PixivWPF.Pages
 #endif
             finally
             {
-                BrowserWait.Ready();
+                BrowserWait.Hide();
             }
         }
 

@@ -251,13 +251,13 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Wait();
+                    if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Show();
 
                     var img = await ThumbnailUrl.LoadImageFromUrl(overwrite);
                     if (img.Source != null)
                     {
                         Thumbnail = img.Source;
-                        if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Ready();
+                        if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Hide();
                     }
                     else if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail();
                 }
@@ -669,6 +669,8 @@ namespace PixivWPF.Common
         private CancellationTokenSource cancelSource = null;
         private CancellationToken cancelToken;
 
+        private CancellationTokenSource cancelReadStreamSource = null;
+
         private SemaphoreSlim Downloading = new SemaphoreSlim(1, 1);
 
         //private MemoryStream _DownloadStream = null;
@@ -710,10 +712,10 @@ namespace PixivWPF.Common
                                     throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
                                 }
 
-                                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
-                                using (cts.Token.Register(() => cs.Close()))
+                                cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                                using (cancelReadStreamSource.Token.Register(() => cs.Close()))
                                 {
-                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cts.Token).ConfigureAwait(false);
+                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelReadStreamSource.Token).ConfigureAwait(false);
                                     EndTick = DateTime.Now;
                                 }
 
@@ -804,10 +806,10 @@ namespace PixivWPF.Common
                                     throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
                                 }
 
-                                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
-                                using (cts.Token.Register(() => cs.Close()))
+                                cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                                using (cancelReadStreamSource.Token.Register(() => cs.Close()))
                                 {
-                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cts.Token).ConfigureAwait(false);
+                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelReadStreamSource.Token).ConfigureAwait(false);
                                     EndTick = DateTime.Now;
                                 }
 
@@ -848,15 +850,20 @@ namespace PixivWPF.Common
                 }
                 catch (Exception ex)
                 {
-                    FailReason = ex.Message;
-                    if (FailReason.Contains("416")) _DownloadBuffer.Dispose();
+                    var stack = string.IsNullOrEmpty(ex.StackTrace) ? string.Empty : $"\n{ex.StackTrace}";
+                    FailReason = $"{ex.Message}{stack}";
                 }
                 finally
                 {
                     if (State != DownloadState.Finished)
                     {
-                        _DownloadBuffer = ms.ToArray();
-                        Received = _DownloadBuffer.Length;
+                        if (FailReason.Contains("416"))
+                            _DownloadBuffer.Dispose(ref _DownloadBuffer);
+                        else
+                        {
+                            _DownloadBuffer = ms.ToArray();
+                            Received = _DownloadBuffer.Length;
+                        }
                     }
                 }
             }
@@ -877,7 +884,7 @@ namespace PixivWPF.Common
             FailReason = string.Empty;
             State = DownloadState.Downloading;
 
-            if (restart && _DownloadBuffer is byte[]) _DownloadBuffer.Dispose();
+            if (restart && _DownloadBuffer is byte[]) _DownloadBuffer.Dispose(ref _DownloadBuffer);
 
             if (_DownloadBuffer is byte[])
             {
@@ -907,7 +914,7 @@ namespace PixivWPF.Common
                 result = FileName;
                 EndTick = DateTime.Now;
 
-                if (_DownloadBuffer is byte[]) _DownloadBuffer.Dispose();
+                if (_DownloadBuffer is byte[]) _DownloadBuffer.Dispose(ref _DownloadBuffer);
 
                 var state = "Succeed";
                 if (setting.DownloadCompletedToast)
@@ -935,6 +942,9 @@ namespace PixivWPF.Common
 
             if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
             cancelSource = null;
+            if (cancelReadStreamSource is CancellationTokenSource) cancelReadStreamSource.Dispose();
+            cancelReadStreamSource = null;
+
             if (Downloading is SemaphoreSlim) Downloading.Release();
         }
 
@@ -1164,16 +1174,27 @@ namespace PixivWPF.Common
                     await Task.Delay(250);
                     Application.Current.DoEvents();
                 }
+                if (cancelReadStreamSource is CancellationTokenSource && !cancelReadStreamSource.IsCancellationRequested)
+                {
+                    cancelReadStreamSource.Cancel();
+                    await Task.Delay(250);
+                    Application.Current.DoEvents();
+                }
                 try
                 {
                     if (httpClient is HttpClient)
                     {
                         httpClient.CancelPendingRequests();
                         httpClient.Dispose();
-                        httpClient = null;
+                        httpClient = null;                        
                     }
                 }
-                catch (Exception) { }
+                catch (Exception) { Canceling = false; }
+                finally
+                {
+                    FailReason = "Manual Canceled!";
+                    State = DownloadState.Failed;
+                }
             }
         }
         #endregion
@@ -1254,8 +1275,8 @@ namespace PixivWPF.Common
             if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
             if (sender == PART_Preview)
             {
-                if (PART_Preview.Source == null) PART_ThumbnailWait.Wait();
-                else PART_ThumbnailWait.Ready();
+                if (PART_Preview.Source == null) PART_ThumbnailWait.Show();
+                else PART_ThumbnailWait.Hide();
             }
         }
 

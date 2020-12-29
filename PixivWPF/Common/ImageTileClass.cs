@@ -59,8 +59,9 @@ namespace PixivWPF.Common
                         source = Resize(value, TileWidth, TileHeight);
                     else
                         source = value;
+                    value = null;
                 }
-                else source = value;
+                else source = null;
                 NotifyPropertyChanged("Source");
             }
         }
@@ -79,7 +80,7 @@ namespace PixivWPF.Common
         public TaskStatus State
         {
             get { return (state); }
-            internal set { state = value; NotifyPropertyChanged("State"); }
+            set { state = value; NotifyPropertyChanged("State"); }
         }
 
         public Visibility FavMarkVisibility { get; set; } = Visibility.Collapsed;
@@ -832,6 +833,7 @@ namespace PixivWPF.Common
                                                 item.State = TaskStatus.RanToCompletion;
                                             else
                                                 item.State = TaskStatus.Faulted;
+                                            img.Source = null;
                                         }
                                     }
 #if DEBUG
@@ -846,7 +848,11 @@ namespace PixivWPF.Common
                                     finally
                                     {
                                         if (item.Source == null && item.Thumb.IsCached())
-                                            item.Source = (item.Thumb.GetImageCachePath().LoadImageFromFile()).Source;
+                                        {
+                                            var thumb = item.Thumb.GetImageCachePath().LoadImageFromFile();
+                                            item.Source = thumb.Source;
+                                            thumb.Source = null;
+                                        }
                                         Application.Current.DoEvents();
                                     }
                                 }).InvokeAsync();

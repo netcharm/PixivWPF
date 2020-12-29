@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -900,37 +902,41 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         });
 
+        private static SemaphoreSlim CanOpenDownloadManager= new SemaphoreSlim(1, 1);
         public static ICommand OpenDownloadManager { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if (obj is bool)
+            if (await CanOpenDownloadManager.WaitAsync(-1))
             {
-                var active = (bool)obj;
-
-                var title = $"Download Manager";
-                //if (await title.ActiveByTitle()) return;
-                if (active ? await title.ActiveByTitle() : await title.ShowByTitle()) return;
-
-                await new Action(() =>
+                if (obj is bool)
                 {
-                    if (!(_downManager_page is DownloadManagerPage))
-                        _downManager_page = new DownloadManagerPage() { AutoStart = true };
+                    var active = (bool)obj;
 
-                    setting = Application.Current.LoadSetting();
-                    var viewer = new ContentWindow()
+                    var title = $"Download Manager";
+                    if (active ? await title.ActiveByTitle() : await title.ShowByTitle()) return;
+
+                    await new Action(() =>
                     {
-                        Title = title,
-                        MinWidth = WIDTH_MIN + 80,
-                        MinHeight = HEIGHT_MIN,
-                        Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
-                        Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
-                        Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager_page.Pos.X,
-                        Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager_page.Pos.Y,
-                        Tag = _downManager_page,
-                        FontFamily = setting.FontFamily,
-                        Content = _downManager_page
-                    };
-                    viewer.Show();
-                }).InvokeAsync();
+                        if (!(_downManager_page is DownloadManagerPage))
+                            _downManager_page = new DownloadManagerPage() { AutoStart = true };
+
+                        setting = Application.Current.LoadSetting();
+                        var viewer = new ContentWindow()
+                        {
+                            Title = title,
+                            MinWidth = WIDTH_MIN + 80,
+                            MinHeight = HEIGHT_MIN,
+                            Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
+                            Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
+                            Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager_page.Pos.X,
+                            Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager_page.Pos.Y,
+                            Tag = _downManager_page,
+                            FontFamily = setting.FontFamily,
+                            Content = _downManager_page
+                        };
+                        viewer.Show();
+                    }).InvokeAsync(true);
+                }
+                if(CanOpenDownloadManager is SemaphoreSlim) CanOpenDownloadManager.Release();
             }
         });
 
@@ -1007,18 +1013,11 @@ namespace PixivWPF.Common
         {
             if (obj is PixivItem)
             {
-                await new Action(async () =>
+                await new Action(() =>
                 {
                     var item = obj as PixivItem;
                     if (item.IsWork())
                     {
-                        if (string.IsNullOrEmpty(setting.LastFolder))
-                        {
-                            "".ChangeSaveTarget();
-                            await Task.Delay(10);
-                            Application.Current.DoEvents();
-                        }
-
                         var dt = item.Illust.GetDateTime();
                         var is_meta_single_page = item.Illust.PageCount == 1 ? true : false;
                         if (item.IsPage() || item.IsPages())
@@ -1048,18 +1047,34 @@ namespace PixivWPF.Common
                     var gallery = obj as ImageListGrid;
                     foreach (var item in gallery.GetSelected())
                     {
-                        if (string.IsNullOrEmpty(setting.LastFolder))
-                        {
-                            "".ChangeSaveTarget();
-                            await Task.Delay(10);
-                            Application.Current.DoEvents();
-                        }
                         await new Action(() =>
                         {
                             SaveIllust.Execute(item);
                         }).InvokeAsync();
                     }
                 }).InvokeAsync();
+            }
+            else if(obj is string)
+            {
+                var link = obj as string;
+                Uri url = null;
+                Uri.TryCreate(link, UriKind.Absolute, out url);
+                if (url is Uri && url.IsAbsoluteUri)
+                {
+                    var id = url.AbsoluteUri.GetIllustId();
+                    var illust = id.FindIllust();
+                    if (!(illust is Pixeez.Objects.Work)) illust = await id.RefreshIllust();
+                    if(illust is Pixeez.Objects.Work)
+                    {
+                        var item = illust.WorkItem();
+                        var patten = @"https?://.*?\.pximg\.net/img-original/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/\d+_p(\d+)\..*?$";
+                        var index = Regex.Replace(url.AbsoluteUri, patten, "$1", RegexOptions.IgnoreCase);
+                        int idx = item.Index;
+                        int.TryParse(index, out idx);
+                        item.Index = idx;
+                        SaveIllust.Execute(item);
+                    }
+                }
             }
         });
 
@@ -1072,13 +1087,6 @@ namespace PixivWPF.Common
                     var item = obj as PixivItem;
                     if (item.IsWork())
                     {
-                        if (string.IsNullOrEmpty(setting.LastFolder))
-                        {
-                            "".ChangeSaveTarget();
-                            await Task.Delay(10);
-                            Application.Current.DoEvents();
-                        }
-
                         var illust = item.Illust;
                         var dt = illust.GetDateTime();
                         var is_meta_single_page = illust.PageCount==1 ? true : false;
@@ -1134,12 +1142,6 @@ namespace PixivWPF.Common
                     var gallery = obj as ImageListGrid;
                     foreach (var item in gallery.GetSelected())
                     {
-                        if (string.IsNullOrEmpty(setting.LastFolder))
-                        {
-                            "".ChangeSaveTarget();
-                            await Task.Delay(10);
-                            Application.Current.DoEvents();
-                        }
                         await new Action(() =>
                         {
                             SaveIllustAll.Execute(item);
