@@ -78,7 +78,8 @@ namespace PixivWPF.Common
         RankingWeekR18,
         RankingWeekR18G,
         RankingMonth,
-        RankingYear
+        RankingYear,
+        About
     }
     #endregion
 

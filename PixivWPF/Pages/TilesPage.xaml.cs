@@ -195,6 +195,92 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Navigation helper
+        internal PixivPage GetPageTypeByCatgory(object item)
+        {
+            PixivPage result = PixivPage.None;
+
+            if (item == miAbout)
+                result = PixivPage.About;
+            #region Common
+            else if (item == miPixivRecommanded)
+                result = PixivPage.Recommanded;
+            else if (item == miPixivLatest)
+                result = PixivPage.Latest;
+            else if (item == miPixivTrendingTags)
+                result = PixivPage.TrendingTags;
+            #endregion
+            #region Following
+            else if (item == miPixivFollowing)
+                result = PixivPage.Follow;
+            else if (item == miPixivFollowingPrivate)
+                result = PixivPage.FollowPrivate;
+            #endregion
+            #region Favorite
+            else if (item == miPixivFavorite)
+                result = PixivPage.Favorite;
+            else if (item == miPixivFavoritePrivate)
+                result = PixivPage.FavoritePrivate;
+            #endregion
+            #region Ranking Day
+            else if (item == miPixivRankingDay)
+                result = PixivPage.RankingDay;
+            else if (item == miPixivRankingDayR18)
+                result = PixivPage.RankingDayR18;
+            else if (item == miPixivRankingDayMale)
+                result = PixivPage.RankingDayMale;
+            else if (item == miPixivRankingDayMaleR18)
+                result = PixivPage.RankingDayMaleR18;
+            else if (item == miPixivRankingDayFemale)
+                result = PixivPage.RankingDayFemale;
+            else if (item == miPixivRankingDayFemaleR18)
+                result = PixivPage.RankingDayFemaleR18;
+            #endregion
+            #region Ranking Day
+            else if (item == miPixivRankingWeek)
+                result = PixivPage.RankingWeek;
+            else if (item == miPixivRankingWeekOriginal)
+                result = PixivPage.RankingWeekOriginal;
+            else if (item == miPixivRankingWeekRookie)
+                result = PixivPage.RankingWeekRookie;
+            else if (item == miPixivRankingWeekR18)
+                result = PixivPage.RankingWeekR18;
+            #endregion
+            #region Ranking Month
+            else if (item == miPixivRankingMonth)
+                result = PixivPage.RankingMonth;
+            #endregion
+            #region Pixiv Mine
+            else if (item == miPixivMine)
+                result = PixivPage.My;
+            else if (item == miPixivMyFollower)
+                result = PixivPage.MyFollowerUser;
+            else if (item == miPixivMyFollowing)
+                result = PixivPage.MyFollowingUser;
+            else if (item == miPixivMyFollowingPrivate)
+                result = PixivPage.MyFollowingUserPrivate;
+            else if (item == miPixivMyUsers)
+                result = PixivPage.MyPixivUser;
+            else if (item == miPixivMyBlacklis)
+                result = PixivPage.MyBlacklistUser;
+            #endregion
+
+            return (result);
+        }
+
+        internal int GetCatgoryIndex(PixivPage target)
+        {
+            int result = (int)PixivPage.Recommanded;
+            for (int i = 0; i < PixivCatgoryMenu.Items.Count; i++)
+            {
+                if (GetPageTypeByCatgory(PixivCatgoryMenu.Items[i]) == target)
+                {
+                    result = i;
+                    break;
+                }
+            }
+            return (result);
+        }
+
         public void PrevIllust()
         {
             if (this is TilesPage)
@@ -363,7 +449,7 @@ namespace PixivWPF.Pages
             ListImageTiles.Clear();
 
             PixivCatgoryMenu.IsPaneOpen = false;
-            PixivCatgoryMenu.SelectedIndex = 0;
+            PixivCatgoryMenu.SelectedIndex = GetCatgoryIndex(setting.DefaultPage);
         }
 
         internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
@@ -1557,7 +1643,6 @@ namespace PixivWPF.Pages
             var item = args.InvokedItem;
             var idx = PixivCatgoryMenu.SelectedIndex;
 
-
             if (PixivCatgoryMenu.IsPaneOpen) PixivCatgoryMenu.IsPaneOpen = false;
 
             if (item == miAbout)
@@ -1679,7 +1764,12 @@ namespace PixivWPF.Pages
             }
             #endregion
 
-            if (!args.Handled) lastInvokedItem = item;
+            if (!args.Handled) lastInvokedItem = item;            
+        }
+
+        private void PixivCatgoryMenu_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            setting.DefaultPage = GetPageTypeByCatgory(PixivCatgoryMenu.SelectedItem);
         }
     }
 }

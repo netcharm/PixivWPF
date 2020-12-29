@@ -63,7 +63,27 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public static bool StartUp { get; internal set; } = false;
 
-        public bool NoConfirmExit { get; set; } = true;
+        private bool no_confirm_exit = false;
+        public bool NoConfirmExit
+        {
+            get { return (Cache is Setting ? Cache.no_confirm_exit : no_confirm_exit); }
+            set
+            {
+                no_confirm_exit = value;
+                if (Cache is Setting) Cache.no_confirm_exit = no_confirm_exit;
+            }
+        }
+
+        private PixivPage default_page = PixivPage.Recommanded;
+        public PixivPage DefaultPage
+        {
+            get { return (Cache is Setting ? Cache.default_page : default_page); }
+            set
+            {
+                default_page = value;
+                if (Cache is Setting) Cache.default_page = default_page;
+            }
+        }
         #endregion
 
         #region Config load/save relative

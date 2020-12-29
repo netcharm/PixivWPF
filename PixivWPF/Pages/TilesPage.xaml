@@ -104,6 +104,7 @@
             HamburgerButtonHelpText="Change Pixiv Category"
             ItemTemplate="{StaticResource HamburgerMenuIconItem}"
             OptionsItemTemplate="{StaticResource HamburgerMenuIconItem}"
+            MouseRightButtonDown="PixivCatgoryMenu_MouseRightButtonDown"
             ItemInvoked="PixivCatgoryMenu_ItemInvoked">
             <!--  Header  -->
             <mah:HamburgerMenu.HamburgerButtonTemplate>
