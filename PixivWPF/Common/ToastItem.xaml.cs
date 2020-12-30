@@ -215,7 +215,11 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(url))
                 {
                     if (Preview.Source == null)
-                        Preview.Source = (await url.LoadImageFromUrl()).Source;
+                    {
+                        var img = await url.LoadImageFromUrl();
+                        Preview.Source = img.Source;
+                        img.Source = null;
+                    }
                 }
             }
         }
@@ -296,6 +300,7 @@ namespace PixivWPF.Common
                 if (Preview.Source != null) Preview.Source = null;
                 parentWindow = null;
             }
+            if (Preview is Image) Preview.Source = null;
         }
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)

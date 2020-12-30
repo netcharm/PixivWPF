@@ -939,6 +939,7 @@ namespace PixivWPF.Pages
                         if (bg.Source == null) PreviewWait.Fail();
                         else PreviewWait.Hide();
                         Preview.Source = bg.Source;
+                        bg.Source = null;
                     }
                     catch (Exception) { PreviewWait.Fail(); }
                 }
@@ -1922,6 +1923,7 @@ namespace PixivWPF.Pages
                                         {
                                             var img = await src.LoadImageFromUrl();
                                             if (!string.IsNullOrEmpty(img.SourcePath)) imgElemt.SetAttribute("src", new Uri(img.SourcePath).AbsoluteUri);
+                                            img.Source = null;
                                         }
                                     }
 #if DEBUG
@@ -2294,7 +2296,6 @@ namespace PixivWPF.Pages
                             PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, true);
                             var large = await PreviewImageUrl.LoadImageFromUrl(overwrite);
                             if (large.Source != null) img = large;
-                            large.Source = null;
                         }
 
                         if (c_item.IsSameIllust(Contents))

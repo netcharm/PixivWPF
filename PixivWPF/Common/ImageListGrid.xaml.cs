@@ -418,6 +418,10 @@ namespace PixivWPF.Common
         public async void UpdateTilesImage(bool overwrite = false, int parallel = 5, SemaphoreSlim updating_semaphore = null)
         {
             Application.Current.DoEvents();
+
+            var loaded = Items.Where(item => item.Source != null && item.State != TaskStatus.RanToCompletion);
+            foreach (var item in loaded) item.State = TaskStatus.RanToCompletion;
+
             var needUpdate = Items.Where(item => item.Source == null || overwrite);
             if (needUpdate.Count() > 0)
             {

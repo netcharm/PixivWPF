@@ -133,15 +133,6 @@ namespace PixivWPF.Pages
 
             DownloadItems.ItemsSource = items;
             window = Window.GetWindow(this);
-
-            //if (string.IsNullOrEmpty(setting.LastFolder))
-            //{
-            //    if (await CanAddItem.WaitAsync(-1))
-            //    {
-            //        Application.Current.SaveTarget();
-            //        if (CanAddItem is SemaphoreSlim) CanAddItem.Release();
-            //    }
-            //}
         }
 
         private async void timerCallback(object stateInfo)
@@ -256,7 +247,7 @@ namespace PixivWPF.Pages
                 if (await CanAddItem.WaitAsync(-1))
                 {
                     Application.Current.SaveTarget();
-                    if (CanAddItem is SemaphoreSlim) CanAddItem.Release();
+                    if (CanAddItem is SemaphoreSlim && CanAddItem.CurrentCount <= 0) CanAddItem.Release();
                 }
             }
 
@@ -274,7 +265,7 @@ namespace PixivWPF.Pages
                         FileTime = dt
                     };
                     Add(item);
-                    if (CanAddItem is SemaphoreSlim) CanAddItem.Release();
+                    if (CanAddItem is SemaphoreSlim && CanAddItem.CurrentCount <= 0) CanAddItem.Release();
                 }
             }
         }

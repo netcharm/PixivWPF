@@ -152,7 +152,6 @@ namespace PixivWPF.Pages
 
         internal void UpdateDetail()
         {
-            //if (CanUpdating is SemaphoreSlim) CanUpdating.Release();
             ShowHistory();
             if (window != null)
             {

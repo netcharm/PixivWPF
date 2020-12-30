@@ -913,7 +913,7 @@ namespace PixivWPF.Common
                         viewer.Show();
                     }).InvokeAsync(true);
                 }
-                if(CanOpenDownloadManager is SemaphoreSlim) CanOpenDownloadManager.Release();
+                if(CanOpenDownloadManager is SemaphoreSlim && CanOpenDownloadManager.CurrentCount <= 0) CanOpenDownloadManager.Release();
             }
         });
 

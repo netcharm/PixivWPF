@@ -245,6 +245,7 @@ namespace PixivWPF.Pages
                                             var img = await src.LoadImageFromUrl();
                                             if (!string.IsNullOrEmpty(img.SourcePath) && !string.IsNullOrEmpty(img.SourcePath))
                                                 imgElemt.SetAttribute("src", new Uri(img.SourcePath).AbsoluteUri);
+                                            img.Source = null;
                                         }
                                     }
                                     catch (Exception) { }

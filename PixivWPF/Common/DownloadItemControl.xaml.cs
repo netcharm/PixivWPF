@@ -472,7 +472,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (State == DownloadState.Downloading || State == DownloadState.Writing || (Downloading is SemaphoreSlim && Downloading.CurrentCount == 0));
+                return (State == DownloadState.Downloading || State == DownloadState.Writing || (Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0));
             }
         }
 
