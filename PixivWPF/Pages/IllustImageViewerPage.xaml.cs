@@ -125,6 +125,7 @@ namespace PixivWPF.Pages
             catch (Exception) { }
             finally
             {
+                img.Source = null;
                 if (Preview.Source == null) PreviewWait.Fail();
                 Focus();
             }
@@ -227,6 +228,7 @@ namespace PixivWPF.Pages
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
+            if (PreviewImage is CustomImageSource) PreviewImage.Source = null;
             Preview.Source = null;
         }
 

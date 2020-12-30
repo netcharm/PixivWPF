@@ -184,7 +184,11 @@ namespace PixivWPF.Pages
                     {
                         IsUpdating = true;
                         var remove = items.Where(o => o.State == DownloadState.Remove );
-                        foreach (var i in remove) { items.Remove(i); }
+                        foreach (var i in remove)
+                        {
+                            i.Thumbnail = null;
+                            items.Remove(i);
+                        }
 
                         var idle = items.Where(o => o.State == DownloadState.Idle );
                         var downloading = items.Where(o => o.State == DownloadState.Downloading);
@@ -220,7 +224,7 @@ namespace PixivWPF.Pages
             bool result = false;
             try
             {
-                lock (items)
+                //lock (items)
                 {
                     if (string.IsNullOrEmpty(item.Url))
                         result = true;
@@ -236,7 +240,7 @@ namespace PixivWPF.Pages
         {
             if (item is DownloadInfo)// && !IsExists(item))
             {
-                lock (items)
+                //lock (items)
                 {
                     items.Add(item);
                     DownloadItems.ScrollIntoView(item);

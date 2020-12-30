@@ -1304,16 +1304,12 @@ namespace PixivWPF.Common
                                 var page = win.Content as IllustDetailPage;
                                 if (page.Contents.IsWork())
                                     MinimizedWindow(win as MetroWindow, page.Contents, condition);
-                                else if (page.Tag is PixivItem)
-                                    MinimizedWindow(win as MetroWindow, page.Tag as PixivItem, condition);
                             }
                             else if (win.Content is IllustImageViewerPage)
                             {
                                 var page = win.Content as IllustImageViewerPage;
                                 if (page.Contents.IsWork())
                                     MinimizedWindow(win as MetroWindow, page.Contents, condition);
-                                else if (page.Tag is PixivItem)
-                                    MinimizedWindow(win as MetroWindow, page.Tag as PixivItem, condition);
                             }
                         }
                         else if (win is MainWindow && win.Content is TilesPage)
@@ -1324,8 +1320,6 @@ namespace PixivWPF.Common
                                 var detail = page.IllustDetail.Content as IllustDetailPage;
                                 if (detail.Contents.IsWork())
                                     MinimizedWindow(win as MetroWindow, detail.Contents, condition);
-                                else if (detail.Tag is PixivItem)
-                                    MinimizedWindow(win as MetroWindow, detail.Tag as PixivItem, condition);
                             }
                         }
                         await Task.Delay(1);

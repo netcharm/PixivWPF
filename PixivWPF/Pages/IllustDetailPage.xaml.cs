@@ -42,15 +42,9 @@ namespace PixivWPF.Pages
 
         #region WebBrowser Helper
         private bool bCancel = false;
-#if DEBUG
-        private System.Windows.Forms.Integration.WindowsFormsHost tagsHost;
-        private System.Windows.Forms.Integration.WindowsFormsHost descHost;
-        private System.Windows.Forms.Integration.WindowsFormsHost commentsHost;
-#else
         private WindowsFormsHostEx tagsHost;
         private WindowsFormsHostEx descHost;
         private WindowsFormsHostEx commentsHost;
-#endif
         private WebBrowserEx IllustDescHtml;
         private WebBrowserEx IllustTagsHtml;
         private WebBrowserEx IllustCommentsHtml;
@@ -905,9 +899,14 @@ namespace PixivWPF.Pages
                 CommentsExpander.Hide();
 #endif
                 await Task.Delay(1);
+                this.DoEvents();
                 ActionRefreshAvatar();
+                await Task.Delay(1);
+                this.DoEvents();
                 if (!SubIllustsExpander.IsExpanded)
                     ActionRefreshPreview();
+                await Task.Delay(1);
+                this.DoEvents();
             }
             catch (OperationCanceledException) { }
             catch (ObjectDisposedException) { }
@@ -1046,9 +1045,15 @@ namespace PixivWPF.Pages
                 FavoriteNextPage.Hide();
                 FavoriteItemsExpander.IsExpanded = false;
 
+                await Task.Delay(1);
+                this.DoEvents();
                 ActionRefreshAvatar();
+                await Task.Delay(1);
+                this.DoEvents();
                 user_backgroundimage_url = nprof.background_image_url is string ? nprof.background_image_url as string : nuser.GetPreviewUrl();
                 UpdateUserBackground();
+                await Task.Delay(1);
+                this.DoEvents();
             }
             catch (Exception ex)
             {
@@ -2055,6 +2060,300 @@ namespace PixivWPF.Pages
         }
         #endregion
 
+        #region Illust Actions
+        private async void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateLikeState();
+
+            if (sender == ActionCopyIllustTitle || sender == IllustTitle)
+            {
+                if (Keyboard.Modifiers == ModifierKeys.None)
+                    Commands.CopyText.Execute($"{IllustTitle.Text}");
+                else
+                    Commands.CopyText.Execute($"title:{IllustTitle.Text}");
+            }
+            else if (sender == ActionCopyIllustAuthor || sender == IllustAuthor)
+            {
+                if (Keyboard.Modifiers == ModifierKeys.None)
+                    Commands.CopyText.Execute($"{IllustAuthor.Text}");
+                else
+                    Commands.CopyText.Execute($"user:{IllustAuthor.Text}");
+            }
+            else if (sender == ActionCopyAuthorID)
+            {
+                if (Contents is PixivItem)
+                {
+                    Commands.CopyArtistIDs.Execute(Contents);
+                }
+            }
+            else if (sender == ActionCopyIllustID || sender == PreviewCopyIllustID)
+            {
+                if (Contents is PixivItem)
+                {
+                    Commands.CopyArtworkIDs.Execute(Contents);
+                }
+            }
+            else if (sender == PreviewCopyImage)
+            {
+                if (!string.IsNullOrEmpty(PreviewImageUrl))
+                {
+                    Commands.CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
+                }
+            }
+            else if (sender == ActionCopyIllustDate || sender == IllustDate || sender == IllustDateInfo)
+            {
+                Commands.CopyText.Execute(ActionCopyIllustDate.Header);
+            }
+            else if (sender == ActionIllustWebPage)
+            {
+                if (Contents is PixivItem)
+                {
+                    if (Contents.Illust is Pixeez.Objects.Work)
+                    {
+                        var href = Contents.ID.ArtworkLink();
+                        href.OpenUrlWithShell();
+                    }
+                }
+            }
+            else if (sender == ActionIllustNewWindow)
+            {
+                OpenInNewWindow();
+            }
+            else if (sender == ActionIllustWebLink || sender.GetUid().Equals("ActionIllustWebLink", StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (Contents.IsWork())
+                {
+                    var href = Contents.ID.ArtworkLink();
+                    Commands.CopyText.Execute(href);
+                }
+            }
+            else if (sender == ActionAuthorWebLink || sender.GetUid().Equals("ActionAuthorWebLink", StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (Contents.IsWork() || Contents.IsUser())
+                {
+                    var href = Contents.UserID.ArtistLink();
+                    Commands.CopyText.Execute(href);
+                }
+            }
+            else if (sender == ActionSendIllustToInstance)
+            {
+                if (Contents is PixivItem)
+                {
+                    if (Contents.Illust is Pixeez.Objects.Work)
+                    {
+                        await new Action(() =>
+                        {
+                            if (Keyboard.Modifiers == ModifierKeys.None)
+                                Commands.SendToOtherInstance.Execute(Contents);
+                            else
+                                Commands.ShellSendToOtherInstance.Execute(Contents);
+                        }).InvokeAsync();
+                    }
+                }
+            }
+            else if (sender == ActionSendAuthorToInstance)
+            {
+                if (Contents is PixivItem)
+                {
+                    if (Contents.Illust is Pixeez.Objects.Work)
+                    {
+                        await new Action(() =>
+                        {
+                            if (Keyboard.Modifiers == ModifierKeys.None)
+                                Commands.SendToOtherInstance.Execute($"uid:{Contents.UserID}");
+                            else
+                                Commands.ShellSendToOtherInstance.Execute($"uid:{Contents.UserID}");
+                        }).InvokeAsync();
+                    }
+                }
+            }
+            e.Handled = true;
+        }
+
+        private void ActionIllustAuthourInfo_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender == ActionIllustAuthorInfo || sender == btnAuthorAvatar)
+            {
+                if (Contents is PixivItem)
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                        Commands.ShellSendToOtherInstance.Execute(Contents.User);
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        ActionRefreshAvatar();
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        ActionRefreshAvatar(true);
+                    else if (Contents.IsWork())
+                        Commands.OpenUser.Execute(Contents.User);
+                }
+            }
+            else if (sender == AuthorAvatarWait)
+            {
+                if (Keyboard.Modifiers == ModifierKeys.None)
+                    ActionRefreshAvatar();
+                else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                    ActionRefreshAvatar(true);
+            }
+            else if (sender == ActionIllustAuthorFollowing)
+            {
+
+            }
+            else if (sender == ActionIllustAuthorFollowed)
+            {
+
+            }
+            else if (sender == ActionIllustAuthorFavorite)
+            {
+
+            }
+        }
+
+        private void ActionShowIllustPages_Click(object sender, RoutedEventArgs e)
+        {
+            SubIllustsExpander.IsExpanded = !SubIllustsExpander.IsExpanded;
+        }
+
+        private void ActionShowRelative_Click(object sender, RoutedEventArgs e)
+        {
+            if (!RelativeItemsExpander.IsExpanded) RelativeItemsExpander.IsExpanded = true;
+        }
+
+        private void ActionShowFavorite_Click(object sender, RoutedEventArgs e)
+        {
+            if (!FavoriteItemsExpander.IsExpanded) FavoriteItemsExpander.IsExpanded = true;
+        }
+
+        private void ActionOpenIllust_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender == PreviewOpenDownloaded || (sender is MenuItem && (sender as MenuItem).Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase)))
+            {
+                if (SubIllusts.SelectedItems.Count == 0)
+                {
+                    IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
+                    Commands.OpenDownloaded.Execute(Contents);
+                }
+                else
+                {
+                    Commands.OpenDownloaded.Execute(SubIllusts);
+                }
+            }
+            else if (sender == PreviewOpen)
+            {
+                if (SubIllusts.Items.Count() <= 0)
+                {
+                    if (Contents is PixivItem)
+                    {
+                        IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
+                        Commands.OpenWorkPreview.Execute(Contents);
+                    }
+                }
+                else
+                {
+                    if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
+                        SubIllusts.SelectedIndex = 0;
+                    IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
+                    Commands.OpenWorkPreview.Execute(SubIllusts);
+                }
+            }
+            else if (sender == PreviewCacheOpen && Preview.Source != null)
+            {
+                Commands.OpenCachedImage.Execute(string.IsNullOrEmpty(PreviewImagePath) ? Contents.Illust.GetPreviewUrl().GetImageCachePath() : PreviewImagePath);
+            }
+        }
+
+        private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
+        {
+            var overwrite = Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control ? true : false;
+            ActionRefreshPreview(overwrite);
+        }
+
+        private async void ActionRefreshPreview(bool overwrite = false)
+        {
+            if (Contents is PixivItem)
+            {
+                setting = Application.Current.LoadSetting();
+
+                Preview.Show();
+                await new Action(async () =>
+                {
+                    try
+                    {
+                        var c_item = SubIllusts.SelectedItem is PixivItem ? SubIllusts.SelectedItem as PixivItem : Contents;
+                        Contents.Index = c_item.Index;
+                        lastSelectionItem = c_item;
+                        lastSelectionChanged = DateTime.Now;
+
+                        if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
+
+                        PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index);
+                        var img = await PreviewImageUrl.LoadImageFromUrl(overwrite);
+                        if (setting.SmartPreview &&
+                            (img.Source == null ||
+                             img.Source.Width < setting.PreviewUsingLargeMinWidth ||
+                             img.Source.Height < setting.PreviewUsingLargeMinHeight))
+                        {
+                            PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, true);
+                            var large = await PreviewImageUrl.LoadImageFromUrl(overwrite);
+                            if (large.Source != null) img = large;
+                            large.Source = null;
+                        }
+
+                        if (c_item.IsSameIllust(Contents))
+                        {
+                            if (img.Source != null)
+                            {
+                                Preview.Source = img.Source;
+                                PreviewImagePath = img.SourcePath;
+                                PreviewWait.Hide();
+                            }
+                            else PreviewWait.Fail();
+                        }
+                        img.Source = null;
+                    }
+                    catch (Exception) { PreviewWait.Fail(); }
+                    finally
+                    {
+                        if (Preview.Source == null) PreviewWait.Fail();
+                    }
+                }).InvokeAsync();
+            }
+        }
+
+        private async void ActionRefreshAvatar(bool overwrite = false)
+        {
+            if (Contents is PixivItem)
+            {
+                await new Action(async () =>
+                {
+                    try
+                    {
+                        AuthorAvatarWait.Show();
+                        btnAuthorAvatar.Show(AuthorAvatarWait.IsFail);
+
+                        var c_item = Contents;
+                        AvatarImageUrl = Contents.User.GetAvatarUrl();
+                        var img =  await AvatarImageUrl.LoadImageFromUrl(overwrite);
+                        if (c_item.IsSameIllust(Contents))
+                        {
+                            if (img.Source != null)
+                            {
+                                IllustAuthorAvatar.Source = img.Source;
+                                AuthorAvatarWait.Hide();
+                            }
+                            else AuthorAvatarWait.Fail();
+                        }
+                        img.Source = null;
+                    }
+                    catch (Exception) { AuthorAvatarWait.Fail(); btnAuthorAvatar.Show(); }
+                    finally
+                    {
+                        if (IllustAuthorAvatar.Source == null) AuthorAvatarWait.Fail();
+                        btnAuthorAvatar.Show(AuthorAvatarWait.IsFail);
+                    }
+                }).InvokeAsync();
+            }
+        }
+        #endregion
+
         #region Illust Info relatice events/helper routines
         private void ActionSpeech_Click(object sender, RoutedEventArgs e)
         {
@@ -2352,297 +2651,6 @@ namespace PixivWPF.Pages
         private void IllustDescExpander_Expanded(object sender, RoutedEventArgs e)
         {
             AdjustBrowserSize(IllustDescHtml);
-        }
-        #endregion
-
-        #region Illust Actions
-        private async void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
-        {
-            UpdateLikeState();
-
-            if (sender == ActionCopyIllustTitle || sender == IllustTitle)
-            {
-                if (Keyboard.Modifiers == ModifierKeys.None)
-                    Commands.CopyText.Execute($"{IllustTitle.Text}");
-                else
-                    Commands.CopyText.Execute($"title:{IllustTitle.Text}");
-            }
-            else if (sender == ActionCopyIllustAuthor || sender == IllustAuthor)
-            {
-                if (Keyboard.Modifiers == ModifierKeys.None)
-                    Commands.CopyText.Execute($"{IllustAuthor.Text}");
-                else
-                    Commands.CopyText.Execute($"user:{IllustAuthor.Text}");
-            }
-            else if (sender == ActionCopyAuthorID)
-            {
-                if (Contents is PixivItem)
-                {
-                    Commands.CopyArtistIDs.Execute(Contents);
-                }
-            }
-            else if (sender == ActionCopyIllustID || sender == PreviewCopyIllustID)
-            {
-                if (Contents is PixivItem)
-                {
-                    Commands.CopyArtworkIDs.Execute(Contents);
-                }
-            }
-            else if (sender == PreviewCopyImage)
-            {
-                if (!string.IsNullOrEmpty(PreviewImageUrl))
-                {
-                    Commands.CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
-                }
-            }
-            else if (sender == ActionCopyIllustDate || sender == IllustDate || sender == IllustDateInfo)
-            {
-                Commands.CopyText.Execute(ActionCopyIllustDate.Header);
-            }
-            else if (sender == ActionIllustWebPage)
-            {
-                if (Contents is PixivItem)
-                {
-                    if (Contents.Illust is Pixeez.Objects.Work)
-                    {
-                        var href = Contents.ID.ArtworkLink();
-                        href.OpenUrlWithShell();
-                    }
-                }
-            }
-            else if (sender == ActionIllustNewWindow)
-            {
-                OpenInNewWindow();
-            }
-            else if (sender == ActionIllustWebLink || sender.GetUid().Equals("ActionIllustWebLink", StringComparison.CurrentCultureIgnoreCase))
-            {
-                if (Contents.IsWork())
-                {
-                    var href = Contents.ID.ArtworkLink();
-                    Commands.CopyText.Execute(href);
-                }
-            }
-            else if (sender == ActionAuthorWebLink || sender.GetUid().Equals("ActionAuthorWebLink", StringComparison.CurrentCultureIgnoreCase))
-            {
-                if (Contents.IsWork() || Contents.IsUser())
-                {
-                    var href = Contents.UserID.ArtistLink();
-                    Commands.CopyText.Execute(href);
-                }
-            }
-            else if (sender == ActionSendIllustToInstance)
-            {
-                if (Contents is PixivItem)
-                {
-                    if (Contents.Illust is Pixeez.Objects.Work)
-                    {
-                        await new Action(() =>
-                        {
-                            if (Keyboard.Modifiers == ModifierKeys.None)
-                                Commands.SendToOtherInstance.Execute(Contents);
-                            else
-                                Commands.ShellSendToOtherInstance.Execute(Contents);
-                        }).InvokeAsync();
-                    }
-                }
-            }
-            else if (sender == ActionSendAuthorToInstance)
-            {
-                if (Contents is PixivItem)
-                {
-                    if (Contents.Illust is Pixeez.Objects.Work)
-                    {
-                        await new Action(() =>
-                        {
-                            if (Keyboard.Modifiers == ModifierKeys.None)
-                                Commands.SendToOtherInstance.Execute($"uid:{Contents.UserID}");
-                            else
-                                Commands.ShellSendToOtherInstance.Execute($"uid:{Contents.UserID}");
-                        }).InvokeAsync();
-                    }
-                }
-            }
-            e.Handled = true;
-        }
-
-        private void ActionIllustAuthourInfo_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender == ActionIllustAuthorInfo || sender == btnAuthorAvatar)
-            {
-                if (Contents is PixivItem)
-                {
-                    if (Keyboard.Modifiers == ModifierKeys.Control)
-                        Commands.ShellSendToOtherInstance.Execute(Contents.User);
-                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        ActionRefreshAvatar();
-                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        ActionRefreshAvatar(true);
-                    else if (Contents.IsWork())
-                        Commands.OpenUser.Execute(Contents.User);
-                }
-            }
-            else if(sender == AuthorAvatarWait)
-            {
-                if (Keyboard.Modifiers == ModifierKeys.None)
-                    ActionRefreshAvatar();
-                else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                    ActionRefreshAvatar(true);
-            }
-            else if (sender == ActionIllustAuthorFollowing)
-            {
-
-            }
-            else if (sender == ActionIllustAuthorFollowed)
-            {
-
-            }
-            else if (sender == ActionIllustAuthorFavorite)
-            {
-
-            }
-        }
-
-        private void ActionShowIllustPages_Click(object sender, RoutedEventArgs e)
-        {
-            SubIllustsExpander.IsExpanded = !SubIllustsExpander.IsExpanded;
-        }
-
-        private void ActionShowRelative_Click(object sender, RoutedEventArgs e)
-        {
-            if (!RelativeItemsExpander.IsExpanded) RelativeItemsExpander.IsExpanded = true;
-        }
-
-        private void ActionShowFavorite_Click(object sender, RoutedEventArgs e)
-        {
-            if (!FavoriteItemsExpander.IsExpanded) FavoriteItemsExpander.IsExpanded = true;
-        }
-
-        private void ActionOpenIllust_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender == PreviewOpenDownloaded || (sender is MenuItem && (sender as MenuItem).Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase)))
-            {
-                if (SubIllusts.SelectedItems.Count == 0)
-                {
-                    IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
-                    Commands.OpenDownloaded.Execute(Contents);
-                }
-                else
-                {
-                    Commands.OpenDownloaded.Execute(SubIllusts);
-                }
-            }
-            else if (sender == PreviewOpen)
-            {
-                if (SubIllusts.Items.Count() <= 0)
-                {
-                    if (Contents is PixivItem)
-                    {
-                        IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
-                        Commands.OpenWorkPreview.Execute(Contents);
-                    }
-                }
-                else
-                {
-                    if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
-                        SubIllusts.SelectedIndex = 0;
-                    IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
-                    Commands.OpenWorkPreview.Execute(SubIllusts);
-                }
-            }
-            else if(sender == PreviewCacheOpen && Preview.Source != null)
-            {
-                Commands.OpenCachedImage.Execute(string.IsNullOrEmpty(PreviewImagePath) ? Contents.Illust.GetPreviewUrl().GetImageCachePath() : PreviewImagePath);
-            }
-        }
-
-        private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
-        {
-            var overwrite = Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control ? true : false;
-            ActionRefreshPreview(overwrite);
-        }
-
-        private async void ActionRefreshPreview(bool overwrite = false)
-        {
-            if (Contents is PixivItem)
-            {
-                setting = Application.Current.LoadSetting();
-
-                Preview.Show();
-                await new Action(async () =>
-                {
-                    try
-                    {
-                        var c_item = SubIllusts.SelectedItem is PixivItem ? SubIllusts.SelectedItem as PixivItem : Contents;
-                        Contents.Index = c_item.Index;
-                        lastSelectionItem = c_item;
-                        lastSelectionChanged = DateTime.Now;
-
-                        if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
-
-                        PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index);
-                        var img = await PreviewImageUrl.LoadImageFromUrl(overwrite);
-                        if (setting.SmartPreview &&
-                            (img.Source == null ||
-                             img.Source.Width < setting.PreviewUsingLargeMinWidth ||
-                             img.Source.Height < setting.PreviewUsingLargeMinHeight))
-                        {
-                            PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, true);
-                            var large = await PreviewImageUrl.LoadImageFromUrl(overwrite);
-                            if (large.Source != null) img = large;
-                        }
-
-                        if (c_item.IsSameIllust(Contents))
-                        {
-                            if (img.Source != null)
-                            {
-                                Preview.Source = img.Source;
-                                PreviewImagePath = img.SourcePath;
-                                PreviewWait.Hide();
-                            }
-                            else PreviewWait.Fail();
-                        }
-                    }
-                    catch (Exception) { PreviewWait.Fail(); }
-                    finally
-                    {
-                        if (Preview.Source == null) PreviewWait.Fail();
-                    }
-                }).InvokeAsync();
-            }
-        }
-
-        private async void ActionRefreshAvatar(bool overwrite = false)
-        {
-            if (Contents is PixivItem)
-            {
-                await new Action(async () =>
-                {
-                    try
-                    {
-                        AuthorAvatarWait.Show();
-                        btnAuthorAvatar.Show(AuthorAvatarWait.IsFail);
-
-                        var c_item = Contents;
-                        AvatarImageUrl = Contents.User.GetAvatarUrl();
-                        var img =  await AvatarImageUrl.LoadImageFromUrl(overwrite);
-                        if (c_item.IsSameIllust(Contents))
-                        {
-                            if (img.Source != null)
-                            {
-                                IllustAuthorAvatar.Source = img.Source;
-                                AuthorAvatarWait.Hide();
-                            }
-                            else AuthorAvatarWait.Fail();
-                        }
-                    }
-                    catch (Exception) { AuthorAvatarWait.Fail(); btnAuthorAvatar.Show(); }
-                    finally
-                    {
-                        if (IllustAuthorAvatar.Source == null) AuthorAvatarWait.Fail();
-                        btnAuthorAvatar.Show(AuthorAvatarWait.IsFail);
-                    }
-                }).InvokeAsync();
-            }
         }
         #endregion
 

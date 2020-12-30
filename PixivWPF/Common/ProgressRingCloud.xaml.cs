@@ -194,7 +194,7 @@ namespace PixivWPF.Common
 
         private void _Show_()
         {
-            lock (this)
+            //lock (this)
             {
                 IsActive = true;
                 Visibility = Visibility.Visible;
@@ -206,7 +206,7 @@ namespace PixivWPF.Common
 
         private void _Hide_()
         {
-            lock (this)
+            //lock (this)
             {
                 IsActive = false;
                 Visibility = Visibility.Collapsed;
@@ -218,7 +218,7 @@ namespace PixivWPF.Common
 
         private void _Disable_()
         {
-            lock (this)
+            //lock (this)
             {
                 IsActive = false;
                 Visibility = Visibility.Visible;

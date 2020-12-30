@@ -33,6 +33,8 @@ namespace PixivWPF
 
         public Pages.TilesPage Contents { get; set; } = null;
 
+        public DateTime RankingDate { get; set; } = DateTime.Now;
+
         private ObservableCollection<string> auto_suggest_list = new ObservableCollection<string>() {"a", "b" };
         public ObservableCollection<string> AutoSuggestList
         {
@@ -70,7 +72,7 @@ namespace PixivWPF
         {
             if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
             {
-                NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
+                NavPageTitle.Text = $"{title}[{Contents.SelectedDate.ToString("yyyy-MM-dd")}]";
                 CommandNavDate.IsEnabled = true;
             }
             else if (title.Equals("My"))
@@ -112,7 +114,7 @@ namespace PixivWPF
 
         public void PrevIllust()
         {
-            if(Contents is Pages.TilesPage) Contents.PrevIllust();
+            if (Contents is Pages.TilesPage) Contents.PrevIllust();
         }
 
         public void NextIllust()
@@ -223,7 +225,7 @@ namespace PixivWPF
                 if (pipeServer is NamedPipeServerStream && !pipeOnClosing) CreateNamedPipeServer();
             }
         }
-#endregion
+        #endregion
 
         public MainWindow()
         {
@@ -239,8 +241,21 @@ namespace PixivWPF
 #if DEBUG
             //Application.Current.SetThemeSync();
 #endif
+            #region Themem Init.
             CommandToggleTheme.ItemsSource = Application.Current.GetAccentColorList();
             CommandToggleTheme.SelectedIndex = Application.Current.GetAccentIndex();
+            #endregion
+
+            #region DatePicker Init.
+            DatePicker.DisplayMode = CalendarMode.Month;
+            DatePicker.FirstDayOfWeek = DayOfWeek.Monday;
+            DatePicker.IsTodayHighlighted = true;
+            DatePicker.SelectedDate = DateTime.Now;
+            DatePicker.DisplayDate = DateTime.Now;
+            DatePicker.DisplayDateStart = new DateTime(2007, 09, 11);
+            DatePicker.DisplayDateEnd = DateTime.Now;
+            DatePicker.Language = System.Windows.Markup.XmlLanguage.GetLanguage(System.Globalization.CultureInfo.CurrentCulture.IetfLanguageTag);
+            #endregion
 
             Contents = new Pages.TilesPage() { FontFamily = FontFamily };
             Content = Contents;
@@ -326,6 +341,47 @@ namespace PixivWPF
             if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
         }
 
+        private void DatePicker_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //if (Contents is Pages.TilesPage && DatePicker.SelectedDate.HasValue && DatePicker.SelectedDate.Value <= DateTime.Now)
+            //    Contents.SelectedDate = DatePicker.SelectedDate.Value;
+        }
+
+        private void DatePicker_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (e.Delta > 0) DatePicker.DisplayDate -= TimeSpan.FromDays(30);
+            else if (e.Delta < 0) DatePicker.DisplayDate += TimeSpan.FromDays(30);
+        }
+
+        private void DatePicker_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                if (DatePicker.SelectedDate.HasValue && DatePicker.SelectedDate.Value <= DateTime.Now)
+                {
+                    Contents.SelectedDate = DatePicker.SelectedDate.Value;
+                    DatePickerPopup.IsOpen = false;
+                }
+            }
+            catch (Exception) { }
+        }
+
+        private void DatePickerPopup_Closed(object sender, EventArgs e)
+        {
+            var title = Contents.TargetPage.ToString();
+            if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (LastSelectedDate.Year != Contents.SelectedDate.Year ||
+                LastSelectedDate.Month != Contents.SelectedDate.Month ||
+                LastSelectedDate.Day != Contents.SelectedDate.Day)
+                {
+                    LastSelectedDate = Contents.SelectedDate;
+                    NavPageTitle.Text = $"{title}[{Contents.SelectedDate.ToString("yyyy-MM-dd")}]";
+                    Contents.ShowImages(Contents.TargetPage, false, Contents.GetLastSelectedID());
+                }
+            }
+        }
+
         private void CommandToggleTheme_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.ToggleTheme();
@@ -370,19 +426,11 @@ namespace PixivWPF
             var title = Contents.TargetPage.ToString();
             if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
             {
-                //var point = CommandNavDate.PointToScreen(Mouse.GetPosition(CommandNavDate));
-                var point = CommandNavDate.PointToScreen(new Point(0, CommandNavDate.ActualHeight));
-                //var point = CommandNavDate.TransformToAncestor(Application.Current.MainWindow).Transform(new Point(0,0));
-                Commands.DatePicker.Execute(point);
-
-                if (LastSelectedDate.Year != CommonHelper.SelectedDate.Year ||
-                    LastSelectedDate.Month != CommonHelper.SelectedDate.Month ||
-                    LastSelectedDate.Day != CommonHelper.SelectedDate.Day)
-                {
-                    LastSelectedDate = CommonHelper.SelectedDate;
-                    NavPageTitle.Text = $"{title}[{CommonHelper.SelectedDate.ToString("yyyy-MM-dd")}]";
-                    Contents.ShowImages(Contents.TargetPage, false, Contents.GetLastSelectedID());
-                }
+                DatePickerPopup.IsOpen = true;
+                ////var point = CommandNavDate.PointToScreen(Mouse.GetPosition(CommandNavDate));
+                //var point = CommandNavDate.PointToScreen(new Point(0, CommandNavDate.ActualHeight));
+                ////var point = CommandNavDate.TransformToAncestor(Application.Current.MainWindow).Transform(new Point(0,0));
+                //Commands.DatePicker.Execute(point);
             }
         }
 
@@ -493,7 +541,7 @@ namespace PixivWPF
             if (!(sender is MenuItem)) return;
             if (sender == LiveFilterFavoritedRange) return;
 
-#region pre-define filter menus list
+            #region pre-define filter menus list
             var menus_type = new List<MenuItem>() {
                 LiveFilterUser, LiveFilterWork
             };
@@ -530,7 +578,7 @@ namespace PixivWPF
             };
 
             var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav_no, menus_fast, menus_fav, menus_follow, menus_down, menus_sanity };
-#endregion
+            #endregion
 
             var idx = "LiveFilter".Length;
 
@@ -551,7 +599,7 @@ namespace PixivWPF
             if (menu == LiveFilterNone)
             {
                 LiveFilterNone.IsChecked = true;
-#region un-check all filter conditions
+                #region un-check all filter conditions
                 foreach (var fmenus in menus)
                 {
                     foreach (var fmenu in fmenus)
@@ -560,12 +608,12 @@ namespace PixivWPF
                         fmenu.IsEnabled = true;
                     }
                 }
-#endregion
+                #endregion
             }
             else
             {
                 LiveFilterNone.IsChecked = false;
-#region filter by item type 
+                #region filter by item type 
                 foreach (var fmenu in menus_type)
                 {
                     if (menus_type.Contains(menu))
@@ -593,8 +641,8 @@ namespace PixivWPF
                     foreach (var fmenu in menus_sanity)
                         fmenu.IsEnabled = true;
                 }
-#endregion
-#region filter by favirited number
+                #endregion
+                #region filter by favirited number
                 LiveFilterFavoritedRange.IsChecked = false;
                 foreach (var fmenu in menus_fav_no)
                 {
@@ -610,8 +658,8 @@ namespace PixivWPF
                             LiveFilterFavoritedRange.IsChecked = true;
                     }
                 }
-#endregion
-#region filter by fast simple filter
+                #endregion
+                #region filter by fast simple filter
                 LiveFilterFast.IsChecked = false;
                 foreach (var fmenu in menus_fast)
                 {
@@ -628,8 +676,8 @@ namespace PixivWPF
                             LiveFilterFast.IsChecked = true;
                     }
                 }
-#endregion
-#region filter by favorited state
+                #endregion
+                #region filter by favorited state
                 foreach (var fmenu in menus_fav)
                 {
                     if (menus_fav.Contains(menu))
@@ -639,8 +687,8 @@ namespace PixivWPF
                     }
                     if (fmenu.IsChecked) filter_fav = fmenu.Name.Substring(idx);
                 }
-#endregion
-#region filter by followed state
+                #endregion
+                #region filter by followed state
                 foreach (var fmenu in menus_follow)
                 {
                     if (menus_follow.Contains(menu))
@@ -650,8 +698,8 @@ namespace PixivWPF
                     }
                     if (fmenu.IsChecked) filter_follow = fmenu.Name.Substring(idx);
                 }
-#endregion
-#region filter by downloaded state
+                #endregion
+                #region filter by downloaded state
                 foreach (var fmenu in menus_down)
                 {
                     if (menus_down.Contains(menu))
@@ -661,8 +709,8 @@ namespace PixivWPF
                     }
                     if (fmenu.IsChecked) filter_down = fmenu.Name.Substring(idx);
                 }
-#endregion
-#region filter by sanity state
+                #endregion
+                #region filter by sanity state
                 LiveFilterSanity.IsChecked = false;
                 foreach (var fmenu in menus_sanity)
                 {
@@ -687,7 +735,7 @@ namespace PixivWPF
                 {
                     LiveFilterSanity_NoR18.IsEnabled = LiveFilterSanity_R18.IsEnabled = true;
                 }
-#endregion
+                #endregion
             }
 
             var filter = new FilterParam()
@@ -704,6 +752,7 @@ namespace PixivWPF
 
             if (Contents is Pages.TilesPage) Contents.SetFilter(filter);
         }
+
     }
 
 }

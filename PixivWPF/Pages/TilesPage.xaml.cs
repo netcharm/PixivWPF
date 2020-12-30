@@ -34,9 +34,6 @@ namespace PixivWPF.Pages
 
         public DateTime SelectedDate { get; set; } = DateTime.Now;
 
-        internal Task lastTask = null;
-        internal CancellationTokenSource cancelTokenSource;
-
         #region Update UI helper
         internal void UpdateTheme()
         {
@@ -142,10 +139,9 @@ namespace PixivWPF.Pages
             e.Accepted = true;
         }
 
-        protected internal async void UpdateTilesThumb(bool overwrite = false)
+        protected internal void UpdateTilesThumb(bool overwrite = false)
         {
-            this.DoEvents();
-            lastTask = await ListImageTiles.Items.UpdateTilesThumb(lastTask, overwrite, cancelTokenSource, 5);
+            ListImageTiles.UpdateTilesImage(overwrite);
         }
 
         public void UpdateTiles()
@@ -439,8 +435,6 @@ namespace PixivWPF.Pages
 
             window = this.GetActiveWindow();
 
-            cancelTokenSource = new CancellationTokenSource();
-
             IllustDetail.Content = detail_page;
 
             UpdateTheme();
@@ -632,7 +626,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -685,7 +679,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -738,7 +732,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -791,7 +785,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -847,7 +841,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -904,7 +898,7 @@ namespace PixivWPF.Pages
                             }
                         }
                         this.DoEvents();
-                        UpdateTilesThumb();
+                        ListImageTiles.UpdateTilesImage();
                     }
                 }
             }
@@ -958,7 +952,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -1023,7 +1017,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -1058,12 +1052,12 @@ namespace PixivWPF.Pages
 
                 if (string.IsNullOrEmpty(nexturl)) ids.Clear();
 
-                var date = CommonHelper.SelectedDate.Date == DateTime.Now.Date ? string.Empty : (CommonHelper.SelectedDate - TimeSpan.FromDays(1)).ToString("yyyy-MM-dd");
+                var date = SelectedDate.Date == DateTime.Now.Date ? string.Empty : (SelectedDate - TimeSpan.FromDays(1)).ToString("yyyy-MM-dd");
                 var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                 int count = 2;
                 while (count <= 7 && (root.illusts == null || root.illusts.Length <= 0))
                 {
-                    date = (CommonHelper.SelectedDate - TimeSpan.FromDays(count)).ToString("yyyy-MM-dd");
+                    date = (SelectedDate - TimeSpan.FromDays(count)).ToString("yyyy-MM-dd");
                     root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
                     count++;
                 }
@@ -1083,7 +1077,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -1164,7 +1158,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -1221,7 +1215,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -1277,7 +1271,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -1333,7 +1327,7 @@ namespace PixivWPF.Pages
                         }
                     }
                     this.DoEvents();
-                    UpdateTilesThumb();
+                    ListImageTiles.UpdateTilesImage();
                 }
             }
             catch (Exception ex)
@@ -1382,10 +1376,10 @@ namespace PixivWPF.Pages
                             item.IsFollowed = item.User.IsLiked();
                         }
 
-                        var ID_O = detail_page.Tag is PixivItem ? (detail_page.Tag as PixivItem).ID : string.Empty;
+                        var ID_O = detail_page.Contents is PixivItem ? detail_page.Contents.ID : string.Empty;
                         var ID_N = item is PixivItem ? item.ID : string.Empty;
 
-                        if (string.IsNullOrEmpty(ID_O) || !ID_O.Equals(ID_N, StringComparison.CurrentCultureIgnoreCase))
+                        if (string.IsNullOrEmpty(ID_O) || !ID_N.Equals(ID_O, StringComparison.CurrentCultureIgnoreCase))
                         {
                             detail_page.Tag = item;
                             detail_page.Contents = item;
@@ -1432,7 +1426,7 @@ namespace PixivWPF.Pages
                     }
                     else if (e.IsKey(Key.F6))
                     {
-                        UpdateTilesThumb();
+                        ListImageTiles.UpdateTilesImage();
                         e.Handled = true;
                     }
                     else if (e.IsKey(Key.F7) || e.IsKey(Key.F8))

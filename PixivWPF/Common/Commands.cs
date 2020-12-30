@@ -90,28 +90,6 @@ namespace PixivWPF.Common
             if (ret ?? false) setting.AccessToken = dlgLogin.AccessToken;
         });
 
-        public static ICommand DatePicker { get; } = new DelegateCommand<Point?>(obj =>
-        {
-            if (obj.HasValue)
-            {
-                var page = new DateTimePicker() { FontFamily = setting.FontFamily };
-                var viewer = new MetroWindow();
-                viewer.Icon = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage().Source;
-                viewer.ShowMinButton = false;
-                viewer.ShowMaxRestoreButton = false;
-                viewer.ResizeMode = ResizeMode.NoResize;
-                viewer.Width = 320;
-                viewer.Height = 240;
-                viewer.Top = obj.Value.Y + 4;
-                viewer.Left = obj.Value.X - 64;
-                viewer.Content = page;
-                viewer.Title = $"Pick Date";
-                viewer.KeyUp += page.Page_KeyUp;
-                viewer.MouseDown += page.Page_MouseDown;
-                viewer.ShowDialog();
-            }
-        });
-
         public static ICommand CopyText { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is string)
@@ -488,7 +466,7 @@ namespace PixivWPF.Common
                         var item = illust.WorkItem();
                         if (item is PixivItem)
                         {
-                            var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Contents = item, Tag = item };
+                            var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Contents = item };
                             var viewer = new ContentWindow()
                             {
                                 Title = title,
@@ -547,7 +525,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new IllustImageViewerPage() { FontFamily = setting.FontFamily, Contents = item, Tag = item };
+                        var page = new IllustImageViewerPage() { FontFamily = setting.FontFamily, Contents = item };
                         var viewer = new ContentWindow()
                         {
                             Title = $"{title}",
@@ -596,7 +574,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Contents = user.UserItem(), Tag = obj };
+                        var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Contents = user.UserItem() };
                         var viewer = new ContentWindow()
                         {
                             Title = title,
@@ -929,7 +907,6 @@ namespace PixivWPF.Common
                             Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
                             Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager_page.Pos.X,
                             Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager_page.Pos.Y,
-                            Tag = _downManager_page,
                             FontFamily = setting.FontFamily,
                             Content = _downManager_page
                         };
@@ -971,7 +948,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new SearchResultPage() { FontFamily = setting.FontFamily, Contents = content, Tag = content };
+                        var page = new SearchResultPage() { FontFamily = setting.FontFamily, Contents = content };
                         var viewer = new ContentWindow()
                         {
                             Title = title,

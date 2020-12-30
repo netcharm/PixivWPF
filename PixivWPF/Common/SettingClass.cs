@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Windows;
 using System.Windows.Media;
 
 using Newtonsoft.Json;
-using System.Collections.Concurrent;
+using Newtonsoft.Json.Converters;
 
 namespace PixivWPF.Common
 {
@@ -75,6 +76,7 @@ namespace PixivWPF.Common
         }
 
         private PixivPage default_page = PixivPage.Recommanded;
+        [JsonConverter(typeof(StringEnumConverter))]
         public PixivPage DefaultPage
         {
             get { return (Cache is Setting ? Cache.default_page : default_page); }

@@ -260,6 +260,7 @@ namespace PixivWPF.Common
                         if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Hide();
                     }
                     else if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail();
+                    img.Source = null;
                 }
                 catch (Exception) { if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail(); }
                 finally
@@ -532,7 +533,7 @@ namespace PixivWPF.Common
                         var percent = total > 0 ? received / total : 0;
                         PART_DownloadProgress.Value = percent * 100;
                         PART_DownloadProgressPercent.Text = $"{State.ToString()}: {PART_DownloadProgress.Value:0.0}%";
-                        PART_DownInfo.Text = $"Status : {received / 1024.0:0.} KB / {total / 1024.0:0.} KB, {lastRate:0.00} / {rateA:0.00} KB/s";
+                        PART_DownInfo.Text = $"Status : {Info.Received / 1024.0:0.} KB / {Info.Length / 1024.0:0.} KB, {lastRate:0.00} / {rateA:0.00} KB/s";
                         #endregion
 
                         #region Update Progress Info Text Color Gradient
@@ -732,9 +733,13 @@ namespace PixivWPF.Common
                             {
                                 result = await SaveFile(FileName, ms.ToArray());
                             }
-                            else
+                            else if(Received != Length)
                             {
-                                throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size not matched with server's size.");
+                                throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size ({Received} Bytes) not matched with server's size ({Length} Bytes).");
+                            }
+                            else if(State != DownloadState.Downloading)
+                            {
+                                throw new Exception($"Download {Path.GetFileName(FileName)} finished, but state error!");
                             }
                         }
                     }
@@ -945,7 +950,7 @@ namespace PixivWPF.Common
             if (cancelReadStreamSource is CancellationTokenSource) cancelReadStreamSource.Dispose();
             cancelReadStreamSource = null;
 
-            if (Downloading is SemaphoreSlim) Downloading.Release();
+            if (Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0) Downloading.Release();
         }
 
         private async Task<string> DownloadDirectAsync(bool continuation = true, bool restart = false)
@@ -1030,7 +1035,7 @@ namespace PixivWPF.Common
             catch (Exception) { }
             finally
             {
-                if (Downloading is SemaphoreSlim) Downloading.Release();
+                if (Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0) Downloading.Release();
                 UpdateProgress();
             }
 
@@ -1186,7 +1191,7 @@ namespace PixivWPF.Common
                     {
                         httpClient.CancelPendingRequests();
                         httpClient.Dispose();
-                        httpClient = null;                        
+                        httpClient = null;
                     }
                 }
                 catch (Exception) { Canceling = false; }
@@ -1194,6 +1199,7 @@ namespace PixivWPF.Common
                 {
                     FailReason = "Manual Canceled!";
                     State = DownloadState.Failed;
+                    if (Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0) Downloading.Release();
                 }
             }
         }
