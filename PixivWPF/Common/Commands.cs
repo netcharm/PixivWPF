@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace PixivWPF.Common
 {
@@ -80,6 +81,22 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
             return (result);
+        }
+
+        public static void Invoke(this ICommand cmd, dynamic param)
+        {
+            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(delegate
+            {
+                cmd.Execute(param);
+            }));
+        }
+
+        public static async void InvokeAsync(this ICommand cmd, dynamic param, bool realtime = false)
+        {
+            await new Action(() =>
+            {
+                cmd.Execute(param);
+            }).InvokeAsync(realtime);
         }
 
         public static ICommand Login { get; } = new DelegateCommand(() =>
@@ -1031,21 +1048,19 @@ namespace PixivWPF.Common
                     }
                 }).InvokeAsync();
             }
-            else if(obj is string)
+            else if (obj is string)
             {
                 var link = obj as string;
-                Uri url = null;
-                Uri.TryCreate(link, UriKind.Absolute, out url);
-                if (url is Uri && url.IsAbsoluteUri)
+                var patten = @"(https?://.*?\.pximg\.net/img-original/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/)?(\d+)(_p?(\d+))?\..*?$";
+                var id = Regex.Replace(link, patten, "$2", RegexOptions.IgnoreCase);
+                var index = Regex.Replace(link, patten, "$4", RegexOptions.IgnoreCase);
+                if (!string.IsNullOrEmpty(id))
                 {
-                    var id = url.AbsoluteUri.GetIllustId();
                     var illust = id.FindIllust();
                     if (!(illust is Pixeez.Objects.Work)) illust = await id.RefreshIllust();
-                    if(illust is Pixeez.Objects.Work)
+                    if (illust is Pixeez.Objects.Work)
                     {
                         var item = illust.WorkItem();
-                        var patten = @"https?://.*?\.pximg\.net/img-original/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/\d+_p(\d+)\..*?$";
-                        var index = Regex.Replace(url.AbsoluteUri, patten, "$1", RegexOptions.IgnoreCase);
                         int idx = item.Index;
                         int.TryParse(index, out idx);
                         item.Index = idx;
@@ -1125,6 +1140,22 @@ namespace PixivWPF.Common
                         }).InvokeAsync();
                     }
                 }).InvokeAsync();
+            }
+            else if (obj is string)
+            {
+                var link = obj as string;
+                var patten = @"(https?://.*?\.pximg\.net/img-original/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/)?(\d+)(_p?(\d+))?\..*?$";
+                var id = Regex.Replace(link, patten, "$2", RegexOptions.IgnoreCase);
+                if (!string.IsNullOrEmpty(id))
+                {
+                    var illust = id.FindIllust();
+                    if (!(illust is Pixeez.Objects.Work)) illust = await id.RefreshIllust();
+                    if (illust is Pixeez.Objects.Work)
+                    {
+                        var item = illust.WorkItem();
+                        SaveIllustAll.Execute(item);
+                    }
+                }
             }
         });
 

@@ -685,6 +685,10 @@ namespace PixivWPF.Pages
         {
             try
             {
+                page_count = 0;
+                page_number = 0;
+                page_index = 0;
+
                 var force = ModifierKeys.Control.IsModified();
                 if (item.IsWork())
                 {

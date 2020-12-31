@@ -96,7 +96,8 @@ namespace PixivWPF.Common
                 if(ItemList is ObservableCollection<PixivItem>) ItemList.Clear();
                 ItemList = value;
                 PART_ImageTiles.ItemsSource = ItemList;
-                NotifyPropertyChanged("ItemsChanged");
+                RaisePropertyChanged("Items");
+                NotifyPropertyChanged("Items");
             }
         }
         //public ItemCollection Items
@@ -106,7 +107,12 @@ namespace PixivWPF.Common
         public IEnumerable ItemsSource
         {
             get { return (PART_ImageTiles.ItemsSource); }
-            set { PART_ImageTiles.ItemsSource = value; }
+            set
+            {
+                PART_ImageTiles.ItemsSource = value;
+                RaisePropertyChanged("ItemsSource");
+                NotifyPropertyChanged("ItemsSource");
+            }
         }
         public ItemCollection ItemsCollection
         {
@@ -307,6 +313,8 @@ namespace PixivWPF.Common
         {
             InitializeComponent();
 
+            DataContext = this;
+
             cancelTokenSource = new CancellationTokenSource();
 
             PART_ImageTiles.ItemsSource = ItemList;
@@ -359,20 +367,7 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    foreach (var item in PART_ImageTiles.ItemsSource)
-                    {
-                        if (item is PixivItem) (item as PixivItem).Source = null;
-                    }
                     PART_ImageTiles.ItemsSource = null;
-                }
-                catch (Exception) { }
-
-                try
-                {
-                    foreach (var item in PART_ImageTiles.Items)
-                    {
-                        if (item is PixivItem) (item as PixivItem).Source = null;
-                    }
                 }
                 catch (Exception) { }
 
@@ -383,9 +378,13 @@ namespace PixivWPF.Common
                         item.Source = null;
                     }
                     ItemList.Clear();
-                    PART_ImageTiles.ItemsSource = ItemList;
                 }
                 catch (Exception) { }
+                finally
+                {
+                    ItemList = new ObservableCollection<PixivItem>();
+                    PART_ImageTiles.ItemsSource = ItemList;
+                }
                 GC.Collect();
             }
         }

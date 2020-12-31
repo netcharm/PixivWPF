@@ -208,7 +208,12 @@ namespace PixivWPF
                         {
                             await new Action(() =>
                             {
-                                Commands.OpenSearch.Execute(link);
+                                if (link.StartsWith("down:"))
+                                    Commands.SaveIllust.Execute(link.Substring(5));
+                                else if(link.StartsWith("downall:"))
+                                    Commands.SaveIllustAll.Execute(link.Substring(8));
+                                else
+                                    Commands.OpenSearch.Execute(link);
                             }).InvokeAsync();
                         }
                     }

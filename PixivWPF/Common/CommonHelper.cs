@@ -2212,6 +2212,7 @@ namespace PixivWPF.Common
             var href_prefix_0 = is_src ? @"href=""" : string.Empty;
             var href_prefix_1 = is_src ? @"src=""" : string.Empty;
             var href_suffix = is_src ? @"""" : @"";
+            var cmd_sep = new char[] { ':', ' ', '=' };
 
             var opt = RegexOptions.IgnoreCase;// | RegexOptions.Multiline;
 
@@ -2259,9 +2260,9 @@ namespace PixivWPF.Common
 
                 mr.Add(Regex.Matches(content, @"(Preview\sID:\s)(\d+),(.*?)$", opt));
 
-                mr.Add(Regex.Matches(content, @"(Downloading:\s)(.*?)$", opt));
+                mr.Add(Regex.Matches(content, @"((down(all)?|Downloading):\s?.*?)$", opt));
 
-                if (!Regex.IsMatch(content, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(download:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
+                if (!Regex.IsMatch(content, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(down(all|load(ing)?)?:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
                 {
                     try
                     {
@@ -2304,7 +2305,7 @@ namespace PixivWPF.Common
                     var link = m.Groups[1].Value.Trim().Trim(trim_char);
                     var downloads = Application.Current.OpenedWindowTitles();
                     downloads = downloads.Concat(download_links).ToList();
-                    foreach(var di in downloads)
+                    foreach (var di in downloads)
                     {
                         if (di.Contains(link))
                         {
@@ -2395,70 +2396,38 @@ namespace PixivWPF.Common
                             if (!links.Contains(u_link)) links.Add(u_link);
                         }
                     }
-                    else if (link.StartsWith("fuzzy:", StringComparison.CurrentCultureIgnoreCase))
+                    else if (link.StartsWith("fuzzy:", StringComparison.CurrentCultureIgnoreCase) ||
+                             link.StartsWith("title:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var fuzzy = link.Substring(6).Trim();
                         var f_link = $"Fuzzy:{fuzzy}";
                         if (!links.Contains(f_link)) links.Add(f_link);
                     }
-                    else if (link.StartsWith("title:", StringComparison.CurrentCultureIgnoreCase))
+                    else if (link.StartsWith("searching ", StringComparison.CurrentCultureIgnoreCase) ||
+                             link.StartsWith("searching:", StringComparison.CurrentCultureIgnoreCase) ||
+                             link.StartsWith("search ", StringComparison.CurrentCultureIgnoreCase) ||
+                             link.StartsWith("search:", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var fuzzy = link.Substring(6).Trim();
-                        var t_link = $"Fuzzy:{fuzzy}";
-                        if (!links.Contains(t_link)) links.Add(t_link);
-                    }
-                    else if (link.StartsWith("searching ", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var search = link.Substring(10).Trim().TrimEnd('.').Trim();
+                        var search = Regex.Replace(link, @"search.*?[:\s]+(.*?)", "$1", RegexOptions.IgnoreCase).Trim().TrimEnd('.').Trim();
                         var s_link = $"{search}";
                         if (!links.Contains(s_link)) links.Add(s_link);
                     }
-                    else if (link.StartsWith("searching:", StringComparison.CurrentCultureIgnoreCase))
+                    else if (link.StartsWith("down:", StringComparison.CurrentCultureIgnoreCase) ||
+                             link.StartsWith("download:", StringComparison.CurrentCultureIgnoreCase) ||
+                             link.StartsWith("downloading:", StringComparison.CurrentCultureIgnoreCase) ||
+                             link.StartsWith("downloading ", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var search = link.Substring(10).Trim().TrimEnd('.').Trim();
-                        var s_link = $"{search}";
-                        if (!links.Contains(s_link)) links.Add(s_link);
+                        var down = Regex.Replace(link, @"down.*?[:\s]+(.*?)", "$1", RegexOptions.IgnoreCase).Trim().TrimEnd('.').Trim();
+                        var exists = download_links.Where(l=>l.Contains(down)).Count();
+                        if (exists <= 0) download_links.Add($"down:{down}");
                     }
-                    else if (link.StartsWith("search ", StringComparison.CurrentCultureIgnoreCase))
+                    else if (link.StartsWith("downall:", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var search = link.Substring(7).Trim().TrimEnd('.').Trim();
-                        var s_link = $"{search}";
-                        if (!links.Contains(s_link)) links.Add(s_link);
+                        var down = link.Substring(8).Trim().TrimEnd('.').Trim();
+                        var exists = download_links.Where(l=>l.Contains(down)).Count();
+                        if (exists <= 0) download_links.Add($"downall:{down}");
                     }
-                    else if (link.StartsWith("search:", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var search = link.Substring(7).Trim().TrimEnd('.').Trim();
-                        var s_link = $"{search}";
-                        if (!links.Contains(s_link)) links.Add(s_link);
-                    }
-                    else if (link.StartsWith("downloading ", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var down = link.Substring(12).Trim().TrimEnd('.').Trim();
-                        if (!download_links.Contains(down))
-                        {
-                            download_links.Add(down);
-                            Commands.SaveIllust.Execute(down);
-                        }
-                    }
-                    else if (link.StartsWith("download:", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var down = link.Substring(9).Trim();
-                        if (!download_links.Contains(down))
-                        {
-                            download_links.Add(down);
-                            Commands.SaveIllust.Execute(down);
-                        }
-                    }
-                    else if(link.Equals("downloading", StringComparison.CurrentCultureIgnoreCase)) continue;
-                    else if (link.StartsWith("downloading:", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var down = link.Substring(12).Trim();
-                        if (!download_links.Contains(down))
-                        {
-                            download_links.Add(down);
-                            Commands.SaveIllust.Execute(down);
-                        }
-                    }
+                    else if (link.Equals("downloading", StringComparison.CurrentCultureIgnoreCase)) continue;
                     else
                     {
                         var fn = m.Value.Trim().Trim(trim_char);
@@ -2488,7 +2457,8 @@ namespace PixivWPF.Common
             }
             if (links.Count <= 0)
             {
-                if (html.Split(Path.GetInvalidPathChars()).Length <= 1) links.Add($"Fuzzy:{html}");
+                if (html.Split(Path.GetInvalidPathChars()).Length <= 1 && download_links.Count <= 0) links.Add($"Fuzzy:{html}");
+                foreach (var dl in download_links) links.Add(dl);
             }
             return (links);
         }

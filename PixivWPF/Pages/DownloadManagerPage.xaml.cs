@@ -251,9 +251,9 @@ namespace PixivWPF.Pages
                 }
             }
 
-            if (await CanAddItem.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)))
+            if (!IsExists(url))
             {
-                if (!IsExists(url))
+                if (await CanAddItem.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)))
                 {
                     var item = new DownloadInfo()
                     {
