@@ -11,7 +11,7 @@
     <!--Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"-->
     <Grid x:Name="PART_Tile" Background="{DynamicResource MahApps.Brushes.Accent}"
         Margin="0,4,0,4" ToolTip="{Binding ToolTip, Mode=OneWay}"
-        Width="{Binding Path=Size, ElementName=PART_PixivItemTile, Mode=TwoWay, IsAsync=True}"
+        Width="{Binding Path=Size, ElementName=PART_PixivItemTile, Mode=OneWay, IsAsync=True}"
         Tag="{Binding Path=., Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" TargetUpdated="TileImage_TargetUpdated">
         <Grid.RowDefinitions>
             <RowDefinition Height="128"/>
@@ -26,8 +26,8 @@
             TargetUpdated="TileImage_TargetUpdated"
             Tag="{Binding Illust, Mode=OneWay}"
             Stretch="Uniform" 
-            Width="{Binding Path=Size, ElementName=PART_PixivItemTile, Mode=TwoWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
-            Height="{Binding Path=Size, ElementName=PART_PixivItemTile, Mode=TwoWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
+            Width="{Binding Path=Size, ElementName=PART_PixivItemTile, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
+            Height="{Binding Path=Size, ElementName=PART_PixivItemTile, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
             HorizontalAlignment="Center" VerticalAlignment="Center"/>
         <local:ProgressRingCloud
             Grid.Row="0" x:Name="PART_Progress" Size="72"
@@ -114,7 +114,7 @@
                 Tag="{Binding DisplayBadge, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}"
                 Visibility="{Binding Path=BadgeVisibility, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
                 BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
-        <Grid Grid.Row="1" Visibility="{Binding Path=TitleVisibility, ElementName=PART_PixivItemTile, Mode=TwoWay, IsAsync=True}">
+        <Grid Grid.Row="1" Visibility="{Binding Path=TitleVisibility, ElementName=PART_PixivItemTile, Mode=OneWay, IsAsync=True}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>

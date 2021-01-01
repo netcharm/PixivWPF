@@ -8,58 +8,58 @@
              xmlns:local="clr-namespace:PixivWPF.Common"             
              x:Name="PART_Wait"
              mc:Ignorable="d"              
-             Width="{Binding Size, IsAsync=True, RelativeSource={RelativeSource Self}}"
-             Height="{Binding Size, IsAsync=True, RelativeSource={RelativeSource Self}}"
+             Width="{Binding Size, Mode=OneWay, IsAsync=True, RelativeSource={RelativeSource Self}}"
+             Height="{Binding Size, Mode=OneWay, IsAsync=True, RelativeSource={RelativeSource Self}}"
              d:DesignHeight="300" d:DesignWidth="300"
              Loaded="WaitRing_Loaded">
 
     <Grid x:Name="PART_Grid"
-        IsEnabled="{Binding Path=IsEnabled, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}" 
-        Width="{Binding Path=Width, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}"
-        Height="{Binding Path=Height, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}"
-        Opacity="{Binding Path=Opacity, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}" 
-        Visibility="{Binding Path=Visibility, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}"
-        HorizontalAlignment="{Binding Path=HorizontalAlignment, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}" 
-        VerticalAlignment="{Binding Path=VerticalAlignment, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}">
+        IsEnabled="{Binding Path=IsEnabled, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}" 
+        Width="{Binding Path=Width, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}"
+        Height="{Binding Path=Height, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}"
+        Opacity="{Binding Path=Opacity, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}" 
+        Visibility="{Binding Path=Visibility, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}"
+        HorizontalAlignment="{Binding Path=HorizontalAlignment, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}" 
+        VerticalAlignment="{Binding Path=VerticalAlignment, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}">
         <Grid.Effect>
             <DropShadowEffect 
-                ShadowDepth="{Binding Path=ShadowDepth, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}" 
-                BlurRadius="{Binding Path=ShadowBlurRadius, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}" 
-                Color="{Binding Path=ShadowColor, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}" 
-                Opacity="{Binding Path=ShadowOpacity, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}"/>
+                ShadowDepth="{Binding Path=ShadowDepth, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}" 
+                BlurRadius="{Binding Path=ShadowBlurRadius, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}" 
+                Color="{Binding Path=ShadowColor, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}" 
+                Opacity="{Binding Path=ShadowOpacity, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}"/>
         </Grid.Effect>
         <!-- Loading Progress Ring -->
         <mah:ProgressRing 
             Grid.Row="0" Grid.Column="0" x:Name="PART_Ring"
-            IsEnabled="{Binding Path=IsEnabled, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}" 
-            IsActive="{Binding Path=IsActive, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}" 
-            Visibility="{Binding Path=Visibility, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"
-            Opacity="{Binding Path=Opacity, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}" 
-            Width="{Binding Path=Width, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"
-            Height="{Binding Path=Height, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"
-            Foreground="{Binding Path=Foreground, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}"
-            Background="{Binding Path=Background, ElementName=PART_Wait, Mode=TwoWay, IsAsync=True}"
+            IsEnabled="{Binding Path=IsEnabled, ElementName=PART_Grid, Mode=OneWay, IsAsync=True}" 
+            IsActive="{Binding Path=IsActive, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}" 
+            Visibility="{Binding Path=Visibility, ElementName=PART_Grid, Mode=OneWay, IsAsync=True}"
+            Opacity="{Binding Path=Opacity, ElementName=PART_Grid, Mode=OneWay, IsAsync=True}" 
+            Width="{Binding Path=Width, ElementName=PART_Grid, Mode=OneWay, IsAsync=True}"
+            Height="{Binding Path=Height, ElementName=PART_Grid, Mode=OneWay, IsAsync=True}"
+            Foreground="{Binding Path=Foreground, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}"
+            Background="{Binding Path=Background, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}"
             HorizontalAlignment="Center" VerticalAlignment="Center">
         </mah:ProgressRing>
         <!-- Loading Mark -->
         <TextBlock 
             Grid.Row="0" Grid.Column="0" x:Name="PART_Mark"
             Text="&#xEDE4;" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets"
-            FontSize="{Binding Path=Width, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True, Converter={mah:MathMultiplyConverter}, ConverterParameter='0.5'}" 
-            Opacity="{Binding Path=Opacity, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
-            Visibility="{Binding Path=Visibility, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
-            Foreground="{Binding Path=Foreground, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
-            Background="{Binding Path=Background, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
+            FontSize="{Binding Path=Width, ElementName=PART_Ring, Mode=OneWay, IsAsync=True, Converter={mah:MathMultiplyConverter}, ConverterParameter='0.5'}" 
+            Opacity="{Binding Path=Opacity, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
+            Visibility="{Binding Path=Visibility, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
+            Foreground="{Binding Path=Foreground, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
+            Background="{Binding Path=Background, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
             HorizontalAlignment="Center" VerticalAlignment="Center">
         </TextBlock>
         <Button 
             Grid.Row="0" Grid.Column="0" x:Name="PART_Reload" Visibility="Collapsed"
             Click="PART_Reload_Click" MouseEnter="PART_Reload_MouseEnter" MouseLeave="PART_Reload_MouseLeave" 
-            Opacity="{Binding Path=Opacity, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}" 
-            Width="{Binding Path=Width, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"
-            Height="{Binding Path=Height, ElementName=PART_Grid, Mode=TwoWay, IsAsync=True}"           
-            Foreground="{Binding Path=Foreground, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
-            Background="{Binding Path=Background, ElementName=PART_Ring, Mode=TwoWay, IsAsync=True}"
+            Opacity="{Binding Path=Opacity, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}" 
+            Width="{Binding Path=Width, ElementName=PART_Grid, Mode=OneWay, IsAsync=True}"
+            Height="{Binding Path=Height, ElementName=PART_Grid, Mode=OneWay, IsAsync=True}"           
+            Foreground="{Binding Path=Foreground, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
+            Background="{Binding Path=Background, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
             HorizontalAlignment="Center" VerticalAlignment="Center"
             HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
         </Button>

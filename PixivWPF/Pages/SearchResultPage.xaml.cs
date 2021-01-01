@@ -136,7 +136,7 @@ namespace PixivWPF.Pages
 
         public dynamic GetTilesCount()
         {
-            return ($"{ResultItems.ItemsCount}({ResultItems.Items.Count})");
+            return ($"Result: {ResultItems.ItemsCount} of {ResultItems.Items.Count}");
         }
 
         public void PrevIllust()

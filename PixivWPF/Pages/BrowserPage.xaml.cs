@@ -114,7 +114,14 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (webHtml is System.Windows.Forms.WebBrowser) webHtml.Dispose(true);
+                if (webHtml is WebBrowserEx)
+                {
+                    webHtml.DocumentCompleted -= new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(WebBrowser_DocumentCompleted);
+                    webHtml.Navigating -= new System.Windows.Forms.WebBrowserNavigatingEventHandler(WebBrowser_Navigating);
+                    webHtml.ProgressChanged -= new System.Windows.Forms.WebBrowserProgressChangedEventHandler(WebBrowser_ProgressChanged);
+                    webHtml.PreviewKeyDown -= new System.Windows.Forms.PreviewKeyDownEventHandler(WebBrowser_PreviewKeyDown);
+                    webHtml.Dispose(true);
+                }
             }
             catch { }
             try

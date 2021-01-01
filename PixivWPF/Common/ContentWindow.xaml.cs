@@ -110,11 +110,14 @@ namespace PixivWPF.Common
                 else if(Content is HistoryPage)
                     (Content as HistoryPage).Pos = new Point(this.Left, this.Top);
 
+                if(Content is Page) (Content as Page).DataContext = null;
+
                 if (Application.Current.GetLoginWindow() != null) e.Cancel = true;
             }
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[CLOSEWIN]"); }
             finally
             {
+                Content = null;
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();

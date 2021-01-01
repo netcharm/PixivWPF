@@ -985,7 +985,7 @@
                     </Button>
                     <Button 
                         x:Name="RelativeNextAppend" x:Uid="RelativeNextAppend"
-                        Visibility="{Binding Visibility, ElementName=RelativeNextPage, Mode=TwoWay}" FontWeight="Normal"
+                        Visibility="{Binding Visibility, ElementName=RelativeNextPage, Mode=OneWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"
@@ -1059,7 +1059,7 @@
                     </Button>
                     <Button 
                         x:Name="FavoriteNextAppend" x:Uid="FavoriteNextAppend"
-                        Visibility="{Binding Visibility, ElementName=FavoriteNextPage, Mode=TwoWay}" FontWeight="Normal"
+                        Visibility="{Binding Visibility, ElementName=FavoriteNextPage, Mode=OneWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0"

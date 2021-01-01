@@ -409,12 +409,11 @@ namespace PixivWPF.Pages
                 ex.Message.DEBUG();
             }
         }
-        #endregion
-
         public dynamic GetTilesCount()
         {
-            return ($"{ListImageTiles.ItemsCount}({ListImageTiles.Items.Count})");
+            return ($"Item: {ListImageTiles.ItemsCount} of {ListImageTiles.Items.Count}{Environment.NewLine}Page: {ListImageTiles.CurrentPage} of {ListImageTiles.TotalPages}");
         }
+        #endregion
 
         internal void KeyAction(KeyEventArgs e)
         {

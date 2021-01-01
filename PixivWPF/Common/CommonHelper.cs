@@ -4148,7 +4148,7 @@ namespace PixivWPF.Common
             CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
-                using (var stream = File.OpenRead(file))
+                using (Stream stream = new MemoryStream(File.ReadAllBytes(file)))
                 {
                     result.Source = stream.ToImageSource();
                     result.SourcePath = file;
@@ -4449,9 +4449,13 @@ namespace PixivWPF.Common
                     //return "data:image/png;base64," + Convert.ToBase64String(content);
                     BitmapImage image = new BitmapImage();
                     image.BeginInit();
-                    image.StreamSource = new MemoryStream(content);
-                    image.EndInit();
-                    image.Freeze();
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    using (var ms = new MemoryStream(content))
+                    {
+                        image.StreamSource = ms;
+                        image.EndInit();
+                        image.Freeze();
+                    }
                     result = image;
                 }
             }

@@ -17,7 +17,7 @@
              Loaded="Download_Loaded"
              d:DesignHeight="140" d:DesignWidth="600">
 
-    <Grid Margin="2" ToolTipOpening="Download_ToolTipOpening" ToolTip="{Binding Path=ToolTip, Mode=TwoWay, IsAsync=True}">
+    <Grid Margin="2" ToolTipOpening="Download_ToolTipOpening" ToolTip="{Binding Path=ToolTip, Mode=OneWay, IsAsync=True}">
         <Grid.ContextMenu>
             <ContextMenu>
                 <MenuItem x:Name="miCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="miActions_Click">

@@ -855,7 +855,7 @@ namespace PixivWPF.Common
                                         }
                                         Application.Current.DoEvents();
                                     }
-                                }).InvokeAsync();
+                                }).InvokeAsync(true);
                             });
                         }
                     }

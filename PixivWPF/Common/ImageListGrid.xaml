@@ -161,14 +161,14 @@
             VirtualizingPanel.IsContainerVirtualizable="True"
             VirtualizingPanel.IsVirtualizingWhenGrouping="True"
             VirtualizingPanel.VirtualizationMode="Recycling"
-            VirtualizingPanel.ScrollUnit="Pixel"
+            VirtualizingPanel.ScrollUnit="Item"
             KeyUp="PART_ImageTiles_KeyUp" 
             MouseWheel="PART_ImageTiles_MouseWheel" MouseDown="PART_ImageTiles_MouseDown"
             PreviewMouseWheel="PART_ImageTiles_PreviewMouseWheel"
             SelectionChanged="PART_ImageTiles_SelectionChanged" >
-            <!--<ListView.CacheMode>
+            <ListView.CacheMode>
                 <BitmapCache EnableClearType="True" SnapsToDevicePixels="True" />
-            </ListView.CacheMode>-->
+            </ListView.CacheMode>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <UniformGrid x:Name="PART_ImageTiles_UniformGrid" 

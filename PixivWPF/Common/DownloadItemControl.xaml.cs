@@ -1249,6 +1249,12 @@ namespace PixivWPF.Common
             CheckProperties();
         }
 
+        ~DownloadItem()
+        {
+            PART_Preview.Source = null;
+            PART_Preview = null;
+        }
+
         private void Download_Loaded(object sender, RoutedEventArgs e)
         {
             CheckProperties();

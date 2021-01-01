@@ -367,26 +367,47 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    PART_ImageTiles.ItemsSource = null;
-                }
-                catch (Exception) { }
-
-                try
-                {
-                    foreach (var item in ItemList)
+                    for(var i = 0; i < ItemList.Count; i++)
                     {
-                        item.Source = null;
+                        ItemList[i].Source = null;
+                        ItemList[i] = null;
                     }
                     ItemList.Clear();
                 }
                 catch (Exception) { }
                 finally
                 {
-                    ItemList = new ObservableCollection<PixivItem>();
-                    PART_ImageTiles.ItemsSource = ItemList;
+                    var before = GC.GetTotalMemory(true);
+                    GC.Collect();
+                    var after = GC.GetTotalMemory(true);
+                    $"Memory Usage: {before} => {after}".DEBUG();
                 }
-                GC.Collect();
             }
+        }
+
+        private ScrollViewer scrollViewer = null;
+        public int CurrentPage { get { return (CurrentScrollPage()); } }
+        public int CurrentScrollPage()
+        {
+            int result = -1;
+            if(!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+            var offset = scrollViewer.VerticalOffset;
+            var height = scrollViewer.ViewportHeight;
+            var total = scrollViewer.ExtentHeight;
+            result = (int)Math.Round(offset / height) + 1;
+            return (result);
+        }
+
+        public int TotalPages { get { return (TotalScrollPages()); } }
+        public int TotalScrollPages()
+        {
+            int result = -1;
+            if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+            var offset = scrollViewer.VerticalOffset;
+            var height = scrollViewer.ViewportHeight;
+            var total = scrollViewer.ExtentHeight;
+            result = (int)Math.Ceiling(total / height);
+            return (result);
         }
 
         public void Filtering(string filter)

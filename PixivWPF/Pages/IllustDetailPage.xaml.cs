@@ -365,6 +365,12 @@ namespace PixivWPF.Pages
                 {
                     if (wbs[i] is WebBrowserEx)
                     {
+                        wbs[i].DocumentCompleted -= new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(WebBrowser_DocumentCompleted);
+                        wbs[i].Navigating -= new System.Windows.Forms.WebBrowserNavigatingEventHandler(WebBrowser_Navigating);
+                        wbs[i].Navigated -= new System.Windows.Forms.WebBrowserNavigatedEventHandler(WebBrowser_Navigated);
+                        wbs[i].ProgressChanged -= new System.Windows.Forms.WebBrowserProgressChangedEventHandler(WebBrowser_ProgressChanged);
+                        wbs[i].PreviewKeyDown -= new System.Windows.Forms.PreviewKeyDownEventHandler(WebBrowser_PreviewKeyDown);
+
                         wbs[i].Dispose(true);
                         wbs[i] = null;
                     }
@@ -742,7 +748,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private async void UpdateDetailIllust(PixivItem item)
+        private void UpdateDetailIllust(PixivItem item)
         {
             try
             {
@@ -902,15 +908,9 @@ namespace PixivWPF.Pages
                 CommentsNavigator.Hide();
                 CommentsExpander.Hide();
 #endif
-                await Task.Delay(1);
-                this.DoEvents();
                 ActionRefreshAvatar();
-                await Task.Delay(1);
-                this.DoEvents();
                 if (!SubIllustsExpander.IsExpanded)
                     ActionRefreshPreview();
-                await Task.Delay(1);
-                this.DoEvents();
             }
             catch (OperationCanceledException) { }
             catch (ObjectDisposedException) { }
@@ -1512,7 +1512,7 @@ namespace PixivWPF.Pages
 
         public dynamic GetTilesCount()
         {
-            return ($"{RelativeItems.ItemsCount}({RelativeItems.Items.Count}) / {FavoriteItems.ItemsCount}({FavoriteItems.Items.Count})");
+            return ($"Relative: {RelativeItems.ItemsCount} of {RelativeItems.Items.Count}{Environment.NewLine}Favorite: {FavoriteItems.ItemsCount} of {FavoriteItems.Items.Count}");
         }
         #endregion
 
@@ -2318,6 +2318,7 @@ namespace PixivWPF.Pages
                     finally
                     {
                         if (Preview.Source == null) PreviewWait.Fail();
+                        this.DoEvents();
                     }
                 }).InvokeAsync();
             }
@@ -2353,6 +2354,7 @@ namespace PixivWPF.Pages
                     {
                         if (IllustAuthorAvatar.Source == null) AuthorAvatarWait.Fail();
                         btnAuthorAvatar.Show(AuthorAvatarWait.IsFail);
+                        this.DoEvents();
                     }
                 }).InvokeAsync();
             }
