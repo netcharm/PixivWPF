@@ -55,9 +55,9 @@ namespace PixivWPF.Common
             {
                 if (value is ImageSource)
                 {
-                    if (value.Width > TileWidth || value.Height > TileHeight)
-                        source = Resize(value, TileWidth, TileHeight);
-                    else
+                    //if (value.Width > TileWidth || value.Height > TileHeight)
+                    //    source = Resize(value, TileWidth, TileHeight);
+                    //else
                         source = value;
                     value = null;
                 }

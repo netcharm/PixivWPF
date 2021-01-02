@@ -236,6 +236,8 @@ namespace PixivWPF
         {
             InitializeComponent();
 
+            DPI.GetDefault(this);
+
             setting = Application.Current.LoadSetting();
 
             FontFamily = setting.FontFamily;
@@ -415,7 +417,6 @@ namespace PixivWPF
                 {
                     UpdateTitle(Contents.TargetPage.ToString());
                     Contents.ShowImages(Contents.TargetPage, false, Contents.GetLastSelectedID());
-                    CommandFilter.ToolTip = $"Tiles Count: {Contents.GetTilesCount()}";
                 }
                 else if (sender == CommandNavRefreshThumb)
                 {
@@ -524,7 +525,7 @@ namespace PixivWPF
         private void LiveFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
             if (Contents is Pages.TilesPage)
-                CommandFilter.ToolTip = $"Tiles Count: {Contents.GetTilesCount()}";
+                CommandFilter.ToolTip = $"{Contents.GetTilesCount()}";
             else CommandFilter.ToolTip = $"Live Filter";
         }
 

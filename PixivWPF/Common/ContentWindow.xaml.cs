@@ -275,11 +275,11 @@ namespace PixivWPF.Common
         private void LiveFilter_ToolTipOpening(object sender, ToolTipEventArgs e)
         {
             if (Content is IllustDetailPage)
-                CommandFilter.ToolTip = $"Tiles Count: {(Content as IllustDetailPage).GetTilesCount()}";
+                CommandFilter.ToolTip = $"{(Content as IllustDetailPage).GetTilesCount()}";
             else if (Content is SearchResultPage)
-                CommandFilter.ToolTip = $"Tiles Count: {(Content as SearchResultPage).GetTilesCount()}";
+                CommandFilter.ToolTip = $"{(Content as SearchResultPage).GetTilesCount()}";
             else if (Content is HistoryPage)
-                CommandFilter.ToolTip = $"Tiles Count: {(Content as HistoryPage).GetTilesCount()}";
+                CommandFilter.ToolTip = $"{(Content as HistoryPage).GetTilesCount()}";
             else CommandFilter.ToolTip = $"Live Filter";
         }
 

@@ -138,29 +138,63 @@ namespace PixivWPF.Common
         public double X { get; } = 96.0;
         public double Y { get; } = 96.0;
 
+        public double X15 { get; } = 144.0;
+        public double Y15 { get; } = 144.0;
+
+        public double X20 { get; } = 192.0;
+        public double Y20 { get; } = 192.0;
+
         private static DPI dpi = new DPI();
-        public static DPI Default { get { return (dpi); } }
+        public static DPI Default
+        {
+            get { return (dpi); }
+            set { dpi = value; }
+        }
 
         public DPI()
         {
             var dpi = BySystemParameters();
             X = dpi.X;
             Y = dpi.Y;
+            X15 = X * 1.5;
+            Y15 = Y * 1.5;
+            X20 = X * 2.0;
+            Y20 = Y * 2.0;
         }
 
         public DPI(double x, double y)
         {
             X = x;
             Y = y;
+            X15 = X * 1.5;
+            Y15 = Y * 1.5;
+            X20 = X * 2.0;
+            Y20 = Y * 2.0;
         }
 
         public DPI(Visual visual)
         {
             try
             {
-                var dpi = FromVisual(visual);
+                dpi = FromVisual(visual);
                 X = dpi.X;
                 Y = dpi.Y;
+                X15 = X * 1.5;
+                Y15 = Y * 1.5;
+                X20 = X * 2.0;
+                Y20 = Y * 2.0;
+            }
+            catch (Exception) { }
+        }
+
+        public static void GetDefault(Visual visual)
+        {
+            try
+            {
+                var ds = VisualTreeHelper.GetDpi(visual);
+                var x = ds.PixelsPerInchX;
+                var y = ds.PixelsPerInchY;
+                dpi = new DPI(x, y);
             }
             catch (Exception) { }
         }
@@ -3305,11 +3339,22 @@ namespace PixivWPF.Common
                     var pngDec = new PngBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
                     result = pngDec.Frames[0];
                     result.Freeze();
+
+                    pngEnc.Frames.Clear();
+                    pngEnc = null;
+                    pngDec = null;
+                    nbmp = null;
                 }
             }
             catch (Exception ex)
             {
                 ex.Message.ShowMessageBox("ERROR");
+            }
+            finally
+            {
+                Array.Clear(pixelData, 0, pixelData.Length);
+                Array.Resize(ref pixelData, 0);
+                pixelData = null;
             }
             return result;
         }
@@ -3328,6 +3373,8 @@ namespace PixivWPF.Common
                 bmp.Freeze();
 
                 result = bmp;
+                result.Freeze();
+                bmp = null;
             }
             catch (Exception ex)
             {
@@ -3348,9 +3395,14 @@ namespace PixivWPF.Common
                 {
                     try
                     {
-                        var dpi = new DPI();
-                        if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
-                            result = ConvertBitmapDPI(result, dpi.X, dpi.Y);
+                        var dpi = DPI.Default;
+                        if (result.DpiX > dpi.X15 || result.DpiY > dpi.Y15)
+                        {
+                            var ret = ConvertBitmapDPI(result, dpi.X, dpi.Y);
+                            result = ret;
+                            result.Freeze();
+                            ret = null;
+                        }
                     }
                     catch (Exception) { }
                 }
@@ -4183,34 +4235,37 @@ namespace PixivWPF.Common
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
                 setting = Application.Current.LoadSetting();
-                using (var httpClient = Application.Current.GetHttpClient())
+                try
                 {
-                    try
+                    using (var httpClient = Application.Current.GetHttpClient())
                     {
-                        var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-                        response.EnsureSuccessStatusCode();
-                        string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
-
-                        using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                        using (var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
                         {
-                            using (var ms = new MemoryStream())
+                            try
                             {
-                                var target = Path.GetDirectoryName(file);
-                                if (!Directory.Exists(target)) Directory.CreateDirectory(target);
-                                Random rnd = new Random();
-                                await Task.Delay(rnd.Next(5, 100));
-                                Application.Current.DoEvents();
-                                await sr.CopyToAsync(ms);
-                                File.WriteAllBytes(file, ms.ToArray());
-                                result = file;
+                                response.EnsureSuccessStatusCode();
+                                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+
+                                using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                                {
+                                    using (var ms = new MemoryStream())
+                                    {
+                                        var target = Path.GetDirectoryName(file);
+                                        if (!Directory.Exists(target)) Directory.CreateDirectory(target);
+                                        await sr.CopyToAsync(ms);
+                                        File.WriteAllBytes(file, ms.ToArray());
+                                        result = file;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                var r = ex.Message;
                             }
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        var r = ex.Message;
-                    }
                 }
+                catch (Exception) { }
             }
             return (result);
         }
@@ -4227,7 +4282,8 @@ namespace PixivWPF.Common
                     {
                         using (var ms = await response.ToMemoryStream())
                         {
-                            file = Path.Combine(setting.LastFolder, Path.GetFileName(file));
+                            var target = Path.GetDirectoryName(file);
+                            if (!Directory.Exists(target)) Directory.CreateDirectory(target);
                             File.WriteAllBytes(file, ms.ToArray());
                             result = file;
                         }

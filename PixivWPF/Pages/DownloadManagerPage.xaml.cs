@@ -242,19 +242,17 @@ namespace PixivWPF.Pages
         internal async void Add(string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
         {
             setting = Application.Current.LoadSetting();
-            if (string.IsNullOrEmpty(setting.LastFolder))
-            {
-                if (await CanAddItem.WaitAsync(-1))
-                {
-                    Application.Current.SaveTarget();
-                    if (CanAddItem is SemaphoreSlim && CanAddItem.CurrentCount <= 0) CanAddItem.Release();
-                }
-            }
 
             if (!IsExists(url))
             {
                 if (await CanAddItem.WaitAsync(TimeSpan.FromSeconds(setting.DownloadHttpTimeout)))
                 {
+                    if (string.IsNullOrEmpty(setting.LastFolder))
+                    {
+                        Application.Current.SaveTarget();
+                        if (CanAddItem is SemaphoreSlim && CanAddItem.CurrentCount <= 0) CanAddItem.Release();
+                    }
+
                     var item = new DownloadInfo()
                     {
                         AutoStart = AutoStart,

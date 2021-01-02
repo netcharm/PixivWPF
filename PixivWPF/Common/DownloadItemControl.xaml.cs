@@ -528,6 +528,8 @@ namespace PixivWPF.Common
                         {
                             Info.DownRateCurrent = lastRate;
                             Info.DownRateAverage = rateA;
+                            Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
+                            ToolTip = Info.ToolTip;
                         }
 
                         var percent = total > 0 ? received / total : 0;
@@ -837,9 +839,13 @@ namespace PixivWPF.Common
                                 _DownloadBuffer = ms.ToArray();
                                 result = await SaveFile(FileName, _DownloadBuffer);
                             }
-                            else
+                            else if (Received != Length)
                             {
-                                throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size not matched with server's size.");
+                                throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size ({Received} Bytes) not matched with server's size ({Length} Bytes).");
+                            }
+                            else if (State != DownloadState.Downloading)
+                            {
+                                throw new Exception($"Download {Path.GetFileName(FileName)} finished, but state error!");
                             }
                         }
                     }
@@ -1275,8 +1281,7 @@ namespace PixivWPF.Common
         {
             if (Info is DownloadInfo)
             {
-                Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
-                ToolTip = Info.ToolTip;
+//                ToolTip = Info.ToolTip;
             }
         }
 

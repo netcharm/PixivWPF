@@ -411,7 +411,12 @@ namespace PixivWPF.Pages
         }
         public dynamic GetTilesCount()
         {
-            return ($"Item: {ListImageTiles.ItemsCount} of {ListImageTiles.Items.Count}{Environment.NewLine}Page: {ListImageTiles.CurrentPage} of {ListImageTiles.TotalPages}");
+            List<string> tips = new List<string>();
+            tips.Add($"Illust: {ListImageTiles.ItemsCount} of {ListImageTiles.Items.Count}");
+            tips.Add($"Page: {ListImageTiles.CurrentPage} of {ListImageTiles.TotalPages}");
+            if(detail_page is IllustDetailPage)
+                tips.Add(detail_page.GetTilesCount());
+            return (string.Join(Environment.NewLine, tips));
         }
         #endregion
 

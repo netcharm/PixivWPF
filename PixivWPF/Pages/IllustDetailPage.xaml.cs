@@ -1512,7 +1512,10 @@ namespace PixivWPF.Pages
 
         public dynamic GetTilesCount()
         {
-            return ($"Relative: {RelativeItems.ItemsCount} of {RelativeItems.Items.Count}{Environment.NewLine}Favorite: {FavoriteItems.ItemsCount} of {FavoriteItems.Items.Count}");
+            List<string> tips = new List<string>();
+            tips.Add($"Relative: {RelativeItems.ItemsCount} of {RelativeItems.Items.Count}");
+            tips.Add($"Favorite: {FavoriteItems.ItemsCount} of {FavoriteItems.Items.Count}");
+            return (string.Join(Environment.NewLine, tips));
         }
         #endregion
 

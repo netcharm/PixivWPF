@@ -127,7 +127,6 @@ namespace PixivWPF.Pages
             {
                 img.Source = null;
                 if (Preview.Source == null) PreviewWait.Fail();
-                Focus();
             }
             return (img);
         }
@@ -171,10 +170,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        if (Regex.IsMatch(Contents.Subject, @" - \d+\/\d+$", RegexOptions.IgnoreCase))
-                            window.Title = $"Preview ID: {Contents.ID}, {Contents.Subject}";
-                        else
-                            window.Title = $"Preview ID: {Contents.ID}, {Contents.Subject}";// - 1/1";
+                        window.Title = $"Preview ID: {Contents.ID}, {Contents.Subject}";
                     }
                 }
             }
@@ -230,6 +226,7 @@ namespace PixivWPF.Pages
         {
             if (PreviewImage is CustomImageSource) PreviewImage.Source = null;
             Preview.Source = null;
+            this.DataContext = null;
         }
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)

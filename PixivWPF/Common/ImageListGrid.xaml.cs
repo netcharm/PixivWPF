@@ -69,9 +69,8 @@ namespace PixivWPF.Common
                     return null;
                 else
                 {
-                    System.Collections.IList items = (System.Collections.IList)PART_ImageTiles.SelectedItems;
+                    IList items = PART_ImageTiles.SelectedItems;
                     var collection = items.Cast<PixivItem>();
-                    //IList<PixivItem> collection = (IList<PixivItem>)PART_ImageTiles.SelectedItems;
                     return (collection.ToList());
                 }
             }
@@ -100,10 +99,14 @@ namespace PixivWPF.Common
                 NotifyPropertyChanged("Items");
             }
         }
-        //public ItemCollection Items
-        //{
-        //    get { return (PART_ImageTiles.Items); }
-        //}
+
+        [Description("Get Tiles Collection")]
+        [Category("Common Properties")]
+        public ItemCollection Tiles
+        {
+            get { return (PART_ImageTiles.Items); }
+        }
+
         public IEnumerable ItemsSource
         {
             get { return (PART_ImageTiles.ItemsSource); }
