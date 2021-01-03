@@ -259,6 +259,9 @@ namespace PixivWPF.Common
                 case TaskStatus.RanToCompletion:
                     _Hide_();
                     break;
+                case TaskStatus.Canceled:
+                    _Hide_();
+                    break;
                 default:
                     _Disable_();
                     break;

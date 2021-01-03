@@ -3330,25 +3330,38 @@ namespace PixivWPF.Common
             BitmapSource result = source;
             try
             {
-                using (var ms = new MemoryStream())
-                {
-                    var nbmp = BitmapSource.Create(width, height, dpiX, dpiY, source.Format, palette, pixelData, stride);
-                    PngBitmapEncoder pngEnc = new PngBitmapEncoder();
-                    pngEnc.Frames.Add(BitmapFrame.Create(nbmp));
-                    pngEnc.Save(ms);
-                    var pngDec = new PngBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-                    result = pngDec.Frames[0];
-                    result.Freeze();
-
-                    pngEnc.Frames.Clear();
-                    pngEnc = null;
-                    pngDec = null;
-                    nbmp = null;
-                }
+                var bmp = BitmapSource.Create(width, height, dpiX, dpiY, source.Format, palette, pixelData, stride);
+                result = null;
+                result = bmp;
+                result.Freeze();
+                bmp = null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                ex.Message.ShowMessageBox("ERROR");
+                try
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        var bmp = BitmapSource.Create(width, height, dpiX, dpiY, source.Format, palette, pixelData, stride);
+                        PngBitmapEncoder pngEnc = new PngBitmapEncoder();
+                        var fbmp = BitmapFrame.Create(bmp);
+                        pngEnc.Frames.Add(fbmp);
+                        pngEnc.Save(ms);
+                        var pngDec = new PngBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                        result = pngDec.Frames[0];
+                        result.Freeze();
+
+                        pngEnc.Frames.Clear();
+                        pngEnc = null;
+                        pngDec = null;
+                        fbmp = null;
+                        bmp = null;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    ex.Message.ShowMessageBox("ERROR");
+                }
             }
             finally
             {
@@ -3361,6 +3374,7 @@ namespace PixivWPF.Common
 
         public static ImageSource ToImageSource(this Stream stream)
         {
+            setting = Application.Current.LoadSetting();
             BitmapSource result = null;
             try
             {
@@ -3381,8 +3395,11 @@ namespace PixivWPF.Common
                 var ret = ex.Message;
                 try
                 {
-                    result = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                    var bmp = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                    result = null;
+                    result = bmp;
                     result.Freeze();
+                    bmp = null;
                 }
                 catch (Exception exx)
                 {
@@ -3391,17 +3408,19 @@ namespace PixivWPF.Common
             }
             finally
             {
-                if (result is ImageSource)
+                if (setting.AutoConvertDPI && result is ImageSource)
                 {
                     try
                     {
                         var dpi = DPI.Default;
-                        if (result.DpiX > dpi.X15 || result.DpiY > dpi.Y15)
+                        if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
+                        //if (result.DpiX > dpi.X15 || result.DpiY > dpi.Y15)
                         {
-                            var ret = ConvertBitmapDPI(result, dpi.X, dpi.Y);
-                            result = ret;
+                            var bmp = ConvertBitmapDPI(result, dpi.X, dpi.Y);
+                            result = null;
+                            result = bmp;
                             result.Freeze();
-                            ret = null;
+                            bmp = null;
                         }
                     }
                     catch (Exception) { }
@@ -7284,6 +7303,19 @@ namespace PixivWPF.Common
         #endregion
 
         #region Misc Helper
+        public static void Dispose(this Image image)
+        {
+            try
+            {
+                if (image is Image)
+                {
+                    image.Source = null;
+                    image.UpdateLayout();
+                }
+            }
+            catch (Exception) { }
+        }
+
         public static void Dispose<T>(this T[] array)
         {
             array.Clear();

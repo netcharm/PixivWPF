@@ -103,7 +103,7 @@
                 </MenuItem>
             </ContextMenu>
         </Grid.ContextMenu>
-        
+
         <Grid.Background>
             <ImageBrush ImageSource="pack://application:,,,/PixivWPF;component/Resources/CheckboardPattern_32.png" 
                         TileMode="Tile"  Opacity="0.10" 
@@ -114,19 +114,13 @@
         <ScrollViewer Grid.Row="0" x:Name="PreviewScroll" 
                       HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="PreviewBox"
-                     Width="Auto" Height="Auto"
-                     StretchDirection="DownOnly" 
-                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                <Image x:Name="Preview" x:Uid="Preview" Stretch="None" 
-                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                Width="Auto" Height="Auto" StretchDirection="DownOnly" 
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" MouseMove="Preview_MouseMove">
+                <Image x:Name="Preview" x:Uid="Preview" Stretch="None"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"/>
             </Viewbox>
         </ScrollViewer>
-
-        <!-- Preview Context Menu Container -->
-        <Rectangle Grid.Row="0" 
-            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" 
-            MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" MouseMove="Preview_MouseMove">
-        </Rectangle>
 
         <StackPanel Grid.Row="0" x:Name="InfoBar"
                     Orientation="Horizontal" 
@@ -199,6 +193,6 @@
             Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
             ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
             VerticalAlignment="Center" HorizontalAlignment="Center"/>
-        
+
     </Grid>
 </Page>

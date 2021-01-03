@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace PixivWPF.Common
 {
@@ -210,6 +211,24 @@ namespace PixivWPF.Common
         public DownloadInfo()
         {
             setting = Application.Current.LoadSetting();
+        }
+
+        public void Dispose()
+        {
+            if (Instance is DownloadItem)
+            {
+                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(delegate
+                {
+                    try
+                    {
+                        Instance.PART_Preview.Dispose();
+                        Instance.CleanBuffer();
+                        Instance = null;
+                    }
+                    catch (Exception) { }
+                }));
+            }
+            Thumbnail = null;
         }
 
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -524,13 +543,6 @@ namespace PixivWPF.Common
                         lastRates.Enqueue(rateC);
                         if (lastRates.Count > lastRatesCount) lastRates.Dequeue();
                         if (rateC > 0 || deltaC >= 1) lastRate = lastRates.Average();
-                        if (Info is DownloadInfo)
-                        {
-                            Info.DownRateCurrent = lastRate;
-                            Info.DownRateAverage = rateA;
-                            Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
-                            ToolTip = Info.ToolTip;
-                        }
 
                         var percent = total > 0 ? received / total : 0;
                         PART_DownloadProgress.Value = percent * 100;
@@ -546,6 +558,14 @@ namespace PixivWPF.Common
                         PART_ProgressInfoLinearLeft.Offset = percent;
                         PART_ProgressInfoLinearRight.Offset = percent;
                         #endregion
+
+                        if (Info is DownloadInfo)
+                        {
+                            Info.DownRateCurrent = lastRate;
+                            Info.DownRateAverage = rateA;
+                            Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
+                            //ToolTip = Info.ToolTip;
+                        }
 
                         lastRateA = rateA;
                         lastReceived = 0;
@@ -622,6 +642,10 @@ namespace PixivWPF.Common
                         PART_DownloadStatusMark.Foreground = Application.Current.GetFailedBrush();
                         PART_DownloadStatusMark.Text = "\uEA39";
                     }
+                    else if(State == DownloadState.Remove)
+                    {
+                        PART_Preview.Dispose();
+                    }
                     else
                     {
                         miRemove.IsEnabled = true;
@@ -678,6 +702,15 @@ namespace PixivWPF.Common
 
         //private MemoryStream _DownloadStream = null;
         private byte[] _DownloadBuffer = null;
+        public void CleanBuffer()
+        {
+            try
+            {
+                if (_DownloadBuffer is byte[]) _DownloadBuffer.Dispose(ref _DownloadBuffer);
+            }
+            catch (Exception) { }
+        }
+
         private HttpClient httpClient = null;
         private async Task<HttpResponseMessage> GetAsyncResponse(string Url, bool continuation = false)
         {
@@ -869,7 +902,7 @@ namespace PixivWPF.Common
                     if (State != DownloadState.Finished)
                     {
                         if (FailReason.Contains("416"))
-                            _DownloadBuffer.Dispose(ref _DownloadBuffer);
+                            CleanBuffer();
                         else
                         {
                             _DownloadBuffer = ms.ToArray();
@@ -895,7 +928,7 @@ namespace PixivWPF.Common
             FailReason = string.Empty;
             State = DownloadState.Downloading;
 
-            if (restart && _DownloadBuffer is byte[]) _DownloadBuffer.Dispose(ref _DownloadBuffer);
+            if (restart && _DownloadBuffer is byte[]) CleanBuffer();
 
             if (_DownloadBuffer is byte[])
             {
@@ -925,7 +958,7 @@ namespace PixivWPF.Common
                 result = FileName;
                 EndTick = DateTime.Now;
 
-                if (_DownloadBuffer is byte[]) _DownloadBuffer.Dispose(ref _DownloadBuffer);
+                CleanBuffer();
 
                 var state = "Succeed";
                 if (setting.DownloadCompletedToast)
@@ -1257,7 +1290,15 @@ namespace PixivWPF.Common
 
         ~DownloadItem()
         {
-            PART_Preview.Source = null;
+            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(delegate
+            {
+                try
+                {
+                    if (PART_Preview.Source != null) PART_Preview.Source = null;
+                    PART_Preview.UpdateLayout();
+                }
+                catch (Exception) { }
+            }));           
             PART_Preview = null;
         }
 
@@ -1281,7 +1322,7 @@ namespace PixivWPF.Common
         {
             if (Info is DownloadInfo)
             {
-//                ToolTip = Info.ToolTip;
+                ToolTip = Info.ToolTip;
             }
         }
 

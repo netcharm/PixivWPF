@@ -942,6 +942,7 @@ namespace PixivWPF.Pages
                         var bg = await user_backgroundimage_url.LoadImageFromUrl(overwrite);
                         if (bg.Source == null) PreviewWait.Fail();
                         else PreviewWait.Hide();
+                        Preview.Dispose();
                         Preview.Source = bg.Source;
                         bg.Source = null;
                     }
@@ -951,7 +952,7 @@ namespace PixivWPF.Pages
                 {
                     PreviewWait.Hide();
                     PreviewViewer.Hide();
-                    Preview.Source = null;
+                    Preview.Dispose();
                 }
             }
         }
@@ -2309,6 +2310,7 @@ namespace PixivWPF.Pages
                         {
                             if (img.Source != null)
                             {
+                                Preview.Dispose();
                                 Preview.Source = img.Source;
                                 PreviewImagePath = img.SourcePath;
                                 PreviewWait.Hide();
@@ -2345,6 +2347,7 @@ namespace PixivWPF.Pages
                         {
                             if (img.Source != null)
                             {
+                                IllustAuthorAvatar.Dispose();
                                 IllustAuthorAvatar.Source = img.Source;
                                 AuthorAvatarWait.Hide();
                             }

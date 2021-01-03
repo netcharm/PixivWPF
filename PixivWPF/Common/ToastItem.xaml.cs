@@ -297,7 +297,7 @@ namespace PixivWPF.Common
             }
             if (parentWindow is Window)
             {
-                if (Preview.Source != null) Preview.Source = null;
+                Preview.Dispose();
                 parentWindow = null;
             }
             if (Preview is Image) Preview.Source = null;

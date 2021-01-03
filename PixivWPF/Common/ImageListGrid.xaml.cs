@@ -3,6 +3,7 @@ using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.IconPacks;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -84,6 +85,7 @@ namespace PixivWPF.Common
             set { PART_ImageTiles.SelectionMode = value; }
         }
 
+        private ConcurrentDictionary<PixivItem, Grid> ImageList = new ConcurrentDictionary<PixivItem, Grid>();
         private ObservableCollection<PixivItem> ItemList = new ObservableCollection<PixivItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
@@ -372,10 +374,25 @@ namespace PixivWPF.Common
                 {
                     for(var i = 0; i < ItemList.Count; i++)
                     {
+                        if (ImageList.ContainsKey(ItemList[i]))
+                        {
+                            var tile = ImageList[ItemList[i]];
+                            var image = tile is Grid ? tile.FindByName<Image>("PART_Thumbnail") : null;
+                            if (image is Image)
+                            {
+                                image.Source = null;
+                                //image.DataContext = null;
+                                image.UpdateLayout();
+                                //tile.Children.Remove(image);
+                                //tile.DataContext = null;
+                            }
+                        }
+                        ItemList[i].State = TaskStatus.Canceled;
                         ItemList[i].Source = null;
                         ItemList[i] = null;
                     }
                     ItemList.Clear();
+                    ImageList.Clear();
                 }
                 catch (Exception) { }
                 finally
@@ -442,9 +459,6 @@ namespace PixivWPF.Common
         {
             Application.Current.DoEvents();
 
-            var loaded = Items.Where(item => item.Source != null && item.State != TaskStatus.RanToCompletion);
-            foreach (var item in loaded) item.State = TaskStatus.RanToCompletion;
-
             var needUpdate = Items.Where(item => item.Source == null || overwrite);
             if (needUpdate.Count() > 0)
             {
@@ -475,13 +489,40 @@ namespace PixivWPF.Common
         private void TileImage_TargetUpdated(object sender, DataTransferEventArgs e)
         {
             if (e.Property == null) return;
-            if (sender is Image && e.Property.Name.Equals("Source", StringComparison.CurrentCultureIgnoreCase))
+            if (sender is ProgressRingCloud && e.Property.Name.Equals("State", StringComparison.CurrentCultureIgnoreCase))
             {
-
-            }
-            else if (sender is ProgressRingCloud && e.Property.Name.Equals("State", StringComparison.CurrentCultureIgnoreCase))
-            {
-                (sender as ProgressRingCloud).UpdateState();
+                try
+                {
+                    var ring = sender as ProgressRingCloud;
+                    var tile = ring.Parent is Grid ? ring.Parent as Grid : null;
+                    var item = tile is Grid && tile.DataContext is PixivItem ? tile.DataContext as PixivItem : null;
+                    var image = tile is Grid ? tile.FindByName<Image>("PART_Thumbnail") : null;
+                    if (image is Image && item is PixivItem)
+                    {
+                        if (ring.State == TaskStatus.RanToCompletion)
+                        {
+                            image.Source = item.Source;
+                            if (image.Source != null)
+                            {
+                                ImageList[item] = tile;
+                                image.Source.Freeze();
+                            }
+                        }
+                        else if (ring.State == TaskStatus.Canceled)
+                        {
+                            image.Source = null;
+                            image.UpdateLayout();
+                            tile.DataContext = null;
+                            item.Source = null;
+                        }
+                        else
+                        {
+                            image.Source = null;
+                        }
+                    }
+                    ring.UpdateState();
+                }
+                catch (Exception) { }
             }
         }
 

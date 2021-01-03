@@ -112,14 +112,20 @@ namespace PixivWPF.Common
 
                 if(Content is Page) (Content as Page).DataContext = null;
 
+                if (Content is IllustDetailPage)
+                {
+                    (Content as IllustDetailPage).IllustAuthorAvatar.Dispose();
+                    (Content as IllustDetailPage).Preview.Dispose();
+                }
+                else if (Content is IllustImageViewerPage)
+                    (Content as IllustImageViewerPage).Preview.Source = null;
+
                 if (Application.Current.GetLoginWindow() != null) e.Cancel = true;
             }
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[CLOSEWIN]"); }
             finally
             {
                 Content = null;
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
                 GC.Collect();
             }
         }

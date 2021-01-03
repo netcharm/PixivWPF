@@ -834,6 +834,7 @@ namespace PixivWPF.Common
                                             else
                                                 item.State = TaskStatus.Faulted;
                                             img.Source = null;
+                                            img = null;
                                         }
                                     }
 #if DEBUG
@@ -852,6 +853,7 @@ namespace PixivWPF.Common
                                             var thumb = item.Thumb.GetImageCachePath().LoadImageFromFile();
                                             item.Source = thumb.Source;
                                             thumb.Source = null;
+                                            thumb = null;
                                         }
                                         Application.Current.DoEvents();
                                     }

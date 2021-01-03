@@ -1079,6 +1079,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool auto_convert_dpi = true;
+        public bool AutoConvertDPI
+        {
+            get { return (Cache is Setting ? Cache.auto_convert_dpi : auto_convert_dpi); }
+            set
+            {
+                auto_convert_dpi = value;
+                if (Cache is Setting) Cache.auto_convert_dpi = auto_convert_dpi;
+            }
+        }
+
         private bool seamless_view = false;
         public bool SeamlessViewInMainWindow
         {

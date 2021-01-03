@@ -19,14 +19,12 @@
         <ControlTemplate x:Key="PART_NoScroll">
             <ItemsPresenter></ItemsPresenter>
         </ControlTemplate>
-        
+
         <DataTemplate x:Key="PART_ImageTileTemplate" x:Name="PART_ImageTile" x:Uid="ImageTile">
-            <!--Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"-->
             <Grid x:Name="PART_Tile" Background="{DynamicResource MahApps.Brushes.Accent}"
                   Margin="0,4,0,4"
                   Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" Height="Auto"
-                  ToolTip="{Binding ToolTip, Mode=OneWay}"
-                  Tag="{Binding Path=., Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" TargetUpdated="TileImage_TargetUpdated">
+                  ToolTip="{Binding ToolTip, Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="128"/>
                     <RowDefinition Height="Auto"/>
@@ -34,11 +32,8 @@
                 <Border Grid.Row="0" x:Name="PART_Mask" Opacity="0.67"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                         Background="{DynamicResource MahApps.Brushes.IdealForeground}" BorderBrush="{DynamicResource MahApps.Brushes.Accent}" />
-                <Image Grid.Row="0" x:Name="PART_Thumbnail"                       
-                       Source="{Binding Source, Mode=OneWay, IsAsync=True, NotifyOnTargetUpdated=True}" 
-                       TargetUpdated="TileImage_TargetUpdated" 
-                       Tag="{Binding Illust, Mode=OneWay}"
-                       Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}, NotifyOnTargetUpdated=True}" 
+                <Image Grid.Row="0" x:Name="PART_Thumbnail"
+                       Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"                        
                        Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <!-- User Mark Glow -->

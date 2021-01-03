@@ -174,10 +174,10 @@ namespace PixivWPF.Pages
                     try
                     {
                         IsUpdating = true;
-                        var remove = items.Where(o => o.State == DownloadState.Remove );
+                        var remove = items.Where(o => o.State == DownloadState.Remove);
                         foreach (var i in remove)
                         {
-                            i.Thumbnail = null;
+                            i.Dispose();
                             items.Remove(i);
                         }
 
@@ -288,7 +288,7 @@ namespace PixivWPF.Pages
         {
             if (e.Property != null)
             {
-                if (e.Property.Name == "Tag" || e.Property.Name == "Value" || e.Property.Name == "StateChanged")
+                if (e.Property.Name == "Tag" || e.Property.Name == "Value" || e.Property.Name == "State")
                 {
                     UpdateStateInfo();
                     if (e.Source is DownloadItem)

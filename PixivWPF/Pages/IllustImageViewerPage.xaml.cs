@@ -113,9 +113,22 @@ namespace PixivWPF.Pages
                 {
                     if (img.Source != null)
                     {
+                        Preview.Dispose();
                         Preview.Source = img.Source;
+                        var dpiX = DPI.Default.X;
+                        var dpiY = DPI.Default.Y;
+                        var width = img.Source.Width;
+                        var height = img.Source.Height;
                         var aspect = Preview.Source.AspectRatio();
-                        PreviewSize.Text = $"{Preview.Source.Width:F0}x{Preview.Source.Height:F0}, {aspect.Item1:G5}:{aspect.Item2:G5}";
+                        if (!setting.AutoConvertDPI && img.Source is BitmapSource)
+                        {
+                            var bmp = img.Source as BitmapSource;
+                            width = bmp.PixelWidth;
+                            height = bmp.PixelHeight;
+                            dpiX = bmp.DpiX;
+                            dpiY = bmp.DpiY;
+                        }
+                        PreviewSize.Text = $"{width:F0}x{height:F0}, ASPECT={aspect.Item1:F2}:{aspect.Item2:F2}, DPI={dpiX:F0}:{dpiY:F0}";
                         Page_SizeChanged(null, null);
                         PreviewWait.Hide();
                     }
