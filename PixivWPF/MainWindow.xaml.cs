@@ -112,6 +112,21 @@ namespace PixivWPF
             }
         }
 
+        public void JumpTo(string id)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(id))
+                {
+                    if (Contents is Pages.TilesPage)
+                    {
+                        Contents.JumpTo(id);
+                    }
+                }
+            }
+            catch (Exception) { }
+        }
+
         public void PrevIllust()
         {
             if (Contents is Pages.TilesPage) Contents.PrevIllust();
@@ -357,13 +372,7 @@ namespace PixivWPF
                 {
                     var contents = item as string;
                     var id = Regex.Replace(contents, @"ID:\s*?(\d+),.*?$", "$1", RegexOptions.IgnoreCase);
-                    if (!string.IsNullOrEmpty(id))
-                    {
-                        if (Contents is Pages.TilesPage)
-                        {
-                            Contents.JumpTo(id);
-                        }
-                    }
+                    JumpTo(id);
                 }
                 RecentsPopup.IsOpen = false;
             }
@@ -456,7 +465,7 @@ namespace PixivWPF
             //var contents = recents.Select(item => $"ID: {item.ID}, {item.Illust.Title}").ToList();
             foreach (var item in recents)
             {
-                RecentsList.Items.Add($"ID: {item.ID}, {item.Illust.Title.Take(32)}");
+                RecentsList.Items.Add($"ID: {item.ID}, {new string(item.Illust.Title.Take(32).ToArray())} ");
             }
             RecentsPopup.IsOpen = true;
         }

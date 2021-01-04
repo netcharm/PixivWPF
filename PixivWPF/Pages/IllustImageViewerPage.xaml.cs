@@ -128,7 +128,12 @@ namespace PixivWPF.Pages
                             dpiX = bmp.DpiX;
                             dpiY = bmp.DpiY;
                         }
-                        PreviewSize.Text = $"{width:F0}x{height:F0}, ASPECT={aspect.Item1:G5}:{aspect.Item2:G5}, DPI={dpiX:F0}:{dpiY:F0}";
+                        PreviewSize.Text = $"{width:F0}x{height:F0}";
+                        StringBuilder sb = new StringBuilder();
+                        sb.AppendLine($"Dimension   = {width:F0} x {height:F0}");
+                        sb.AppendLine($"Aspect Rate = {aspect.Item1:G5} : {aspect.Item2:G5}");
+                        sb.AppendLine($"Resolution  = {dpiX:F0}DPI : {dpiY:F0}DPI");
+                        PreviewSize.ToolTip = sb.ToString().Trim();
                         Page_SizeChanged(null, null);
                         PreviewWait.Hide();
                     }

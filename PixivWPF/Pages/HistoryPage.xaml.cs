@@ -325,6 +325,19 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
+        private void ActionJumpSelected_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var item = HistoryItems.GetSelected(WithSelectionOrder:true).LastOrDefault();
+                if (item.IsWork())
+                {
+                    Application.Current.GetMainWindow().JumpTo(item.ID);
+                }
+            }
+            catch (Exception) { }
+        }
+
         private void ActionSendToOtherInstance_Click(object sender, RoutedEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.None)
@@ -483,5 +496,6 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
         #endregion
+
     }
 }
