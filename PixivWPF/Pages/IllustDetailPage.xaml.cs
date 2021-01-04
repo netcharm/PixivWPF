@@ -891,13 +891,13 @@ namespace PixivWPF.Pages
                 RelativeItemsExpander.Header = "Related Illusts";
                 RelativeItemsExpander.IsExpanded = false;
                 RelativeItemsExpander.Show();
-                RelativeItems.Clear();
+                RelativeItems.ClearAsync();
                 RelativeNextPage.Hide();
 
                 FavoriteItemsExpander.Header = "Author Favorite";
                 FavoriteItemsExpander.IsExpanded = false;
                 FavoriteItemsExpander.Show();
-                FavoriteItems.Clear();
+                FavoriteItems.ClearAsync();
                 FavoriteNextPage.Hide();
 #if DEBUG
                 CommentsExpander.IsExpanded = false;
@@ -1036,7 +1036,7 @@ namespace PixivWPF.Pages
                     IllustDescExpander.Hide();
                 }
 
-                SubIllusts.Clear();
+                SubIllusts.ClearAsync();
                 SubIllustsExpander.IsExpanded = false;
                 SubIllustsExpander.Hide();
                 PreviewBadge.Hide();
@@ -1176,7 +1176,7 @@ namespace PixivWPF.Pages
                 if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
                 if (!append)
                 {
-                    RelativeItems.Clear();
+                    RelativeItems.ClearAsync();
                     relative_illusts.Clear();
                 }
 
@@ -1241,7 +1241,7 @@ namespace PixivWPF.Pages
                 if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
                 if (!append)
                 {
-                    RelativeItems.Clear();
+                    RelativeItems.ClearAsync();
                     relative_illusts.Clear();
                 }
 
@@ -1308,7 +1308,7 @@ namespace PixivWPF.Pages
                 if (!(favorite_illusts is List<long?>)) favorite_illusts = new List<long?>();
                 if (!append)
                 {
-                    FavoriteItems.Clear();
+                    FavoriteItems.ClearAsync();
                     favorite_illusts.Clear();
                 }
 
@@ -1564,15 +1564,6 @@ namespace PixivWPF.Pages
             FavoriteRefresh.MouseOverAction();
             #endregion
 
-            //PreviewWait.ReloadAction = new Action(() => {
-            //    var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
-            //    ActionRefreshPreview(overwrite);
-            //});
-            //AuthorAvatarWait.ReloadAction = new Action(() => {
-            //    var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
-            //    ActionRefreshAvatar(overwrite);
-            //});
-
             if (Contents is PixivItem) UpdateDetail(Contents);
         }
 
@@ -1581,9 +1572,9 @@ namespace PixivWPF.Pages
             try
             {
                 DeleteHtmlRender();
-                SubIllusts.Clear();
-                RelativeItems.Clear();
-                FavoriteItems.Clear();
+                SubIllusts.ClearAsync();
+                RelativeItems.ClearAsync();
+                FavoriteItems.ClearAsync();
                 Preview.Source = null;
             }
             catch (Exception) { }

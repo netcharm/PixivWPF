@@ -85,7 +85,8 @@ namespace PixivWPF.Common
             set { PART_ImageTiles.SelectionMode = value; }
         }
 
-        private ConcurrentDictionary<PixivItem, Grid> ImageList = new ConcurrentDictionary<PixivItem, Grid>();
+        private ConcurrentDictionary<PixivItem, Grid> TileList = new ConcurrentDictionary<PixivItem, Grid>();
+        private ConcurrentDictionary<PixivItem, Image> ImageList = new ConcurrentDictionary<PixivItem, Image>();
         private ObservableCollection<PixivItem> ItemList = new ObservableCollection<PixivItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
@@ -372,36 +373,50 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    for(var i = 0; i < ItemList.Count; i++)
+
+                    for (var i = 0; i < ItemList.Count; i++)
                     {
-                        if (ImageList.ContainsKey(ItemList[i]))
+                        if (ImageList.ContainsKey(ItemList[i]) && TileList.ContainsKey(ItemList[i]))
                         {
-                            var tile = ImageList[ItemList[i]];
-                            var image = tile is Grid ? tile.FindByName<Image>("PART_Thumbnail") : null;
-                            if (image is Image)
+                            var tile = TileList[ItemList[i]];
+                            var image = ImageList[ItemList[i]];
+                            if (tile is Grid && image is Image)
                             {
                                 image.Source = null;
-                                //image.DataContext = null;
-                                image.UpdateLayout();
-                                //tile.Children.Remove(image);
-                                //tile.DataContext = null;
+                                //image.UpdateLayout();
+                                image.DataContext = null;
+                                tile.DataContext = null;
                             }
                         }
                         ItemList[i].State = TaskStatus.Canceled;
                         ItemList[i].Source = null;
                         ItemList[i] = null;
                     }
-                    ItemList.Clear();
                     ImageList.Clear();
+                    TileList.Clear();
+                    PART_ImageTiles.UpdateLayout();
+                    ItemList.Clear();
                 }
                 catch (Exception) { }
                 finally
                 {
+                    double M = 1024.0 * 1024.0;
                     var before = GC.GetTotalMemory(true);
                     GC.Collect();
                     var after = GC.GetTotalMemory(true);
-                    $"Memory Usage: {before} => {after}".DEBUG();
+                    $"Memory Usage: {before / M:F2}M => {after / M:F2}M".DEBUG();
                 }
+            }
+        }
+
+        public async void ClearAsync()
+        {
+            if (ItemList is ObservableCollection<PixivItem>)
+            {
+                await new Action(() =>
+                {
+                    Clear();
+                }).InvokeAsync(true);
             }
         }
 
@@ -504,20 +519,10 @@ namespace PixivWPF.Common
                             image.Source = item.Source;
                             if (image.Source != null)
                             {
-                                ImageList[item] = tile;
+                                ImageList[item] = image;
+                                TileList[item] = tile;
                                 image.Source.Freeze();
                             }
-                        }
-                        else if (ring.State == TaskStatus.Canceled)
-                        {
-                            image.Source = null;
-                            image.UpdateLayout();
-                            tile.DataContext = null;
-                            item.Source = null;
-                        }
-                        else
-                        {
-                            image.Source = null;
                         }
                     }
                     ring.UpdateState();
