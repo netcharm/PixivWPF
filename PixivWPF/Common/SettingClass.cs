@@ -1065,6 +1065,17 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.history_limit = history_limit;
             }
         }
+
+        private int most_recents = 15;
+        public int MostRecents
+        {
+            get { return (Cache is Setting ? Cache.most_recents : most_recents); }
+            set
+            {
+                most_recents = value;
+                if (Cache is Setting) Cache.most_recents = most_recents;
+            }
+        }
         #endregion
 
         #region Viewing relative

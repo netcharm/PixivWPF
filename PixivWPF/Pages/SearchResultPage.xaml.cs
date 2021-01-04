@@ -226,7 +226,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                ResultItems.Items.Clear();
+                ResultItems.Clear();
             }
             catch (Exception) { }
         }
@@ -263,7 +263,7 @@ namespace PixivWPF.Pages
 
                 if (!append)
                 {
-                    ResultItems.Items.Clear();
+                    ResultItems.Clear();
                     id_user.Clear();
                     id_illust.Clear();
                 }

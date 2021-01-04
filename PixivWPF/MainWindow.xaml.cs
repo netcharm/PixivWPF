@@ -210,7 +210,7 @@ namespace PixivWPF
                             {
                                 if (link.StartsWith("down:"))
                                     Commands.SaveIllust.Execute(link.Substring(5));
-                                else if(link.StartsWith("downall:"))
+                                else if (link.StartsWith("downall:"))
                                     Commands.SaveIllustAll.Execute(link.Substring(8));
                                 else
                                     Commands.OpenSearch.Execute(link);
@@ -348,6 +348,27 @@ namespace PixivWPF
             if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
         }
 
+        private void RecentsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count > 0)
+            {
+                var item = e.AddedItems[0];
+                if (item is string)
+                {
+                    var contents = item as string;
+                    var id = Regex.Replace(contents, @"ID:\s*?(\d+),.*?$", "$1", RegexOptions.IgnoreCase);
+                    if (!string.IsNullOrEmpty(id))
+                    {
+                        if (Contents is Pages.TilesPage)
+                        {
+                            Contents.JumpTo(id);
+                        }
+                    }
+                }
+                RecentsPopup.IsOpen = false;
+            }
+        }
+
         private void DatePicker_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
         {
             //if (Contents is Pages.TilesPage && DatePicker.SelectedDate.HasValue && DatePicker.SelectedDate.Value <= DateTime.Now)
@@ -425,6 +446,19 @@ namespace PixivWPF
                 }
             }
             catch { }
+        }
+
+        private void CommandNavRecents_Click(object sender, RoutedEventArgs e)
+        {
+            setting = Application.Current.LoadSetting();
+            var recents = Application.Current.HistoryRecentIllusts(setting.MostRecents);
+            RecentsList.Items.Clear();
+            //var contents = recents.Select(item => $"ID: {item.ID}, {item.Illust.Title}").ToList();
+            foreach (var item in recents)
+            {
+                RecentsList.Items.Add($"ID: {item.ID}, {item.Illust.Title.Take(32)}");
+            }
+            RecentsPopup.IsOpen = true;
         }
 
         private void CommandNavDate_Click(object sender, RoutedEventArgs e)
@@ -760,5 +794,4 @@ namespace PixivWPF
         }
 
     }
-
 }

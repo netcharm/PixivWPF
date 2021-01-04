@@ -1329,6 +1329,8 @@ namespace PixivWPF.Common
                 condition = condition.ToLower();
                 foreach (Window win in Application.Current.Windows)
                 {
+                    var state = win.WindowState;
+                    var active = win.IsActive;
                     try
                     {
                         if (win is ContentWindow)
@@ -1356,14 +1358,17 @@ namespace PixivWPF.Common
                                     MinimizedWindow(win as MetroWindow, detail.Contents, condition);
                             }
                         }
-                        await Task.Delay(1);
-                        DoEvents();
                     }
                     catch (Exception) { continue; }
                     finally
                     {
                         await Task.Delay(1);
                         DoEvents();
+                        if (!active)
+                        {
+                            win.ShowActivated = false;
+                            win.Topmost = false;
+                        }
                     }
                 }
             }).InvokeAsync(true);
@@ -1746,27 +1751,48 @@ namespace PixivWPF.Common
             else return (null);
         }
 
-        public static PixivItem HistoryRecentIllust(this Application app, int num = 0)
+        public static PixivItem HistoryRecentIllust(this Application app, int index = 0)
         {
             if (history.Count > 0)
             {
                 var illusts = history.Where(h => h.IsWork());
-                var index = illusts.Count() > num ? illusts.Count() - num -1 : illusts.Count() - 1;
-                return (index >= 0 ? illusts.Skip(index).Take(1).FirstOrDefault() : null);
+                var idx = illusts.Count() > index ? illusts.Count() - index -1 : illusts.Count() - 1;
+                return (idx >= 0 ? illusts.Skip(idx).Take(1).FirstOrDefault() : null);
             }
             else return (null);
         }
 
-        public static PixivItem HistoryRecentUser(this Application app, int num = 0)
+        public static PixivItem HistoryRecentUser(this Application app, int index = 0)
         {
             if (history.Count > 0)
             {
                 var users = history.Where(h => h.IsUser());
-                var index = users.Count() > num ? users.Count() - num -1 : users.Count() - 1;
-                return (index >= 0 ? users.Skip(index).Take(1).FirstOrDefault() : null);
+                var idx = users.Count() > index ? users.Count() - index -1 : users.Count() - 1;
+                return (idx >= 0 ? users.Skip(idx).Take(1).FirstOrDefault() : null);
             }
             else return (null);
         }
+
+        public static IList<PixivItem> HistoryRecentIllusts(this Application app, int num = 1)
+        {
+            if (history.Count > 0)
+            {
+                var illusts = history.Where(h => h.IsWork());
+                return (illusts.Take(num).ToList());
+            }
+            else return (null);
+        }
+
+        public static IList<PixivItem> HistoryRecentUsers(this Application app, int num = 1)
+        {
+            if (history.Count > 0)
+            {
+                var users = history.Where(h => h.IsUser());
+                return (users.Take(num).ToList());
+            }
+            else return (null);
+        }
+
         #endregion
 
         #region Null Preview/Avatar

@@ -369,7 +369,7 @@ namespace PixivWPF.Common
 
         public void Clear()
         {
-            if (ItemList is ObservableCollection<PixivItem>)
+            if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
             {
                 try
                 {
@@ -406,6 +406,11 @@ namespace PixivWPF.Common
                     var after = GC.GetTotalMemory(true);
                     $"Memory Usage: {before / M:F2}M => {after / M:F2}M".DEBUG();
                 }
+            }
+            else
+            {
+                ImageList.Clear();
+                TileList.Clear();
             }
         }
 

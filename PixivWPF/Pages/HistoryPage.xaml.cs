@@ -101,7 +101,7 @@ namespace PixivWPF.Pages
                 HistoryItems.Wait();
                 if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    HistoryItems.Items.Clear();
+                    HistoryItems.Clear();
                     foreach (var item in Application.Current.HistorySource())
                     {
                         HistoryItems.Items.Add(item);
@@ -243,7 +243,7 @@ namespace PixivWPF.Pages
             try
             {
                 if (CanUpdating is SemaphoreSlim && CanUpdating.CurrentCount == 0) CanUpdating.Release();
-                HistoryItems.Items.Clear();
+                HistoryItems.Clear();
                 foreach (var item in Application.Current.HistorySource())
                 {
                     HistoryItems.Items.Add(item);
@@ -258,7 +258,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                HistoryItems.Items.Clear();
+                HistoryItems.Clear();
             }
             catch (Exception) { }
         }

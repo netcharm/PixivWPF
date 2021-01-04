@@ -128,7 +128,7 @@ namespace PixivWPF.Pages
                             dpiX = bmp.DpiX;
                             dpiY = bmp.DpiY;
                         }
-                        PreviewSize.Text = $"{width:F0}x{height:F0}, ASPECT={aspect.Item1:F2}:{aspect.Item2:F2}, DPI={dpiX:F0}:{dpiY:F0}";
+                        PreviewSize.Text = $"{width:F0}x{height:F0}, ASPECT={aspect.Item1:G5}:{aspect.Item2:G5}, DPI={dpiX:F0}:{dpiY:F0}";
                         Page_SizeChanged(null, null);
                         PreviewWait.Hide();
                     }
@@ -238,7 +238,8 @@ namespace PixivWPF.Pages
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             if (PreviewImage is CustomImageSource) PreviewImage.Source = null;
-            Preview.Source = null;
+            Preview.Dispose();
+            Contents.Source = null;
             this.DataContext = null;
         }
 

@@ -564,7 +564,7 @@ namespace PixivWPF.Common
                             Info.DownRateCurrent = lastRate;
                             Info.DownRateAverage = rateA;
                             Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
-                            //ToolTip = Info.ToolTip;
+                            ToolTip = Info.ToolTip;
                         }
 
                         lastRateA = rateA;
@@ -1322,6 +1322,7 @@ namespace PixivWPF.Common
         {
             if (Info is DownloadInfo)
             {
+                Info.ToolTip = string.Join(Environment.NewLine, Info.GetDownloadInfo());
                 ToolTip = Info.ToolTip;
             }
         }

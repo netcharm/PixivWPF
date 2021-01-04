@@ -277,6 +277,17 @@ namespace PixivWPF.Pages
             return (result);
         }
 
+        public void JumpTo(string id)
+        {
+            var results = ListImageTiles.Items.Where(item => item.ID.Equals(id));
+            if (results.Count() > 0)
+            {
+                var target = results.FirstOrDefault();
+                ListImageTiles.ScrollIntoView(target);
+                ListImageTiles.SelectedItem = target;
+            }
+        }
+
         public void PrevIllust()
         {
             if (this is TilesPage)
