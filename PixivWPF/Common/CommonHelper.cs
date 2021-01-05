@@ -1545,7 +1545,11 @@ namespace PixivWPF.Common
                     {
                         source.Insert(0, illust.WorkItem());
                         var setting = app.LoadSetting();
-                        if (source.Count > setting.HistoryLimit) source.Remove(source.Last());
+                        if (source.Count > setting.HistoryLimit)
+                        {
+                            source.Last().Source = null;
+                            source.Remove(source.Last());
+                        }
                     }
                     HistoryUpdate(app, source);
                 }
@@ -1586,7 +1590,11 @@ namespace PixivWPF.Common
                     {
                         source.Insert(0, user.UserItem());
                         var setting = app.LoadSetting();
-                        if (source.Count > setting.HistoryLimit) source.Remove(source.Last());
+                        if (source.Count > setting.HistoryLimit)
+                        {
+                            source.Last().Source = null;
+                            source.Remove(source.Last());
+                        }
                     }
                     HistoryUpdate(app, source);
                 }

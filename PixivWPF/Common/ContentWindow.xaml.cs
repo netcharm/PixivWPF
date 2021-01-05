@@ -105,20 +105,27 @@ namespace PixivWPF.Common
         {
             try
             {
+                this.WindowState = WindowState.Minimized;
+                //this.Hide();
+
                 if (Content is DownloadManagerPage)
                     (Content as DownloadManagerPage).Pos = new Point(this.Left, this.Top);
                 else if(Content is HistoryPage)
                     (Content as HistoryPage).Pos = new Point(this.Left, this.Top);
 
-                if(Content is Page) (Content as Page).DataContext = null;
-
                 if (Content is IllustDetailPage)
-                {
-                    (Content as IllustDetailPage).IllustAuthorAvatar.Dispose();
-                    (Content as IllustDetailPage).Preview.Dispose();
-                }
+                    (Content as IllustDetailPage).Dispose();
                 else if (Content is IllustImageViewerPage)
-                    (Content as IllustImageViewerPage).Preview.Source = null;
+                    (Content as IllustImageViewerPage).Dispose();
+                else if (Content is HistoryPage)
+                    (Content as HistoryPage).Dispose();
+                else if (Content is SearchResultPage)
+                    (Content as SearchResultPage).Dispose();
+
+                if (Content is Page)
+                {
+                    (Content as Page).DataContext = null;
+                }
 
                 if (Application.Current.GetLoginWindow() != null) e.Cancel = true;
             }
@@ -126,6 +133,8 @@ namespace PixivWPF.Common
             finally
             {
                 Content = null;
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
                 GC.Collect();
             }
         }

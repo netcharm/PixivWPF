@@ -168,6 +168,16 @@ namespace PixivWPF.Pages
             Page_PreviewKeyUp(this, e);
         }
 
+        internal void Dispose()
+        {
+            try
+            {
+                ResultItems.Clear();
+                Contents = null;
+            }
+            catch (Exception) { }
+        }
+
         public SearchResultPage()
         {
             InitializeComponent();
@@ -224,11 +234,7 @@ namespace PixivWPF.Pages
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                ResultItems.Clear();
-            }
-            catch (Exception) { }
+            Dispose();
         }
 
         private void Page_PreviewKeyUp(object sender, KeyEventArgs e)

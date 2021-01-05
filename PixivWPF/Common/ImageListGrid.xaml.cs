@@ -85,8 +85,9 @@ namespace PixivWPF.Common
             set { PART_ImageTiles.SelectionMode = value; }
         }
 
-        private ConcurrentDictionary<PixivItem, Grid> TileList = new ConcurrentDictionary<PixivItem, Grid>();
-        private ConcurrentDictionary<PixivItem, Image> ImageList = new ConcurrentDictionary<PixivItem, Image>();
+        //private ConcurrentDictionary<PixivItem, Grid> TileList = new ConcurrentDictionary<PixivItem, Grid>();
+        //private ConcurrentDictionary<PixivItem, Image> ImageList = new ConcurrentDictionary<PixivItem, Image>();
+        private ConcurrentDictionary<PixivItem, Canvas> CanvasList = new ConcurrentDictionary<PixivItem, Canvas>();
         private ObservableCollection<PixivItem> ItemList = new ObservableCollection<PixivItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
@@ -319,10 +320,11 @@ namespace PixivWPF.Common
         {
             InitializeComponent();
 
-            DataContext = this;
+            //DataContext = this;
 
             cancelTokenSource = new CancellationTokenSource();
 
+            ItemList.Clear();
             PART_ImageTiles.ItemsSource = ItemList;
         }
 
@@ -367,37 +369,56 @@ namespace PixivWPF.Common
             //CollectionViewSource.GetDefaultView(this).Refresh();
         }
 
-        public void Clear()
+        public void Clear(bool batch = true)
         {
             if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
             {
                 try
                 {
-
                     for (var i = 0; i < ItemList.Count; i++)
                     {
-                        if (ImageList.ContainsKey(ItemList[i]) && TileList.ContainsKey(ItemList[i]))
+                        if (CanvasList.ContainsKey(ItemList[i]))
                         {
-                            var tile = TileList[ItemList[i]];
-                            var image = ImageList[ItemList[i]];
-                            if (tile is Grid && image is Image)
+                            var canvas = CanvasList[ItemList[i]];
+                            canvas.Background = null;
+                            canvas.UpdateLayout();
+                            if (!batch)
                             {
-                                image.Source = null;
-                                //image.UpdateLayout();
-                                image.DataContext = null;
-                                tile.DataContext = null;
+                                canvas.UpdateLayout();
+                                this.DoEvents();
                             }
                         }
-                        ItemList[i].State = TaskStatus.Canceled;
-                        ItemList[i].Source = null;
-                        ItemList[i] = null;
+                        //if (ImageList.ContainsKey(ItemList[i]) && TileList.ContainsKey(ItemList[i]))
+                        //{
+                        //    var tile = TileList[ItemList[i]];
+                        //    var image = ImageList[ItemList[i]];
+                        //    if (tile is Grid && image is Image)
+                        //    {
+                        //        image.Source = null;
+                        //        if (!batch)
+                        //        {
+                        //            image.UpdateLayout();
+                        //            this.DoEvents();
+                        //        }
+                        //        image.DataContext = null;
+                        //        tile.DataContext = null;
+                        //    }
+                        //}
+                        //ItemList[i].State = TaskStatus.Canceled;
+                        //ItemList[i].Source = null;
+                        //ItemList[i] = null;
                     }
-                    ImageList.Clear();
-                    TileList.Clear();
-                    PART_ImageTiles.UpdateLayout();
+                    CanvasList.Clear();
+                    //ImageList.Clear();
+                    //TileList.Clear();
+                    if (batch)
+                    {
+                        PART_ImageTiles.UpdateLayout();
+                        this.DoEvents();
+                    }
                     ItemList.Clear();
                 }
-                catch (Exception) { }
+                catch (Exception ex) { ex.Message.DEBUG(); }
                 finally
                 {
                     double M = 1024.0 * 1024.0;
@@ -409,18 +430,20 @@ namespace PixivWPF.Common
             }
             else
             {
-                ImageList.Clear();
-                TileList.Clear();
+                //ImageList.Clear();
+                //TileList.Clear();
+                CanvasList.Clear();
+                ItemList.Clear();
             }
         }
 
-        public async void ClearAsync()
+        public async void ClearAsync(bool batch = true)
         {
             if (ItemList is ObservableCollection<PixivItem>)
             {
                 await new Action(() =>
                 {
-                    Clear();
+                    Clear(batch);
                 }).InvokeAsync(true);
             }
         }
@@ -475,6 +498,21 @@ namespace PixivWPF.Common
             }
         }
 
+        private async void RenderCanvas(Canvas canvas, ImageSource source)
+        {
+            if (canvas is Canvas)
+            {
+                await new Action(() =>
+                {
+                    var bg = new ImageBrush(source);
+                    bg.Stretch = Stretch.Uniform;
+                    bg.TileMode = TileMode.None;
+                    bg.Freeze();
+                    canvas.Background = bg;
+                }).InvokeAsync(true);
+            }
+        }
+
         public async void UpdateTilesImage(bool overwrite = false, int parallel = 5, SemaphoreSlim updating_semaphore = null)
         {
             Application.Current.DoEvents();
@@ -517,19 +555,28 @@ namespace PixivWPF.Common
                     var tile = ring.Parent is Grid ? ring.Parent as Grid : null;
                     var item = tile is Grid && tile.DataContext is PixivItem ? tile.DataContext as PixivItem : null;
                     var image = tile is Grid ? tile.FindByName<Image>("PART_Thumbnail") : null;
-                    if (image is Image && item is PixivItem)
+                    var canvas = tile is Grid ? tile.FindByName<Canvas>("PART_ThumbnailCanvas") : null;
+                    if (canvas is Canvas && item is PixivItem)
                     {
                         if (ring.State == TaskStatus.RanToCompletion)
                         {
-                            image.Source = item.Source;
-                            if (image.Source != null)
-                            {
-                                ImageList[item] = image;
-                                TileList[item] = tile;
-                                image.Source.Freeze();
-                            }
+                            RenderCanvas(canvas, item.Source);
+                            CanvasList[item] = canvas;
                         }
                     }
+                    //if (image is Image && item is PixivItem)
+                    //{
+                    //    if (ring.State == TaskStatus.RanToCompletion)
+                    //    {
+                    //        image.Source = item.Source;
+                    //        if (image.Source != null)
+                    //        {
+                    //            ImageList[item] = image;
+                    //            TileList[item] = tile;
+                    //            image.Source.Freeze();
+                    //        }
+                    //    }
+                    //}
                     ring.UpdateState();
                 }
                 catch (Exception) { }
@@ -545,6 +592,16 @@ namespace PixivWPF.Common
         private void RaisePropertyChanged(string propertyName)
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void PART_Thumbnail_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if(sender is Image)
+            {
+                var image = sender as Image;
+                image.Source = null;
+                //image.UpdateLayout();
+            }
         }
     }
 }

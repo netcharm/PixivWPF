@@ -99,13 +99,11 @@ namespace PixivWPF.Pages
             try
             {
                 HistoryItems.Wait();
-                if (Keyboard.Modifiers == ModifierKeys.Control)
+                if (HistoryItems.ItemsCount <= 0 || Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     HistoryItems.Clear();
-                    foreach (var item in Application.Current.HistorySource())
-                    {
-                        HistoryItems.Items.Add(item);
-                    }
+                    Application.Current.DoEvents();
+                    HistoryItems.Items.AddRange(Application.Current.HistorySource());
                     Application.Current.DoEvents();
                 }
                 else
@@ -225,6 +223,16 @@ namespace PixivWPF.Pages
             Page_PreviewKeyUp(this, e);
         }
 
+        internal void Dispose()
+        {
+            try
+            {
+                HistoryItems.Clear();
+                Contents = null;
+            }
+            catch (Exception) { }
+        }
+
         public HistoryPage()
         {
             InitializeComponent();
@@ -243,12 +251,6 @@ namespace PixivWPF.Pages
             try
             {
                 if (CanUpdating is SemaphoreSlim && CanUpdating.CurrentCount == 0) CanUpdating.Release();
-                HistoryItems.Clear();
-                foreach (var item in Application.Current.HistorySource())
-                {
-                    HistoryItems.Items.Add(item);
-                }
-                Application.Current.DoEvents();
                 UpdateDetail();
             }
             catch (Exception) { }
@@ -258,7 +260,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                HistoryItems.Clear();
+                Dispose();
             }
             catch (Exception) { }
         }

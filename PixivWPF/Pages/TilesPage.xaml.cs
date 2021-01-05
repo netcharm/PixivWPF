@@ -286,6 +286,12 @@ namespace PixivWPF.Pages
                 ListImageTiles.ScrollIntoView(target);
                 ListImageTiles.SelectedItem = target;
             }
+            else
+            {
+                var illust = id.FindIllust();
+                if (illust is Pixeez.Objects.Work)
+                    Commands.OpenWork.Execute(illust);
+            }
         }
 
         public void PrevIllust()

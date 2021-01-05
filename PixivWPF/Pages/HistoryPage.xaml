@@ -48,7 +48,7 @@
             <MenuItem x:Uid="ActionJumpIllust" Header="Jump Selected Illust" Click="ActionJumpSelected_Click" >
                 <MenuItem.Icon>
                     <TextBlock 
-                        Text="&#xF739;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Text="&#xE823;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>

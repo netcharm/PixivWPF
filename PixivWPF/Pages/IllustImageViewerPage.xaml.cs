@@ -207,6 +207,18 @@ namespace PixivWPF.Pages
             Page_PreviewKeyUp(Preview, e);
         }
 
+        internal void Dispose()
+        {
+            try
+            {
+                Preview.Dispose();
+                if (PreviewImage is CustomImageSource) PreviewImage.Source = null;
+                Contents.Source = null;
+                this.DataContext = null;
+            }
+            catch (Exception) { }
+        }
+
         public IllustImageViewerPage()
         {
             InitializeComponent();
@@ -242,10 +254,7 @@ namespace PixivWPF.Pages
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            if (PreviewImage is CustomImageSource) PreviewImage.Source = null;
-            Preview.Dispose();
-            Contents.Source = null;
-            this.DataContext = null;
+            Dispose();
         }
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)

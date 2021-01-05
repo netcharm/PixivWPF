@@ -1525,6 +1525,21 @@ namespace PixivWPF.Pages
             Page_KeyUp(this, e);
         }
 
+        internal void Dispose()
+        {
+            try
+            {
+                DeleteHtmlRender();
+                IllustAuthorAvatar.Dispose();
+                Preview.Dispose();
+                SubIllusts.Clear();
+                RelativeItems.Clear();
+                FavoriteItems.Clear();
+                Contents.Source = null;
+            }
+            catch (Exception) { }
+        }
+
         public IllustDetailPage()
         {
             InitializeComponent();
@@ -1569,18 +1584,7 @@ namespace PixivWPF.Pages
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                DeleteHtmlRender();
-                IllustAuthorAvatar.Dispose();
-                Preview.Dispose();
-                SubIllusts.Clear();
-                RelativeItems.Clear();
-                FavoriteItems.Clear();
-                Preview.Source = null;
-                Contents.Source = null;
-            }
-            catch (Exception) { }
+            Dispose();
         }
 
         private long lastKeyUp = Environment.TickCount;
