@@ -272,7 +272,7 @@ namespace PixivWPF.Common
                 {
                     if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Show();
 
-                    var img = await ThumbnailUrl.LoadImageFromUrl(overwrite);
+                    var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultThumbSize());
                     if (img.Source != null)
                     {
                         Thumbnail = img.Source;

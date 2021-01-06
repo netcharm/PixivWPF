@@ -2340,7 +2340,7 @@ namespace PixivWPF.Pages
 
                         var c_item = Contents;
                         AvatarImageUrl = Contents.User.GetAvatarUrl();
-                        var img =  await AvatarImageUrl.LoadImageFromUrl(overwrite);
+                        var img =  await AvatarImageUrl.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultAvatarSize());
                         if (c_item.IsSameIllust(Contents))
                         {
                             if (img.Source != null)

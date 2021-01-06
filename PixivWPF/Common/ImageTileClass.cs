@@ -827,7 +827,7 @@ namespace PixivWPF.Common
                                         if (item.Source == null || overwrite)
                                         {
                                             item.State = TaskStatus.Running;
-                                            var img = await item.Thumb.LoadImageFromUrl(overwrite);
+                                            var img = await item.Thumb.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultThumbSize());
                                             if (item.Source == null) item.Source = img.Source;
                                             if(item.Source is ImageSource)
                                                 item.State = TaskStatus.RanToCompletion;
@@ -850,7 +850,7 @@ namespace PixivWPF.Common
                                     {
                                         if (item.Source == null && item.Thumb.IsCached())
                                         {
-                                            var thumb = item.Thumb.GetImageCachePath().LoadImageFromFile();
+                                            var thumb = item.Thumb.GetImageCachePath().LoadImageFromFile(new Size(128, 128));
                                             item.Source = thumb.Source;
                                             thumb.Source = null;
                                             thumb = null;

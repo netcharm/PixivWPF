@@ -380,6 +380,7 @@ namespace PixivWPF.Common
                         if (CanvasList.ContainsKey(ItemList[i]))
                         {
                             var canvas = CanvasList[ItemList[i]];
+                            //(canvas.Background as ImageBrush).ImageSource = null;
                             canvas.Background = null;
                             canvas.UpdateLayout();
                             if (!batch)

@@ -1803,7 +1803,7 @@ namespace PixivWPF.Common
 
         #endregion
 
-        #region Null Preview/Avatar
+        #region Default Preview/Avatar
         private static WriteableBitmap NullPreview = null;
         private static WriteableBitmap NullAvatar = null;
 
@@ -1823,6 +1823,18 @@ namespace PixivWPF.Common
                 NullAvatar = new WriteableBitmap(64, 64, DPI.Default.X, DPI.Default.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
             }
             return (NullAvatar);
+        }
+
+        public static Size DefaultThumbSize { get; set; } = new Size(128, 128);
+        public static Size GetDefaultThumbSize(this Application app)
+        {
+            return (DefaultThumbSize);
+        }
+
+        public static Size DefaultAvatarSize { get; set; } = new Size(64, 64);
+        public static Size GetDefaultAvatarSize(this Application app)
+        {
+            return (DefaultAvatarSize);
         }
         #endregion
 
@@ -3406,7 +3418,7 @@ namespace PixivWPF.Common
             return result;
         }
 
-        public static ImageSource ToImageSource(this Stream stream)
+        public static ImageSource ToImageSource(this Stream stream, Size size=default(Size))
         {
             setting = Application.Current.LoadSetting();
             BitmapSource result = null;
@@ -3414,6 +3426,11 @@ namespace PixivWPF.Common
             {
                 var bmp = new BitmapImage();
                 bmp.BeginInit();
+                if (!size.Equals(default(Size)) && size.Width >= 0 && size.Height >= 0)
+                {
+                    bmp.DecodePixelWidth = (int)size.Width;
+                    bmp.DecodePixelHeight = (int)size.Height;
+                }
                 bmp.CacheOption = BitmapCacheOption.OnLoad;
                 bmp.CreateOptions = BitmapCreateOptions.None;
                 bmp.StreamSource = stream;
@@ -4248,37 +4265,37 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static CustomImageSource LoadImageFromFile(this string file)
+        public static CustomImageSource LoadImageFromFile(this string file, Size size = default(Size))
         {
             CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
                 using (Stream stream = new MemoryStream(File.ReadAllBytes(file)))
                 {
-                    result.Source = stream.ToImageSource();
+                    result.Source = stream.ToImageSource(size);
                     result.SourcePath = file;
                 }
             }
             return (result);
         }
 
-        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false)
+        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size=default(Size))
         {
             CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
-                result = await cache.GetImage(url, overwrite, login);
+                result = await cache.GetImage(url, overwrite, login, size);
             }
             return (result);
         }
 
-        public static async Task<CustomImageSource> LoadImageFromUri(this Uri uri, bool overwrite = false, Pixeez.Tokens tokens = null)
+        public static async Task<CustomImageSource> LoadImageFromUri(this Uri uri, bool overwrite = false, Pixeez.Tokens tokens = null, Size size = default(Size))
         {
             CustomImageSource result = new CustomImageSource();
             if (uri.IsUnc || uri.IsFile)
-                result = LoadImageFromFile(uri.LocalPath);
+                result = LoadImageFromFile(uri.LocalPath, size);
             else if (!(uri.IsLoopback || uri.IsAbsoluteUri))
-                result = await LoadImageFromUrl(uri.OriginalString, overwrite, false);
+                result = await LoadImageFromUrl(uri.OriginalString, overwrite, false, size);
             return (result);
         }
 
@@ -4587,12 +4604,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> ToImageSource(this Pixeez.AsyncResponse response)
+        public static async Task<ImageSource> ToImageSource(this Pixeez.AsyncResponse response, Size size = default(Size))
         {
             ImageSource result = null;
             using (var stream = await response.GetResponseStreamAsync())
             {
-                result = stream.ToImageSource();
+                result = stream.ToImageSource(size);
             }
             return (result);
         }
