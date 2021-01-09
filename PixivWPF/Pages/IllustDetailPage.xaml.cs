@@ -13,6 +13,8 @@ using System.Windows.Media;
 using MahApps.Metro.IconPacks;
 using PixivWPF.Common;
 using System.Windows.Interop;
+using System.Windows.Controls.Primitives;
+using System.Windows.Shapes;
 
 namespace PixivWPF.Pages
 {
@@ -24,6 +26,8 @@ namespace PixivWPF.Pages
         private Setting setting = Application.Current.LoadSetting();
 
         public PixivItem Contents { get; set; } = null;
+
+        private Popup PreviewPopup = null;
 
         private const int PAGE_ITEMS = 30;
         private int page_count = 0;
@@ -1579,6 +1583,12 @@ namespace PixivWPF.Pages
             FavoriteRefresh.MouseOverAction();
             #endregion
 
+            try
+            {
+                PreviewPopup = (Popup)FindResource("PreviewPopup");
+            }
+            catch (Exception) { }
+
             if (Contents is PixivItem) UpdateDetail(Contents);
         }
 
@@ -2613,6 +2623,8 @@ namespace PixivWPF.Pages
         {
             try
             {
+                setting = Application.Current.LoadSetting();
+
                 if (e.ClickCount >= 2)
                 {
                     if (SubIllusts.Items.Count() <= 0)
@@ -2635,6 +2647,11 @@ namespace PixivWPF.Pages
                 else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
                 {
                     NextIllustPage();
+                    e.Handled = true;
+                }
+                else
+                {
+                    if (setting.EnabledMiniToolbar && PreviewPopup is Popup) PreviewPopup.IsOpen = true;
                     e.Handled = true;
                 }
             }
@@ -3680,6 +3697,55 @@ namespace PixivWPF.Pages
         }
 
         #endregion
+
+        private void PreviewPopup_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button)
+            {
+                var icon = e.Source as dynamic;
+                int _row = (int)icon.GetValue(Grid.RowProperty);
+                int _col = (int)icon.GetValue(Grid.ColumnProperty);
+                if (_row == 0 && _col == 0)
+                {
+                    ActionIllustInfo_Click(PreviewCopyIllustID, e);
+                }
+                else if (_row == 0 && _col == 1)
+                {
+                    ActionSaveIllust_Click(PreviewSave, e);
+                }
+                else if (_row == 0 && _col == 2)
+                {
+                    ActionIllustInfo_Click(PreviewCopyImage, e);
+                }
+                else if (_row == 1 && _col == 0)
+                {
+                    ActionOpenIllust_Click(PreviewOpen, e);
+                }
+                else if (_row == 1 && _col == 1)
+                {
+
+                }
+                else if (_row == 1 && _col == 2)
+                {
+                    ActionOpenIllust_Click(PreviewCacheOpen, e);
+                }
+                else if (_row == 2 && _col == 0)
+                {
+                    ActionSendToOtherInstance_Click(PreviewSendIllustToInstance, e);
+                }
+                else if (_row == 2 && _col == 1)
+                {
+                    ActionOpenIllust_Click(PreviewOpenDownloaded, e);
+                }
+                else if (_row == 2 && _col == 2)
+                {
+                    ActionSendToOtherInstance_Click(PreviewSendAuthorToInstance, e);
+                }
+
+                if (PreviewPopup is Popup) PreviewPopup.IsOpen = false;
+                e.Handled = true;
+            }
+        }
 
     }
 

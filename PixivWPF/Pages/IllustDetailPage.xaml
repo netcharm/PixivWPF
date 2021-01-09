@@ -213,6 +213,77 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
+
+        <Popup x:Name="PreviewPopup" x:Uid="PreviewPopup" x:Key="PreviewPopup" 
+               Placement="MousePoint" StaysOpen="False" AllowsTransparency="True" 
+               HorizontalOffset="78" VerticalOffset="-64" 
+               Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center" >
+            <Grid >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Rectangle Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Grid.RowSpan="3" 
+                           Opacity="0.10"
+                           Stroke="{DynamicResource MahApps.Brushes.Accent}"
+                           Fill="{DynamicResource MahApps.Brushes.Menu.Background}"/>
+                <Button Grid.Column="0" Grid.Row="0" Margin="4" 
+                        Background="Transparent" Click="PreviewPopup_Click">
+                    <iconPacks:PackIconModern
+                        Kind="ClipboardVariantText" Width="24" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                </Button>
+                <Button Grid.Column="2" Grid.Row="0" Margin="4" 
+                        Background="Transparent" Click="PreviewPopup_Click">
+                    <iconPacks:PackIconModern 
+                        Kind="ClipboardVariant" Width="24" Height="24"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                </Button>
+                <Button Grid.Column="0" Grid.Row="2" Margin="4" 
+                        Background="Transparent" Click="PreviewPopup_Click">
+                    <iconPacks:PackIconModern 
+                        Kind="MessageSend" Width="24" Height="24"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                </Button>
+                <Button Grid.Column="2" Grid.Row="2" Margin="4" 
+                        Background="Transparent" Click="PreviewPopup_Click">
+                    <iconPacks:PackIconModern 
+                        Kind="MessageSend" Width="24" Height="24"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                </Button>
+                <Button Grid.Column="0" Grid.Row="1" Margin="4" 
+                        Background="Transparent" Click="PreviewPopup_Click">
+                    <TextBlock 
+                           Text="&#xE158;" FontSize="24" FontFamily="Segoe MDL2 Assets" 
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Button>
+                <Button Grid.Column="2" Grid.Row="1" Margin="4" 
+                        Background="Transparent" Click="PreviewPopup_Click">
+                    <iconPacks:PackIconModern 
+                        Kind="Image" Width="24" Height="24"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                </Button>
+                <Button Grid.Column="1" Grid.Row="0" Margin="4" 
+                        Background="Transparent" Click="PreviewPopup_Click">
+                    <iconPacks:PackIconModern 
+                        Kind="Save" Width="24" Height="24"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                </Button>
+                <Button Grid.Column="1" Grid.Row="2" Margin="4" 
+                        Background="Transparent" Click="PreviewPopup_Click">
+                    <iconPacks:PackIconModern 
+                        Kind="Download" Width="24" Height="24"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                </Button>
+            </Grid>
+        </Popup>
     </Page.Resources>
     
     <Grid>

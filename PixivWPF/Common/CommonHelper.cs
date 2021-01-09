@@ -135,6 +135,9 @@ namespace PixivWPF.Common
     #region DPI Helper
     public class DPI
     {
+        public double ScaleX { get; } = 1.0;
+        public double ScaleY { get; } = 1.0;
+
         public double X { get; } = 96.0;
         public double Y { get; } = 96.0;
 
@@ -154,6 +157,8 @@ namespace PixivWPF.Common
         public DPI()
         {
             var dpi = BySystemParameters();
+            ScaleX = dpi.ScaleX;
+            ScaleY = dpi.ScaleY;
             X = dpi.X;
             Y = dpi.Y;
             X15 = X * 1.5;
@@ -162,8 +167,10 @@ namespace PixivWPF.Common
             Y20 = Y * 2.0;
         }
 
-        public DPI(double x, double y)
+        public DPI(double x, double y, double scale_x = 1.0, double scale_y = 1.0)
         {
+            ScaleX = scale_x;
+            ScaleY = scale_y;
             X = x;
             Y = y;
             X15 = X * 1.5;
@@ -176,7 +183,9 @@ namespace PixivWPF.Common
         {
             try
             {
-                dpi = FromVisual(visual);
+                dpi = GetDefault(visual);
+                ScaleX = dpi.ScaleX;
+                ScaleY = dpi.ScaleY;
                 X = dpi.X;
                 Y = dpi.Y;
                 X15 = X * 1.5;
@@ -187,16 +196,20 @@ namespace PixivWPF.Common
             catch (Exception) { }
         }
 
-        public static void GetDefault(Visual visual)
+        public static DPI GetDefault(Visual visual)
         {
+            var result = new DPI();
             try
             {
                 var ds = VisualTreeHelper.GetDpi(visual);
                 var x = ds.PixelsPerInchX;
                 var y = ds.PixelsPerInchY;
-                dpi = new DPI(x, y);
+                var sx = ds.DpiScaleX;
+                var sy = ds.DpiScaleY;
+                dpi = new DPI(x, y, sx, sy);
             }
             catch (Exception) { }
+            return (result);
         }
 
         public static DPI FromVisual(Visual visual)
@@ -204,16 +217,20 @@ namespace PixivWPF.Common
             var source = PresentationSource.FromVisual(visual);
             var dpiX = 96.0;
             var dpiY = 96.0;
+            var scaleX = 1.0;
+            var scaleY = 1.0;
             try
             {
                 if (source?.CompositionTarget != null)
                 {
-                    dpiX = 96.0 * source.CompositionTarget.TransformToDevice.M11;
-                    dpiY = 96.0 * source.CompositionTarget.TransformToDevice.M22;
+                    scaleX = source.CompositionTarget.TransformToDevice.M11;
+                    scaleY = source.CompositionTarget.TransformToDevice.M22;
+                    dpiX = 96.0 * scaleX;
+                    dpiY = 96.0 * scaleY;
                 }
             }
             catch (Exception) { }
-            return new DPI(dpiX, dpiY);
+            return new DPI(dpiX, dpiY, scaleX, scaleY);
         }
 
         public static DPI BySystemParameters()
@@ -224,13 +241,15 @@ namespace PixivWPF.Common
             var dpiYProperty = typeof(SystemParameters).GetProperty("Dpi", flags);
             var dpiX = 96.0;
             var dpiY = 96.0;
+            var scaleX = 1.0;
+            var scaleY = 1.0;
             try
             {
                 if (dpiXProperty != null) { dpiX = (int)dpiXProperty.GetValue(null, null); }
                 if (dpiYProperty != null) { dpiY = (int)dpiYProperty.GetValue(null, null); }
             }
             catch (Exception) { }
-            return new DPI(dpiX, dpiY);
+            return new DPI(dpiX, dpiY, scaleX, scaleY);
         }
     }
     #endregion
@@ -1547,7 +1566,9 @@ namespace PixivWPF.Common
                         var setting = app.LoadSetting();
                         if (source.Count > setting.HistoryLimit)
                         {
+                            source.Last().State = TaskStatus.Canceled;
                             source.Last().Source = null;
+                            Application.Current.DoEvents();
                             source.Remove(source.Last());
                         }
                     }
@@ -1592,7 +1613,9 @@ namespace PixivWPF.Common
                         var setting = app.LoadSetting();
                         if (source.Count > setting.HistoryLimit)
                         {
+                            source.Last().State = TaskStatus.Canceled;
                             source.Last().Source = null;
+                            Application.Current.DoEvents();
                             source.Remove(source.Last());
                         }
                     }
@@ -1636,7 +1659,13 @@ namespace PixivWPF.Common
                     {
                         source.Insert(0, item);
                         var setting = app.LoadSetting();
-                        if (source.Count > setting.HistoryLimit) source.Remove(source.Last());
+                        if (source.Count > setting.HistoryLimit)
+                        {
+                            source.Last().State = TaskStatus.Canceled;
+                            source.Last().Source = null;
+                            Application.Current.DoEvents();
+                            source.Remove(source.Last());
+                        }
                     }
                     HistoryUpdate(app, source);
                 }
@@ -1749,12 +1778,12 @@ namespace PixivWPF.Common
             return (history);
         }
 
-        public static PixivItem HistoryRecent(this Application app, int num = 0)
+        public static PixivItem HistoryRecent(this Application app, int index = 0)
         {
             if (history.Count > 0)
             {
-                var index = history.Count > num ? history.Count - num -1 : history.Count - 1;
-                return (index >= 0 ? history.Skip(index).Take(1).FirstOrDefault() : null);
+                var idx = history.Count > index ? history.Count - index -1 : history.Count - 1;
+                return (idx >= 0 ? history.Skip(idx).Take(1).FirstOrDefault() : null);
             }
             else return (null);
         }
@@ -1781,6 +1810,16 @@ namespace PixivWPF.Common
             else return (null);
         }
 
+        public static IList<PixivItem> HistoryRecents(this Application app, int num = 1)
+        {
+            if (history.Count > 0)
+            {
+                var recents = history.Where(h => h.IsWork()||h.IsUser());
+                return (recents.Take(num).ToList());
+            }
+            else return (null);
+        }
+
         public static IList<PixivItem> HistoryRecentIllusts(this Application app, int num = 1)
         {
             if (history.Count > 0)
@@ -1800,7 +1839,6 @@ namespace PixivWPF.Common
             }
             else return (null);
         }
-
         #endregion
 
         #region Default Preview/Avatar
@@ -3421,6 +3459,8 @@ namespace PixivWPF.Common
         public static ImageSource ToImageSource(this Stream stream, Size size=default(Size))
         {
             setting = Application.Current.LoadSetting();
+            var dpi = DPI.Default;
+
             BitmapSource result = null;
             try
             {
@@ -3428,8 +3468,8 @@ namespace PixivWPF.Common
                 bmp.BeginInit();
                 if (!size.Equals(default(Size)) && size.Width >= 0 && size.Height >= 0)
                 {
-                    bmp.DecodePixelWidth = (int)size.Width;
-                    bmp.DecodePixelHeight = (int)size.Height;
+                    bmp.DecodePixelWidth = (int)Math.Ceiling(size.Width * dpi.ScaleX);
+                    bmp.DecodePixelHeight = (int)Math.Ceiling(size.Height * dpi.ScaleY);
                 }
                 bmp.CacheOption = BitmapCacheOption.OnLoad;
                 bmp.CreateOptions = BitmapCreateOptions.None;
@@ -3463,7 +3503,6 @@ namespace PixivWPF.Common
                 {
                     try
                     {
-                        var dpi = DPI.Default;
                         if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
                         //if (result.DpiX > dpi.X15 || result.DpiY > dpi.Y15)
                         {

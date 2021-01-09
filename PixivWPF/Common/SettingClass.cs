@@ -1166,6 +1166,17 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.smart_mouse_response = smart_mouse_response;
             }
         }
+
+        private bool enabled_mini_toolbar = true;
+        public bool EnabledMiniToolbar
+        {
+            get { return (Cache is Setting ? Cache.enabled_mini_toolbar : enabled_mini_toolbar); }
+            set
+            {
+                enabled_mini_toolbar = value;
+                if (Cache is Setting) Cache.enabled_mini_toolbar = enabled_mini_toolbar;
+            }
+        }
         #endregion
 
         #region Favorite/Follow relative

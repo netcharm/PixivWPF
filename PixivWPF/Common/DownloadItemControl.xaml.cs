@@ -774,7 +774,7 @@ namespace PixivWPF.Common
                             }
                             else if(State != DownloadState.Downloading)
                             {
-                                throw new Exception($"Download {Path.GetFileName(FileName)} finished, but state error!");
+                                throw new Exception($"Download {Path.GetFileName(FileName)} finished, but state[{State}] error!");
                             }
                         }
                     }
@@ -878,7 +878,7 @@ namespace PixivWPF.Common
                             }
                             else if (State != DownloadState.Downloading)
                             {
-                                throw new Exception($"Download {Path.GetFileName(FileName)} finished, but state error!");
+                                throw new Exception($"Download {Path.GetFileName(FileName)} finished, but state[{State}] error!");
                             }
                         }
                     }

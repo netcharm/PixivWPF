@@ -564,6 +564,12 @@ namespace PixivWPF.Common
                             RenderCanvas(canvas, item.Source);
                             CanvasList[item] = canvas;
                         }
+                        else if (ring.State == TaskStatus.Canceled)
+                        {
+                            if (CanvasList.ContainsKey(item)) CanvasList.TryRemove(item, out canvas);
+                            canvas.Background = null;
+                            canvas.UpdateLayout();
+                        }
                     }
                     //if (image is Image && item is PixivItem)
                     //{
