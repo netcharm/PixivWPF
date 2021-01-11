@@ -28,6 +28,7 @@ namespace PixivWPF.Pages
         public PixivItem Contents { get; set; } = null;
 
         private Popup PreviewPopup = null;
+        private System.Timers.Timer PreviewPopupTimer = new System.Timers.Timer() { AutoReset = true, Enabled = false, Interval=5000 };
 
         private const int PAGE_ITEMS = 30;
         private int page_count = 0;
@@ -1533,6 +1534,9 @@ namespace PixivWPF.Pages
         {
             try
             {
+                PreviewPopupTimer.Stop();
+                PreviewPopupTimer.Dispose();
+
                 DeleteHtmlRender();
                 IllustAuthorAvatar.Dispose();
                 Preview.Dispose();
@@ -1586,6 +1590,16 @@ namespace PixivWPF.Pages
             try
             {
                 PreviewPopup = (Popup)FindResource("PreviewPopup");
+                if(PreviewPopup is Popup)
+                {
+                    var buttons = PreviewPopup.GetChildren<Button>();
+                    foreach (var button in buttons)
+                        button.MouseOverAction();
+
+                    PreviewPopupTimer.Elapsed += PreviewPopupTimer_Elapsed;
+                    PreviewPopupTimer.Enabled = true;
+                    PreviewPopupTimer.Start();
+                }
             }
             catch (Exception) { }
 
@@ -1758,6 +1772,12 @@ namespace PixivWPF.Pages
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             var change_illust = Keyboard.Modifiers == ModifierKeys.Shift;
+            if(PreviewPopup is Popup && PreviewPopup.IsOpen && e.LeftButton != MouseButtonState.Pressed)
+            {
+                PreviewPopup.IsOpen = false;
+                PreviewPopupTimer.Stop();
+            }
+
             if (change_illust && !(Parent is Frame))
             {
                 if (e.XButton1 == MouseButtonState.Pressed)
@@ -2078,6 +2098,101 @@ namespace PixivWPF.Pages
         }
         #endregion
 
+        #region Preview Popup
+        private async void PreviewPopupTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            try
+            {
+                if (PreviewPopup is Popup)
+                {
+                    await new Action(() =>
+                    {
+                        if (PreviewPopup.IsMouseDirectlyOver)
+                        {
+                            PreviewPopupTimer.Stop();
+                            PreviewPopupTimer.Start();
+                        }
+                        else
+                        {
+                            PreviewPopup.IsOpen = false;
+                            PreviewPopupTimer.Stop();
+                        }
+                    }).InvokeAsync(true);
+                }
+            }
+            catch (Exception) { }
+        }
+
+        private void PreviewPopup_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button)
+            {
+                var icon = e.Source as dynamic;
+                int _row = (int)icon.GetValue(Grid.RowProperty);
+                int _col = (int)icon.GetValue(Grid.ColumnProperty);
+                if (_row == 0 && _col == 0)
+                {
+                    ActionIllustInfo_Click(PreviewCopyIllustID, e);
+                }
+                else if (_row == 0 && _col == 1)
+                {
+                    ActionOpenIllust_Click(PreviewOpenDownloaded, e);
+                }
+                else if (_row == 0 && _col == 2)
+                {
+                    ActionIllustInfo_Click(PreviewCopyImage, e);
+                }
+                else if (_row == 1 && _col == 0)
+                {
+                    ActionRefreshPreview_Click(PreviewRefresh, e);
+                }
+                else if (_row == 1 && _col == 1)
+                {
+                    ActionOpenIllust_Click(PreviewOpen, e);
+                }
+                else if (_row == 1 && _col == 2)
+                {
+                    ActionOpenIllust_Click(PreviewCacheOpen, e);
+                }
+                else if (_row == 2 && _col == 0)
+                {
+                    ActionSendToOtherInstance_Click(PreviewSendIllustToInstance, e);
+                }
+                else if (_row == 2 && _col == 1)
+                {
+                    ActionSaveIllust_Click(PreviewSave, e);
+                }
+                else if (_row == 2 && _col == 2)
+                {
+                    ActionSendToOtherInstance_Click(PreviewSendAuthorToInstance, e);
+                }
+
+                if (PreviewPopup is Popup)
+                {
+                    PreviewPopup.IsOpen = false;
+                    PreviewPopupTimer.Stop();
+                }
+                e.Handled = true;
+            }
+        }
+
+        private void PreviewPopup_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (PreviewPopup is Popup && PreviewPopup.IsOpen)
+            {
+                //PreviewPopupTimer.Stop();
+            }
+        }
+
+        private void PreviewPopup_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (PreviewPopup is Popup && PreviewPopup.IsOpen)
+            {
+                //PreviewPopupTimer.Start();
+            }
+        }
+        #endregion
+
         #region Illust Actions
         private async void ActionIllustInfo_Click(object sender, RoutedEventArgs e)
         {
@@ -2280,7 +2395,7 @@ namespace PixivWPF.Pages
 
         private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
         {
-            var overwrite = Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control ? true : false;
+            var overwrite = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
             ActionRefreshPreview(overwrite);
         }
 
@@ -2651,7 +2766,11 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
-                    if (setting.EnabledMiniToolbar && PreviewPopup is Popup) PreviewPopup.IsOpen = true;
+                    if (setting.EnabledMiniToolbar && PreviewPopup is Popup)
+                    {
+                        PreviewPopup.IsOpen = true;
+                        PreviewPopupTimer.Start();
+                    }
                     e.Handled = true;
                 }
             }
@@ -3411,13 +3530,34 @@ namespace PixivWPF.Pages
         {
             try
             {
+                if(sender == PreviewSendIllustToInstance)
+                {
+                    if (Contents is PixivItem)
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            Commands.SendToOtherInstance.Execute(Contents);
+                        else
+                            Commands.ShellSendToOtherInstance.Execute(Contents);
+                    }
+                }
+                else if(sender == PreviewSendAuthorToInstance)
+                {
+                    if (Contents is PixivItem)
+                    {
+                        var id = $"uid:{Contents.UserID}";
+                        if (Keyboard.Modifiers == ModifierKeys.None)
+                            Commands.SendToOtherInstance.Execute(id);
+                        else
+                            Commands.ShellSendToOtherInstance.Execute(id);
+                    }
+                }
                 if (sender is MenuItem && (sender as MenuItem).Parent is ContextMenu)
                 {
                     var host = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget;
                     var uid = (sender as MenuItem).Uid;
                     if (host == SubIllustsExpander || host == SubIllusts || host == PreviewBox)
                     {
-                        if (sender == PreviewSendIllustToInstance || uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase))
+                        if (uid.Equals("ActionSendIllustToInstance", StringComparison.CurrentCultureIgnoreCase))
                         {
                             if (Contents is PixivItem)
                             {
@@ -3427,7 +3567,7 @@ namespace PixivWPF.Pages
                                     Commands.ShellSendToOtherInstance.Execute(Contents);
                             }
                         }
-                        else if (sender == PreviewSendAuthorToInstance || uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase))
+                        else if (uid.Equals("ActionSendAuthorToInstance", StringComparison.CurrentCultureIgnoreCase))
                         {
                             if (Contents is PixivItem)
                             {
@@ -3697,55 +3837,6 @@ namespace PixivWPF.Pages
         }
 
         #endregion
-
-        private void PreviewPopup_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button)
-            {
-                var icon = e.Source as dynamic;
-                int _row = (int)icon.GetValue(Grid.RowProperty);
-                int _col = (int)icon.GetValue(Grid.ColumnProperty);
-                if (_row == 0 && _col == 0)
-                {
-                    ActionIllustInfo_Click(PreviewCopyIllustID, e);
-                }
-                else if (_row == 0 && _col == 1)
-                {
-                    ActionSaveIllust_Click(PreviewSave, e);
-                }
-                else if (_row == 0 && _col == 2)
-                {
-                    ActionIllustInfo_Click(PreviewCopyImage, e);
-                }
-                else if (_row == 1 && _col == 0)
-                {
-                    ActionOpenIllust_Click(PreviewOpen, e);
-                }
-                else if (_row == 1 && _col == 1)
-                {
-
-                }
-                else if (_row == 1 && _col == 2)
-                {
-                    ActionOpenIllust_Click(PreviewCacheOpen, e);
-                }
-                else if (_row == 2 && _col == 0)
-                {
-                    ActionSendToOtherInstance_Click(PreviewSendIllustToInstance, e);
-                }
-                else if (_row == 2 && _col == 1)
-                {
-                    ActionOpenIllust_Click(PreviewOpenDownloaded, e);
-                }
-                else if (_row == 2 && _col == 2)
-                {
-                    ActionSendToOtherInstance_Click(PreviewSendAuthorToInstance, e);
-                }
-
-                if (PreviewPopup is Popup) PreviewPopup.IsOpen = false;
-                e.Handled = true;
-            }
-        }
 
     }
 

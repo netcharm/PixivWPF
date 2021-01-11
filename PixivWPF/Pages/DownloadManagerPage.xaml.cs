@@ -44,10 +44,9 @@ namespace PixivWPF.Pages
 
         private TimerCallback tcb = null;
         private Timer timer = null;
-        //private bool IsIdle = true;
-        private bool IsUpdating = false;
 
         private SemaphoreSlim CanAddItem = new SemaphoreSlim(1, 1);
+        private SemaphoreSlim CanUpdateState = new SemaphoreSlim(1, 1);
 
         private ObservableCollection<DownloadInfo> items = new ObservableCollection<DownloadInfo>();
         public ObservableCollection<DownloadInfo> Items
@@ -166,14 +165,12 @@ namespace PixivWPF.Pages
 
         private async void UpdateStateInfo()
         {
-            try
+            if (await CanUpdateState.WaitAsync(0))
             {
-                if (IsUpdating) return;
                 await new Action(() =>
                 {
                     try
                     {
-                        IsUpdating = true;
                         var remove = items.Where(o => o.State == DownloadState.Remove);
                         foreach (var i in remove)
                         {
@@ -190,10 +187,12 @@ namespace PixivWPF.Pages
                         PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}";
                     }
                     catch (Exception) { }
-                    finally { IsUpdating = false; }
+                    finally
+                    {
+                        if (CanUpdateState is SemaphoreSlim && CanUpdateState.CurrentCount <= 0) CanUpdateState.Release();
+                    }
                 }).InvokeAsync();
             }
-            catch (Exception) { }
         }
 
         private bool IsExists(string url)

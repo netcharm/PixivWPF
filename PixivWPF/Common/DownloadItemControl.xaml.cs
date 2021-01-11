@@ -482,7 +482,8 @@ namespace PixivWPF.Common
         {
             get
             {
-                return (State == DownloadState.Idle || State == DownloadState.Failed || State == DownloadState.Finished || State == DownloadState.NonExists);
+                //return (State == DownloadState.Idle || State == DownloadState.Failed || State == DownloadState.Finished || State == DownloadState.NonExists);
+                return (State == DownloadState.Idle || State == DownloadState.Failed || State == DownloadState.NonExists);
             }
         }
 
@@ -917,7 +918,7 @@ namespace PixivWPF.Common
         private void DownloadPreProcess(bool restart = false)
         {
             if (string.IsNullOrEmpty(Url)) throw new Exception($"Download URL is unknown!");
-            if (!CanDownload) throw new Exception($"Download task can't start now!");
+            if (!CanDownload && !restart) throw new Exception($"Download task can't start now!");
 
             IsStart = false;
             Canceling = false;
@@ -1190,7 +1191,7 @@ namespace PixivWPF.Common
             }
             else
             {
-                if (CanDownload)
+                if (CanDownload || restart)
                 {
                     await new Action(async () =>
                     {
@@ -1329,14 +1330,15 @@ namespace PixivWPF.Common
 
         private void PART_Download_TargetUpdated(object sender, DataTransferEventArgs e)
         {
-            CheckProperties();
             setting = Application.Current.LoadSetting();
-            if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
+
+            CheckProperties();
             if (sender == PART_Preview)
             {
                 if (PART_Preview.Source == null) PART_ThumbnailWait.Show();
                 else PART_ThumbnailWait.Hide();
             }
+            if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
         }
 
         private async void miActions_Click(object sender, RoutedEventArgs e)

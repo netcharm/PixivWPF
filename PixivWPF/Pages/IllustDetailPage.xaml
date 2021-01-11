@@ -54,12 +54,18 @@
             <Separator x:Name="ActionSendSeparator" x:Uid="ActionSendSeparator"/>
             <MenuItem x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionSendToOtherInstance_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    <TextBlock Margin="4,0,0,0"
+                        Text="&#xE724;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionSendToOtherInstance_Click">
                 <MenuItem.Icon>
-                    <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    <TextBlock Margin="4,0,0,0"
+                        Text="&#xE725;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <Separator x:Name="ActionRefreshSeparator" x:Uid="ActionRefreshSeparator"/>
@@ -82,25 +88,26 @@
             <Separator x:Name="ActionNavPageSeparator" x:Uid="ActionNavPageSeparator"/>
             <MenuItem x:Uid="ActionPrevPage" Header="Open Previous Page" Click="ActionPrevPage_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Margin="4,0,0,0" 
+                        Text="&#xE112;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Name="ActionNextPage" x:Uid="ActionNextPage" Header="Open Next Page" Click="ActionNextPage_Click" >
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" 
-                               Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionNextAppend" Header="Append Next Page" Click="ActionNextPage_Click" >
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" 
-                               Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>            
             <Separator x:Name="ActionSaveSeparator" x:Uid="ActionSaveSeparator"/>
@@ -214,11 +221,22 @@
             </MenuItem>
         </ContextMenu>
 
+        <Style x:Key="PreviewPopupTrigger" TargetType="{x:Type Popup}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="true">
+                    <Setter Property="Cursor" Value="Hand"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Popup x:Name="PreviewPopup" x:Uid="PreviewPopup" x:Key="PreviewPopup" 
                Placement="MousePoint" StaysOpen="False" AllowsTransparency="True" 
                HorizontalOffset="78" VerticalOffset="-64" 
-               Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center" >
-            <Grid >
+               Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center"
+               Style="{StaticResource PreviewPopupTrigger}"
+               MouseEnter="PreviewPopup_MouseEnter" MouseLeave="PreviewPopup_MouseLeave"
+               PreviewMouseDown="Page_PreviewMouseDown">
+            <Grid x:Name="PopupContainer" >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -229,58 +247,64 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+                <!-- Background -->
                 <Rectangle Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Grid.RowSpan="3" 
-                           Opacity="0.10"
+                           Opacity="0.25"
                            Stroke="{DynamicResource MahApps.Brushes.Accent}"
                            Fill="{DynamicResource MahApps.Brushes.Menu.Background}"/>
-                <Button Grid.Column="0" Grid.Row="0" Margin="4" 
+                <!-- Tool Buttons -->
+                <Button Grid.Column="0" Grid.Row="0" Margin="4" ToolTip="Copy Illust ID"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern
-                        Kind="ClipboardVariantText" Width="24" 
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Width="24" Height="24" />
                 </Button>
-                <Button Grid.Column="2" Grid.Row="0" Margin="4" 
+                <Button Grid.Column="2" Grid.Row="0" Margin="4" ToolTip="Copy Preview"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern 
-                        Kind="ClipboardVariant" Width="24" Height="24"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <iconPacks:PackIconModern Kind="ClipboardVariant" Width="24" Height="24" />
                 </Button>
-                <Button Grid.Column="0" Grid.Row="2" Margin="4" 
+                <Button Grid.Column="0" Grid.Row="2" Margin="4" ToolTip="Send Illust To Other Instance"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern 
-                        Kind="MessageSend" Width="24" Height="24"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <TextBlock Margin="4,0,0,0"
+                        Text="&#xE724;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
-                <Button Grid.Column="2" Grid.Row="2" Margin="4" 
+                <Button Grid.Column="2" Grid.Row="2" Margin="4" ToolTip="Send Author To Other Instance"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern 
-                        Kind="MessageSend" Width="24" Height="24"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <TextBlock Margin="4,0,0,0"
+                        Text="&#xE725;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>                    
                 </Button>
-                <Button Grid.Column="0" Grid.Row="1" Margin="4" 
+                <Button Grid.Column="0" Grid.Row="1" Margin="4" ToolTip="Refresh Preview"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        Background="Transparent" Click="PreviewPopup_Click">
+                    <TextBlock Margin="4,0,0,0"
+                        Text="&#xE149;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+                <Button Grid.Column="1" Grid.Row="1" Margin="4" ToolTip="Open Preview Window"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
                     <TextBlock 
-                           Text="&#xE158;" FontSize="24" FontFamily="Segoe MDL2 Assets" 
-                           Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                           Text="&#xE158;" FontSize="24" FontFamily="Segoe MDL2 Assets"                            
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Button>
-                <Button Grid.Column="2" Grid.Row="1" Margin="4" 
+                <Button Grid.Column="2" Grid.Row="1" Margin="4" ToolTip="Open Preview With..."
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern 
-                        Kind="Image" Width="24" Height="24"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <iconPacks:PackIconModern Kind="Image" Width="24" Height="24" />
                 </Button>
-                <Button Grid.Column="1" Grid.Row="0" Margin="4" 
+                <Button Grid.Column="1" Grid.Row="2" Margin="4" ToolTip="Save Illust"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern 
-                        Kind="Save" Width="24" Height="24"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <iconPacks:PackIconModern Kind="Save" Width="24" Height="24" />
                 </Button>
-                <Button Grid.Column="1" Grid.Row="2" Margin="4" 
+                <Button Grid.Column="1" Grid.Row="0" Margin="4" ToolTip="Open Downloaded Illust"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern 
-                        Kind="Download" Width="24" Height="24"
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <iconPacks:PackIconModern Kind="Download" Width="24" Height="24" />
                 </Button>
             </Grid>
         </Popup>
@@ -384,12 +408,18 @@
                                 <Separator/>
                                 <MenuItem x:Name="PreviewSendIllustToInstance" x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionSendToOtherInstance_Click">
                                     <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                        <TextBlock Margin="4,0,0,0"
+                                            Text="&#xE724;" FontSize="16" FontFamily="Segoe MDL2 Assets"             
+                                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <MenuItem x:Name="PreviewSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionSendToOtherInstance_Click">
                                     <MenuItem.Icon>
-                                        <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                        <TextBlock Margin="4,0,0,0"
+                                            Text="&#xE725;" FontSize="16" FontFamily="Segoe MDL2 Assets"                         
+                                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <Separator/>
@@ -403,10 +433,10 @@
                                 </MenuItem>
                                 <MenuItem x:Name="PreviewOpen" x:Uid="ActionOpenIllust" Header="Open Preview Window" Click="ActionOpenIllust_Click">
                                     <MenuItem.Icon>
-                                        <TextBlock
+                                        <TextBlock Margin="4,0,0,0"
                                             Text="&#xE158;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <MenuItem x:Name="PreviewCacheOpen" x:Uid="ActionOpenPreview" Header="Open Preview With..." Click="ActionOpenIllust_Click">
@@ -726,13 +756,19 @@
                                     <MenuItem x:Name="ActionSendIllustToInstance" x:Uid="ActionSendIllustToInstance" 
                                           Header="Send Illust To Other Instance" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                            <TextBlock Margin="4,0,0,0"
+                                                Text="&#xE724;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" 
                                           Header="Send Author To Other Instance" Visibility="Visible" Click="ActionIllustInfo_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                            <TextBlock Margin="4,0,0,0"
+                                                Text="&#xE725;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </MenuItem.Icon>
                                     </MenuItem>                                    
                                     <Separator />

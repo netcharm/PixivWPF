@@ -51,12 +51,18 @@
                 <Separator/>
                 <MenuItem x:Name="ActionSendIllustToInstance" x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0"
+                            Text="&#xE724;" FontSize="16" FontFamily="Segoe MDL2 Assets"                         
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="MessageSend" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0"
+                            Text="&#xE725;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
@@ -85,9 +91,9 @@
                 <MenuItem x:Name="ActionRefreshPreview" x:Uid="ActionRefreshPreview" Header="Refresh Preview" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
                         <TextBlock Margin="4,0,0,0"
-                                       Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionOpenCachedWith" x:Uid="ActionOpenWith" Header="Open Preview With..." Click="ActionIllustInfo_Click">

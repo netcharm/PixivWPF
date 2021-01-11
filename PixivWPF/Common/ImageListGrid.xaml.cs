@@ -454,11 +454,15 @@ namespace PixivWPF.Common
         public int CurrentScrollPage()
         {
             int result = -1;
-            if(!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-            var offset = scrollViewer.VerticalOffset;
-            var height = scrollViewer.ViewportHeight;
-            var total = scrollViewer.ExtentHeight;
-            result = (int)Math.Round(offset / height) + 1;
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                var offset = scrollViewer.VerticalOffset;
+                var height = scrollViewer.ViewportHeight;
+                var total = scrollViewer.ExtentHeight;
+                result = (int)Math.Round(offset / height) + 1;
+            }
+            catch (Exception) { }
             return (result);
         }
 
@@ -466,12 +470,68 @@ namespace PixivWPF.Common
         public int TotalScrollPages()
         {
             int result = -1;
-            if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-            var offset = scrollViewer.VerticalOffset;
-            var height = scrollViewer.ViewportHeight;
-            var total = scrollViewer.ExtentHeight;
-            result = (int)Math.Ceiling(total / height);
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                var offset = scrollViewer.VerticalOffset;
+                var height = scrollViewer.ViewportHeight;
+                var total = scrollViewer.ExtentHeight;
+                result = (int)Math.Ceiling(total / height);
+            }
+            catch (Exception) { }
             return (result);
+        }
+
+        public void PageUp()
+        {
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                scrollViewer.UpdateLayout();
+                var offset = scrollViewer.VerticalOffset;
+                var height = scrollViewer.ViewportHeight;
+                var total = scrollViewer.ExtentHeight;
+                scrollViewer.ScrollToVerticalOffset(offset - height - 1);
+                scrollViewer.UpdateLayout();
+            }
+            catch (Exception) { }
+        }
+
+        public void PageDown()
+        {
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                scrollViewer.UpdateLayout();
+                var offset = scrollViewer.VerticalOffset;
+                var height = scrollViewer.ViewportHeight;
+                var total = scrollViewer.ExtentHeight;
+                scrollViewer.ScrollToVerticalOffset(offset + height + 1);
+                scrollViewer.UpdateLayout();
+            }
+            catch (Exception) { }
+        }
+
+        public void PageFirst()
+        {
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                scrollViewer.ScrollToHome();
+                scrollViewer.UpdateLayout();
+            }
+            catch (Exception) { }
+        }
+
+        public void PageLast()
+        {
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                scrollViewer.ScrollToEnd();
+                scrollViewer.UpdateLayout();
+            }
+            catch (Exception) { }
         }
 
         public void Filtering(string filter)
@@ -517,6 +577,8 @@ namespace PixivWPF.Common
         public async void UpdateTilesImage(bool overwrite = false, int parallel = 5, SemaphoreSlim updating_semaphore = null)
         {
             Application.Current.DoEvents();
+
+            foreach (var item in Items.Where(item => item.Source != null)) item.State = TaskStatus.RanToCompletion;
 
             var needUpdate = Items.Where(item => item.Source == null || overwrite);
             if (needUpdate.Count() > 0)

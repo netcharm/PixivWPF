@@ -198,6 +198,7 @@ namespace PixivWPF.Common
             {
                 IsActive = true;
                 Visibility = Visibility.Visible;
+                PART_Ring.Visibility = Visibility.Visible;
                 PART_Reload.Visibility = ReloadEnabled ? Visibility.Visible : Visibility.Collapsed;
                 PART_Mark.Text = WaitSymbol;
                 PART_Mark.FontFamily = WaitSymbolFontFamily;
@@ -210,6 +211,7 @@ namespace PixivWPF.Common
             {
                 IsActive = false;
                 Visibility = Visibility.Collapsed;
+                PART_Ring.Visibility = Visibility.Collapsed;
                 PART_Reload.Visibility = Visibility.Collapsed;
                 PART_Mark.Text = WaitSymbol;
                 PART_Mark.FontFamily = WaitSymbolFontFamily;
@@ -222,6 +224,7 @@ namespace PixivWPF.Common
             {
                 IsActive = false;
                 Visibility = Visibility.Visible;
+                PART_Ring.Visibility = Visibility.Collapsed;
                 PART_Reload.Visibility = ReloadEnabled ? Visibility.Visible : Visibility.Collapsed;
                 PART_Mark.Text = ReloadEnabled ? ReloadSymbol : WaitSymbol;
                 PART_Mark.FontFamily = ReloadEnabled ? ReloadSymbolFontFamily : WaitSymbolFontFamily;

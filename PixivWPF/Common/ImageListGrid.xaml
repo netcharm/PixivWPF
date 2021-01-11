@@ -143,7 +143,7 @@
         <ListView 
             x:Name="PART_ImageTiles" x:Uid="ImageTiles" Grid.IsSharedSizeScope="True" 
             BorderBrush="Transparent" Margin="0"
-            ScrollViewer.CanContentScroll="True"
+            ScrollViewer.CanContentScroll="False"
             ScrollViewer.IsDeferredScrollingEnabled="False"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 

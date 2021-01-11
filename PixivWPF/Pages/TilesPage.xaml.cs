@@ -333,9 +333,9 @@ namespace PixivWPF.Pages
             int result = -1;
 
             UniformGrid vspanel = ListImageTiles.GetVisualChild<UniformGrid>();
-            List<ListViewItem> items = vspanel.GetVisualChildren<ListViewItem>();
-            count = items.Count;
-            if(items[1].IsVisiualChild(vspanel))
+            List<ListViewItem> children = vspanel.GetVisualChildren<ListViewItem>();
+            count = children.Count;
+            if(children[1].IsVisiualChild(vspanel))
             {
 
             }
@@ -344,55 +344,34 @@ namespace PixivWPF.Pages
 
         public void ScrollPageUp()
         {
-            try
+            if (ListImageTiles is ImageListGrid)
             {
-                if (ListImageTiles.SelectedItem is PixivItem)
-                {
-                    ScrollViewer scrollViewer = ListImageTiles.GetVisualChild<ScrollViewer>();
-                    if (scrollViewer != null)
-                    {
-                        ScrollBar scrollBar = scrollViewer.Template.FindName("PART_VerticalScrollBar", scrollViewer) as ScrollBar;
-                        if (scrollBar != null)
-                        {
-                            var eh = scrollViewer.ExtentHeight;
-                            var ew = scrollViewer.ExtentWidth;
-                            var vh = scrollViewer.ViewportHeight;
-                            var vw = scrollViewer.ViewportWidth;
-                            var pages = (int)Math.Ceiling(eh / vh);
-                            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - vh);
-                        }
-                    }
-                }
+                ListImageTiles.PageUp();
             }
-            catch (Exception) { }
         }
 
         public void ScrollPageDown()
         {
-            try
+            if (ListImageTiles is ImageListGrid)
             {
-                if (ListImageTiles.SelectedItem is PixivItem)
-                {
-                    //int count = 0;
-                    //var index = FirstInView(out count);
-
-                    ScrollViewer scrollViewer = ListImageTiles.GetVisualChild<ScrollViewer>();
-                    if (scrollViewer != null)
-                    {
-                        ScrollBar scrollBar = scrollViewer.Template.FindName("PART_VerticalScrollBar", scrollViewer) as ScrollBar;
-                        if (scrollBar != null)
-                        {
-                            var eh = scrollViewer.ExtentHeight;
-                            var ew = scrollViewer.ExtentWidth;
-                            var vh = scrollViewer.ViewportHeight;
-                            var vw = scrollViewer.ViewportWidth;
-                            var pages = (int)Math.Ceiling(eh / vh);
-                            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + vh);
-                        }
-                    }
-                }
+                ListImageTiles.PageDown();
             }
-            catch (Exception) { }
+        }
+
+        public void ScrollPageFirst()
+        {
+            if (ListImageTiles is ImageListGrid)
+            {
+                ListImageTiles.PageFirst();
+            }
+        }
+
+        public void ScrollPageLast()
+        {
+            if (ListImageTiles is ImageListGrid)
+            {
+                ListImageTiles.PageLast();
+            }
         }
         #endregion
 
@@ -1518,6 +1497,16 @@ namespace PixivWPF.Pages
                     else if (e.IsKey(Key.Right, ModifierKeys.Alt))
                     {
                         NextIllustPage();
+                        e.Handled = true;
+                    }
+                    else if (e.IsKey(Key.PageUp, ModifierKeys.Shift))
+                    {
+                        ScrollPageFirst();
+                        e.Handled = true;
+                    }
+                    else if (e.IsKey(Key.PageDown, ModifierKeys.Shift))
+                    {
+                        ScrollPageLast();
                         e.Handled = true;
                     }
                 }

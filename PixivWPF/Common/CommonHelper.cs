@@ -6297,7 +6297,10 @@ namespace PixivWPF.Common
         {
             try
             {
-                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.Equals("ActionBar") && button.Width >= 32)
+                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.Equals("ActionBar") && button.ActualWidth >= 32)
+                    button.Foreground = Theme.IdealForegroundBrush;
+
+                if ((button.Parent is Grid) && (button.Parent as Grid).Name.Equals("PopupContainer") && button.ActualWidth >= 24)
                     button.Foreground = Theme.IdealForegroundBrush;
 
                 if (!(button is ToggleButton) || (button is ToggleButton && !(button as ToggleButton).IsChecked.Value))
@@ -6310,7 +6313,10 @@ namespace PixivWPF.Common
         {
             try
             {
-                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.Equals("ActionBar") && button.Width >= 32 && button.IsEnabled)
+                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.Equals("ActionBar") && button.ActualWidth >= 32 && button.IsEnabled)
+                    button.Foreground = Theme.AccentBrush;
+
+                if ((button.Parent is Grid) && (button.Parent as Grid).Name.Equals("PopupContainer") && button.ActualWidth >= 24)
                     button.Foreground = Theme.AccentBrush;
 
                 if (!(button is ToggleButton) || (button is ToggleButton && !(button as ToggleButton).IsChecked.Value))
@@ -7579,20 +7585,38 @@ namespace PixivWPF.Common
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
             {
                 DependencyObject child = VisualTreeHelper.GetChild(obj, i);
-                if (child != null && child is T)
+                if (child is T)
                     childList.Add(child as T);
 
                 var childOfChilds = child.GetVisualChildren<T>();
-                if (childOfChilds != null)
+                if (childOfChilds.Count > 0)
                 {
                     childList.AddRange(childOfChilds);
                 }
             }
+            return childList;
+        }
 
-            if (childList.Count > 0)
-                return childList;
-
-            return null;
+        public static List<T> GetChildren<T>(this Visual obj) where T : Visual
+        {
+            List<T> childList = new List<T>();
+            if (obj is Visual)
+            {
+                var children = obj.GetChildObjects();
+                foreach(var child in children)
+                {
+                    if (child is T) childList.Add(child as T);
+                    if (child is Visual)
+                    {
+                        var childOfChilds = (child as Visual).GetChildren<T>();
+                        if (childOfChilds.Count > 0)
+                        {
+                            childList.AddRange(childOfChilds);
+                        }
+                    }
+                }
+            }
+            return childList;
         }
 
         //private static int current_deeper = 0;
