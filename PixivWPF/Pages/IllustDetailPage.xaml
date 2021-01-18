@@ -204,9 +204,16 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator/>
+            <MenuItem x:Name="miCopyText" x:Uid="CopyText" Header="Copy Selected" ToolTip="Copy Selected To Clipboard" Click="ActionCopySelectedText_Click" >
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <MenuItem x:Name="miSendToInstance" x:Uid="SendToInstance" Header="Send Selected" ToolTip="Send Selected To Other Instance" Click="ActionSendToInstance_Click" >
                 <MenuItem.Icon>
-                    <TextBlock Text="&#xE1D7;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    <TextBlock Text="&#xE724;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
@@ -256,55 +263,55 @@
                 <Button Grid.Column="0" Grid.Row="0" Margin="4" ToolTip="Copy Illust ID"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Width="24" Height="24" />
+                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Width="24" Height="24" Effect="{DynamicResource DropGlow}" />
                 </Button>
                 <Button Grid.Column="2" Grid.Row="0" Margin="4" ToolTip="Copy Preview"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern Kind="ClipboardVariant" Width="24" Height="24" />
+                    <iconPacks:PackIconModern Kind="ClipboardVariant" Width="24" Height="24" Effect="{DynamicResource DropGlow}" />
                 </Button>
                 <Button Grid.Column="0" Grid.Row="2" Margin="4" ToolTip="Send Illust To Other Instance"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
                     <TextBlock Margin="4,0,0,0"
                         Text="&#xE724;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
-                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
                 </Button>
                 <Button Grid.Column="2" Grid.Row="2" Margin="4" ToolTip="Send Author To Other Instance"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
                     <TextBlock Margin="4,0,0,0"
                         Text="&#xE725;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
-                        HorizontalAlignment="Center" VerticalAlignment="Center"/>                    
+                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>                    
                 </Button>
                 <Button Grid.Column="0" Grid.Row="1" Margin="4" ToolTip="Refresh Preview"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
                     <TextBlock Margin="4,0,0,0"
                         Text="&#xE149;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
-                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
                 </Button>
                 <Button Grid.Column="1" Grid.Row="1" Margin="4" ToolTip="Open Preview Window"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
                     <TextBlock 
                            Text="&#xE158;" FontSize="24" FontFamily="Segoe MDL2 Assets"                            
-                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                           HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}" />
                 </Button>
                 <Button Grid.Column="2" Grid.Row="1" Margin="4" ToolTip="Open Preview With..."
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern Kind="Image" Width="24" Height="24" />
+                    <iconPacks:PackIconModern Kind="Image" Width="24" Height="24" Effect="{DynamicResource DropGlow}" />
                 </Button>
                 <Button Grid.Column="1" Grid.Row="2" Margin="4" ToolTip="Save Illust"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern Kind="Save" Width="24" Height="24" />
+                    <iconPacks:PackIconModern Kind="Save" Width="24" Height="24" Effect="{DynamicResource DropGlow}" />
                 </Button>
                 <Button Grid.Column="1" Grid.Row="0" Margin="4" ToolTip="Open Downloaded Illust"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <iconPacks:PackIconModern Kind="Download" Width="24" Height="24" />
+                    <iconPacks:PackIconModern Kind="Download" Width="24" Height="24" Effect="{DynamicResource DropGlow}" />
                 </Button>
             </Grid>
         </Popup>
@@ -347,6 +354,11 @@
                     </Viewbox>
                     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"
                       Visibility="{Binding Visibility, Mode=OneWay, ElementName=IllustSanityInfo}">
+                        <TextBlock x:Name="IllustSanityMark" Text="&#xF140;"
+                            FontSize="20pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
+                            Visibility="Collapsed"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                         <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4" Effect="{DynamicResource DropGlow}">
                             <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
                             Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
@@ -539,18 +551,15 @@
                             MouseDown="IllustInfo_MouseDown"
                             Foreground="{DynamicResource MahApps.Brushes.Text}"
                             HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                        <Grid Grid.Column="1" x:Name="IllustSanityInfo" Visibility="Collapsed" 
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.95">
-                            <TextBlock x:Name="IllustSanity" Text="18" Padding="0,0,2,2"
+                        <Border Grid.Column="1" x:Name="IllustSanityInfo" 
+                            Visibility="Collapsed"
+                            BorderBrush="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
+                            CornerRadius="3" BorderThickness="3" Height="20" Width="Auto" Margin="0,0,2,0">
+                            <TextBlock x:Name="IllustSanity" Text="18" Margin="1"
                                 FontSize="14" FontWeight="SemiBold"
-                                LayoutTransform="{StaticResource FontStretchCondensed}"
                                 Foreground="{DynamicResource MahApps.Brushes.Text}"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="IllustSanityMark" Text="&#xF140;"
-                                FontSize="20pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
-                                Foreground="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
-                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                        </Grid>
+                        </Border>
                         <StackPanel Grid.Column="2" x:Name="IllustDateInfo" Visibility="Collapsed" MinWidth="24" Margin="2,0,0,0"
                                     ContextMenu="{DynamicResource MenuSpeech}" 
                                     MouseDown="IllustInfo_MouseDown"

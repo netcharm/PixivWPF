@@ -101,17 +101,26 @@ namespace PixivWPF.Pages
             });
         }
 
-        public IEnumerable<string> Unfinished()
+        public IList<string> Unfinished()
         {
             List<string> result = new List<string>();
-
             var unfinished = items.Where(i => i.State != DownloadState.Finished);
             foreach (var item in unfinished)
             {
                 result.Add($"Downloading: {item.Url.ParseID()}");
             }
-
             return (result);
+        }
+
+        public IList<DownloadInfo> GetDownloadInfo()
+        {
+            List<DownloadInfo> dis = new List<DownloadInfo>();
+            var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
+            foreach (var item in DownloadItems.Items)
+            {
+                if (items.Contains(item)) dis.Add(item as DownloadInfo);
+            }
+            return (dis);
         }
 
         public DownloadManagerPage()
@@ -147,7 +156,7 @@ namespace PixivWPF.Pages
                         if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
 
                         var jobs_count = items.Where(i => i.State == DownloadState.Downloading || i.State == DownloadState.Writing).Count();
-                        var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);//|| item.State == DownloadState.Failed);
+                        var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);
                         foreach (var item in pre_jobs)
                         {
                             if (jobs_count < SimultaneousJobs)
@@ -165,33 +174,36 @@ namespace PixivWPF.Pages
 
         private async void UpdateStateInfo()
         {
-            if (await CanUpdateState.WaitAsync(0))
+            if (window is Window && window.WindowState != WindowState.Minimized)
             {
-                await new Action(() =>
+                if (await CanUpdateState.WaitAsync(0))
                 {
-                    try
+                    await new Action(() =>
                     {
-                        var remove = items.Where(o => o.State == DownloadState.Remove);
-                        foreach (var i in remove)
+                        try
                         {
-                            i.Dispose();
-                            items.Remove(i);
+                            var remove = items.Where(o => o.State == DownloadState.Remove);
+                            foreach (var i in remove)
+                            {
+                                i.Dispose();
+                                items.Remove(i);
+                            }
+
+                            var idle = items.Where(o => o.State == DownloadState.Idle );
+                            var downloading = items.Where(o => o.State == DownloadState.Downloading);
+                            var failed = items.Where(o => o.State == DownloadState.Failed );
+                            var finished = items.Where(o => o.State == DownloadState.Finished );
+                            var nonexists = items.Where(o => o.State == DownloadState.NonExists );
+
+                            PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}";
                         }
-
-                        var idle = items.Where(o => o.State == DownloadState.Idle );
-                        var downloading = items.Where(o => o.State == DownloadState.Downloading);
-                        var failed = items.Where(o => o.State == DownloadState.Failed );
-                        var finished = items.Where(o => o.State == DownloadState.Finished );
-                        var nonexists = items.Where(o => o.State == DownloadState.NonExists );
-
-                        PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}";
-                    }
-                    catch (Exception) { }
-                    finally
-                    {
-                        if (CanUpdateState is SemaphoreSlim && CanUpdateState.CurrentCount <= 0) CanUpdateState.Release();
-                    }
-                }).InvokeAsync();
+                        catch (Exception) { }
+                        finally
+                        {
+                            if (CanUpdateState is SemaphoreSlim && CanUpdateState.CurrentCount <= 0) CanUpdateState.Release();
+                        }
+                    }).InvokeAsync();
+                }
             }
         }
 
@@ -411,16 +423,7 @@ namespace PixivWPF.Pages
         {
             await new Action(() =>
             {
-                var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
-                List<DownloadInfo> dis = new List<DownloadInfo>();
-                foreach (var item in DownloadItems.Items)
-                {
-                    if (items.Contains(item))
-                    {
-                        dis.Add(item as DownloadInfo);
-                    }
-                }
-                Commands.CopyDownloadInfo.Execute(dis);
+                Commands.CopyDownloadInfo.Execute(GetDownloadInfo());
             }).InvokeAsync(true);
         }
     }

@@ -28,6 +28,8 @@ namespace PixivWPF.Pages
         public PixivItem Contents { get; set; } = null;
 
         private Popup PreviewPopup = null;
+        private Rectangle PreviewPopupBackground = null;
+        private IList<Button> PreviewPopupToolButtons = new List<Button>();
         private System.Timers.Timer PreviewPopupTimer = new System.Timers.Timer() { AutoReset = true, Enabled = false, Interval=5000 };
 
         private const int PAGE_ITEMS = 30;
@@ -44,6 +46,41 @@ namespace PixivWPF.Pages
 
         private string CurrentFavoriteURL = string.Empty;
         private string NextFavoriteURL = string.Empty;
+
+        #region Popup Helper
+        private void PopupOpen(Popup popup)
+        {
+            try
+            {
+                if (PreviewPopupBackground is Rectangle) PreviewPopupBackground.Fill = Theme.MenuBackgroundBrush;
+                foreach (var button in PreviewPopupToolButtons) button.Foreground = Theme.AccentBrush;
+                PreviewPopup.IsOpen = true;
+            }
+            catch (Exception) { }
+        }
+
+        private void PopupOpen(ContextMenu menu)
+        {
+            try
+            {
+                menu.Background = Theme.MenuBackgroundBrush;
+                var items = menu.GetChildren<MenuItem>();
+                foreach (var item in items)
+                {
+                    item.Background = Theme.MenuBackgroundBrush;
+                    item.Foreground = Theme.TextBrush;
+                }
+                //var seps = menu.GetChildren<Separator>();
+                //foreach (var sep in seps)
+                //{
+                //    sep.Background = Theme.MenuBackgroundBrush;
+                //    sep.Foreground = Theme.SeparatorBrush;
+                //}
+                menu.IsOpen = true;
+            }
+            catch (Exception) { }
+        }
+        #endregion
 
         #region WebBrowser Helper
         private bool bCancel = false;
@@ -687,6 +724,7 @@ namespace PixivWPF.Pages
                 catch (Exception) { }
                 finally
                 {
+                    IllustDetailWait.Hide();
                     Application.Current.DoEvents();
                 }
             }).InvokeAsync();
@@ -719,7 +757,7 @@ namespace PixivWPF.Pages
 #endif
                         }
                         UpdateDetailIllust(item);
-                    }).InvokeAsync();
+                    }).InvokeAsync(true);
                 }
                 else if (item.IsUser())
                 {
@@ -763,6 +801,7 @@ namespace PixivWPF.Pages
                 PreviewViewer.Show(true);
                 PreviewBox.ToolTip = item.ToolTip;
 
+                //Preview.Dispose();
                 Preview.Source = Application.Current.GetNullPreview();
                 PreviewImagePath = string.Empty;
 
@@ -970,6 +1009,7 @@ namespace PixivWPF.Pages
                 IllustDetailWait.Show();
                 this.DoEvents();
 
+                Preview.Dispose();
                 PreviewViewer.Hide();
 
                 var user = item.User;
@@ -1592,8 +1632,9 @@ namespace PixivWPF.Pages
                 PreviewPopup = (Popup)FindResource("PreviewPopup");
                 if(PreviewPopup is Popup)
                 {
-                    var buttons = PreviewPopup.GetChildren<Button>();
-                    foreach (var button in buttons)
+                    PreviewPopupBackground = PreviewPopup.GetChildren<Rectangle>().FirstOrDefault();
+                    PreviewPopupToolButtons = PreviewPopup.GetChildren<Button>();
+                    foreach (var button in PreviewPopupToolButtons)
                         button.MouseOverAction();
 
                     PreviewPopupTimer.Elapsed += PreviewPopupTimer_Elapsed;
@@ -2433,7 +2474,7 @@ namespace PixivWPF.Pages
                         {
                             if (img.Source != null)
                             {
-                                Preview.Dispose();
+                                //Preview.Dispose();
                                 Preview.Source = img.Source;
                                 PreviewImagePath = img.SourcePath;
                                 PreviewWait.Hide();
@@ -2470,7 +2511,7 @@ namespace PixivWPF.Pages
                         {
                             if (img.Source != null)
                             {
-                                IllustAuthorAvatar.Dispose();
+                                //IllustAuthorAvatar.Dispose();
                                 IllustAuthorAvatar.Source = img.Source;
                                 AuthorAvatarWait.Hide();
                             }
@@ -2569,6 +2610,72 @@ namespace PixivWPF.Pages
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
 
             if (!string.IsNullOrEmpty(text)) text.Play(culture);
+        }
+
+        private void ActionCopySelectedText_Click(object sender, RoutedEventArgs e)
+        {
+            var text = string.Empty;
+            var is_tag = false;
+            try
+            {
+                if (sender == IllustTagSpeech)
+                {
+                    is_tag = true;
+                    text = IllustTagsHtml.GetText();
+                }
+                else if (sender == IllustDescSpeech)
+                    text = IllustDescHtml.GetText();
+                else if (sender == IllustTitle)
+                    text = IllustTitle.Text;
+                else if (sender == IllustAuthor)
+                    text = IllustAuthor.Text;
+                else if (sender == IllustDate || sender == IllustDateInfo)
+                    text = IllustDate.Text;
+                else if (sender is MenuItem)
+                {
+                    var mi = sender as MenuItem;
+
+                    if (mi.Parent is ContextMenu)
+                    {
+                        var host = (mi.Parent as ContextMenu).PlacementTarget;
+                        if (host == IllustTagSpeech) { is_tag = true; text = IllustTagsHtml.GetText(); }
+                        else if (host == IllustDescSpeech) text = IllustDescHtml.GetText();
+                        else if (host == IllustAuthor) text = IllustAuthor.Text;
+                        else if (host == IllustTitle) text = IllustTitle.Text;
+                        else if (host == IllustDateInfo || host == IllustDate) text = IllustDate.Text;
+                        else if (host == SubIllustsExpander || host == SubIllusts) text = IllustTitle.Text;
+                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        {
+                            List<string> lines = new List<string>();
+                            foreach (PixivItem item in RelativeItems.GetSelected())
+                            {
+                                lines.Add(item.Illust.Title);
+                            }
+                            text = string.Join($",{Environment.NewLine}", lines);
+                        }
+                        else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                        {
+                            List<string> lines = new List<string>();
+                            foreach (PixivItem item in FavoriteItems.GetSelected())
+                            {
+                                lines.Add(item.Illust.Title);
+                            }
+                            text = string.Join($",{Environment.NewLine}", lines);
+                        }
+                    }
+                }
+            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception) { }
+#endif
+            if (is_tag)
+                text = string.Join(Environment.NewLine, text.Trim().Split(Speech.TagBreak, StringSplitOptions.RemoveEmptyEntries));
+            else
+                text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
+
+            if (!string.IsNullOrEmpty(text)) Commands.CopyText.Execute(text);
         }
 
         private void ActionSendToInstance_Click(object sender, RoutedEventArgs e)
@@ -2768,7 +2875,7 @@ namespace PixivWPF.Pages
                 {
                     if (setting.EnabledMiniToolbar && PreviewPopup is Popup)
                     {
-                        PreviewPopup.IsOpen = true;
+                        PopupOpen(PreviewPopup);
                         PreviewPopupTimer.Start();
                     }
                     e.Handled = true;
@@ -2823,12 +2930,12 @@ namespace PixivWPF.Pages
 
             if (sender == BookmarkIllust)
             {
-                BookmarkIllust.ContextMenu.IsOpen = true;
+                PopupOpen(BookmarkIllust.ContextMenu);
                 is_user = true;
             }
             else if (sender == FollowAuthor)
             {
-                FollowAuthor.ContextMenu.IsOpen = true;
+                PopupOpen(FollowAuthor.ContextMenu);
                 is_user = true;
             }
             else if (sender == IllustActions)
@@ -2837,7 +2944,7 @@ namespace PixivWPF.Pages
                     ActionIllustNewWindow.Visibility = Visibility.Collapsed;
                 else
                     ActionIllustNewWindow.Visibility = Visibility.Visible;
-                IllustActions.ContextMenu.IsOpen = true;
+                PopupOpen(IllustActions.ContextMenu);
             }
             UpdateLikeState(-1, is_user);
         }
@@ -3320,13 +3427,17 @@ namespace PixivWPF.Pages
             {
                 IllustDetailWait.Show();
 
-                IllustCommentsHtml.Navigate("about:blank");
-
-                var result = await tokens.GetIllustComments(Contents.ID, "0", true);
-                foreach (var comment in result.comments)
+                try
                 {
-                    //comment.
+                    IllustCommentsHtml.Navigate("about:blank");
+
+                    var result = await tokens.GetIllustComments(Contents.ID, "0", true);
+                    foreach (var comment in result.comments)
+                    {
+                        //comment.
+                    }
                 }
+                catch (Exception) { }
 
                 IllustDetailWait.Hide();
             }

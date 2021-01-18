@@ -720,88 +720,7 @@ namespace PixivWPF.Common
             return (await httpClient.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead));
         }
 
-        private async Task<string> DownloadStreamAsync(HttpResponseMessage response)
-        {
-            string result = string.Empty;
-            using (var ms = new MemoryStream())
-            {
-                try
-                {
-                    UpdateProgress();
-                    response.EnsureSuccessStatusCode();
-                    var LastModifiedOffset = response.Content.Headers.LastModified ?? default(DateTimeOffset);
-                    LastModified = LastModifiedOffset.DateTime.ToLocalTime();
-                    string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
-                    Length = response.Content.Headers.ContentLength ?? 0;
-                    if (Length > 0)
-                    {
-                        finishedProgress = new Tuple<double, double>(Length, Length);
-                        UpdateProgress();
-
-                        using (var cs = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
-                        {
-                            byte[] bytes = new byte[HTTP_STREAM_READ_COUNT];
-                            int bytesread = 0;
-                            do
-                            {
-                                if (IsCanceling || State == DownloadState.Failed)
-                                {
-                                    throw new Exception($"Download {Path.GetFileName(FileName)} has be canceled!");
-                                }
-
-                                cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
-                                using (cancelReadStreamSource.Token.Register(() => cs.Close()))
-                                {
-                                    bytesread = await cs.ReadAsync(bytes, 0, HTTP_STREAM_READ_COUNT, cancelReadStreamSource.Token).ConfigureAwait(false);
-                                    EndTick = DateTime.Now;
-                                }
-
-                                if (bytesread > 0 && bytesread <= HTTP_STREAM_READ_COUNT && Received < Length)
-                                {
-                                    lastReceived += bytesread;
-                                    Received += bytesread;
-                                    await ms.WriteAsync(bytes, 0, bytesread);
-                                    UpdateProgress();
-                                }
-                            } while (bytesread > 0 && Received < Length);
-
-                            if (Received == Length && State == DownloadState.Downloading)
-                            {
-                                result = await SaveFile(FileName, ms.ToArray());
-                            }
-                            else if(Received != Length)
-                            {
-                                throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size ({Received} Bytes) not matched with server's size ({Length} Bytes).");
-                            }
-                            else if(State != DownloadState.Downloading)
-                            {
-                                throw new Exception($"Download {Path.GetFileName(FileName)} finished, but state[{State}] error!");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        result = await Url.DownloadImage(FileName);
-                        result.Touch(Url);
-                        Length = result.GetFileLength();
-                        if (Length <= 0) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File not exists.");
-                        Received = Length;
-                        State = DownloadState.Finished;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    FailReason = ex.Message;
-                }
-                finally
-                {
-
-                }
-            }
-            return (result);
-        }
-
-        private async Task<string> DownloadStreamAsync(HttpResponseMessage response, bool continuation)
+        private async Task<string> DownloadStreamAsync(HttpResponseMessage response, bool continuation = true)
         {
             string result = string.Empty;
             using (var ms = new MemoryStream())
@@ -873,14 +792,7 @@ namespace PixivWPF.Common
                                 _DownloadBuffer = ms.ToArray();
                                 result = await SaveFile(FileName, _DownloadBuffer);
                             }
-                            else if (Received != Length)
-                            {
-                                throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size ({Received} Bytes) not matched with server's size ({Length} Bytes).");
-                            }
-                            else if (State != DownloadState.Downloading)
-                            {
-                                throw new Exception($"Download {Path.GetFileName(FileName)} finished, but state[{State}] error!");
-                            }
+                            else DownloadExceptionProcess();
                         }
                     }
                     else
@@ -943,6 +855,27 @@ namespace PixivWPF.Common
                 Length = Received = 0;
             }
             UpdateProgress();
+        }
+
+        private void DownloadExceptionProcess()
+        {
+            if (Received != Length)
+            {
+                throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size ({Received} Bytes) not matched with server's size ({Length} Bytes).");
+            }
+            else if (State == DownloadState.Finished)
+            {
+                var fi = new FileInfo(FileName);
+                if (!fi.Exists) State = DownloadState.NonExists;
+                else if (fi.Length != Length)
+                {
+                    throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File size ({fi.Length} Bytes) not matched with server's size ({Length} Bytes).");
+                }
+            }
+            else if (State != DownloadState.Downloading)
+            {
+                throw new Exception($"Download {Path.GetFileName(FileName)} finished, but state[{State}] error!");
+            }
         }
 
         private void DownloadFinally(out string result)

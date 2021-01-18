@@ -2208,7 +2208,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IEnumerable<string> ParseDragContent(this DragEventArgs e)
+        public static IList<string> ParseDragContent(this DragEventArgs e)
         {
             List<string> links = new List<string>();
 
@@ -2324,7 +2324,7 @@ namespace PixivWPF.Common
             return (result.Trim().Trim(trim_char).HtmlDecode());
         }
 
-        public static IEnumerable<string> ParseLinks(this string html, bool is_src = false)
+        public static IList<string> ParseLinks(this string html, bool is_src = false)
         {
             List<string> links = new List<string>();
             var href_prefix_0 = is_src ? @"href=""" : string.Empty;

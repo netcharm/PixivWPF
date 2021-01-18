@@ -47,7 +47,6 @@
             Text="&#xEDE4;" FontWeight="DemiBold" FontFamily="Segoe MDL2 Assets"
             FontSize="{Binding Path=Width, ElementName=PART_Ring, Mode=OneWay, IsAsync=True, Converter={mah:MathMultiplyConverter}, ConverterParameter='0.5'}" 
             Opacity="{Binding Path=Opacity, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
-            Visibility="{Binding Path=Visibility, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
             Foreground="{Binding Path=Foreground, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
             Background="{Binding Path=Background, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
             HorizontalAlignment="Center" VerticalAlignment="Center">

@@ -85,9 +85,8 @@ namespace PixivWPF.Common
             set { PART_ImageTiles.SelectionMode = value; }
         }
 
-        //private ConcurrentDictionary<PixivItem, Grid> TileList = new ConcurrentDictionary<PixivItem, Grid>();
-        //private ConcurrentDictionary<PixivItem, Image> ImageList = new ConcurrentDictionary<PixivItem, Image>();
-        private ConcurrentDictionary<PixivItem, Canvas> CanvasList = new ConcurrentDictionary<PixivItem, Canvas>();
+        private ConcurrentDictionary<string, ProgressRingCloud> RingList = new ConcurrentDictionary<string, ProgressRingCloud>();
+        private ConcurrentDictionary<string, Canvas> CanvasList = new ConcurrentDictionary<string, Canvas>();
         private ObservableCollection<PixivItem> ItemList = new ObservableCollection<PixivItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
@@ -181,6 +180,92 @@ namespace PixivWPF.Common
             }
         }
 
+        #region Scroll Viewer Helper
+        private ScrollViewer scrollViewer = null;
+        public int CurrentPage { get { return (CurrentScrollPage()); } }
+        public int CurrentScrollPage()
+        {
+            int result = -1;
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                var offset = scrollViewer.VerticalOffset;
+                var height = scrollViewer.ViewportHeight;
+                var total = scrollViewer.ExtentHeight;
+                result = (int)Math.Round(offset / height) + 1;
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public int TotalPages { get { return (TotalScrollPages()); } }
+        public int TotalScrollPages()
+        {
+            int result = -1;
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                var offset = scrollViewer.VerticalOffset;
+                var height = scrollViewer.ViewportHeight;
+                var total = scrollViewer.ExtentHeight;
+                result = (int)Math.Ceiling(total / height);
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public void PageUp()
+        {
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                scrollViewer.UpdateLayout();
+                var offset = scrollViewer.VerticalOffset;
+                var height = scrollViewer.ViewportHeight;
+                var total = scrollViewer.ExtentHeight;
+                scrollViewer.ScrollToVerticalOffset(offset - height - 1);
+                scrollViewer.UpdateLayout();
+            }
+            catch (Exception) { }
+        }
+
+        public void PageDown()
+        {
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                scrollViewer.UpdateLayout();
+                var offset = scrollViewer.VerticalOffset;
+                var height = scrollViewer.ViewportHeight;
+                var total = scrollViewer.ExtentHeight;
+                scrollViewer.ScrollToVerticalOffset(offset + height + 1);
+                scrollViewer.UpdateLayout();
+            }
+            catch (Exception) { }
+        }
+
+        public void PageFirst()
+        {
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                scrollViewer.ScrollToHome();
+                scrollViewer.UpdateLayout();
+            }
+            catch (Exception) { }
+        }
+
+        public void PageLast()
+        {
+            try
+            {
+                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                scrollViewer.ScrollToEnd();
+                scrollViewer.UpdateLayout();
+            }
+            catch (Exception) { }
+        }
+
         public bool IsCurrentBeforeFirst { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.IsCurrentBeforeFirst : false); } }
         public bool IsCurrentAfterLast { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.IsCurrentAfterLast : false); } }
 
@@ -243,6 +328,7 @@ namespace PixivWPF.Common
             }
             catch (Exception) { }
         }
+        #endregion
 
         public event SelectionChangedEventHandler SelectionChanged;
         public delegate void SelectionChangedEventHandler(object sender, SelectionChangedEventArgs e);
@@ -377,9 +463,11 @@ namespace PixivWPF.Common
                 {
                     for (var i = 0; i < ItemList.Count; i++)
                     {
-                        if (CanvasList.ContainsKey(ItemList[i]))
+                        var item = ItemList[i];
+                        var id = GetID(item);
+                        if (CanvasList.ContainsKey(id))
                         {
-                            var canvas = CanvasList[ItemList[i]];
+                            var canvas = CanvasList[id];
                             //(canvas.Background as ImageBrush).ImageSource = null;
                             canvas.Background = null;
                             canvas.UpdateLayout();
@@ -389,29 +477,17 @@ namespace PixivWPF.Common
                                 this.DoEvents();
                             }
                         }
-                        //if (ImageList.ContainsKey(ItemList[i]) && TileList.ContainsKey(ItemList[i]))
-                        //{
-                        //    var tile = TileList[ItemList[i]];
-                        //    var image = ImageList[ItemList[i]];
-                        //    if (tile is Grid && image is Image)
-                        //    {
-                        //        image.Source = null;
-                        //        if (!batch)
-                        //        {
-                        //            image.UpdateLayout();
-                        //            this.DoEvents();
-                        //        }
-                        //        image.DataContext = null;
-                        //        tile.DataContext = null;
-                        //    }
-                        //}
-                        //ItemList[i].State = TaskStatus.Canceled;
-                        //ItemList[i].Source = null;
-                        //ItemList[i] = null;
+                        if(RingList.ContainsKey(id) && RingList[id] is ProgressRingCloud)
+                        {
+                            var ring = RingList[id];
+                            //ring.State = TaskStatus.Canceled;
+                            //ring.UpdateState();
+                            ring.Hide();
+                        }
+                        this.DoEvents();
                     }
                     CanvasList.Clear();
-                    //ImageList.Clear();
-                    //TileList.Clear();
+                    RingList.Clear();
                     if (batch)
                     {
                         PART_ImageTiles.UpdateLayout();
@@ -431,9 +507,8 @@ namespace PixivWPF.Common
             }
             else
             {
-                //ImageList.Clear();
-                //TileList.Clear();
                 CanvasList.Clear();
+                RingList.Clear();
                 ItemList.Clear();
             }
         }
@@ -447,91 +522,6 @@ namespace PixivWPF.Common
                     Clear(batch);
                 }).InvokeAsync(true);
             }
-        }
-
-        private ScrollViewer scrollViewer = null;
-        public int CurrentPage { get { return (CurrentScrollPage()); } }
-        public int CurrentScrollPage()
-        {
-            int result = -1;
-            try
-            {
-                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-                var offset = scrollViewer.VerticalOffset;
-                var height = scrollViewer.ViewportHeight;
-                var total = scrollViewer.ExtentHeight;
-                result = (int)Math.Round(offset / height) + 1;
-            }
-            catch (Exception) { }
-            return (result);
-        }
-
-        public int TotalPages { get { return (TotalScrollPages()); } }
-        public int TotalScrollPages()
-        {
-            int result = -1;
-            try
-            {
-                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-                var offset = scrollViewer.VerticalOffset;
-                var height = scrollViewer.ViewportHeight;
-                var total = scrollViewer.ExtentHeight;
-                result = (int)Math.Ceiling(total / height);
-            }
-            catch (Exception) { }
-            return (result);
-        }
-
-        public void PageUp()
-        {
-            try
-            {
-                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-                scrollViewer.UpdateLayout();
-                var offset = scrollViewer.VerticalOffset;
-                var height = scrollViewer.ViewportHeight;
-                var total = scrollViewer.ExtentHeight;
-                scrollViewer.ScrollToVerticalOffset(offset - height - 1);
-                scrollViewer.UpdateLayout();
-            }
-            catch (Exception) { }
-        }
-
-        public void PageDown()
-        {
-            try
-            {
-                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-                scrollViewer.UpdateLayout();
-                var offset = scrollViewer.VerticalOffset;
-                var height = scrollViewer.ViewportHeight;
-                var total = scrollViewer.ExtentHeight;
-                scrollViewer.ScrollToVerticalOffset(offset + height + 1);
-                scrollViewer.UpdateLayout();
-            }
-            catch (Exception) { }
-        }
-
-        public void PageFirst()
-        {
-            try
-            {
-                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-                scrollViewer.ScrollToHome();
-                scrollViewer.UpdateLayout();
-            }
-            catch (Exception) { }
-        }
-
-        public void PageLast()
-        {
-            try
-            {
-                if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-                scrollViewer.ScrollToEnd();
-                scrollViewer.UpdateLayout();
-            }
-            catch (Exception) { }
         }
 
         public void Filtering(string filter)
@@ -565,20 +555,38 @@ namespace PixivWPF.Common
             {
                 await new Action(() =>
                 {
-                    var bg = new ImageBrush(source);
-                    bg.Stretch = Stretch.Uniform;
-                    bg.TileMode = TileMode.None;
-                    bg.Freeze();
-                    canvas.Background = bg;
+                    if (canvas.Background != null) canvas.Background = null;
+                    canvas.Background = new ImageBrush(source) { Stretch = Stretch.Uniform, TileMode = TileMode.None };
+                    if(canvas.Background.CanFreeze) canvas.Background.Freeze();
                 }).InvokeAsync(true);
             }
+        }
+
+        private string GetID(PixivItem item)
+        {
+            string id = item.ID;
+            string idx = item.Index > 0 ? $"_{item.Index}" : string.Empty;
+            if (item.IsWork()) id = $"i_{id}{idx}";
+            else if (item.IsUser()) id = $"u_{id}";
+            return (id);
         }
 
         public async void UpdateTilesImage(bool overwrite = false, int parallel = 5, SemaphoreSlim updating_semaphore = null)
         {
             Application.Current.DoEvents();
 
-            foreach (var item in Items.Where(item => item.Source != null)) item.State = TaskStatus.RanToCompletion;
+            foreach (var item in Items.Where(item => item.Source != null))
+            {
+                var id = GetID(item);
+                if (RingList.ContainsKey(id) && item.Source != null)
+                {
+                    var ring = RingList[id];
+                    //ring.State = TaskStatus.RanToCompletion;
+                    //ring.UpdateState();
+                    ring.Hide();
+                }
+            }
+            this.DoEvents();
 
             var needUpdate = Items.Where(item => item.Source == null || overwrite);
             if (needUpdate.Count() > 0)
@@ -617,35 +625,24 @@ namespace PixivWPF.Common
                     var ring = sender as ProgressRingCloud;
                     var tile = ring.Parent is Grid ? ring.Parent as Grid : null;
                     var item = tile is Grid && tile.DataContext is PixivItem ? tile.DataContext as PixivItem : null;
-                    var image = tile is Grid ? tile.FindByName<Image>("PART_Thumbnail") : null;
+                    var id = GetID(item);
                     var canvas = tile is Grid ? tile.FindByName<Canvas>("PART_ThumbnailCanvas") : null;
                     if (canvas is Canvas && item is PixivItem)
                     {
                         if (ring.State == TaskStatus.RanToCompletion)
                         {
                             RenderCanvas(canvas, item.Source);
-                            CanvasList[item] = canvas;
+                            CanvasList[id] = canvas;
+                            RingList[id] = ring;
                         }
                         else if (ring.State == TaskStatus.Canceled)
                         {
-                            if (CanvasList.ContainsKey(item)) CanvasList.TryRemove(item, out canvas);
-                            canvas.Background = null;
-                            canvas.UpdateLayout();
+                            //tile.DataContext = null;
+                            //if (CanvasList.ContainsKey(id)) CanvasList.TryRemove(id, out canvas);
+                            //canvas.Background = null;
+                            //canvas.UpdateLayout();
                         }
                     }
-                    //if (image is Image && item is PixivItem)
-                    //{
-                    //    if (ring.State == TaskStatus.RanToCompletion)
-                    //    {
-                    //        image.Source = item.Source;
-                    //        if (image.Source != null)
-                    //        {
-                    //            ImageList[item] = image;
-                    //            TileList[item] = tile;
-                    //            image.Source.Freeze();
-                    //        }
-                    //    }
-                    //}
                     ring.UpdateState();
                 }
                 catch (Exception) { }
@@ -660,17 +657,27 @@ namespace PixivWPF.Common
 
         private void RaisePropertyChanged(string propertyName)
         {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private void PART_Thumbnail_Unloaded(object sender, RoutedEventArgs e)
         {
-            if(sender is Image)
+            try
             {
-                var image = sender as Image;
-                image.Source = null;
-                //image.UpdateLayout();
+                if (sender is Image)
+                {
+                    var image = sender as Image;
+                    image.Source = null;
+                    image.UpdateLayout();
+                }
+                else if (sender is Canvas)
+                {
+                    var canvas = sender as Canvas;
+                    canvas.Background = null;
+                    canvas.UpdateLayout();
+                }
             }
+            catch (Exception) { }
         }
     }
 }

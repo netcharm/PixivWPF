@@ -900,7 +900,17 @@ namespace PixivWPF.Common
         private static SemaphoreSlim CanOpenDownloadManager= new SemaphoreSlim(1, 1);
         public static ICommand OpenDownloadManager { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if (await CanOpenDownloadManager.WaitAsync(-1))
+            if (Mouse.RightButton == MouseButtonState.Pressed)
+            {
+                if (_downManager_page is DownloadManagerPage)
+                {
+                    await new Action(() =>
+                    {
+                        CopyDownloadInfo.Execute(_downManager_page.GetDownloadInfo());
+                    }).InvokeAsync(true);
+                }
+            }
+            else if (await CanOpenDownloadManager.WaitAsync(TimeSpan.FromSeconds(60)))
             {
                 if (obj is bool)
                 {
@@ -930,7 +940,7 @@ namespace PixivWPF.Common
                         viewer.Show();
                     }).InvokeAsync(true);
                 }
-                if(CanOpenDownloadManager is SemaphoreSlim && CanOpenDownloadManager.CurrentCount <= 0) CanOpenDownloadManager.Release();
+                if (CanOpenDownloadManager is SemaphoreSlim && CanOpenDownloadManager.CurrentCount <= 0) CanOpenDownloadManager.Release();
             }
         });
 
@@ -1166,24 +1176,21 @@ namespace PixivWPF.Common
                 var sender = obj as System.Windows.Controls.Primitives.ToggleButton;
                 await new Action(() =>
                 {
-                    if (sender is System.Windows.Controls.Primitives.ToggleButton)
+                    if (Keyboard.Modifiers == ModifierKeys.Control || Mouse.RightButton == MouseButtonState.Pressed)
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Control || Mouse.RightButton == MouseButtonState.Pressed)
-                        {
-                            IList<string> titles = Application.Current.OpenedWindowTitles();
-                            if (titles.Count > 0) CopyText.Execute($"{string.Join(Environment.NewLine, titles)}{Environment.NewLine}");
-                        }
-                        else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        {
-                            SaveOpenedWindows.Execute(null);
-                        }
-                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                        {
-                            LoadLastOpenedWindows.Execute(null);
-                        }
-                        else if (Keyboard.Modifiers == ModifierKeys.None)
-                            CommonHelper.SetDropBoxState(true.ShowDropBox());
+                        IList<string> titles = Application.Current.OpenedWindowTitles();
+                        if (titles.Count > 0) CopyText.Execute($"{string.Join(Environment.NewLine, titles)}{Environment.NewLine}");
                     }
+                    else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                    {
+                        SaveOpenedWindows.Execute(null);
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                    {
+                        LoadLastOpenedWindows.Execute(null);
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.None)
+                        CommonHelper.SetDropBoxState(true.ShowDropBox());
                 }).InvokeAsync(true);
             }
         });

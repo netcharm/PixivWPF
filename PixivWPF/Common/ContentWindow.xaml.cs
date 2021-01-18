@@ -215,6 +215,11 @@ namespace PixivWPF.Common
             Commands.OpenDownloadManager.Execute(true);
         }
 
+        private void CommandDownloadManager_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Commands.OpenDownloadManager.Execute(false);
+        }
+
         private void CommandDropbox_Click(object sender, RoutedEventArgs e)
         {
             Commands.OpenDropBox.Execute(sender);

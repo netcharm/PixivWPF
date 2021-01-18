@@ -32,14 +32,14 @@
                 <Border Grid.Row="0" x:Name="PART_Mask" Opacity="0.67"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                         Background="{DynamicResource MahApps.Brushes.IdealForeground}" BorderBrush="{DynamicResource MahApps.Brushes.Accent}" />
-                <Image Grid.Row="0" x:Name="PART_Thumbnail"
+                <!--<Image Grid.Row="0" x:Name="PART_Thumbnail"
                        Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"                        
-                       Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Unloaded="PART_Thumbnail_Unloaded"/>
+                       Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Unloaded="PART_Thumbnail_Unloaded"/>-->
                 <Canvas Grid.Row="0" x:Name="PART_ThumbnailCanvas"
                        Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"                        
-                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                       HorizontalAlignment="Center" VerticalAlignment="Center" Unloaded="PART_Thumbnail_Unloaded"/>
                 <!-- User Mark Glow -->
                 <TextBlock 
                     Grid.Row="0"

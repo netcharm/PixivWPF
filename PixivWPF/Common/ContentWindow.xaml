@@ -165,7 +165,7 @@
                     Text="&#xE81C;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>            
-            <Button Click="CommandDownloadManager_Click" 
+            <Button Click="CommandDownloadManager_Click" MouseRightButtonDown="CommandDownloadManager_MouseRightButtonDown"
                     ToolTip="Open Download Manager">
                 <TextBlock 
                     Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets" 

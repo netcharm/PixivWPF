@@ -1448,6 +1448,43 @@ namespace PixivWPF.Common
             }
         }
 
+        public static Color MenuBackgroundColor
+        {
+            get { return (MenuBackgroundBrush.ToColor()); }
+        }
+
+        public static Brush MenuBackgroundBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.Menu.Background"] as Brush);
+            }
+        }
+
+        public static Color MenuItemBackgroundColor
+        {
+            get { return (MenuItemBackgroundBrush.ToColor()); }
+        }
+
+        public static Brush MenuItemBackgroundBrush
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (appTheme.Resources["MahApps.Brushes.MenuItem.Background"] as Brush);
+            }
+        }
+
+        public static Color SeparatorColor
+        {
+            get { return (Gray7Color); }
+        }
+
+        public static Brush SeparatorBrush
+        {
+            get { return (Gray7Brush); }
+        }
 
         #endregion
 

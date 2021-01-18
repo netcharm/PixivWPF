@@ -76,7 +76,7 @@
                         <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <Separator x:Name="ActionViewPageSep" Width="1" />
+                <Separator x:Name="ActionViewPageSep"/>
                 <MenuItem x:Name="ActionViewOriginal" x:Uid="ActionViewOriginaPage" Header="View Original" Click="ActionViewOriginal_Click">
                     <MenuItem.Icon>
                         <iconPacks:PackIconModern Kind="ArrowExpand" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
