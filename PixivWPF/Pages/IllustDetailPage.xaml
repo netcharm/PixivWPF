@@ -342,6 +342,23 @@
                 </Grid.RowDefinitions>
                 <!-- Illust Preview -->
                 <Grid Grid.Row="0" x:Name="PreviewViewer" Width="Auto" Height="Auto" Visibility="Collapsed">
+                    <Grid.Resources>
+                        <ControlTemplate x:Key="SanityMarkTemplate">
+                            <Grid x:Name="SanityMark" Opacity="0.33" Margin="4,0,0,4" Effect="{DynamicResource DropGlow}">
+                                <TextBlock x:Name="SanityMarkText" 
+                                    FontSize="{Binding FontSize, ElementName=SanityMarkSign, Converter={mah:MathMultiplyConverter}, ConverterParameter='0.5'}" 
+                                    FontWeight="SemiBold" Padding="0,0,4,0"                                           
+                                    Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
+                                    LayoutTransform="{DynamicResource FontStretchSemiCondensed}"
+                                    Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>                                
+                                <TextBlock x:Name="SanityMarkSign" Text="&#xF140;"
+                                    FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
+                                    Foreground="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
+                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                            </Grid>
+                        </ControlTemplate>
+                    </Grid.Resources>
                     <Grid.Background>
                         <ImageBrush ImageSource="pack://application:,,,/PixivWPF;component/Resources/CheckboardPattern_32.png" 
                         TileMode="Tile"  Opacity="0.10" 
@@ -353,56 +370,11 @@
                                SnapsToDevicePixels="True" />
                     </Viewbox>
                     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"
-                      Visibility="{Binding Visibility, Mode=OneWay, ElementName=IllustSanityInfo}">
-                        <TextBlock x:Name="IllustSanityMark" Text="&#xF140;"
-                            FontSize="20pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
-                            Foreground="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
-                            Visibility="Collapsed"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                        <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4" Effect="{DynamicResource DropGlow}">
-                            <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
-                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
-                            LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
-                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets" Margin="0" Padding="0"
-                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
-                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                        </Grid>
-                        <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Opacity="0.33" Margin="4,0,0,4" Effect="{DynamicResource DropGlow}">
-                            <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
-                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
-                            LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
-                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
-                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
-                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                        </Grid>
-                        <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4" Effect="{DynamicResource DropGlow}">
-                            <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
-                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
-                            LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
-                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
-                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
-                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                        </Grid>
-                        <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Opacity="0.33" Margin="4,0,0,4" Effect="{DynamicResource DropGlow}">
-                            <TextBlock FontSize="36pt" FontWeight="SemiBold" Padding="0,0,4,0"
-                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
-                            LayoutTransform="{Binding LayoutTransform, Mode=OneWay, ElementName=IllustSanity}"
-                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
-                            Text="{Binding Text, Mode=OneWay, ElementName=IllustSanityMark}"
-                            Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanityMark}"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                        </Grid>
+                        Visibility="{Binding Visibility, Mode=OneWay, ElementName=IllustSanityInfo}">
+                        <ContentControl Template="{DynamicResource SanityMarkTemplate}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <ContentControl Template="{DynamicResource SanityMarkTemplate}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                        <ContentControl Template="{DynamicResource SanityMarkTemplate}" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+                        <ContentControl Template="{DynamicResource SanityMarkTemplate}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
                     </Grid>
                     <ContentControl Grid.Row="0" x:Name="PreviewBox" >
                         <ContentControl.ContextMenu>
@@ -556,7 +528,8 @@
                             BorderBrush="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
                             CornerRadius="3" BorderThickness="3" Height="20" Width="Auto" Margin="0,0,2,0">
                             <TextBlock x:Name="IllustSanity" Text="18" Margin="1"
-                                FontSize="14" FontWeight="SemiBold"
+                                FontSize="{Binding Height, ElementName=IllustSanityInfo, Converter={mah:MathMultiplyConverter}, ConverterParameter='0.75'}" 
+                                FontWeight="SemiBold"
                                 Foreground="{DynamicResource MahApps.Brushes.Text}"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -999,7 +972,7 @@
                           ContextMenuOpening="IllustActions_ContextMenuOpening"
                           Expanded="SubIllustsExpander_Expanded" Collapsed="SubIllustsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="SubIllusts" x:Uid="SubIllusts" 
-                                          Columns="5" TileWidth="128" TileHeight="128"
+                                          Columns="5" TileWidth="128" TileHeight="128" Visibility="Visible"
                                           Focusable="True"
                                           SelectionMode="Extended" 
                                           BadgeVisibility="Visible" TitleVisibility="Collapsed"

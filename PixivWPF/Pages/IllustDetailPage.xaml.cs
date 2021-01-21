@@ -914,7 +914,7 @@ namespace PixivWPF.Pages
 
                 SubIllusts.Tag = 0;
                 SubIllustsExpander.IsExpanded = false;
-                SubIllusts.Clear();
+                SubIllusts.ClearAsync();
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.IsWork() && item.Illust.PageCount > 1)
                 {
@@ -935,13 +935,13 @@ namespace PixivWPF.Pages
                 RelativeItemsExpander.Header = "Related Illusts";
                 RelativeItemsExpander.IsExpanded = false;
                 RelativeItemsExpander.Show();
-                RelativeItems.Clear();
+                RelativeItems.ClearAsync(false);
                 RelativeNextPage.Hide();
 
                 FavoriteItemsExpander.Header = "Author Favorite";
                 FavoriteItemsExpander.IsExpanded = false;
                 FavoriteItemsExpander.Show();
-                FavoriteItems.Clear();
+                FavoriteItems.ClearAsync(false);
                 FavoriteNextPage.Hide();
 #if DEBUG
                 CommentsExpander.IsExpanded = false;
@@ -953,7 +953,7 @@ namespace PixivWPF.Pages
                 CommentsExpander.Hide();
 #endif
                 ActionRefreshAvatar();
-                if (!SubIllustsExpander.IsExpanded)
+                if (!SubIllustsExpander.IsShown())
                     ActionRefreshPreview();
             }
             catch (OperationCanceledException) { }
@@ -1150,6 +1150,8 @@ namespace PixivWPF.Pages
                     this.DoEvents();
                     #endregion
 
+                    SubIllusts.Clear(false);
+
                     var idx = page * count;
                     if (item.Illust is Pixeez.Objects.IllustWork)
                     {
@@ -1157,7 +1159,6 @@ namespace PixivWPF.Pages
                         if (subset.meta_pages.Count() > 1)
                         {
                             var pages = subset.meta_pages.Skip(idx).Take(count).ToList();
-                            SubIllusts.Clear();
                             for (var i = 0; i < pages.Count; i++)
                             {
                                 var p = pages[i];
@@ -1177,7 +1178,6 @@ namespace PixivWPF.Pages
                         if (item.Illust.Metadata is Pixeez.Objects.Metadata)
                         {
                             var pages = item.Illust.Metadata.Pages.Skip(idx).Take(count).ToList();
-                            SubIllusts.Clear();
                             for (var i = 0; i < pages.Count; i++)
                             {
                                 var p = pages[i];
@@ -1186,6 +1186,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    //SubIllusts.UpdateLayout();
                     SubIllusts.UpdateTilesImage();
                     this.DoEvents();
 
@@ -1221,7 +1222,7 @@ namespace PixivWPF.Pages
                 if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
                 if (!append)
                 {
-                    RelativeItems.Clear();
+                    RelativeItems.Clear(false);
                     relative_illusts.Clear();
                 }
 
@@ -1286,7 +1287,7 @@ namespace PixivWPF.Pages
                 if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
                 if (!append)
                 {
-                    RelativeItems.Clear();
+                    RelativeItems.Clear(false);
                     relative_illusts.Clear();
                 }
 
@@ -1353,7 +1354,7 @@ namespace PixivWPF.Pages
                 if (!(favorite_illusts is List<long?>)) favorite_illusts = new List<long?>();
                 if (!append)
                 {
-                    FavoriteItems.Clear();
+                    FavoriteItems.Clear(false);
                     favorite_illusts.Clear();
                 }
 
@@ -3086,7 +3087,10 @@ namespace PixivWPF.Pages
         {
             if (Contents is PixivItem)
             {
-                if (SubIllusts.Items.Count() <= 0)
+                var count_list = Math.Min(Contents.Count - page_number * PAGE_ITEMS, PAGE_ITEMS);
+                var count = SubIllusts.Items.Count();
+                var same = count_list > 0 && count > 0 ? Contents.IsSameIllust(SubIllusts.Items.First()) : false;
+                if (!same || count <= 0 || count != count_list)
                     ShowIllustPagesAsync(Contents, page_index, page_number);
                 else
                     SubIllusts.UpdateTilesImage();

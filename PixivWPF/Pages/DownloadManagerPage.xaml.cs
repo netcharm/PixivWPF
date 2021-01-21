@@ -28,7 +28,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class DownloadManagerPage : Page
     {
-        private Window window = null;
+        public Window Window { get; set; } = null;
         public Point Pos { get; set; } = new Point(0, 0);
 
         private Setting setting = Application.Current.LoadSetting();
@@ -56,7 +56,7 @@ namespace PixivWPF.Pages
 
         public void UpdateTheme()
         {
-            UpdateDownloadState();
+            UpdateDownloadStateAsync();
         }
 
         private async void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -68,7 +68,7 @@ namespace PixivWPF.Pages
                     await new Action(() =>
                     {
                         item.UpdateDownloadState(illustid, exists);
-                    }).InvokeAsync();
+                    }).InvokeAsync(true);
                 }
             }
         }
@@ -140,7 +140,7 @@ namespace PixivWPF.Pages
             timer.Change(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(1000));
 
             DownloadItems.ItemsSource = items;
-            window = Window.GetWindow(this);
+            if (Window == null) Window = Window.GetWindow(this);
         }
 
         private async void timerCallback(object stateInfo)
@@ -174,7 +174,7 @@ namespace PixivWPF.Pages
 
         private async void UpdateStateInfo()
         {
-            if (window is Window && window.WindowState != WindowState.Minimized)
+            if (Window is Window && Window.WindowState != WindowState.Minimized)
             {
                 if (await CanUpdateState.WaitAsync(0))
                 {
@@ -202,7 +202,7 @@ namespace PixivWPF.Pages
                         {
                             if (CanUpdateState is SemaphoreSlim && CanUpdateState.CurrentCount <= 0) CanUpdateState.Release();
                         }
-                    }).InvokeAsync();
+                    }).InvokeAsync(true);
                 }
             }
         }
@@ -261,7 +261,7 @@ namespace PixivWPF.Pages
                     if (string.IsNullOrEmpty(setting.LastFolder))
                     {
                         Application.Current.SaveTarget();
-                        if (CanAddItem is SemaphoreSlim && CanAddItem.CurrentCount <= 0) CanAddItem.Release();
+                        //if (CanAddItem is SemaphoreSlim && CanAddItem.CurrentCount <= 0) CanAddItem.Release();
                     }
 
                     var item = new DownloadInfo()

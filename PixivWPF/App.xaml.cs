@@ -37,12 +37,13 @@ namespace PixivWPF
 
                 //add handler on application load
                 AppDomain.CurrentDomain.UnhandledException += NBug.Handler.UnhandledException;
-                Application.Current.DispatcherUnhandledException += NBug.Handler.DispatcherUnhandledException;
+                Current.DispatcherUnhandledException += NBug.Handler.DispatcherUnhandledException;
             }
             catch { }
             finally
             {
                 var setting = this.LoadSetting(true);
+                if (setting.SingleInstance && Current.Activate()) Current.Shutdown(-1);
             }
         }
     }

@@ -912,35 +912,43 @@ namespace PixivWPF.Common
             }
             else if (await CanOpenDownloadManager.WaitAsync(TimeSpan.FromSeconds(60)))
             {
-                if (obj is bool)
+                try
                 {
-                    var active = (bool)obj;
-
-                    var title = $"Download Manager";
-                    if (active ? await title.ActiveByTitle() : await title.ShowByTitle()) return;
-
-                    await new Action(() =>
+                    if (obj is bool)
                     {
-                        if (!(_downManager_page is DownloadManagerPage))
-                            _downManager_page = new DownloadManagerPage() { AutoStart = true };
+                        var active = (bool)obj;
 
-                        setting = Application.Current.LoadSetting();
-                        var viewer = new ContentWindow()
+                        var title = $"Download Manager";
+                        if (active ? await title.ActiveByTitle() : await title.ShowByTitle()) return;
+
+                        await new Action(() =>
                         {
-                            Title = title,
-                            MinWidth = WIDTH_MIN + 80,
-                            MinHeight = HEIGHT_MIN,
-                            Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
-                            Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
-                            Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager_page.Pos.X,
-                            Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager_page.Pos.Y,
-                            FontFamily = setting.FontFamily,
-                            Content = _downManager_page
-                        };
-                        viewer.Show();
-                    }).InvokeAsync(true);
+                            if (!(_downManager_page is DownloadManagerPage))
+                                _downManager_page = new DownloadManagerPage() { AutoStart = true };
+
+                            setting = Application.Current.LoadSetting();
+                            var viewer = new ContentWindow()
+                            {
+                                Title = title,
+                                MinWidth = WIDTH_MIN + 80,
+                                MinHeight = HEIGHT_MIN,
+                                Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
+                                Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
+                                Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager_page.Pos.X,
+                                Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager_page.Pos.Y,
+                                FontFamily = setting.FontFamily,
+                                Content = _downManager_page
+                            };
+                            _downManager_page.Window = viewer;
+                            viewer.Show();
+                        }).InvokeAsync(true);
+                    }
                 }
-                if (CanOpenDownloadManager is SemaphoreSlim && CanOpenDownloadManager.CurrentCount <= 0) CanOpenDownloadManager.Release();
+                catch (Exception) { }
+                finally
+                {
+                    if (CanOpenDownloadManager is SemaphoreSlim && CanOpenDownloadManager.CurrentCount <= 0) CanOpenDownloadManager.Release();
+                }
             }
         });
 

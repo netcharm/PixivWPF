@@ -455,13 +455,13 @@ namespace PixivWPF.Pages
                 NextURL = null;
                 TargetPage = target;
                 ids.Clear();
-                ListImageTiles.ClearAsync();
+                ListImageTiles.ClearAsync(false);
             }
             if (target != PixivPage.My && !IsAppend)
             {
                 NextURL = null;
                 ids.Clear();
-                ListImageTiles.ClearAsync();
+                ListImageTiles.ClearAsync(false);
             }
             GC.Collect();
             //GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);

@@ -93,7 +93,7 @@ namespace PixivWPF.Pages
                 finally
                 {
                     if (window != null) window.SizeToContent = SizeToContent.WidthAndHeight;
-                    CanUpdateing.Release();
+                    if (CanUpdateing is SemaphoreSlim && CanUpdateing.CurrentCount <= 0) CanUpdateing.Release();
                 }
             }
         }

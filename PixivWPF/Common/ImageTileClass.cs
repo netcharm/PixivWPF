@@ -871,7 +871,7 @@ namespace PixivWPF.Common
             {
                 if (update_semaphore is SemaphoreSlim && update_semaphore.CurrentCount <= 0)
                 {
-                    update_semaphore.Release();
+                    if (update_semaphore is SemaphoreSlim && update_semaphore.CurrentCount <= 0) update_semaphore.Release();
                     await Task.Delay(1);
                 }
                 Application.Current.DoEvents();

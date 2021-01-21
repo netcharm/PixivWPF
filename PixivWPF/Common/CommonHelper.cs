@@ -621,6 +621,21 @@ namespace PixivWPF.Common
             //return (Application.ResourceAssembly.GetName().Version.ToString());
         }
 
+        private static int pid = -1;
+        public static int PID
+        {
+            get
+            {
+                if (pid < 0) pid = CurrentProcess.Id;
+                return (pid);
+            }
+        }
+
+        public static int GetPID(this Application app)
+        {
+            return (PID);
+        }
+
         private static string processor_id = string.Empty;
         public static string ProcessorID
         {
@@ -707,12 +722,18 @@ namespace PixivWPF.Common
             return (MachineID);
         }
 
-        private static Process CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
-
-        public static Process Process(this Application app)
+        private static Process current_process = null;
+        private static Process CurrentProcess
         {
-            if (!(CurrentProcess is Process))
-                CurrentProcess = System.Diagnostics.Process.GetCurrentProcess();
+            get
+            {
+                if(current_process == null) current_process = System.Diagnostics.Process.GetCurrentProcess();
+                return (current_process);
+            }
+        }
+
+        public static Process GetCurrentProcess(this Application app)
+        {
             return (CurrentProcess);
         }
 
@@ -729,15 +750,97 @@ namespace PixivWPF.Common
         public static string PipeServerName()
         {
 #if DEBUG
-            return ($"PixivWPF-Search-Debug-{Application.Current.Process().Id}");
+            return ($"PixivWPF-Search-Debug-{Application.Current.GetPID()}");
 #else
-            return ($"PixivWPF-Search-{Application.Current.Process().Id}");
+            return ($"PixivWPF-Search-{Application.Current.GetPID()}");
 #endif
         }
 
         public static string PipeServerName(this Application app)
         {
             return (PipeName);
+        }
+        
+        public static bool Exists(this Application app)
+        {
+            bool result = false;
+            var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
+            foreach(var pipe in pipes)
+            {
+                if (Regex.IsMatch(pipe, $@"PixivWPF-Search-\d+", RegexOptions.IgnoreCase))
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return (result);
+        }
+
+        public static async void Active(this Application app, string param = "")
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(param) || $"{PID}".Equals(param))
+                {
+                    await new Action(() =>
+                    {
+                        var main = app.GetMainWindow();
+                        if (main is Window)
+                        {
+                            main.Activate();
+                        }
+                    }).InvokeAsync(true);
+                }
+            }
+            catch (Exception ex) { ex.Message.DEBUG(); }
+        }
+
+        public static bool Activate(this Application app)
+        {
+            bool result = false;
+            try
+            {
+#if DEBUG
+                var pat = $@"(.*?)PixivWPF-Search-Debug-(\d+)";
+#else
+                var pat = $@"(.*?)PixivWPF-Search-(\d+)";
+#endif
+                var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
+                foreach (var pipe in pipes)
+                {
+                    if (Regex.IsMatch(pipe, pat, RegexOptions.IgnoreCase))
+                    {
+                        result = true;
+                        var pid = Regex.Replace(pipe, pat, "$2", RegexOptions.IgnoreCase);
+                        var cmd = string.IsNullOrEmpty(pid) ? $"Cmd:Active" : $"Cmd:Active:{pid}";
+                        Commands.SendToOtherInstance.Execute(cmd);
+                        break;
+                    }
+                }
+            }
+            catch (Exception) { }
+            return (result);
+        }
+
+        public static bool ProcessCommand(this Application app, string command)
+        {
+            bool result = false;
+            try
+            {
+                var kv = command.Substring(4).Split(new char[] { '-', '_', ':', '+', '=' });
+                var action = kv[0];
+                var param = kv.Length == 2 ? kv[1] : string.Empty;
+                if (action.StartsWith("min", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Application.Current.MinimizedWindows(string.IsNullOrEmpty(param) ? "r18" : param);
+                }
+                else if (action.StartsWith("active", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Application.Current.Active(param);
+                }
+            }
+            catch (Exception) { }
+            return (result);
         }
         #endregion
 
@@ -1013,7 +1116,7 @@ namespace PixivWPF.Common
                 }
                 finally
                 {
-                    CanDoEvents.Release();
+                    if (CanDoEvents is SemaphoreSlim && CanDoEvents.CurrentCount <= 0) CanDoEvents.Release();
                 }
             }
         }
@@ -2063,7 +2166,7 @@ namespace PixivWPF.Common
                 }
                 finally
                 {
-                    CanRefreshToken.Release();
+                    if (CanRefreshToken is SemaphoreSlim && CanRefreshToken.CurrentCount <= 0) CanRefreshToken.Release();
                 }
             }
             return (result);
@@ -2115,7 +2218,7 @@ namespace PixivWPF.Common
                 finally
                 {
                     if(result == null) "Request Token Error!".ShowToast("ERROR");
-                    CanShowLogin.Release();
+                    if (CanShowLogin is SemaphoreSlim && CanShowLogin.CurrentCount <= 0) CanShowLogin.Release();
                 }
             }
             return (result);
@@ -2285,33 +2388,33 @@ namespace PixivWPF.Common
                 if (Regex.IsMatch(result, @"((UserID)|(IllustID)):( )*(\d+)", RegexOptions.IgnoreCase))
                     result = result.Trim();
 
-                else if (Regex.IsMatch(result, @"(.*?\/artworks\/)(\d+)(.*)", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"(.*?\/artworks\/)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"(.*?/artworks/)(\d+)(.*)", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"(.*?/artworks/)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"(.*?illust_id=)(\d+)(.*)", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
-                else if (Regex.IsMatch(result, @"(.*?\/pixiv\.navirank\.com\/id\/)(\d+)(.*)", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"(.*?\/id\/)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"(.*?/pixiv\.navirank\.com/id/)(\d+)(.*)", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"(.*?/id/)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
 
-                else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net\/users\/)(\d+)(.*)$", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"^(.*?\.pixiv.net\/users\/)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
-                else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net\/fanbox\/creator\/)(\d+)(.*)$", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"^(.*?\.pixiv.net\/fanbox\/creator\/)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net/users/)(\d+)(.*)$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?\.pixiv.net/users/)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net/fanbox/creator/)(\d+)(.*)$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?\.pixiv.net/fanbox/creator/)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"^(.*?\?id=)(\d+)(.*)$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?\?id=)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
-                else if (Regex.IsMatch(result, @"(.*?\/pixiv\.navirank\.com\/user\/)(\d+)(.*)", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"(.*?\/user\/)(\d+)(.*)", "UserID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"(.*?/pixiv\.navirank\.com/user/)(\d+)(.*)", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"(.*?/user/)(\d+)(.*)", "UserID: $2", RegexOptions.IgnoreCase);
 
                 else if (Regex.IsMatch(result, @"^(.*?tag_full&word=)(.*)$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?tag_full&word=)(.*)$", "Tag: $2", RegexOptions.IgnoreCase);
-                else if (Regex.IsMatch(result, @"(.*?\.pixiv\.net\/tags\/)(.*?){1}(/.*?)*$", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"(.*?\/tags\/)(.*?){1}(/.*?)*", "Tag: $2", RegexOptions.IgnoreCase);
-                else if (Regex.IsMatch(result, @"(.*?\/pixiv\.navirank\.com\/tag\/)(.*?)", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"(.*?\/tag\/)(.*?)", "Tag: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"(.*?\.pixiv\.net/tags/)(.*?){1}(/.*?)*$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"(.*?/tags/)(.*?){1}(/.*?)*", "Tag: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"(.*?/pixiv\.navirank\.com/tag/)(.*?)", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"(.*?/tag/)(.*?)", "Tag: $2", RegexOptions.IgnoreCase);
 
-                else if (Regex.IsMatch(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"^(.*?\/img-.*?\/)(\d+)(_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)))$", "IllustID: $2", RegexOptions.IgnoreCase);
-                else if (Regex.IsMatch(result, @"^(.*?)\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+).*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp))$", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"^(.*?)\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+).*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp))$", "IllustID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"^(.*?/img-.*?/)(\d+)(_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?/img-.*?/)(\d+)(_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))$", "IllustID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"^(.*?)/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+).*?\.(png|jpg|jpeg|gif|bmp|zip|webp)$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?)/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+).*?\.(png|jpg|jpeg|gif|bmp|zip|webp)$", "IllustID: $2", RegexOptions.IgnoreCase);
 
 
                 else if (Regex.IsMatch(Path.GetFileNameWithoutExtension(result), @"^((\d+)(_((p)|(ugoira))*\d+)*)"))
@@ -2335,44 +2438,44 @@ namespace PixivWPF.Common
             var opt = RegexOptions.IgnoreCase;// | RegexOptions.Multiline;
 
             var mr = new List<MatchCollection>();
-            foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />" }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />", "><" }, StringSplitOptions.RemoveEmptyEntries))
             {
                 var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim('"') : text;
                 if (content.Equals("<a", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals("<img", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals(">", StringComparison.CurrentCultureIgnoreCase)) continue;
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/www\.pixiv\.net\/(.*?\/){0,1}artworks\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/www\.pixiv\.net\/(.*?\/){0,1}users\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/www\.pixiv\.net\/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/www\.pixiv\.net\/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(.*?/)?artworks/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(.*?/)?users/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/img-.*?\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net\/.*?\/img\/.*?\/\d+_p\d+\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(http[s]{0,1}:\/\/.*?\.pximg\.net\/.*?\/img\/\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d+)_p\d+.*?\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip)))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/img-.*?/\d+_p\d+\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/img-.*?/(\d+)_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/.*?/img(-(master|original))?/.*?/\d+_p\d+(_.*?)?\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://.*?\.pximg\.net/.*?/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+)_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net/img-.*?/\d+_p\d+\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net/img-.*?/(\d+)_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net/.*?/img/.*?/\d+_p\d+\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(https?://.*?\.pximg\.net/.*?/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+)_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/www\.pixiv\.net\/fanbox\/creator\/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/fanbox/creator/\d+).*?" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"http[s]{0,1}://.*?\.pixiv\.net/(tags/(.*?){1})(/.*?)*$" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"https?://.*?\.pixiv\.net/(tags/(.*?){1})(/.*?)*$" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/pixiv\.navirank\.com\/id\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/pixiv\.navirank\.com\/user\/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(http[s]{0,1}:\/\/pixiv\.navirank\.com\/tag\/.*?\/)" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://pixiv\.navirank\.com/id/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://pixiv\.navirank\.com/user/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://pixiv\.navirank\.com/tag/.*?/)" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, @"[\\|/]((background)|(workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip))))", opt));
+                mr.Add(Regex.Matches(content, @"[\\|/](background|workspace|user-profile)[\\|/].*?[\\|/]((\d+)(_.{10,}\.(png|jpg|jpeg|gif|bmp|zip|webp)))", opt));
 
-                mr.Add(Regex.Matches(content, @"^(\d+)([_]*.*?).((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip))$", opt));
+                mr.Add(Regex.Matches(content, @"^(\d+)([_]*.*?).(png|jpg|jpeg|gif|bmp|zip|webp)$", opt));
 
-                mr.Add(Regex.Matches(content, @"^(((illust)|(illusts)|(artworks))/(\d+))", opt));
-                mr.Add(Regex.Matches(content, @"^(((user)|(users))/(\d+))", opt));
+                mr.Add(Regex.Matches(content, @"^((illust|illusts|artworks)/(\d+))", opt));
+                mr.Add(Regex.Matches(content, @"^((users?)/(\d+))", opt));
 
-                mr.Add(Regex.Matches(content, @"^(((id)|(uid)):[ ]*(\d+)+)", opt));
-                mr.Add(Regex.Matches(content, @"^(((user)|(fuzzy)|(tag)|(title)):[ ]*(.+)+)", opt));
+                mr.Add(Regex.Matches(content, @"^((u?id):[ ]*(\d+)+)", opt));
+                mr.Add(Regex.Matches(content, @"^((user|fuzzy|tag|title):[ ]*(.+)+)", opt));
 
                 mr.Add(Regex.Matches(content, @"(Searching\s)(.*?)$", opt));
 
@@ -2380,7 +2483,7 @@ namespace PixivWPF.Common
 
                 mr.Add(Regex.Matches(content, @"((down(all)?|Downloading):\s?.*?)$", opt));
 
-                if (!Regex.IsMatch(content, @"^((http)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(down(all|load(ing)?)?:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
+                if (!Regex.IsMatch(content, @"^((https?)|(<a)|(href=)|(src=)|(id:)|(uid:)|(tag:)|(user:)|(title:)|(fuzzy:)|(down(all|load(ing)?)?:)|(illust/)|(illusts/)|(artworks/)|(user/)|(users/)).*?", opt))
                 {
                     try
                     {
@@ -2391,8 +2494,8 @@ namespace PixivWPF.Common
                             var IsFile = root.Length == 3 && string.IsNullOrEmpty(Path.GetExtension(ap)) ? false : true;
                             if (IsFile)
                             {
-                                if (Regex.IsMatch(ap, @"[\\|/]((background)(workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip))))", opt))
-                                    mr.Add(Regex.Matches(ap, @"[\\|/]((workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.((png)|(jpg)|(jpeg)|(gif)|(bmp)|(zip))))", opt));
+                                if (Regex.IsMatch(ap, @"[\\|/]((background)(workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.(png|jpg|jpeg|gif|bmp|zip|webp)))", opt))
+                                    mr.Add(Regex.Matches(ap, @"[\\|/]((workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.(png|jpg|jpeg|gif|bmp|zip|webp)))", opt));
                                 else
                                     mr.Add(Regex.Matches(Path.Combine(root, Path.GetFileName(content)), @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
                             }
@@ -2450,6 +2553,11 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                     {
                         //link = Uri.UnescapeDataString(WebUtility.HtmlDecode(link));
+                        if (Regex.IsMatch(link, @"(\d+)(_.*?)?\.(png|jpg|jpeg|gif|bmp|zip|webp)$", RegexOptions.IgnoreCase))
+                        {
+                            var id = Regex.Replace(link, @"^.*?/\d{2}/(\d+)(_.*?)?\.(png|jpg|jpeg|gif|bmp|zip|webp)$", "$1", RegexOptions.IgnoreCase);
+                            link = id.ArtworkLink();
+                        }
                         if (!links.Contains(link)) links.Add(link);
                     }
                     else if (link.StartsWith("id:", StringComparison.CurrentCultureIgnoreCase))
@@ -2698,7 +2806,7 @@ namespace PixivWPF.Common
         {
             string result = text;
 
-            var patten = new Regex(@"&(amp;){0,1}#(([0-9]{1,6})|(x([a-fA-F0-9]{1,5})));", RegexOptions.IgnoreCase);
+            var patten = new Regex(@"&(amp;)?#(([0-9]{1,6})|(x([a-fA-F0-9]{1,5})));", RegexOptions.IgnoreCase);
             //result = WebUtility.UrlDecode(WebUtility.HtmlDecode(result));
             result = Uri.UnescapeDataString(WebUtility.HtmlDecode(result));
             foreach (Match match in patten.Matches(result))
@@ -3322,7 +3430,7 @@ namespace PixivWPF.Common
         {
             var result = DateTime.FromFileTime(0);
             //https://i.pximg.net/img-original/img/2010/11/16/22/34/05/14611687_p0.png
-            var ds = Regex.Replace(url, @"http(s){0,1}://i\.pximg\.net/.*?/(\d{4})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/\d+.*?\.((png)|(jpg)|(gif)|(zip))", "$2-$3-$4T$5:$6:$7+09:00", RegexOptions.IgnoreCase);
+            var ds = Regex.Replace(url, @"https?://i\.pximg\.net/.*?/(\d{4})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/\d+.*?\.((png)|(jpg)|(gif)|(zip))", "$2-$3-$4T$5:$6:$7+09:00", RegexOptions.IgnoreCase);
             DateTime.TryParse(ds, out result);
             //result = Convert.ToDateTime(ds);
             return (result);
@@ -4344,9 +4452,9 @@ namespace PixivWPF.Common
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
                 setting = Application.Current.LoadSetting();
-                try
+                using (var httpClient = Application.Current.GetHttpClient())
                 {
-                    using (var httpClient = Application.Current.GetHttpClient())
+                    try
                     {
                         using (var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
                         {
@@ -4369,12 +4477,15 @@ namespace PixivWPF.Common
                             }
                             catch (Exception ex)
                             {
-                                var r = ex.Message;
+                                ex.Message.DEBUG();
                             }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        ex.Message.DEBUG();
+                    }
                 }
-                catch (Exception) { }
             }
             return (result);
         }
@@ -6614,6 +6725,16 @@ namespace PixivWPF.Common
             return (window);
         }
 
+        public static T GetActiveWindow<T>(this Page page) where T : Window
+        {
+            var window = Window.GetWindow(page);
+            if (window == null) window = GetActiveWindow();
+            if (window is T)
+                return (window as T);
+            else
+                return (default(T));
+        }
+
         public static dynamic GetWindowContent(this MetroWindow window)
         {
             dynamic result = null;
@@ -7480,7 +7601,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region WPF UI Helper
-        public static T FindByName<T>(this FrameworkElement element, string name)
+        public static T FindByName<T>(this FrameworkElement element, string name) where T : FrameworkElement
         {
             T result = default(T);
             try

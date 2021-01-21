@@ -1,49 +1,66 @@
 ﻿<Page
-      x:Class="PixivWPF.Pages.LoginPage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:PixivWPF.Pages"
-      xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-      mc:Ignorable="d" 
-      d:DesignHeight="300" d:DesignWidth="300"
-      x:Name="LoginUI"
-      Width="360"
-      MinHeight="520"
-      Title="Login">
+    x:Class="PixivWPF.Pages.LoginPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:local="clr-namespace:PixivWPF.Pages"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    mc:Ignorable="d" 
+    d:DesignHeight="300" d:DesignWidth="300"
+    x:Name="LoginUI"
+    Width="360" Height="560"
+    MinHeight="580" MaxHeight="560"
+    Title="Login" WindowTitle="Pixiv Login"
+    Loaded="LoginUI_Loaded">
 
     <Grid>
-        <StackPanel Margin="12">
-            <Image x:Name="Logo" Stretch="Uniform" Margin="12,12,12,12" MinHeight="64" Source="pack://application:,,,/PixivWPF;component/Resources/pixiv-logo.png"/>
-            <TextBlock x:Name="headerUser" x:Uid="headerUser" Text="Usermame" Margin="12, 12, 12, 4" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-            <TextBox x:Name="edUser" x:Uid="edUser" Margin="12, 12, 12, 12" 
+        <DockPanel Margin="12">
+            <Image x:Name="Logo" Stretch="Uniform" Margin="12,12,12,12" DockPanel.Dock="Top" MinHeight="64" Source="pack://application:,,,/PixivWPF;component/Resources/pixiv-logo.png"/>
+            <TextBlock x:Name="headerUser" x:Uid="headerUser" DockPanel.Dock="Top" Text="Usermame" Margin="12, 12, 12, 4" 
+                       Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+            <TextBox x:Name="edUser" x:Uid="edUser" DockPanel.Dock="Top" Margin="12, 4, 12, 12"
+                     MaxLength="128"
                      AcceptsReturn="False"
                      mah:TextBoxHelper.Watermark="Your Name"
                      mah:TextBoxHelper.UseFloatingWatermark="True" 
                      mah:TextBoxHelper.AutoWatermark="True" 
-                     mah:TextBoxHelper.ClearTextButton="True"/>
-            <TextBlock x:Name="headerPass" x:Uid="headerPass" Text="Password" Margin="12, 12, 12, 4" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-            <PasswordBox x:Name="edPass" x:Uid="edPass" Margin="12, 12, 12, 12"
+                     mah:TextBoxHelper.ClearTextButton="True" />
+            <TextBlock x:Name="headerPass" x:Uid="headerPass" DockPanel.Dock="Top" Text="Password" Margin="12, 12, 12, 4" 
+                       Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+            <PasswordBox x:Name="edPass" x:Uid="edPass" DockPanel.Dock="Top" Margin="12, 4, 12, 12"
+                         MaxLength="64" 
                          mah:TextBoxHelper.Watermark="Your Password"
                          mah:TextBoxHelper.UseFloatingWatermark="True" 
                          mah:PasswordBoxHelper.RevealButtonContent="View"
-                         mah:TextBoxHelper.ClearTextButton="True" MaxLength="64"/>
-            <Grid Margin="12, 12, 12, 4">
+                         mah:TextBoxHelper.ClearTextButton="True" />
+            <Grid Margin="12, 12, 12, 4" DockPanel.Dock="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width=".5*"/>
                     <ColumnDefinition Width=".5*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" x:Name="headerProxy" x:Uid="headerProxy" Text="HTTP Proxy Server" HorizontalAlignment="Left" Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                <CheckBox Grid.Column="1" x:Name="chkUseProxy" x:Uid="chkUseProxy" Content="Using Proxy" IsChecked="True" FlowDirection="RightToLeft" Foreground="{DynamicResource MahApps.Brushes.Accent}" Click="chkUseProxy_Clicked" />
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Column="0" Grid.Row="0" x:Name="headerProxy" x:Uid="headerProxy"
+                       Text="Proxy Server" HorizontalAlignment="Left" VerticalAlignment="Center"
+                       Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                <CheckBox Grid.Column="1" Grid.Row="0" x:Name="chkUseProxy" x:Uid="chkUseProxy" Margin="0,4"
+                          Content="Using Proxy" IsChecked="True" FlowDirection="RightToLeft" 
+                          Foreground="{DynamicResource MahApps.Brushes.Accent}" Click="chkUseProxy_Clicked" />
+                <CheckBox Grid.Column="1" Grid.Row="1" x:Name="chkUseProxyDown" x:Uid="chkUseProxyDown" Margin="0,4"
+                          Content="Download via Proxy" IsChecked="False" FlowDirection="RightToLeft" 
+                          Foreground="{DynamicResource MahApps.Brushes.Accent}" Click="chkUseProxy_Clicked" />
             </Grid>
-            <TextBox x:Name="edProxy" x:Uid="edProxy" AcceptsReturn="False" Margin="12, 12, 12, 12" 
+            <TextBox x:Name="edProxy" x:Uid="edProxy" DockPanel.Dock="Top"
+                     AcceptsReturn="False" Margin="12, 4, 12, 12" 
                      mah:TextBoxHelper.Watermark="Your Proxy Server"
                      mah:TextBoxHelper.UseFloatingWatermark="True" 
                      mah:TextBoxHelper.AutoWatermark="True" 
                      mah:TextBoxHelper.ClearTextButton="True"/>
-
-            <Grid Margin="0,8,0,24">
+            
+            <Grid Margin="0,8,0,24" DockPanel.Dock="Bottom" Height="72" VerticalAlignment="Bottom">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width=".5*"/>
                     <ColumnDefinition Width=".5*"/>
@@ -51,7 +68,7 @@
                 <Button Grid.Column="0" x:Name="btnLogin" x:Uid="btnLogin" Content="Login" Margin="12, 12, 12, 12" Click="Login_Click" IsDefault="True" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                 <Button Grid.Column="1" x:Name="btnCancel" x:Uid="btnCancel" Content="Cancel" Margin="12, 12, 12, 12" Click="Cancel_Click" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
             </Grid>
-        </StackPanel>
+        </DockPanel>
         <mah:ProgressRing x:Name="LoginWait" 
             Width="96" Height="96" IsEnabled="False" IsActive="False" Opacity="0.67" Visibility="Collapsed"
             Foreground="{DynamicResource MahApps.Brushes.Accent}"

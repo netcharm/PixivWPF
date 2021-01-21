@@ -21,8 +21,6 @@ namespace PixivWPF
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        private static System.Diagnostics.Process CurrentProcess = Application.Current.Process();
-
         private Setting setting = Application.Current.LoadSetting();
         private Queue<WindowState> LastWindowStates { get; set; } = new Queue<WindowState>();
         public void RestoreWindowState()
@@ -208,13 +206,7 @@ namespace PixivWPF
 #endif
                     if (contents.StartsWith("cmd:", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var kv = contents.Substring(4).Split(new char[] { '-', '_', ':', '+', '=' });
-                        var action = kv[0];
-                        var param = kv.Length == 2 ? kv[1] : "r18";
-                        if (action.StartsWith("min", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            Application.Current.MinimizedWindows(param);
-                        }
+                        Application.Current.ProcessCommand(contents);
                     }
                     else
                     {

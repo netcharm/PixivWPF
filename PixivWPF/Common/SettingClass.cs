@@ -86,6 +86,17 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.default_page = default_page;
             }
         }
+
+        private bool single_instance = true;
+        public bool SingleInstance
+        {
+            get { return (Cache is Setting ? Cache.single_instance : single_instance); }
+            set
+            {
+                single_instance = value;
+                if (Cache is Setting) Cache.single_instance = single_instance;
+            }
+        }
         #endregion
 
         #region Config load/save relative
@@ -252,7 +263,7 @@ namespace PixivWPF.Common
                 }
                 finally
                 {
-                    CanConfigWrite.Release();
+                    if (CanConfigWrite is SemaphoreSlim && CanConfigWrite.CurrentCount <= 0) CanConfigWrite.Release();
                 }
             }
         }
@@ -353,7 +364,7 @@ namespace PixivWPF.Common
                 finally
                 {
                     StartUp = true;
-                    CanConfigRead.Release();
+                    if (CanConfigRead is SemaphoreSlim && CanConfigRead.CurrentCount <= 0) CanConfigRead.Release();
                 }
             }
             return (result);
@@ -389,7 +400,7 @@ namespace PixivWPF.Common
                 catch (Exception) { }
                 finally
                 {
-                    TagsReadWrite.Release();
+                    if (TagsReadWrite is SemaphoreSlim && TagsReadWrite.CurrentCount <= 0) TagsReadWrite.Release();
                 }
             }
         }
@@ -435,7 +446,7 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.Message.DEBUG(); }
                 finally
                 {
-                    TagsReadWrite.Release();
+                    if (TagsReadWrite is SemaphoreSlim && TagsReadWrite.CurrentCount <= 0) TagsReadWrite.Release();
                 }
             }
         }
@@ -500,7 +511,7 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.Message.DEBUG(); }
                 finally
                 {
-                    CustomTagsReadWrite.Release();
+                    if (CustomTagsReadWrite is SemaphoreSlim && CustomTagsReadWrite.CurrentCount <= 0) CustomTagsReadWrite.Release();
                 }
             }
         }
@@ -565,7 +576,7 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.Message.DEBUG(); }
                 finally
                 {
-                    CustomWildcardTagsReadWrite.Release();
+                    if (CustomWildcardTagsReadWrite is SemaphoreSlim && CustomWildcardTagsReadWrite.CurrentCount <= 0) CustomWildcardTagsReadWrite.Release();
                 }
             }
         }

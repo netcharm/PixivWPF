@@ -33,8 +33,11 @@ namespace PixivWPF.Common
         {
             InitializeComponent();
 
-            ContentFrame.Tag = this;
-            ContentFrame.Content = new Pages.LoginPage() { Tag = ContentFrame };
+            Content = new Pages.LoginPage() { Window = this };
+            MinHeight = (Content as Pages.LoginPage).MinHeight;
+            MaxHeight = (Content as Pages.LoginPage).MaxHeight;
+            MinWidth = (Content as Pages.LoginPage).Width;
+            MaxWidth = (Content as Pages.LoginPage).Width;
 
             Topmost = true;
 

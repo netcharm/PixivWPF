@@ -470,7 +470,8 @@ namespace PixivWPF.Common
                             var canvas = CanvasList[id];
                             //(canvas.Background as ImageBrush).ImageSource = null;
                             canvas.Background = null;
-                            canvas.UpdateLayout();
+                            //canvas.UpdateLayout();
+                            //canvas.Dispose();
                             if (!batch)
                             {
                                 canvas.UpdateLayout();
@@ -515,7 +516,7 @@ namespace PixivWPF.Common
 
         public async void ClearAsync(bool batch = true)
         {
-            if (ItemList is ObservableCollection<PixivItem>)
+            if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
             {
                 await new Action(() =>
                 {

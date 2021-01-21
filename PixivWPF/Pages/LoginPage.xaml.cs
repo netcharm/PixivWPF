@@ -24,7 +24,8 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class LoginPage : Page
     {
-        private Window window = null;
+        public PixivLoginDialog Window { get; set; } = null;
+
         private Setting setting = Application.Current.LoadSetting();
         private Pixeez.Tokens tokens = null;
 
@@ -32,20 +33,11 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (Tag is Frame)
-                {
-                    var frame = Tag as Frame;
-                    if (frame.Tag is PixivLoginDialog)
-                    {
-                        var win = frame.Tag as PixivLoginDialog;
-                        win.Close();
-                    }
-                }
+                LoginWait.Hide();
+                if (Window is Window)
+                    Window.Close();
                 else
-                {
-                    //Application.Current.MainWindow.Close();
                     Application.Current.Shutdown();
-                }
             }
             catch (Exception) { }
         }
@@ -53,17 +45,13 @@ namespace PixivWPF.Pages
         public LoginPage()
         {
             InitializeComponent();
+        }
 
+        private void LoginUI_Loaded(object sender, RoutedEventArgs e)
+        {
             try
             {
                 setting = Application.Current.LoadSetting();
-
-                window = this.GetActiveWindow();
-
-                //var appStyle = ThemeManager.Current.DetectTheme(Application.Current);
-                //var appTheme = appStyle.Item1;
-                //var appAccent = appStyle.Item2;
-
 #if DEBUG
                 var logo = System.IO.Path.Combine(Application.Current.GetRoot(), "Assets", "pixiv-logo.png");
                 var uri = new Uri(logo);
@@ -79,23 +67,24 @@ namespace PixivWPF.Pages
                 }
 
 #endif
-                edUser.Focus();
-
                 edUser.Text = setting.User;
                 edPass.Password = setting.Pass;
                 edProxy.Text = setting.Proxy;
                 chkUseProxy.IsChecked = setting.UsingProxy;
+                chkUseProxyDown.IsChecked = setting.DownloadUsingProxy;
             }
             catch (Exception) { }
             finally
             {
-
+                //if(Window is Window) Window.SizeToContent = SizeToContent.WidthAndHeight;
+                edUser.Focus();
             }
+
         }
 
         private async void Login_Click(object sender, RoutedEventArgs e)
         {
-            if(window == null) window = this.GetActiveWindow();
+            if(Window == null) Window = this.GetActiveWindow<PixivLoginDialog>();
 
             setting = Application.Current.LoadSetting();
 
@@ -103,6 +92,7 @@ namespace PixivWPF.Pages
             var pass = edPass.Password.Trim();
             var proxy = edProxy.Text.Trim();
             bool useproxy = chkUseProxy.IsChecked == true ? true : false;
+            bool useproxydown = chkUseProxyDown.IsChecked == true ? true : false;
 
             if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pass))
             {
@@ -116,6 +106,7 @@ namespace PixivWPF.Pages
                     edPass.IsEnabled = false;
                     edProxy.IsEnabled = false;
                     chkUseProxy.IsEnabled = false;
+                    chkUseProxyDown.IsEnabled = false;
 
                     // Create Tokens
                     var proxyserver = proxy;
@@ -137,6 +128,7 @@ namespace PixivWPF.Pages
                         setting.ExpiresIn = result.Authorize.ExpiresIn.Value;
                         setting.Update = DateTime.Now.ToFileTime().FileTimeToSecond();
                         setting.UsingProxy = useproxy;
+                        setting.DownloadUsingProxy = useproxydown;
                         setting.Proxy = proxy;
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -148,17 +140,12 @@ namespace PixivWPF.Pages
 
                     if (tokens is Pixeez.Tokens && !string.IsNullOrEmpty(tokens.AccessToken))
                     {
-                        if (Tag is Frame)
+                        if (Window is PixivLoginDialog)
                         {
-                            var frame = Tag as Frame;
-                            if (frame.Tag is PixivLoginDialog)
-                            {
-                                var win = frame.Tag as PixivLoginDialog;
-                                win.AccessToken = tokens.AccessToken;
-                                win.RefreshToken = tokens.RefreshToken;
-                                win.Tokens = tokens;
-                                win.Close();
-                            }
+                            Window.AccessToken = tokens.AccessToken;
+                            Window.RefreshToken = tokens.RefreshToken;
+                            Window.Tokens = tokens;
+                            CloseWindow();
                         }
                     }
                 }
@@ -166,8 +153,6 @@ namespace PixivWPF.Pages
                 {
                     //await ex.Message.ShowMessageBoxAsync("ERROR");
                     ex.Message.ShowMessageBox("ERROR");
-                    LoginWait.Hide();
-                    CloseWindow();
                 }
                 finally
                 {
@@ -177,6 +162,7 @@ namespace PixivWPF.Pages
                     edPass.IsEnabled = true;
                     edProxy.IsEnabled = true;
                     chkUseProxy.IsEnabled = true;
+                    chkUseProxyDown.IsEnabled = true;
                     LoginWait.Hide();
                 }
             }
@@ -189,8 +175,19 @@ namespace PixivWPF.Pages
 
         private void chkUseProxy_Clicked(object sender, RoutedEventArgs e)
         {
-            bool useproxy = chkUseProxy.IsChecked == true ? true : false;
-            setting.UsingProxy = useproxy;
+            setting = Application.Current.LoadSetting();
+            var proxy = edProxy.Text.Trim();
+            if (sender == chkUseProxy)
+            {
+                bool useproxy = chkUseProxy.IsChecked == true ? true : false;
+                setting.UsingProxy = useproxy;
+            }
+            else if(sender == chkUseProxyDown)
+            {
+                bool useproxy = chkUseProxyDown.IsChecked == true ? true : false;
+                setting.DownloadUsingProxy = useproxy;
+            }
+            setting.Proxy = proxy;
         }
     }
 }
