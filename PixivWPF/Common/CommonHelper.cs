@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -31,13 +32,14 @@ using System.Windows.Threading;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Newtonsoft.Json;
+using NHotkey;
+using NHotkey.Wpf;
 using WPFNotification.Core.Configuration;
 using WPFNotification.Model;
 using WPFNotification.Services;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Pages;
-using System.Collections.Concurrent;
 
 namespace PixivWPF.Common
 {
@@ -1358,6 +1360,29 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static Window GetActiveWindow(this Application app)
+        {
+            Window result = null;
+            try
+            {
+                app.Dispatcher.Invoke(() =>
+                {
+                    foreach (var win in Application.Current.Windows)
+                    {
+                        if (win is MetroWindow && (win as MetroWindow).IsActive)
+                        {
+                            result = win as Window;
+                            break;
+                        }
+                    }
+                });
+            }
+            catch (Exception)
+            {
+            }
+            return (result);
+        }
+
         public static PixivLoginDialog GetLoginWindow(this Application app)
         {
             PixivLoginDialog result = null;
@@ -2097,6 +2122,80 @@ namespace PixivWPF.Common
             {
                 lastKeyUp = e.Timestamp;
             }
+        }
+        #endregion
+
+        #region Hotkey Helper
+        public static void RegisterHotkey(this Application app)
+        {
+            HotkeyManager.Current.IsEnabled = false;
+
+            HotkeyManager.Current.AddOrReplace("PrevIllust", Key.OemOpenBrackets, ModifierKeys.None, OnPrevIllust);
+            HotkeyManager.Current.AddOrReplace("NextIllust", Key.OemCloseBrackets, ModifierKeys.None, OnNextIllust);
+            HotkeyManager.Current.AddOrReplace("PrevIllustPage", Key.OemOpenBrackets, ModifierKeys.Shift, OnPrevIllustPage);
+            HotkeyManager.Current.AddOrReplace("NextIllustPage", Key.OemCloseBrackets, ModifierKeys.Shift, OnNextIllustPage);
+
+            HotkeyManager.Current.AddOrReplace("RefreshPage", Key.F5, ModifierKeys.None, OnRefreshPage);
+            HotkeyManager.Current.AddOrReplace("AppendPage", Key.F3, ModifierKeys.None, OnAppendPage);
+            HotkeyManager.Current.AddOrReplace("RefreshPageThumbnail", Key.F6, ModifierKeys.None, OnRefreshPageThumb);
+
+            //HotkeyManager.Current.AddOrReplace("ChangeIllustLikeState", Key.OemCloseBrackets, ModifierKeys.None, OnChangeIllustLikeState);
+            //HotkeyManager.Current.AddOrReplace("ChangeUserLikeState", Key.OemCloseBrackets, ModifierKeys.None, OnChangeUserLikeState);
+            
+        }
+
+        private static void OnPrevIllust(object sender, HotkeyEventArgs e)
+        {
+            var win = Application.Current.GetActiveWindow();
+            if (win is Window) Commands.PrevIllust.Execute(win);
+        }
+
+        private static void OnNextIllust(object sender, HotkeyEventArgs e)
+        {
+            var win = Application.Current.GetActiveWindow();
+            if(win is Window) Commands.NextIllust.Execute(win);
+        }
+
+        private static void OnPrevIllustPage(object sender, HotkeyEventArgs e)
+        {
+            var win = Application.Current.GetActiveWindow();
+            if (win is Window) Commands.PrevIllustPage.Execute(win);
+        }
+
+        private static void OnNextIllustPage(object sender, HotkeyEventArgs e)
+        {
+            var win = Application.Current.GetActiveWindow();
+            if (win is Window) Commands.NextIllustPage.Execute(win);
+        }
+
+        private static void OnRefreshPage(object sender, HotkeyEventArgs e)
+        {
+            var win = Application.Current.GetActiveWindow();
+            if (win is Window) Commands.RefreshPage.Execute(win);
+        }
+
+        private static void OnAppendPage(object sender, HotkeyEventArgs e)
+        {
+            var win = Application.Current.GetActiveWindow();
+            if (win is Window) Commands.AppendTiles.Execute(win);
+        }
+
+        private static void OnRefreshPageThumb(object sender, HotkeyEventArgs e)
+        {
+            var win = Application.Current.GetActiveWindow();
+            if (win is Window) Commands.RefreshPageThumb.Execute(win);
+        }
+
+        private static void OnChangeIllustLikeState(object sender, HotkeyEventArgs e)
+        {
+            var win = Application.Current.GetActiveWindow();
+            if (win is Window) Commands.ChangeUserLikeState.Execute(win);
+        }
+
+        private static void OnChangeUserLikeState(object sender, HotkeyEventArgs e)
+        {
+            var win = Application.Current.GetActiveWindow();
+            if (win is Window) Commands.ChangeUserLikeState.Execute(win);
         }
         #endregion
     }

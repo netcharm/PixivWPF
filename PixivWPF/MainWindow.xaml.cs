@@ -279,6 +279,7 @@ namespace PixivWPF
             LastWindowStates.Enqueue(WindowState.Normal);
 
             Application.Current.InitAppWatcher(Application.Current.GetRoot());
+            //Application.Current.RegisterHotkey();
 
             CreateNamedPipeServer();
         }

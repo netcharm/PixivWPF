@@ -912,8 +912,6 @@ namespace PixivWPF.Pages
                     IllustDescExpander.Hide();
                 }
 
-                SubIllusts.Tag = 0;
-                SubIllustsExpander.IsExpanded = false;
                 SubIllusts.ClearAsync();
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.IsWork() && item.Illust.PageCount > 1)
@@ -922,13 +920,16 @@ namespace PixivWPF.Pages
                     PreviewBadge.Show();
                     SubIllustsExpander.Show();
                     SubIllustsExpander.IsExpanded = true;
+                    SubIllustsExpander_Expanded(this, new RoutedEventArgs());
                     var total = item.Illust.PageCount;
                     page_count = (total / PAGE_ITEMS + (total % PAGE_ITEMS > 0 ? 1 : 0)).Value;
                 }
                 else
                 {
-                    PreviewBadge.Hide();
+                    SubIllustsExpander.IsExpanded = false;
                     SubIllustsExpander.Hide();
+                    PreviewBadge.Hide();
+                    page_count = 0;
                 }
                 UpdateSubPageNav();
 
@@ -1513,14 +1514,14 @@ namespace PixivWPF.Pages
 
         public void PrevIllust()
         {
-            if (Parent is ContentWindow) return;
-            Commands.PrevIllust.Execute(Application.Current.MainWindow);
+            if (Parent is ContentWindow) PrevIllustPage();
+            else Commands.PrevIllust.Execute(Application.Current.MainWindow);
         }
 
         public void NextIllust()
         {
-            if (Parent is ContentWindow) return;
-            Commands.NextIllust.Execute(Application.Current.MainWindow);
+            if (Parent is ContentWindow) NextIllustPage();
+            else Commands.NextIllust.Execute(Application.Current.MainWindow);
         }
 
         public void SetFilter(string filter)
@@ -1805,6 +1806,26 @@ namespace PixivWPF.Pages
                 else if (e.IsKey(Key.F, ModifierKeys.Control))
                 {
                     FavoriteItemsExpander.IsExpanded = true;
+                    e.Handled = true;
+                }
+                else if (e.IsKey(Key.OemOpenBrackets, ModifierKeys.Shift))
+                {
+                    PrevIllustPage();
+                    e.Handled = true;
+                }
+                else if (e.IsKey(Key.OemCloseBrackets, ModifierKeys.Shift))
+                {
+                    NextIllustPage();
+                    e.Handled = true;
+                }
+                else if (e.IsKey(Key.OemOpenBrackets))
+                {
+                    PrevIllust();
+                    e.Handled = true;
+                }
+                else if (e.IsKey(Key.OemCloseBrackets))
+                {
+                    NextIllust();
                     e.Handled = true;
                 }
                 else e.Handled = false;

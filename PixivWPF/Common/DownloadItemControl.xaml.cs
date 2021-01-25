@@ -20,6 +20,14 @@ namespace PixivWPF.Common
 {
     public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Remove, Unknown }
 
+    public class DownloadStateMark
+    {
+        public string Mark { get; set; } = string.Empty;
+        public Brush Foreground { get; set; } = Application.Current.GetForegroundBrush();
+        public Brush Background { get; set; } = Application.Current.GetBackgroundBrush();
+        public string Text { get; set; } = string.Empty;
+    }
+
     public class ProgressInfo
     {
         ulong Received { get; set; } = 0;
@@ -584,6 +592,21 @@ namespace PixivWPF.Common
         #endregion
 
         #region Update state helper
+        private Dictionary<DownloadState, DownloadStateMark> DownloadStatusMark = new Dictionary<DownloadState, DownloadStateMark>()
+        {
+            {DownloadState.Finished, new DownloadStateMark() { Mark = "\uE930", Foreground = Application.Current.GetSucceedBrush() }},
+            {DownloadState.NonExists, new DownloadStateMark() { Mark = "\uE946", Foreground = Application.Current.GetNonExistsBrush() }},
+            {DownloadState.Downloading, new DownloadStateMark() { Mark = "\uEB41", Foreground = Application.Current.GetBackgroundBrush() }},
+            {DownloadState.Writing, new DownloadStateMark() { Mark = "\uE78C", Foreground = Application.Current.GetBackgroundBrush() }},
+            {DownloadState.Idle, new DownloadStateMark() { Mark = "\uEA3A", Foreground = Application.Current.GetBackgroundBrush() }},
+            {DownloadState.Failed, new DownloadStateMark() { Mark = "\uEA39", Foreground = Application.Current.GetFailedBrush() }},
+
+            {DownloadState.Deleted, new DownloadStateMark() { Mark = "\uE107" }},
+            {DownloadState.Paused, new DownloadStateMark() { Mark = "\uE103" }},
+            {DownloadState.Remove, new DownloadStateMark() { Mark = "\uE108" }},
+            {DownloadState.Unknown, new DownloadStateMark() { Mark = "\uE9CE" }},
+        };
+
         private void CheckProperties()
         {
             if (Tag is DownloadInfo)
@@ -599,49 +622,31 @@ namespace PixivWPF.Common
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //this.Background = Application.Current.GetSucceedBrush();
-                        PART_DownloadStatusMark.Foreground = Application.Current.GetSucceedBrush();
-                        PART_DownloadStatusMark.Text = "\uE930";
                     }
                     else if (State == DownloadState.NonExists)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //this.Background = Application.Current.GetNonExistsBrush();
-                        PART_DownloadStatusMark.Foreground = Application.Current.GetNonExistsBrush();
-                        PART_DownloadStatusMark.Text = "\uE946";
                     }
                     else if (State == DownloadState.Downloading)
                     {
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = true;
-                        //this.Background = Application.Current.GetBackgroundBrush();
-                        PART_DownloadStatusMark.Foreground = Application.Current.GetBackgroundBrush();
-                        PART_DownloadStatusMark.Text = "\uEB41";
                     }
                     else if (State == DownloadState.Writing)
                     {
                         miRemove.IsEnabled = false;
                         miStopDownload.IsEnabled = false;
-                        //this.Background = Application.Current.GetBackgroundBrush();
-                        PART_DownloadStatusMark.Foreground = Application.Current.GetBackgroundBrush();
-                        PART_DownloadStatusMark.Text = "\uE78C";
                     }
                     else if (State == DownloadState.Idle)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //this.Background = Application.Current.GetBackgroundBrush();
-                        PART_DownloadStatusMark.Foreground = Application.Current.GetBackgroundBrush();
-                        PART_DownloadStatusMark.Text = "\uEA3A";
                     }
                     else if (State == DownloadState.Failed)
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //this.Background = Application.Current.GetFailedBrush();
-                        PART_DownloadStatusMark.Foreground = Application.Current.GetFailedBrush();
-                        PART_DownloadStatusMark.Text = "\uEA39";
                     }
                     else if(State == DownloadState.Remove)
                     {
@@ -651,10 +656,19 @@ namespace PixivWPF.Common
                     {
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
-                        //this.Background = Application.Current.GetBackgroundBrush();
-                        PART_DownloadStatusMark.Foreground = Application.Current.GetBackgroundBrush();
-                        PART_DownloadStatusMark.Text = "";
                     }
+
+                    if (DownloadStatusMark.ContainsKey(State))
+                    {
+                        PART_DownloadStatusMark.Text = DownloadStatusMark[State].Mark;
+                        PART_DownloadStatusMark.Foreground = DownloadStatusMark[State].Foreground;
+                        //PART_DownloadStatusMark.Background = DownloadStatusMark[State].Background;
+                    }
+                    else
+                    {
+                        PART_DownloadStatusMark.Text = string.Empty;
+                    }
+
                     miOpenImage.IsEnabled = FileName.IsDownloaded();
                     miOpenFolder.IsEnabled = true;
 

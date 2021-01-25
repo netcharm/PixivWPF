@@ -1,8 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using Newtonsoft.Json;
-using PixivWPF.Pages;
-using Prism.Commands;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -15,6 +11,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+
+using MahApps.Metro.Controls;
+using Newtonsoft.Json;
+using Prism.Commands;
+using PixivWPF.Pages;
 
 namespace PixivWPF.Common
 {
@@ -1542,6 +1543,11 @@ namespace PixivWPF.Common
                 var win = Application.Current.MainWindow is MainWindow ? Application.Current.MainWindow as MainWindow : null;
                 if (win is MainWindow) win.CommandNavRefresh_Click(win.CommandNavRefresh, new RoutedEventArgs());
             }
+            else if (obj is ContentWindow)
+            {
+                var win = obj as ContentWindow;
+                if (win.Content is Page) RefreshPage.Execute(win.Content);
+            }
             else if (obj is MainWindow)
             {
                 var win = obj as MainWindow;
@@ -1582,6 +1588,12 @@ namespace PixivWPF.Common
             {
                 var win = Application.Current.MainWindow is MainWindow ? Application.Current.MainWindow as MainWindow : null;
                 if (win is MainWindow) win.CommandNavRefresh_Click(win.CommandNavRefreshThumb, new RoutedEventArgs());
+            }
+            else if (obj is ContentWindow)
+            {
+                var win = obj as ContentWindow;
+                if (win.Content is Page)
+                    RefreshPageThumb.Execute(win.Content);
             }
             else if (obj is MainWindow)
             {
@@ -1638,6 +1650,16 @@ namespace PixivWPF.Common
             {
                 (obj as TilesPage).PrevIllust();
             }
+            else if (obj is IllustDetailPage)
+            {
+                (obj as IllustDetailPage).PrevIllust();
+            }
+            else if (obj is ContentWindow)
+            {
+                var win = obj as ContentWindow;
+                if (win.Content is IllustDetailPage)
+                    (win.Content as IllustDetailPage).PrevIllust();
+            }
             else if (obj is MainWindow)
             {
                 var win = obj as MainWindow;
@@ -1650,6 +1672,16 @@ namespace PixivWPF.Common
             if (obj is TilesPage)
             {
                 (obj as TilesPage).NextIllust();
+            }
+            else if(obj is IllustDetailPage)
+            {
+                (obj as IllustDetailPage).NextIllust();
+            }
+            else if (obj is ContentWindow)
+            {
+                var win = obj as ContentWindow;
+                if(win.Content is IllustDetailPage)
+                    (win.Content as IllustDetailPage).NextIllust();
             }
             else if (obj is MainWindow)
             {

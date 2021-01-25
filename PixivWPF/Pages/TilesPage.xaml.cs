@@ -298,7 +298,7 @@ namespace PixivWPF.Pages
         {
             if (this is TilesPage)
             {
-                if (ListImageTiles.IsCurrentBeforeFirst)
+                if (ListImageTiles.IsCurrentFirst)
                     ListImageTiles.MoveCurrentToLast();
                 else
                     ListImageTiles.MoveCurrentToPrevious();
@@ -310,7 +310,7 @@ namespace PixivWPF.Pages
         {
             if (this is TilesPage)
             {
-                if (ListImageTiles.IsCurrentAfterLast)
+                if (ListImageTiles.IsCurrentLast)
                     ListImageTiles.MoveCurrentToFirst();
                 else
                     ListImageTiles.MoveCurrentToNext();
@@ -418,9 +418,9 @@ namespace PixivWPF.Pages
 
         internal void KeyAction(KeyEventArgs e)
         {
-            if (setting.SmartMouseResponse && e.Source == IllustDetail)
-                detail_page.KeyAction(e);
-            else
+            //if (setting.SmartMouseResponse && e.Source == IllustDetail)
+            //    detail_page.KeyAction(e);
+            //else
                 Page_PreviewKeyUp(this, e);
         }
 
@@ -1507,6 +1507,26 @@ namespace PixivWPF.Pages
                     else if (e.IsKey(Key.PageDown, ModifierKeys.Shift))
                     {
                         ScrollPageLast();
+                        e.Handled = true;
+                    }
+                    else if (e.IsKey(Key.OemOpenBrackets, ModifierKeys.Shift))
+                    {
+                        PrevIllustPage();
+                        e.Handled = true;
+                    }
+                    else if (e.IsKey(Key.OemCloseBrackets, ModifierKeys.Shift))
+                    {
+                        NextIllustPage();
+                        e.Handled = true;
+                    }
+                    else if (e.IsKey(Key.OemOpenBrackets))
+                    {
+                        PrevIllust();
+                        e.Handled = true;
+                    }
+                    else if (e.IsKey(Key.OemCloseBrackets))
+                    {
+                        NextIllust();
                         e.Handled = true;
                     }
                 }

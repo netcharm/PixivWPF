@@ -81,19 +81,23 @@ namespace PixivWPF.Pages
             });
         }
 
-        public async void UpdateLikeState(int illustid = -1, bool is_user = false)
+        public async void UpdateLikeState(long id = -1, bool is_user = false)
         {
-            var needUpdate = is_user ? items.Where(i => i.UserID == illustid) : items.Where(i => i.IllustID == illustid);
-            foreach (var item in needUpdate.ToArray())
+            var needUpdate = is_user ? items.Where(i => i.UserID == id) : items.Where(i => i.IllustID == id);
+            try
             {
-                await new Action(() =>
+                foreach (var item in needUpdate.ToArray())
                 {
-                    item.UpdateLikeState();
-                }).InvokeAsync();
+                    await new Action(() =>
+                    {
+                        item.UpdateLikeState();
+                    }).InvokeAsync();
+                }
             }
+            catch(Exception ex) { ex.Message.DEBUG(); }
         }
 
-        public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        public async void UpdateLikeStateAsync(long illustid = -1, bool is_user = false)
         {
             await Task.Run(() =>
             {
