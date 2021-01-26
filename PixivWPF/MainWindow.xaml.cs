@@ -410,6 +410,8 @@ namespace PixivWPF
         {
             LastWindowStates.Enqueue(WindowState);
             if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
+            if (Keyboard.Modifiers == ModifierKeys.Shift && WindowState == WindowState.Minimized)
+                Application.Current.RebindHotKeys(full: true);
         }
 
         private void RecentsList_SelectionChanged(object sender, SelectionChangedEventArgs e)

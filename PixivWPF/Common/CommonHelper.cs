@@ -32,15 +32,12 @@ using System.Windows.Threading;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Newtonsoft.Json;
-using NHotkey;
-using NHotkey.Wpf;
 using WPFNotification.Core.Configuration;
 using WPFNotification.Model;
 using WPFNotification.Services;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Pages;
-using Prism.Commands;
 using Dfust.Hotkeys;
 
 namespace PixivWPF.Common
@@ -2137,26 +2134,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Hotkey Helper
-        public static ConcurrentDictionary<string, InputBinding> GlobalHotKeys = new ConcurrentDictionary<string, InputBinding>();
         private static HotkeyCollection ApplicationHotKeys = new HotkeyCollection(Enums.Scope.Application);
-        public static void BindHotkey(this Application app, string name, Key key, ModifierKeys mod, EventHandler<HotkeyEventArgs> handle)
-        {
-            try
-            {
-                var win = GetMainWindow(app);
-                var ig = new KeyGesture(key, mod, name);
-                var cmd = new DelegateCommand<dynamic>(obj =>
-                {
-                    handle(obj, null);
-                });
-                var ib = new InputBinding(cmd, ig);
-                //ib.CommandParameter = 
-                GlobalHotKeys[name] = ib;
-                if (win is MainWindow) win.InputBindings.Add(ib);
-            }
-            catch(Exception ex) { ex.Message.DEBUG(); }
-        }
-
         public static void BindHotkey(this Application app, string name, System.Windows.Forms.Keys key, ICommand command)
         {
             try
@@ -2166,11 +2144,11 @@ namespace PixivWPF.Common
                     try
                     {
                         await new Action(() =>
-                         {
-                             var win = Application.Current.GetActiveWindow();
-                             if (win is Window) command.Execute(win);
-                             $"Description: {e.Description}, Keys: {e.ChordName}".DEBUG();
-                         }).InvokeAsync(true);
+                        {
+                            var win = Application.Current.GetActiveWindow();
+                            if (win is Window) command.Execute(win);
+                            $"Description: {e.Description}, Keys: {e.ChordName}".DEBUG();
+                        }).InvokeAsync(true);
                     }
                     catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
                 }, name);
@@ -2186,6 +2164,8 @@ namespace PixivWPF.Common
             }
             else
             {
+                if (ApplicationHotKeys == null) ApplicationHotKeys = new HotkeyCollection(global ? Enums.Scope.Global : Enums.Scope.Application);
+
                 BindHotkey(app, "IllustFirst", System.Windows.Forms.Keys.Home, Commands.FirstIllust);
                 BindHotkey(app, "IllustLast", System.Windows.Forms.Keys.End, Commands.LastIllust);
                 BindHotkey(app, "IllustPrev", System.Windows.Forms.Keys.OemOpenBrackets, Commands.PrevIllust);
@@ -2214,7 +2194,7 @@ namespace PixivWPF.Common
                 BindHotkey(app, "ChangeIllustLikeState", System.Windows.Forms.Keys.F7, Commands.ChangeIllustLikeState);
                 BindHotkey(app, "ChangeUserLikeState", System.Windows.Forms.Keys.F8, Commands.ChangeUserLikeState);
 
-                ApplicationHotKeys.StartListening();
+                //ApplicationHotKeys.StartListening();
             }
         }
 
@@ -2222,13 +2202,40 @@ namespace PixivWPF.Common
         {
             try
             {
-                var keys = ApplicationHotKeys.GetHotkeys();
-                foreach (var key in keys)
+                if (ApplicationHotKeys is HotkeyCollection)
                 {
-                    ApplicationHotKeys.UnregisterHotkey(key);
+                    //ApplicationHotKeys.StopListening();
+                    var keys = ApplicationHotKeys.GetHotkeys();
+                    foreach (var key in keys)
+                    {
+                        ApplicationHotKeys.UnregisterHotkey(key);
+                    }
+                    ApplicationHotKeys.Dispose();
+                    ApplicationHotKeys = null;
                 }
             }
             catch(Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
+        }
+
+        public static void RebindHotKeys(this Application app, bool full = false, bool global = false)
+        {
+            try
+            {
+                if (full)
+                {
+                    UnbindHotkeys(app);
+                    BindHotkeys(app, global);
+                }
+                else
+                {
+                    if (ApplicationHotKeys is HotkeyCollection)
+                    {
+                        ApplicationHotKeys.StopListening();
+                        ApplicationHotKeys.StartListening();
+                    }
+                }
+            }
+            catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
         }
         #endregion
     }
