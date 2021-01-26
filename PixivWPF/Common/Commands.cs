@@ -426,12 +426,22 @@ namespace PixivWPF.Common
                 await new Action(() =>
                 {
                     (obj as string).CopyImage();
-                }).InvokeAsync();
+                }).InvokeAsync(true);
             }
             else if (obj is CustomImageSource)
             {
                 var img = obj as CustomImageSource;
                 if (!string.IsNullOrEmpty(img.SourcePath) && File.Exists(img.SourcePath)) img.SourcePath.CopyImage();
+            }
+            else if (obj is Image)
+            {
+                var img = obj as Image;
+                img.Source.CopyImage();
+            }
+            else if (obj is System.Windows.Media.ImageSource)
+            {
+                var img = obj as System.Windows.Media.ImageSource;
+                img.CopyImage();
             }
             else if (obj is PixivItem)
             {
@@ -444,9 +454,26 @@ namespace PixivWPF.Common
                         await new Action(() =>
                         {
                             fp.CopyImage();
-                        }).InvokeAsync();
+                        }).InvokeAsync(true);
                     }
                 }
+            }
+            else if (obj is TilesPage)
+            {
+                (obj as TilesPage).CopyPreview();
+            }
+            else if (obj is IllustDetailPage)
+            {
+                (obj as IllustDetailPage).CopyPreview();
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).CopyPreview();
+            }
+            else if (obj is Window)
+            {
+                var win = obj as Window;
+                if (win.Content is Page) CopyImage.Execute(win.Content);
             }
         });
 
@@ -550,17 +577,10 @@ namespace PixivWPF.Common
                 {
                     (obj as HistoryPage).OpenWork();
                 }
-                else if (obj is ContentWindow)
+                else if (obj is Window)
                 {
-                    var win = obj as ContentWindow;
-                    if (win.Content is IllustDetailPage ||
-                        win.Content is SearchResultPage ||
-                        win.Content is HistoryPage)
-                        OpenWork.Execute(win.Content);
-                }
-                else if (obj is MainWindow)
-                {
-                    (obj as MainWindow).OpenWork();
+                    var win = obj as Window;
+                    if (win.Content is Page) OpenWork.Execute(win.Content);
                 }
             }
             catch (Exception ex)
@@ -684,17 +704,10 @@ namespace PixivWPF.Common
                 {
                     (obj as HistoryPage).OpenUser();
                 }
-                else if (obj is ContentWindow)
+                else if (obj is Window)
                 {
-                    var win = obj as ContentWindow;
-                    if (win.Content is IllustDetailPage ||
-                        win.Content is SearchResultPage ||
-                        win.Content is HistoryPage)
-                        OpenUser.Execute(win.Content);
-                }
-                else if(obj is MainWindow)
-                {
-                    (obj as MainWindow).OpenUser();
+                    var win = obj as Window;
+                    if (win.Content is Page) OpenUser.Execute(win.Content);
                 }
             }
             catch (Exception ex)
@@ -947,9 +960,17 @@ namespace PixivWPF.Common
             {
                 OpenUser.Execute(obj);
             }
-            else if(obj is IllustDetailPage)
+            else if (obj is TilesPage)
+            {
+                (obj as TilesPage).OpenIllust();
+            }
+            else if (obj is IllustDetailPage)
             {
                 (obj as IllustDetailPage).OpenIllust();
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).OpenIllust();
             }
             else if (obj is SearchResultPage)
             {
@@ -959,17 +980,10 @@ namespace PixivWPF.Common
             {
                 (obj as HistoryPage).OpenIllust();
             }
-            else if (obj is ContentWindow)
+            else if (obj is Window)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage ||
-                    win.Content is SearchResultPage ||
-                    win.Content is HistoryPage)
-                    Open.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                (obj as MainWindow).OpenIllust();
+                var win = obj as Window;
+                if(win.Content is Page) Open.Execute(win.Content);
             }
             else if (obj is string)
             {
@@ -1179,6 +1193,31 @@ namespace PixivWPF.Common
                     }
                 }
             }
+            else if (obj is TilesPage)
+            {
+                (obj as TilesPage).SaveIllust();
+            }
+            else if (obj is IllustDetailPage)
+            {
+                (obj as IllustDetailPage).SaveIllust();
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).SaveIllust();
+            }
+            else if (obj is SearchResultPage)
+            {
+                (obj as SearchResultPage).SaveIllust();
+            }
+            else if (obj is HistoryPage)
+            {
+                (obj as HistoryPage).SaveIllust();
+            }
+            else if (obj is Window)
+            {
+                var win = obj as Window;
+                if (win.Content is Page) SaveIllust.Execute(win.Content);
+            }
         });
 
         public static ICommand SaveIllustAll { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -1267,6 +1306,31 @@ namespace PixivWPF.Common
                         SaveIllustAll.Execute(item);
                     }
                 }
+            }
+            else if (obj is TilesPage)
+            {
+                (obj as TilesPage).SaveIllustAll();
+            }
+            else if (obj is IllustDetailPage)
+            {
+                (obj as IllustDetailPage).SaveIllustAll();
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).SaveIllustAll();
+            }
+            else if (obj is SearchResultPage)
+            {
+                (obj as SearchResultPage).SaveIllustAll();
+            }
+            else if (obj is HistoryPage)
+            {
+                (obj as HistoryPage).SaveIllustAll();
+            }
+            else if (obj is Window)
+            {
+                var win = obj as Window;
+                if (win.Content is Page) SaveIllustAll.Execute(win.Content);
             }
         });
 
@@ -1607,48 +1671,44 @@ namespace PixivWPF.Common
         #region tiles navigation
         public static ICommand RefreshPage { get; } = new DelegateCommand<dynamic>(obj =>
         {
-            if (obj is IllustDetailPage)
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).UpdateTiles();
+            }
+            else if (obj is IllustDetailPage)
             {
                 var page = obj as IllustDetailPage;
-                if (page.Contents is PixivItem)
-                    page.UpdateDetail(page.Contents);
+                if (page.Contents is PixivItem) page.UpdateDetail(page.Contents);
             }
             else if (obj is IllustImageViewerPage)
             {
                 var page = obj as IllustImageViewerPage;
-                if (page.Contents is PixivItem)
-                    page.UpdateDetail(page.Contents);
+                if (page.Contents is PixivItem) page.UpdateDetail(page.Contents);
             }
             else if (obj is SearchResultPage)
             {
                 var page = obj as SearchResultPage;
-                if (page.Contents is string)
-                    page.UpdateDetail(page.Contents);
+                if (page.Contents is string) page.UpdateDetail(page.Contents);
             }
             else if (obj is HistoryPage)
             {
                 var page = obj as HistoryPage;
                 page.UpdateDetail();
             }
-            else if (obj is TilesPage)
+            else if (obj is Window)
             {
-                (obj as TilesPage).UpdateTiles();
-            }
-            else if (obj is ContentWindow)
-            {
-                var win = obj as ContentWindow;
+                var win = obj as Window;
                 if (win.Content is Page) RefreshPage.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var win = obj as MainWindow;
-                win.RefreshPage();
             }
         });
 
         public static ICommand RefreshPageThumb { get; } = new DelegateCommand<dynamic>(obj =>
         {
-            if (obj is IllustDetailPage)
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).UpdateTilesThumb();
+            }
+            else if (obj is IllustDetailPage)
             {
                 var page = obj as IllustDetailPage;
                 page.UpdateThumb(true);
@@ -1657,8 +1717,7 @@ namespace PixivWPF.Common
             {
                 var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
                 var page = obj as IllustImageViewerPage;
-                if (page.Contents is PixivItem)
-                    page.UpdateDetail(page.Contents, overwrite);
+                if (page.Contents is PixivItem) page.UpdateDetail(page.Contents, overwrite);
             }
             else if (obj is SearchResultPage)
             {
@@ -1675,20 +1734,10 @@ namespace PixivWPF.Common
                 var page = obj as BrowerPage;
                 page.UpdateDetail(page.Contents);
             }
-            else if (obj is TilesPage)
+            else if (obj is Window)
             {
-                (obj as TilesPage).UpdateTilesThumb();
-            }
-            else if (obj is ContentWindow)
-            {
-                var win = obj as ContentWindow;
-                if (win.Content is Page)
-                    RefreshPageThumb.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var win = obj as MainWindow;
-                win.RefreshThumbnail();
+                var win = obj as Window;
+                if (win.Content is Page) RefreshPageThumb.Execute(win.Content);
             }
         });
 
@@ -1698,28 +1747,18 @@ namespace PixivWPF.Common
             {
                 (obj as TilesPage).AppendTiles();
             }
-            else if (obj is ContentWindow)
+            else if (obj is Window)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage ||
-                    win.Content is SearchResultPage ||
-                    win.Content is HistoryPage)
-                    AppendTiles.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var win = obj as MainWindow;
-                if (win.Content is TilesPage)
-                    AppendTiles.Execute(win.Content);
+                var win = obj as Window;
+                if (win.Content is Page) AppendTiles.Execute(win.Content);
             }
         });
 
-        public static ICommand ScrollTopTiles { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand ScrollPageFirst { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
-                var tiles = obj as TilesPage;
-                tiles.ScrollPageFirst();
+                (obj as TilesPage).ScrollPageFirst();
             }
             else if (obj is SearchResultPage)
             {
@@ -1729,27 +1768,18 @@ namespace PixivWPF.Common
             {
                 (obj as HistoryPage).ScrollPageFirst();
             }
-            else if (obj is ContentWindow)
+            else if (obj is Window)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage ||
-                    win.Content is SearchResultPage ||
-                    win.Content is HistoryPage)
-                    ScrollTopTiles.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var content = (obj as MainWindow).GetWindowContent();
-                if (content is TilesPage) ScrollTopTiles.Execute(content);
+                var win = obj as Window;
+                if (win.Content is Page) ScrollPageFirst.Execute(win.Content);
             }
         });
 
-        public static ICommand ScrollBottomTiles { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand ScrollPageLast { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
-                var tiles = obj as TilesPage;
-                tiles.ScrollPageLast();
+                (obj as TilesPage).ScrollPageLast();
             }
             else if (obj is SearchResultPage)
             {
@@ -1759,27 +1789,18 @@ namespace PixivWPF.Common
             {
                 (obj as HistoryPage).ScrollPageLast();
             }
-            else if (obj is ContentWindow)
+            else if (obj is Window)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage ||
-                    win.Content is SearchResultPage ||
-                    win.Content is HistoryPage)
-                    ScrollBottomTiles.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var content = (obj as MainWindow).GetWindowContent();
-                if (content is TilesPage) ScrollBottomTiles.Execute(content);
+                var win = obj as Window;
+                if (win.Content is Page) ScrollPageLast.Execute(win.Content);
             }
         });
 
-        public static ICommand ScrollUpTiles { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand ScrollPageUp { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
-                var tiles = obj as TilesPage;
-                tiles.ScrollPageUp();
+                (obj as TilesPage).ScrollPageUp();
             }
             else if (obj is SearchResultPage)
             {
@@ -1789,27 +1810,18 @@ namespace PixivWPF.Common
             {
                 (obj as HistoryPage).ScrollPageUp();
             }
-            else if (obj is ContentWindow)
+            else if (obj is Window)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage ||
-                    win.Content is SearchResultPage ||
-                    win.Content is HistoryPage)
-                    ScrollUpTiles.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var content = (obj as MainWindow).GetWindowContent();
-                if (content is TilesPage) ScrollUpTiles.Execute(content);
+                var win = obj as Window;
+                if (win.Content is Page) ScrollPageUp.Execute(win.Content);
             }
         });
 
-        public static ICommand ScrollDownTiles { get; } = new DelegateCommand<dynamic>(obj =>
+        public static ICommand ScrollPageDown { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)
             {
-                var tiles = obj as TilesPage;
-                tiles.ScrollPageDown();
+                (obj as TilesPage).ScrollPageDown();
             }
             else if (obj is SearchResultPage)
             {
@@ -1819,18 +1831,10 @@ namespace PixivWPF.Common
             {
                 (obj as HistoryPage).ScrollPageDown();
             }
-            else if (obj is ContentWindow)
+            else if (obj is Window)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage ||
-                    win.Content is SearchResultPage ||
-                    win.Content is HistoryPage)
-                    ScrollDownTiles.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var content = (obj as MainWindow).GetWindowContent();
-                if (content is TilesPage) ScrollDownTiles.Execute(content);
+                var win = obj as Window;
+                if (win.Content is Page) ScrollPageDown.Execute(win.Content);
             }
         });
 
@@ -1844,6 +1848,10 @@ namespace PixivWPF.Common
             {
                 (obj as IllustDetailPage).PrevIllust();
             }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).PrevIllust();
+            }
             else if (obj is SearchResultPage)
             {
                 (obj as SearchResultPage).PrevIllust();
@@ -1852,18 +1860,10 @@ namespace PixivWPF.Common
             {
                 (obj as HistoryPage).PrevIllust();
             }
-            else if (obj is ContentWindow)
+            else if (obj is Window)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage ||
-                    win.Content is SearchResultPage ||
-                    win.Content is HistoryPage)
-                    PrevIllust.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var win = obj as MainWindow;
-                win.PrevIllust();
+                var win = obj as Window;
+                if (win.Content is Page) PrevIllust.Execute(win.Content);
             }
         });
 
@@ -1873,9 +1873,13 @@ namespace PixivWPF.Common
             {
                 (obj as TilesPage).NextIllust();
             }
-            else if(obj is IllustDetailPage)
+            else if (obj is IllustDetailPage)
             {
                 (obj as IllustDetailPage).NextIllust();
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).NextIllust();
             }
             else if (obj is SearchResultPage)
             {
@@ -1885,18 +1889,10 @@ namespace PixivWPF.Common
             {
                 (obj as HistoryPage).NextIllust();
             }
-            else if (obj is ContentWindow)
+            else if (obj is Window)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage ||
-                    win.Content is SearchResultPage ||
-                    win.Content is HistoryPage)
-                    NextIllust.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var win = obj as MainWindow;
-                win.NextIllust();
+                var win = obj as Window;
+                if (win.Content is Page) NextIllust.Execute(win.Content);
             }
         });
 
@@ -1910,6 +1906,10 @@ namespace PixivWPF.Common
             {
                 (obj as IllustDetailPage).FirstIllust();
             }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).FirstIllust();
+            }
             else if (obj is SearchResultPage)
             {
                 (obj as SearchResultPage).FirstIllust();
@@ -1918,18 +1918,10 @@ namespace PixivWPF.Common
             {
                 (obj as HistoryPage).FirstIllust();
             }
-            else if (obj is ContentWindow)
+            else if (obj is Window)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage ||
-                    win.Content is SearchResultPage ||
-                    win.Content is HistoryPage)
-                    FirstIllust.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var win = obj as MainWindow;
-                win.FirstIllust();
+                var win = obj as Window;
+                if (win.Content is Page) FirstIllust.Execute(win.Content);
             }
         });
 
@@ -1943,6 +1935,10 @@ namespace PixivWPF.Common
             {
                 (obj as IllustDetailPage).LastIllust();
             }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).LastIllust();
+            }
             else if (obj is SearchResultPage)
             {
                 (obj as SearchResultPage).LastIllust();
@@ -1951,18 +1947,10 @@ namespace PixivWPF.Common
             {
                 (obj as HistoryPage).LastIllust();
             }
-            else if (obj is ContentWindow)
+            else if (obj is Window)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage ||
-                    win.Content is SearchResultPage ||
-                    win.Content is HistoryPage)
-                    LastIllust.Execute(win.Content);
-            }
-            else if (obj is MainWindow)
-            {
-                var win = obj as MainWindow;
-                win.LastIllust();
+                var win = obj as Window;
+                if (win.Content is Page) LastIllust.Execute(win.Content);
             }
         });
 
@@ -1972,15 +1960,26 @@ namespace PixivWPF.Common
             {
                 (obj as TilesPage).PrevIllustPage();
             }
-            else if (obj is MainWindow)
+            else if (obj is IllustDetailPage)
             {
-                var win = obj as MainWindow;
-                win.PrevIllustPage();
+                (obj as IllustDetailPage).PrevIllustPage();
             }
-            else if (obj is ContentWindow)
+            else if (obj is IllustImageViewerPage)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage) (win.Content as IllustDetailPage).PrevIllustPage();
+                (obj as IllustImageViewerPage).PrevIllustPage();
+            }
+            else if (obj is SearchResultPage)
+            {
+                (obj as SearchResultPage).PrevIllust();
+            }
+            else if (obj is HistoryPage)
+            {
+                (obj as HistoryPage).PrevIllust();
+            }
+            else if (obj is Window)
+            {
+                var win = obj as Window;
+                if (win.Content is Page) PrevIllustPage.Execute(win.Content);
             }
         });
 
@@ -1990,167 +1989,31 @@ namespace PixivWPF.Common
             {
                 (obj as TilesPage).NextIllustPage();
             }
-            else if (obj is MainWindow)
+            else if (obj is IllustDetailPage)
             {
-                var win = obj as MainWindow;
-                win.NextIllustPage();
+                (obj as IllustDetailPage).NextIllustPage();
             }
-            else if (obj is ContentWindow)
+            else if (obj is IllustImageViewerPage)
             {
-                var win = obj as ContentWindow;
-                if (win.Content is IllustDetailPage) (win.Content as IllustDetailPage).NextIllustPage();
+                (obj as IllustImageViewerPage).NextIllustPage();
+            }
+            else if (obj is SearchResultPage)
+            {
+                (obj as SearchResultPage).NextIllust();
+            }
+            else if (obj is HistoryPage)
+            {
+                (obj as HistoryPage).NextIllust();
+            }
+            else if (obj is Window)
+            {
+                var win = obj as Window;
+                if (win.Content is Page) NextIllustPage.Execute(win.Content);
             }
         });
         #endregion
 
-#if !DEBUG
-        #region key processiong
-        private static long lastKeyUp = Environment.TickCount;
-        public static ICommand KeyProcessor { get; } = new DelegateCommand<dynamic>(obj =>
-        {
-            try
-            {
-                if (obj is KeyValuePair<dynamic, KeyEventArgs>)
-                {
-                    var sender = obj.Key;
-                    KeyEventArgs e =  obj.Value;
-                    if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
-                    {
-                        if (!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
-
-                        if (sender is ImageListGrid || sender is PixivItem)
-                        {
-                            if (e.IsKey(Key.Enter))
-                            {
-                                Open.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.F6))
-                            {
-                                RefreshPageThumb.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.F7))
-                            {
-                                ChangeIllustLikeState.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.F8))
-                            {
-                                ChangeUserLikeState.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.O, ModifierKeys.Control))
-                            {
-                                OpenDownloaded.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.H, ModifierKeys.Control))
-                            {
-                                OpenHistory.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.S, ModifierKeys.Control))
-                            {
-                                SaveIllust.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.S, ModifierKeys.Shift))
-                            {
-                                SaveIllustAll.Execute(sender);
-                                e.Handled = true;
-                            }
-                        }
-                        else if (sender is MainWindow)
-                        {
-#if DEBUG
-                            $"KeyUp: {e.Key}, {e.SystemKey}, Modifiers: {Keyboard.Modifiers.ToString()}".DEBUG();
-#endif
-                            var win = sender as MainWindow;
-                            if (e.IsKey(Key.F5))
-                            {
-                                RefreshPage.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.F3))
-                            {
-                                AppendTiles.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.F6))
-                            {
-                                RefreshPageThumb.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.Up, ModifierKeys.Alt))
-                            {
-                                ScrollUpTiles.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else if (e.IsKey(Key.Down, ModifierKeys.Alt))
-                            {
-                                ScrollDownTiles.Execute(sender);
-                                e.Handled = true;
-                            }
-                            else
-                            {
-                                var content = win.GetWindowContent();
-                                if (content is TilesPage)
-                                {
-                                    KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(content, e));
-                                    e.Handled = true;
-                                }
-                            }
-                        }
-                        else if (sender is ContentWindow)
-                        {
-                            var win = sender as ContentWindow;
-                            if (win.Content is Page)
-                            {
-                                lastKeyUp = e.Timestamp - 51;
-                                KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(win.Content, e));
-                                e.Handled = true;
-                            }
-                        }
-                        else if (sender is TilesPage)
-                        {
-                            lastKeyUp = e.Timestamp - 51;
-                            (sender as TilesPage).KeyAction(e);
-                            e.Handled = true;
-                        }
-                        else if (sender is IllustDetailPage)
-                        {
-                            lastKeyUp = e.Timestamp - 51;
-                            (sender as IllustDetailPage).KeyAction(e);
-                            e.Handled = true;
-                        }
-                        else if (sender is IllustImageViewerPage)
-                        {
-                            lastKeyUp = e.Timestamp - 51;
-                            (sender as IllustImageViewerPage).KeyAction(e);
-                            e.Handled = true;
-                        }
-                        else if (sender is HistoryPage)
-                        {
-                            lastKeyUp = e.Timestamp - 51;
-                            (sender as HistoryPage).KeyAction(e);
-                            e.Handled = true;
-                        }
-                        else if (sender is SearchResultPage)
-                        {
-                            lastKeyUp = e.Timestamp - 51;
-                            (sender as SearchResultPage).KeyAction(e);
-                            e.Handled = true;
-                        }
-                    }
-                }
-            }
-            catch (Exception) { }
-        });
-#endregion
-#endif
-
-#region Like/Unlile Work/User relative
+        #region Like/Unlile Work/User relative
         public static ICommand LikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
@@ -2265,18 +2128,17 @@ namespace PixivWPF.Common
                             gallery.UnLikeIllust();
                     }
                 }
-                else if(obj is Window)
-                {
-                    var win = obj as Window;
-                    if (win.Content is Page) ChangeIllustLikeState.Execute(win.Content);
-                }
-                else if(obj is TilesPage)
+                else if (obj is TilesPage)
                 {
                     ChangeIllustLikeState.Execute((obj as TilesPage).CurrentItem);
                 }
                 else if (obj is IllustDetailPage)
                 {
                     (obj as IllustDetailPage).ChangeIllustLikeState();
+                }
+                else if (obj is IllustImageViewerPage)
+                {
+                    (obj as IllustImageViewerPage).ChangeIllustLikeState();
                 }
                 else if (obj is HistoryPage)
                 {
@@ -2285,6 +2147,11 @@ namespace PixivWPF.Common
                 else if (obj is SearchResultPage)
                 {
                     (obj as SearchResultPage).ChangeIllustLikeState();
+                }
+                else if (obj is Window)
+                {
+                    var win = obj as Window;
+                    if (win.Content is Page) ChangeIllustLikeState.Execute(win.Content);
                 }
             }
             catch (Exception ex)
@@ -2407,11 +2274,6 @@ namespace PixivWPF.Common
                             gallery.UnLikeUser();
                     }
                 }
-                else if (obj is Window)
-                {
-                    var win = obj as Window;
-                    if (win.Content is Page) ChangeUserLikeState.Execute(win.Content);
-                }
                 else if (obj is TilesPage)
                 {
                     ChangeUserLikeState.Execute((obj as TilesPage).CurrentItem);
@@ -2419,6 +2281,10 @@ namespace PixivWPF.Common
                 else if (obj is IllustDetailPage)
                 {
                     (obj as IllustDetailPage).ChangeUserLikeState();
+                }
+                else if (obj is IllustImageViewerPage)
+                {
+                    (obj as IllustImageViewerPage).ChangeUserLikeState();
                 }
                 else if (obj is HistoryPage)
                 {
@@ -2428,15 +2294,20 @@ namespace PixivWPF.Common
                 {
                     (obj as SearchResultPage).ChangeUserLikeState();
                 }
+                else if (obj is Window)
+                {
+                    var win = obj as Window;
+                    if (win.Content is Page) ChangeUserLikeState.Execute(win.Content);
+                }
             }
             catch (Exception ex)
             {
                 ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
             }
         });
-#endregion
+        #endregion
 
-#region PixivPedia relative
+        #region PixivPedia relative
         private static async void OpenPediaWindow(string contents)
         {
             if (!string.IsNullOrEmpty(contents))
@@ -2461,6 +2332,6 @@ namespace PixivWPF.Common
                 Application.Current.DoEvents();
             }
         }
-#endregion
+        #endregion
     }
 }

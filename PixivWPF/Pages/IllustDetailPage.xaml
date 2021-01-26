@@ -18,7 +18,6 @@
       TextOptions.TextFormattingMode="Display"
       AllowDrop="True"
       Title="IllustDetailPage"
-      PreviewKeyUp="Page_KeyUp"
       PreviewMouseDown="Page_PreviewMouseDown"
       Loaded="Page_Loaded" Unloaded="Page_Unloaded">
 

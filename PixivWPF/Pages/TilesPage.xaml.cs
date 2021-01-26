@@ -286,23 +286,6 @@ namespace PixivWPF.Pages
             return (result);
         }
 
-        public void JumpTo(string id)
-        {
-            var results = ListImageTiles.Items.Where(item => item.ID.Equals(id));
-            if (results.Count() > 0)
-            {
-                var target = results.FirstOrDefault();
-                ListImageTiles.ScrollIntoView(target);
-                ListImageTiles.SelectedItem = target;
-            }
-            else
-            {
-                var illust = id.FindIllust();
-                if (illust is Pixeez.Objects.Work)
-                    Commands.OpenWork.Execute(illust);
-            }
-        }
-
         public void RefreshPage()
         {
             ShowImages(TargetPage, false, GetLastSelectedID());
@@ -332,6 +315,38 @@ namespace PixivWPF.Pages
         public void OpenUser()
         {
             if (detail_page is IllustDetailPage) detail_page.OpenUser();
+        }
+
+        public void SaveIllust()
+        {
+            if (detail_page is IllustDetailPage) detail_page.SaveIllust();
+        }
+
+        public void SaveIllustAll()
+        {
+            if (detail_page is IllustDetailPage) detail_page.SaveIllustAll();
+        }
+
+        public void CopyPreview()
+        {
+            if (detail_page is IllustDetailPage) detail_page.CopyPreview();
+        }
+
+        public void JumpTo(string id)
+        {
+            var results = ListImageTiles.Items.Where(item => item.ID.Equals(id));
+            if (results.Count() > 0)
+            {
+                var target = results.FirstOrDefault();
+                ListImageTiles.ScrollIntoView(target);
+                ListImageTiles.SelectedItem = target;
+            }
+            else
+            {
+                var illust = id.FindIllust();
+                if (illust is Pixeez.Objects.Work)
+                    Commands.OpenWork.Execute(illust);
+            }
         }
 
         public void FirstIllust()
@@ -473,14 +488,6 @@ namespace PixivWPF.Pages
             return (string.Join(Environment.NewLine, tips));
         }
         #endregion
-
-        internal void KeyAction(KeyEventArgs e)
-        {
-            //if (setting.SmartMouseResponse && e.Source == IllustDetail)
-            //    detail_page.KeyAction(e);
-            //else
-                Page_PreviewKeyUp(this, e);
-        }
 
         public TilesPage()
         {
@@ -1453,144 +1460,6 @@ namespace PixivWPF.Pages
             {
                 ex.Message.ShowMessageBox("ERROR");
             }
-        }
-
-        private long lastKeyUp = Environment.TickCount;        
-        private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
-        {
-            e.Handled = false;
-#if !DEBUG
-            if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
-            {
-                if (!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
-
-                if (setting.SmartMouseResponse && e.Source == IllustDetail)
-                {
-                    detail_page.KeyAction(e);
-                    e.Handled = true;
-                }
-                else
-                {
-                    if (e.IsKey(Key.F5))
-                    {
-                        var main = this.GetMainWindow() as MainWindow;
-                        main.CommandNavRefresh_Click(main.CommandNavRefresh, new RoutedEventArgs());
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.F3))
-                    {
-                        var main = this.GetMainWindow() as MainWindow;
-                        main.CommandNavNext_Click(main.CommandNavNext, new RoutedEventArgs());
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.F6))
-                    {
-                        ListImageTiles.UpdateTilesImage();
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.F7) || e.IsKey(Key.F8))
-                    {
-                        if (detail_page is IllustDetailPage)
-                        {
-                            detail_page.KeyAction(e);
-                            e.Handled = true;
-                        }
-                    }
-                    else if (e.IsKey(Key.Enter))
-                    {
-                        if (ListImageTiles.SelectedItem != null)
-                        {
-                            e.Handled = true;
-                        }
-                    }
-                    else if (e.IsKey(Key.Home))
-                    {
-                        if (ListImageTiles.Items.Count > 0)
-                        {
-                            ListImageTiles.MoveCurrentToFirst();
-                            ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
-                            e.Handled = true;
-                        }
-                    }
-                    else if (e.IsKey(Key.End))
-                    {
-                        if (ListImageTiles.Items.Count > 0)
-                        {
-                            ListImageTiles.MoveCurrentToLast();
-                            ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
-                            e.Handled = true;
-                        }
-                    }
-                    else if (e.IsKey(Key.S, ModifierKeys.Control))
-                    {
-                        if (ListImageTiles.SelectedItem is PixivItem)
-                        {
-                            var item = ListImageTiles.SelectedItem as PixivItem;
-                            if (item.IsWork())
-                                Commands.SaveIllust.Execute(item);
-                        }
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.O, ModifierKeys.Control))
-                    {
-                        if (ListImageTiles.SelectedItem is PixivItem)
-                        {
-                            var item = ListImageTiles.SelectedItem as PixivItem;
-                            if (item.IsDownloaded)
-                                Commands.OpenDownloaded.Execute(item);
-                            else
-                                Commands.OpenWorkPreview.Execute(item);
-                        }
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.H, ModifierKeys.Control))
-                    {
-                        Commands.OpenHistory.Execute(null);
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.Left, ModifierKeys.Alt))
-                    {
-                        ScrollPageUp();
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.Right, ModifierKeys.Alt))
-                    {
-                        ScrollPageDown();
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.PageUp, ModifierKeys.Shift))
-                    {
-                        ScrollPageFirst();
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.PageDown, ModifierKeys.Shift))
-                    {
-                        ScrollPageLast();
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.OemOpenBrackets, ModifierKeys.Shift))
-                    {
-                        PrevIllustPage();
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.OemCloseBrackets, ModifierKeys.Shift))
-                    {
-                        NextIllustPage();
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.OemOpenBrackets))
-                    {
-                        PrevIllust();
-                        e.Handled = true;
-                    }
-                    else if (e.IsKey(Key.OemCloseBrackets))
-                    {
-                        NextIllust();
-                        e.Handled = true;
-                    }
-                }
-            }
-#endif
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)

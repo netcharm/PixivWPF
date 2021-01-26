@@ -289,6 +289,8 @@ namespace PixivWPF.Common
     public class CustomImageSource
     {
         public ImageSource Source { get; set; } = null;
+        public long Size { get; set; } = 0;
+        public long ColorDepth { get; set; } = 0;
         public string SourcePath { get; set; } = string.Empty;
 
         ~CustomImageSource()
@@ -2134,163 +2136,99 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Hot-Key Processing
-        private static long lastKeyUp = Environment.TickCount;
-        public static void KeyAction(this Application app, dynamic current, KeyEventArgs e)
-        {
-            e.Handled = false;
-            var setting = app.LoadSetting();
-            if (e.Timestamp - lastKeyUp > 50)
-            {
-                lastKeyUp = e.Timestamp;
-            }
-        }
-        #endregion
-
         #region Hotkey Helper
-        public static void RegisterHotkey(this Application app)
-        {
-            HotkeyManager.Current.IsEnabled = false;
-
-            HotkeyManager.Current.AddOrReplace("PrevIllust", Key.OemOpenBrackets, ModifierKeys.None, OnPrevIllust);
-            HotkeyManager.Current.AddOrReplace("NextIllust", Key.OemCloseBrackets, ModifierKeys.None, OnNextIllust);
-            HotkeyManager.Current.AddOrReplace("PrevIllustPage", Key.OemOpenBrackets, ModifierKeys.Shift, OnPrevIllustPage);
-            HotkeyManager.Current.AddOrReplace("NextIllustPage", Key.OemCloseBrackets, ModifierKeys.Shift, OnNextIllustPage);
-
-            HotkeyManager.Current.AddOrReplace("RefreshPage", Key.F5, ModifierKeys.None, OnRefreshPage);
-            HotkeyManager.Current.AddOrReplace("AppendPage", Key.F3, ModifierKeys.None, OnAppendPage);
-            HotkeyManager.Current.AddOrReplace("RefreshPageThumbnail", Key.F6, ModifierKeys.None, OnRefreshPageThumb);
-
-            //HotkeyManager.Current.AddOrReplace("ChangeIllustLikeState", Key.OemCloseBrackets, ModifierKeys.None, OnChangeIllustLikeState);
-            //HotkeyManager.Current.AddOrReplace("ChangeUserLikeState", Key.OemCloseBrackets, ModifierKeys.None, OnChangeUserLikeState);
-            
-        }
-
-        public static ConcurrentDictionary<string, InputBinding> HotKeys = new ConcurrentDictionary<string, InputBinding>();
+        public static ConcurrentDictionary<string, InputBinding> GlobalHotKeys = new ConcurrentDictionary<string, InputBinding>();
         private static HotkeyCollection ApplicationHotKeys = new HotkeyCollection(Enums.Scope.Application);
         public static void BindHotkey(this Application app, string name, Key key, ModifierKeys mod, EventHandler<HotkeyEventArgs> handle)
         {
-            var win = GetMainWindow(app);
-            var ig = new KeyGesture(key, mod, name);
-            var cmd = new DelegateCommand<dynamic>(obj =>
+            try
             {
-                handle(obj, null);
-            });
-            var ib = new InputBinding(cmd, ig);
-            //ib.CommandParameter = 
-            HotKeys[name] = ib;
-            if (win is MainWindow) win.InputBindings.Add(ib);
-            //InputManager.Current.
+                var win = GetMainWindow(app);
+                var ig = new KeyGesture(key, mod, name);
+                var cmd = new DelegateCommand<dynamic>(obj =>
+                {
+                    handle(obj, null);
+                });
+                var ib = new InputBinding(cmd, ig);
+                //ib.CommandParameter = 
+                GlobalHotKeys[name] = ib;
+                if (win is MainWindow) win.InputBindings.Add(ib);
+            }
+            catch(Exception ex) { ex.Message.DEBUG(); }
         }
 
         public static void BindHotkey(this Application app, string name, System.Windows.Forms.Keys key, ICommand command)
         {
-            ApplicationHotKeys.RegisterHotkey(key, (e) => {
-                var win = Application.Current.GetActiveWindow();
-                if (win is Window) command.Execute(win);
-                $"Description: {e.Description}, Keys: {e.ChordName}".DEBUG();
-            }, name);
+            try
+            {
+                ApplicationHotKeys.RegisterHotkey(key, async (e) =>
+                {
+                    try
+                    {
+                        await new Action(() =>
+                         {
+                             var win = Application.Current.GetActiveWindow();
+                             if (win is Window) command.Execute(win);
+                             $"Description: {e.Description}, Keys: {e.ChordName}".DEBUG();
+                         }).InvokeAsync(true);
+                    }
+                    catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
+                }, name);
+            }
+            catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
         }
 
-        public static void BindHotkeys(this Application app)
+        public static void BindHotkeys(this Application app, bool global = false)
         {
-            BindHotkey(app, "IllustFirst", System.Windows.Forms.Keys.Home, Commands.FirstIllust);
-            BindHotkey(app, "IllustLast", System.Windows.Forms.Keys.End, Commands.LastIllust);
-            BindHotkey(app, "IllustPrev", System.Windows.Forms.Keys.OemOpenBrackets, Commands.PrevIllust);
-            BindHotkey(app, "IllustNext", System.Windows.Forms.Keys.OemCloseBrackets, Commands.NextIllust);
-            BindHotkey(app, "IllustPrevPage", System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift, Commands.PrevIllustPage);
-            BindHotkey(app, "IllustNextPage", System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift, Commands.NextIllustPage);
+            if (global)
+            {
+                //BindHotkey(app, "PrevIllust", Key.OemOpenBrackets, ModifierKeys.None, OnPrevIllust);
+            }
+            else
+            {
+                BindHotkey(app, "IllustFirst", System.Windows.Forms.Keys.Home, Commands.FirstIllust);
+                BindHotkey(app, "IllustLast", System.Windows.Forms.Keys.End, Commands.LastIllust);
+                BindHotkey(app, "IllustPrev", System.Windows.Forms.Keys.OemOpenBrackets, Commands.PrevIllust);
+                BindHotkey(app, "IllustNext", System.Windows.Forms.Keys.OemCloseBrackets, Commands.NextIllust);
+                BindHotkey(app, "IllustPrevPage", System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift, Commands.PrevIllustPage);
+                BindHotkey(app, "IllustNextPage", System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift, Commands.NextIllustPage);
 
-            BindHotkey(app, "TilesScrollPageUp", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift, Commands.ScrollUpTiles);
-            BindHotkey(app, "TilesScrollPageDown", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift, Commands.ScrollDownTiles);
-            BindHotkey(app, "TilesScrollPageTop", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control, Commands.ScrollTopTiles);
-            BindHotkey(app, "TilesScrollPageBottom", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control, Commands.ScrollBottomTiles);
+                BindHotkey(app, "TilesScrollPageUp", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift, Commands.ScrollPageUp);
+                BindHotkey(app, "TilesScrollPageDown", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift, Commands.ScrollPageDown);
+                BindHotkey(app, "TilesScrollPageTop", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control, Commands.ScrollPageFirst);
+                BindHotkey(app, "TilesScrollPageBottom", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control, Commands.ScrollPageLast);
 
-            BindHotkey(app, "TilesRefresh", System.Windows.Forms.Keys.F5, Commands.RefreshPage);
-            BindHotkey(app, "TilesAppend", System.Windows.Forms.Keys.F3, Commands.AppendTiles);
-            BindHotkey(app, "TilesRefreshThumbnail", System.Windows.Forms.Keys.F6, Commands.RefreshPageThumb);
+                BindHotkey(app, "TilesRefresh", System.Windows.Forms.Keys.F5, Commands.RefreshPage);
+                BindHotkey(app, "TilesAppend", System.Windows.Forms.Keys.F3, Commands.AppendTiles);
+                BindHotkey(app, "TilesRefreshThumbnail", System.Windows.Forms.Keys.F6, Commands.RefreshPageThumb);
 
-            BindHotkey(app, "OpenHistory", System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control, Commands.OpenHistory);
-            BindHotkey(app, "OpenWork", System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control, Commands.OpenWork);
-            BindHotkey(app, "OpenUser", System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control, Commands.OpenUser);
-            BindHotkey(app, "OpenDownloaded", System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control, Commands.Open);
+                BindHotkey(app, "OpenHistory", System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control, Commands.OpenHistory);
+                BindHotkey(app, "OpenWork", System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control, Commands.OpenWork);
+                BindHotkey(app, "OpenUser", System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control, Commands.OpenUser);
+                BindHotkey(app, "OpenDownloaded", System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control, Commands.Open);
+                BindHotkey(app, "CopyPreview", System.Windows.Forms.Keys.P | System.Windows.Forms.Keys.Control, Commands.CopyImage);
 
-            BindHotkey(app, "SaveIllust", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control, Commands.SaveIllust);
-            BindHotkey(app, "SaveIllustAll", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift, Commands.SaveIllustAll);
+                BindHotkey(app, "SaveIllust", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control, Commands.SaveIllust);
+                BindHotkey(app, "SaveIllustAll", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift, Commands.SaveIllustAll);
 
-            BindHotkey(app, "ChangeIllustLikeState", System.Windows.Forms.Keys.F7, Commands.ChangeIllustLikeState);
-            BindHotkey(app, "ChangeUserLikeState", System.Windows.Forms.Keys.F8, Commands.ChangeUserLikeState);
+                BindHotkey(app, "ChangeIllustLikeState", System.Windows.Forms.Keys.F7, Commands.ChangeIllustLikeState);
+                BindHotkey(app, "ChangeUserLikeState", System.Windows.Forms.Keys.F8, Commands.ChangeUserLikeState);
 
-
-
-
-
-            //BindHotkey(app, "PrevIllust", Key.OemOpenBrackets, ModifierKeys.None, OnPrevIllust);
-            //BindHotkey(app, "NextIllust", Key.OemCloseBrackets, ModifierKeys.None, OnNextIllust);
-            //BindHotkey(app, "PrevIllustPage", Key.OemOpenBrackets, ModifierKeys.Shift, OnPrevIllustPage);
-            //BindHotkey(app, "NextIllustPage", Key.OemCloseBrackets, ModifierKeys.Shift, OnNextIllustPage);
-
-            //BindHotkey(app, "RefreshPage", Key.F5, ModifierKeys.None, OnRefreshPage);
-            //BindHotkey(app, "AppendPage", Key.F3, ModifierKeys.None, OnAppendPage);
-            //BindHotkey(app, "RefreshPageThumbnail", Key.F6, ModifierKeys.None, OnRefreshPageThumb);
-
-            //BindHotkey(app, "ChangeIllustLikeState", Key.OemCloseBrackets, ModifierKeys.None, OnChangeIllustLikeState);
-            //BindHotkey(app, "ChangeUserLikeState", Key.OemCloseBrackets, ModifierKeys.None, OnChangeUserLikeState);
-
+                ApplicationHotKeys.StartListening();
+            }
         }
 
-        private static void OnPrevIllust(object sender, HotkeyEventArgs e)
+        public static void UnbindHotkeys(this Application app)
         {
-            var win = Application.Current.GetActiveWindow();
-            if (win is Window) Commands.PrevIllust.Execute(win);
-        }
-
-        private static void OnNextIllust(object sender, HotkeyEventArgs e)
-        {
-            var win = Application.Current.GetActiveWindow();
-            if(win is Window) Commands.NextIllust.Execute(win);
-        }
-
-        private static void OnPrevIllustPage(object sender, HotkeyEventArgs e)
-        {
-            var win = Application.Current.GetActiveWindow();
-            if (win is Window) Commands.PrevIllustPage.Execute(win);
-        }
-
-        private static void OnNextIllustPage(object sender, HotkeyEventArgs e)
-        {
-            var win = Application.Current.GetActiveWindow();
-            if (win is Window) Commands.NextIllustPage.Execute(win);
-        }
-
-        private static void OnRefreshPage(object sender, HotkeyEventArgs e)
-        {
-            var win = Application.Current.GetActiveWindow();
-            if (win is Window) Commands.RefreshPage.Execute(win);
-        }
-
-        private static void OnAppendPage(object sender, HotkeyEventArgs e)
-        {
-            var win = Application.Current.GetActiveWindow();
-            if (win is Window) Commands.AppendTiles.Execute(win);
-        }
-
-        private static void OnRefreshPageThumb(object sender, HotkeyEventArgs e)
-        {
-            var win = Application.Current.GetActiveWindow();
-            if (win is Window) Commands.RefreshPageThumb.Execute(win);
-        }
-
-        private static void OnChangeIllustLikeState(object sender, HotkeyEventArgs e)
-        {
-            var win = Application.Current.GetActiveWindow();
-            if (win is Window) Commands.ChangeUserLikeState.Execute(win);
-        }
-
-        private static void OnChangeUserLikeState(object sender, HotkeyEventArgs e)
-        {
-            var win = Application.Current.GetActiveWindow();
-            if (win is Window) Commands.ChangeUserLikeState.Execute(win);
+            try
+            {
+                var keys = ApplicationHotKeys.GetHotkeys();
+                foreach (var key in keys)
+                {
+                    ApplicationHotKeys.UnregisterHotkey(key);
+                }
+            }
+            catch(Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
         }
         #endregion
     }
@@ -3820,6 +3758,39 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+
+        public static BitmapSource ToBitmapSource(this ImageSource source)
+        {
+            BitmapSource result = source is BitmapSource ? source as BitmapSource : null;
+            try
+            {
+                if (result == null && source is ImageSource && source.Width > 0 && source.Height > 0)
+                {
+                    var dpi = DPI.Default;
+                    RenderTargetBitmap target = new RenderTargetBitmap((int)(source.Width), (int)(source.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+                    DrawingVisual drawingVisual = new DrawingVisual();
+                    using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+                    {
+                        drawingContext.DrawImage(source, new Rect(0, 0, source.Width, source.Height));
+                    }
+                    target.Render(drawingVisual);
+
+                    int width = target.PixelWidth;
+                    int height = target.PixelHeight;
+                    var palette = target.Palette;
+                    int stride = width * ((target.Format.BitsPerPixel + 31) / 32 * 4);
+                    byte[] pixelData = new byte[stride * height];
+                    target.CopyPixels(pixelData, stride, 0);
+
+                    result = BitmapSource.Create(width, height,
+                                                target.DpiX, target.DpiY,
+                                                target.Format, target.Palette,
+                                                pixelData, stride);
+                }
+            }
+            catch (Exception ex) { ex.Message.DEBUG(); }
+            return (result);
+        }
         #endregion
 
         #region Downloaded Cache routines
@@ -4569,6 +4540,16 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static FileInfo GetFileInfo(this string filename)
+        {
+            FileInfo result = null;
+            if (File.Exists(filename))
+            {
+                result = new FileInfo(filename);
+            }
+            return (result);
+        }
+
         public static DateTime GetFileTime(this string filename, string mode = "m")
         {
             DateTime result = default(DateTime);
@@ -4615,6 +4596,8 @@ namespace PixivWPF.Common
                 {
                     result.Source = stream.ToImageSource(size);
                     result.SourcePath = file;
+                    result.Size = stream.Length;
+                    result.ColorDepth = result.Source is BitmapSource ? (result.Source as BitmapSource).Format.BitsPerPixel : 32;
                 }
             }
             return (result);
@@ -5132,6 +5115,45 @@ namespace PixivWPF.Common
             { ".jpeg", new string[] { ".jpg", "image/jpg", "image/jpeg", ".jpeg" } },
         };
 
+        public static async void CopyImage(this ImageSource source)
+        {
+            try
+            {
+                var bs = source.ToBitmapSource();
+
+                DataObject dataPackage = new DataObject();
+                MemoryStream ms = null;
+
+                #region Copy Standard Bitmap date to Clipboard
+                dataPackage.SetImage(bs);
+                #endregion
+                #region Copy other MIME format data to Clipboard
+                string[] fmts = new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg" };
+                //string[] fmts = new string[] { };
+                foreach (var fmt in fmts)
+                {
+                    if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        byte[] arr = await bs.ToBytes(fmt);
+                        byte[] dib = arr.Skip(14).ToArray();
+                        ms = new MemoryStream(dib);
+                        dataPackage.SetData(fmt, ms);
+                        await ms.FlushAsync();
+                    }
+                    else
+                    {
+                        byte[] arr = await bs.ToBytes(fmt);
+                        ms = new MemoryStream(arr);
+                        dataPackage.SetData(fmt, ms);
+                        await ms.FlushAsync();
+                    }
+                }
+                #endregion
+                Clipboard.SetDataObject(dataPackage, true);
+            }
+            catch(Exception ex) { ex.Message.DEBUG(); }
+        }
+
         public static async void CopyImage(this string file)
         {
             try
@@ -5191,6 +5213,7 @@ namespace PixivWPF.Common
             catch (Exception) { }
 #endif
         }
+
         #endregion
 
         #region Illust routines
@@ -7777,17 +7800,19 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void DEBUG(this string contents)
+        public static void DEBUG(this string contents, string tag = "")
         {
 #if DEBUG
-            Debug.WriteLine(contents);
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+            Debug.WriteLine($"{prefix}{contents}");
 #endif
         }
 
-        public static void LOG(this string contents)
+        public static void LOG(this string contents, string tag = "")
         {
 #if DEBUG
-            Console.WriteLine(contents);
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+            Console.WriteLine($"{prefix}{contents}");
 #else
             if (IsConsole) Console.WriteLine(contents);
 #endif

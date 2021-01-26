@@ -20,7 +20,6 @@
                  TextOptions.TextFormattingMode="Display"
                  AllowDrop="True"
                  WindowStartupLocation="CenterScreen" MinWidth="1484" MinHeight="720" Width="1484" Height="964"
-                 KeyUp="MainWindow_KeyUp"
                  PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
                  StateChanged="MainWindow_StateChanged" 
                  Closing="MainWindow_Closing" >
@@ -182,9 +181,11 @@
                       mah:TextBoxHelper.ClearTextButton="True"
                       mah:TextBoxHelper.Watermark="Searching ..." 
                       IsTextSearchEnabled="False"
-                      SelectionChanged="SearchBox_SelectionChanged"
                       TextBoxBase.TextChanged="SearchBox_TextChanged"
-                      KeyDown="SearchBox_KeyDown" DropDownOpened="SearchBox_DropDownOpened" >
+                      SelectionChanged="SearchBox_SelectionChanged"
+                      LostFocus="SearchBox_LostFocus"
+                      KeyDown="SearchBox_KeyDown" 
+                      DropDownOpened="SearchBox_DropDownOpened" >
             </ComboBox>
             <Button Click="CommandSearch_Click" 
                     ToolTip="Searching Illust/User">

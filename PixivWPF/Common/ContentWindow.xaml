@@ -17,7 +17,6 @@
                  RenderOptions.EdgeMode="Aliased"
                  TextOptions.TextFormattingMode="Display" VisualTextRenderingMode="Auto"
                  PreviewDragOver="MetroWindow_DragOver" PreviewDrop="MetroWindow_Drop"
-                 KeyUp="MetroWindow_KeyUp"
                  MouseDown="MetroWindow_MouseDown"
                  StateChanged="MetroWindow_StateChanged"
                  Loaded="MetroWindow_Loaded"
@@ -149,9 +148,11 @@
                       mah:TextBoxHelper.ClearTextButton="True"
                       mah:TextBoxHelper.Watermark="Searching ..." 
                       IsTextSearchEnabled="False"
-                      SelectionChanged="SearchBox_SelectionChanged"
                       TextBoxBase.TextChanged="SearchBox_TextChanged"
-                      KeyDown="SearchBox_KeyDown" DropDownOpened="SearchBox_DropDownOpened" >
+                      SelectionChanged="SearchBox_SelectionChanged"
+                      LostFocus="SearchBox_LostFocus"
+                      KeyDown="SearchBox_KeyDown" 
+                      DropDownOpened="SearchBox_DropDownOpened" >
             </ComboBox>
             <Button Click="CommandSearch_Click" 
                     ToolTip="Searching Illust/User">

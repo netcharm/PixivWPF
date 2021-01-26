@@ -775,6 +775,17 @@ namespace PixivWPF.Pages
             }
             catch (Exception) { }
         }              
+        
+        public void CopyPreview()
+        {
+            if (!string.IsNullOrEmpty(PreviewImageUrl))
+            {
+                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+                    Commands.CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
+                else
+                    Commands.CopyImage.Execute(Preview);
+            }
+        }
         #endregion
 
         #region Theme/Thumb/Detail refresh methods
@@ -1728,11 +1739,6 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        internal void KeyAction(KeyEventArgs e)
-        {
-            Page_KeyUp(this, e);
-        }
-
         internal void Dispose()
         {
             try
@@ -1813,129 +1819,6 @@ namespace PixivWPF.Pages
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             Dispose();
-        }
-
-        private long lastKeyUp = Environment.TickCount;
-        private void Page_KeyUp(object sender, KeyEventArgs e)
-        {
-#if !DEBUG
-            e.Handled = false;
-            if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
-            {
-                if (!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
-
-                var pub = setting.PrivateFavPrefer ? false : true;
-
-                if (e.IsKey(Key.F3))
-                {
-                    if (!(Parent is ContentWindow))
-                    {
-                        Commands.AppendTiles.Execute(Application.Current.MainWindow);
-                        e.Handled = true;
-                    }
-                }
-                else if (e.IsKey(Key.F5))
-                {
-                    if (Parent is ContentWindow)
-                        UpdateDetail(Contents);
-                    else
-                    {
-                        if (e.IsModified(ModifierKeys.Shift, false))
-                            UpdateDetail(Contents);
-                        else if (e.IsModified(ModifierKeys.None))
-                            Commands.RefreshPage.Execute(Application.Current.MainWindow);
-                    }
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.F6))
-                {
-                    if (!(Parent is ContentWindow)) Commands.RefreshPageThumb.Execute(Application.Current.MainWindow);
-                    UpdateThumb();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.F7))
-                {
-                    ChangeIllustLikeState();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.F8))
-                {
-                    ChangeUserLikeState();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.O, ModifierKeys.Control))
-                {
-                    OpenIllust();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.H, ModifierKeys.Control))
-                {
-                    Commands.OpenHistory.Execute(null);
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.S, ModifierKeys.Control))
-                {
-                    SaveIllust();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.S, new ModifierKeys[] { ModifierKeys.Shift, ModifierKeys.Control }))
-                {
-                    SaveIllustAll();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.N, ModifierKeys.Control))
-                {
-                    OpenInNewWindow();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.U, ModifierKeys.Control))
-                {
-                    OpenUser();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.R, ModifierKeys.Control))
-                {
-                    RelativeItemsExpander.IsExpanded = true;
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.F, ModifierKeys.Control))
-                {
-                    FavoriteItemsExpander.IsExpanded = true;
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.Left, ModifierKeys.Alt))
-                {
-                    PrevIllust();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.Right, ModifierKeys.Alt))
-                {
-                    NextIllust();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.OemOpenBrackets, ModifierKeys.Shift))
-                {
-                    PrevIllustPage();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.OemCloseBrackets, ModifierKeys.Shift))
-                {
-                    NextIllustPage();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.OemOpenBrackets))
-                {
-                    PrevIllust();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.OemCloseBrackets))
-                {
-                    NextIllust();
-                    e.Handled = true;
-                }
-                else e.Handled = false;
-            }
-#endif
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -2240,23 +2123,23 @@ namespace PixivWPF.Pages
                     {
                         RefreshHtmlRender(browser);
                     }
-                    else
-                    {
-                        Key key;
-                        if (Enum.TryParse<Key>(e.KeyCode.ToString(), out key))
-                        {
-                            var source = new HwndSource(0, 0, 0, 0, 0, "", IntPtr.Zero); // dummy source
-                            //var source = Keyboard.PrimaryDevice.ActiveSource;
-                            var kevt = new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(this), Environment.TickCount, key)
-                            {
-                                RoutedEvent = Keyboard.PreviewKeyDownEvent,
-                                Source = Keyboard.PrimaryDevice.ActiveSource,
-                                Handled = true
-                            };
-                            //this.RaiseEvent(kevt);
-                            Page_KeyUp(this, kevt);
-                        }
-                    }
+                    //else
+                    //{
+                    //    Key key;
+                    //    if (Enum.TryParse<Key>(e.KeyCode.ToString(), out key))
+                    //    {
+                    //        var source = new HwndSource(0, 0, 0, 0, 0, "", IntPtr.Zero); // dummy source
+                    //        //var source = Keyboard.PrimaryDevice.ActiveSource;
+                    //        var kevt = new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(this), Environment.TickCount, key)
+                    //        {
+                    //            RoutedEvent = Keyboard.PreviewKeyDownEvent,
+                    //            Source = Keyboard.PrimaryDevice.ActiveSource,
+                    //            Handled = true
+                    //        };
+                    //        //this.RaiseEvent(kevt);
+                    //        //Page_KeyUp(this, kevt);
+                    //    }
+                    //}
                 }
             }
 #if DEBUG
@@ -2397,10 +2280,7 @@ namespace PixivWPF.Pages
             }
             else if (sender == PreviewCopyImage)
             {
-                if (!string.IsNullOrEmpty(PreviewImageUrl))
-                {
-                    Commands.CopyImage.Execute(PreviewImageUrl.GetImageCachePath());
-                }
+                CopyPreview();
             }
             else if (sender == ActionCopyIllustDate || sender == IllustDate || sender == IllustDateInfo)
             {
@@ -2936,9 +2816,12 @@ namespace PixivWPF.Pages
             {
                 if (sender == IllustTagPedia)
                 {
+                    var links = Keyboard.Modifiers == ModifierKeys.Shift ? true : false;
                     var shell = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
                     var tags = IllustTagsHtml.GetText().Trim().Trim('#').Split('#');
-                    if (shell)
+                    if (links)
+                        Commands.CopyPediaLink.Execute(tags);
+                    else if (shell)
                         Commands.ShellOpenPixivPedia.Execute(tags);
                     else
                         Commands.OpenPedia.Execute(tags);

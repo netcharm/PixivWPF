@@ -103,42 +103,6 @@ namespace PixivWPF.Pages
             ResultItems.UpdateTilesImage(Keyboard.Modifiers == ModifierKeys.Alt);
         }
 
-        public void SetFilter(string filter)
-        {
-            try
-            {
-                ResultItems.Filter = filter.GetFilter();
-            }
-            catch (Exception ex)
-            {
-                ex.Message.DEBUG();
-            }
-        }
-
-        public void SetFilter(FilterParam filter)
-        {
-            try
-            {
-                if (filter is FilterParam)
-                {
-                    ResultItems.Filter = filter.GetFilter();
-                }
-                else
-                {
-                    ResultItems.Filter = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.Message.DEBUG();
-            }
-        }
-
-        public dynamic GetTilesCount()
-        {
-            return ($"Result: {ResultItems.ItemsCount} of {ResultItems.Items.Count}");
-        }
-
         public void ChangeIllustLikeState()
         {
             try
@@ -170,6 +134,24 @@ namespace PixivWPF.Pages
         public void OpenUser()
         {
             Commands.OpenUser.Execute(ResultItems);
+        }
+
+        public void SaveIllust()
+        {
+            try
+            {
+                Commands.SaveIllust.Execute(ResultItems);
+            }
+            catch (Exception) { }
+        }
+
+        public void SaveIllustAll()
+        {
+            try
+            {
+                Commands.SaveIllustAll.Execute(ResultItems);
+            }
+            catch (Exception) { }
         }
 
         public void FirstIllust()
@@ -240,9 +222,40 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal void KeyAction(KeyEventArgs e)
+        public void SetFilter(string filter)
         {
-            Page_PreviewKeyUp(this, e);
+            try
+            {
+                ResultItems.Filter = filter.GetFilter();
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
+        public void SetFilter(FilterParam filter)
+        {
+            try
+            {
+                if (filter is FilterParam)
+                {
+                    ResultItems.Filter = filter.GetFilter();
+                }
+                else
+                {
+                    ResultItems.Filter = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.DEBUG();
+            }
+        }
+
+        public dynamic GetTilesCount()
+        {
+            return ($"Result: {ResultItems.ItemsCount} of {ResultItems.Items.Count}");
         }
 
         internal void Dispose()
@@ -312,13 +325,6 @@ namespace PixivWPF.Pages
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             Dispose();
-        }
-
-        private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
-        {
-#if !DEBUG
-            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(ResultItems, e));
-#endif
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)

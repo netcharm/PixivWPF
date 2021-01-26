@@ -49,7 +49,7 @@ namespace PixivWPF.Common
             get { return (auto_suggest_list); }
         }
 
-        public bool InSearching { get { return (SearchBox.IsKeyboardFocused); } }
+        public bool InSearching { get { return (SearchBox.IsKeyboardFocusWithin); } }
 
         public ContentWindow()
         {
@@ -159,13 +159,6 @@ namespace PixivWPF.Common
             }
         }
 
-        private void MetroWindow_KeyUp(object sender, KeyEventArgs e)
-        {
-#if !DEBUG
-            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(Content, e));
-#endif
-        }
-
         private void MetroWindow_MouseDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = false;
@@ -242,6 +235,11 @@ namespace PixivWPF.Common
         private void CommandSearch_Click(object sender, RoutedEventArgs e)
         {
             Commands.OpenSearch.Execute(SearchBox.Text);
+        }
+
+        private void SearchBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            SearchBox.IsDropDownOpen = false;
         }
 
         private void SearchBox_TextChanged(object sender, RoutedEventArgs e)

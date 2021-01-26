@@ -16,7 +16,6 @@
       TextOptions.TextFormattingMode="Display"
       d:DesignHeight="520" d:DesignWidth="368"
       Title="IllustImageViewerPage" 
-      PreviewKeyUp="Page_PreviewKeyUp" 
       SizeChanged="Page_SizeChanged"
       Loaded="Page_Loaded" Unloaded="Page_Unloaded">
 

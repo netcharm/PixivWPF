@@ -126,7 +126,37 @@ namespace PixivWPF
 
         public void AppendTiles()
         {
-            if(Contents is Pages.TilesPage) Contents.AppendTiles();
+            if (Contents is Pages.TilesPage) Contents.AppendTiles();
+        }
+
+        public void OpenIllust()
+        {
+            if (Contents is Pages.TilesPage) Contents.OpenIllust();
+        }
+
+        public void OpenWork()
+        {
+            if (Contents is Pages.TilesPage) Contents.OpenWork();
+        }
+
+        public void OpenUser()
+        {
+            if (Contents is Pages.TilesPage) Contents.OpenUser();
+        }
+
+        public void SaveIllust()
+        {
+            if (Contents is Pages.TilesPage) Contents.SaveIllust();
+        }
+
+        public void SaveIllustAll()
+        {
+            if (Contents is Pages.TilesPage) Contents.SaveIllustAll();
+        }
+
+        public void CopyPreview()
+        {
+            if (Contents is Pages.TilesPage) Contents.CopyPreview();
         }
 
         public void JumpTo(string id)
@@ -178,21 +208,6 @@ namespace PixivWPF
         {
             if (InSearching) return;
             if (Contents is Pages.TilesPage) Contents.NextIllustPage();
-        }
-
-        public void OpenIllust()
-        {
-            if (Contents is Pages.TilesPage) Contents.OpenIllust();
-        }
-
-        public void OpenWork()
-        {
-            if (Contents is Pages.TilesPage) Contents.OpenWork();
-        }
-
-        public void OpenUser()
-        {
-            if (Contents is Pages.TilesPage) Contents.OpenUser();
         }
 
         #region Named Pipe Heler
@@ -289,7 +304,7 @@ namespace PixivWPF
         }
         #endregion
 
-        public bool InSearching { get { return (SearchBox.IsKeyboardFocused); } }
+        public bool InSearching { get { return (SearchBox.IsKeyboardFocusWithin); } }
 
         public MainWindow()
         {
@@ -304,9 +319,7 @@ namespace PixivWPF
             Title = $"{Title} [Version: {Application.Current.Version()}]";
 
             SearchBox.ItemsSource = AutoSuggestList;
-#if DEBUG
-            //Application.Current.SetThemeSync();
-#endif
+
             #region Themem Init.
             CommandToggleTheme.ItemsSource = Application.Current.GetAccentColorList();
             CommandToggleTheme.SelectedIndex = Application.Current.GetAccentIndex();
@@ -330,11 +343,6 @@ namespace PixivWPF
 
             LastWindowStates.Enqueue(WindowState.Normal);
 
-            Application.Current.InitAppWatcher(Application.Current.GetRoot());
-#if DEBUG
-            //Application.Current.RegisterHotkey();
-            Application.Current.BindHotkeys();
-#endif
             CreateNamedPipeServer();
         }
 
@@ -396,14 +404,6 @@ namespace PixivWPF
             {
                 Commands.OpenSearch.Execute(link);
             }
-        }
-
-        private long lastKeyUp = Environment.TickCount;
-        private void MainWindow_KeyUp(object sender, KeyEventArgs e)
-        {
-#if !DEBUG
-            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(sender, e));
-#endif
         }
 
         private void MainWindow_StateChanged(object sender, EventArgs e)
@@ -565,6 +565,11 @@ namespace PixivWPF
             Commands.OpenSearch.Execute(SearchBox.Text);
         }
 
+        private void SearchBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            SearchBox.IsDropDownOpen = false;
+        }
+
         private void SearchBox_TextChanged(object sender, RoutedEventArgs e)
         {
             if (SearchBox.Text.Length > 0)
@@ -642,7 +647,7 @@ namespace PixivWPF
             if (!(sender is MenuItem)) return;
             if (sender == LiveFilterFavoritedRange) return;
 
-#region pre-define filter menus list
+            #region pre-define filter menus list
             var menus_type = new List<MenuItem>() {
                 LiveFilterUser, LiveFilterWork
             };
@@ -679,7 +684,7 @@ namespace PixivWPF
             };
 
             var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav_no, menus_fast, menus_fav, menus_follow, menus_down, menus_sanity };
-#endregion
+            #endregion
 
             var idx = "LiveFilter".Length;
 
@@ -700,7 +705,7 @@ namespace PixivWPF
             if (menu == LiveFilterNone)
             {
                 LiveFilterNone.IsChecked = true;
-#region un-check all filter conditions
+                #region un-check all filter conditions
                 foreach (var fmenus in menus)
                 {
                     foreach (var fmenu in fmenus)
@@ -709,12 +714,12 @@ namespace PixivWPF
                         fmenu.IsEnabled = true;
                     }
                 }
-#endregion
+                #endregion
             }
             else
             {
                 LiveFilterNone.IsChecked = false;
-#region filter by item type 
+                #region filter by item type 
                 foreach (var fmenu in menus_type)
                 {
                     if (menus_type.Contains(menu))
@@ -742,8 +747,8 @@ namespace PixivWPF
                     foreach (var fmenu in menus_sanity)
                         fmenu.IsEnabled = true;
                 }
-#endregion
-#region filter by favirited number
+                #endregion
+                #region filter by favirited number
                 LiveFilterFavoritedRange.IsChecked = false;
                 foreach (var fmenu in menus_fav_no)
                 {
@@ -759,8 +764,8 @@ namespace PixivWPF
                             LiveFilterFavoritedRange.IsChecked = true;
                     }
                 }
-#endregion
-#region filter by fast simple filter
+                #endregion
+                #region filter by fast simple filter
                 LiveFilterFast.IsChecked = false;
                 foreach (var fmenu in menus_fast)
                 {
@@ -777,8 +782,8 @@ namespace PixivWPF
                             LiveFilterFast.IsChecked = true;
                     }
                 }
-#endregion
-#region filter by favorited state
+                #endregion
+                #region filter by favorited state
                 foreach (var fmenu in menus_fav)
                 {
                     if (menus_fav.Contains(menu))
@@ -788,8 +793,8 @@ namespace PixivWPF
                     }
                     if (fmenu.IsChecked) filter_fav = fmenu.Name.Substring(idx);
                 }
-#endregion
-#region filter by followed state
+                #endregion
+                #region filter by followed state
                 foreach (var fmenu in menus_follow)
                 {
                     if (menus_follow.Contains(menu))
@@ -799,8 +804,8 @@ namespace PixivWPF
                     }
                     if (fmenu.IsChecked) filter_follow = fmenu.Name.Substring(idx);
                 }
-#endregion
-#region filter by downloaded state
+                #endregion
+                #region filter by downloaded state
                 foreach (var fmenu in menus_down)
                 {
                     if (menus_down.Contains(menu))
@@ -810,8 +815,8 @@ namespace PixivWPF
                     }
                     if (fmenu.IsChecked) filter_down = fmenu.Name.Substring(idx);
                 }
-#endregion
-#region filter by sanity state
+                #endregion
+                #region filter by sanity state
                 LiveFilterSanity.IsChecked = false;
                 foreach (var fmenu in menus_sanity)
                 {
@@ -836,7 +841,7 @@ namespace PixivWPF
                 {
                     LiveFilterSanity_NoR18.IsEnabled = LiveFilterSanity_R18.IsEnabled = true;
                 }
-#endregion
+                #endregion
             }
 
             var filter = new FilterParam()
@@ -853,6 +858,5 @@ namespace PixivWPF
 
             if (Contents is Pages.TilesPage) Contents.SetFilter(filter);
         }
-
     }
 }

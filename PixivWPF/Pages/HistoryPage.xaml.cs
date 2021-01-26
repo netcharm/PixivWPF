@@ -227,6 +227,24 @@ namespace PixivWPF.Pages
             Commands.OpenUser.Execute(HistoryItems);
         }
 
+        public void SaveIllust()
+        {
+            try
+            {
+                Commands.SaveIllust.Execute(HistoryItems);
+            }
+            catch (Exception) { }
+        }
+
+        public void SaveIllustAll()
+        {
+            try
+            {
+                Commands.SaveIllustAll.Execute(HistoryItems);
+            }
+            catch (Exception) { }
+        }
+
         public void FirstIllust()
         {
             HistoryItems.MoveCurrentToFirst();
@@ -295,11 +313,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal void KeyAction(KeyEventArgs e)
-        {
-            Page_PreviewKeyUp(this, e);
-        }
-
         internal void Dispose()
         {
             try
@@ -345,13 +358,6 @@ namespace PixivWPF.Pages
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (window is ContentWindow) (window as ContentWindow).AdjustWindowPos();
-        }
-
-        private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
-        {
-#if !DEBUG
-            Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(HistoryItems, e));
-#endif
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)

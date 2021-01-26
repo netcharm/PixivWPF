@@ -17,7 +17,6 @@
       d:DesignHeight="300" d:DesignWidth="300"
       Title="IllustWithTagPage" 
       Loaded="Page_Loaded" Unloaded="Page_Unloaded"
-      PreviewKeyUp="Page_PreviewKeyUp"
       PreviewMouseDown="Page_PreviewMouseDown">
 
     <Page.Resources>

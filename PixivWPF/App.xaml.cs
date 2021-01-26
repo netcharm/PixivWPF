@@ -38,6 +38,9 @@ namespace PixivWPF
                 //add handler on application load
                 AppDomain.CurrentDomain.UnhandledException += NBug.Handler.UnhandledException;
                 Current.DispatcherUnhandledException += NBug.Handler.DispatcherUnhandledException;
+
+                Current.InitAppWatcher(Current.GetRoot());
+                Current.BindHotkeys();
             }
             catch { }
             finally
@@ -45,6 +48,16 @@ namespace PixivWPF
                 var setting = this.LoadSetting(true);
                 if (setting.SingleInstance && Current.Activate()) Current.Shutdown(-1);
             }
+        }
+
+        private void Application_Exit(object sender, ExitEventArgs e)
+        {
+            try
+            {
+                this.SaveSetting(true);
+                Current.UnbindHotkeys();
+            }
+            catch (Exception) { }
         }
     }
 }
