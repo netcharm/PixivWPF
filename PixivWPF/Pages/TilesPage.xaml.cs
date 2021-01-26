@@ -142,6 +142,7 @@ namespace PixivWPF.Pages
         protected internal void UpdateTilesThumb(bool overwrite = false)
         {
             ListImageTiles.UpdateTilesImage(overwrite);
+            if (detail_page is IllustDetailPage) detail_page.UpdateThumb(true, overwrite);
         }
 
         public void UpdateTiles()
@@ -191,6 +192,14 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Navigation helper
+        public PixivItem CurrentItem
+        {
+            get
+            {
+                return (ListImageTiles.SelectedItem is PixivItem ? ListImageTiles.SelectedItem : null);
+            }
+        }
+
         internal PixivPage GetPageTypeByCatgory(object item)
         {
             PixivPage result = PixivPage.None;
@@ -291,6 +300,55 @@ namespace PixivWPF.Pages
                 var illust = id.FindIllust();
                 if (illust is Pixeez.Objects.Work)
                     Commands.OpenWork.Execute(illust);
+            }
+        }
+
+        public void RefreshPage()
+        {
+            ShowImages(TargetPage, false, GetLastSelectedID());
+        }
+        
+        public void RefreshThumbnail()
+        {
+            var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
+            UpdateTilesThumb(overwrite);
+        }
+
+        public void AppendTiles()
+        {
+            ShowImages(TargetPage, true, GetLastSelectedID());
+        }
+
+        public void OpenIllust()
+        {
+            if (detail_page is IllustDetailPage) detail_page.OpenIllust();
+        }
+
+        public void OpenWork()
+        {
+            if (detail_page is IllustDetailPage) detail_page.OpenInNewWindow();
+        }
+
+        public void OpenUser()
+        {
+            if (detail_page is IllustDetailPage) detail_page.OpenUser();
+        }
+
+        public void FirstIllust()
+        {
+            if (this is TilesPage)
+            {
+                ListImageTiles.MoveCurrentToFirst();
+                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
+            }
+        }
+
+        public void LastIllust()
+        {
+            if (this is TilesPage)
+            {
+                ListImageTiles.MoveCurrentToLast();
+                ListImageTiles.ScrollIntoView(ListImageTiles.SelectedItem);
             }
         }
 
@@ -1401,6 +1459,7 @@ namespace PixivWPF.Pages
         private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             e.Handled = false;
+#if !DEBUG
             if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
             {
                 if (!Application.Current.IsModified(e.Key)) lastKeyUp = e.Timestamp;
@@ -1491,12 +1550,12 @@ namespace PixivWPF.Pages
                     }
                     else if (e.IsKey(Key.Left, ModifierKeys.Alt))
                     {
-                        PrevIllustPage();
+                        ScrollPageUp();
                         e.Handled = true;
                     }
                     else if (e.IsKey(Key.Right, ModifierKeys.Alt))
                     {
-                        NextIllustPage();
+                        ScrollPageDown();
                         e.Handled = true;
                     }
                     else if (e.IsKey(Key.PageUp, ModifierKeys.Shift))
@@ -1531,6 +1590,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
+#endif
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -1675,7 +1735,7 @@ namespace PixivWPF.Pages
                 PixivCatgoryMenu.SelectedIndex = idx;
             }
             else if (PixivCatgoryMenu.SelectedItem == lastInvokedItem) return;
-            #region Common
+#region Common
             else if (item == miPixivRecommanded)
             {
                 ShowImages(PixivPage.Recommanded, false);
@@ -1688,8 +1748,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.TrendingTags, false);
             }
-            #endregion
-            #region Following
+#endregion
+#region Following
             else if (item == miPixivFollowing)
             {
                 ShowImages(PixivPage.Follow, false);
@@ -1698,8 +1758,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.FollowPrivate, false);
             }
-            #endregion
-            #region Favorite
+#endregion
+#region Favorite
             else if (item == miPixivFavorite)
             {
                 ShowImages(PixivPage.Favorite, false);
@@ -1708,8 +1768,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.FavoritePrivate, false);
             }
-            #endregion
-            #region Ranking Day
+#endregion
+#region Ranking Day
             else if (item == miPixivRankingDay)
             {
                 ShowImages(PixivPage.RankingDay, false);
@@ -1734,8 +1794,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.RankingDayFemaleR18, false);
             }
-            #endregion
-            #region Ranking Day
+#endregion
+#region Ranking Day
             else if (item == miPixivRankingWeek)
             {
                 ShowImages(PixivPage.RankingWeek, false);
@@ -1752,14 +1812,14 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.RankingWeekR18, false);
             }
-            #endregion
-            #region Ranking Month
+#endregion
+#region Ranking Month
             else if (item == miPixivRankingMonth)
             {
                 ShowImages(PixivPage.RankingMonth, false);
             }
-            #endregion
-            #region Pixiv Mine
+#endregion
+#region Pixiv Mine
             else if (item == miPixivMine)
             {
                 args.Handled = true;
@@ -1786,7 +1846,7 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.MyBlacklistUser, false);
             }
-            #endregion
+#endregion
 
             if (!args.Handled) lastInvokedItem = item;            
         }

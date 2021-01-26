@@ -194,11 +194,56 @@ namespace PixivWPF.Pages
             return ($"History: {HistoryItems.ItemsCount} of {HistoryItems.Items.Count}");
         }
 
+        public void ChangeIllustLikeState()
+        {
+            try
+            {
+                Commands.ChangeIllustLikeState.Execute(HistoryItems);
+            }
+            catch (Exception) { }
+        }
+
+        public void ChangeUserLikeState()
+        {
+            try
+            {
+                Commands.ChangeUserLikeState.Execute(HistoryItems);
+            }
+            catch (Exception) { }
+        }
+
+        public void OpenIllust()
+        {
+            Commands.OpenWork.Execute(HistoryItems);
+        }
+
+        public void OpenWork()
+        {
+            Commands.OpenWork.Execute(HistoryItems);
+        }
+
+        public void OpenUser()
+        {
+            Commands.OpenUser.Execute(HistoryItems);
+        }
+
+        public void FirstIllust()
+        {
+            HistoryItems.MoveCurrentToFirst();
+            HistoryItems.ScrollIntoView(HistoryItems.SelectedItem);
+        }
+
+        public void LastIllust()
+        {
+            HistoryItems.MoveCurrentToLast();
+            HistoryItems.ScrollIntoView(HistoryItems.SelectedItem);
+        }
+
         public void PrevIllust()
         {
             if (this is HistoryPage && HistoryItems.ItemsCount > 0)
             {
-                if (HistoryItems.IsCurrentBeforeFirst)
+                if (HistoryItems.IsCurrentFirst)
                     HistoryItems.MoveCurrentToLast();
                 else
                     HistoryItems.MoveCurrentToPrevious();
@@ -210,11 +255,43 @@ namespace PixivWPF.Pages
         {
             if (this is HistoryPage && HistoryItems.ItemsCount > 0)
             {
-                if (HistoryItems.IsCurrentAfterLast)
+                if (HistoryItems.IsCurrentLast)
                     HistoryItems.MoveCurrentToFirst();
                 else
                     HistoryItems.MoveCurrentToNext();
                 HistoryItems.ScrollIntoView(HistoryItems.SelectedItem);
+            }
+        }
+
+        public void ScrollPageUp()
+        {
+            if (HistoryItems is ImageListGrid)
+            {
+                HistoryItems.PageUp();
+            }
+        }
+
+        public void ScrollPageDown()
+        {
+            if (HistoryItems is ImageListGrid)
+            {
+                HistoryItems.PageDown();
+            }
+        }
+
+        public void ScrollPageFirst()
+        {
+            if (HistoryItems is ImageListGrid)
+            {
+                HistoryItems.PageFirst();
+            }
+        }
+
+        public void ScrollPageLast()
+        {
+            if (HistoryItems is ImageListGrid)
+            {
+                HistoryItems.PageLast();
             }
         }
 
@@ -272,7 +349,9 @@ namespace PixivWPF.Pages
 
         private void Page_PreviewKeyUp(object sender, KeyEventArgs e)
         {
+#if !DEBUG
             Commands.KeyProcessor.Execute(new KeyValuePair<dynamic, KeyEventArgs>(HistoryItems, e));
+#endif
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)

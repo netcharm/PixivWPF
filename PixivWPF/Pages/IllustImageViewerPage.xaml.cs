@@ -296,6 +296,7 @@ namespace PixivWPF.Pages
                 ActionIllustInfo_Click(ActionCopyPreview, e);
                 e.Handled = true;
             }
+#if !DEBUG
             else if (e.IsKey(Key.O, ModifierKeys.Control, false))
             {
                 if (Contents.IsDownloaded)
@@ -314,7 +315,7 @@ namespace PixivWPF.Pages
                 Commands.KeyProcessor.Execute(new KeyValuePair<object, KeyEventArgs>(Contents, e));
                 e.Handled = true;
             }
-
+#endif
             if (!e.Handled) ChangeIllustPage(offset);
         }
 

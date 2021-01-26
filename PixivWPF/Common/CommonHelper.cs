@@ -40,6 +40,8 @@ using WPFNotification.Services;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Pages;
+using Prism.Commands;
+using Dfust.Hotkeys;
 
 namespace PixivWPF.Common
 {
@@ -1520,6 +1522,26 @@ namespace PixivWPF.Common
                 }
             }).InvokeAsync(true);
         }
+
+        public static bool InSearching(this Application app)
+        {
+            var win = GetActiveWindow(app);
+            if (win is MainWindow)
+                return ((win as MainWindow).InSearching);
+            else if (win is ContentWindow)
+                return ((win as ContentWindow).InSearching);
+            else return (false);
+        }
+
+        public static bool InSearching(this Page page)
+        {
+            var win = GetActiveWindow(Application.Current);
+            if (win is MainWindow)
+                return ((win as MainWindow).InSearching);
+            else if (win is ContentWindow)
+                return ((win as ContentWindow).InSearching);
+            else return (false);
+        }
         #endregion
 
         #region Timed Tasks
@@ -2142,6 +2164,79 @@ namespace PixivWPF.Common
             //HotkeyManager.Current.AddOrReplace("ChangeIllustLikeState", Key.OemCloseBrackets, ModifierKeys.None, OnChangeIllustLikeState);
             //HotkeyManager.Current.AddOrReplace("ChangeUserLikeState", Key.OemCloseBrackets, ModifierKeys.None, OnChangeUserLikeState);
             
+        }
+
+        public static ConcurrentDictionary<string, InputBinding> HotKeys = new ConcurrentDictionary<string, InputBinding>();
+        private static HotkeyCollection ApplicationHotKeys = new HotkeyCollection(Enums.Scope.Application);
+        public static void BindHotkey(this Application app, string name, Key key, ModifierKeys mod, EventHandler<HotkeyEventArgs> handle)
+        {
+            var win = GetMainWindow(app);
+            var ig = new KeyGesture(key, mod, name);
+            var cmd = new DelegateCommand<dynamic>(obj =>
+            {
+                handle(obj, null);
+            });
+            var ib = new InputBinding(cmd, ig);
+            //ib.CommandParameter = 
+            HotKeys[name] = ib;
+            if (win is MainWindow) win.InputBindings.Add(ib);
+            //InputManager.Current.
+        }
+
+        public static void BindHotkey(this Application app, string name, System.Windows.Forms.Keys key, ICommand command)
+        {
+            ApplicationHotKeys.RegisterHotkey(key, (e) => {
+                var win = Application.Current.GetActiveWindow();
+                if (win is Window) command.Execute(win);
+                $"Description: {e.Description}, Keys: {e.ChordName}".DEBUG();
+            }, name);
+        }
+
+        public static void BindHotkeys(this Application app)
+        {
+            BindHotkey(app, "IllustFirst", System.Windows.Forms.Keys.Home, Commands.FirstIllust);
+            BindHotkey(app, "IllustLast", System.Windows.Forms.Keys.End, Commands.LastIllust);
+            BindHotkey(app, "IllustPrev", System.Windows.Forms.Keys.OemOpenBrackets, Commands.PrevIllust);
+            BindHotkey(app, "IllustNext", System.Windows.Forms.Keys.OemCloseBrackets, Commands.NextIllust);
+            BindHotkey(app, "IllustPrevPage", System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift, Commands.PrevIllustPage);
+            BindHotkey(app, "IllustNextPage", System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift, Commands.NextIllustPage);
+
+            BindHotkey(app, "TilesScrollPageUp", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift, Commands.ScrollUpTiles);
+            BindHotkey(app, "TilesScrollPageDown", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift, Commands.ScrollDownTiles);
+            BindHotkey(app, "TilesScrollPageTop", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control, Commands.ScrollTopTiles);
+            BindHotkey(app, "TilesScrollPageBottom", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control, Commands.ScrollBottomTiles);
+
+            BindHotkey(app, "TilesRefresh", System.Windows.Forms.Keys.F5, Commands.RefreshPage);
+            BindHotkey(app, "TilesAppend", System.Windows.Forms.Keys.F3, Commands.AppendTiles);
+            BindHotkey(app, "TilesRefreshThumbnail", System.Windows.Forms.Keys.F6, Commands.RefreshPageThumb);
+
+            BindHotkey(app, "OpenHistory", System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control, Commands.OpenHistory);
+            BindHotkey(app, "OpenWork", System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control, Commands.OpenWork);
+            BindHotkey(app, "OpenUser", System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control, Commands.OpenUser);
+            BindHotkey(app, "OpenDownloaded", System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control, Commands.Open);
+
+            BindHotkey(app, "SaveIllust", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control, Commands.SaveIllust);
+            BindHotkey(app, "SaveIllustAll", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift, Commands.SaveIllustAll);
+
+            BindHotkey(app, "ChangeIllustLikeState", System.Windows.Forms.Keys.F7, Commands.ChangeIllustLikeState);
+            BindHotkey(app, "ChangeUserLikeState", System.Windows.Forms.Keys.F8, Commands.ChangeUserLikeState);
+
+
+
+
+
+            //BindHotkey(app, "PrevIllust", Key.OemOpenBrackets, ModifierKeys.None, OnPrevIllust);
+            //BindHotkey(app, "NextIllust", Key.OemCloseBrackets, ModifierKeys.None, OnNextIllust);
+            //BindHotkey(app, "PrevIllustPage", Key.OemOpenBrackets, ModifierKeys.Shift, OnPrevIllustPage);
+            //BindHotkey(app, "NextIllustPage", Key.OemCloseBrackets, ModifierKeys.Shift, OnNextIllustPage);
+
+            //BindHotkey(app, "RefreshPage", Key.F5, ModifierKeys.None, OnRefreshPage);
+            //BindHotkey(app, "AppendPage", Key.F3, ModifierKeys.None, OnAppendPage);
+            //BindHotkey(app, "RefreshPageThumbnail", Key.F6, ModifierKeys.None, OnRefreshPageThumb);
+
+            //BindHotkey(app, "ChangeIllustLikeState", Key.OemCloseBrackets, ModifierKeys.None, OnChangeIllustLikeState);
+            //BindHotkey(app, "ChangeUserLikeState", Key.OemCloseBrackets, ModifierKeys.None, OnChangeUserLikeState);
+
         }
 
         private static void OnPrevIllust(object sender, HotkeyEventArgs e)

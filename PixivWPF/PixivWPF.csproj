@@ -67,6 +67,18 @@
       <HintPath>..\packages\ControlzEx.4.4.0\lib\net462\ControlzEx.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Dfust.Hotkeys, Version=1.2.6206.24906, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dfust.Hotkeys.1.2.6206.24906\lib\net452\Dfust.Hotkeys.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Dfust.Hotkeys.Util, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dfust.Hotkeys.1.2.6206.24906\lib\net452\Dfust.Hotkeys.Util.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Gma.System.MouseKeyHook, Version=5.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MouseKeyHook.5.4.0\lib\net40\Gma.System.MouseKeyHook.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="MahApps.Metro, Version=2.0.0.0, Culture=neutral, PublicKeyToken=51482d6f650b2b3f, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.2.4.3\lib\net47\MahApps.Metro.dll</HintPath>
       <Private>True</Private>

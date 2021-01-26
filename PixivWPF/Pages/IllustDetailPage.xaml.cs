@@ -25,6 +25,7 @@ namespace PixivWPF.Pages
     {
         private Setting setting = Application.Current.LoadSetting();
 
+        public Window ParentWindow { get { return (Application.Current.GetActiveWindow()); } }
         public PixivItem Contents { get; set; } = null;
 
         private Popup PreviewPopup = null;
@@ -663,6 +664,119 @@ namespace PixivWPF.Pages
         }
         #endregion
 
+        #region Action methods
+        public void ChangeIllustLikeState()
+        {
+            try
+            {
+                if (RelativeItems.IsKeyboardFocusWithin)
+                    Commands.ChangeIllustLikeState.Execute(RelativeItems);
+                else if (FavoriteItems.IsKeyboardFocusWithin)
+                    Commands.ChangeIllustLikeState.Execute(FavoriteItems);
+                else if (Contents.IsWork())
+                    Commands.ChangeIllustLikeState.Execute(Contents);
+            }
+            catch (Exception) { }
+        }
+
+        public void ChangeUserLikeState()
+        {
+            try
+            {
+                if (RelativeItems.IsKeyboardFocusWithin)
+                    Commands.ChangeUserLikeState.Execute(RelativeItems);
+                else if (FavoriteItems.IsKeyboardFocusWithin)
+                    Commands.ChangeUserLikeState.Execute(FavoriteItems);
+                else if (Contents.HasUser())
+                    Commands.ChangeUserLikeState.Execute(Contents);
+            }
+            catch (Exception) { }
+        }
+
+        public void OpenUser()
+        {
+            try
+            {
+                if (RelativeItems.IsKeyboardFocusWithin)
+                    Commands.OpenUser.Execute(RelativeItems);
+                else if (FavoriteItems.IsKeyboardFocusWithin)
+                    Commands.OpenUser.Execute(FavoriteItems);
+                else if (Contents.IsWork())
+                    Commands.OpenUser.Execute(Contents);
+            }
+            catch (Exception) { }
+        }
+
+        public void OpenIllust()
+        {
+            try
+            {
+                if (RelativeItems.IsKeyboardFocusWithin)
+                    Commands.OpenDownloaded.Execute(RelativeItems);
+                else if (FavoriteItems.IsKeyboardFocusWithin)
+                    Commands.OpenDownloaded.Execute(FavoriteItems);
+                else if (Contents.IsWork())
+                {
+                    if (SubIllusts.Items.Count <= 0)
+                    {
+                        if (Contents.IsDownloaded)
+                            Commands.OpenDownloaded.Execute(Contents);
+                        else
+                            Commands.OpenWorkPreview.Execute(Contents);
+                    }
+                    else if (SubIllusts.SelectedItems.Count > 0)
+                    {
+                        foreach (var item in SubIllusts.GetSelected())
+                        {
+                            if (item.IsDownloaded)
+                                Commands.OpenDownloaded.Execute(item);
+                            else
+                                Commands.OpenWorkPreview.Execute(item);
+                        }
+                    }
+                    else
+                    {
+                        if (SubIllusts.Items[0].IsDownloaded)
+                            Commands.OpenDownloaded.Execute(SubIllusts.Items[0]);
+                        else
+                            Commands.OpenWorkPreview.Execute(SubIllusts.Items[0]);
+                    }
+                }
+            }
+            catch (Exception) { }
+        }
+        
+        public void SaveIllust()
+        {
+            try
+            {
+                if (RelativeItems.IsKeyboardFocusWithin)
+                    Commands.SaveIllust.Execute(RelativeItems);
+                else if (FavoriteItems.IsKeyboardFocusWithin)
+                    Commands.SaveIllust.Execute(FavoriteItems);
+                else if (SubIllusts.Items.Count > 0)
+                    Commands.SaveIllust.Execute(SubIllusts);
+                else if (Contents.IsWork())
+                    Commands.SaveIllust.Execute(Contents);
+            }
+            catch (Exception) { }
+        }
+
+        public void SaveIllustAll()
+        {
+            try
+            {
+                if (RelativeItems.IsKeyboardFocusWithin)
+                    Commands.SaveIllustAll.Execute(RelativeItems);
+                else if (FavoriteItems.IsKeyboardFocusWithin)
+                    Commands.SaveIllustAll.Execute(FavoriteItems);
+                else if (Contents.IsWork())
+                    Commands.SaveIllustAll.Execute(Contents);
+            }
+            catch (Exception) { }
+        }              
+        #endregion
+
         #region Theme/Thumb/Detail refresh methods
         public void UpdateTheme()
         {
@@ -678,9 +792,9 @@ namespace PixivWPF.Pages
             catch (Exception) { }
         }
 
-        public async void UpdateThumb(bool full = false)
+        public async void UpdateThumb(bool full = false, bool overwrite = false)
         {
-            var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
+            overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : overwrite;
             await new Action(() =>
             {
                 try
@@ -1463,6 +1577,50 @@ namespace PixivWPF.Pages
             }
         }
 
+        public void FirstIllust()
+        {
+            if (InSearching) return;
+            if (RelativeItems.IsKeyboardFocusWithin)
+            {
+                RelativeItems.MoveCurrentToFirst();
+                RelativeItems.ScrollIntoView(RelativeItems.SelectedItem);
+            }
+            else if (FavoriteItems.IsKeyboardFocusWithin)
+            {
+                FavoriteItems.MoveCurrentToFirst();
+                FavoriteItems.ScrollIntoView(FavoriteItems.SelectedItem);
+            }
+        }
+
+        public void LastIllust()
+        {
+            if (InSearching) return;
+            if (RelativeItems.IsKeyboardFocusWithin)
+            {
+                RelativeItems.MoveCurrentToLast();
+                RelativeItems.ScrollIntoView(RelativeItems.SelectedItem);
+            }
+            else if (FavoriteItems.IsKeyboardFocusWithin)
+            {
+                FavoriteItems.MoveCurrentToLast();
+                FavoriteItems.ScrollIntoView(FavoriteItems.SelectedItem);
+            }
+        }
+
+        public void PrevIllust()
+        {
+            if (InSearching) return;
+            if (Parent is ContentWindow) PrevIllustPage();
+            else Commands.PrevIllust.Execute(Application.Current.MainWindow);
+        }
+
+        public void NextIllust()
+        {
+            if (InSearching) return;
+            if (Parent is ContentWindow) NextIllustPage();
+            else Commands.NextIllust.Execute(Application.Current.MainWindow);
+        }
+
         public bool IsFirstPage
         {
             get
@@ -1482,6 +1640,7 @@ namespace PixivWPF.Pages
         public bool IsMultiPages { get { return (Contents is PixivItem && Contents.HasPages()); } }
         public void PrevIllustPage()
         {
+            if (InSearching) return;
             if (Contents is PixivItem)
             {
                 setting = Application.Current.LoadSetting();
@@ -1498,6 +1657,7 @@ namespace PixivWPF.Pages
 
         public void NextIllustPage()
         {
+            if (InSearching) return;
             if (Contents is PixivItem)
             {
                 setting = Application.Current.LoadSetting();
@@ -1510,18 +1670,6 @@ namespace PixivWPF.Pages
                 }
                 else NextIllust();
             }
-        }
-
-        public void PrevIllust()
-        {
-            if (Parent is ContentWindow) PrevIllustPage();
-            else Commands.PrevIllust.Execute(Application.Current.MainWindow);
-        }
-
-        public void NextIllust()
-        {
-            if (Parent is ContentWindow) NextIllustPage();
-            else Commands.NextIllust.Execute(Application.Current.MainWindow);
         }
 
         public void SetFilter(string filter)
@@ -1564,6 +1712,19 @@ namespace PixivWPF.Pages
             tips.Add($"Relative: {RelativeItems.ItemsCount} of {RelativeItems.Items.Count}");
             tips.Add($"Favorite: {FavoriteItems.ItemsCount} of {FavoriteItems.Items.Count}");
             return (string.Join(Environment.NewLine, tips));
+        }
+        
+        public bool InSearching
+        {
+            get
+            {
+                var parent = ParentWindow;
+                if (parent is MainWindow)
+                    return ((parent as MainWindow).InSearching);
+                else if (parent is ContentWindow)
+                    return ((parent as ContentWindow).InSearching);
+                else return (false);
+            }
         }
         #endregion
 
@@ -1657,6 +1818,7 @@ namespace PixivWPF.Pages
         private long lastKeyUp = Environment.TickCount;
         private void Page_KeyUp(object sender, KeyEventArgs e)
         {
+#if !DEBUG
             e.Handled = false;
             if (e.Timestamp - lastKeyUp > 50 && !e.IsRepeat)
             {
@@ -1664,17 +1826,7 @@ namespace PixivWPF.Pages
 
                 var pub = setting.PrivateFavPrefer ? false : true;
 
-                if (e.IsKey(Key.Left, ModifierKeys.Alt))
-                {
-                    PrevIllust();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.Right, ModifierKeys.Alt))
-                {
-                    NextIllust();
-                    e.Handled = true;
-                }
-                else if (e.IsKey(Key.F3))
+                if (e.IsKey(Key.F3))
                 {
                     if (!(Parent is ContentWindow))
                     {
@@ -1703,57 +1855,17 @@ namespace PixivWPF.Pages
                 }
                 else if (e.IsKey(Key.F7))
                 {
-                    if (RelativeItems.IsKeyboardFocusWithin)
-                        Commands.ChangeIllustLikeState.Execute(RelativeItems);
-                    else if (FavoriteItems.IsKeyboardFocusWithin)
-                        Commands.ChangeIllustLikeState.Execute(FavoriteItems);
-                    else if (Contents.IsWork())
-                        Commands.ChangeIllustLikeState.Execute(Contents);
+                    ChangeIllustLikeState();
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.F8))
                 {
-                    if (RelativeItems.IsKeyboardFocusWithin)
-                        Commands.ChangeUserLikeState.Execute(RelativeItems);
-                    else if (FavoriteItems.IsKeyboardFocusWithin)
-                        Commands.ChangeUserLikeState.Execute(FavoriteItems);
-                    else if (Contents.HasUser())
-                        Commands.ChangeUserLikeState.Execute(Contents);
+                    ChangeUserLikeState();
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.O, ModifierKeys.Control))
                 {
-                    if (RelativeItems.IsKeyboardFocusWithin)
-                        Commands.OpenDownloaded.Execute(RelativeItems);
-                    else if (FavoriteItems.IsKeyboardFocusWithin)
-                        Commands.OpenDownloaded.Execute(FavoriteItems);
-                    else if (Contents.IsWork())
-                    {
-                        if (SubIllusts.Items.Count <= 0)
-                        {
-                            if (Contents.IsDownloaded)
-                                Commands.OpenDownloaded.Execute(Contents);
-                            else
-                                Commands.OpenWorkPreview.Execute(Contents);
-                        }
-                        else if (SubIllusts.SelectedItems.Count > 0)
-                        {
-                            foreach (var item in SubIllusts.GetSelected())
-                            {
-                                if (item.IsDownloaded)
-                                    Commands.OpenDownloaded.Execute(item);
-                                else
-                                    Commands.OpenWorkPreview.Execute(item);
-                            }
-                        }
-                        else
-                        {
-                            if (SubIllusts.Items[0].IsDownloaded)
-                                Commands.OpenDownloaded.Execute(SubIllusts.Items[0]);
-                            else
-                                Commands.OpenWorkPreview.Execute(SubIllusts.Items[0]);
-                        }
-                    }
+                    OpenIllust();
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.H, ModifierKeys.Control))
@@ -1763,24 +1875,12 @@ namespace PixivWPF.Pages
                 }
                 else if (e.IsKey(Key.S, ModifierKeys.Control))
                 {
-                    if (RelativeItems.IsKeyboardFocusWithin)
-                        Commands.SaveIllust.Execute(RelativeItems);
-                    else if (FavoriteItems.IsKeyboardFocusWithin)
-                        Commands.SaveIllust.Execute(FavoriteItems);
-                    else if (SubIllusts.Items.Count > 0)
-                        Commands.SaveIllust.Execute(SubIllusts);
-                    else if (Contents.IsWork())
-                        Commands.SaveIllust.Execute(Contents);
+                    SaveIllust();
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.S, new ModifierKeys[] { ModifierKeys.Shift, ModifierKeys.Control }))
                 {
-                    if (RelativeItems.IsKeyboardFocusWithin)
-                        Commands.SaveIllustAll.Execute(RelativeItems);
-                    else if (FavoriteItems.IsKeyboardFocusWithin)
-                        Commands.SaveIllustAll.Execute(FavoriteItems);
-                    else if (Contents.IsWork())
-                        Commands.SaveIllustAll.Execute(Contents);
+                    SaveIllustAll();
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.N, ModifierKeys.Control))
@@ -1790,12 +1890,7 @@ namespace PixivWPF.Pages
                 }
                 else if (e.IsKey(Key.U, ModifierKeys.Control))
                 {
-                    if (RelativeItems.IsKeyboardFocusWithin)
-                        Commands.OpenUser.Execute(RelativeItems);
-                    else if (FavoriteItems.IsKeyboardFocusWithin)
-                        Commands.OpenUser.Execute(FavoriteItems);
-                    else if (Contents.IsWork())
-                        Commands.OpenUser.Execute(Contents);
+                    OpenUser();
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.R, ModifierKeys.Control))
@@ -1806,6 +1901,16 @@ namespace PixivWPF.Pages
                 else if (e.IsKey(Key.F, ModifierKeys.Control))
                 {
                     FavoriteItemsExpander.IsExpanded = true;
+                    e.Handled = true;
+                }
+                else if (e.IsKey(Key.Left, ModifierKeys.Alt))
+                {
+                    PrevIllust();
+                    e.Handled = true;
+                }
+                else if (e.IsKey(Key.Right, ModifierKeys.Alt))
+                {
+                    NextIllust();
                     e.Handled = true;
                 }
                 else if (e.IsKey(Key.OemOpenBrackets, ModifierKeys.Shift))
@@ -1830,6 +1935,7 @@ namespace PixivWPF.Pages
                 }
                 else e.Handled = false;
             }
+#endif
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
