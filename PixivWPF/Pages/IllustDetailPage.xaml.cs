@@ -745,7 +745,37 @@ namespace PixivWPF.Pages
             }
             catch (Exception) { }
         }
-        
+
+        public void OpenCachedImage()
+        {
+            try
+            {
+                if (RelativeItems.IsKeyboardFocusWithin)
+                    Commands.OpenCachedImage.Execute(RelativeItems);
+                else if (FavoriteItems.IsKeyboardFocusWithin)
+                    Commands.OpenCachedImage.Execute(FavoriteItems);
+                else if (Contents.IsWork())
+                {
+                    if (SubIllusts.Items.Count <= 0)
+                    {
+                        Commands.OpenCachedImage.Execute(Contents);
+                    }
+                    else if (SubIllusts.SelectedItems.Count > 0)
+                    {
+                        foreach (var item in SubIllusts.GetSelected())
+                        {
+                            Commands.OpenCachedImage.Execute(item);
+                        }
+                    }
+                    else
+                    {
+                        Commands.OpenCachedImage.Execute(SubIllusts.Items[0]);
+                    }
+                }
+            }
+            catch (Exception) { }
+        }
+
         public void SaveIllust()
         {
             try
@@ -2098,7 +2128,7 @@ namespace PixivWPF.Pages
                 {
                     var browser = sender as System.Windows.Forms.WebBrowser;
 #if DEBUG
-                    e.KeyCode.ToString().DEBUG();
+                    e.KeyCode.ToString().DEBUG("WEBBROWSER");
 #endif
 
                     if (e.Control && e.KeyCode == System.Windows.Forms.Keys.C)

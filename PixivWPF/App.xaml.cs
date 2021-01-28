@@ -42,7 +42,7 @@ namespace PixivWPF
                 Current.InitAppWatcher(Current.GetRoot());
                 Current.BindHotkeys();
             }
-            catch { }
+            catch(Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
             finally
             {
                 var setting = this.LoadSetting(true);

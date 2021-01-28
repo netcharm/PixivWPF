@@ -249,13 +249,13 @@ namespace PixivWPF.Pages
                     if (Contents.IsDownloaded)
                         Commands.OpenDownloaded.Execute(Contents);
                     else
-                        OpenCached();
+                        OpenCachedImage();
                 }
             }
             catch (Exception) { }
         }
 
-        public void OpenCached()
+        public void OpenCachedImage()
         {
             try
             {
@@ -507,7 +507,7 @@ namespace PixivWPF.Pages
                     Commands.OpenUser.Execute(Contents.User);
                 else if (sender == ActionOpenCachedWith || sender == btnOpenCache)
                 {
-                    OpenCached();
+                    OpenCachedImage();
                 }
                 else if (sender == ActionCopyPreview)
                 {

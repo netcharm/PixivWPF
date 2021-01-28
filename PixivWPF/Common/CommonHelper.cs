@@ -39,6 +39,8 @@ using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Pages;
 using Dfust.Hotkeys;
+using Newtonsoft.Json.Converters;
+using System.Runtime.InteropServices;
 
 namespace PixivWPF.Common
 {
@@ -305,6 +307,39 @@ namespace PixivWPF.Common
             Source = source;
             SourcePath = path;
         }
+    }
+    #endregion
+
+    #region ICommand Json Converter
+    public class ICommandTypeConverter<T> : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            //assume we can convert to anything for now
+            return (objectType == typeof(ICommand));
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            //explicitly specify the concrete type we want to create
+            return serializer.Deserialize<T>(reader);
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            //use the default serialization - it works fine
+            serializer.Serialize(writer, value);
+        }
+    }
+    #endregion
+    #region Hotkey
+    public class HotKeyConfig
+    {
+        public string Description { get; set; } = string.Empty;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public System.Windows.Forms.Keys Keys { get; set; } = default(System.Windows.Forms.Keys);
+        [JsonConverter(typeof(ICommandTypeConverter<Prism.Commands.DelegateCommand>))]
+        public ICommand Command { get; set; } = default(ICommand);
     }
     #endregion
 
@@ -1541,6 +1576,15 @@ namespace PixivWPF.Common
                 return ((win as ContentWindow).InSearching);
             else return (false);
         }
+
+        public static bool InSearching(this Window win)
+        {
+            if (win is MainWindow)
+                return ((win as MainWindow).InSearching);
+            else if (win is ContentWindow)
+                return ((win as ContentWindow).InSearching);
+            else return (false);
+        }
         #endregion
 
         #region Timed Tasks
@@ -2134,6 +2178,90 @@ namespace PixivWPF.Common
         #endregion
 
         #region Hotkey Helper
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+
+        public static void ReleaseModifiers(this Application app, bool all = true, bool updown = false)
+        {
+            var k = Keyboard.Modifiers;
+            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+            {
+                if (updown) keybd_event(0x10, 0x00, 0x0001, 0);
+                keybd_event(0x10, 0x00, 0x0002, 0);
+            }
+            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+            {
+                if (updown) keybd_event(0x11, 0x00, 0x0001, 0);
+                keybd_event(0x11, 0x00, 0x0002, 0);
+            }
+            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+            {
+                if (updown) keybd_event(0x12, 0x00, 0x0001, 0);
+                keybd_event(0x12, 0x00, 0x0002, 0);
+            }
+        }
+
+        private static List<HotKeyConfig> HotkeyConfig = new List<HotKeyConfig>()
+        {
+            #region Illust Nav
+            new HotKeyConfig() { Description = "IllustFirst", Command = Commands.FirstIllust,
+                                 Keys = System.Windows.Forms.Keys.Home },
+            new HotKeyConfig() { Description = "IllustLast", Command = Commands.LastIllust,
+                                 Keys = System.Windows.Forms.Keys.End },
+            new HotKeyConfig() { Description = "IllustPrev", Command = Commands.PrevIllust,
+                                 Keys = System.Windows.Forms.Keys.OemOpenBrackets },
+            new HotKeyConfig() { Description = "IllustNext", Command = Commands.NextIllust,
+                                 Keys = System.Windows.Forms.Keys.OemCloseBrackets },
+            new HotKeyConfig() { Description = "IllustPrevPage", Command = Commands.PrevIllustPage,
+                                 Keys = System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift },
+            new HotKeyConfig() { Description = "IllustNextPage", Command = Commands.NextIllustPage,
+                                 Keys = System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift },
+            #endregion
+            #region Scroll Tiles
+            new HotKeyConfig() { Description = "TilesScrollPageUp", Command = Commands.ScrollPageUp,
+                                 Keys = System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift },
+            new HotKeyConfig() { Description = "TilesScrollPageDown", Command = Commands.ScrollPageDown,
+                                 Keys = System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift },
+            new HotKeyConfig() { Description = "TilesScrollPageTop", Command = Commands.ScrollPageFirst,
+                                 Keys = System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "TilesScrollPageBottom", Command = Commands.ScrollPageLast,
+                                 Keys = System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control },
+            #endregion
+            #region Update Tiles
+            new HotKeyConfig() { Description = "TilesRefresh", Command = Commands.RefreshPage,
+                                 Keys = System.Windows.Forms.Keys.F5 },
+            new HotKeyConfig() { Description = "TilesAppend", Command = Commands.AppendTiles,
+                                 Keys = System.Windows.Forms.Keys.F3 },
+            new HotKeyConfig() { Description = "TilesRefreshThumbnail", Command = Commands.RefreshPageThumb,
+                                 Keys = System.Windows.Forms.Keys.F6 },
+            #endregion
+            #region Open/Copy 
+            new HotKeyConfig() { Description = "OpenHistory", Command = Commands.OpenHistory,
+                                 Keys = System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "OpenWork", Command = Commands.OpenWork,
+                                 Keys = System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "OpenUser", Command = Commands.OpenUser,
+                                 Keys = System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "OpenDownloaded", Command = Commands.OpenDownloaded,
+                                 Keys = System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "OpenCached", Command = Commands.OpenCachedImage,
+                                 Keys = System.Windows.Forms.Keys.K | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "CopyPreview", Command = Commands.CopyImage,
+                                 Keys = System.Windows.Forms.Keys.P | System.Windows.Forms.Keys.Control },
+            #endregion
+            #region Save
+            new HotKeyConfig() { Description = "SaveIllust", Command = Commands.SaveIllust,
+                                 Keys = System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "SaveIllustAll", Command = Commands.SaveIllustAll,
+                                 Keys = System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift },
+            #endregion
+            #region Change Like State
+            new HotKeyConfig() { Description = "ChangeIllustLikeState", Command = Commands.ChangeIllustLikeState,
+                                 Keys = System.Windows.Forms.Keys.F7 },
+            new HotKeyConfig() { Description = "ChangeUserLikeState", Command = Commands.ChangeUserLikeState,
+                                 Keys = System.Windows.Forms.Keys.F8 }
+            #endregion
+        };
         private static HotkeyCollection ApplicationHotKeys = new HotkeyCollection(Enums.Scope.Application);
         public static void BindHotkey(this Application app, string name, System.Windows.Forms.Keys key, ICommand command)
         {
@@ -2146,8 +2274,8 @@ namespace PixivWPF.Common
                         await new Action(() =>
                         {
                             var win = Application.Current.GetActiveWindow();
-                            if (win is Window) command.Execute(win);
-                            $"Description: {e.Description}, Keys: {e.ChordName}".DEBUG();
+                            if (win is Window && !win.InSearching()) command.Execute(win);
+                            $"Description: {e.Description}, Keys: {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(e.ChordName)}".DEBUG();
                         }).InvokeAsync(true);
                     }
                     catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
@@ -2166,38 +2294,71 @@ namespace PixivWPF.Common
             {
                 if (ApplicationHotKeys == null) ApplicationHotKeys = new HotkeyCollection(global ? Enums.Scope.Global : Enums.Scope.Application);
 
-                BindHotkey(app, "IllustFirst", System.Windows.Forms.Keys.Home, Commands.FirstIllust);
-                BindHotkey(app, "IllustLast", System.Windows.Forms.Keys.End, Commands.LastIllust);
-                BindHotkey(app, "IllustPrev", System.Windows.Forms.Keys.OemOpenBrackets, Commands.PrevIllust);
-                BindHotkey(app, "IllustNext", System.Windows.Forms.Keys.OemCloseBrackets, Commands.NextIllust);
-                BindHotkey(app, "IllustPrevPage", System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift, Commands.PrevIllustPage);
-                BindHotkey(app, "IllustNextPage", System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift, Commands.NextIllustPage);
+                //BindHotkey(app, "IllustFirst", System.Windows.Forms.Keys.Home, Commands.FirstIllust);
+                //BindHotkey(app, "IllustLast", System.Windows.Forms.Keys.End, Commands.LastIllust);
+                //BindHotkey(app, "IllustPrev", System.Windows.Forms.Keys.OemOpenBrackets, Commands.PrevIllust);
+                //BindHotkey(app, "IllustNext", System.Windows.Forms.Keys.OemCloseBrackets, Commands.NextIllust);
+                //BindHotkey(app, "IllustPrevPage", System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift, Commands.PrevIllustPage);
+                //BindHotkey(app, "IllustNextPage", System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift, Commands.NextIllustPage);
 
-                BindHotkey(app, "TilesScrollPageUp", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift, Commands.ScrollPageUp);
-                BindHotkey(app, "TilesScrollPageDown", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift, Commands.ScrollPageDown);
-                BindHotkey(app, "TilesScrollPageTop", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control, Commands.ScrollPageFirst);
-                BindHotkey(app, "TilesScrollPageBottom", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control, Commands.ScrollPageLast);
+                //BindHotkey(app, "TilesScrollPageUp", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift, Commands.ScrollPageUp);
+                //BindHotkey(app, "TilesScrollPageDown", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift, Commands.ScrollPageDown);
+                //BindHotkey(app, "TilesScrollPageTop", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control, Commands.ScrollPageFirst);
+                //BindHotkey(app, "TilesScrollPageBottom", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control, Commands.ScrollPageLast);
 
-                BindHotkey(app, "TilesRefresh", System.Windows.Forms.Keys.F5, Commands.RefreshPage);
-                BindHotkey(app, "TilesAppend", System.Windows.Forms.Keys.F3, Commands.AppendTiles);
-                BindHotkey(app, "TilesRefreshThumbnail", System.Windows.Forms.Keys.F6, Commands.RefreshPageThumb);
+                //BindHotkey(app, "TilesRefresh", System.Windows.Forms.Keys.F5, Commands.RefreshPage);
+                //BindHotkey(app, "TilesAppend", System.Windows.Forms.Keys.F3, Commands.AppendTiles);
+                //BindHotkey(app, "TilesRefreshThumbnail", System.Windows.Forms.Keys.F6, Commands.RefreshPageThumb);
 
-                BindHotkey(app, "OpenHistory", System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control, Commands.OpenHistory);
-                BindHotkey(app, "OpenWork", System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control, Commands.OpenWork);
-                BindHotkey(app, "OpenUser", System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control, Commands.OpenUser);
-                BindHotkey(app, "OpenDownloaded", System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control, Commands.Open);
-                BindHotkey(app, "CopyPreview", System.Windows.Forms.Keys.P | System.Windows.Forms.Keys.Control, Commands.CopyImage);
+                //BindHotkey(app, "OpenHistory", System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control, Commands.OpenHistory);
+                //BindHotkey(app, "OpenWork", System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control, Commands.OpenWork);
+                //BindHotkey(app, "OpenUser", System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control, Commands.OpenUser);
+                //BindHotkey(app, "OpenDownloaded", System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control, Commands.OpenDownloaded);
+                //BindHotkey(app, "OpenCached", System.Windows.Forms.Keys.K | System.Windows.Forms.Keys.Control, Commands.OpenCachedImage);
+                //BindHotkey(app, "CopyPreview", System.Windows.Forms.Keys.P | System.Windows.Forms.Keys.Control, Commands.CopyImage);
 
-                BindHotkey(app, "SaveIllust", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control, Commands.SaveIllust);
-                BindHotkey(app, "SaveIllustAll", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift, Commands.SaveIllustAll);
+                //BindHotkey(app, "SaveIllust", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control, Commands.SaveIllust);
+                //BindHotkey(app, "SaveIllustAll", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift, Commands.SaveIllustAll);
 
-                BindHotkey(app, "ChangeIllustLikeState", System.Windows.Forms.Keys.F7, Commands.ChangeIllustLikeState);
-                BindHotkey(app, "ChangeUserLikeState", System.Windows.Forms.Keys.F8, Commands.ChangeUserLikeState);
+                //BindHotkey(app, "ChangeIllustLikeState", System.Windows.Forms.Keys.F7, Commands.ChangeIllustLikeState);
+                //BindHotkey(app, "ChangeUserLikeState", System.Windows.Forms.Keys.F8, Commands.ChangeUserLikeState);
 
+                foreach (var hotkey in HotkeyConfig)
+                {
+                    BindHotkey(app, hotkey.Description, hotkey.Keys, hotkey.Command);
+                }
+#if DEBUG
+                ApplicationHotKeys.HotkeyTriggered += ApplicationHotKeys_HotkeyTriggered;
+                ApplicationHotKeys.AllModifiersReleasedAfterHotkey += ApplicationHotKeys_AllModifiersReleasedAfterHotkey;
+                ApplicationHotKeys.ChordStartRecognized += ApplicationHotKeys_ChordStartRecognized;
+#endif
+                var hotkey_config = Path.Combine(Root, "HotKeys.json");
+                if (!File.Exists(hotkey_config) && HotkeyConfig is List<HotKeyConfig>)
+                {
+                    var settings = new JsonSerializerSettings();
+                    settings.TypeNameHandling = TypeNameHandling.Objects;
+                    var text = JsonConvert.SerializeObject(HotkeyConfig, Formatting.Indented);
+                    File.WriteAllText(hotkey_config, text, new UTF8Encoding(true));
+                }
                 //ApplicationHotKeys.StartListening();
             }
         }
+#if DEBUG
+        private static void ApplicationHotKeys_ChordStartRecognized(ChordStartRecognizedEventArgs e)
+        {
+            
+        }
 
+        private static void ApplicationHotKeys_AllModifiersReleasedAfterHotkey(HotKeyEventArgs e)
+        {
+            
+        }
+
+        private static void ApplicationHotKeys_HotkeyTriggered(HotKeyEventArgs e)
+        {
+            
+        }
+#endif
         public static void UnbindHotkeys(this Application app)
         {
             try
@@ -2217,7 +2378,7 @@ namespace PixivWPF.Common
             catch(Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
         }
 
-        public static void RebindHotKeys(this Application app, bool full = false, bool global = false)
+        public static void RebindHotKeys(this Application app, bool full = true, bool global = false)
         {
             try
             {
@@ -2236,6 +2397,16 @@ namespace PixivWPF.Common
                 }
             }
             catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
+        }
+        
+        public static void StartListening(this Application app)
+        {
+            ApplicationHotKeys.StartListening();
+        }
+
+        public static void StopListening(this Application app)
+        {
+            ApplicationHotKeys.StopListening();
         }
         #endregion
     }
@@ -3478,66 +3649,101 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private static bool Run(string FileName, string args = "")
+        {
+            bool result = false;
+            try
+            {
+                Task.Run(() =>
+                {
+                    var process = new Process();
+                    process.StartInfo.FileName = FileName;
+                    process.StartInfo.Arguments = args;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.ErrorDialog = process.StartInfo.UseShellExecute ? true : false;
+                    process.StartInfo.WorkingDirectory = Path.GetDirectoryName(FileName);
+                    //process.StartInfo.ErrorDialogParentHandle = Application.Current.GetMainWindow();
+                    process.Start();
+                }).Start();
+            }
+            catch (Exception ex) { ex.Message.DEBUG("SHELL"); }
+            return (result);
+        }
+
         public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false)
         {
             bool result = false;
-            var WinDir = Environment.GetEnvironmentVariable("WinDir");
-            if (ShowFolder)
+            try
             {
-                if (!string.IsNullOrEmpty(FileName))
+                Application.Current.DoEvents();
+                Application.Current.ReleaseModifiers();
+                Application.Current.DoEvents();
+                var WinDir = Environment.GetEnvironmentVariable("WinDir");
+                if (ShowFolder)
                 {
-                    var shell = string.IsNullOrEmpty(WinDir) ? "explorer.exe" : Path.Combine(WinDir, "explorer.exe");
-                    if (File.Exists(FileName))
+                    if (!string.IsNullOrEmpty(FileName))
                     {
-                        Process.Start(shell, $"/select,\"{FileName}\"");
-                        result = true;
-                    }
-                    else
-                    {
-                        var folder = Path.GetDirectoryName(FileName);
-                        if (Directory.Exists(folder))
+                        var shell = string.IsNullOrEmpty(WinDir) ? "explorer.exe" : Path.Combine(WinDir, "explorer.exe");
+                        if (File.Exists(FileName))
                         {
-                            Process.Start(shell, $"\"{folder}\"");
+                            Process.Start(shell, $"/select,\"{FileName}\"");
                             result = true;
                         }
+                        else
+                        {
+                            var folder = Path.GetDirectoryName(FileName);
+                            if (Directory.Exists(folder))
+                            {
+                                Process.Start(shell, $"\"{folder}\"");
+                                result = true;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
+                    {
+                        var UsingOpenWith = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false;
+                        var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
+                        var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
+                        var openwith_exists = File.Exists(OpenWith) ?  true : false;
+                        if (UsingOpenWith && openwith_exists)
+                        {
+                            Process.Start(OpenWith, FileName);
+                        }
+                        else
+                        {
+                            setting = Application.Current.LoadSetting();
+                            var alt_viewer = (int)(Keyboard.Modifiers & (ModifierKeys.Alt | ModifierKeys.Control)) == 3 ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
+                            var IsImage = ext_imgs.Contains(Path.GetExtension(FileName).ToLower()) ? true : false;
+                            if (alt_viewer && IsImage)
+                            {
+                                if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
+                                    !setting.ShellImageViewerCmd.ToLower().Contains(setting.ShellImageViewer.ToLower()))
+                                    setting.ShellImageViewerCmd = setting.ShellImageViewer;
+                                if (!File.Exists(setting.ShellImageViewerCmd))
+                                {
+                                    var cmd_found = setting.ShellImageViewerCmd.Where();
+                                    if (cmd_found.Length > 0) setting.ShellImageViewerCmd = cmd_found.First();
+                                }
+                                var args = string.IsNullOrEmpty(setting.ShellImageViewerParams) ? $"{setting.ShellImageViewerParams} {FileName}" : FileName;
+                                if (string.IsNullOrEmpty(setting.ShellImageViewerCmd))
+                                    Process.Start(FileName);
+                                else
+                                    Process.Start(setting.ShellImageViewerCmd, args);
+                            }
+                            else Process.Start(FileName);
+                        }
+                        result = true;
                     }
                 }
             }
-            else
+            catch (Exception ex) { ex.Message.DEBUG("SHELL"); }
+            finally
             {
-                if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
-                {
-                    var UsingOpenWith = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false;
-                    var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
-                    var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
-                    var openwith_exists = File.Exists(OpenWith) ?  true : false;
-                    if (UsingOpenWith && openwith_exists)
-                        Process.Start(OpenWith, FileName);
-                    else
-                    {
-                        setting = Application.Current.LoadSetting();
-                        var alt_viewer = (int)(Keyboard.Modifiers & (ModifierKeys.Alt | ModifierKeys.Control)) == 3 ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
-                        var IsImage = ext_imgs.Contains(Path.GetExtension(FileName).ToLower()) ? true : false;
-                        if (alt_viewer && IsImage)
-                        {
-                            if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
-                                !setting.ShellImageViewerCmd.ToLower().Contains(setting.ShellImageViewer.ToLower()))
-                                setting.ShellImageViewerCmd = setting.ShellImageViewer;
-                            if (!File.Exists(setting.ShellImageViewerCmd))
-                            {
-                                var cmd_found = setting.ShellImageViewerCmd.Where();
-                                if (cmd_found.Length > 0) setting.ShellImageViewerCmd = cmd_found.First();
-                            }
-                            var args = string.IsNullOrEmpty(setting.ShellImageViewerParams) ? $"{setting.ShellImageViewerParams} {FileName}" : FileName;
-                            if (string.IsNullOrEmpty(setting.ShellImageViewerCmd))
-                                Process.Start(FileName);
-                            else
-                                Process.Start(setting.ShellImageViewerCmd, args);
-                        }
-                        else Process.Start(FileName);
-                    }
-                    result = true;
-                }
+                Application.Current.DoEvents();
+                //Application.Current.ReleaseModifiers();
             }
             return (result);
         }

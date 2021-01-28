@@ -307,6 +307,11 @@ namespace PixivWPF.Pages
             if (detail_page is IllustDetailPage) detail_page.OpenIllust();
         }
 
+        public void OpenCachedImage()
+        {
+            if (detail_page is IllustDetailPage) detail_page.OpenCachedImage();
+        }
+
         public void OpenWork()
         {
             if (detail_page is IllustDetailPage) detail_page.OpenInNewWindow();

@@ -789,6 +789,31 @@ namespace PixivWPF.Common
                         }
                     }).InvokeAsync();
                 }
+                else if (obj is TilesPage)
+                {
+                    (obj as TilesPage).OpenIllust();
+                }
+                else if (obj is IllustDetailPage)
+                {
+                    (obj as IllustDetailPage).OpenIllust();
+                }
+                else if (obj is IllustImageViewerPage)
+                {
+                    (obj as IllustImageViewerPage).OpenIllust();
+                }
+                else if (obj is SearchResultPage)
+                {
+                    (obj as SearchResultPage).OpenIllust();
+                }
+                else if (obj is HistoryPage)
+                {
+                    (obj as HistoryPage).OpenIllust();
+                }
+                else if (obj is Window)
+                {
+                    var win = obj as Window;
+                    if (win.Content is Page) OpenDownloaded.Execute(win.Content);
+                }
             }
             catch (Exception ex)
             {
@@ -875,6 +900,31 @@ namespace PixivWPF.Common
                             }).InvokeAsync();
                         }
                     }).InvokeAsync();
+                }
+                else if (obj is TilesPage)
+                {
+                    (obj as TilesPage).OpenCachedImage();
+                }
+                else if (obj is IllustDetailPage)
+                {
+                    (obj as IllustDetailPage).OpenCachedImage();
+                }
+                else if (obj is IllustImageViewerPage)
+                {
+                    (obj as IllustImageViewerPage).OpenCachedImage();
+                }
+                else if (obj is SearchResultPage)
+                {
+                    (obj as SearchResultPage).OpenCachedImage();
+                }
+                else if (obj is HistoryPage)
+                {
+                    (obj as HistoryPage).OpenCachedImage();
+                }
+                else if (obj is Window)
+                {
+                    var win = obj as Window;
+                    if (win.Content is Page) OpenCachedImage.Execute(win.Content);
                 }
             }
             catch (Exception ex)

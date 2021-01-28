@@ -223,7 +223,7 @@ namespace PixivWPF.Common
                 var offset = scrollViewer.VerticalOffset;
                 var height = scrollViewer.ViewportHeight;
                 var total = scrollViewer.ExtentHeight;
-                scrollViewer.ScrollToVerticalOffset(offset - height - 1);
+                scrollViewer.ScrollToVerticalOffset(offset - height);
                 scrollViewer.UpdateLayout();
             }
             catch (Exception) { }
@@ -238,7 +238,7 @@ namespace PixivWPF.Common
                 var offset = scrollViewer.VerticalOffset;
                 var height = scrollViewer.ViewportHeight;
                 var total = scrollViewer.ExtentHeight;
-                scrollViewer.ScrollToVerticalOffset(offset + height + 1);
+                scrollViewer.ScrollToVerticalOffset(offset + height);
                 scrollViewer.UpdateLayout();
             }
             catch (Exception) { }
@@ -347,6 +347,7 @@ namespace PixivWPF.Common
         {
             if (e.Handled) return;
             KeyUp?.Invoke(sender, e);
+            e.Handled = Keyboard.Modifiers == ModifierKeys.None ? e.Handled : true;
         }
 
         public new event MouseWheelEventHandler MouseWheel;
@@ -464,6 +465,7 @@ namespace PixivWPF.Common
             {
                 try
                 {
+                    if (lastTask is Task) lastTask.Dispose();
                     for (var i = 0; i < ItemList.Count; i++)
                     {
                         var item = ItemList[i];
@@ -559,7 +561,11 @@ namespace PixivWPF.Common
             {
                 await new Action(() =>
                 {
-                    if (canvas.Background != null) canvas.Background = null;
+                    if (canvas.Background != null)
+                    {
+                        canvas.Background = null;
+                        canvas.UpdateLayout();
+                    }
                     canvas.Background = new ImageBrush(source) { Stretch = Stretch.Uniform, TileMode = TileMode.None };
                     if(canvas.Background.CanFreeze) canvas.Background.Freeze();
                 }).InvokeAsync(true);
@@ -582,16 +588,12 @@ namespace PixivWPF.Common
             foreach (var item in Items.Where(item => item.Source != null))
             {
                 var id = GetID(item);
-                if (RingList.ContainsKey(id) && item.Source != null)
-                {
-                    var ring = RingList[id];
-                    //ring.State = TaskStatus.RanToCompletion;
-                    //ring.UpdateState();
-                    ring.Hide();
-                }
+                if (RingList.ContainsKey(id)) RingList[id].Hide();
             }
+            UpdateLayout();
             this.DoEvents();
 
+            if (lastTask is Task) lastTask.Dispose();
             var needUpdate = Items.Where(item => item.Source == null || overwrite);
             if (needUpdate.Count() > 0)
             {

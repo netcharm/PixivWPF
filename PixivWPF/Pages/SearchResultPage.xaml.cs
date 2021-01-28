@@ -126,6 +126,15 @@ namespace PixivWPF.Pages
             Commands.OpenWork.Execute(ResultItems);
         }
 
+        public void OpenCachedImage()
+        {
+            try
+            {
+                Commands.OpenCachedImage.Execute(ResultItems);
+            }
+            catch (Exception) { }
+        }
+
         public void OpenWork()
         {
             Commands.OpenWork.Execute(ResultItems);

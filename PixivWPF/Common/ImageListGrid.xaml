@@ -161,9 +161,9 @@
             VirtualizingPanel.IsVirtualizingWhenGrouping="True"
             VirtualizingPanel.VirtualizationMode="Recycling"
             VirtualizingPanel.ScrollUnit="Item"
-            KeyUp="PART_ImageTiles_KeyUp" 
             MouseWheel="PART_ImageTiles_MouseWheel" MouseDown="PART_ImageTiles_MouseDown"
             PreviewMouseWheel="PART_ImageTiles_PreviewMouseWheel"
+            PreviewKeyDown="PART_ImageTiles_KeyUp"
             SelectionChanged="PART_ImageTiles_SelectionChanged" >
             <ListView.CacheMode>
                 <BitmapCache EnableClearType="True" SnapsToDevicePixels="True" />
