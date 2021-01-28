@@ -171,7 +171,7 @@ namespace PixivWPF
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void FirstIllust()
@@ -451,7 +451,7 @@ namespace PixivWPF
                     DatePickerPopup.IsOpen = false;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void DatePickerPopup_Closed(object sender, EventArgs e)

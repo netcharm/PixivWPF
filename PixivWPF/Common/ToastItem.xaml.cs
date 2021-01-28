@@ -141,7 +141,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void SetState(string state, string desc)
@@ -242,7 +242,7 @@ namespace PixivWPF.Common
                     Application.Current.AddToast(parentWindow);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             try
             {
@@ -251,7 +251,7 @@ namespace PixivWPF.Common
                 ButtonOpenFile = new CustomButton() { Button = OpenFile, Kind = ButtonOpenFileIcon, Text = ButtonOpenFileLabel };
                 ButtonOpenFolder = new CustomButton() { Button = OpenFolder, Kind = ButtonOpenFolderIcon, Text = ButtonOpenFolderLabel };
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             try
             {
@@ -262,7 +262,7 @@ namespace PixivWPF.Common
                     else Preview.Show();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             try
             {
@@ -273,19 +273,19 @@ namespace PixivWPF.Common
                     SetState(toast.State, toast.StateDescription);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             try
             {
                 SetButton(ItemType);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             try
             {
                 CheckImageSource();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)

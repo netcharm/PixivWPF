@@ -83,7 +83,7 @@
 
         <!-- Tiles List -->
         <Common:ImageListGrid
-            Grid.Column="0" x:Name="ListImageTiles" x:Uid="ImageTiles" Margin="48,0,0,0"
+            Grid.Column="0" x:Name="ImageTiles" x:Uid="ImageTiles" Margin="48,0,0,0"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
             Columns="5" TileWidth="128" TileHeight="128"
             Focusable="True"

@@ -23,7 +23,7 @@ namespace PixivWPF
             {
                 this.SaveSetting(true);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             //tell NBug if submission was successfull or not
             e.Result = true;
         }
@@ -57,7 +57,7 @@ namespace PixivWPF
                 this.SaveSetting(true);
                 Current.UnbindHotkeys();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
     }
 }

@@ -222,7 +222,7 @@ namespace PixivWPF.Common
                     result.Freeze();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -789,7 +789,7 @@ namespace PixivWPF.Common
                 e.Message.ShowMessageBox("ERROR");
             }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
             return (result);
         }
@@ -1695,7 +1695,7 @@ namespace PixivWPF.Common
                     if (item.ItemType == PixivItemType.User) result = item.User is Pixeez.Objects.UserBase ? true : false;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -1714,7 +1714,7 @@ namespace PixivWPF.Common
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -1729,7 +1729,7 @@ namespace PixivWPF.Common
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -1744,7 +1744,7 @@ namespace PixivWPF.Common
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -1764,7 +1764,7 @@ namespace PixivWPF.Common
                         result = item.User is Pixeez.Objects.UserBase ? true : false;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -1783,7 +1783,7 @@ namespace PixivWPF.Common
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -1802,7 +1802,7 @@ namespace PixivWPF.Common
                         result = item.Count > 1 ? true : false;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -1816,7 +1816,7 @@ namespace PixivWPF.Common
                     if (item.ItemType == PixivItemType.Manga) result = true;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -1830,7 +1830,7 @@ namespace PixivWPF.Common
                     if (item.ItemType == PixivItemType.Novel) result = true;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -1844,7 +1844,7 @@ namespace PixivWPF.Common
                     if (item.ItemType == PixivItemType.Manga || item.ItemType == PixivItemType.Novel) result = true;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -1858,7 +1858,7 @@ namespace PixivWPF.Common
                     if (item.ItemType == PixivItemType.None) result = true;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
         #endregion

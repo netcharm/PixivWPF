@@ -57,7 +57,7 @@ namespace PixivWPF.Pages
                 foreach (var button in PreviewPopupToolButtons) button.Foreground = Theme.AccentBrush;
                 PreviewPopup.IsOpen = true;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void PopupOpen(ContextMenu menu)
@@ -79,7 +79,7 @@ namespace PixivWPF.Pages
                 //}
                 menu.IsOpen = true;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
         #endregion
 
@@ -102,7 +102,7 @@ namespace PixivWPF.Pages
                 // Add the hit test result to the list that will be processed after the enumeration.
                 hitResultsList.Add(result.VisualHit);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (behavior);
         }
 
@@ -151,7 +151,7 @@ namespace PixivWPF.Pages
                 else if (browser == IllustCommentsHtml)
                     result = commentsHost;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -180,11 +180,11 @@ namespace PixivWPF.Pages
                             if (offset <= 0) offset = 16;
                             browser.Height = Math.Min(Math.Max(size.Height, h_min), h_max) + offset * 2;
                         }
-                        catch (Exception) { }
+                        catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                     }).InvokeAsync();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private string MakeIllustTagsHtml(PixivItem item)
@@ -219,7 +219,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -235,7 +235,7 @@ namespace PixivWPF.Pages
                     result = contents.GetHtmlFromTemplate(item.Illust.Title);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -283,7 +283,7 @@ namespace PixivWPF.Pages
                     result = desc.ToString().Trim().GetHtmlFromTemplate(nuser.Name);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -301,7 +301,7 @@ namespace PixivWPF.Pages
                 contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
                 result = contents.GetHtmlFromTemplate(IllustAuthor.Text);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -378,7 +378,7 @@ namespace PixivWPF.Pages
                     browser.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(WebBrowser_PreviewKeyDown);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void CreateHtmlRender()
@@ -395,7 +395,7 @@ namespace PixivWPF.Pages
                 UpdateTheme();
                 UpdateLayout();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void DeleteHtmlRender()
@@ -463,7 +463,7 @@ namespace PixivWPF.Pages
                     }).InvokeAsync();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
         #endregion
 
@@ -478,7 +478,7 @@ namespace PixivWPF.Pages
                     RefreshHtmlRender(IllustTagsHtml);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void UpdateIllustDesc()
@@ -487,7 +487,7 @@ namespace PixivWPF.Pages
             {
                 RefreshHtmlRender(IllustDescHtml);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void UpdateWebContent()
@@ -497,7 +497,7 @@ namespace PixivWPF.Pages
                 RefreshHtmlRender(IllustTagsHtml);
                 RefreshHtmlRender(IllustDescHtml);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
         #endregion
 
@@ -511,7 +511,7 @@ namespace PixivWPF.Pages
                     illusts.UpdateDownloadStateAsync(illustid, exists);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
@@ -529,7 +529,7 @@ namespace PixivWPF.Pages
                     UpdateDownloadState(illustid, exists);
                 });
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void UpdateDownloadedMark()
@@ -541,7 +541,7 @@ namespace PixivWPF.Pages
                     UpdateDownloadedMark(Contents);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void UpdateDownloadedMark(PixivItem item, bool? exists = null)
@@ -591,7 +591,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void UpdateFavMark(Pixeez.Objects.Work illust)
@@ -609,7 +609,7 @@ namespace PixivWPF.Pages
                     ActionBookmarkIllustRemove.IsEnabled = false;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void UpdateFollowMark(Pixeez.Objects.UserBase user)
@@ -627,7 +627,7 @@ namespace PixivWPF.Pages
                     ActionFollowAuthorRemove.IsEnabled = false;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
@@ -660,7 +660,7 @@ namespace PixivWPF.Pages
                     FavoriteItems.UpdateLikeState(illustid, is_user);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
         #endregion
 
@@ -676,7 +676,7 @@ namespace PixivWPF.Pages
                 else if (Contents.IsWork())
                     Commands.ChangeIllustLikeState.Execute(Contents);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void ChangeUserLikeState()
@@ -690,7 +690,7 @@ namespace PixivWPF.Pages
                 else if (Contents.HasUser())
                     Commands.ChangeUserLikeState.Execute(Contents);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void OpenUser()
@@ -704,7 +704,7 @@ namespace PixivWPF.Pages
                 else if (Contents.IsWork())
                     Commands.OpenUser.Execute(Contents);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void OpenIllust()
@@ -743,7 +743,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void OpenCachedImage()
@@ -773,7 +773,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void SaveIllust()
@@ -789,7 +789,7 @@ namespace PixivWPF.Pages
                 else if (Contents.IsWork())
                     Commands.SaveIllust.Execute(Contents);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void SaveIllustAll()
@@ -803,7 +803,7 @@ namespace PixivWPF.Pages
                 else if (Contents.IsWork())
                     Commands.SaveIllustAll.Execute(Contents);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }              
         
         public void CopyPreview()
@@ -830,7 +830,7 @@ namespace PixivWPF.Pages
                     btnSubPageNext.Enable(btnSubPageNext.IsEnabled, btnSubPageNext.IsVisible);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public async void UpdateThumb(bool full = false, bool overwrite = false)
@@ -876,7 +876,7 @@ namespace PixivWPF.Pages
                         }
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 finally
                 {
                     IllustDetailWait.Hide();
@@ -1607,7 +1607,7 @@ namespace PixivWPF.Pages
                 }
                 await Task.Delay(1);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void OpenInNewWindow()
@@ -1784,7 +1784,7 @@ namespace PixivWPF.Pages
                 FavoriteItems.Clear();
                 Contents.Source = null;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public IllustDetailPage()
@@ -1841,7 +1841,7 @@ namespace PixivWPF.Pages
                     PreviewPopupTimer.Start();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             if (Contents is PixivItem) UpdateDetail(Contents);
         }
@@ -2012,7 +2012,7 @@ namespace PixivWPF.Pages
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
 
@@ -2050,7 +2050,7 @@ namespace PixivWPF.Pages
                                         ex.Message.DEBUG();
                                     }
 #else
-                                    catch (Exception) { }
+                                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
                                 }).InvokeAsync();
                             }
@@ -2064,7 +2064,7 @@ namespace PixivWPF.Pages
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
 
@@ -2079,7 +2079,7 @@ namespace PixivWPF.Pages
                     e.Cancel = true;
                     bCancel = false;
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
         }
 
@@ -2088,7 +2088,7 @@ namespace PixivWPF.Pages
             try
             {
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void WebBrowser_DocumentCompleted(object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e)
@@ -2116,7 +2116,7 @@ namespace PixivWPF.Pages
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
 
@@ -2175,7 +2175,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[BROWSER]"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
         #endregion
@@ -2202,7 +2202,7 @@ namespace PixivWPF.Pages
                     }).InvokeAsync(true);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void PreviewPopup_Click(object sender, RoutedEventArgs e)
@@ -2640,7 +2640,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
             if (is_tag)
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.TagBreak, StringSplitOptions.RemoveEmptyEntries));
@@ -2706,7 +2706,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
             if (is_tag)
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.TagBreak, StringSplitOptions.RemoveEmptyEntries));
@@ -2741,7 +2741,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
             if (!string.IsNullOrEmpty(text))
             {
@@ -2836,7 +2836,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
 
@@ -2860,7 +2860,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
 
@@ -2922,7 +2922,7 @@ namespace PixivWPF.Pages
                     e.Handled = true;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void IllustDownloaded_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -2935,7 +2935,7 @@ namespace PixivWPF.Pages
                     fp.OpenFileWithShell();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void IllustTagExpander_Expanded(object sender, RoutedEventArgs e)
@@ -3019,7 +3019,7 @@ namespace PixivWPF.Pages
                         items.UnLikeIllust();
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
             else
             {
@@ -3049,7 +3049,7 @@ namespace PixivWPF.Pages
                             item.IsFavorited = result;
                         }
                     }
-                    catch (Exception) { }
+                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 }
             }
         }
@@ -3086,7 +3086,7 @@ namespace PixivWPF.Pages
                         items.UnLikeUser();
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
             else
             {
@@ -3116,7 +3116,7 @@ namespace PixivWPF.Pages
                             if (item.IsUser()) item.IsFavorited = result;
                         }
                     }
-                    catch (Exception) { }
+                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 }
             }
         }
@@ -3146,9 +3146,6 @@ namespace PixivWPF.Pages
         PixivItem lastSelectionItem = null;
         private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-#if DEBUG
-            $"TimeDelta:{lastSelectionChanged.DeltaMilliseconds(DateTime.Now)}, {sender}, {e.Handled}, {e.RoutedEvent}, {e.OriginalSource}, {e.Source}".DEBUG();
-#endif
             e.Handled = false;
 
             if (SubIllusts.SelectedItem is PixivItem && SubIllusts.SelectedItems.Count == 1)
@@ -3189,7 +3186,7 @@ namespace PixivWPF.Pages
             {
                 if (e.LeftButton == MouseButtonState.Pressed) Commands.OpenWorkPreview.Execute(SubIllusts);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void SubIllusts_KeyUp(object sender, KeyEventArgs e)
@@ -3341,7 +3338,7 @@ namespace PixivWPF.Pages
             {
                 if (e.LeftButton == MouseButtonState.Pressed) Commands.OpenWork.Execute(RelativeItems);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void RelativeItems_KeyUp(object sender, KeyEventArgs e)
@@ -3425,7 +3422,7 @@ namespace PixivWPF.Pages
             {
                 if (e.LeftButton == MouseButtonState.Pressed) Commands.OpenWork.Execute(FavoriteItems);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void FavriteIllusts_KeyUp(object sender, KeyEventArgs e)
@@ -3481,7 +3478,7 @@ namespace PixivWPF.Pages
                         //comment.
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
                 IllustDetailWait.Hide();
             }
@@ -3616,7 +3613,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionCopyWeblink_Click(object sender, RoutedEventArgs e)
@@ -3678,7 +3675,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionSendToOtherInstance_Click(object sender, RoutedEventArgs e)
@@ -3788,7 +3785,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionPrevPage_Click(object sender, RoutedEventArgs e)
@@ -3816,7 +3813,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionNextPage_Click(object sender, RoutedEventArgs e)
@@ -3846,7 +3843,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionSaveIllusts_Click(object sender, RoutedEventArgs e)
@@ -3874,7 +3871,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionSaveIllustsAll_Click(object sender, RoutedEventArgs e)
@@ -3902,7 +3899,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionOpenDownloaded_Click(object sender, RoutedEventArgs e)
@@ -3930,7 +3927,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionRefreshIllusts_Click(object sender, RoutedEventArgs e)
@@ -3988,7 +3985,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         #endregion

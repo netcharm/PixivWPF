@@ -65,7 +65,7 @@ namespace PixivWPF.Common
                 if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
                     result = true;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -80,7 +80,7 @@ namespace PixivWPF.Common
                     gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
                     result = true;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -153,7 +153,7 @@ namespace PixivWPF.Common
                     CopyText.Execute(obj);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         });
 
         public static ICommand CopyArtworkIDs { get; } = new DelegateCommand<dynamic>(obj =>
@@ -498,7 +498,7 @@ namespace PixivWPF.Common
                         OpenUser.Execute(item.User);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
             else if (obj is ImageListGrid)
             {
@@ -871,7 +871,7 @@ namespace PixivWPF.Common
                         Uri url = null;
                         if (!string.IsNullOrEmpty(s) && Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out url)) ShellOpenFile.Execute(url);
                     }
-                    catch (Exception) { }
+                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 }
                 else if (obj is ImageListGrid)
                 {
@@ -1101,7 +1101,7 @@ namespace PixivWPF.Common
                         }).InvokeAsync(true);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 finally
                 {
                     if (CanOpenDownloadManager is SemaphoreSlim && CanOpenDownloadManager.CurrentCount <= 0) CanOpenDownloadManager.Release();
@@ -1172,7 +1172,7 @@ namespace PixivWPF.Common
                                 OpenSearch.Execute(link);
                             }).InvokeAsync();
                         }
-                        catch (Exception) { }
+                        catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                     }
                 }).InvokeAsync();
             }
@@ -1640,7 +1640,7 @@ namespace PixivWPF.Common
                         if (File.Exists(fp_d)) fp_d.OpenFileWithShell();
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
             else if (obj is PixivItem)
             {
@@ -1683,7 +1683,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }).InvokeAsync();
         });
 
@@ -1702,7 +1702,7 @@ namespace PixivWPF.Common
                         OpenSearch.Execute(links);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }).InvokeAsync();
         });
 

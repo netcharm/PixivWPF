@@ -46,7 +46,7 @@ namespace PixivWPF.Pages
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
                 if (!string.IsNullOrEmpty(text)) text.Play();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         internal void UpdateTheme()
@@ -98,7 +98,7 @@ namespace PixivWPF.Pages
                     TrySetSuppressScriptErrors(webHtml, true);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void CreateHtmlRender()
@@ -146,7 +146,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return false;
         }
 
@@ -255,7 +255,7 @@ namespace PixivWPF.Pages
                                             img.Source = null;
                                         }
                                     }
-                                    catch (Exception) { }
+                                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                                 }).InvokeAsync();
                             }
                         }
@@ -271,7 +271,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private async void WebBrowser_LinkClick(object sender, System.Windows.Forms.HtmlElementEventArgs e)
@@ -387,7 +387,7 @@ namespace PixivWPF.Pages
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
 
@@ -401,7 +401,7 @@ namespace PixivWPF.Pages
                     WebBrowserReplaceImageSource(browser);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private async void WebBrowser_Navigating(object sender, System.Windows.Forms.WebBrowserNavigatingEventArgs e)
@@ -429,7 +429,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void WebBrowser_DocumentCompleted(object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e)
@@ -510,7 +510,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[BROWSER]"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
 
@@ -521,7 +521,7 @@ namespace PixivWPF.Pages
                 // Ignore the error and suppress the error dialog box. 
                 e.Handled = true;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public BrowerPage()

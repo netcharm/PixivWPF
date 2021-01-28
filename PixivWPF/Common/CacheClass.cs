@@ -66,7 +66,7 @@ namespace PixivWPF.Common
                 else _caches.TryRemove(url, out value);
                 result = _caches.ContainsKey(url);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 

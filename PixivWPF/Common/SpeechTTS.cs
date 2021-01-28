@@ -232,7 +232,7 @@ namespace PixivWPF.Common
                     }
                     lastCulture = culture;
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
             if (result.Count > 0 && !result.Last().Key.Equals(sb.ToString()))
                 result.Add(new KeyValuePair<string, CultureInfo>(sb.ToString(), lastCulture));
@@ -504,7 +504,7 @@ namespace PixivWPF.Common
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif            
         }
 
@@ -569,7 +569,7 @@ namespace PixivWPF.Common
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif            
         }
 
@@ -685,7 +685,7 @@ namespace PixivWPF.Common
                     synth.Pause();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void Resume()
@@ -697,7 +697,7 @@ namespace PixivWPF.Common
                     synth.Resume();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private bool CancelRequested = false;
@@ -721,7 +721,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
         #endregion
 
@@ -754,7 +754,7 @@ namespace PixivWPF.Common
                     synth.Dispose();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
         #endregion
     }

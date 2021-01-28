@@ -187,7 +187,12 @@ namespace PixivWPF.Common
             InitializeComponent();
         }
 
-        private void WaitRing_Loaded(object sender, RoutedEventArgs e)
+        public void Dispose()
+        {
+            Hide();
+        }
+
+        private void PART_Wait_Loaded(object sender, RoutedEventArgs e)
         {
             //PART_Ring.Visibility = this.Visibility;
         }

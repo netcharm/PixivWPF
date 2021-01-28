@@ -118,14 +118,14 @@ namespace PixivWPF.Common
 
             try
             {
-                FieldInfo field = typeof(WebBrowser).GetField("_axIWebBrowser2", BindingFlags.Instance | BindingFlags.NonPublic);
+                FieldInfo field = typeof(WebBrowserEx).GetField("_axIWebBrowser2", BindingFlags.Instance | BindingFlags.NonPublic);
                 if (field != null)
                 {
                     object axIWebBrowser2 = field.GetValue(this);
                     axIWebBrowser2.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, axIWebBrowser2, new object[] { true });
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
     }
 
@@ -196,7 +196,7 @@ namespace PixivWPF.Common
                 X20 = X * 2.0;
                 Y20 = Y * 2.0;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static DPI GetDefault(Visual visual)
@@ -211,7 +211,7 @@ namespace PixivWPF.Common
                 var sy = ds.DpiScaleY;
                 dpi = new DPI(x, y, sx, sy);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -232,7 +232,7 @@ namespace PixivWPF.Common
                     dpiY = 96.0 * scaleY;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return new DPI(dpiX, dpiY, scaleX, scaleY);
         }
 
@@ -251,7 +251,7 @@ namespace PixivWPF.Common
                 if (dpiXProperty != null) { dpiX = (int)dpiXProperty.GetValue(null, null); }
                 if (dpiYProperty != null) { dpiY = (int)dpiYProperty.GetValue(null, null); }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return new DPI(dpiX, dpiY, scaleX, scaleY);
         }
     }
@@ -543,7 +543,7 @@ namespace PixivWPF.Common
                 else
                     result = 0;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -554,7 +554,7 @@ namespace PixivWPF.Common
                 Theme.CurrentAccent = accent;
                 app.UpdateTheme();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void SetStyle(this Application app, string style)
@@ -564,7 +564,7 @@ namespace PixivWPF.Common
                 Theme.CurrentStyle = style;
                 app.UpdateTheme();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void SetTheme(this Application app, string theme)
@@ -574,7 +574,7 @@ namespace PixivWPF.Common
                 Theme.Change(theme);
                 app.UpdateTheme();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void SetTheme(this Application app, string style, string accent)
@@ -584,7 +584,7 @@ namespace PixivWPF.Common
                 Theme.Change(style, accent);
                 app.UpdateTheme();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void ToggleTheme(this Application app)
@@ -594,7 +594,7 @@ namespace PixivWPF.Common
                 Theme.Toggle();
                 app.UpdateTheme();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void UpdateTheme(this Application app)
@@ -603,7 +603,7 @@ namespace PixivWPF.Common
             {
                 CommonHelper.UpdateTheme();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void SetThemeSync(this Application app, string mode = "")
@@ -627,7 +627,7 @@ namespace PixivWPF.Common
 
                 Theme.SetSyncMode(sync);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
         #endregion
 
@@ -751,7 +751,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -830,7 +830,7 @@ namespace PixivWPF.Common
                     }).InvokeAsync(true);
                 }
             }
-            catch (Exception ex) { ex.Message.DEBUG(); }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static bool Activate(this Application app)
@@ -856,7 +856,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -877,7 +877,7 @@ namespace PixivWPF.Common
                     Application.Current.Active(param);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
         #endregion
@@ -976,7 +976,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 //lastConfigEventTick = DateTime.Now;
@@ -1026,7 +1026,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 //lastConfigEventTick = DateTime.Now;
@@ -1060,7 +1060,7 @@ namespace PixivWPF.Common
                 watcher.EnableRaisingEvents = true;
                 _watchers[folder] = watcher;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
@@ -1228,7 +1228,7 @@ namespace PixivWPF.Common
                 else
                     await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static async Task InvokeAsync(this Action action, CancellationToken cancelToken, bool realtime = false)
@@ -1241,7 +1241,7 @@ namespace PixivWPF.Common
                 else
                     await dispatcher.InvokeAsync(action, DispatcherPriority.Background, cancelToken);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static async Task InvokeAsync(this Action action, DispatcherPriority priority)
@@ -1251,7 +1251,7 @@ namespace PixivWPF.Common
                 Dispatcher dispatcher = action.AppDispatcher();
                 await dispatcher.InvokeAsync(action, priority);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static async Task InvokeAsync(this Action action, DispatcherPriority priority, CancellationToken cancelToken)
@@ -1261,7 +1261,7 @@ namespace PixivWPF.Common
                 Dispatcher dispatcher = action.AppDispatcher();
                 await dispatcher.InvokeAsync(action, priority, cancelToken);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         #endregion
@@ -1466,7 +1466,7 @@ namespace PixivWPF.Common
                     else continue;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (titles);
         }
 
@@ -1603,7 +1603,7 @@ namespace PixivWPF.Common
                     autoTaskTimer.Enabled = true;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void AddToast(this Application app, Window win)
@@ -1632,7 +1632,7 @@ namespace PixivWPF.Common
                             long value = 0L;
                             toast_list.TryRemove(kv.Key, out value);
                         }
-                        catch (Exception ex) { ex.Message.DEBUG(); }
+                        catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                     }
                 }
             }).InvokeAsync();
@@ -2037,10 +2037,11 @@ namespace PixivWPF.Common
         #region Default Preview/Avatar
         private static WriteableBitmap NullPreview = null;
         private static WriteableBitmap NullAvatar = null;
+        private static WriteableBitmap NullThumbnail = null;
 
         public static BitmapSource GetNullPreview(this Application app)
         {
-            if (!(NullPreview is WriteableBitmap))
+            if (NullPreview == null)
             {
                 NullPreview = new WriteableBitmap(300, 300, DPI.Default.X, DPI.Default.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
             }
@@ -2049,11 +2050,20 @@ namespace PixivWPF.Common
 
         public static BitmapSource GetNullAvatar(this Application app)
         {
-            if (!(NullAvatar is WriteableBitmap))
+            if (NullAvatar == null)
             {
                 NullAvatar = new WriteableBitmap(64, 64, DPI.Default.X, DPI.Default.Y, PixelFormats.Bgra32, BitmapPalettes.WebPalette);
             }
             return (NullAvatar);
+        }
+
+        public static BitmapSource GetNullThumbnail(this Application app)
+        {
+            if (NullThumbnail == null)
+            {
+                NullThumbnail = new WriteableBitmap(1, 1, DPI.Default.X, DPI.Default.Y, PixelFormats.Gray2, BitmapPalettes.WebPalette);
+            }
+            return (NullThumbnail);
         }
 
         public static Size DefaultThumbSize { get; set; } = new Size(128, 128);
@@ -2263,6 +2273,7 @@ namespace PixivWPF.Common
             #endregion
         };
         private static HotkeyCollection ApplicationHotKeys = new HotkeyCollection(Enums.Scope.Application);
+        private static CultureInfo ApplicationCulture = CultureInfo.CurrentCulture;
         public static void BindHotkey(this Application app, string name, System.Windows.Forms.Keys key, ICommand command)
         {
             try
@@ -2271,11 +2282,12 @@ namespace PixivWPF.Common
                 {
                     try
                     {
+                        var key_name = string.IsNullOrEmpty(e.ChordName) ? string.Join("+", e.Keys.Select(k => k.ToString())) : e.ChordName;
+                        $"Description: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
                         await new Action(() =>
                         {
                             var win = Application.Current.GetActiveWindow();
                             if (win is Window && !win.InSearching()) command.Execute(win);
-                            $"Description: {e.Description}, Keys: {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(e.ChordName)}".DEBUG();
                         }).InvokeAsync(true);
                     }
                     catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
@@ -2542,7 +2554,7 @@ namespace PixivWPF.Common
                 setting = app.LoadSetting();
                 result = setting.AccessToken;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -2554,7 +2566,7 @@ namespace PixivWPF.Common
                 setting = app.LoadSetting();
                 result = setting.RefreshToken;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -2601,7 +2613,7 @@ namespace PixivWPF.Common
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
             return (result);
         }
@@ -2617,7 +2629,7 @@ namespace PixivWPF.Common
                 var unc = new Uri(text);
                 result = unc.IsFile;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -3085,7 +3097,7 @@ namespace PixivWPF.Common
                     result = alpha && !Regex.IsMatch(text, result, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                 }
             }
-            catch (Exception ex) { ex.Message.DEBUG(); }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -3578,7 +3590,7 @@ namespace PixivWPF.Common
                         ex.ToString().ShowMessageBox("ERROR", MessageBoxImage.Error);
                     }
 #else
-                    catch (Exception) { }
+                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
                 }
             }
@@ -3818,7 +3830,7 @@ namespace PixivWPF.Common
                     if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void Touch(this string file, string url, bool local = false)
@@ -3831,7 +3843,7 @@ namespace PixivWPF.Common
                     fi.Touch(url, local);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false)
@@ -3966,7 +3978,7 @@ namespace PixivWPF.Common
                             bmp = null;
                         }
                     }
-                    catch (Exception) { }
+                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 }
             }
             return (result);
@@ -4001,7 +4013,7 @@ namespace PixivWPF.Common
                                                 pixelData, stride);
                 }
             }
-            catch (Exception ex) { ex.Message.DEBUG(); }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
         #endregion
@@ -4025,7 +4037,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
         }
 
@@ -4070,7 +4082,7 @@ namespace PixivWPF.Common
             {
                 _cachedDownloadedList[file] = cached;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         internal static void DownloadedCacheRemove(this string file)
@@ -4081,7 +4093,7 @@ namespace PixivWPF.Common
                 if (_cachedDownloadedList.ContainsKey(file))
                     _cachedDownloadedList.TryRemove(file, out cached);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         internal static void DownloadedCacheUpdate(this string old_file, string new_file, bool cached = true)
@@ -4094,7 +4106,7 @@ namespace PixivWPF.Common
                 }
                 new_file.DownloadedCacheAdd(cached);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         // Define the event handlers.
@@ -4145,7 +4157,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 //lastDownloadEventTick = DateTime.Now;
@@ -4175,7 +4187,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 //lastDownloadEventTick = DateTime.Now;
@@ -4317,7 +4329,7 @@ namespace PixivWPF.Common
             {
                 list.Items.UpdateDownloadState(illustid, exists);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void UpdateDownloadState(this ItemCollection items, int? illustid = null, bool? exists = null)
@@ -4326,7 +4338,7 @@ namespace PixivWPF.Common
             {
                 items.UpdateDownloadState(illustid, exists);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static async void UpdateDownloadStateAsync(this ObservableCollection<PixivItem> collection, int? illustid = null, bool? exists = null)
@@ -5125,7 +5137,7 @@ namespace PixivWPF.Common
                     result = image;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             return (result);
         }
@@ -5169,7 +5181,7 @@ namespace PixivWPF.Common
                     }).InvokeAsync(true);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -5216,7 +5228,7 @@ namespace PixivWPF.Common
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
             return (result);
         }
@@ -5259,7 +5271,7 @@ namespace PixivWPF.Common
                 result = BitmapFrame.Create(ms);
                 await ms.FlushAsync();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -5423,7 +5435,7 @@ namespace PixivWPF.Common
                 ex.Message.ShowMessageBox("ERROR[CLIPBOARD]");
             }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
 
@@ -5466,7 +5478,7 @@ namespace PixivWPF.Common
             {
                 result = long.Parse(item.ID) == id;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             return (result);
         }
@@ -5479,7 +5491,7 @@ namespace PixivWPF.Common
             {
                 result = long.Parse(item.ID) == (id ?? -1);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             return (result);
         }
@@ -5492,7 +5504,7 @@ namespace PixivWPF.Common
             {
                 result = long.Parse(item.ID) == long.Parse(item_now.ID) && item.Index == item_now.Index;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             return (result);
         }
@@ -5516,7 +5528,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -5651,7 +5663,7 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(result.ImageUrls.Large)) result.ImageUrls.Large = Illust.ImageUrls.Large;
                 if (string.IsNullOrEmpty(result.ImageUrls.Original)) result.ImageUrls.Original = Illust.ImageUrls.Original;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -5663,7 +5675,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(IllustID))
                     result = await RefreshIllust(Convert.ToInt32(IllustID), tokens);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -5683,7 +5695,7 @@ namespace PixivWPF.Common
                     break;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -5699,7 +5711,7 @@ namespace PixivWPF.Common
                     result = user;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -5719,7 +5731,7 @@ namespace PixivWPF.Common
                     u.IsPremium = user.IsFriend;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (user);
         }
 
@@ -5732,7 +5744,7 @@ namespace PixivWPF.Common
                 {
                     result = await RefreshUser(Convert.ToInt32(UserID), tokens);
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
             return (result);
         }
@@ -5754,7 +5766,7 @@ namespace PixivWPF.Common
                     if (user.Id.Value == UserID) result = user;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -5768,7 +5780,7 @@ namespace PixivWPF.Common
                     long id = -1;
                     if (long.TryParse(UserID, out id)) result = await RefreshUserInfo(id, tokens);
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
             return (result);
         }
@@ -5790,7 +5802,7 @@ namespace PixivWPF.Common
                     if (userinfo.user.Id.Value == UserID) result = userinfo;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -5943,7 +5955,7 @@ namespace PixivWPF.Common
                     await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, "private");
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 try
@@ -5967,7 +5979,7 @@ namespace PixivWPF.Common
                         $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl(), title, pub_like);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
 
             return (result);
@@ -6039,7 +6051,7 @@ namespace PixivWPF.Common
                 await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
                 await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 try
@@ -6061,7 +6073,7 @@ namespace PixivWPF.Common
                         $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl(), title);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
 
             return (result);
@@ -6202,7 +6214,7 @@ namespace PixivWPF.Common
                     await tokens.AddFavouriteUser((long)user.Id, "private");
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 try
@@ -6218,7 +6230,7 @@ namespace PixivWPF.Common
                         $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".ShowToast(title, user.GetAvatarUrl(), title, pub_like);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
             return (result);
         }
@@ -6247,7 +6259,7 @@ namespace PixivWPF.Common
                         item.IsFavorited = result;
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
 
             return (result);
@@ -6298,7 +6310,7 @@ namespace PixivWPF.Common
                 await tokens.DeleteFavouriteUser(user.Id.ToString());
                 await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 try
@@ -6313,7 +6325,7 @@ namespace PixivWPF.Common
                         $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl(), title);
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
             return (result);
         }
@@ -6342,7 +6354,7 @@ namespace PixivWPF.Common
                         item.IsFavorited = result;
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
 
             return (result);
@@ -6410,7 +6422,7 @@ namespace PixivWPF.Common
                         item.IsFavorited = result;
                     }
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
 
             return (result);
@@ -6667,7 +6679,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void UpdateTheme()
@@ -6681,7 +6693,7 @@ namespace PixivWPF.Common
                     if (win is MetroWindow) win.UpdateTheme(img);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static bool IsShown(this UIElement element)
@@ -6830,7 +6842,7 @@ namespace PixivWPF.Common
 
                     if (button is ToggleButton) MouseLeave(button);
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
         }
 
@@ -6847,7 +6859,7 @@ namespace PixivWPF.Common
                 if (!(button is ToggleButton) || (button is ToggleButton && !(button as ToggleButton).IsChecked.Value))
                     button.Background = Theme.SemiTransparentBrush;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void MouseLeave(this ButtonBase button)
@@ -6869,7 +6881,7 @@ namespace PixivWPF.Common
                     button.Background = bg;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void ToolButton_MouseEnter(object sender, MouseEventArgs e)
@@ -7181,7 +7193,7 @@ namespace PixivWPF.Common
                         result = window.Content;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
         
@@ -7378,7 +7390,7 @@ namespace PixivWPF.Common
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
 
@@ -7418,7 +7430,7 @@ namespace PixivWPF.Common
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
 
@@ -7453,7 +7465,7 @@ namespace PixivWPF.Common
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
 #else
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
         }
         #endregion
@@ -7736,7 +7748,7 @@ namespace PixivWPF.Common
             {
                 result = TimeSpan.TicksPerMillisecond * millisecond;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -7747,7 +7759,7 @@ namespace PixivWPF.Common
             {
                 result = ticks / TimeSpan.TicksPerMillisecond;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -7779,7 +7791,7 @@ namespace PixivWPF.Common
                 result = ticks2 - ticks1;
                 if (abs) result = Math.Abs(result);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -7790,7 +7802,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaTicks(ticks1, ticks2, abs).TicksToMillisecond();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -7801,7 +7813,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaMillisecond(dt1.Ticks, dt2.Ticks, abs);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -7847,7 +7859,7 @@ namespace PixivWPF.Common
             {
                 result = dt2 - dt1;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -7858,7 +7870,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaMillisecond(ticks, DateTime.Now.Ticks, abs);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -7869,7 +7881,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaNowMillisecond(dt.Ticks, abs);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -7880,7 +7892,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaNowMillisecond(ticks, abs) > millisecond;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -7891,7 +7903,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaNowMillisecond(dt, abs) > millisecond;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
         #endregion
@@ -7906,7 +7918,7 @@ namespace PixivWPF.Common
                     Sound(mode);
                 }).InvokeAsync();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void Sound(string mode)
@@ -7945,7 +7957,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
         #endregion
 
@@ -7960,7 +7972,7 @@ namespace PixivWPF.Common
                     image.UpdateLayout();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void Dispose<T>(this T[] array)
@@ -7985,7 +7997,7 @@ namespace PixivWPF.Common
                     Array.Resize<T>(ref array, 0);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static void Clear<T>(this T[] array, ref T[] target)
@@ -7998,7 +8010,7 @@ namespace PixivWPF.Common
                     Array.Resize<T>(ref array, 0);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public static bool IsConsole
@@ -8041,7 +8053,7 @@ namespace PixivWPF.Common
                 var ret = element.FindName(name);
                 if (ret is T) result = (T)ret;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 

@@ -201,7 +201,7 @@ namespace PixivWPF.Common
                         if (start && !Instance.IsDownloading) Instance.Start(setting.DownloadWithFailResume);
                     }).InvokeAsync();
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
         }
 
@@ -233,7 +233,7 @@ namespace PixivWPF.Common
                         Instance.CleanBuffer();
                         Instance = null;
                     }
-                    catch (Exception) { }
+                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 }));
             }
             Thumbnail = null;
@@ -264,7 +264,7 @@ namespace PixivWPF.Common
                     NotifyPropertyChanged();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void RefreshState()
@@ -579,7 +579,7 @@ namespace PixivWPF.Common
                         lastRateA = rateA;
                         lastReceived = 0;
                     }
-                    catch (Exception) { }
+                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                     lastTick = EndTick;
                 }
             });
@@ -683,7 +683,7 @@ namespace PixivWPF.Common
                     PART_OpenFile.IsEnabled = miOpenImage.IsEnabled;
                     PART_OpenFolder.IsEnabled = miOpenFolder.IsEnabled;
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
         }
 
@@ -723,7 +723,7 @@ namespace PixivWPF.Common
             {
                 if (_DownloadBuffer is byte[]) _DownloadBuffer.Dispose(ref _DownloadBuffer);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private HttpClient httpClient = null;
@@ -930,7 +930,7 @@ namespace PixivWPF.Common
                     httpClient = null;
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 
             if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
             cancelSource = null;
@@ -1019,7 +1019,7 @@ namespace PixivWPF.Common
                 State = DownloadState.Downloading;
                 result = await SaveFile(FileName, file);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 if (Downloading is SemaphoreSlim && Downloading.CurrentCount <= 0) Downloading.Release();
@@ -1245,7 +1245,7 @@ namespace PixivWPF.Common
                     if (PART_Preview.Source != null) PART_Preview.Source = null;
                     PART_Preview.UpdateLayout();
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }));           
             PART_Preview = null;
         }

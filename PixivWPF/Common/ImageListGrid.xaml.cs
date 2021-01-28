@@ -29,6 +29,7 @@ namespace PixivWPF.Common
     /// </summary>
     public partial class ImageListGrid : UserControl, INotifyPropertyChanged
     {
+        #region Tiles Layout
         [Description("Get or Set Columns for display Image Tile Grid")]
         [Category("Common Properties")]
         [DefaultValue(5)]
@@ -44,6 +45,52 @@ namespace PixivWPF.Common
         [DefaultValue(128)]
         public int TileHeight { get; set; }
 
+        private Visibility badgevisibility = Visibility.Visible;
+        public Visibility BadgeVisibility
+        {
+            get { return badgevisibility; }
+            set { badgevisibility = value; }
+        }
+        public bool DisplayBadge
+        {
+            get
+            {
+                if (badgevisibility == Visibility.Visible) return true;
+                else return false;
+            }
+            set
+            {
+                if (value) badgevisibility = Visibility.Visible;
+                else badgevisibility = Visibility.Collapsed;
+            }
+        }
+
+        private Visibility titlevisibility = Visibility.Visible;
+        public Visibility TitleVisibility
+        {
+            get { return titlevisibility; }
+            set { titlevisibility = value; }
+        }
+
+        [Description("Get or Set Item Title Visibility")]
+        [Category("Common Properties")]
+        [DefaultValue(true)]
+        public bool DisplayTitle
+        {
+            get
+            {
+                if (titlevisibility == Visibility.Visible) return true;
+                else return false;
+            }
+            set
+            {
+                if (value) titlevisibility = Visibility.Visible;
+                else titlevisibility = Visibility.Collapsed;
+            }
+        }
+        #endregion
+
+        #region Tiles Selection
         [Description("Get or Set Image Tiles Select Item Index")]
         [Category("Common Properties")]
         public int SelectedIndex
@@ -84,7 +131,9 @@ namespace PixivWPF.Common
             get { return PART_ImageTiles.SelectionMode; }
             set { PART_ImageTiles.SelectionMode = value; }
         }
+        #endregion
 
+        #region Tiles
         private ConcurrentDictionary<string, ProgressRingCloud> RingList = new ConcurrentDictionary<string, ProgressRingCloud>();
         private ConcurrentDictionary<string, Canvas> CanvasList = new ConcurrentDictionary<string, Canvas>();
         private ObservableCollection<PixivItem> ItemList = new ObservableCollection<PixivItem>();
@@ -133,52 +182,10 @@ namespace PixivWPF.Common
             set { if (PART_ImageTiles.Items is ItemCollection) PART_ImageTiles.Items.Filter = value; }
         }
 
-        private Visibility badgevisibility = Visibility.Visible;
-        public Visibility BadgeVisibility
-        {
-            get { return badgevisibility; }
-            set { badgevisibility = value; }
-        }
-        public bool DisplayBadge
-        {
-            get
-            {
-                if (badgevisibility == Visibility.Visible) return true;
-                else return false;
-            }
-            set
-            {
-                if (value) badgevisibility = Visibility.Visible;
-                else badgevisibility = Visibility.Collapsed;
-            }
-        }
-
         [Description("Get or Set Image Tiles Count after filtered/current be displayed")]
         [Category("Common Properties")]
         public int ItemsCount { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.Count : 0); } }
-
-        private Visibility titlevisibility = Visibility.Visible;
-        public Visibility TitleVisibility
-        {
-            get { return titlevisibility; }
-            set { titlevisibility = value; }
-        }
-        [Description("Get or Set Item Title Visibility")]
-        [Category("Common Properties")]
-        [DefaultValue(true)]
-        public bool DisplayTitle
-        {
-            get
-            {
-                if (titlevisibility == Visibility.Visible) return true;
-                else return false;
-            }
-            set
-            {
-                if (value) titlevisibility = Visibility.Visible;
-                else titlevisibility = Visibility.Collapsed;
-            }
-        }
+        #endregion
 
         #region Scroll Viewer Helper
         private ScrollViewer scrollViewer = null;
@@ -194,7 +201,7 @@ namespace PixivWPF.Common
                 var total = scrollViewer.ExtentHeight;
                 result = (int)Math.Round(offset / height) + 1;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -210,7 +217,7 @@ namespace PixivWPF.Common
                 var total = scrollViewer.ExtentHeight;
                 result = (int)Math.Ceiling(total / height);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             return (result);
         }
 
@@ -226,7 +233,7 @@ namespace PixivWPF.Common
                 scrollViewer.ScrollToVerticalOffset(offset - height);
                 scrollViewer.UpdateLayout();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void PageDown()
@@ -241,7 +248,7 @@ namespace PixivWPF.Common
                 scrollViewer.ScrollToVerticalOffset(offset + height);
                 scrollViewer.UpdateLayout();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void PageFirst()
@@ -252,7 +259,7 @@ namespace PixivWPF.Common
                 scrollViewer.ScrollToHome();
                 scrollViewer.UpdateLayout();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void PageLast()
@@ -263,7 +270,7 @@ namespace PixivWPF.Common
                 scrollViewer.ScrollToEnd();
                 scrollViewer.UpdateLayout();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public bool IsCurrentBeforeFirst { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.IsCurrentBeforeFirst : false); } }
@@ -281,7 +288,7 @@ namespace PixivWPF.Common
                     PART_ImageTiles.Items.MoveCurrentToFirst();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void MoveCurrentToPrevious()
@@ -293,7 +300,7 @@ namespace PixivWPF.Common
                     PART_ImageTiles.Items.MoveCurrentToPrevious();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void MoveCurrentToNext()
@@ -305,7 +312,7 @@ namespace PixivWPF.Common
                     PART_ImageTiles.Items.MoveCurrentToNext();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void MoveCurrentToLast()
@@ -317,7 +324,7 @@ namespace PixivWPF.Common
                     PART_ImageTiles.Items.MoveCurrentToLast();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void ScrollIntoView(object item)
@@ -329,10 +336,11 @@ namespace PixivWPF.Common
                     PART_ImageTiles.ScrollIntoView(item);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
         #endregion
 
+        #region Events Handler
         public event SelectionChangedEventHandler SelectionChanged;
         public delegate void SelectionChangedEventHandler(object sender, SelectionChangedEventArgs e);
         private void PART_ImageTiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -354,18 +362,23 @@ namespace PixivWPF.Common
         public delegate void MouseWheelEventHandler(object sender, MouseWheelEventArgs e);
         private void PART_ImageTiles_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (!e.Handled)
+            if (e.Handled) return;
+            if (MouseWheel != null)
+                MouseWheel?.Invoke(sender, e);
+            else
             {
-                if (MouseWheel != null) MouseWheel?.Invoke(sender, e);
-                else
+                try
                 {
-                    e.Handled = true;
+                    if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                    e.Handled = scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible ? false : true;
+
                     var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
                     eventArg.RoutedEvent = MouseWheelEvent;
                     eventArg.Source = this;
                     var parent = ((Control)sender).Parent as UIElement;
                     parent.RaiseEvent(eventArg);
                 }
+                catch(Exception ex) { ex.Message.DEBUG(); }
             }
         }
 
@@ -373,25 +386,23 @@ namespace PixivWPF.Common
         public delegate void PreviewMouseWheelEventHandler(object sender, MouseWheelEventArgs e);
         private void PART_ImageTiles_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (!e.Handled)
+            if (e.Handled) return;
+            if (PreviewMouseWheel != null)
+                PreviewMouseWheel?.Invoke(sender, e);
+            else
             {
-                if(PreviewMouseWheel!=null) PreviewMouseWheel?.Invoke(sender, e);
-                else
+                try
                 {
-                    //e.Handled = true;
-                    //if(PART_ImageTiles.Items.Count()>
-                    var viewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-                    if(viewer is ScrollViewer)
-                    {
-                        e.Handled = viewer.ComputedVerticalScrollBarVisibility == Visibility.Visible ? false : true;
-                    }
+                    if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
+                    e.Handled = scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible ? false : true;
 
                     var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
-                    eventArg.RoutedEvent = MouseWheelEvent;
+                    eventArg.RoutedEvent = PreviewMouseWheelEvent;
                     eventArg.Source = this;
                     var parent = ((Control)sender).Parent as UIElement;
                     parent.RaiseEvent(eventArg);
                 }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
         }
 
@@ -402,22 +413,25 @@ namespace PixivWPF.Common
             if (e.Handled) return;
             MouseDown?.Invoke(sender, e);
         }
+        #endregion
+
+        #region Properties Handler
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void RaisePropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
 
         internal Task lastTask = null;
         internal CancellationTokenSource cancelTokenSource;
 
-        public ImageListGrid()
-        {
-            InitializeComponent();
-
-            //DataContext = this;
-
-            cancelTokenSource = new CancellationTokenSource();
-
-            ItemList.Clear();
-            PART_ImageTiles.ItemsSource = ItemList;
-        }
-
+        #region Wait State
         [Description("Get or Set Wait Ring State")]
         [Category("Common Properties")]
         public bool IsReady
@@ -452,82 +466,16 @@ namespace PixivWPF.Common
                 cancelTokenSource.Cancel(true);
             }
         }
+        #endregion
 
-        public void Refresh()
+        #region Tiles Helper
+        private string GetID(PixivItem item)
         {
-            PART_ImageTiles.Items.Refresh();
-            //CollectionViewSource.GetDefaultView(this).Refresh();
-        }
-
-        public void Clear(bool batch = true)
-        {
-            if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
-            {
-                try
-                {
-                    if (lastTask is Task) lastTask.Dispose();
-                    for (var i = 0; i < ItemList.Count; i++)
-                    {
-                        var item = ItemList[i];
-                        var id = GetID(item);
-                        if (CanvasList.ContainsKey(id))
-                        {
-                            var canvas = CanvasList[id];
-                            //(canvas.Background as ImageBrush).ImageSource = null;
-                            canvas.Background = null;
-                            //canvas.UpdateLayout();
-                            //canvas.Dispose();
-                            if (!batch)
-                            {
-                                canvas.UpdateLayout();
-                                this.DoEvents();
-                            }
-                        }
-                        if(RingList.ContainsKey(id) && RingList[id] is ProgressRingCloud)
-                        {
-                            var ring = RingList[id];
-                            //ring.State = TaskStatus.Canceled;
-                            //ring.UpdateState();
-                            ring.Hide();
-                        }
-                        this.DoEvents();
-                    }
-                    CanvasList.Clear();
-                    RingList.Clear();
-                    if (batch)
-                    {
-                        PART_ImageTiles.UpdateLayout();
-                        this.DoEvents();
-                    }
-                    ItemList.Clear();
-                }
-                catch (Exception ex) { ex.Message.DEBUG(); }
-                finally
-                {
-                    double M = 1024.0 * 1024.0;
-                    var before = GC.GetTotalMemory(true);
-                    GC.Collect();
-                    var after = GC.GetTotalMemory(true);
-                    $"Memory Usage: {before / M:F2}M => {after / M:F2}M".DEBUG();
-                }
-            }
-            else
-            {
-                CanvasList.Clear();
-                RingList.Clear();
-                ItemList.Clear();
-            }
-        }
-
-        public async void ClearAsync(bool batch = true)
-        {
-            if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
-            {
-                await new Action(() =>
-                {
-                    Clear(batch);
-                }).InvokeAsync(true);
-            }
+            string id = item.ID;
+            string idx = item.Index > 0 ? $"_{item.Index}" : string.Empty;
+            if (item.IsWork()) id = $"i_{id}{idx}";
+            else if (item.IsUser()) id = $"u_{id}";
+            return (id);
         }
 
         public void Filtering(string filter)
@@ -555,30 +503,89 @@ namespace PixivWPF.Common
             }
         }
 
-        private async void RenderCanvas(Canvas canvas, ImageSource source)
+        public void Refresh()
+        {
+            PART_ImageTiles.Items.Refresh();
+            //CollectionViewSource.GetDefaultView(this).Refresh();
+        }
+
+        private WriteableBitmap NullThumbnail = new WriteableBitmap(1,1, 96, 96, PixelFormats.Gray2, BitmapPalettes.WebPalette);
+        private ImageBrush NullBackground = new ImageBrush(new WriteableBitmap(1,1, 96, 96, PixelFormats.Gray2, BitmapPalettes.WebPalette))
+                                                { Stretch = Stretch.Uniform, TileMode = TileMode.None };
+        private async void RenderCanvas(Canvas canvas, ImageSource source, bool batch = false)
         {
             if (canvas is Canvas)
             {
                 await new Action(() =>
                 {
-                    if (canvas.Background != null)
+                    if (source == null)
                     {
-                        canvas.Background = null;
-                        canvas.UpdateLayout();
+                        canvas.Background = NullBackground;
+                        canvas.Width = NullBackground.ImageSource.Width;
+                        canvas.Height = NullBackground.ImageSource.Height;
+                        if (!batch) canvas.UpdateLayout();
                     }
-                    canvas.Background = new ImageBrush(source) { Stretch = Stretch.Uniform, TileMode = TileMode.None };
-                    if(canvas.Background.CanFreeze) canvas.Background.Freeze();
+                    else
+                    {
+                        canvas.Width = TileWidth;
+                        canvas.Height = TileHeight;
+                        canvas.Background = new ImageBrush(source) { Stretch = Stretch.Uniform, TileMode = TileMode.None };
+                        if (canvas.Background.CanFreeze) canvas.Background.Freeze();
+                    }
                 }).InvokeAsync(true);
             }
         }
 
-        private string GetID(PixivItem item)
+        public void Clear(bool batch = true)
         {
-            string id = item.ID;
-            string idx = item.Index > 0 ? $"_{item.Index}" : string.Empty;
-            if (item.IsWork()) id = $"i_{id}{idx}";
-            else if (item.IsUser()) id = $"u_{id}";
-            return (id);
+            try
+            {
+                if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
+                {
+                    if (lastTask is Task) lastTask.Dispose();
+                    for (var i = 0; i < ItemList.Count; i++)
+                    {
+                        var item = ItemList[i];
+                        var id = GetID(item);
+                        if (CanvasList.ContainsKey(id))
+                            RenderCanvas(CanvasList[id], null, batch);
+                        if (RingList.ContainsKey(id) && RingList[id] is ProgressRingCloud)
+                            RingList[id].Dispose();
+                        //item.Source = null;
+                        this.DoEvents();
+                    }
+                    this.DoEvents();
+                    if (batch)
+                    {
+                        PART_ImageTiles.UpdateLayout();
+                        this.DoEvents();
+                    }
+                    ItemList.Clear();
+                }
+            }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            finally
+            {
+                if (CanvasList is ConcurrentDictionary<string, Canvas>) CanvasList.Clear();
+                if (RingList is ConcurrentDictionary<string, ProgressRingCloud>) RingList.Clear();
+
+                double M = 1024.0 * 1024.0;
+                var before = GC.GetTotalMemory(true);
+                GC.Collect();
+                var after = GC.GetTotalMemory(true);
+                $"Memory Usage: {before / M:F2}M => {after / M:F2}M".DEBUG();
+            }
+        }
+
+        public async void ClearAsync(bool batch = true)
+        {
+            if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
+            {
+                await new Action(() =>
+                {
+                    Clear(batch);
+                }).InvokeAsync(true);
+            }
         }
 
         public async void UpdateTilesImage(bool overwrite = false, int parallel = 5, SemaphoreSlim updating_semaphore = null)
@@ -604,6 +611,19 @@ namespace PixivWPF.Common
                 }
                 lastTask = await Items.UpdateTilesThumb(lastTask, overwrite, cancelTokenSource, parallel, updating_semaphore);
             }
+        }
+        #endregion
+
+        public ImageListGrid()
+        {
+            InitializeComponent();
+
+            //DataContext = this;
+
+            cancelTokenSource = new CancellationTokenSource();
+
+            ItemList.Clear();
+            PART_ImageTiles.ItemsSource = ItemList;
         }
 
         private void TileBadge_TargetUpdated(object sender, DataTransferEventArgs e)
@@ -631,10 +651,10 @@ namespace PixivWPF.Common
                     var ring = sender as ProgressRingCloud;
                     var tile = ring.Parent is Grid ? ring.Parent as Grid : null;
                     var item = tile is Grid && tile.DataContext is PixivItem ? tile.DataContext as PixivItem : null;
-                    var id = GetID(item);
                     var canvas = tile is Grid ? tile.FindByName<Canvas>("PART_ThumbnailCanvas") : null;
                     if (canvas is Canvas && item is PixivItem)
                     {
+                        var id = GetID(item);
                         if (ring.State == TaskStatus.RanToCompletion)
                         {
                             RenderCanvas(canvas, item.Source);
@@ -651,19 +671,8 @@ namespace PixivWPF.Common
                     }
                     ring.UpdateState();
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        private void RaisePropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private void PART_Thumbnail_Unloaded(object sender, RoutedEventArgs e)
@@ -683,7 +692,7 @@ namespace PixivWPF.Common
                     canvas.UpdateLayout();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
     }
 }

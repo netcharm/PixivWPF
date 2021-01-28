@@ -145,7 +145,7 @@ namespace PixivWPF.Pages
                 HistoryItems.UpdateTilesImage(overwrite, 5, CanUpdating);
                 Application.Current.DoEvents();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         internal void UpdateDetail()
@@ -200,7 +200,7 @@ namespace PixivWPF.Pages
             {
                 Commands.ChangeIllustLikeState.Execute(HistoryItems);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void ChangeUserLikeState()
@@ -209,7 +209,7 @@ namespace PixivWPF.Pages
             {
                 Commands.ChangeUserLikeState.Execute(HistoryItems);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void OpenIllust()
@@ -223,7 +223,7 @@ namespace PixivWPF.Pages
             {
                 Commands.OpenCachedImage.Execute(HistoryItems);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void OpenWork()
@@ -242,7 +242,7 @@ namespace PixivWPF.Pages
             {
                 Commands.SaveIllust.Execute(HistoryItems);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void SaveIllustAll()
@@ -251,7 +251,7 @@ namespace PixivWPF.Pages
             {
                 Commands.SaveIllustAll.Execute(HistoryItems);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void FirstIllust()
@@ -329,7 +329,7 @@ namespace PixivWPF.Pages
                 HistoryItems.Clear();
                 Contents = null;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public HistoryPage()
@@ -352,7 +352,7 @@ namespace PixivWPF.Pages
                 if (CanUpdating is SemaphoreSlim && CanUpdating.CurrentCount == 0) CanUpdating.Release();
                 UpdateDetail();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -361,7 +361,7 @@ namespace PixivWPF.Pages
             {
                 Dispose();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -418,7 +418,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionJumpSelected_Click(object sender, RoutedEventArgs e)
@@ -431,7 +431,7 @@ namespace PixivWPF.Pages
                     Application.Current.GetMainWindow().JumpTo(item.ID);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionSendToOtherInstance_Click(object sender, RoutedEventArgs e)
@@ -544,10 +544,10 @@ namespace PixivWPF.Pages
                             items.UnLikeIllust();
                         }
                     }
-                    catch (Exception) { }
+                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void ActionFollowAuthor_Click(object sender, RoutedEventArgs e)
@@ -577,10 +577,10 @@ namespace PixivWPF.Pages
                             items.UnLikeUser();
                         }
                     }
-                    catch (Exception) { }
+                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void HistoryIllusts_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -589,7 +589,7 @@ namespace PixivWPF.Pages
             {
                 if (e.LeftButton == MouseButtonState.Pressed) Commands.Open.Execute(HistoryItems);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
         #endregion
 

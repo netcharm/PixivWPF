@@ -143,7 +143,7 @@ namespace PixivWPF.Pages
                     else PreviewWait.Fail();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 img.Source = null;
@@ -213,7 +213,7 @@ namespace PixivWPF.Pages
                     Commands.ChangeIllustLikeState.Execute(Contents);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void ChangeUserLikeState()
@@ -225,7 +225,7 @@ namespace PixivWPF.Pages
                     Commands.ChangeUserLikeState.Execute(Contents);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void OpenUser()
@@ -237,7 +237,7 @@ namespace PixivWPF.Pages
                     Commands.OpenUser.Execute(Contents);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void OpenIllust()
@@ -252,7 +252,7 @@ namespace PixivWPF.Pages
                         OpenCachedImage();
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void OpenCachedImage()
@@ -267,7 +267,7 @@ namespace PixivWPF.Pages
                         Commands.OpenCachedImage.Execute(PreviewImage);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void SaveIllust()
@@ -276,7 +276,7 @@ namespace PixivWPF.Pages
             {
                 if (Contents.IsWork()) Commands.SaveIllust.Execute(Contents);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void SaveIllustAll()
@@ -286,7 +286,7 @@ namespace PixivWPF.Pages
 
                 if (Contents.IsWork()) Commands.SaveIllustAll.Execute(Contents);
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public void CopyPreview()
@@ -374,7 +374,7 @@ namespace PixivWPF.Pages
                 Contents.Source = null;
                 this.DataContext = null;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public IllustImageViewerPage()
@@ -433,7 +433,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -602,7 +602,7 @@ namespace PixivWPF.Pages
 
                     PreviewImage = await GetPreviewImage();
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             }
         }
 

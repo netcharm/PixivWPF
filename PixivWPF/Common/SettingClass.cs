@@ -359,7 +359,7 @@ namespace PixivWPF.Common
 #if DEBUG
                 catch (Exception ex) { ex.Message.ShowToast("ERROR"); }
 #else
-                catch (Exception ex) { ex.Message.DEBUG(); }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
 #endif
                 finally
                 {
@@ -385,7 +385,7 @@ namespace PixivWPF.Common
                             var tags = JsonConvert.SerializeObject(CommonHelper.TagsCache, Formatting.Indented);
                             File.WriteAllText(tagsfile, tags, new UTF8Encoding(true));
                         }
-                        catch (Exception) { }
+                        catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                     }
                     //if (File.Exists(tagsfile_t2s))
                     //{
@@ -394,10 +394,10 @@ namespace PixivWPF.Common
                     //        var tags_t2s = File.ReadAllText(tagsfile_t2s);
                     //        CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
                     //    }
-                    //    catch (Exception) { }
+                    //    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                     //}
                 }
-                catch (Exception) { }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 finally
                 {
                     if (TagsReadWrite is SemaphoreSlim && TagsReadWrite.CurrentCount <= 0) TagsReadWrite.Release();
@@ -433,7 +433,7 @@ namespace PixivWPF.Common
                                 CommonHelper.TagsCache = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags);
                                 tags_changed = true;
                             }
-                            catch (Exception ex) { ex.Message.DEBUG(); }
+                            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                         }
 
                         LoadCustomTags(force);
@@ -443,7 +443,7 @@ namespace PixivWPF.Common
                         if (tags_changed) CommonHelper.UpdateIllustTagsAsync();
                     }
                 }
-                catch (Exception ex) { ex.Message.DEBUG(); }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 finally
                 {
                     if (TagsReadWrite is SemaphoreSlim && TagsReadWrite.CurrentCount <= 0) TagsReadWrite.Release();
@@ -499,7 +499,7 @@ namespace PixivWPF.Common
                                     tags_changed = true;
                                 }
                             }
-                            catch (Exception ex) { ex.Message.DEBUG(); }
+                            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                         }
                         if (tags_changed)
                         {
@@ -508,7 +508,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { ex.Message.DEBUG(); }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 finally
                 {
                     if (CustomTagsReadWrite is SemaphoreSlim && CustomTagsReadWrite.CurrentCount <= 0) CustomTagsReadWrite.Release();
@@ -563,7 +563,7 @@ namespace PixivWPF.Common
                                     tags_changed = true;
                                 }
                             }
-                            catch (Exception ex) { ex.Message.DEBUG(); }
+                            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                         }
 
                         if (tags_changed)
@@ -573,7 +573,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { ex.Message.DEBUG(); }
+                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
                 finally
                 {
                     if (CustomWildcardTagsReadWrite is SemaphoreSlim && CustomWildcardTagsReadWrite.CurrentCount <= 0) CustomWildcardTagsReadWrite.Release();

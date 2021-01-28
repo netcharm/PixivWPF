@@ -39,7 +39,7 @@ namespace PixivWPF.Pages
                 else
                     Application.Current.Shutdown();
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
         public LoginPage()
@@ -73,7 +73,7 @@ namespace PixivWPF.Pages
                 chkUseProxy.IsChecked = setting.UsingProxy;
                 chkUseProxyDown.IsChecked = setting.DownloadUsingProxy;
             }
-            catch (Exception) { }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
             finally
             {
                 //if(Window is Window) Window.SizeToContent = SizeToContent.WidthAndHeight;

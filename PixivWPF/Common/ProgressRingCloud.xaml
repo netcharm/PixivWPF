@@ -11,7 +11,7 @@
              Width="{Binding Size, Mode=OneWay, IsAsync=True, RelativeSource={RelativeSource Self}}"
              Height="{Binding Size, Mode=OneWay, IsAsync=True, RelativeSource={RelativeSource Self}}"
              d:DesignHeight="300" d:DesignWidth="300"
-             Loaded="WaitRing_Loaded">
+             Loaded="PART_Wait_Loaded">
 
     <Grid x:Name="PART_Grid"
         IsEnabled="{Binding Path=IsEnabled, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}" 
