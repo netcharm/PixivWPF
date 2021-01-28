@@ -31,7 +31,15 @@ namespace PixivWPF.Pages
         private Popup PreviewPopup = null;
         private Rectangle PreviewPopupBackground = null;
         private IList<Button> PreviewPopupToolButtons = new List<Button>();
-        private System.Timers.Timer PreviewPopupTimer = new System.Timers.Timer() { AutoReset = true, Enabled = false, Interval=5000 };
+        private System.Timers.Timer PreviewPopupTimer = null;
+        private void InitTaskTimer(ref System.Timers.Timer timer)
+        {
+            if (timer == null)
+            {
+                timer = new System.Timers.Timer(5000) { AutoReset = true, Enabled = false };
+                timer.Elapsed += PreviewPopupTimer_Elapsed;
+            }
+        }
 
         private const int PAGE_ITEMS = 30;
         private int page_count = 0;
@@ -1067,7 +1075,7 @@ namespace PixivWPF.Pages
                     IllustDescExpander.Hide();
                 }
 
-                SubIllusts.ClearAsync();
+                SubIllusts.ClearAsync(false);
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.IsWork() && item.Illust.PageCount > 1)
                 {
@@ -1836,9 +1844,7 @@ namespace PixivWPF.Pages
                     foreach (var button in PreviewPopupToolButtons)
                         button.MouseOverAction();
 
-                    PreviewPopupTimer.Elapsed += PreviewPopupTimer_Elapsed;
-                    PreviewPopupTimer.Enabled = true;
-                    PreviewPopupTimer.Start();
+                    InitTaskTimer(ref PreviewPopupTimer);
                 }
             }
             catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
@@ -2189,20 +2195,30 @@ namespace PixivWPF.Pages
                 {
                     await new Action(() =>
                     {
-                        if (PreviewPopup.IsMouseDirectlyOver)
-                        {
-                            PreviewPopupTimer.Stop();
-                            PreviewPopupTimer.Start();
-                        }
-                        else
+                        if (!PreviewPopup.IsMouseDirectlyOver)
                         {
                             PreviewPopup.IsOpen = false;
-                            PreviewPopupTimer.Stop();
                         }
                     }).InvokeAsync(true);
                 }
             }
             catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+        }
+
+        private void PreviewPopup_Closed(object sender, EventArgs e)
+        {
+            if (PreviewPopup is Popup && PreviewPopupTimer is System.Timers.Timer)
+            {
+                PreviewPopupTimer.Stop();
+            }
+        }
+
+        private void PreviewPopup_Opened(object sender, EventArgs e)
+        {
+            if (PreviewPopup is Popup && PreviewPopupTimer is System.Timers.Timer)
+            {
+                PreviewPopupTimer.Start();
+            }
         }
 
         private void PreviewPopup_Click(object sender, RoutedEventArgs e)
@@ -2251,8 +2267,8 @@ namespace PixivWPF.Pages
 
                 if (PreviewPopup is Popup)
                 {
-                    PreviewPopup.IsOpen = false;
                     PreviewPopupTimer.Stop();
+                    PreviewPopup.IsOpen = false;
                 }
                 e.Handled = true;
             }
@@ -2917,7 +2933,6 @@ namespace PixivWPF.Pages
                     if (setting.EnabledMiniToolbar && PreviewPopup is Popup)
                     {
                         PopupOpen(PreviewPopup);
-                        PreviewPopupTimer.Start();
                     }
                     e.Handled = true;
                 }

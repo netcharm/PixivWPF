@@ -33,6 +33,7 @@ namespace PixivWPF.Pages
 
         private Setting setting = Application.Current.LoadSetting();
 
+        #region Properties
         [DefaultValue(true)]
         public bool AutoStart { get; set; } = true;
 
@@ -41,19 +42,57 @@ namespace PixivWPF.Pages
 
         [DefaultValue(25)]
         public int MaxSimultaneousJobs { get { return (setting.DownloadMaxSimultaneous); } }
+        #endregion
 
-        private TimerCallback tcb = null;
-        private Timer timer = null;
+        #region Time Checking
+        private System.Timers.Timer autoTaskTimer = null;
 
-        private SemaphoreSlim CanAddItem = new SemaphoreSlim(1, 1);
-        private SemaphoreSlim CanUpdateState = new SemaphoreSlim(1, 1);
-
-        private ObservableCollection<DownloadInfo> items = new ObservableCollection<DownloadInfo>();
-        public ObservableCollection<DownloadInfo> Items
+        private void InitTaskTimer()
         {
-            get { return items; }
+            try
+            {
+                var setting = Application.Current.LoadSetting();
+                if (autoTaskTimer == null)
+                {
+                    autoTaskTimer = new System.Timers.Timer(setting.ToastShowTimes * 1000) { AutoReset = true, Enabled = false };
+                    autoTaskTimer.Elapsed += Timer_Elapsed;
+                    autoTaskTimer.Enabled = true;
+                }
+            }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }
 
+        private async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            try
+            {
+                await new Action(() =>
+                {
+                    if (IsLoaded)
+                    {
+                        setting = Application.Current.LoadSetting();
+                        if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
+                        if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
+
+                        var jobs_count = items.Where(i => i.State == DownloadState.Downloading || i.State == DownloadState.Writing).Count();
+                        var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);
+                        foreach (var item in pre_jobs)
+                        {
+                            if (jobs_count < SimultaneousJobs)
+                            {
+                                if (item.AutoStart) item.IsStart = true;
+                                jobs_count++;
+                            }
+                        }
+                        UpdateStateInfo();
+                    }
+                }).InvokeAsync();
+            }
+            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+        }
+        #endregion
+
+        #region Update UI
         public void UpdateTheme()
         {
             UpdateDownloadStateAsync();
@@ -105,77 +144,6 @@ namespace PixivWPF.Pages
             });
         }
 
-        public IList<string> Unfinished()
-        {
-            List<string> result = new List<string>();
-            var unfinished = items.Where(i => i.State != DownloadState.Finished);
-            foreach (var item in unfinished)
-            {
-                result.Add($"Downloading: {item.Url.ParseID()}");
-            }
-            return (result);
-        }
-
-        public IList<DownloadInfo> GetDownloadInfo()
-        {
-            List<DownloadInfo> dis = new List<DownloadInfo>();
-            var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
-            foreach (var item in DownloadItems.Items)
-            {
-                if (items.Contains(item)) dis.Add(item as DownloadInfo);
-            }
-            return (dis);
-        }
-
-        public DownloadManagerPage()
-        {
-            InitializeComponent();
-        }
-
-        private void Page_Loaded(object sender, RoutedEventArgs e)
-        {
-            setting = Application.Current.LoadSetting();
-            if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
-            if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
-            PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {SimultaneousJobs} / {MaxSimultaneousJobs}";
-
-            tcb = timerCallback;
-            timer = new Timer(tcb);
-            timer.Change(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(1000));
-
-            DownloadItems.ItemsSource = items;
-            if (Window == null) Window = Window.GetWindow(this);
-        }
-
-        private async void timerCallback(object stateInfo)
-        {
-            try
-            {
-                await new Action(() =>
-                {
-                    if (IsLoaded)
-                    {
-                        setting = Application.Current.LoadSetting();
-                        if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
-                        if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
-
-                        var jobs_count = items.Where(i => i.State == DownloadState.Downloading || i.State == DownloadState.Writing).Count();
-                        var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);
-                        foreach (var item in pre_jobs)
-                        {
-                            if (jobs_count < SimultaneousJobs)
-                            {
-                                if (item.AutoStart) item.IsStart = true;
-                                jobs_count++;
-                            }
-                        }
-                        UpdateStateInfo();
-                    }
-                }).InvokeAsync();
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-        }
-
         private async void UpdateStateInfo()
         {
             if (Window is Window && Window.WindowState != WindowState.Minimized)
@@ -209,6 +177,44 @@ namespace PixivWPF.Pages
                     }).InvokeAsync(true);
                 }
             }
+        }
+        #endregion
+
+        #region Items Helper
+        private SemaphoreSlim CanAddItem = new SemaphoreSlim(1, 1);
+        private SemaphoreSlim CanUpdateState = new SemaphoreSlim(1, 1);
+
+        private ObservableCollection<DownloadInfo> items = new ObservableCollection<DownloadInfo>();
+        public ObservableCollection<DownloadInfo> Items
+        {
+            get { return items; }
+        }
+
+        internal void Refresh()
+        {
+            DownloadItems.Items.Refresh();
+        }
+
+        public IList<string> Unfinished()
+        {
+            List<string> result = new List<string>();
+            var unfinished = items.Where(i => i.State != DownloadState.Finished);
+            foreach (var item in unfinished)
+            {
+                result.Add($"Downloading: {item.Url.ParseID()}");
+            }
+            return (result);
+        }
+
+        public IList<DownloadInfo> GetDownloadInfo()
+        {
+            List<DownloadInfo> dis = new List<DownloadInfo>();
+            var items = DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1 ? DownloadItems.SelectedItems : DownloadItems.Items;
+            foreach (var item in DownloadItems.Items)
+            {
+                if (items.Contains(item)) dis.Add(item as DownloadInfo);
+            }
+            return (dis);
         }
 
         private bool IsExists(string url)
@@ -282,21 +288,24 @@ namespace PixivWPF.Pages
                 }
             }
         }
+        #endregion
 
-        internal void Refresh()
+        public DownloadManagerPage()
         {
-            DownloadItems.Items.Refresh();
+            InitializeComponent();
         }
 
-        internal void Start()
+        private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            foreach (var item in items)
-            {
-                //this.button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                //item.PART_Download.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                //item.Start();
-                //item.IsDownloading = true;
-            }
+            setting = Application.Current.LoadSetting();
+            if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
+            if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
+            PART_MaxJobs.ToolTip = $"Max Simultaneous Jobs: {SimultaneousJobs} / {MaxSimultaneousJobs}";
+
+            DownloadItems.ItemsSource = items;
+            InitTaskTimer();
+
+            if (Window == null) Window = Window.GetWindow(this);
         }
 
         private void DownloadItem_TargetUpdated(object sender, DataTransferEventArgs e)

@@ -88,7 +88,6 @@ namespace PixivWPF.Common
         public CustomButton ButtonOpenFile;
         public CustomButton ButtonOpenFolder;
 
-        private System.Timers.Timer autoCloseTimer = null;
         private Setting setting = Application.Current.LoadSetting();
 
         private void SetButton(ToastType type)
@@ -290,22 +289,12 @@ namespace PixivWPF.Common
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            if (autoCloseTimer is System.Timers.Timer)
-            {
-                autoCloseTimer.Enabled = false;
-                autoCloseTimer.Dispose();
-            }
             if (parentWindow is Window)
             {
                 Preview.Dispose();
                 parentWindow = null;
             }
             if (Preview is Image) Preview.Source = null;
-        }
-
-        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            CloseButton_Click(sender, new RoutedEventArgs());
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)

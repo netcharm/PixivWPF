@@ -240,6 +240,7 @@
                HorizontalOffset="78" VerticalOffset="-64" 
                Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center"
                Style="{StaticResource PreviewPopupTrigger}"
+               Opened="PreviewPopup_Opened" Closed="PreviewPopup_Closed"
                MouseEnter="PreviewPopup_MouseEnter" MouseLeave="PreviewPopup_MouseLeave"
                PreviewMouseDown="Page_PreviewMouseDown">
             <Grid x:Name="PopupContainer" >

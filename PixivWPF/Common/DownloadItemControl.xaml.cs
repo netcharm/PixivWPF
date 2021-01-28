@@ -229,6 +229,7 @@ namespace PixivWPF.Common
                 {
                     try
                     {
+                        Instance.PART_ThumbnailWait.Hide();
                         Instance.PART_Preview.Dispose();
                         Instance.CleanBuffer();
                         Instance = null;

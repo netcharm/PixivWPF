@@ -713,11 +713,9 @@ namespace PixivWPF.Common
                         if (lastPrompt is Prompt)
                         {
                             synth.SpeakAsyncCancel(lastPrompt);
-                            //Thread.Sleep(100);
                         }
                         synth.SpeakAsyncCancelAll();
                         Thread.Sleep(50);
-                        //synth.Resume();
                     }
                 }
             }
@@ -748,11 +746,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (synth is SpeechSynthesizer)
-                {
-                    Stop();
-                    synth.Dispose();
-                }
+                if (synth is SpeechSynthesizer) synth.Dispose();
             }
             catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
         }

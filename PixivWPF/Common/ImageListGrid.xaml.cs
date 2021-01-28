@@ -520,10 +520,15 @@ namespace PixivWPF.Common
                 {
                     if (source == null)
                     {
-                        canvas.Background = NullBackground;
-                        canvas.Width = NullBackground.ImageSource.Width;
-                        canvas.Height = NullBackground.ImageSource.Height;
-                        if (!batch) canvas.UpdateLayout();
+                        if (canvas.Background != null)
+                        {
+                            //canvas.Width = 1;
+                            //canvas.Height = 1;
+                            //canvas.Background = NullBackground;
+                            canvas.Background = null;
+                            if (batch) canvas.InvalidateVisual();
+                            else canvas.UpdateLayout();
+                        }
                     }
                     else
                     {
@@ -540,9 +545,9 @@ namespace PixivWPF.Common
         {
             try
             {
+                if (lastTask is Task) lastTask.Dispose();
                 if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
                 {
-                    if (lastTask is Task) lastTask.Dispose();
                     for (var i = 0; i < ItemList.Count; i++)
                     {
                         var item = ItemList[i];
@@ -555,11 +560,9 @@ namespace PixivWPF.Common
                         this.DoEvents();
                     }
                     this.DoEvents();
-                    if (batch)
-                    {
-                        PART_ImageTiles.UpdateLayout();
-                        this.DoEvents();
-                    }
+                    if (batch) PART_ImageTiles.UpdateLayout();
+                    else PART_ImageTiles.InvalidateVisual();
+                    this.DoEvents();
                     ItemList.Clear();
                 }
             }

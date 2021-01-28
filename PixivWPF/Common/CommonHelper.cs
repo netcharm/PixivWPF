@@ -1616,6 +1616,7 @@ namespace PixivWPF.Common
 
         private static async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
+            if (!(toast_list is ConcurrentDictionary<Window, long>) || toast_list.Count > 0) return;
             await new Action(() =>
             {
                 var setting = Application.Current.LoadSetting();
