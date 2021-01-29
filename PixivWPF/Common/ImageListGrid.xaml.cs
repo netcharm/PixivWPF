@@ -201,7 +201,7 @@ namespace PixivWPF.Common
                 var total = scrollViewer.ExtentHeight;
                 result = (int)Math.Round(offset / height) + 1;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -217,7 +217,7 @@ namespace PixivWPF.Common
                 var total = scrollViewer.ExtentHeight;
                 result = (int)Math.Ceiling(total / height);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -233,7 +233,7 @@ namespace PixivWPF.Common
                 scrollViewer.ScrollToVerticalOffset(offset - height);
                 scrollViewer.UpdateLayout();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void PageDown()
@@ -248,7 +248,7 @@ namespace PixivWPF.Common
                 scrollViewer.ScrollToVerticalOffset(offset + height);
                 scrollViewer.UpdateLayout();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void PageFirst()
@@ -259,7 +259,7 @@ namespace PixivWPF.Common
                 scrollViewer.ScrollToHome();
                 scrollViewer.UpdateLayout();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void PageLast()
@@ -270,7 +270,7 @@ namespace PixivWPF.Common
                 scrollViewer.ScrollToEnd();
                 scrollViewer.UpdateLayout();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public bool IsCurrentBeforeFirst { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.IsCurrentBeforeFirst : false); } }
@@ -288,7 +288,7 @@ namespace PixivWPF.Common
                     PART_ImageTiles.Items.MoveCurrentToFirst();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void MoveCurrentToPrevious()
@@ -300,7 +300,7 @@ namespace PixivWPF.Common
                     PART_ImageTiles.Items.MoveCurrentToPrevious();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void MoveCurrentToNext()
@@ -312,7 +312,7 @@ namespace PixivWPF.Common
                     PART_ImageTiles.Items.MoveCurrentToNext();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void MoveCurrentToLast()
@@ -324,7 +324,7 @@ namespace PixivWPF.Common
                     PART_ImageTiles.Items.MoveCurrentToLast();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void ScrollIntoView(object item)
@@ -336,7 +336,7 @@ namespace PixivWPF.Common
                     PART_ImageTiles.ScrollIntoView(item);
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
         #endregion
 
@@ -370,15 +370,14 @@ namespace PixivWPF.Common
                 try
                 {
                     if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-                    e.Handled = scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible ? false : true;
+                    e.Handled = false;// scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible ? true : false;
 
                     var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
                     eventArg.RoutedEvent = MouseWheelEvent;
                     eventArg.Source = this;
-                    var parent = ((Control)sender).Parent as UIElement;
-                    parent.RaiseEvent(eventArg);
+                    RaiseEvent(eventArg);
                 }
-                catch(Exception ex) { ex.Message.DEBUG(); }
+                catch (Exception ex) { ex.Message.DEBUG("TILES"); }
             }
         }
 
@@ -394,15 +393,14 @@ namespace PixivWPF.Common
                 try
                 {
                     if (!(scrollViewer is ScrollViewer)) scrollViewer = PART_ImageTiles.GetVisualChild<ScrollViewer>();
-                    e.Handled = scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible ? false : true;
+                    e.Handled = false;// scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible ? true : false;
 
                     var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
-                    eventArg.RoutedEvent = PreviewMouseWheelEvent;
+                    eventArg.RoutedEvent = MouseWheelEvent;
                     eventArg.Source = this;
-                    var parent = ((Control)sender).Parent as UIElement;
-                    parent.RaiseEvent(eventArg);
+                    RaiseEvent(eventArg);
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR("TILES"); }
             }
         }
 
@@ -543,10 +541,11 @@ namespace PixivWPF.Common
 
         public void Clear(bool batch = true)
         {
+            var count = ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0;
             try
             {
                 if (lastTask is Task) lastTask.Dispose();
-                if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
+                if (count > 0)
                 {
                     for (var i = 0; i < ItemList.Count; i++)
                     {
@@ -566,17 +565,20 @@ namespace PixivWPF.Common
                     ItemList.Clear();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             finally
             {
                 if (CanvasList is ConcurrentDictionary<string, Canvas>) CanvasList.Clear();
                 if (RingList is ConcurrentDictionary<string, ProgressRingCloud>) RingList.Clear();
 
-                double M = 1024.0 * 1024.0;
-                var before = GC.GetTotalMemory(true);
-                GC.Collect();
-                var after = GC.GetTotalMemory(true);
-                $"Memory Usage: {before / M:F2}M => {after / M:F2}M".DEBUG();
+                if (count > 0)
+                {
+                    double M = 1024.0 * 1024.0;
+                    var before = GC.GetTotalMemory(true);
+                    GC.Collect();
+                    var after = GC.GetTotalMemory(true);
+                    $"Memory Usage: {before / M:F2}M => {after / M:F2}M".DEBUG();
+                }
             }
         }
 
@@ -674,7 +676,7 @@ namespace PixivWPF.Common
                     }
                     ring.UpdateState();
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
         }
 
@@ -695,7 +697,7 @@ namespace PixivWPF.Common
                     canvas.UpdateLayout();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
     }
 }

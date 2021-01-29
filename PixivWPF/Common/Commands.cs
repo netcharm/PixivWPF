@@ -19,6 +19,29 @@ using PixivWPF.Pages;
 
 namespace PixivWPF.Common
 {
+    #region ICommand Json Converter
+    public class ICommandTypeConverter<T> : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            //assume we can convert to anything for now
+            return (objectType == typeof(ICommand));
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            //explicitly specify the concrete type we want to create
+            return serializer.Deserialize<T>(reader);
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            //use the default serialization - it works fine
+            serializer.Serialize(writer, value);
+        }
+    }
+    #endregion
+
     public class SimpleCommand : ICommand
     {
         public Predicate<object> CanExecuteDelegate { get; set; }
@@ -65,7 +88,7 @@ namespace PixivWPF.Common
                 if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
                     result = true;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR("SUBPAGES"); }
             return (result);
         }
 
@@ -80,7 +103,7 @@ namespace PixivWPF.Common
                     gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
                     result = true;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR("GALLARY"); }
             return (result);
         }
 
@@ -153,7 +176,7 @@ namespace PixivWPF.Common
                     CopyText.Execute(obj);
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR("COPY"); }
         });
 
         public static ICommand CopyArtworkIDs { get; } = new DelegateCommand<dynamic>(obj =>
@@ -498,7 +521,7 @@ namespace PixivWPF.Common
                         OpenUser.Execute(item.User);
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR("OPEN"); }
             }
             else if (obj is ImageListGrid)
             {
@@ -871,7 +894,7 @@ namespace PixivWPF.Common
                         Uri url = null;
                         if (!string.IsNullOrEmpty(s) && Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out url)) ShellOpenFile.Execute(url);
                     }
-                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                    catch (Exception ex) { ex.ERROR("CACHEDIMAGE"); }
                 }
                 else if (obj is ImageListGrid)
                 {
@@ -1101,7 +1124,7 @@ namespace PixivWPF.Common
                         }).InvokeAsync(true);
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR("DOWNLOADMANAGER"); }
                 finally
                 {
                     if (CanOpenDownloadManager is SemaphoreSlim && CanOpenDownloadManager.CurrentCount <= 0) CanOpenDownloadManager.Release();
@@ -1172,7 +1195,7 @@ namespace PixivWPF.Common
                                 OpenSearch.Execute(link);
                             }).InvokeAsync();
                         }
-                        catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                        catch (Exception ex) { ex.ERROR("SEARCH"); }
                     }
                 }).InvokeAsync();
             }
@@ -1640,7 +1663,7 @@ namespace PixivWPF.Common
                         if (File.Exists(fp_d)) fp_d.OpenFileWithShell();
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR("SHELL"); }
             }
             else if (obj is PixivItem)
             {
@@ -1683,7 +1706,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR("SAVEOPENED"); }
             }).InvokeAsync();
         });
 
@@ -1702,7 +1725,7 @@ namespace PixivWPF.Common
                         OpenSearch.Execute(links);
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR("LOADLASTOPENED"); }
             }).InvokeAsync();
         });
 
@@ -1714,6 +1737,50 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(content))
                 {
                     content.Play();
+                }
+            }
+        });
+
+        public static ICommand WriteLogs { get; } = new DelegateCommand<string>(obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
+                if (!string.IsNullOrEmpty(content))
+                {
+                    content.INFO();
+                }
+            }
+        });
+
+        public static ICommand OpenLogs { get; } = new DelegateCommand<string>(async obj =>
+        {
+            setting = Application.Current.LoadSetting();
+            var logs = Application.Current.GetLogs();
+
+            if (obj is string && !string.IsNullOrEmpty(obj as string))
+            {
+                var content = obj as string;
+                foreach (var log in logs)
+                {
+                    if (log.ToLower().Contains(content.ToLower()))
+                    {
+                        await new Action(() =>
+                        {
+                            log.OpenFileWithShell(command: setting.ShellLogViewer);
+                        }).InvokeAsync(true);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var log in logs)
+                {                    
+                    await new Action(() =>
+                    {
+                        log.OpenFileWithShell(command: setting.ShellLogViewer);
+                    }).InvokeAsync(true);
                 }
             }
         });

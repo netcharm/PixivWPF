@@ -16,6 +16,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Permissions;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -31,16 +32,15 @@ using System.Windows.Threading;
 
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using Dfust.Hotkeys;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using WPFNotification.Core.Configuration;
 using WPFNotification.Model;
 using WPFNotification.Services;
-using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
 using PixivWPF.Pages;
-using Dfust.Hotkeys;
-using Newtonsoft.Json.Converters;
-using System.Runtime.InteropServices;
 
 namespace PixivWPF.Common
 {
@@ -125,7 +125,7 @@ namespace PixivWPF.Common
                     axIWebBrowser2.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, axIWebBrowser2, new object[] { true });
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
     }
 
@@ -196,7 +196,7 @@ namespace PixivWPF.Common
                 X20 = X * 2.0;
                 Y20 = Y * 2.0;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static DPI GetDefault(Visual visual)
@@ -211,7 +211,7 @@ namespace PixivWPF.Common
                 var sy = ds.DpiScaleY;
                 dpi = new DPI(x, y, sx, sy);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -232,7 +232,7 @@ namespace PixivWPF.Common
                     dpiY = 96.0 * scaleY;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return new DPI(dpiX, dpiY, scaleX, scaleY);
         }
 
@@ -251,7 +251,7 @@ namespace PixivWPF.Common
                 if (dpiXProperty != null) { dpiX = (int)dpiXProperty.GetValue(null, null); }
                 if (dpiYProperty != null) { dpiY = (int)dpiYProperty.GetValue(null, null); }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return new DPI(dpiX, dpiY, scaleX, scaleY);
         }
     }
@@ -310,28 +310,6 @@ namespace PixivWPF.Common
     }
     #endregion
 
-    #region ICommand Json Converter
-    public class ICommandTypeConverter<T> : JsonConverter
-    {
-        public override bool CanConvert(Type objectType)
-        {
-            //assume we can convert to anything for now
-            return (objectType == typeof(ICommand));
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            //explicitly specify the concrete type we want to create
-            return serializer.Deserialize<T>(reader);
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            //use the default serialization - it works fine
-            serializer.Serialize(writer, value);
-        }
-    }
-    #endregion
     #region Hotkey
     public class HotKeyConfig
     {
@@ -361,8 +339,9 @@ namespace PixivWPF.Common
                 var setting = app.LoadSetting();
                 if (setting is Setting) setting.Save(full);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                ex.ERROR();
                 if (Setting.Instance is Setting) Setting.Instance.Save(full);
             }
         }
@@ -399,7 +378,491 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Theme Helper
+        #region Application Information
+        private static string root = string.Empty;
+        public static string Root
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(root)) root = GetRoot();
+                return (root);
+            }
+        }
+
+        public static string GetRoot()
+        {
+            return (Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", ""));
+        }
+
+        public static string GetRoot(this Application app)
+        {
+            return (Root);
+        }
+
+        public static string Version(this Application app, bool alt = false)
+        {
+            var version = alt ? Assembly.GetCallingAssembly().GetName().Version : Assembly.GetExecutingAssembly().GetName().Version;
+            return (version.ToString());
+            //return (Application.ResourceAssembly.GetName().Version.ToString());
+        }
+
+        private static int pid = -1;
+        public static int PID
+        {
+            get
+            {
+                if (pid < 0) pid = CurrentProcess.Id;
+                return (pid);
+            }
+        }
+
+        public static int GetPID(this Application app)
+        {
+            return (PID);
+        }
+
+        private static string processor_id = string.Empty;
+        public static string ProcessorID
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(processor_id)) processor_id = GetProcessorID();
+                return (processor_id);
+            }
+        }
+
+        public static string GetProcessorID()
+        {
+            string result = string.Empty;
+
+            ManagementObjectSearcher mos = new ManagementObjectSearcher("select * from Win32_Processor");
+            foreach (ManagementObject mo in mos.Get())
+            {
+                try
+                {
+                    result = mo["ProcessorId"].ToString();
+                    break;
+                }
+                catch (Exception ex) { ex.ERROR(); continue; }
+
+                //foreach (PropertyData p in mo.Properties)
+                //{
+                //    if(p.Name.Equals("ProcessorId", StringComparison.CurrentCultureIgnoreCase))
+                //    {
+                //        result = p.Value.ToString();
+                //        break;
+                //    }
+                //}
+                //if (string.IsNullOrEmpty(result)) break;
+            }
+
+            return (result);
+        }
+
+        public static string GetProcessorID(this Application app)
+        {
+            return (ProcessorID);
+        }
+
+        private static string machine_id = string.Empty;
+        public static string MachineID
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(machine_id)) machine_id = GetDeviceId();
+                return (machine_id);
+            }
+        }
+
+        public static string GetDeviceId()
+        {
+            var result = ProcessorID;
+            try
+            {
+                string location = @"SOFTWARE\Microsoft\Cryptography";
+                string name = "MachineGuid";
+
+                var view = Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32;
+                using (RegistryKey localMachineX64View = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view))
+                {
+                    using (RegistryKey rk = localMachineX64View.OpenSubKey(location))
+                    {
+                        if (rk == null)
+                            throw new KeyNotFoundException(string.Format("Key Not Found: {0}", location));
+
+                        object machineGuid = rk.GetValue(name);
+                        if (machineGuid == null)
+                            throw new IndexOutOfRangeException(string.Format("Index Not Found: {0}", name));
+
+                        result = machineGuid.ToString().Replace("-", "");
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static string GetDeviceId(this Application app)
+        {
+            return (MachineID);
+        }
+
+        private static Process current_process = null;
+        private static Process CurrentProcess
+        {
+            get
+            {
+                if (current_process == null) current_process = System.Diagnostics.Process.GetCurrentProcess();
+                return (current_process);
+            }
+        }
+
+        public static Process GetCurrentProcess(this Application app)
+        {
+            return (CurrentProcess);
+        }
+
+        private static string pipe_name = string.Empty;
+        public static string PipeName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(pipe_name)) pipe_name = PipeServerName();
+                return (pipe_name);
+            }
+        }
+
+        public static string PipeServerName()
+        {
+#if DEBUG
+            return ($"PixivWPF-Search-Debug-{Application.Current.GetPID()}");
+#else
+            return ($"PixivWPF-Search-{Application.Current.GetPID()}");
+#endif
+        }
+
+        public static string PipeServerName(this Application app)
+        {
+            return (PipeName);
+        }
+
+        public static bool Exists(this Application app)
+        {
+            bool result = false;
+            var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
+            foreach (var pipe in pipes)
+            {
+                if (Regex.IsMatch(pipe, $@"PixivWPF-Search-\d+", RegexOptions.IgnoreCase))
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return (result);
+        }
+
+        public static async void Active(this Application app, string param = "")
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(param) || $"{PID}".Equals(param))
+                {
+                    await new Action(() =>
+                    {
+                        var main = app.GetMainWindow();
+                        if (main is Window)
+                        {
+                            main.Activate();
+                        }
+                    }).InvokeAsync(true);
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+        }
+
+        public static bool Activate(this Application app)
+        {
+            bool result = false;
+            try
+            {
+#if DEBUG
+                var pat = $@"(.*?)PixivWPF-Search-Debug-(\d+)";
+#else
+                var pat = $@"(.*?)PixivWPF-Search-(\d+)";
+#endif
+                var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
+                foreach (var pipe in pipes)
+                {
+                    if (Regex.IsMatch(pipe, pat, RegexOptions.IgnoreCase))
+                    {
+                        result = true;
+                        var pid = Regex.Replace(pipe, pat, "$2", RegexOptions.IgnoreCase);
+                        var cmd = string.IsNullOrEmpty(pid) ? $"Cmd:Active" : $"Cmd:Active:{pid}";
+                        Commands.SendToOtherInstance.Execute(cmd);
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
+        public static bool ProcessCommand(this Application app, string command)
+        {
+            bool result = false;
+            try
+            {
+                var kv = command.Substring(4).Split(new char[] { '-', '_', ':', '+', '=' });
+                var action = kv[0];
+                var param = kv.Length == 2 ? kv[1] : string.Empty;
+                if (action.StartsWith("min", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Application.Current.MinimizedWindows(string.IsNullOrEmpty(param) ? "r18" : param);
+                }
+                else if (action.StartsWith("active", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Application.Current.Active(param);
+                }
+                else if(action.StartsWith("openlog", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Commands.OpenLogs.Execute(param);
+                }
+                else if (action.StartsWith("writelog", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if(!string.IsNullOrEmpty(param)) Commands.WriteLogs.Execute(param);
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+        #endregion
+
+        #region Application Config files Watchdog
+        private static ConcurrentDictionary<string, FileSystemWatcher> _watchers = new ConcurrentDictionary<string, FileSystemWatcher>();
+        //private static DateTime lastConfigEventTick = DateTime.Now;
+        //private static string lastConfigEventFile = string.Empty;
+        //private static WatcherChangeTypes lastConfigEventType = WatcherChangeTypes.All;
+
+        private static void OnConfigChanged(object source, FileSystemEventArgs e)
+        {
+#if DEBUG
+            // Specify what is done when a file is changed, created, or deleted.
+            $"File: {e.FullPath} {e.ChangeType}".INFO();
+#endif
+            try
+            {
+                //if (e.ChangeType == lastConfigEventType &&
+                //    e.FullPath == lastConfigEventFile &&
+                //    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
+                var fn = e.FullPath;
+                if (e.ChangeType == WatcherChangeTypes.Created)
+                {
+                    if (File.Exists(e.FullPath))
+                    {
+                        if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            //Setting.Load(true, false);
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Setting.LoadCustomTags(true);
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Setting.LoadCustomWidecardTags(true);
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Setting.UpdateContentsTemplete();
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                    }
+                }
+                else if (e.ChangeType == WatcherChangeTypes.Changed)
+                {
+                    if (File.Exists(e.FullPath))
+                    {
+                        if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Setting.Load(true, false);
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            //Setting.LoadTags(false, true);
+                            Setting.LoadCustomTags(true);
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Setting.LoadCustomWidecardTags(true);
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                        else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Setting.UpdateContentsTemplete();
+                            //lastConfigEventTick = DateTime.Now;
+                        }
+                    }
+                }
+                else if (e.ChangeType == WatcherChangeTypes.Deleted)
+                {
+                    if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        //lastConfigEventTick = DateTime.Now;
+                    }
+                    else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Setting.LoadCustomTags(true);
+                        //lastConfigEventTick = DateTime.Now;
+                    }
+                    else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Setting.LoadCustomWidecardTags(true);
+                        //lastConfigEventTick = DateTime.Now;
+                    }
+                    else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Setting.UpdateContentsTemplete();
+                        //lastConfigEventTick = DateTime.Now;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            finally
+            {
+                //lastConfigEventTick = DateTime.Now;
+                //lastConfigEventFile = e.FullPath;
+                //lastConfigEventType = e.ChangeType;
+            }
+        }
+
+        private static void OnConfigRenamed(object source, RenamedEventArgs e)
+        {
+#if DEBUG
+            // Specify what is done when a file is renamed.
+            $"File: {e.OldFullPath} renamed to {e.FullPath}".INFO();
+#endif
+            try
+            {
+                //if (e.ChangeType == lastConfigEventType &&
+                //    e.FullPath == lastConfigEventFile &&
+                //    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
+
+                var fn_o = e.OldFullPath;
+                var fn_n = e.FullPath;
+                if (e.ChangeType == WatcherChangeTypes.Renamed)
+                {
+                    if (fn_o.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase) ||
+                        fn_n.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        //lastConfigEventTick = DateTime.Now;
+                    }
+                    else if (fn_o.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) ||
+                        fn_n.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Setting.LoadCustomTags(true);
+                        //lastConfigEventTick = DateTime.Now;
+                    }
+                    else if (fn_o.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase) ||
+                        fn_n.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Setting.LoadCustomWidecardTags(true);
+                        //lastConfigEventTick = DateTime.Now;
+                    }
+                    else if (fn_o.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) ||
+                        fn_n.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Setting.UpdateContentsTemplete();
+                        //lastConfigEventTick = DateTime.Now;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            finally
+            {
+                //lastConfigEventTick = DateTime.Now;
+                //lastConfigEventFile = e.FullPath;
+                //lastConfigEventType = e.ChangeType;
+            }
+        }
+
+        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+        public static void InitAppWatcher(this Application app, string folder)
+        {
+            try
+            {
+                Application.Current.ReleaseAppWatcher();
+                var watcher = new FileSystemWatcher(folder, "*.*")
+                {
+                    //NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.DirectoryName,
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName, //| NotifyFilters.Size | NotifyFilters.DirectoryName,
+                    IncludeSubdirectories = false
+                };
+                watcher.Changed += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Created += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Deleted += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Renamed += new RenamedEventHandler(OnConfigRenamed);
+                //watcher.Changed += OnConfigChanged;
+                //watcher.Created += OnConfigChanged;
+                //watcher.Deleted += OnConfigChanged;
+                //watcher.Renamed += OnConfigRenamed;
+
+                // Begin watching.
+                watcher.EnableRaisingEvents = true;
+                _watchers[folder] = watcher;
+            }
+            catch (Exception ex) { ex.ERROR(); }
+        }
+
+        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+        public static void AddAppWatcher(this Application app, string folder, string filter = "*.*", bool IncludeSubFolder = false)
+        {
+            if (Directory.Exists(folder) && !_watchers.ContainsKey(folder))
+            {
+                folder.UpdateDownloadedListCacheAsync();
+                var watcher = new FileSystemWatcher(folder, filter)
+                {
+                    //NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
+                    IncludeSubdirectories = IncludeSubFolder
+                };
+                watcher.Changed += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Created += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Deleted += new FileSystemEventHandler(OnConfigChanged);
+                watcher.Renamed += new RenamedEventHandler(OnConfigRenamed);
+                // Begin watching.
+                watcher.EnableRaisingEvents = true;
+
+                _watchers[folder] = watcher;
+            }
+        }
+
+        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+        public static void ReleaseAppWatcher(this Application app)
+        {
+            if (_watchers is ConcurrentDictionary<string, FileSystemWatcher>)
+            {
+                foreach (var w in _watchers)
+                {
+                    try
+                    {
+                        if (w.Value is FileSystemWatcher)
+                        {
+                            w.Value.Dispose();
+                        }
+                    }
+                    catch { }
+                }
+                _watchers.Clear();
+            }
+        }
+        #endregion
+
+        #region Application Theme Helper
         public static IList<string> GetAccents(this Application app)
         {
             return (Theme.Accents);
@@ -543,7 +1006,7 @@ namespace PixivWPF.Common
                 else
                     result = 0;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -554,7 +1017,7 @@ namespace PixivWPF.Common
                 Theme.CurrentAccent = accent;
                 app.UpdateTheme();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void SetStyle(this Application app, string style)
@@ -564,7 +1027,7 @@ namespace PixivWPF.Common
                 Theme.CurrentStyle = style;
                 app.UpdateTheme();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void SetTheme(this Application app, string theme)
@@ -574,7 +1037,7 @@ namespace PixivWPF.Common
                 Theme.Change(theme);
                 app.UpdateTheme();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void SetTheme(this Application app, string style, string accent)
@@ -584,7 +1047,7 @@ namespace PixivWPF.Common
                 Theme.Change(style, accent);
                 app.UpdateTheme();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void ToggleTheme(this Application app)
@@ -594,7 +1057,7 @@ namespace PixivWPF.Common
                 Theme.Toggle();
                 app.UpdateTheme();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void UpdateTheme(this Application app)
@@ -603,7 +1066,7 @@ namespace PixivWPF.Common
             {
                 CommonHelper.UpdateTheme();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void SetThemeSync(this Application app, string mode = "")
@@ -627,752 +1090,11 @@ namespace PixivWPF.Common
 
                 Theme.SetSyncMode(sync);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
         #endregion
 
-        #region Application/System Information
-        private static string root = string.Empty;
-        public static string Root
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(root)) root = GetRoot();
-                return (root);
-            }
-        }
-
-        public static string GetRoot()
-        {
-            return (Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", ""));
-        }
-
-        public static string GetRoot(this Application app)
-        {
-            return (Root);
-        }
-
-        public static string Version(this Application app, bool alt = false)
-        {
-            var version = alt ? Assembly.GetCallingAssembly().GetName().Version : Assembly.GetExecutingAssembly().GetName().Version;
-            return (version.ToString());
-            //return (Application.ResourceAssembly.GetName().Version.ToString());
-        }
-
-        private static int pid = -1;
-        public static int PID
-        {
-            get
-            {
-                if (pid < 0) pid = CurrentProcess.Id;
-                return (pid);
-            }
-        }
-
-        public static int GetPID(this Application app)
-        {
-            return (PID);
-        }
-
-        private static string processor_id = string.Empty;
-        public static string ProcessorID
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(processor_id)) processor_id = GetProcessorID();
-                return (processor_id);
-            }
-        }
-
-        public static string GetProcessorID()
-        {
-            string result = string.Empty;
-
-            ManagementObjectSearcher mos = new ManagementObjectSearcher("select * from Win32_Processor");
-            foreach (ManagementObject mo in mos.Get())
-            {
-                try
-                {
-                    result = mo["ProcessorId"].ToString();
-                    break;
-                }
-                catch (Exception) { continue; }
-
-                //foreach (PropertyData p in mo.Properties)
-                //{
-                //    if(p.Name.Equals("ProcessorId", StringComparison.CurrentCultureIgnoreCase))
-                //    {
-                //        result = p.Value.ToString();
-                //        break;
-                //    }
-                //}
-                //if (string.IsNullOrEmpty(result)) break;
-            }
-
-            return (result);
-        }
-
-        public static string GetProcessorID(this Application app)
-        {
-            return (ProcessorID);
-        }
-
-        private static string machine_id = string.Empty;
-        public static string MachineID
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(machine_id)) machine_id = GetDeviceId();
-                return (machine_id);
-            }
-        }
-
-        public static string GetDeviceId()
-        {
-            var result = ProcessorID;
-            try
-            {
-                string location = @"SOFTWARE\Microsoft\Cryptography";
-                string name = "MachineGuid";
-
-                var view = Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32;
-                using (RegistryKey localMachineX64View = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view))
-                {
-                    using (RegistryKey rk = localMachineX64View.OpenSubKey(location))
-                    {
-                        if (rk == null)
-                            throw new KeyNotFoundException(string.Format("Key Not Found: {0}", location));
-
-                        object machineGuid = rk.GetValue(name);
-                        if (machineGuid == null)
-                            throw new IndexOutOfRangeException(string.Format("Index Not Found: {0}", name));
-
-                        result = machineGuid.ToString().Replace("-", "");
-                    }
-                }
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-            return (result);
-        }
-
-        public static string GetDeviceId(this Application app)
-        {
-            return (MachineID);
-        }
-
-        private static Process current_process = null;
-        private static Process CurrentProcess
-        {
-            get
-            {
-                if(current_process == null) current_process = System.Diagnostics.Process.GetCurrentProcess();
-                return (current_process);
-            }
-        }
-
-        public static Process GetCurrentProcess(this Application app)
-        {
-            return (CurrentProcess);
-        }
-
-        private static string pipe_name = string.Empty;
-        public static string PipeName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(pipe_name)) pipe_name = PipeServerName();
-                return (pipe_name);
-            }
-        }
-
-        public static string PipeServerName()
-        {
-#if DEBUG
-            return ($"PixivWPF-Search-Debug-{Application.Current.GetPID()}");
-#else
-            return ($"PixivWPF-Search-{Application.Current.GetPID()}");
-#endif
-        }
-
-        public static string PipeServerName(this Application app)
-        {
-            return (PipeName);
-        }
-        
-        public static bool Exists(this Application app)
-        {
-            bool result = false;
-            var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
-            foreach(var pipe in pipes)
-            {
-                if (Regex.IsMatch(pipe, $@"PixivWPF-Search-\d+", RegexOptions.IgnoreCase))
-                {
-                    result = true;
-                    break;
-                }
-            }
-            return (result);
-        }
-
-        public static async void Active(this Application app, string param = "")
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(param) || $"{PID}".Equals(param))
-                {
-                    await new Action(() =>
-                    {
-                        var main = app.GetMainWindow();
-                        if (main is Window)
-                        {
-                            main.Activate();
-                        }
-                    }).InvokeAsync(true);
-                }
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-        }
-
-        public static bool Activate(this Application app)
-        {
-            bool result = false;
-            try
-            {
-#if DEBUG
-                var pat = $@"(.*?)PixivWPF-Search-Debug-(\d+)";
-#else
-                var pat = $@"(.*?)PixivWPF-Search-(\d+)";
-#endif
-                var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
-                foreach (var pipe in pipes)
-                {
-                    if (Regex.IsMatch(pipe, pat, RegexOptions.IgnoreCase))
-                    {
-                        result = true;
-                        var pid = Regex.Replace(pipe, pat, "$2", RegexOptions.IgnoreCase);
-                        var cmd = string.IsNullOrEmpty(pid) ? $"Cmd:Active" : $"Cmd:Active:{pid}";
-                        Commands.SendToOtherInstance.Execute(cmd);
-                        break;
-                    }
-                }
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-            return (result);
-        }
-
-        public static bool ProcessCommand(this Application app, string command)
-        {
-            bool result = false;
-            try
-            {
-                var kv = command.Substring(4).Split(new char[] { '-', '_', ':', '+', '=' });
-                var action = kv[0];
-                var param = kv.Length == 2 ? kv[1] : string.Empty;
-                if (action.StartsWith("min", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    Application.Current.MinimizedWindows(string.IsNullOrEmpty(param) ? "r18" : param);
-                }
-                else if (action.StartsWith("active", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    Application.Current.Active(param);
-                }
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-            return (result);
-        }
-        #endregion
-
-        #region Config files Watchdog
-        private static ConcurrentDictionary<string, FileSystemWatcher> _watchers = new ConcurrentDictionary<string, FileSystemWatcher>();
-        //private static DateTime lastConfigEventTick = DateTime.Now;
-        //private static string lastConfigEventFile = string.Empty;
-        //private static WatcherChangeTypes lastConfigEventType = WatcherChangeTypes.All;
-
-        private static void OnConfigChanged(object source, FileSystemEventArgs e)
-        {
-#if DEBUG
-            // Specify what is done when a file is changed, created, or deleted.
-            $"File: {e.FullPath} {e.ChangeType}".DEBUG();
-#endif
-            try
-            {
-                //if (e.ChangeType == lastConfigEventType &&
-                //    e.FullPath == lastConfigEventFile &&
-                //    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
-                var fn = e.FullPath;
-                if (e.ChangeType == WatcherChangeTypes.Created)
-                {
-                    if (File.Exists(e.FullPath))
-                    {
-                        if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            //Setting.Load(true, false);
-                            //lastConfigEventTick = DateTime.Now;
-                        }
-                        else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            Setting.LoadCustomTags(true);
-                            //lastConfigEventTick = DateTime.Now;
-                        }
-                        else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            Setting.LoadCustomWidecardTags(true);
-                            //lastConfigEventTick = DateTime.Now;
-                        }
-                        else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            Setting.UpdateContentsTemplete();
-                            //lastConfigEventTick = DateTime.Now;
-                        }
-                    }
-                }
-                else if (e.ChangeType == WatcherChangeTypes.Changed)
-                {
-                    if (File.Exists(e.FullPath))
-                    {
-                        if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            Setting.Load(true, false);
-                            //lastConfigEventTick = DateTime.Now;
-                        }
-                        else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            //Setting.LoadTags(false, true);
-                            Setting.LoadCustomTags(true);
-                            //lastConfigEventTick = DateTime.Now;
-                        }
-                        else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            Setting.LoadCustomWidecardTags(true);
-                            //lastConfigEventTick = DateTime.Now;
-                        }
-                        else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            Setting.UpdateContentsTemplete();
-                            //lastConfigEventTick = DateTime.Now;
-                        }
-                    }
-                }
-                else if (e.ChangeType == WatcherChangeTypes.Deleted)
-                {
-                    if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        //lastConfigEventTick = DateTime.Now;
-                    }
-                    else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        Setting.LoadCustomTags(true);
-                        //lastConfigEventTick = DateTime.Now;
-                    }
-                    else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        Setting.LoadCustomWidecardTags(true);
-                        //lastConfigEventTick = DateTime.Now;
-                    }
-                    else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        Setting.UpdateContentsTemplete();
-                        //lastConfigEventTick = DateTime.Now;
-                    }
-                }
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-            finally
-            {
-                //lastConfigEventTick = DateTime.Now;
-                //lastConfigEventFile = e.FullPath;
-                //lastConfigEventType = e.ChangeType;
-            }
-        }
-
-        private static void OnConfigRenamed(object source, RenamedEventArgs e)
-        {
-#if DEBUG
-            // Specify what is done when a file is renamed.
-            $"File: {e.OldFullPath} renamed to {e.FullPath}".DEBUG();
-#endif
-            try
-            {
-                //if (e.ChangeType == lastConfigEventType &&
-                //    e.FullPath == lastConfigEventFile &&
-                //    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
-
-                var fn_o = e.OldFullPath;
-                var fn_n = e.FullPath;
-                if (e.ChangeType == WatcherChangeTypes.Renamed)
-                {
-                    if (fn_o.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase) ||
-                        fn_n.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        //lastConfigEventTick = DateTime.Now;
-                    }
-                    else if (fn_o.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) ||
-                        fn_n.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        Setting.LoadCustomTags(true);
-                        //lastConfigEventTick = DateTime.Now;
-                    }
-                    else if (fn_o.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase) ||
-                        fn_n.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        Setting.LoadCustomWidecardTags(true);
-                        //lastConfigEventTick = DateTime.Now;
-                    }
-                    else if (fn_o.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) ||
-                        fn_n.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        Setting.UpdateContentsTemplete();
-                        //lastConfigEventTick = DateTime.Now;
-                    }
-                }
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-            finally
-            {
-                //lastConfigEventTick = DateTime.Now;
-                //lastConfigEventFile = e.FullPath;
-                //lastConfigEventType = e.ChangeType;
-            }
-        }
-
-        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void InitAppWatcher(this Application app, string folder)
-        {
-            try
-            {
-                Application.Current.ReleaseAppWatcher();
-                var watcher = new FileSystemWatcher(folder, "*.*")
-                {
-                    //NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.DirectoryName,
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName, //| NotifyFilters.Size | NotifyFilters.DirectoryName,
-                    IncludeSubdirectories = false
-                };
-                watcher.Changed += new FileSystemEventHandler(OnConfigChanged);
-                watcher.Created += new FileSystemEventHandler(OnConfigChanged);
-                watcher.Deleted += new FileSystemEventHandler(OnConfigChanged);
-                watcher.Renamed += new RenamedEventHandler(OnConfigRenamed);
-                //watcher.Changed += OnConfigChanged;
-                //watcher.Created += OnConfigChanged;
-                //watcher.Deleted += OnConfigChanged;
-                //watcher.Renamed += OnConfigRenamed;
-
-                // Begin watching.
-                watcher.EnableRaisingEvents = true;
-                _watchers[folder] = watcher;
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-        }
-
-        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void AddAppWatcher(this Application app, string folder, string filter = "*.*", bool IncludeSubFolder = false)
-        {
-            if (Directory.Exists(folder) && !_watchers.ContainsKey(folder))
-            {
-                folder.UpdateDownloadedListCacheAsync();
-                var watcher = new FileSystemWatcher(folder, filter)
-                {
-                    //NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
-                    IncludeSubdirectories = IncludeSubFolder
-                };
-                watcher.Changed += new FileSystemEventHandler(OnConfigChanged);
-                watcher.Created += new FileSystemEventHandler(OnConfigChanged);
-                watcher.Deleted += new FileSystemEventHandler(OnConfigChanged);
-                watcher.Renamed += new RenamedEventHandler(OnConfigRenamed);
-                // Begin watching.
-                watcher.EnableRaisingEvents = true;
-
-                _watchers[folder] = watcher;
-            }
-        }
-
-        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void ReleaseAppWatcher(this Application app)
-        {
-            if (_watchers is ConcurrentDictionary<string, FileSystemWatcher>)
-            {
-                foreach (var w in _watchers)
-                {
-                    try
-                    {
-                        if (w.Value is FileSystemWatcher)
-                        {
-                            w.Value.Dispose();
-                        }
-                    }
-                    catch { }
-                }
-                _watchers.Clear();
-            }
-        }
-        #endregion
-
-        #region Maybe reduce UI frozen
-        private static object ExitFrame(object state)
-        {
-            ((DispatcherFrame)state).Continue = false;
-            return null;
-        }
-
-        private static SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
-        public static async void DoEvents()
-        {
-            if (await CanDoEvents.WaitAsync(0))
-            {
-                try
-                {
-                    if (Application.Current.Dispatcher.CheckAccess())
-                    {
-                        await Dispatcher.Yield(DispatcherPriority.Render);
-                        //await System.Windows.Threading.Dispatcher.Yield();
-
-                        //DispatcherFrame frame = new DispatcherFrame();
-                        //await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-                        //Dispatcher.PushFrame(frame);
-                    }
-                }
-                catch (Exception)
-                {
-                    try
-                    {
-                        if (Application.Current.Dispatcher.CheckAccess())
-                        {
-                            DispatcherFrame frame = new DispatcherFrame();
-                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
-                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
-
-                            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
-                            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
-                            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
-                            Dispatcher.PushFrame(frame);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        await Task.Delay(1);
-                    }
-                }
-                finally
-                {
-                    if (CanDoEvents is SemaphoreSlim && CanDoEvents.CurrentCount <= 0) CanDoEvents.Release();
-                }
-            }
-        }
-
-        public static void DoEvents(this object obj)
-        {
-            DoEvents();
-        }
-
-        public static void Sleep(int ms)
-        {
-            //Task.Delay(ms);
-            for (int i = 0; i < ms; i += 10)
-            {
-                //Task.Delay(5);
-                Thread.Sleep(5);
-                DoEvents();
-            }
-        }
-
-        public static void Sleep(this UIElement obj, int ms)
-        {
-            Sleep(ms);
-        }
-
-        public static async void Delay(int ms)
-        {
-            await Task.Delay(ms);
-        }
-
-        public static async Task DelayAsync(int ms)
-        {
-            await Task.Delay(ms);
-        }
-
-        public static void Delay(this object obj, int ms)
-        {
-            Delay(ms);
-        }
-
-        public static async Task DelayAsync(this object obj, int ms)
-        {
-            await DelayAsync(ms);
-        }
-        #endregion
-
-        #region Invoke/InvokeAsync
-        public static Dispatcher Dispatcher = Application.Current is Application ? Application.Current.Dispatcher : Dispatcher.CurrentDispatcher;
-        public static Dispatcher AppDispatcher(this object obj)
-        {
-            if (Application.Current is Application)
-                return (Application.Current.Dispatcher);
-            else
-                return (Dispatcher.CurrentDispatcher);
-        }
-
-        public static async Task Invoke(this Action action)
-        {
-            Dispatcher dispatcher = action.AppDispatcher();
-
-            await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
-        }
-
-        public static async Task InvokeAsync(this Action action, bool realtime = false)
-        {
-            try
-            {
-                Dispatcher dispatcher = action.AppDispatcher();
-                if (realtime)
-                    await dispatcher.InvokeAsync(action, DispatcherPriority.Send);
-                else
-                    await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-        }
-
-        public static async Task InvokeAsync(this Action action, CancellationToken cancelToken, bool realtime = false)
-        {
-            try
-            {
-                Dispatcher dispatcher = action.AppDispatcher();
-                if (realtime)
-                    await dispatcher.InvokeAsync(action, DispatcherPriority.Send, cancelToken);
-                else
-                    await dispatcher.InvokeAsync(action, DispatcherPriority.Background, cancelToken);
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-        }
-
-        public static async Task InvokeAsync(this Action action, DispatcherPriority priority)
-        {
-            try
-            {
-                Dispatcher dispatcher = action.AppDispatcher();
-                await dispatcher.InvokeAsync(action, priority);
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-        }
-
-        public static async Task InvokeAsync(this Action action, DispatcherPriority priority, CancellationToken cancelToken)
-        {
-            try
-            {
-                Dispatcher dispatcher = action.AppDispatcher();
-                await dispatcher.InvokeAsync(action, priority, cancelToken);
-            }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-        }
-
-        #endregion
-
-        #region AES Encrypt/Decrypt helper
-        public static string AesEncrypt(this string text, string skey, bool auto = true)
-        {
-            string encrypt = string.Empty;
-            try
-            {
-                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
-                {
-                    var uni_skey = $"{ProcessorID}{skey}";
-                    var uni_text = $"{ProcessorID}{text}";
-
-                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
-                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
-                    aes.Key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    aes.IV = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-
-                    byte[] dataByteArray = Encoding.UTF8.GetBytes(uni_text);
-                    if (auto)
-                    {
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
-                            {
-                                using (StreamWriter sw = new StreamWriter(cs))
-                                {
-                                    sw.Write(uni_text);
-                                }
-                                encrypt = Convert.ToBase64String(ms.ToArray());
-                            }
-                        }
-                    }
-                    else
-                    {
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
-                            {
-                                cs.Write(dataByteArray, 0, dataByteArray.Length);
-                                cs.FlushFinalBlock();
-                            }
-                            encrypt = Convert.ToBase64String(ms.ToArray());
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[AES]");
-            }
-            return encrypt;
-        }
-
-        public static string AesDecrypt(this string text, string skey, bool auto = true)
-        {
-            string decrypt = string.Empty;
-            try
-            {
-                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
-                {
-                    var uni_skey = $"{ProcessorID}{skey}";
-                    var uni_text = string.Empty;
-
-                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
-                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
-                    aes.Key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-                    aes.IV = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
-
-                    byte[] dataByteArray = Convert.FromBase64String(text);
-                    if (auto)
-                    {
-                        using (MemoryStream ms = new MemoryStream(dataByteArray))
-                        {
-                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(aes.Key, aes.IV), CryptoStreamMode.Read))
-                            {
-                                using (StreamReader sr = new StreamReader(cs))
-                                {
-                                    uni_text = sr.ReadToEnd();
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
-                            {
-                                cs.Write(dataByteArray, 0, dataByteArray.Length);
-                                cs.FlushFinalBlock();
-                            }
-                            uni_text = Encoding.UTF8.GetString(ms.ToArray());
-                        }
-                    }
-                    if (uni_text.StartsWith(ProcessorID)) decrypt = uni_text.Replace($"{ProcessorID}", "");
-                }
-            }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[AES]");
-            }
-            return decrypt;
-        }
-        #endregion
-
-        #region Window Helper
+        #region Application Window Helper
         private static string[] r15 = new string[] { "xxx", "r18", "r17", "r15", "18+", "17+", "15+" };
         private static string[] r17 = new string[] { "xxx", "r18", "r17", "18+", "17+", };
         private static string[] r18 = new string[] { "xxx", "r18", "18+"};
@@ -1386,13 +1108,11 @@ namespace PixivWPF.Common
                 //    result = app.MainWindow as MainWindow;
                 app.Dispatcher.Invoke(() =>
                 {
-                    var win = Application.Current.MainWindow;
+                    var win = app.MainWindow;
                     if (win is MainWindow) result = win as MainWindow;
                 });
             }
-            catch (Exception)
-            {
-            }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -1403,7 +1123,7 @@ namespace PixivWPF.Common
             {
                 app.Dispatcher.Invoke(() =>
                 {
-                    foreach (var win in Application.Current.Windows)
+                    foreach (var win in app.Windows)
                     {
                         if (win is MetroWindow && (win as MetroWindow).IsActive)
                         {
@@ -1413,27 +1133,30 @@ namespace PixivWPF.Common
                     }
                 });
             }
-            catch (Exception)
-            {
-            }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
         public static PixivLoginDialog GetLoginWindow(this Application app)
         {
             PixivLoginDialog result = null;
-
-            foreach (var win in app.Windows)
+            try
             {
-                if (win is PixivLoginDialog)
+                app.Dispatcher.Invoke(() =>
                 {
-                    result = win as PixivLoginDialog;
-                    result.Topmost = true;
-                    result.Show();
-                    result.Activate();
-                }
+                    foreach (var win in app.Windows)
+                    {
+                        if (win is PixivLoginDialog)
+                        {
+                            result = win as PixivLoginDialog;
+                            result.Topmost = true;
+                            result.Show();
+                            result.Activate();
+                        }
+                    }
+                });
             }
-
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -1442,41 +1165,51 @@ namespace PixivWPF.Common
             List<string> titles = new List<string>();
             try
             {
-                foreach (Window win in Application.Current.Windows)
+                app.Dispatcher.Invoke(() =>
                 {
-                    if (win is MainWindow) continue;
-                    else if (win is ContentWindow)
+                    foreach (Window win in app.Windows)
                     {
-                        if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase))
+                        if (win is MainWindow) continue;
+                        else if (win is ContentWindow)
                         {
-                            if (win.Content is DownloadManagerPage)
+                            if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                var dm = win.Content as DownloadManagerPage;
-                                titles.AddRange(dm.Unfinished());
+                                if (win.Content is DownloadManagerPage)
+                                {
+                                    var dm = win.Content as DownloadManagerPage;
+                                    titles.AddRange(dm.Unfinished());
+                                }
                             }
+                            //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
+                            //else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
+                            else if (win.Title.StartsWith("PIXIV Login", StringComparison.CurrentCultureIgnoreCase)) continue;
+                            else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
+                            else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
+                            else if (win.Title.StartsWith("History", StringComparison.CurrentCultureIgnoreCase)) continue;
+                            else titles.Add(win.Title);
                         }
-                        //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        //else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (win.Title.StartsWith("PIXIV Login", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else if (win.Title.StartsWith("History", StringComparison.CurrentCultureIgnoreCase)) continue;
-                        else titles.Add(win.Title);
+                        else continue;
                     }
-                    else continue;
-                }
+                });
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (titles);
         }
 
         public static void SetTitle(this Application app, string title)
         {
-            if (Application.Current.MainWindow is MetroWindow)
+            try
             {
-                var win = Application.Current.MainWindow as MetroWindow;
-                win.Title = title;
+                app.Dispatcher.Invoke(() =>
+                {
+                    if (Application.Current.MainWindow is MetroWindow)
+                    {
+                        var win = Application.Current.MainWindow as MetroWindow;
+                        win.Title = title;
+                    }
+                });
             }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private static async void MinimizedWindow(MetroWindow win, PixivItem item, string condition)
@@ -1542,7 +1275,7 @@ namespace PixivWPF.Common
                             }
                         }
                     }
-                    catch (Exception) { continue; }
+                    catch (Exception ex) { ex.ERROR(); continue; }
                     finally
                     {
                         await Task.Delay(1);
@@ -1587,7 +1320,184 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Timed Tasks
+        #region Application LOG Helper
+        private static bool IsConsole
+        {
+            get
+            {
+                try
+                {
+                    return (Environment.UserInteractive && Console.Title.Length > 0);
+                }
+                catch (Exception) { return (false); }
+            }
+        }
+
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        public static void TRACE(this string contents, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+#if DEBUG            
+            Console.WriteLine($"{prefix}{contents}");
+#else
+            if (IsConsole) Console.WriteLine(contents);
+#endif
+            logger.Trace($"{prefix}{contents}");
+        }
+
+        public static void DEBUG(this string contents, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+#if DEBUG
+            Debug.WriteLine($"{prefix}{contents}");
+#endif
+            logger.Debug($"{prefix}{contents}");
+        }
+
+        public static void INFO(this string contents, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+#if DEBUG            
+            Console.WriteLine($"{prefix}{contents}");
+#else
+            if (IsConsole) Console.WriteLine(contents);
+#endif
+            logger.Info($"{prefix}{contents}");
+        }
+
+        public static void WARN(this string contents, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+#if DEBUG            
+            Console.WriteLine($"{prefix}{contents}");
+#else
+            if (IsConsole) Console.WriteLine(contents);
+#endif
+            logger.Warn($"{prefix}{contents}");
+        }
+
+        public static void ERROR(this string contents, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+#if DEBUG            
+            Console.WriteLine($"{prefix}{contents}");
+#else
+            if (IsConsole) Console.WriteLine(contents);
+#endif
+            logger.Error($"{prefix}{contents}");
+        }
+
+        public static void FATAL(this string contents, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+#if DEBUG            
+            Console.WriteLine($"{prefix}{contents}");
+#else
+            if (IsConsole) Console.WriteLine(contents);
+#endif
+            logger.Fatal($"{prefix}{contents}");
+        }
+
+        public static void LOG(this string contents, string title = "", string tag = "")
+        {
+            if (title.ToUpper().Contains("INFO")) contents.INFO(tag);
+            else if (title.ToUpper().Contains("ERROR")) contents.ERROR(tag);
+            else if (title.ToUpper().Contains("WARN")) contents.WARN(tag);
+            else if (title.ToUpper().Contains("FATAL")) contents.FATAL(tag);
+            else contents.INFO();
+        }
+
+        public static void TRACE(this Exception ex, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+            var contents = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}{Environment.NewLine}{ex.Source}";
+            contents.TRACE(tag);
+        }
+
+        public static void DEBUG(this Exception ex, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+            var contents = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+            contents.DEBUG(tag);
+        }
+
+        public static void INFO(this Exception ex, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+            var contents = $"{ex.Message}";
+            contents.INFO(tag);
+        }
+
+        public static void WARN(this Exception ex, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+            var contents = $"{ex.Message}{Environment.NewLine}{ex.Source}";
+            contents.WARN(tag);
+        }
+
+        public static void ERROR(this Exception ex, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+            var contents = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+            contents.ERROR(tag);
+        }
+
+        public static void FATAL(this Exception ex, string tag = "")
+        {
+            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
+            var contents = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+            contents.FATAL(tag);
+        }
+
+        public static void LOG(this Exception ex, string title = "ERROR", string tag = "")
+        {
+            if (title.ToUpper().Contains("INFO")) ex.INFO(tag);
+            else if (title.ToUpper().Contains("ERROR")) ex.ERROR(tag);
+            else if (title.ToUpper().Contains("WARN")) ex.WARN(tag);
+            else if (title.ToUpper().Contains("FATAL")) ex.FATAL(tag);
+            else ex.ERROR();
+        }
+
+        public static void StartLog(this Application app)
+        {
+            NLog.LogManager.AutoShutdown = true;
+            NLog.LogManager.Configuration.DefaultCultureInfo = CultureInfo.CurrentCulture;
+            if (logger == null) logger = NLog.LogManager.GetCurrentClassLogger();
+        }
+
+        public static void StopLog(this Application app)
+        {
+            if (logger is NLog.Logger) NLog.LogManager.Shutdown();
+        }
+        
+        public static IList<string> GetLogs(this Application app)
+        {
+            var logs = new List<string>();
+            try
+            {
+                //var fileTarget = (NLog.Targets.FileTarget) NLog.LogManager.Configuration.FindTargetByName("logfile");
+                foreach (var target in NLog.LogManager.Configuration.ConfiguredNamedTargets)
+                {
+                    if (target is NLog.Targets.FileTarget)
+                    {
+                        var fileTarget = target as NLog.Targets.FileTarget;
+                        // Need to set timestamp here if filename uses date. 
+                        // For example - filename="${basedir}/logs/${shortdate}/trace.log"
+                        foreach (var level in NLog.LogLevel.AllLoggingLevels)
+                        {
+                            var logEventInfo = new NLog.LogEventInfo() { Level = level, TimeStamp = DateTime.Now };
+                            string fileName = fileTarget.FileName.Render(logEventInfo);
+                            if (File.Exists(fileName)) logs.Add(fileName);
+                        }
+                    }
+                }
+            }
+            catch(Exception ex) { ex.ERROR(); }
+            return (logs);
+        }
+        #endregion
+
+        #region Application Timed Tasks Helper
         private static System.Timers.Timer autoTaskTimer = null;
         private static ConcurrentDictionary<Window, long> toast_list = new ConcurrentDictionary<Window, long>();
 
@@ -1603,7 +1513,7 @@ namespace PixivWPF.Common
                     autoTaskTimer.Enabled = true;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void AddToast(this Application app, Window win)
@@ -1616,7 +1526,7 @@ namespace PixivWPF.Common
 
         private static async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            if (!(toast_list is ConcurrentDictionary<Window, long>) || toast_list.Count > 0) return;
+            if (!(toast_list is ConcurrentDictionary<Window, long>) || toast_list.Count <= 0) return;
             await new Action(() =>
             {
                 var setting = Application.Current.LoadSetting();
@@ -1633,7 +1543,7 @@ namespace PixivWPF.Common
                             long value = 0L;
                             toast_list.TryRemove(kv.Key, out value);
                         }
-                        catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                        catch (Exception ex) { ex.ERROR(); }
                     }
                 }
             }).InvokeAsync();
@@ -1642,86 +1552,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Network
-        public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
-        {
-            var setting = LoadSetting(app);
-            var buffersize = 100 * 1024 * 1024;
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                AllowAutoRedirect = true,
-                AutomaticDecompression = DecompressionMethods.Deflate,
-                UseCookies = true,
-                MaxAutomaticRedirections = 15,
-                //MaxConnectionsPerServer = 30,
-                MaxRequestContentBufferSize = buffersize,
-                //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
-                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass),
-                UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
-            };
-
-            var httpClient = new HttpClient(handler, true)
-            {
-                Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout),
-                MaxResponseContentBufferSize = buffersize
-            };
-            //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
-            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
-            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
-            httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
-            //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
-            httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
-            //httpClient.DefaultRequestHeaders.Add("Connection", "Close");
-            httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
-            //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
-            //httpClient.DefaultRequestHeaders.ConnectionClose = true;
-            if (continuation && range_start > 0)
-            {
-                var start = $"{range_start}";
-                var end = range_count > 0 ? $"{range_count}" : string.Empty;
-                httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
-            }
-
-            return (httpClient);
-        }
-
-        public static WebRequest GetWebRequest(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
-        {
-            var setting = LoadSetting(app);
-
-            var webRequest = WebRequest.Create(string.Empty);
-            webRequest.Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass);
-
-            //webRequest.ContentType = "application/octet-stream";
-            //webRequest.Headers.Add("Content-Type", "application/octet-stream");
-            webRequest.Headers.Add("App-OS", "ios");
-            webRequest.Headers.Add("App-OS-Version", "12.2");
-            webRequest.Headers.Add("App-Version", "7.6.2");
-            webRequest.Headers.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
-            //webRequest.Headers.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
-            webRequest.Headers.Add("Referer", "https://app-api.pixiv.net/");
-            //webRequest.Headers.Add("Connection", "Close");
-            webRequest.Headers.Add("Connection", "Keep-Alive");
-            //webRequest.Headers.Add("Keep-Alive", "300");
-            if (continuation)
-            {
-                var start = $"{range_start}";
-                var end = range_count > 0 ? $"{range_count}" : string.Empty;
-                webRequest.Headers.Add("Range", $"bytes={start}-{end}");
-            }
-
-            return (webRequest);
-        }
-
-        public static async Task<WebResponse> GetWebResponse(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
-        {
-            var client = GetWebRequest(app, continuation, range_start, range_count);
-            return (await client.GetResponseAsync());
-        }
-        #endregion
-
-        #region Visit History
+        #region Application Visit History Helper
         private static ObservableCollection<PixivItem> history = new ObservableCollection<PixivItem>();
         public static ObservableCollection<PixivItem> History { get { return (HistorySource(null)); } }
 
@@ -2035,6 +1866,437 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region Application Hotkey Helper
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+
+        private static string Key2String(System.Windows.Forms.Keys key)
+        {
+            var result = Dfust.Hotkeys.Util.Keys2String.KeyToString(key);
+            result = ApplicationCulture.TextInfo.ToTitleCase(result);
+
+            var keys = key.ToString().Split(',');
+            if (string.IsNullOrEmpty(result)) result = key.ToString();
+            else if (keys.Length > 1 && !result.Contains('+')) result = $"{keys.FirstOrDefault()}+{result}";
+            else if (result.EndsWith("+")) result = $"{result}{keys.FirstOrDefault().Trim()}";
+            result = result.Replace(" ", "").Replace("Next", "PageDown");
+            //var keys = hotkey.Keys.ToString().Split(',').Reverse();
+            //var key = string.Join("+", keys);
+
+            return (result);
+        }
+
+        public static void ReleaseModifiers(this Application app, bool all = true, bool updown = false)
+        {
+            var k = Keyboard.Modifiers;
+            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+            {
+                if (updown) keybd_event(0x10, 0x00, 0x0001, 0);
+                keybd_event(0x10, 0x00, 0x0002, 0);
+            }
+            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+            {
+                if (updown) keybd_event(0x11, 0x00, 0x0001, 0);
+                keybd_event(0x11, 0x00, 0x0002, 0);
+            }
+            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+            {
+                if (updown) keybd_event(0x12, 0x00, 0x0001, 0);
+                keybd_event(0x12, 0x00, 0x0002, 0);
+            }
+        }
+
+        private static List<HotKeyConfig> HotkeyConfig = new List<HotKeyConfig>()
+        {
+            #region Illust Nav
+            new HotKeyConfig() { Description = "IllustFirst", Command = Commands.FirstIllust,
+                                 Keys = System.Windows.Forms.Keys.Home },
+            new HotKeyConfig() { Description = "IllustLast", Command = Commands.LastIllust,
+                                 Keys = System.Windows.Forms.Keys.End },
+            new HotKeyConfig() { Description = "IllustPrev", Command = Commands.PrevIllust,
+                                 Keys = System.Windows.Forms.Keys.OemOpenBrackets },
+            new HotKeyConfig() { Description = "IllustNext", Command = Commands.NextIllust,
+                                 Keys = System.Windows.Forms.Keys.OemCloseBrackets },
+            new HotKeyConfig() { Description = "IllustPrevPage", Command = Commands.PrevIllustPage,
+                                 Keys = System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift },
+            new HotKeyConfig() { Description = "IllustNextPage", Command = Commands.NextIllustPage,
+                                 Keys = System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift },
+            #endregion
+            #region Scroll Tiles
+            new HotKeyConfig() { Description = "TilesScrollPageUp", Command = Commands.ScrollPageUp,
+                                 Keys = System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift },
+            new HotKeyConfig() { Description = "TilesScrollPageDown", Command = Commands.ScrollPageDown,
+                                 Keys = System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift },
+            new HotKeyConfig() { Description = "TilesScrollPageTop", Command = Commands.ScrollPageFirst,
+                                 Keys = System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "TilesScrollPageBottom", Command = Commands.ScrollPageLast,
+                                 Keys = System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control },
+            #endregion
+            #region Update Tiles
+            new HotKeyConfig() { Description = "TilesRefresh", Command = Commands.RefreshPage,
+                                 Keys = System.Windows.Forms.Keys.F5 },
+            new HotKeyConfig() { Description = "TilesAppend", Command = Commands.AppendTiles,
+                                 Keys = System.Windows.Forms.Keys.F3 },
+            new HotKeyConfig() { Description = "TilesRefreshThumbnail", Command = Commands.RefreshPageThumb,
+                                 Keys = System.Windows.Forms.Keys.F6 },
+            #endregion
+            #region Open/Copy 
+            new HotKeyConfig() { Description = "OpenHistory", Command = Commands.OpenHistory,
+                                 Keys = System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "OpenWork", Command = Commands.OpenWork,
+                                 Keys = System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "OpenUser", Command = Commands.OpenUser,
+                                 Keys = System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "OpenDownloaded", Command = Commands.OpenDownloaded,
+                                 Keys = System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "OpenCached", Command = Commands.OpenCachedImage,
+                                 Keys = System.Windows.Forms.Keys.K | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "CopyPreview", Command = Commands.CopyImage,
+                                 Keys = System.Windows.Forms.Keys.P | System.Windows.Forms.Keys.Control },
+            #endregion
+            #region Save
+            new HotKeyConfig() { Description = "SaveIllust", Command = Commands.SaveIllust,
+                                 Keys = System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Description = "SaveIllustAll", Command = Commands.SaveIllustAll,
+                                 Keys = System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift },
+            #endregion
+            #region Change Like State
+            new HotKeyConfig() { Description = "ChangeIllustLikeState", Command = Commands.ChangeIllustLikeState,
+                                 Keys = System.Windows.Forms.Keys.F7 },
+            new HotKeyConfig() { Description = "ChangeUserLikeState", Command = Commands.ChangeUserLikeState,
+                                 Keys = System.Windows.Forms.Keys.F8 }
+            #endregion
+        };
+        private static HotkeyCollection ApplicationHotKeys = new HotkeyCollection(Enums.Scope.Application);
+        private static CultureInfo ApplicationCulture = CultureInfo.CurrentCulture;
+        public static void BindHotkey(this Application app, string name, System.Windows.Forms.Keys key, ICommand command)
+        {
+            try
+            {
+                ApplicationHotKeys.RegisterHotkey(key, async (e) =>
+                {
+                    try
+                    {
+                        Application.Current.ReleaseModifiers();
+                        Application.Current.DoEvents();
+
+                        var key_name = string.IsNullOrEmpty(e.ChordName) ? string.Join("+", e.Keys.Select(k => k.ToString())) : e.ChordName;
+                        $"Description: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
+                        await new Action(() =>
+                        {
+                            var win = Application.Current.GetActiveWindow();
+                            if (win is Window && !win.InSearching()) command.Execute(win);
+                        }).InvokeAsync(true);
+                    }
+                    catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
+                }, name);
+            }
+            catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
+        }
+
+        public static void BindHotkeys(this Application app, bool global = false)
+        {
+            if (global)
+            {
+                //BindHotkey(app, "PrevIllust", Key.OemOpenBrackets, ModifierKeys.None, OnPrevIllust);
+            }
+            else
+            {
+                if (ApplicationHotKeys == null) ApplicationHotKeys = new HotkeyCollection(global ? Enums.Scope.Global : Enums.Scope.Application);
+
+                //BindHotkey(app, "IllustFirst", System.Windows.Forms.Keys.Home, Commands.FirstIllust);
+                //BindHotkey(app, "IllustLast", System.Windows.Forms.Keys.End, Commands.LastIllust);
+                //BindHotkey(app, "IllustPrev", System.Windows.Forms.Keys.OemOpenBrackets, Commands.PrevIllust);
+                //BindHotkey(app, "IllustNext", System.Windows.Forms.Keys.OemCloseBrackets, Commands.NextIllust);
+                //BindHotkey(app, "IllustPrevPage", System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift, Commands.PrevIllustPage);
+                //BindHotkey(app, "IllustNextPage", System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift, Commands.NextIllustPage);
+
+                //BindHotkey(app, "TilesScrollPageUp", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift, Commands.ScrollPageUp);
+                //BindHotkey(app, "TilesScrollPageDown", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift, Commands.ScrollPageDown);
+                //BindHotkey(app, "TilesScrollPageTop", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control, Commands.ScrollPageFirst);
+                //BindHotkey(app, "TilesScrollPageBottom", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control, Commands.ScrollPageLast);
+
+                //BindHotkey(app, "TilesRefresh", System.Windows.Forms.Keys.F5, Commands.RefreshPage);
+                //BindHotkey(app, "TilesAppend", System.Windows.Forms.Keys.F3, Commands.AppendTiles);
+                //BindHotkey(app, "TilesRefreshThumbnail", System.Windows.Forms.Keys.F6, Commands.RefreshPageThumb);
+
+                //BindHotkey(app, "OpenHistory", System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control, Commands.OpenHistory);
+                //BindHotkey(app, "OpenWork", System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control, Commands.OpenWork);
+                //BindHotkey(app, "OpenUser", System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control, Commands.OpenUser);
+                //BindHotkey(app, "OpenDownloaded", System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control, Commands.OpenDownloaded);
+                //BindHotkey(app, "OpenCached", System.Windows.Forms.Keys.K | System.Windows.Forms.Keys.Control, Commands.OpenCachedImage);
+                //BindHotkey(app, "CopyPreview", System.Windows.Forms.Keys.P | System.Windows.Forms.Keys.Control, Commands.CopyImage);
+
+                //BindHotkey(app, "SaveIllust", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control, Commands.SaveIllust);
+                //BindHotkey(app, "SaveIllustAll", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift, Commands.SaveIllustAll);
+
+                //BindHotkey(app, "ChangeIllustLikeState", System.Windows.Forms.Keys.F7, Commands.ChangeIllustLikeState);
+                //BindHotkey(app, "ChangeUserLikeState", System.Windows.Forms.Keys.F8, Commands.ChangeUserLikeState);
+
+                foreach (var hotkey in HotkeyConfig)
+                {
+                    var key = Key2String(hotkey.Keys);
+                    $"Binding hotkey \"{key}\" to \"{hotkey.Description}\" ......".INFO();
+                    BindHotkey(app, hotkey.Description, hotkey.Keys, hotkey.Command);
+                }
+#if DEBUG
+                ApplicationHotKeys.HotkeyTriggered += ApplicationHotKeys_HotkeyTriggered;
+                ApplicationHotKeys.AllModifiersReleasedAfterHotkey += ApplicationHotKeys_AllModifiersReleasedAfterHotkey;
+                ApplicationHotKeys.ChordStartRecognized += ApplicationHotKeys_ChordStartRecognized;
+                var hotkey_config = Path.Combine(Root, "HotKeys.json");
+                if (!File.Exists(hotkey_config) && HotkeyConfig is List<HotKeyConfig>)
+                {
+                    var settings = new JsonSerializerSettings();
+                    settings.TypeNameHandling = TypeNameHandling.Objects;
+                    var text = JsonConvert.SerializeObject(HotkeyConfig, Formatting.Indented);
+                    File.WriteAllText(hotkey_config, text, new UTF8Encoding(true));
+                }
+#endif
+                //ApplicationHotKeys.StartListening();
+            }
+        }
+#if DEBUG
+        private static void ApplicationHotKeys_ChordStartRecognized(ChordStartRecognizedEventArgs e)
+        {
+            $"Hotkey_ChordStartRecognized: {e.ChordSubpath}, {e.Subpath}".DEBUG();
+        }
+
+        private static void ApplicationHotKeys_AllModifiersReleasedAfterHotkey(HotKeyEventArgs e)
+        {
+            var key_name = string.IsNullOrEmpty(e.ChordName) ? string.Join("+", e.Keys.Select(k => k.ToString())) : e.ChordName;
+            $"Hotkey_AllModifiersReleased: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
+        }
+
+        private static void ApplicationHotKeys_HotkeyTriggered(HotKeyEventArgs e)
+        {
+            var key_name = string.IsNullOrEmpty(e.ChordName) ? string.Join("+", e.Keys.Select(k => k.ToString())) : e.ChordName;
+            $"Hotkey_Triggered: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
+        }
+#endif
+        public static void UnbindHotkeys(this Application app)
+        {
+            try
+            {
+                if (ApplicationHotKeys is HotkeyCollection)
+                {
+                    //ApplicationHotKeys.StopListening();
+                    var keys = ApplicationHotKeys.GetHotkeys();
+                    foreach (var key in keys)
+                    {
+                        ApplicationHotKeys.UnregisterHotkey(key);
+                    }
+                    ApplicationHotKeys.Dispose();
+                    ApplicationHotKeys = null;
+                }
+            }
+            catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
+        }
+
+        public static void RebindHotKeys(this Application app, bool full = true, bool global = false)
+        {
+            try
+            {
+                if (full)
+                {
+                    UnbindHotkeys(app);
+                    BindHotkeys(app, global);
+                }
+                else
+                {
+                    if (ApplicationHotKeys is HotkeyCollection)
+                    {
+                        ApplicationHotKeys.StopListening();
+                        ApplicationHotKeys.StartListening();
+                    }
+                }
+            }
+            catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
+        }
+
+        public static void StartListening(this Application app)
+        {
+            ApplicationHotKeys.StartListening();
+        }
+
+        public static void StopListening(this Application app)
+        {
+            ApplicationHotKeys.StopListening();
+        }
+        #endregion
+
+        #region Maybe reduce UI frozen
+        private static object ExitFrame(object state)
+        {
+            ((DispatcherFrame)state).Continue = false;
+            return null;
+        }
+
+        private static SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
+        public static async void DoEvents()
+        {
+            if (await CanDoEvents.WaitAsync(0))
+            {
+                try
+                {
+                    if (Application.Current.Dispatcher.CheckAccess())
+                    {
+                        await Dispatcher.Yield(DispatcherPriority.Render);
+                        //await System.Windows.Threading.Dispatcher.Yield();
+
+                        //DispatcherFrame frame = new DispatcherFrame();
+                        //await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                        //Dispatcher.PushFrame(frame);
+                    }
+                }
+                catch (Exception)
+                {
+                    try
+                    {
+                        if (Application.Current.Dispatcher.CheckAccess())
+                        {
+                            DispatcherFrame frame = new DispatcherFrame();
+                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
+                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
+
+                            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
+                            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
+                            Dispatcher.PushFrame(frame);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        await Task.Delay(1);
+                    }
+                }
+                finally
+                {
+                    if (CanDoEvents is SemaphoreSlim && CanDoEvents.CurrentCount <= 0) CanDoEvents.Release();
+                }
+            }
+        }
+
+        public static void DoEvents(this object obj)
+        {
+            DoEvents();
+        }
+
+        public static void Sleep(int ms)
+        {
+            //Task.Delay(ms);
+            for (int i = 0; i < ms; i += 10)
+            {
+                //Task.Delay(5);
+                Thread.Sleep(5);
+                DoEvents();
+            }
+        }
+
+        public static void Sleep(this UIElement obj, int ms)
+        {
+            Sleep(ms);
+        }
+
+        public static async void Delay(int ms)
+        {
+            await Task.Delay(ms);
+        }
+
+        public static async Task DelayAsync(int ms)
+        {
+            await Task.Delay(ms);
+        }
+
+        public static void Delay(this object obj, int ms)
+        {
+            Delay(ms);
+        }
+
+        public static async Task DelayAsync(this object obj, int ms)
+        {
+            await DelayAsync(ms);
+        }
+        #endregion
+
+        #region Network Common Helper
+        public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        {
+            var setting = LoadSetting(app);
+            var buffersize = 100 * 1024 * 1024;
+            HttpClientHandler handler = new HttpClientHandler()
+            {
+                AllowAutoRedirect = true,
+                AutomaticDecompression = DecompressionMethods.Deflate,
+                UseCookies = true,
+                MaxAutomaticRedirections = 15,
+                //MaxConnectionsPerServer = 30,
+                MaxRequestContentBufferSize = buffersize,
+                //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
+                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass),
+                UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
+            };
+
+            var httpClient = new HttpClient(handler, true)
+            {
+                Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout),
+                MaxResponseContentBufferSize = buffersize
+            };
+            //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
+            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
+            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
+            httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
+            //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+            httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+            //httpClient.DefaultRequestHeaders.Add("Connection", "Close");
+            httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
+            //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
+            //httpClient.DefaultRequestHeaders.ConnectionClose = true;
+            if (continuation && range_start > 0)
+            {
+                var start = $"{range_start}";
+                var end = range_count > 0 ? $"{range_count}" : string.Empty;
+                httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
+            }
+
+            return (httpClient);
+        }
+
+        public static WebRequest GetWebRequest(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        {
+            var setting = LoadSetting(app);
+
+            var webRequest = WebRequest.Create(string.Empty);
+            webRequest.Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass);
+
+            //webRequest.ContentType = "application/octet-stream";
+            //webRequest.Headers.Add("Content-Type", "application/octet-stream");
+            webRequest.Headers.Add("App-OS", "ios");
+            webRequest.Headers.Add("App-OS-Version", "12.2");
+            webRequest.Headers.Add("App-Version", "7.6.2");
+            webRequest.Headers.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
+            //webRequest.Headers.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+            webRequest.Headers.Add("Referer", "https://app-api.pixiv.net/");
+            //webRequest.Headers.Add("Connection", "Close");
+            webRequest.Headers.Add("Connection", "Keep-Alive");
+            //webRequest.Headers.Add("Keep-Alive", "300");
+            if (continuation)
+            {
+                var start = $"{range_start}";
+                var end = range_count > 0 ? $"{range_count}" : string.Empty;
+                webRequest.Headers.Add("Range", $"bytes={start}-{end}");
+            }
+
+            return (webRequest);
+        }
+
+        public static async Task<WebResponse> GetWebResponse(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        {
+            var client = GetWebRequest(app, continuation, range_start, range_count);
+            return (await client.GetResponseAsync());
+        }
+        #endregion
+
         #region Default Preview/Avatar
         private static WriteableBitmap NullPreview = null;
         private static WriteableBitmap NullAvatar = null;
@@ -2077,6 +2339,177 @@ namespace PixivWPF.Common
         public static Size GetDefaultAvatarSize(this Application app)
         {
             return (DefaultAvatarSize);
+        }
+        #endregion
+
+        #region Invoke/InvokeAsync
+        public static Dispatcher Dispatcher = Application.Current is Application ? Application.Current.Dispatcher : Dispatcher.CurrentDispatcher;
+        public static Dispatcher AppDispatcher(this object obj)
+        {
+            if (Application.Current is Application)
+                return (Application.Current.Dispatcher);
+            else
+                return (Dispatcher.CurrentDispatcher);
+        }
+
+        public static async Task Invoke(this Action action)
+        {
+            Dispatcher dispatcher = action.AppDispatcher();
+
+            await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
+        }
+
+        public static async Task InvokeAsync(this Action action, bool realtime = false)
+        {
+            try
+            {
+                Dispatcher dispatcher = action.AppDispatcher();
+                if (realtime)
+                    await dispatcher.InvokeAsync(action, DispatcherPriority.Send);
+                else
+                    await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+            }
+            catch (Exception ex) { ex.ERROR(); }
+        }
+
+        public static async Task InvokeAsync(this Action action, CancellationToken cancelToken, bool realtime = false)
+        {
+            try
+            {
+                Dispatcher dispatcher = action.AppDispatcher();
+                if (realtime)
+                    await dispatcher.InvokeAsync(action, DispatcherPriority.Send, cancelToken);
+                else
+                    await dispatcher.InvokeAsync(action, DispatcherPriority.Background, cancelToken);
+            }
+            catch (Exception ex) { ex.ERROR(); }
+        }
+
+        public static async Task InvokeAsync(this Action action, DispatcherPriority priority)
+        {
+            try
+            {
+                Dispatcher dispatcher = action.AppDispatcher();
+                await dispatcher.InvokeAsync(action, priority);
+            }
+            catch (Exception ex) { ex.ERROR(); }
+        }
+
+        public static async Task InvokeAsync(this Action action, DispatcherPriority priority, CancellationToken cancelToken)
+        {
+            try
+            {
+                Dispatcher dispatcher = action.AppDispatcher();
+                await dispatcher.InvokeAsync(action, priority, cancelToken);
+            }
+            catch (Exception ex) { ex.ERROR(); }
+        }
+
+        #endregion
+
+        #region AES Encrypt/Decrypt helper
+        public static string AesEncrypt(this string text, string skey, bool auto = true)
+        {
+            string encrypt = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
+                {
+                    var uni_skey = $"{ProcessorID}{skey}";
+                    var uni_text = $"{ProcessorID}{text}";
+
+                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
+                    aes.Key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    aes.IV = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+
+                    byte[] dataByteArray = Encoding.UTF8.GetBytes(uni_text);
+                    if (auto)
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
+                            {
+                                using (StreamWriter sw = new StreamWriter(cs))
+                                {
+                                    sw.Write(uni_text);
+                                }
+                                encrypt = Convert.ToBase64String(ms.ToArray());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
+                            {
+                                cs.Write(dataByteArray, 0, dataByteArray.Length);
+                                cs.FlushFinalBlock();
+                            }
+                            encrypt = Convert.ToBase64String(ms.ToArray());
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[AES]");
+            }
+            return encrypt;
+        }
+
+        public static string AesDecrypt(this string text, string skey, bool auto = true)
+        {
+            string decrypt = string.Empty;
+            try
+            {
+                if (!string.IsNullOrEmpty(skey) && !string.IsNullOrEmpty(text))
+                {
+                    var uni_skey = $"{ProcessorID}{skey}";
+                    var uni_text = string.Empty;
+
+                    AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+                    SHA256CryptoServiceProvider sha256 = new SHA256CryptoServiceProvider();
+                    aes.Key = sha256.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+                    aes.IV = md5.ComputeHash(Encoding.UTF8.GetBytes(uni_skey));
+
+                    byte[] dataByteArray = Convert.FromBase64String(text);
+                    if (auto)
+                    {
+                        using (MemoryStream ms = new MemoryStream(dataByteArray))
+                        {
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(aes.Key, aes.IV), CryptoStreamMode.Read))
+                            {
+                                using (StreamReader sr = new StreamReader(cs))
+                                {
+                                    uni_text = sr.ReadToEnd();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(aes.Key, aes.IV), CryptoStreamMode.Write))
+                            {
+                                cs.Write(dataByteArray, 0, dataByteArray.Length);
+                                cs.FlushFinalBlock();
+                            }
+                            uni_text = Encoding.UTF8.GetString(ms.ToArray());
+                        }
+                    }
+                    if (uni_text.StartsWith(ProcessorID)) decrypt = uni_text.Replace($"{ProcessorID}", "");
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ShowMessageBox("ERROR[AES]");
+            }
+            return decrypt;
         }
         #endregion
 
@@ -2187,241 +2620,6 @@ namespace PixivWPF.Common
             return ((evt.Key == key || evt.SystemKey == key) && IsModifiers(Ctrl, Shift, Alt, Win));
         }
         #endregion
-
-        #region Hotkey Helper
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
-
-        public static void ReleaseModifiers(this Application app, bool all = true, bool updown = false)
-        {
-            var k = Keyboard.Modifiers;
-            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
-            {
-                if (updown) keybd_event(0x10, 0x00, 0x0001, 0);
-                keybd_event(0x10, 0x00, 0x0002, 0);
-            }
-            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-            {
-                if (updown) keybd_event(0x11, 0x00, 0x0001, 0);
-                keybd_event(0x11, 0x00, 0x0002, 0);
-            }
-            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
-            {
-                if (updown) keybd_event(0x12, 0x00, 0x0001, 0);
-                keybd_event(0x12, 0x00, 0x0002, 0);
-            }
-        }
-
-        private static List<HotKeyConfig> HotkeyConfig = new List<HotKeyConfig>()
-        {
-            #region Illust Nav
-            new HotKeyConfig() { Description = "IllustFirst", Command = Commands.FirstIllust,
-                                 Keys = System.Windows.Forms.Keys.Home },
-            new HotKeyConfig() { Description = "IllustLast", Command = Commands.LastIllust,
-                                 Keys = System.Windows.Forms.Keys.End },
-            new HotKeyConfig() { Description = "IllustPrev", Command = Commands.PrevIllust,
-                                 Keys = System.Windows.Forms.Keys.OemOpenBrackets },
-            new HotKeyConfig() { Description = "IllustNext", Command = Commands.NextIllust,
-                                 Keys = System.Windows.Forms.Keys.OemCloseBrackets },
-            new HotKeyConfig() { Description = "IllustPrevPage", Command = Commands.PrevIllustPage,
-                                 Keys = System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift },
-            new HotKeyConfig() { Description = "IllustNextPage", Command = Commands.NextIllustPage,
-                                 Keys = System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift },
-            #endregion
-            #region Scroll Tiles
-            new HotKeyConfig() { Description = "TilesScrollPageUp", Command = Commands.ScrollPageUp,
-                                 Keys = System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift },
-            new HotKeyConfig() { Description = "TilesScrollPageDown", Command = Commands.ScrollPageDown,
-                                 Keys = System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift },
-            new HotKeyConfig() { Description = "TilesScrollPageTop", Command = Commands.ScrollPageFirst,
-                                 Keys = System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "TilesScrollPageBottom", Command = Commands.ScrollPageLast,
-                                 Keys = System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control },
-            #endregion
-            #region Update Tiles
-            new HotKeyConfig() { Description = "TilesRefresh", Command = Commands.RefreshPage,
-                                 Keys = System.Windows.Forms.Keys.F5 },
-            new HotKeyConfig() { Description = "TilesAppend", Command = Commands.AppendTiles,
-                                 Keys = System.Windows.Forms.Keys.F3 },
-            new HotKeyConfig() { Description = "TilesRefreshThumbnail", Command = Commands.RefreshPageThumb,
-                                 Keys = System.Windows.Forms.Keys.F6 },
-            #endregion
-            #region Open/Copy 
-            new HotKeyConfig() { Description = "OpenHistory", Command = Commands.OpenHistory,
-                                 Keys = System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "OpenWork", Command = Commands.OpenWork,
-                                 Keys = System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "OpenUser", Command = Commands.OpenUser,
-                                 Keys = System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "OpenDownloaded", Command = Commands.OpenDownloaded,
-                                 Keys = System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "OpenCached", Command = Commands.OpenCachedImage,
-                                 Keys = System.Windows.Forms.Keys.K | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "CopyPreview", Command = Commands.CopyImage,
-                                 Keys = System.Windows.Forms.Keys.P | System.Windows.Forms.Keys.Control },
-            #endregion
-            #region Save
-            new HotKeyConfig() { Description = "SaveIllust", Command = Commands.SaveIllust,
-                                 Keys = System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "SaveIllustAll", Command = Commands.SaveIllustAll,
-                                 Keys = System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift },
-            #endregion
-            #region Change Like State
-            new HotKeyConfig() { Description = "ChangeIllustLikeState", Command = Commands.ChangeIllustLikeState,
-                                 Keys = System.Windows.Forms.Keys.F7 },
-            new HotKeyConfig() { Description = "ChangeUserLikeState", Command = Commands.ChangeUserLikeState,
-                                 Keys = System.Windows.Forms.Keys.F8 }
-            #endregion
-        };
-        private static HotkeyCollection ApplicationHotKeys = new HotkeyCollection(Enums.Scope.Application);
-        private static CultureInfo ApplicationCulture = CultureInfo.CurrentCulture;
-        public static void BindHotkey(this Application app, string name, System.Windows.Forms.Keys key, ICommand command)
-        {
-            try
-            {
-                ApplicationHotKeys.RegisterHotkey(key, async (e) =>
-                {
-                    try
-                    {
-                        var key_name = string.IsNullOrEmpty(e.ChordName) ? string.Join("+", e.Keys.Select(k => k.ToString())) : e.ChordName;
-                        $"Description: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
-                        await new Action(() =>
-                        {
-                            var win = Application.Current.GetActiveWindow();
-                            if (win is Window && !win.InSearching()) command.Execute(win);
-                        }).InvokeAsync(true);
-                    }
-                    catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
-                }, name);
-            }
-            catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
-        }
-
-        public static void BindHotkeys(this Application app, bool global = false)
-        {
-            if (global)
-            {
-                //BindHotkey(app, "PrevIllust", Key.OemOpenBrackets, ModifierKeys.None, OnPrevIllust);
-            }
-            else
-            {
-                if (ApplicationHotKeys == null) ApplicationHotKeys = new HotkeyCollection(global ? Enums.Scope.Global : Enums.Scope.Application);
-
-                //BindHotkey(app, "IllustFirst", System.Windows.Forms.Keys.Home, Commands.FirstIllust);
-                //BindHotkey(app, "IllustLast", System.Windows.Forms.Keys.End, Commands.LastIllust);
-                //BindHotkey(app, "IllustPrev", System.Windows.Forms.Keys.OemOpenBrackets, Commands.PrevIllust);
-                //BindHotkey(app, "IllustNext", System.Windows.Forms.Keys.OemCloseBrackets, Commands.NextIllust);
-                //BindHotkey(app, "IllustPrevPage", System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift, Commands.PrevIllustPage);
-                //BindHotkey(app, "IllustNextPage", System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift, Commands.NextIllustPage);
-
-                //BindHotkey(app, "TilesScrollPageUp", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift, Commands.ScrollPageUp);
-                //BindHotkey(app, "TilesScrollPageDown", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift, Commands.ScrollPageDown);
-                //BindHotkey(app, "TilesScrollPageTop", System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control, Commands.ScrollPageFirst);
-                //BindHotkey(app, "TilesScrollPageBottom", System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control, Commands.ScrollPageLast);
-
-                //BindHotkey(app, "TilesRefresh", System.Windows.Forms.Keys.F5, Commands.RefreshPage);
-                //BindHotkey(app, "TilesAppend", System.Windows.Forms.Keys.F3, Commands.AppendTiles);
-                //BindHotkey(app, "TilesRefreshThumbnail", System.Windows.Forms.Keys.F6, Commands.RefreshPageThumb);
-
-                //BindHotkey(app, "OpenHistory", System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control, Commands.OpenHistory);
-                //BindHotkey(app, "OpenWork", System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control, Commands.OpenWork);
-                //BindHotkey(app, "OpenUser", System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control, Commands.OpenUser);
-                //BindHotkey(app, "OpenDownloaded", System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control, Commands.OpenDownloaded);
-                //BindHotkey(app, "OpenCached", System.Windows.Forms.Keys.K | System.Windows.Forms.Keys.Control, Commands.OpenCachedImage);
-                //BindHotkey(app, "CopyPreview", System.Windows.Forms.Keys.P | System.Windows.Forms.Keys.Control, Commands.CopyImage);
-
-                //BindHotkey(app, "SaveIllust", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control, Commands.SaveIllust);
-                //BindHotkey(app, "SaveIllustAll", System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift, Commands.SaveIllustAll);
-
-                //BindHotkey(app, "ChangeIllustLikeState", System.Windows.Forms.Keys.F7, Commands.ChangeIllustLikeState);
-                //BindHotkey(app, "ChangeUserLikeState", System.Windows.Forms.Keys.F8, Commands.ChangeUserLikeState);
-
-                foreach (var hotkey in HotkeyConfig)
-                {
-                    BindHotkey(app, hotkey.Description, hotkey.Keys, hotkey.Command);
-                }
-#if DEBUG
-                ApplicationHotKeys.HotkeyTriggered += ApplicationHotKeys_HotkeyTriggered;
-                ApplicationHotKeys.AllModifiersReleasedAfterHotkey += ApplicationHotKeys_AllModifiersReleasedAfterHotkey;
-                ApplicationHotKeys.ChordStartRecognized += ApplicationHotKeys_ChordStartRecognized;
-#endif
-                var hotkey_config = Path.Combine(Root, "HotKeys.json");
-                if (!File.Exists(hotkey_config) && HotkeyConfig is List<HotKeyConfig>)
-                {
-                    var settings = new JsonSerializerSettings();
-                    settings.TypeNameHandling = TypeNameHandling.Objects;
-                    var text = JsonConvert.SerializeObject(HotkeyConfig, Formatting.Indented);
-                    File.WriteAllText(hotkey_config, text, new UTF8Encoding(true));
-                }
-                //ApplicationHotKeys.StartListening();
-            }
-        }
-#if DEBUG
-        private static void ApplicationHotKeys_ChordStartRecognized(ChordStartRecognizedEventArgs e)
-        {
-            
-        }
-
-        private static void ApplicationHotKeys_AllModifiersReleasedAfterHotkey(HotKeyEventArgs e)
-        {
-            
-        }
-
-        private static void ApplicationHotKeys_HotkeyTriggered(HotKeyEventArgs e)
-        {
-            
-        }
-#endif
-        public static void UnbindHotkeys(this Application app)
-        {
-            try
-            {
-                if (ApplicationHotKeys is HotkeyCollection)
-                {
-                    //ApplicationHotKeys.StopListening();
-                    var keys = ApplicationHotKeys.GetHotkeys();
-                    foreach (var key in keys)
-                    {
-                        ApplicationHotKeys.UnregisterHotkey(key);
-                    }
-                    ApplicationHotKeys.Dispose();
-                    ApplicationHotKeys = null;
-                }
-            }
-            catch(Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
-        }
-
-        public static void RebindHotKeys(this Application app, bool full = true, bool global = false)
-        {
-            try
-            {
-                if (full)
-                {
-                    UnbindHotkeys(app);
-                    BindHotkeys(app, global);
-                }
-                else
-                {
-                    if (ApplicationHotKeys is HotkeyCollection)
-                    {
-                        ApplicationHotKeys.StopListening();
-                        ApplicationHotKeys.StartListening();
-                    }
-                }
-            }
-            catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
-        }
-        
-        public static void StartListening(this Application app)
-        {
-            ApplicationHotKeys.StartListening();
-        }
-
-        public static void StopListening(this Application app)
-        {
-            ApplicationHotKeys.StopListening();
-        }
-        #endregion
     }
 
     public static class CommonHelper
@@ -2521,8 +2719,9 @@ namespace PixivWPF.Common
                             {
                                 result = await RefreshToken();
                             }
-                            catch (Exception)
+                            catch (Exception ex)
                             {
+                                ex.ERROR();
                                 result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
                             }
                         }
@@ -2540,7 +2739,7 @@ namespace PixivWPF.Common
                 }
                 finally
                 {
-                    if(result == null) "Request Token Error!".ShowToast("ERROR");
+                    if (result == null) "Request Token Error!".ShowToast("ERROR");
                     if (CanShowLogin is SemaphoreSlim && CanShowLogin.CurrentCount <= 0) CanShowLogin.Release();
                 }
             }
@@ -2555,7 +2754,7 @@ namespace PixivWPF.Common
                 setting = app.LoadSetting();
                 result = setting.AccessToken;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -2567,7 +2766,7 @@ namespace PixivWPF.Common
                 setting = app.LoadSetting();
                 result = setting.RefreshToken;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -2614,7 +2813,7 @@ namespace PixivWPF.Common
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 #endif
             return (result);
         }
@@ -2630,7 +2829,7 @@ namespace PixivWPF.Common
                 var unc = new Uri(text);
                 result = unc.IsFile;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -2826,8 +3025,9 @@ namespace PixivWPF.Common
                                 mr.Add(Regex.Matches(content, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        ex.ERROR();                        
                         mr.Add(Regex.Matches(content, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square)))*\d+)*(\..+)*)", opt));
                     }
                 }
@@ -3098,7 +3298,7 @@ namespace PixivWPF.Common
                     result = alpha && !Regex.IsMatch(text, result, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -3193,7 +3393,7 @@ namespace PixivWPF.Common
                 sb.Replace("<p ", "\n<p ");
                 result = Regex.Replace(sb.ToString(), "<[^>]*>", "");
             }
-            catch (Exception) { result = html.HtmlDecode(false); }
+            catch (Exception ex) { ex.ERROR(); result = html.HtmlDecode(false); }
             return result;
         }
 
@@ -3591,7 +3791,7 @@ namespace PixivWPF.Common
                         ex.ToString().ShowMessageBox("ERROR", MessageBoxImage.Error);
                     }
 #else
-                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                    catch (Exception ex) { ex.ERROR(); }
 #endif
                 }
             }
@@ -3683,14 +3883,11 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false)
+        public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false, string command = "")
         {
             bool result = false;
             try
             {
-                Application.Current.DoEvents();
-                Application.Current.ReleaseModifiers();
-                Application.Current.DoEvents();
                 var WinDir = Environment.GetEnvironmentVariable("WinDir");
                 if (ShowFolder)
                 {
@@ -3746,13 +3943,19 @@ namespace PixivWPF.Common
                                 else
                                     Process.Start(setting.ShellImageViewerCmd, args);
                             }
-                            else Process.Start(FileName);
+                            else
+                            {
+                                if (string.IsNullOrEmpty(command))
+                                    Process.Start(FileName);
+                                else
+                                    Process.Start(command, FileName);
+                            }
                         }
                         result = true;
                     }
                 }
             }
-            catch (Exception ex) { ex.Message.DEBUG("SHELL"); }
+            catch (Exception ex) { ex.ERROR("SHELL"); }
             finally
             {
                 Application.Current.DoEvents();
@@ -3831,7 +4034,7 @@ namespace PixivWPF.Common
                     if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void Touch(this string file, string url, bool local = false)
@@ -3844,7 +4047,7 @@ namespace PixivWPF.Common
                     fi.Touch(url, local);
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false)
@@ -3886,8 +4089,9 @@ namespace PixivWPF.Common
                 result.Freeze();
                 bmp = null;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                ex.ERROR("CONVERT");
                 try
                 {
                     using (var ms = new MemoryStream())
@@ -3908,9 +4112,9 @@ namespace PixivWPF.Common
                         bmp = null;
                     }
                 }
-                catch(Exception ex)
+                catch (Exception exx)
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    exx.Message.ShowMessageBox("ERROR");
                 }
             }
             finally
@@ -3922,7 +4126,7 @@ namespace PixivWPF.Common
             return result;
         }
 
-        public static ImageSource ToImageSource(this Stream stream, Size size=default(Size))
+        public static ImageSource ToImageSource(this Stream stream, Size size = default(Size))
         {
             setting = Application.Current.LoadSetting();
             var dpi = DPI.Default;
@@ -3979,7 +4183,7 @@ namespace PixivWPF.Common
                             bmp = null;
                         }
                     }
-                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                    catch (Exception ex) { ex.ERROR(); }
                 }
             }
             return (result);
@@ -4014,7 +4218,7 @@ namespace PixivWPF.Common
                                                 pixelData, stride);
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
         #endregion
@@ -4038,7 +4242,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
         }
 
@@ -4083,7 +4287,7 @@ namespace PixivWPF.Common
             {
                 _cachedDownloadedList[file] = cached;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         internal static void DownloadedCacheRemove(this string file)
@@ -4094,7 +4298,7 @@ namespace PixivWPF.Common
                 if (_cachedDownloadedList.ContainsKey(file))
                     _cachedDownloadedList.TryRemove(file, out cached);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         internal static void DownloadedCacheUpdate(this string old_file, string new_file, bool cached = true)
@@ -4107,7 +4311,7 @@ namespace PixivWPF.Common
                 }
                 new_file.DownloadedCacheAdd(cached);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         // Define the event handlers.
@@ -4120,7 +4324,7 @@ namespace PixivWPF.Common
         {
 #if DEBUG
             // Specify what is done when a file is changed, created, or deleted.
-            $"File: {e.FullPath} {e.ChangeType}".DEBUG();
+            $"File: {e.FullPath} {e.ChangeType}".INFO();
 #endif
             try
             {
@@ -4158,7 +4362,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             finally
             {
                 //lastDownloadEventTick = DateTime.Now;
@@ -4171,7 +4375,7 @@ namespace PixivWPF.Common
         {
 #if DEBUG
             // Specify what is done when a file is renamed.
-            $"File: {e.OldFullPath} renamed to {e.FullPath}".DEBUG();
+            $"File: {e.OldFullPath} renamed to {e.FullPath}".INFO();
 #endif
             try
             {
@@ -4188,7 +4392,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             finally
             {
                 //lastDownloadEventTick = DateTime.Now;
@@ -4330,7 +4534,7 @@ namespace PixivWPF.Common
             {
                 list.Items.UpdateDownloadState(illustid, exists);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void UpdateDownloadState(this ItemCollection items, int? illustid = null, bool? exists = null)
@@ -4339,7 +4543,7 @@ namespace PixivWPF.Common
             {
                 items.UpdateDownloadState(illustid, exists);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static async void UpdateDownloadStateAsync(this ObservableCollection<PixivItem> collection, int? illustid = null, bool? exists = null)
@@ -4733,10 +4937,7 @@ namespace PixivWPF.Common
                 using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
                     return inputStream.Length > 0;
             }
-            catch (Exception)
-            {
-                return false;
-            }
+            catch (Exception ex) { ex.ERROR(); return false; }
         }
 
         internal static void WaitForFile(this string filename)
@@ -4829,7 +5030,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size=default(Size))
+        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size = default(Size))
         {
             CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
@@ -5138,7 +5339,7 @@ namespace PixivWPF.Common
                     result = image;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 
             return (result);
         }
@@ -5182,7 +5383,7 @@ namespace PixivWPF.Common
                     }).InvokeAsync(true);
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -5229,7 +5430,7 @@ namespace PixivWPF.Common
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 #endif
             return (result);
         }
@@ -5272,7 +5473,7 @@ namespace PixivWPF.Common
                 result = BitmapFrame.Create(ms);
                 await ms.FlushAsync();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -5377,7 +5578,7 @@ namespace PixivWPF.Common
                 #endregion
                 Clipboard.SetDataObject(dataPackage, true);
             }
-            catch(Exception ex) { ex.Message.DEBUG(); }
+            catch (Exception ex) { ex.Message.DEBUG(); }
         }
 
         public static async void CopyImage(this string file)
@@ -5436,7 +5637,7 @@ namespace PixivWPF.Common
                 ex.Message.ShowMessageBox("ERROR[CLIPBOARD]");
             }
 #else
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 #endif
         }
 
@@ -5479,7 +5680,7 @@ namespace PixivWPF.Common
             {
                 result = long.Parse(item.ID) == id;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 
             return (result);
         }
@@ -5492,7 +5693,7 @@ namespace PixivWPF.Common
             {
                 result = long.Parse(item.ID) == (id ?? -1);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 
             return (result);
         }
@@ -5505,7 +5706,7 @@ namespace PixivWPF.Common
             {
                 result = long.Parse(item.ID) == long.Parse(item_now.ID) && item.Index == item_now.Index;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 
             return (result);
         }
@@ -5529,7 +5730,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -5664,7 +5865,7 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(result.ImageUrls.Large)) result.ImageUrls.Large = Illust.ImageUrls.Large;
                 if (string.IsNullOrEmpty(result.ImageUrls.Original)) result.ImageUrls.Original = Illust.ImageUrls.Original;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -5676,7 +5877,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(IllustID))
                     result = await RefreshIllust(Convert.ToInt32(IllustID), tokens);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -5696,7 +5897,7 @@ namespace PixivWPF.Common
                     break;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -5712,7 +5913,7 @@ namespace PixivWPF.Common
                     result = user;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -5732,7 +5933,7 @@ namespace PixivWPF.Common
                     u.IsPremium = user.IsFriend;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (user);
         }
 
@@ -5745,7 +5946,7 @@ namespace PixivWPF.Common
                 {
                     result = await RefreshUser(Convert.ToInt32(UserID), tokens);
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
             return (result);
         }
@@ -5767,7 +5968,7 @@ namespace PixivWPF.Common
                     if (user.Id.Value == UserID) result = user;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -5781,7 +5982,7 @@ namespace PixivWPF.Common
                     long id = -1;
                     if (long.TryParse(UserID, out id)) result = await RefreshUserInfo(id, tokens);
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
             return (result);
         }
@@ -5803,7 +6004,7 @@ namespace PixivWPF.Common
                     if (userinfo.user.Id.Value == UserID) result = userinfo;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -5956,7 +6157,7 @@ namespace PixivWPF.Common
                     await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, "private");
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             finally
             {
                 try
@@ -5980,7 +6181,7 @@ namespace PixivWPF.Common
                         $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl(), title, pub_like);
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
 
             return (result);
@@ -6024,7 +6225,7 @@ namespace PixivWPF.Common
                         {
                             var result = await item.LikeIllust(pub);
                         }
-                        catch (Exception){}
+                        catch (Exception ex) { ex.ERROR(); }
                     }).InvokeAsync();
                 }
             });
@@ -6052,7 +6253,7 @@ namespace PixivWPF.Common
                 await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
                 await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             finally
             {
                 try
@@ -6074,7 +6275,7 @@ namespace PixivWPF.Common
                         $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl(), title);
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
 
             return (result);
@@ -6090,7 +6291,6 @@ namespace PixivWPF.Common
         public static async Task<bool> UnLikeIllust(this PixivItem item, bool pub = true)
         {
             bool result = false;
-
             if (item.IsWork())
             {
                 var ret = await item.Illust.UnLike();
@@ -6098,7 +6298,6 @@ namespace PixivWPF.Common
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
             }
-
             return (result);
         }
 
@@ -6117,7 +6316,7 @@ namespace PixivWPF.Common
                         {
                             var result = await item.UnLikeIllust();
                         }
-                        catch (Exception){}
+                        catch (Exception ex) { ex.ERROR(); }
                     }).InvokeAsync();
                 }
             });
@@ -6150,7 +6349,6 @@ namespace PixivWPF.Common
         public static async Task<bool> ToggleLikeIllust(this PixivItem item, bool pub = true)
         {
             bool result = false;
-
             if (item.IsWork())
             {
                 var ret = await item.Illust.ToggleLike(pub);
@@ -6158,7 +6356,6 @@ namespace PixivWPF.Common
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
             }
-
             return (result);
         }
 
@@ -6178,7 +6375,7 @@ namespace PixivWPF.Common
                         {
                             var result = await item.ToggleLikeIllust(pub);
                         }
-                        catch (Exception){}
+                        catch (Exception ex) { ex.ERROR(); }
                     }).InvokeAsync();
                 }
             });
@@ -6215,7 +6412,7 @@ namespace PixivWPF.Common
                     await tokens.AddFavouriteUser((long)user.Id, "private");
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             finally
             {
                 try
@@ -6231,7 +6428,7 @@ namespace PixivWPF.Common
                         $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".ShowToast(title, user.GetAvatarUrl(), title, pub_like);
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
             return (result);
         }
@@ -6260,7 +6457,7 @@ namespace PixivWPF.Common
                         item.IsFavorited = result;
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
 
             return (result);
@@ -6282,7 +6479,7 @@ namespace PixivWPF.Common
                         {
                             var result = await item.LikeUser(pub);
                         }
-                        catch (Exception){}
+                        catch (Exception ex) { ex.ERROR(); }
                     }).InvokeAsync();
                 }
             });
@@ -6311,7 +6508,7 @@ namespace PixivWPF.Common
                 await tokens.DeleteFavouriteUser(user.Id.ToString());
                 await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             finally
             {
                 try
@@ -6326,7 +6523,7 @@ namespace PixivWPF.Common
                         $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl(), title);
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
             return (result);
         }
@@ -6355,7 +6552,7 @@ namespace PixivWPF.Common
                         item.IsFavorited = result;
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
 
             return (result);
@@ -6376,7 +6573,7 @@ namespace PixivWPF.Common
                         {
                             var result = await item.UnLikeUser();
                         }
-                        catch (Exception){}
+                        catch (Exception ex) { ex.ERROR(); }
                     }).InvokeAsync();
                 }
             });
@@ -6423,7 +6620,7 @@ namespace PixivWPF.Common
                         item.IsFavorited = result;
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
 
             return (result);
@@ -6445,7 +6642,7 @@ namespace PixivWPF.Common
                         {
                             var result = await item.ToggleLikeUser(pub);
                         }
-                        catch (Exception){}
+                        catch (Exception ex) { ex.ERROR(); }
                     }).InvokeAsync();
                 }
             });
@@ -6680,7 +6877,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void UpdateTheme()
@@ -6694,7 +6891,7 @@ namespace PixivWPF.Common
                     if (win is MetroWindow) win.UpdateTheme(img);
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static bool IsShown(this UIElement element)
@@ -6843,7 +7040,7 @@ namespace PixivWPF.Common
 
                     if (button is ToggleButton) MouseLeave(button);
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
         }
 
@@ -6860,7 +7057,7 @@ namespace PixivWPF.Common
                 if (!(button is ToggleButton) || (button is ToggleButton && !(button as ToggleButton).IsChecked.Value))
                     button.Background = Theme.SemiTransparentBrush;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void MouseLeave(this ButtonBase button)
@@ -6882,7 +7079,7 @@ namespace PixivWPF.Common
                     button.Background = bg;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void ToolButton_MouseEnter(object sender, MouseEventArgs e)
@@ -7114,8 +7311,9 @@ namespace PixivWPF.Common
                     else if (window is ContentWindow)
                         (window as ContentWindow).RestoreWindowState();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    ex.ERROR();
                     window.WindowState = WindowState.Normal;
                 }
             }
@@ -7194,10 +7392,10 @@ namespace PixivWPF.Common
                         result = window.Content;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
-        
+
         public static bool WindowExists(string title)
         {
             bool result = false;
@@ -7272,6 +7470,8 @@ namespace PixivWPF.Common
 
         public static async void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
+            content.LOG(title);
+
             await Task.Delay(1);
             _MessageDialogList[title] = content;
             MessageBox.Show(content, title, MessageBoxButton.OK, image);
@@ -7281,6 +7481,8 @@ namespace PixivWPF.Common
 
         public static async Task<bool> ShowMessageDialog(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
+            content.LOG(title);
+
             await Task.Delay(1);
             _MessageDialogList[title] = content;
             var ret = MessageBox.Show(content, title, MessageBoxButton.OKCancel, image);
@@ -7356,6 +7558,8 @@ namespace PixivWPF.Common
             {
                 if (title.Equals(lastToastTitle) && content.Equals(lastToastContent)) return;
 
+                content.LOG(title);
+
                 setting = Application.Current.LoadSetting();
 
                 lastToastTitle = title;
@@ -7391,7 +7595,7 @@ namespace PixivWPF.Common
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
 #else
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 #endif
         }
 
@@ -7399,6 +7603,8 @@ namespace PixivWPF.Common
         {
             try
             {
+                content.LOG(title);
+
                 setting = Application.Current.LoadSetting();
 
                 INotificationDialogService _dialogService = new NotificationDialogService();
@@ -7431,15 +7637,17 @@ namespace PixivWPF.Common
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
 #else
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 #endif
         }
 
-        public async static void ShowToast(this string content, string title, bool messagebox=false)
+        public async static void ShowToast(this string content, string title, bool messagebox = false)
         {
             try
             {
                 if (messagebox) { content.ShowMessageBox(title); return; }
+
+                content.LOG(title);
 
                 setting = Application.Current.LoadSetting();
 
@@ -7461,12 +7669,12 @@ namespace PixivWPF.Common
                 await new Action(() => {
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
-                }).InvokeAsync(true);                
+                }).InvokeAsync(true);
             }
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
 #else
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 #endif
         }
         #endregion
@@ -7749,7 +7957,7 @@ namespace PixivWPF.Common
             {
                 result = TimeSpan.TicksPerMillisecond * millisecond;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -7760,7 +7968,7 @@ namespace PixivWPF.Common
             {
                 result = ticks / TimeSpan.TicksPerMillisecond;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -7792,7 +8000,7 @@ namespace PixivWPF.Common
                 result = ticks2 - ticks1;
                 if (abs) result = Math.Abs(result);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -7803,7 +8011,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaTicks(ticks1, ticks2, abs).TicksToMillisecond();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -7814,7 +8022,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaMillisecond(dt1.Ticks, dt2.Ticks, abs);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -7860,7 +8068,7 @@ namespace PixivWPF.Common
             {
                 result = dt2 - dt1;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -7871,7 +8079,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaMillisecond(ticks, DateTime.Now.Ticks, abs);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -7882,7 +8090,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaNowMillisecond(dt.Ticks, abs);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -7893,7 +8101,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaNowMillisecond(ticks, abs) > millisecond;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -7904,7 +8112,7 @@ namespace PixivWPF.Common
             {
                 result = DeltaNowMillisecond(dt, abs) > millisecond;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
         #endregion
@@ -7919,7 +8127,7 @@ namespace PixivWPF.Common
                     Sound(mode);
                 }).InvokeAsync();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void Sound(string mode)
@@ -7958,7 +8166,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
         #endregion
 
@@ -7973,7 +8181,7 @@ namespace PixivWPF.Common
                     image.UpdateLayout();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void Dispose<T>(this T[] array)
@@ -7998,7 +8206,7 @@ namespace PixivWPF.Common
                     Array.Resize<T>(ref array, 0);
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public static void Clear<T>(this T[] array, ref T[] target)
@@ -8011,37 +8219,7 @@ namespace PixivWPF.Common
                     Array.Resize<T>(ref array, 0);
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
-        }
-
-        public static bool IsConsole
-        {
-            get
-            {
-                try
-                {
-                    return (Environment.UserInteractive && Console.Title.Length > 0);
-                }
-                catch (Exception) { return (false); }
-            }
-        }
-
-        public static void DEBUG(this string contents, string tag = "")
-        {
-#if DEBUG
-            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
-            Debug.WriteLine($"{prefix}{contents}");
-#endif
-        }
-
-        public static void LOG(this string contents, string tag = "")
-        {
-#if DEBUG
-            var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
-            Console.WriteLine($"{prefix}{contents}");
-#else
-            if (IsConsole) Console.WriteLine(contents);
-#endif
+            catch (Exception ex) { ex.ERROR(); }
         }
         #endregion
 
@@ -8054,7 +8232,7 @@ namespace PixivWPF.Common
                 var ret = element.FindName(name);
                 if (ret is T) result = (T)ret;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -8169,7 +8347,7 @@ namespace PixivWPF.Common
             if (obj is Visual)
             {
                 var children = obj.GetChildObjects();
-                foreach(var child in children)
+                foreach (var child in children)
                 {
                     if (child is T) childList.Add(child as T);
                     if (child is Visual)

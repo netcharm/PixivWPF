@@ -69,6 +69,8 @@ namespace PixivWPF.Common
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            $"{Title} Loading...".INFO();
+
             CommandPageRefresh.Hide();
             CommandFilter.Hide();
 

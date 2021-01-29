@@ -54,7 +54,7 @@ namespace PixivWPF.Pages
                     }).InvokeAsync();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void UpdateIllustTags()
@@ -75,7 +75,7 @@ namespace PixivWPF.Pages
                     }).InvokeAsync();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void UpdateIllustDesc()
@@ -96,7 +96,7 @@ namespace PixivWPF.Pages
                     }).InvokeAsync();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void UpdateWebContent()
@@ -290,7 +290,7 @@ namespace PixivWPF.Pages
         {
             ShowImages(TargetPage, false, GetLastSelectedID());
         }
-        
+
         public void RefreshThumbnail()
         {
             var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
@@ -413,7 +413,7 @@ namespace PixivWPF.Pages
             UniformGrid vspanel = ImageTiles.GetVisualChild<UniformGrid>();
             List<ListViewItem> children = vspanel.GetVisualChildren<ListViewItem>();
             count = children.Count;
-            if(children[1].IsVisiualChild(vspanel))
+            if (children[1].IsVisiualChild(vspanel))
             {
 
             }
@@ -460,7 +460,7 @@ namespace PixivWPF.Pages
             {
                 ImageTiles.Filter = filter.GetFilter();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ex.Message.DEBUG();
             }
@@ -488,7 +488,7 @@ namespace PixivWPF.Pages
             List<string> tips = new List<string>();
             tips.Add($"Illust: {ImageTiles.ItemsCount} of {ImageTiles.Items.Count}");
             tips.Add($"Page: {ImageTiles.CurrentPage} of {ImageTiles.TotalPages}");
-            if(detail_page is IllustDetailPage)
+            if (detail_page is IllustDetailPage)
                 tips.Add(detail_page.GetTilesCount());
             return (string.Join(Environment.NewLine, tips));
         }
@@ -499,8 +499,10 @@ namespace PixivWPF.Pages
             InitializeComponent();
         }
 
-        private void Page_Loaded(object sender, RoutedEventArgs e)
+        private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            $"{WindowTitle} Loading...".INFO();
+
             setting = Application.Current.LoadSetting();
 
             window = this.GetActiveWindow();
@@ -513,13 +515,17 @@ namespace PixivWPF.Pages
             ImageTiles.Clear();
 
             PixivCatgoryMenu.IsPaneOpen = false;
-            PixivCatgoryMenu.SelectedIndex = GetCatgoryIndex(setting.DefaultPage);
+            await new Action(() =>
+            {
+                PixivCatgoryMenu.SelectedIndex = GetCatgoryIndex(setting.DefaultPage);
+            }).InvokeAsync();
         }
 
         internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
         {
             if (window == null) window = this.GetActiveWindow();
 
+            var count = ImageTiles.ItemsCount;
             if (target != PixivPage.My && TargetPage != target)
             {
                 NextURL = null;
@@ -533,10 +539,21 @@ namespace PixivWPF.Pages
                 ids.Clear();
                 ImageTiles.ClearAsync(false);
             }
-            GC.Collect();
-            //GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+
+            if (count > 0)
+            {
+                double M = 1024.0 * 1024.0;
+                var before = GC.GetTotalMemory(true);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                var after = GC.GetTotalMemory(true);
+                $"Memory Usage: {before / M:F2}M => {after / M:F2}M".INFO();
+            }
+            if(IsAppend)
+                $"Append illusts from catgory \"{target.ToString()}\" ......".INFO();
+            else
+                $"Show illusts from catgory \"{target.ToString()}\" ......".INFO();
 
             var win = Application.Current.GetMainWindow();
             if (win is MainWindow && target != PixivPage.None) win.UpdateTitle(target.ToString());
@@ -1480,7 +1497,7 @@ namespace PixivWPF.Pages
                 PixivCatgoryMenu.SelectedIndex = idx;
             }
             else if (PixivCatgoryMenu.SelectedItem == lastInvokedItem) return;
-#region Common
+            #region Common
             else if (item == miPixivRecommanded)
             {
                 ShowImages(PixivPage.Recommanded, false);
@@ -1493,8 +1510,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.TrendingTags, false);
             }
-#endregion
-#region Following
+            #endregion
+            #region Following
             else if (item == miPixivFollowing)
             {
                 ShowImages(PixivPage.Follow, false);
@@ -1503,8 +1520,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.FollowPrivate, false);
             }
-#endregion
-#region Favorite
+            #endregion
+            #region Favorite
             else if (item == miPixivFavorite)
             {
                 ShowImages(PixivPage.Favorite, false);
@@ -1513,8 +1530,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.FavoritePrivate, false);
             }
-#endregion
-#region Ranking Day
+            #endregion
+            #region Ranking Day
             else if (item == miPixivRankingDay)
             {
                 ShowImages(PixivPage.RankingDay, false);
@@ -1539,8 +1556,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.RankingDayFemaleR18, false);
             }
-#endregion
-#region Ranking Day
+            #endregion
+            #region Ranking Day
             else if (item == miPixivRankingWeek)
             {
                 ShowImages(PixivPage.RankingWeek, false);
@@ -1557,14 +1574,14 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.RankingWeekR18, false);
             }
-#endregion
-#region Ranking Month
+            #endregion
+            #region Ranking Month
             else if (item == miPixivRankingMonth)
             {
                 ShowImages(PixivPage.RankingMonth, false);
             }
-#endregion
-#region Pixiv Mine
+            #endregion
+            #region Pixiv Mine
             else if (item == miPixivMine)
             {
                 args.Handled = true;
@@ -1591,9 +1608,9 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.MyBlacklistUser, false);
             }
-#endregion
+            #endregion
 
-            if (!args.Handled) lastInvokedItem = item;            
+            if (!args.Handled) lastInvokedItem = item;
         }
 
         private void PixivCatgoryMenu_MouseRightButtonDown(object sender, MouseButtonEventArgs e)

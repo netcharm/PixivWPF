@@ -115,7 +115,7 @@ namespace PixivWPF.Common
                 if (culture.EnglishName.StartsWith("unk", StringComparison.CurrentCultureIgnoreCase))
                     culture = null;
             }
-            catch (Exception) { culture = null; }
+            catch (Exception ex) { ex.ERROR(); culture = null; }
             finally { }
 
             return (culture);
@@ -232,7 +232,7 @@ namespace PixivWPF.Common
                     }
                     lastCulture = culture;
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
             if (result.Count > 0 && !result.Last().Key.Equals(sb.ToString()))
                 result.Add(new KeyValuePair<string, CultureInfo>(sb.ToString(), lastCulture));
@@ -504,7 +504,7 @@ namespace PixivWPF.Common
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 #endif            
         }
 
@@ -569,7 +569,7 @@ namespace PixivWPF.Common
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 #endif            
         }
 
@@ -685,7 +685,7 @@ namespace PixivWPF.Common
                     synth.Pause();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void Resume()
@@ -697,7 +697,7 @@ namespace PixivWPF.Common
                     synth.Resume();
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private bool CancelRequested = false;
@@ -719,7 +719,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
         #endregion
 
@@ -739,7 +739,7 @@ namespace PixivWPF.Common
                 voice_default = synth.Voice.Name;
                 InstalledVoices = synth.GetInstalledVoices().ToList();
             }
-            catch (Exception) { synth = null; }
+            catch (Exception ex) { ex.ERROR(); synth = null; }
         }
 
         ~SpeechTTS()
@@ -748,7 +748,7 @@ namespace PixivWPF.Common
             {
                 if (synth is SpeechSynthesizer) synth.Dispose();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
         #endregion
     }
@@ -898,7 +898,7 @@ namespace PixivWPF.Common
                 if (culture is CultureInfo && culture.EnglishName.StartsWith("unk", StringComparison.CurrentCultureIgnoreCase))
                     culture = null;
             }
-            catch (Exception) { culture = null; }
+            catch (Exception ex) { ex.ERROR(); culture = null; }
             finally { }
             return (culture);
         }

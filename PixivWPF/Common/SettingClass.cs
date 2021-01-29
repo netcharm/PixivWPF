@@ -97,6 +97,8 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.single_instance = single_instance;
             }
         }
+
+
         #endregion
 
         #region Config load/save relative
@@ -321,8 +323,9 @@ namespace PixivWPF.Common
                                 {
                                     Cache.fontfamily = new FontFamily(Cache.FontName);
                                 }
-                                catch (Exception)
+                                catch (Exception ex)
                                 {
+                                    ex.ERROR();
                                     Cache.fontfamily = SystemFonts.MessageFontFamily;
                                 }
                             }
@@ -359,7 +362,7 @@ namespace PixivWPF.Common
 #if DEBUG
                 catch (Exception ex) { ex.Message.ShowToast("ERROR"); }
 #else
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
 #endif
                 finally
                 {
@@ -385,7 +388,7 @@ namespace PixivWPF.Common
                             var tags = JsonConvert.SerializeObject(CommonHelper.TagsCache, Formatting.Indented);
                             File.WriteAllText(tagsfile, tags, new UTF8Encoding(true));
                         }
-                        catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                        catch (Exception ex) { ex.ERROR(); }
                     }
                     //if (File.Exists(tagsfile_t2s))
                     //{
@@ -394,10 +397,10 @@ namespace PixivWPF.Common
                     //        var tags_t2s = File.ReadAllText(tagsfile_t2s);
                     //        CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
                     //    }
-                    //    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                    //    catch (Exception ex) { ex.ERROR(); }
                     //}
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
                 finally
                 {
                     if (TagsReadWrite is SemaphoreSlim && TagsReadWrite.CurrentCount <= 0) TagsReadWrite.Release();
@@ -433,7 +436,7 @@ namespace PixivWPF.Common
                                 CommonHelper.TagsCache = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags);
                                 tags_changed = true;
                             }
-                            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                            catch (Exception ex) { ex.ERROR(); }
                         }
 
                         LoadCustomTags(force);
@@ -443,7 +446,7 @@ namespace PixivWPF.Common
                         if (tags_changed) CommonHelper.UpdateIllustTagsAsync();
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
                 finally
                 {
                     if (TagsReadWrite is SemaphoreSlim && TagsReadWrite.CurrentCount <= 0) TagsReadWrite.Release();
@@ -499,7 +502,7 @@ namespace PixivWPF.Common
                                     tags_changed = true;
                                 }
                             }
-                            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                            catch (Exception ex) { ex.ERROR(); }
                         }
                         if (tags_changed)
                         {
@@ -508,7 +511,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
                 finally
                 {
                     if (CustomTagsReadWrite is SemaphoreSlim && CustomTagsReadWrite.CurrentCount <= 0) CustomTagsReadWrite.Release();
@@ -563,7 +566,7 @@ namespace PixivWPF.Common
                                     tags_changed = true;
                                 }
                             }
-                            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                            catch (Exception ex) { ex.ERROR(); }
                         }
 
                         if (tags_changed)
@@ -573,7 +576,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
                 finally
                 {
                     if (CustomWildcardTagsReadWrite is SemaphoreSlim && CustomWildcardTagsReadWrite.CurrentCount <= 0) CustomWildcardTagsReadWrite.Release();
@@ -1428,6 +1431,17 @@ namespace PixivWPF.Common
             {
                 shell_image_viewer_enabled = value;
                 if (Cache is Setting) Cache.shell_image_viewer_enabled = shell_image_viewer_enabled;
+            }
+        }
+
+        private string shell_log_viewer = string.Empty;
+        public string ShellLogViewer
+        {
+            get { return (Cache is Setting ? Cache.shell_log_viewer : shell_log_viewer); }
+            set
+            {
+                shell_log_viewer = value;
+                if (Cache is Setting) Cache.shell_log_viewer = shell_log_viewer;
             }
         }
         #endregion

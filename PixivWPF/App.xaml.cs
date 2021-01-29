@@ -23,7 +23,7 @@ namespace PixivWPF
             {
                 this.SaveSetting(true);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR("NBug"); }
             //tell NBug if submission was successfull or not
             e.Result = true;
         }
@@ -32,6 +32,9 @@ namespace PixivWPF
         {
             try
             {
+                Current.StartLog();
+                "Application Starting now ......".INFO();
+
                 NBug.Settings.Destinations.Add(new NBug.Core.Submission.Custom.Custom());
                 NBug.Settings.CustomSubmissionEvent += Settings_CustomSubmissionEvent;
 
@@ -54,10 +57,16 @@ namespace PixivWPF
         {
             try
             {
+                "Application Shutdown now ......".INFO();
+
                 this.SaveSetting(true);
-                Current.UnbindHotkeys();
+                Current.UnbindHotkeys();                
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR("APP_EXIT"); }
+            finally
+            {
+                Current.StopLog();
+            }
         }
     }
 }

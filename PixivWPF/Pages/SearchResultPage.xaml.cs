@@ -109,7 +109,7 @@ namespace PixivWPF.Pages
             {
                 Commands.ChangeIllustLikeState.Execute(ResultItems);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void ChangeUserLikeState()
@@ -118,7 +118,7 @@ namespace PixivWPF.Pages
             {
                 Commands.ChangeUserLikeState.Execute(ResultItems);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void OpenIllust()
@@ -132,7 +132,7 @@ namespace PixivWPF.Pages
             {
                 Commands.OpenCachedImage.Execute(ResultItems);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void OpenWork()
@@ -151,7 +151,7 @@ namespace PixivWPF.Pages
             {
                 Commands.SaveIllust.Execute(ResultItems);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void SaveIllustAll()
@@ -160,7 +160,7 @@ namespace PixivWPF.Pages
             {
                 Commands.SaveIllustAll.Execute(ResultItems);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void FirstIllust()
@@ -274,7 +274,7 @@ namespace PixivWPF.Pages
                 ResultItems.Clear();
                 Contents = null;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public SearchResultPage()
@@ -702,7 +702,7 @@ namespace PixivWPF.Pages
                         items.UnLikeIllust();
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
         }
 
@@ -732,7 +732,7 @@ namespace PixivWPF.Pages
                         items.UnLikeUser();
                     }
                 }
-                catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                catch (Exception ex) { ex.ERROR(); }
             }
         }
 
@@ -765,7 +765,7 @@ namespace PixivWPF.Pages
             {
                 if (e.LeftButton == MouseButtonState.Pressed) Commands.Open.Execute(ResultItems);
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private void SearchFilter_Click(object sender, RoutedEventArgs e)

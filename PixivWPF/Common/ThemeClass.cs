@@ -44,7 +44,7 @@ namespace PixivWPF.Common
                     var rc = Color.FromArgb(c.A, c.R, c.G, c.B);
                     return (rc);
                 }
-                catch (Exception) { return (default(Color)); }
+                catch (Exception ex) { ex.ERROR(); return (default(Color)); }
             }
         }
 

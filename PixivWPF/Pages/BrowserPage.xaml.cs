@@ -46,7 +46,7 @@ namespace PixivWPF.Pages
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
                 if (!string.IsNullOrEmpty(text)) text.Play();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         internal void UpdateTheme()
@@ -98,7 +98,7 @@ namespace PixivWPF.Pages
                     TrySetSuppressScriptErrors(webHtml, true);
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private void CreateHtmlRender()
@@ -146,7 +146,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return false;
         }
 
@@ -255,7 +255,7 @@ namespace PixivWPF.Pages
                                             img.Source = null;
                                         }
                                     }
-                                    catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                                    catch (Exception ex) { ex.ERROR(); }
                                 }).InvokeAsync();
                             }
                         }
@@ -266,12 +266,12 @@ namespace PixivWPF.Pages
                                 continue;
                             }
 #else
-                        catch (Exception) { continue; }
+                        catch (Exception ex) { ex.ERROR(); continue; }
 #endif
                     }
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private async void WebBrowser_LinkClick(object sender, System.Windows.Forms.HtmlElementEventArgs e)
@@ -387,7 +387,7 @@ namespace PixivWPF.Pages
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 #endif
         }
 
@@ -401,7 +401,7 @@ namespace PixivWPF.Pages
                     WebBrowserReplaceImageSource(browser);
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private async void WebBrowser_Navigating(object sender, System.Windows.Forms.WebBrowserNavigatingEventArgs e)
@@ -429,7 +429,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private void WebBrowser_DocumentCompleted(object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e)
@@ -448,7 +448,7 @@ namespace PixivWPF.Pages
                             if (string.IsNullOrEmpty(link.GetAttribute("href"))) continue;
                             link.Click += WebBrowser_LinkClick;
                         }
-                        catch (Exception) { continue; }
+                        catch (Exception ex) { ex.ERROR(); continue; }
                     }
                     WebBrowserReplaceImageSource(browser);
                 }
@@ -460,7 +460,7 @@ namespace PixivWPF.Pages
                 ex.Message.DEBUG();
             }
 #else
-            catch (Exception) { BrowserWait.Fail(); }
+            catch (Exception ex) { ex.ERROR(); BrowserWait.Fail(); }
 #endif
             finally
             {
@@ -510,7 +510,7 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[BROWSER]"); }
 #else
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
 #endif
         }
 
@@ -521,7 +521,7 @@ namespace PixivWPF.Pages
                 // Ignore the error and suppress the error dialog box. 
                 e.Handled = true;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public BrowerPage()

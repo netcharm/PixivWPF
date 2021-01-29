@@ -84,7 +84,7 @@ namespace netcharm
                     result = mo["ProcessorId"].ToString();
                     break;
                 }
-                catch (Exception) { continue; }
+                catch (Exception ex) { ex.ERROR("PROCESSOR"); continue; }
 
                 //foreach (PropertyData p in mo.Properties)
                 //{
@@ -146,10 +146,7 @@ namespace netcharm
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ERR("ERROR[AES]");
-            }
+            catch (Exception ex) { ex.ERROR("AES"); }
             return encrypt;
         }
 
@@ -198,10 +195,7 @@ namespace netcharm
                     if (uni_text.StartsWith(ProcessorID)) decrypt = uni_text.Replace($"{ProcessorID}", "");
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ERR("ERROR[AES]");
-            }
+            catch (Exception ex) { ex.ERROR("AES"); }
             return decrypt;
         }
         #endregion

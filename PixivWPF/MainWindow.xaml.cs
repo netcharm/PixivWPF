@@ -171,7 +171,7 @@ namespace PixivWPF
                     }
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         public void FirstIllust()
@@ -266,9 +266,7 @@ namespace PixivWPF
                 using (StreamReader sw = new StreamReader(ps))
                 {
                     var contents = sw.ReadToEnd().Trim();
-#if DEBUG
-                    $"RECEIVED: {contents}".DEBUG();
-#endif
+                    $"RECEIVED => {contents}".INFO();
                     if (contents.StartsWith("cmd:", StringComparison.CurrentCultureIgnoreCase))
                     {
                         Application.Current.ProcessCommand(contents);
@@ -412,6 +410,7 @@ namespace PixivWPF
             if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
             if (Keyboard.Modifiers == ModifierKeys.Shift && WindowState == WindowState.Minimized)
                 Application.Current.RebindHotKeys();
+            Application.Current.ReleaseModifiers(all:true, updown:true);
         }
 
         private void RecentsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -451,7 +450,7 @@ namespace PixivWPF
                     DatePickerPopup.IsOpen = false;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private void DatePickerPopup_Closed(object sender, EventArgs e)

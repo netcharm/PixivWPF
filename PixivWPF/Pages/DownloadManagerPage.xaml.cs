@@ -59,7 +59,7 @@ namespace PixivWPF.Pages
                     autoTaskTimer.Enabled = true;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -88,7 +88,7 @@ namespace PixivWPF.Pages
                     }
                 }).InvokeAsync();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
         #endregion
 
@@ -154,11 +154,11 @@ namespace PixivWPF.Pages
                     {
                         try
                         {
-                            var remove = items.Where(o => o.State == DownloadState.Remove);
-                            foreach (var i in remove)
+                            var remove = items.Where(o => o.State == DownloadState.Remove).ToList();
+                            for (int i = remove.Count - 1; i >= 0; i--)
                             {
-                                i.Dispose();
-                                items.Remove(i);
+                                remove[i].Dispose();
+                                items.Remove(remove[i]);
                             }
 
                             var idle = items.Where(o => o.State == DownloadState.Idle );
@@ -169,7 +169,7 @@ namespace PixivWPF.Pages
 
                             PART_DownloadState.Text = $"Total: {items.Count()}, Idle: {idle.Count()}, Downloading: {downloading.Count()}, Finished: {finished.Count()}, Failed: {failed.Count()}, Non-Exists: {nonexists.Count()}";
                         }
-                        catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+                        catch (Exception ex) { ex.ERROR(); }
                         finally
                         {
                             if (CanUpdateState is SemaphoreSlim && CanUpdateState.CurrentCount <= 0) CanUpdateState.Release();
@@ -198,11 +198,14 @@ namespace PixivWPF.Pages
         public IList<string> Unfinished()
         {
             List<string> result = new List<string>();
-            var unfinished = items.Where(i => i.State != DownloadState.Finished);
-            foreach (var item in unfinished)
+            Dispatcher.Invoke(() =>
             {
-                result.Add($"Downloading: {item.Url.ParseID()}");
-            }
+                var unfinished = items.Where(i => i.State != DownloadState.Finished).ToList();
+                foreach (var item in unfinished)
+                {
+                    result.Add($"Downloading: {item.Url.ParseID()}");
+                }
+            });
             return (result);
         }
 
@@ -227,7 +230,7 @@ namespace PixivWPF.Pages
                 else
                     result = items.Where(i => i.Url.Equals(url, StringComparison.CurrentCultureIgnoreCase)).Count() > 0;
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -244,7 +247,7 @@ namespace PixivWPF.Pages
                         result = items.Where(i => i.Url.Equals(item.Url, StringComparison.CurrentCultureIgnoreCase)).Count() > 0;
                 }
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (result);
         }
 
@@ -342,7 +345,7 @@ namespace PixivWPF.Pages
                     }
                 }).InvokeAsync();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private async void PART_DownloadAll_Click(object sender, RoutedEventArgs e)
@@ -387,7 +390,7 @@ namespace PixivWPF.Pages
                     }
                 }).InvokeAsync();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private async void PART_RemoveAll_Click(object sender, RoutedEventArgs e)
@@ -414,7 +417,7 @@ namespace PixivWPF.Pages
                     }
                 }).InvokeAsync();
             }
-            catch (Exception ex) { $"{ex.Message}{Environment.NewLine}{ex.StackTrace}".DEBUG(); }
+            catch (Exception ex) { ex.ERROR(); }
         }
 
         private async void PART_CopyID_Click(object sender, RoutedEventArgs e)
