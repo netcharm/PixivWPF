@@ -21,8 +21,8 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class TilesPage : Page
     {
-        private Window window = null;
-        private IllustDetailPage detail_page = new IllustDetailPage();
+        private MainWindow window = null;
+        private IllustDetailPage detail_page = new IllustDetailPage() { Name="IllustDetail" };
 
         internal string lastSelectedId = string.Empty;
         internal List<long> ids = new List<long>();
@@ -200,7 +200,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal PixivPage GetPageTypeByCatgory(object item)
+        internal PixivPage GetPageTypeByCategory(object item)
         {
             PixivPage result = PixivPage.None;
 
@@ -272,12 +272,12 @@ namespace PixivWPF.Pages
             return (result);
         }
 
-        internal int GetCatgoryIndex(PixivPage target)
+        internal int GetCategoryIndex(PixivPage target)
         {
             int result = (int)PixivPage.Recommanded;
-            for (int i = 0; i < PixivCatgoryMenu.Items.Count; i++)
+            for (int i = 0; i < CategoryMenu.Items.Count; i++)
             {
-                if (GetPageTypeByCatgory(PixivCatgoryMenu.Items[i]) == target)
+                if (GetPageTypeByCategory(CategoryMenu.Items[i]) == target)
                 {
                     result = i;
                     break;
@@ -505,59 +505,43 @@ namespace PixivWPF.Pages
 
             setting = Application.Current.LoadSetting();
 
-            window = this.GetActiveWindow();
+            window = this.GetMainWindow();
 
             IllustDetail.Content = detail_page;
 
             UpdateTheme();
 
             ids.Clear();
+            ImageTiles.AutoGC = true;
+            ImageTiles.WaitGC = true;
+            ImageTiles.CalcSystemMemoryUsage = setting.CalcSystemMemoryUsage;
             ImageTiles.Clear();
 
-            PixivCatgoryMenu.IsPaneOpen = false;
             await new Action(() =>
             {
-                PixivCatgoryMenu.SelectedIndex = GetCatgoryIndex(setting.DefaultPage);
+                CategoryMenu.IsPaneOpen = false;
+                CategoryMenu.SelectedIndex = GetCategoryIndex(setting.DefaultPage);
             }).InvokeAsync();
         }
 
         internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
         {
-            if (window == null) window = this.GetActiveWindow();
+            if (window == null) window = this.GetMainWindow();
+            if (target == PixivPage.My) { ShowUser(0, true); return; }
+            if (window is MainWindow) window.UpdateTitle(target.ToString());
 
-            var count = ImageTiles.ItemsCount;
-            if (target != PixivPage.My && TargetPage != target)
+            if (TargetPage != target) TargetPage = target;
+            if (!IsAppend)
             {
-                NextURL = null;
-                TargetPage = target;
-                ids.Clear();
-                ImageTiles.ClearAsync(false);
-            }
-            if (target != PixivPage.My && !IsAppend)
-            {
+                var count = ImageTiles.ItemsCount;
+
+                $"Show illusts from category \"{target.ToString()}\" ......".INFO();
                 NextURL = null;
                 ids.Clear();
                 ImageTiles.ClearAsync(false);
             }
-
-            if (count > 0)
-            {
-                double M = 1024.0 * 1024.0;
-                var before = GC.GetTotalMemory(true);
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-                var after = GC.GetTotalMemory(true);
-                $"Memory Usage: {before / M:F2}M => {after / M:F2}M".INFO();
-            }
-            if(IsAppend)
-                $"Append illusts from catgory \"{target.ToString()}\" ......".INFO();
-            else
-                $"Show illusts from catgory \"{target.ToString()}\" ......".INFO();
-
-            var win = Application.Current.GetMainWindow();
-            if (win is MainWindow && target != PixivPage.None) win.UpdateTitle(target.ToString());
-
+            else $"Append illusts from category \"{target.ToString()}\" ......".INFO();
+               
             LastPage = target;
             switch (target)
             {
@@ -662,7 +646,7 @@ namespace PixivWPF.Pages
             if (!string.IsNullOrEmpty(id)) lastSelectedId = id;
         }
 
-        #region Show category
+#region Show category
         private async void ShowRecommanded(string nexturl = null)
         {
             ImageTiles.Wait();
@@ -1435,7 +1419,7 @@ namespace PixivWPF.Pages
                 KeepLastSelected(lastSelectedId);
             }
         }
-        #endregion
+#endregion
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -1482,22 +1466,22 @@ namespace PixivWPF.Pages
         }
 
         private object lastInvokedItem = null;
-        private void PixivCatgoryMenu_ItemInvoked(object sender, HamburgerMenuItemInvokedEventArgs args)
+        private void CategoryMenu_ItemInvoked(object sender, HamburgerMenuItemInvokedEventArgs args)
         {
-            if (!PixivCatgoryMenu.IsLoaded) return;
+            if (!CategoryMenu.IsLoaded) return;
 
             var item = args.InvokedItem;
-            var idx = PixivCatgoryMenu.SelectedIndex;
+            var idx = CategoryMenu.SelectedIndex;
 
-            if (PixivCatgoryMenu.IsPaneOpen) PixivCatgoryMenu.IsPaneOpen = false;
+            if (CategoryMenu.IsPaneOpen) CategoryMenu.IsPaneOpen = false;
 
             if (item == miAbout)
             {
                 args.Handled = true;
-                PixivCatgoryMenu.SelectedIndex = idx;
+                CategoryMenu.SelectedIndex = idx;
             }
-            else if (PixivCatgoryMenu.SelectedItem == lastInvokedItem) return;
-            #region Common
+            else if (CategoryMenu.SelectedItem == lastInvokedItem) return;
+#region Common
             else if (item == miPixivRecommanded)
             {
                 ShowImages(PixivPage.Recommanded, false);
@@ -1510,8 +1494,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.TrendingTags, false);
             }
-            #endregion
-            #region Following
+#endregion
+#region Following
             else if (item == miPixivFollowing)
             {
                 ShowImages(PixivPage.Follow, false);
@@ -1520,8 +1504,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.FollowPrivate, false);
             }
-            #endregion
-            #region Favorite
+#endregion
+#region Favorite
             else if (item == miPixivFavorite)
             {
                 ShowImages(PixivPage.Favorite, false);
@@ -1530,8 +1514,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.FavoritePrivate, false);
             }
-            #endregion
-            #region Ranking Day
+#endregion
+#region Ranking Day
             else if (item == miPixivRankingDay)
             {
                 ShowImages(PixivPage.RankingDay, false);
@@ -1556,8 +1540,8 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.RankingDayFemaleR18, false);
             }
-            #endregion
-            #region Ranking Day
+#endregion
+#region Ranking Day
             else if (item == miPixivRankingWeek)
             {
                 ShowImages(PixivPage.RankingWeek, false);
@@ -1574,18 +1558,18 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.RankingWeekR18, false);
             }
-            #endregion
-            #region Ranking Month
+#endregion
+#region Ranking Month
             else if (item == miPixivRankingMonth)
             {
                 ShowImages(PixivPage.RankingMonth, false);
             }
-            #endregion
-            #region Pixiv Mine
+#endregion
+#region Pixiv Mine
             else if (item == miPixivMine)
             {
                 args.Handled = true;
-                PixivCatgoryMenu.SelectedIndex = idx;
+                CategoryMenu.SelectedIndex = idx;
                 ShowImages(PixivPage.My, false);
             }
             else if (item == miPixivMyFollower)
@@ -1608,14 +1592,14 @@ namespace PixivWPF.Pages
             {
                 ShowImages(PixivPage.MyBlacklistUser, false);
             }
-            #endregion
+#endregion
 
             if (!args.Handled) lastInvokedItem = item;
         }
 
-        private void PixivCatgoryMenu_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        private void CategoryMenu_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            setting.DefaultPage = GetPageTypeByCatgory(PixivCatgoryMenu.SelectedItem);
+            setting.DefaultPage = GetPageTypeByCategory(CategoryMenu.SelectedItem);
         }
 
         private void ImageTiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1649,8 +1633,8 @@ namespace PixivWPF.Pages
 
                         if (string.IsNullOrEmpty(ID_O) || !ID_N.Equals(ID_O, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            detail_page.Tag = item;
                             detail_page.Contents = item;
+                            $"ID: {item.ID}, {item.Illust.Title} Loading...".INFO();
                             detail_page.UpdateDetail(item);
                         }
 

@@ -136,6 +136,7 @@ namespace PixivWPF.Common
         #region Tiles
         private ConcurrentDictionary<string, ProgressRingCloud> RingList = new ConcurrentDictionary<string, ProgressRingCloud>();
         private ConcurrentDictionary<string, Canvas> CanvasList = new ConcurrentDictionary<string, Canvas>();
+        private ConcurrentDictionary<string, Image> ImageList = new ConcurrentDictionary<string, Image>();
         private ObservableCollection<PixivItem> ItemList = new ObservableCollection<PixivItem>();
         [Description("Get or Set Image Tiles List")]
         [Category("Common Properties")]
@@ -429,6 +430,12 @@ namespace PixivWPF.Common
         internal Task lastTask = null;
         internal CancellationTokenSource cancelTokenSource;
 
+        #region Calc GC Memory
+        public bool AutoGC { get; set; } = false;
+        public bool WaitGC { get; set; } = false;
+        public bool CalcSystemMemoryUsage { get; set; } = false;
+        #endregion
+
         #region Wait State
         [Description("Get or Set Wait Ring State")]
         [Category("Common Properties")]
@@ -467,12 +474,15 @@ namespace PixivWPF.Common
         #endregion
 
         #region Tiles Helper
-        private string GetID(PixivItem item)
+        private string GetID(PixivItem item, bool prefix = true)
         {
             string id = item.ID;
             string idx = item.Index > 0 ? $"_{item.Index}" : string.Empty;
-            if (item.IsWork()) id = $"i_{id}{idx}";
-            else if (item.IsUser()) id = $"u_{id}";
+            if (prefix)
+            {
+                if (item.IsWork()) id = $"i_{id}{idx}";
+                else if (item.IsUser()) id = $"u_{id}";
+            }
             return (id);
         }
 
@@ -507,9 +517,6 @@ namespace PixivWPF.Common
             //CollectionViewSource.GetDefaultView(this).Refresh();
         }
 
-        private WriteableBitmap NullThumbnail = new WriteableBitmap(1,1, 96, 96, PixelFormats.Gray2, BitmapPalettes.WebPalette);
-        private ImageBrush NullBackground = new ImageBrush(new WriteableBitmap(1,1, 96, 96, PixelFormats.Gray2, BitmapPalettes.WebPalette))
-                                                { Stretch = Stretch.Uniform, TileMode = TileMode.None };
         private async void RenderCanvas(Canvas canvas, ImageSource source, bool batch = false)
         {
             if (canvas is Canvas)
@@ -526,6 +533,7 @@ namespace PixivWPF.Common
                             canvas.Background = null;
                             if (batch) canvas.InvalidateVisual();
                             else canvas.UpdateLayout();
+                            canvas.DoEvents();
                         }
                     }
                     else
@@ -534,6 +542,31 @@ namespace PixivWPF.Common
                         canvas.Height = TileHeight;
                         canvas.Background = new ImageBrush(source) { Stretch = Stretch.Uniform, TileMode = TileMode.None };
                         if (canvas.Background.CanFreeze) canvas.Background.Freeze();
+                    }
+                }).InvokeAsync(true);
+            }
+        }
+
+        private async void RenderImage(Image image, ImageSource source, bool batch = false)
+        {
+            if (image is Image)
+            {
+                await new Action(() =>
+                {
+                    if (source == null)
+                    {
+                        if (image.Source != null)
+                        {
+                            image.Source = null;
+                            if (batch) image.InvalidateVisual();
+                            else image.UpdateLayout();
+                            image.DoEvents();
+                        }
+                    }
+                    else
+                    {
+                        image.Source = source;
+                        if (image.Source.CanFreeze) image.Source.Freeze();
                     }
                 }).InvokeAsync(true);
             }
@@ -551,12 +584,13 @@ namespace PixivWPF.Common
                     {
                         var item = ItemList[i];
                         var id = GetID(item);
-                        if (CanvasList.ContainsKey(id))
-                            RenderCanvas(CanvasList[id], null, batch);
                         if (RingList.ContainsKey(id) && RingList[id] is ProgressRingCloud)
                             RingList[id].Dispose();
+                        if (ImageList.ContainsKey(id))
+                            RenderImage(ImageList[id], null, batch);
+                        if (CanvasList.ContainsKey(id))
+                            RenderCanvas(CanvasList[id], null, batch);
                         //item.Source = null;
-                        this.DoEvents();
                     }
                     this.DoEvents();
                     if (batch) PART_ImageTiles.UpdateLayout();
@@ -565,20 +599,14 @@ namespace PixivWPF.Common
                     ItemList.Clear();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR(this.Name ?? string.Empty); }
             finally
             {
+                if (ImageList is ConcurrentDictionary<string, Image>) ImageList.Clear();
                 if (CanvasList is ConcurrentDictionary<string, Canvas>) CanvasList.Clear();
                 if (RingList is ConcurrentDictionary<string, ProgressRingCloud>) RingList.Clear();
 
-                if (count > 0)
-                {
-                    double M = 1024.0 * 1024.0;
-                    var before = GC.GetTotalMemory(true);
-                    GC.Collect();
-                    var after = GC.GetTotalMemory(true);
-                    $"Memory Usage: {before / M:F2}M => {after / M:F2}M".DEBUG();
-                }
+                if (AutoGC && count > 0) Application.Current.GC(this.Name, WaitGC, CalcSystemMemoryUsage);
             }
         }
 
@@ -656,27 +684,35 @@ namespace PixivWPF.Common
                     var ring = sender as ProgressRingCloud;
                     var tile = ring.Parent is Grid ? ring.Parent as Grid : null;
                     var item = tile is Grid && tile.DataContext is PixivItem ? tile.DataContext as PixivItem : null;
-                    var canvas = tile is Grid ? tile.FindByName<Canvas>("PART_ThumbnailCanvas") : null;
-                    if (canvas is Canvas && item is PixivItem)
+                    if (item == null) item = tile is Grid && tile.Tag is PixivItem ? tile.Tag as PixivItem : null;
+                    if (item is PixivItem)
                     {
                         var id = GetID(item);
-                        if (ring.State == TaskStatus.RanToCompletion)
+                        long lid = 0;
+                        if (long.TryParse(GetID(item, false), out lid) && lid > 0)
                         {
-                            RenderCanvas(canvas, item.Source);
-                            CanvasList[id] = canvas;
-                            RingList[id] = ring;
-                        }
-                        else if (ring.State == TaskStatus.Canceled)
-                        {
-                            //tile.DataContext = null;
-                            //if (CanvasList.ContainsKey(id)) CanvasList.TryRemove(id, out canvas);
-                            //canvas.Background = null;
-                            //canvas.UpdateLayout();
+                            var canvas = tile is Grid ? tile.FindByName<Canvas>("PART_ThumbnailCanvas") : null;
+                            var image = tile is Grid ? tile.FindByName<Image>("PART_Thumbnail") : null;
+                            if (ring.State == TaskStatus.RanToCompletion)
+                            {
+                                if (canvas is Canvas)
+                                {
+                                    RenderCanvas(canvas, item.Source);
+                                    CanvasList[id] = canvas;
+                                    RingList[id] = ring;
+                                }
+                                else if (image is Image)
+                                {
+                                    RenderImage(image, item.Source);
+                                    ImageList[id] = image;
+                                }
+                                //RingList[id] = ring;
+                            }
                         }
                     }
                     ring.UpdateState();
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("RINGSTATE"); }
             }
         }
 
@@ -687,17 +723,23 @@ namespace PixivWPF.Common
                 if (sender is Image)
                 {
                     var image = sender as Image;
-                    image.Source = null;
-                    image.UpdateLayout();
+                    if (image.Source != null)
+                    {
+                        image.Source = null;
+                        image.UpdateLayout();
+                    }
                 }
                 else if (sender is Canvas)
                 {
                     var canvas = sender as Canvas;
-                    canvas.Background = null;
-                    canvas.UpdateLayout();
+                    if (canvas.Background != null)
+                    {
+                        canvas.Background = null;
+                        canvas.UpdateLayout();
+                    }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("THUMBUNLOAD"); }
         }
     }
 }

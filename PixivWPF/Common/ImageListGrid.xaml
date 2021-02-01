@@ -26,20 +26,20 @@
                   Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" Height="Auto"
                   ToolTip="{Binding ToolTip, Mode=OneWay}">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="128"/>
+                    <RowDefinition Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" x:Name="PART_Mask" Opacity="0.67"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                         Background="{DynamicResource MahApps.Brushes.IdealForeground}" BorderBrush="{DynamicResource MahApps.Brushes.Accent}" />
-                <!--<Image Grid.Row="0" x:Name="PART_Thumbnail"
+                <Image Grid.Row="0" x:Name="PART_Thumbnail"
                        Width="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        Height="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"                        
-                       Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Unloaded="PART_Thumbnail_Unloaded"/>-->
-                <Canvas Grid.Row="0" x:Name="PART_ThumbnailCanvas"
+                       Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Unloaded="PART_Thumbnail_Unloaded"/>
+                <!--<Canvas Grid.Row="0" x:Name="PART_ThumbnailCanvas"
                        MaxWidth="{Binding Path=TileWidth, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" 
                        MaxHeight="{Binding Path=TileHeight, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}"                        
-                       HorizontalAlignment="Center" VerticalAlignment="Center" Unloaded="PART_Thumbnail_Unloaded"/>
+                       HorizontalAlignment="Center" VerticalAlignment="Center" Unloaded="PART_Thumbnail_Unloaded"/>-->
                 <!-- User Mark Glow -->
                 <TextBlock 
                     Grid.Row="0"
@@ -146,6 +146,7 @@
             ScrollViewer.CanContentScroll="False"
             ScrollViewer.IsDeferredScrollingEnabled="False"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
             HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
             Focusable="True" ClipToBounds="True" UseLayoutRounding="True" 
@@ -168,15 +169,17 @@
             <ListView.CacheMode>
                 <BitmapCache EnableClearType="True" SnapsToDevicePixels="True" />
             </ListView.CacheMode>
-            <ItemsControl.ItemsPanel>
+            <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <UniformGrid x:Name="PART_ImageTiles_UniformGrid" 
+                    <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Top" 
+                               Orientation="Horizontal" />
+                    <!--<UniformGrid x:Name="PART_ImageTiles_UniformGrid" 
                         ClipToBounds="True" Focusable="True" Height="Auto" Width="Auto"
                         HorizontalAlignment="Center" VerticalAlignment="Top"
                         Grid.IsSharedSizeScope="True"
-                        Columns="{Binding Path=Columns, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" />
+                        Columns="{Binding Path=Columns, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type local:ImageListGrid}}}" />-->
                 </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+            </ListView.ItemsPanel>
         </ListView>
 
         <local:ProgressRingCloud 

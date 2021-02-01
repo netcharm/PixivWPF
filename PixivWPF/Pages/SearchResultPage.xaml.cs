@@ -123,7 +123,7 @@ namespace PixivWPF.Pages
 
         public void OpenIllust()
         {
-            Commands.OpenWork.Execute(ResultItems);
+            Commands.OpenDownloaded.Execute(ResultItems);
         }
 
         public void OpenCachedImage()

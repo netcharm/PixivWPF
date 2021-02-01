@@ -522,6 +522,51 @@ namespace PixivWPF.Common
             return (CurrentProcess);
         }
 
+        public static long MemoryUsage(this Application app, bool is_private = false)
+        {
+            long result = -1;
+            if (current_process == null) current_process = System.Diagnostics.Process.GetCurrentProcess();            
+            try
+            {
+                using (PerformanceCounter PC = new PerformanceCounter())
+                {
+                    PC.CategoryName = "Process";
+                    PC.CounterName = is_private ? "Private Bytes" : "Working Set"; // "Working Set - Private";
+                    PC.InstanceName = current_process.ProcessName;
+                    result = Convert.ToInt64(PC.NextValue());
+                    //result = Convert.ToInt64(PC.RawValue);//.NextValue());
+                    PC.Close();
+                }
+                if (result <= 0) result = is_private ? current_process.PrivateMemorySize64 : current_process.WorkingSet64;
+            }
+            catch (Exception ex) { ex.ERROR("MEMORYUSAGE"); }
+            return (result);
+        }
+
+        public static void GC(this Application app, string name, bool wait = false, bool system_memory = false)
+        {
+            long mem_ws_before = 0, mem_pb_before = 0, mem_ws_after = 0, mem_pb_after = 0;
+            if (system_memory)
+            {
+                mem_ws_before = Application.Current.MemoryUsage();// process.WorkingSet64;
+                mem_pb_before = Application.Current.MemoryUsage(true);// process.PrivateMemorySize64;
+            }
+
+            double M = 1024.0 * 1024.0;
+            var before = System.GC.GetTotalMemory(true);
+            System.GC.Collect();
+            if (wait) System.GC.WaitForPendingFinalizers();
+            var after = System.GC.GetTotalMemory(true);
+            $"Managed Memory Usage: {before / M:F2}M => {after / M:F2}M".DEBUG(name ?? string.Empty);
+
+            if (system_memory)
+            {
+                mem_ws_after = Application.Current.MemoryUsage();// process.WorkingSet64;
+                mem_pb_after = Application.Current.MemoryUsage(true);// process.PrivateMemorySize64;
+                $"System Memory Usage (WS/PB): {mem_ws_before / M:F2}M/{mem_pb_before / M:F2}M => {mem_ws_after / M:F2}M/{mem_pb_after / M:F2}M".DEBUG(name ?? string.Empty);
+            }
+        }
+
         private static string pipe_name = string.Empty;
         public static string PipeName
         {
@@ -623,13 +668,17 @@ namespace PixivWPF.Common
                 {
                     Application.Current.Active(param);
                 }
-                else if(action.StartsWith("openlog", StringComparison.CurrentCultureIgnoreCase))
+                else if (action.StartsWith("openlog", StringComparison.CurrentCultureIgnoreCase))
                 {
                     Commands.OpenLogs.Execute(param);
                 }
                 else if (action.StartsWith("writelog", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if(!string.IsNullOrEmpty(param)) Commands.WriteLogs.Execute(param);
+                    if (!string.IsNullOrEmpty(param)) Commands.WriteLogs.Execute(param);
+                }
+                else if (action.StartsWith("cleanlog", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (!string.IsNullOrEmpty(param)) Commands.CleanLogs.Execute(null);
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
@@ -1066,7 +1115,7 @@ namespace PixivWPF.Common
             {
                 CommonHelper.UpdateTheme();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("UPDATETHEME"); }
         }
 
         public static void SetThemeSync(this Application app, string mode = "")
@@ -1469,7 +1518,7 @@ namespace PixivWPF.Common
         {
             if (logger is NLog.Logger) NLog.LogManager.Shutdown();
         }
-        
+
         public static IList<string> GetLogs(this Application app)
         {
             var logs = new List<string>();
@@ -1492,8 +1541,17 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch(Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR(); }
             return (logs);
+        }
+
+        public static void CleanLogs(this Application app)
+        {
+            var logs = GetLogs(app);
+            foreach (var log in logs)
+            {
+                if (File.Exists(log)) File.Delete(log);
+            }
         }
         #endregion
 
@@ -1678,6 +1736,7 @@ namespace PixivWPF.Common
                         i.IsFollowed = item.IsFollowed;
                         i.IsFavorited = item.IsFavorited;
                         i.IsDownloaded = item.IsDownloaded;
+                        i.State = TaskStatus.RanToCompletion;
                         source.Move(source.IndexOf(i), 0);
                     }
                     else
@@ -1886,23 +1945,53 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ReleaseModifiers(this Application app, bool all = true, bool updown = false)
+        public static void ReleaseKeyboardModifiers(this Application app, bool all = true, bool updown = false)
         {
             var k = Keyboard.Modifiers;
             if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
             {
+                // SHIFT Key
                 if (updown) keybd_event(0x10, 0x00, 0x0001, 0);
                 keybd_event(0x10, 0x00, 0x0002, 0);
+                // Left SHIFT Key
+                if (updown) keybd_event(0xA0, 0x00, 0x0001, 0);
+                keybd_event(0xA0, 0x00, 0x0002, 0);
+                // Right SHIFT Key
+                if (updown) keybd_event(0xA1, 0x00, 0x0001, 0);
+                keybd_event(0xA1, 0x00, 0x0002, 0);
             }
             if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
             {
+                // CTRL Key
                 if (updown) keybd_event(0x11, 0x00, 0x0001, 0);
                 keybd_event(0x11, 0x00, 0x0002, 0);
+                // Left CONTROL Key
+                if (updown) keybd_event(0xA2, 0x00, 0x0001, 0);
+                keybd_event(0xA2, 0x00, 0x0002, 0);
+                // Right CONTROL Key
+                if (updown) keybd_event(0xA3, 0x00, 0x0001, 0);
+                keybd_event(0xA3, 0x00, 0x0002, 0);
             }
             if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
             {
+                // Alt Key
                 if (updown) keybd_event(0x12, 0x00, 0x0001, 0);
                 keybd_event(0x12, 0x00, 0x0002, 0);
+                // Left MENU Key
+                if (updown) keybd_event(0xA4, 0x00, 0x0001, 0);
+                keybd_event(0xA4, 0x00, 0x0002, 0);
+                // Right MENU Key
+                if (updown) keybd_event(0xA5, 0x00, 0x0001, 0);
+                keybd_event(0xA5, 0x00, 0x0002, 0);
+            }
+            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Windows))
+            {
+                // Left Windows Key
+                if (updown) keybd_event(0x5B, 0x00, 0x0001, 0);
+                keybd_event(0x5B, 0x00, 0x0002, 0);
+                // Right Windows Key
+                if (updown) keybd_event(0x5C, 0x00, 0x0001, 0);
+                keybd_event(0x5C, 0x00, 0x0002, 0);
             }
         }
 
@@ -1977,8 +2066,11 @@ namespace PixivWPF.Common
                 {
                     try
                     {
-                        Application.Current.ReleaseModifiers();
-                        Application.Current.DoEvents();
+                        if (e.Description.Equals("OpenCached"))
+                        {
+                            Application.Current.ReleaseKeyboardModifiers();
+                            Application.Current.DoEvents();
+                        }
 
                         var key_name = string.IsNullOrEmpty(e.ChordName) ? string.Join("+", e.Keys.Select(k => k.ToString())) : e.ChordName;
                         $"Description: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
@@ -2352,11 +2444,16 @@ namespace PixivWPF.Common
                 return (Dispatcher.CurrentDispatcher);
         }
 
-        public static async Task Invoke(this Action action)
+        public static async void Invoke(this Action action, bool async = false)
         {
-            Dispatcher dispatcher = action.AppDispatcher();
-
-            await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
+            if (action is Action)
+            {
+                Dispatcher dispatcher = action.AppDispatcher();
+                if (async)
+                    await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
+                else
+                    dispatcher.Invoke(action);
+            }
         }
 
         public static async Task InvokeAsync(this Action action, bool realtime = false)
@@ -2701,10 +2798,7 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    foreach (Window win in Application.Current.Windows)
-                    {
-                        if (win is PixivLoginDialog) return (result);
-                    }
+                    if (GetWindow<PixivLoginDialog>() is MetroWindow) return (result);
 
                     setting = Application.Current.LoadSetting();
                     if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
@@ -2727,6 +2821,7 @@ namespace PixivWPF.Common
                         }
                         else
                         {
+                            "Show Login Dialog ......".INFO();
                             var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
                             var ret = dlgLogin.ShowDialog();
                             result = dlgLogin.Tokens;
@@ -2824,12 +2919,16 @@ namespace PixivWPF.Common
         public static bool IsFile(this string text)
         {
             var result = false;
+            Uri unc = null;
+            var invalid = new List<char> { '<', ':', '>' };
             try
             {
-                var unc = new Uri(text);
-                result = unc.IsFile;
+                if (!string.IsNullOrEmpty(text) && !invalid.Contains(text.FirstOrDefault()) && Uri.TryCreate(text, UriKind.RelativeOrAbsolute, out unc))
+                {
+                    result = unc.IsFile;
+                }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception) { }
             return (result);
         }
 
@@ -2901,6 +3000,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
         public static string ParseLink(this string link)
         {
             string result = link;
@@ -2933,10 +3033,10 @@ namespace PixivWPF.Common
                 else if (Regex.IsMatch(result, @"(.*?/pixiv\.navirank\.com/tag/)(.*?)", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"(.*?/tag/)(.*?)", "Tag: $2", RegexOptions.IgnoreCase);
 
-                else if (Regex.IsMatch(result, @"^(.*?/img-.*?/)(\d+)(_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))$", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"^(.*?/img-.*?/)(\d+)(_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))$", "IllustID: $2", RegexOptions.IgnoreCase);
-                else if (Regex.IsMatch(result, @"^(.*?)/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+).*?\.(png|jpg|jpeg|gif|bmp|zip|webp)$", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"^(.*?)/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+).*?\.(png|jpg|jpeg|gif|bmp|zip|webp)$", "IllustID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"^(.*?/img-.*?/)(\d+)(_p\d+.*?" + regex_img_ext + ")$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?/img-.*?/)(\d+)(_p\d+.*?" + regex_img_ext + ")$", "IllustID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"^(.*?)/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+).*?" + regex_img_ext + "$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?)/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+).*?" + regex_img_ext + "$", "IllustID: $2", RegexOptions.IgnoreCase);
 
 
                 else if (Regex.IsMatch(Path.GetFileNameWithoutExtension(result), @"^((\d+)(_((p)|(ugoira))*\d+)*)"))
@@ -2960,26 +3060,27 @@ namespace PixivWPF.Common
             var opt = RegexOptions.IgnoreCase;// | RegexOptions.Multiline;
 
             var mr = new List<MatchCollection>();
-            foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />", "><" }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />", "><", "</a>" }, StringSplitOptions.RemoveEmptyEntries))
             {
-                var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim('"') : text;
-                if (content.Equals("<a", StringComparison.CurrentCultureIgnoreCase)) continue;
+                var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim('"').Trim() : text.Trim();
+                if (string.IsNullOrEmpty(content)) continue;
+                else if (content.Equals("<a", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals("<img", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals(">", StringComparison.CurrentCultureIgnoreCase)) continue;
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(.*?/)?artworks/\d+).*?" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(.*?/)?users/\d+).*?" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/artworks/\d+)" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/users/\d+)" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/img-.*?/\d+_p\d+\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/img-.*?/(\d+)_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/.*?/img(-(master|original))?/.*?/\d+_p\d+(_.*?)?\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://.*?\.pximg\.net/.*?/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+)_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net/img-.*?/\d+_p\d+\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net/img-.*?/(\d+)_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net/.*?/img/.*?/\d+_p\d+\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_1 + @"(https?://.*?\.pximg\.net/.*?/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+)_p\d+.*?\.(png|jpg|jpeg|gif|bmp|zip|webp))" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/img-.*?/\d+_p\d+" + regex_img_ext + ")" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/img-.*?/(\d+)_p\d+.*?" + regex_img_ext + ")" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(.*?\.pximg\.net/.*?/img(-(master|original))?/.*?/\d+_p\d+(_.*?)?" + regex_img_ext + ")" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://.*?\.pximg\.net/.*?/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+)_p\d+.*?" + regex_img_ext + ")" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net/img-.*?/\d+_p\d+" + regex_img_ext + ")" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net/img-.*?/(\d+)_p\d+.*?" + regex_img_ext + ")" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(.*?\.pximg\.net/.*?/img/.*?/\d+_p\d+" + regex_img_ext + ")" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_1 + @"(https?://.*?\.pximg\.net/.*?/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+)_p\d+.*?" + regex_img_ext + ")" + href_suffix, opt));
 
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/fanbox/creator/\d+).*?" + href_suffix, opt));
 
@@ -2989,9 +3090,9 @@ namespace PixivWPF.Common
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://pixiv\.navirank\.com/user/\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://pixiv\.navirank\.com/tag/.*?/)" + href_suffix, opt));
 
-                mr.Add(Regex.Matches(content, @"[\\|/](background|workspace|user-profile)[\\|/].*?[\\|/]((\d+)(_.{10,}\.(png|jpg|jpeg|gif|bmp|zip|webp)))", opt));
+                mr.Add(Regex.Matches(content, @"[\\|/](background|workspace|user-profile)[\\|/].*?[\\|/]((\d+)(_.{10,}" + regex_img_ext + "))", opt));
 
-                mr.Add(Regex.Matches(content, @"^(\d+)([_]*.*?).(png|jpg|jpeg|gif|bmp|zip|webp)$", opt));
+                mr.Add(Regex.Matches(content, @"^(\d+)([_]*.*?)" + regex_img_ext + "$", opt));
 
                 mr.Add(Regex.Matches(content, @"^((illust|illusts|artworks)/(\d+))", opt));
                 mr.Add(Regex.Matches(content, @"^((users?)/(\d+))", opt));
@@ -3016,8 +3117,8 @@ namespace PixivWPF.Common
                             var IsFile = root.Length == 3 && string.IsNullOrEmpty(Path.GetExtension(ap)) ? false : true;
                             if (IsFile)
                             {
-                                if (Regex.IsMatch(ap, @"[\\|/]((background)(workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.(png|jpg|jpeg|gif|bmp|zip|webp)))", opt))
-                                    mr.Add(Regex.Matches(ap, @"[\\|/]((workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}\.(png|jpg|jpeg|gif|bmp|zip|webp)))", opt));
+                                if (Regex.IsMatch(ap, @"[\\|/]((background)(workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}" + regex_img_ext + "))", opt))
+                                    mr.Add(Regex.Matches(ap, @"[\\|/]((workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}" + regex_img_ext + "))", opt));
                                 else
                                     mr.Add(Regex.Matches(Path.Combine(root, Path.GetFileName(content)), @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
                             }
@@ -3027,8 +3128,8 @@ namespace PixivWPF.Common
                     }
                     catch (Exception ex)
                     {
-                        ex.ERROR();                        
-                        mr.Add(Regex.Matches(content, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square)))*\d+)*(\..+)*)", opt));
+                        ex.ERROR();
+                        mr.Add(Regex.Matches(content, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square)))*\d+)*(" + regex_img_ext + "))", opt));
                     }
                 }
             }
@@ -3076,9 +3177,9 @@ namespace PixivWPF.Common
                     else if (link.StartsWith("http", StringComparison.CurrentCultureIgnoreCase))
                     {
                         //link = Uri.UnescapeDataString(WebUtility.HtmlDecode(link));
-                        if (Regex.IsMatch(link, @"(\d+)(_.*?)?\.(png|jpg|jpeg|gif|bmp|zip|webp)$", RegexOptions.IgnoreCase))
+                        if (Regex.IsMatch(link, @"(\d+)(_.*?)?" + regex_img_ext + "$", RegexOptions.IgnoreCase))
                         {
-                            var id = Regex.Replace(link, @"^.*?/\d{2}/(\d+)(_.*?)?\.(png|jpg|jpeg|gif|bmp|zip|webp)$", "$1", RegexOptions.IgnoreCase);
+                            var id = Regex.Replace(link, @"^.*?/\d{2}/(\d+)(_.*?)?"+regex_img_ext+"$", "$1", RegexOptions.IgnoreCase);
                             link = id.ArtworkLink();
                         }
                         if (!links.Contains(link)) links.Add(link);
@@ -3298,7 +3399,7 @@ namespace PixivWPF.Common
                     result = alpha && !Regex.IsMatch(text, result, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("TRANSLATE"); }
             return (result);
         }
 
@@ -3322,24 +3423,27 @@ namespace PixivWPF.Common
 
         public static string HtmlEncode(this string text)
         {
-            return (WebUtility.HtmlEncode(text));
+            if (string.IsNullOrEmpty(text)) return (string.Empty);
+            else return (WebUtility.HtmlEncode(text));
         }
 
         public static string HtmlDecode(this string text, bool br = true)
         {
             string result = text;
-
-            var patten = new Regex(@"&(amp;)?#(([0-9]{1,6})|(x([a-fA-F0-9]{1,5})));", RegexOptions.IgnoreCase);
-            //result = WebUtility.UrlDecode(WebUtility.HtmlDecode(result));
-            result = Uri.UnescapeDataString(WebUtility.HtmlDecode(result));
-            foreach (Match match in patten.Matches(result))
+            if (!string.IsNullOrEmpty(result))
             {
-                var v = Convert.ToInt32(match.Groups[2].Value);
-                if (v > 0xFFFF)
-                    result = result.Replace(match.Value, char.ConvertFromUtf32(v));
+                var patten = new Regex(@"&(amp;)?#(([0-9]{1,6})|(x([a-fA-F0-9]{1,5})));", RegexOptions.IgnoreCase);
+                //result = WebUtility.UrlDecode(WebUtility.HtmlDecode(result));
+                result = Uri.UnescapeDataString(WebUtility.HtmlDecode(result));
+                foreach (Match match in patten.Matches(result))
+                {
+                    var v = Convert.ToInt32(match.Groups[2].Value);
+                    if (v > 0xFFFF)
+                        result = result.Replace(match.Value, char.ConvertFromUtf32(v));
+                }
+                result = result.HtmlFormatBreakLine(br);
             }
-
-            return (result.HtmlFormatBreakLine(br));
+            return (result);
         }
 
         public static string HtmlFormatBreakLine(this string text, bool br = true)
@@ -3893,6 +3997,9 @@ namespace PixivWPF.Common
                 {
                     if (!string.IsNullOrEmpty(FileName))
                     {
+                        Application.Current.ReleaseKeyboardModifiers();
+                        Application.Current.DoEvents();
+
                         var shell = string.IsNullOrEmpty(WinDir) ? "explorer.exe" : Path.Combine(WinDir, "explorer.exe");
                         if (File.Exists(FileName))
                         {
@@ -3918,6 +4025,10 @@ namespace PixivWPF.Common
                         var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
                         var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
                         var openwith_exists = File.Exists(OpenWith) ?  true : false;
+
+                        Application.Current.ReleaseKeyboardModifiers();
+                        Application.Current.DoEvents();
+
                         if (UsingOpenWith && openwith_exists)
                         {
                             Process.Start(OpenWith, FileName);
@@ -3937,7 +4048,7 @@ namespace PixivWPF.Common
                                     var cmd_found = setting.ShellImageViewerCmd.Where();
                                     if (cmd_found.Length > 0) setting.ShellImageViewerCmd = cmd_found.First();
                                 }
-                                var args = string.IsNullOrEmpty(setting.ShellImageViewerParams) ? $"{setting.ShellImageViewerParams} {FileName}" : FileName;
+                                var args = $"{setting.ShellImageViewerParams} \"{FileName}\"";
                                 if (string.IsNullOrEmpty(setting.ShellImageViewerCmd))
                                     Process.Start(FileName);
                                 else
@@ -3948,18 +4059,17 @@ namespace PixivWPF.Common
                                 if (string.IsNullOrEmpty(command))
                                     Process.Start(FileName);
                                 else
-                                    Process.Start(command, FileName);
+                                    Process.Start(command, $"{setting.ShellLogViewerParams} \"{FileName}\"");
                             }
                         }
                         result = true;
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("SHELL"); }
+            catch (Exception ex) { ex.ERROR("SHELLRUN"); }
             finally
             {
                 Application.Current.DoEvents();
-                //Application.Current.ReleaseModifiers();
             }
             return (result);
         }
@@ -5399,38 +5509,41 @@ namespace PixivWPF.Common
             Image result = new Image() { Source = new BitmapImage(uri) };
             try
             {
-                var dpi = new DPI();
-
-                var img = new BitmapImage(uri);
-                var src = new Image() { Source = img, Width = img.Width, Height = img.Height, Opacity = 0.8 };
-                src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.WindowTitleColor };
-                //img.Effect = new TranspranceEffect() { TransColor = Theme.WindowTitleColor };
-                //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
-                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.MahApps.Colors.Accent };
-                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Colors.Transparent };
-                //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.WindowTitleColor };
-                //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.WindowTitleColor };
-
-                Grid root = new Grid();
-                root.Background = Theme.WindowTitleBrush;
-                Arrange(root, (int)src.Width, (int)src.Height);
-                root.Children.Add(src);
-                Arrange(src, (int)src.Width, (int)src.Height);
-
-                RenderTargetBitmap bmp = new RenderTargetBitmap((int)(src.Width), (int)(src.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
-                DrawingVisual drawingVisual = new DrawingVisual();
-                using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+                new Action(() =>
                 {
-                    VisualBrush visualBrush = new VisualBrush(root);
-                    drawingContext.DrawRectangle(visualBrush, null, new Rect(new Point(), new Size(src.Width, src.Height)));
-                }
-                bmp.Render(drawingVisual);
-                result.Source = bmp;
+                    var dpi = new DPI();
+
+                    var img = new BitmapImage(uri);
+                    var src = new Image() { Source = img, Width = img.Width, Height = img.Height, Opacity = 0.8 };
+                    src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.WindowTitleColor };
+                    //img.Effect = new TranspranceEffect() { TransColor = Theme.WindowTitleColor };
+                    //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
+                    //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.MahApps.Colors.Accent };
+                    //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Colors.Transparent };
+                    //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.WindowTitleColor };
+                    //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.WindowTitleColor };
+
+                    Grid root = new Grid();
+                    root.Background = Theme.WindowTitleBrush;
+                    Arrange(root, (int)src.Width, (int)src.Height);
+                    root.Children.Add(src);
+                    Arrange(src, (int)src.Width, (int)src.Height);
+
+                    RenderTargetBitmap bmp = new RenderTargetBitmap((int)(src.Width), (int)(src.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+                    DrawingVisual drawingVisual = new DrawingVisual();
+                    using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+                    {
+                        VisualBrush visualBrush = new VisualBrush(root);
+                        drawingContext.DrawRectangle(visualBrush, null, new Rect(new Point(), new Size(src.Width, src.Height)));
+                    }
+                    bmp.Render(drawingVisual);
+                    result.Source = bmp;
+                }).Invoke(async: false);
             }
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("THEME"); }
 #endif
             return (result);
         }
@@ -5865,7 +5978,7 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(result.ImageUrls.Large)) result.ImageUrls.Large = Illust.ImageUrls.Large;
                 if (string.IsNullOrEmpty(result.ImageUrls.Original)) result.ImageUrls.Original = Illust.ImageUrls.Original;
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("REFRESHILLUST"); }
             return (result);
         }
 
@@ -5890,14 +6003,17 @@ namespace PixivWPF.Common
             try
             {
                 var illusts = await tokens.GetWorksAsync(IllustID);
-                foreach (var illust in illusts)
+                if (illusts is List<Pixeez.Objects.NormalWork>)
                 {
-                    illust.Cache();
-                    result = illust;
-                    break;
+                    foreach (var illust in illusts)
+                    {
+                        illust.Cache();
+                        result = illust;
+                        break;
+                    }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("REFRESHILLUST"); }
             return (result);
         }
 
@@ -6157,7 +6273,7 @@ namespace PixivWPF.Common
                     await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, "private");
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("LIKEILLUST"); }
             finally
             {
                 try
@@ -6181,7 +6297,7 @@ namespace PixivWPF.Common
                         $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl(), title, pub_like);
                     }
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("LIKEILLUST"); }
             }
 
             return (result);
@@ -6253,7 +6369,7 @@ namespace PixivWPF.Common
                 await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
                 await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("UNLIKEILLUST"); }
             finally
             {
                 try
@@ -6275,7 +6391,7 @@ namespace PixivWPF.Common
                         $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl(), title);
                     }
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("UNLIKEILLUST"); }
             }
 
             return (result);
@@ -6412,7 +6528,7 @@ namespace PixivWPF.Common
                     await tokens.AddFavouriteUser((long)user.Id, "private");
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("LIKEUSER"); }
             finally
             {
                 try
@@ -6428,7 +6544,7 @@ namespace PixivWPF.Common
                         $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".ShowToast(title, user.GetAvatarUrl(), title, pub_like);
                     }
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("LIKEUSER"); }
             }
             return (result);
         }
@@ -6508,7 +6624,7 @@ namespace PixivWPF.Common
                 await tokens.DeleteFavouriteUser(user.Id.ToString());
                 await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("UNLIKEUSER"); }
             finally
             {
                 try
@@ -6523,7 +6639,7 @@ namespace PixivWPF.Common
                         $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl(), title);
                     }
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("UNLIKEUSER"); }
             }
             return (result);
         }
@@ -6845,37 +6961,40 @@ namespace PixivWPF.Common
         {
             try
             {
-                if (icon == null)
-                    icon = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
-                win.Icon = icon.Source;
+                new Action(() =>
+                {
+                    if (icon == null)
+                        icon = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
+                    win.Icon = icon.Source;
 
-                if (win is MainWindow)
-                {
-                    (win as MainWindow).UpdateTheme();
-                }
-                else if (win is ContentWindow)
-                {
-                    if (win.Content is IllustDetailPage)
+                    if (win is MainWindow)
                     {
-                        var page = win.Content as IllustDetailPage;
-                        page.UpdateTheme();
+                        (win as MainWindow).UpdateTheme();
                     }
-                    else if (win.Content is IllustImageViewerPage)
+                    else if (win is ContentWindow)
                     {
-                        var page = win.Content as IllustImageViewerPage;
-                        page.UpdateTheme();
+                        if (win.Content is IllustDetailPage)
+                        {
+                            var page = win.Content as IllustDetailPage;
+                            page.UpdateTheme();
+                        }
+                        else if (win.Content is IllustImageViewerPage)
+                        {
+                            var page = win.Content as IllustImageViewerPage;
+                            page.UpdateTheme();
+                        }
+                        else if (win.Content is DownloadManagerPage)
+                        {
+                            var page = win.Content as DownloadManagerPage;
+                            page.UpdateTheme();
+                        }
+                        else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            win.Background = Theme.AccentBrush;
+                            win.Content = icon;
+                        }
                     }
-                    else if (win.Content is DownloadManagerPage)
-                    {
-                        var page = win.Content as DownloadManagerPage;
-                        page.UpdateTheme();
-                    }
-                    else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        win.Background = Theme.AccentBrush;
-                        win.Content = icon;
-                    }
-                }
+                }).Invoke(async: false);
             }
             catch (Exception ex) { ex.ERROR(); }
         }
@@ -6884,12 +7003,14 @@ namespace PixivWPF.Common
         {
             try
             {
-                var img = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
-
-                foreach (Window win in Application.Current.Windows)
+                new Action(() =>
                 {
-                    if (win is MetroWindow) win.UpdateTheme(img);
-                }
+                    var img = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
+                    foreach (Window win in Application.Current.Windows)
+                    {
+                        if (win is MetroWindow) win.UpdateTheme(img);
+                    }
+                }).Invoke(async: false);
             }
             catch (Exception ex) { ex.ERROR(); }
         }
@@ -7204,9 +7325,18 @@ namespace PixivWPF.Common
             return (Application.Current.MainWindow as MetroWindow);
         }
 
-        public static MetroWindow GetMainWindow(this Page page)
+        public static MainWindow GetMainWindow(this Page page)
         {
-            return (Application.Current.MainWindow as MetroWindow);
+            MainWindow result = null;
+            try
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    result = Application.Current.MainWindow as MainWindow;
+                });
+            }
+            catch(Exception ex) { ex.ERROR("GETMAINWINDOW"); }
+            return (result);
         }
 
         public static MetroWindow GetActiveWindow()
@@ -7224,6 +7354,24 @@ namespace PixivWPF.Common
         public static MetroWindow GetNextWindow(this MetroWindow window)
         {
             return (window.GetWindow(1));
+        }
+
+        public static IList<MetroWindow> GetWindows<T>()
+        {
+            List<MetroWindow> result = new List<MetroWindow>();
+            new Action(() =>
+            {
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win is T && win is MetroWindow) result.Add(win as MetroWindow);
+                }
+            }).Invoke(async: false);
+            return (result);
+        }
+
+        public static MetroWindow GetWindow<T>()
+        {
+            return (GetWindows<T>().FirstOrDefault());
         }
 
         public static MetroWindow GetWindow(this MetroWindow window, int index = 0, bool relative = true)
@@ -7255,19 +7403,26 @@ namespace PixivWPF.Common
 
         public static MetroWindow GetWindowByTitle(this string title)
         {
-            MetroWindow result = null;
-            foreach (Window win in Application.Current.Windows)
+            return (GetWindowsByTitle(title).FirstOrDefault());
+        }
+
+        public static IList<MetroWindow> GetWindowsByTitle(this string title)
+        {
+            List<MetroWindow> result = new List<MetroWindow>();
+            new Action(() =>
             {
-                if (win is MetroWindow)
+                foreach (Window win in Application.Current.Windows)
                 {
-                    var win_title = (win as MetroWindow).Title;
-                    if (win_title.Equals(title, StringComparison.CurrentCultureIgnoreCase))
+                    if (win is MetroWindow)
                     {
-                        result = win as MetroWindow;
-                        break;
+                        var win_title = (win as MetroWindow).Title;
+                        if (win_title.Equals(title, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            result.Add(win as MetroWindow);
+                        }
                     }
                 }
-            }
+            }).Invoke(async: false);
             return (result);
         }
 
@@ -7326,16 +7481,9 @@ namespace PixivWPF.Common
             bool result = false;
             await new Action(() =>
             {
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        if (win is MetroWindow) (win as MetroWindow).Active();
-                        else win.Activate();
-                        result = true;
-                        break;
-                    }
-                }
+                var win  = GetWindowByTitle(title);
+                if (win is MetroWindow) { result = true; win.Active(); }
+                else if (win is Window) { result = true; win.Activate(); }
             }).InvokeAsync();
             return (result);
         }
@@ -7345,16 +7493,8 @@ namespace PixivWPF.Common
             bool result = false;
             await new Action(() =>
             {
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win.Title.Equals(title, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        if (win is MetroWindow) (win as MetroWindow).Show();
-                        else win.Show();
-                        result = true;
-                        break;
-                    }
-                }
+                var win  = GetWindowByTitle(title);
+                if (win is Window) { result = true; win.Show(); }
             }).InvokeAsync();
             return (result);
         }
@@ -7777,43 +7917,23 @@ namespace PixivWPF.Common
         public static Window DropBoxExists(this Window window)
         {
             Window result = null;
-            foreach (Window win in Application.Current.Windows)
-            {
-                var title = win.Title;
-                var tag = win.Tag is string ? win.Tag as string : string.Empty;
 
-                if (title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase) ||
-                    tag.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    if (win is ContentWindow)
-                    {
-                        result = win as ContentWindow;
-                        break;
-                    }
-                }
-            }
+            var win  = GetWindowByTitle("Dropbox");
+            if (win is ContentWindow) result = win as ContentWindow;
+
             return (result);
         }
 
         public static void SetDropBoxState(this bool state)
         {
-            foreach (Window win in Application.Current.Windows)
+            new Action(() =>
             {
-                if (win is MetroWindow)
-                {
-                    var title = win.Title;
-                    var tag = win.Tag is string ? win.Tag as string : string.Empty;
-
-                    if (!title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase) &&
-                        !tag.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        if (win is ContentWindow)
-                            (win as ContentWindow).SetDropBoxState(state);
-                        else if (win is MainWindow)
-                            (win as MainWindow).SetDropBoxState(state);
-                    }
-                }
-            }
+                var win = GetWindowByTitle("Dropbox");
+                if (win is ContentWindow)
+                    (win as ContentWindow).SetDropBoxState(state);
+                else if (win is MainWindow)
+                    (win as MainWindow).SetDropBoxState(state);
+            }).Invoke(async: false);
         }
 
         public static bool ShowDropBox(this bool show)
@@ -7862,7 +7982,6 @@ namespace PixivWPF.Common
                 box.ShowTitleBar = false;
                 //box.WindowStyle = WindowStyle.None;
                 box.Title = "DropBox";
-                box.Tag = "DropBox";
 
                 box.Content = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
                 box.Icon = (box.Content as Image).Source;

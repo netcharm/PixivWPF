@@ -98,7 +98,16 @@ namespace PixivWPF.Common
             }
         }
 
-
+        private bool calc_system_memory_usage = false;
+        public bool CalcSystemMemoryUsage
+        {
+            get { return (Cache is Setting ? Cache.calc_system_memory_usage : calc_system_memory_usage); }
+            set
+            {
+                calc_system_memory_usage = value;
+                if (Cache is Setting) Cache.calc_system_memory_usage = calc_system_memory_usage;
+            }
+        }
         #endregion
 
         #region Config load/save relative
@@ -1442,6 +1451,17 @@ namespace PixivWPF.Common
             {
                 shell_log_viewer = value;
                 if (Cache is Setting) Cache.shell_log_viewer = shell_log_viewer;
+            }
+        }
+
+        private string shell_log_viewer_params = string.Empty;
+        public string ShellLogViewerParams
+        {
+            get { return (Cache is Setting ? Cache.shell_log_viewer_params : shell_log_viewer_params); }
+            set
+            {
+                shell_log_viewer_params = value;
+                if (Cache is Setting) Cache.shell_log_viewer_params = shell_log_viewer_params;
             }
         }
         #endregion

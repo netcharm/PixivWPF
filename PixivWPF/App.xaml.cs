@@ -33,7 +33,7 @@ namespace PixivWPF
             try
             {
                 Current.StartLog();
-                "Application Starting now ......".INFO();
+                "------------------------ Application Starting now...... ------------------------".INFO();
 
                 NBug.Settings.Destinations.Add(new NBug.Core.Submission.Custom.Custom());
                 NBug.Settings.CustomSubmissionEvent += Settings_CustomSubmissionEvent;
@@ -57,8 +57,7 @@ namespace PixivWPF
         {
             try
             {
-                "Application Shutdown now ......".INFO();
-
+                "======================== Application Shutdown now...... ========================".INFO();
                 this.SaveSetting(true);
                 Current.UnbindHotkeys();                
             }

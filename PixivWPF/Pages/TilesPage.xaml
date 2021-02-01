@@ -77,25 +77,25 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="738" />
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <!-- Tiles List -->
         <Common:ImageListGrid
-            Grid.Column="0" x:Name="ImageTiles" x:Uid="ImageTiles" Margin="48,0,0,0"
+            Grid.Column="0" x:Name="ImageTiles" x:Uid="ImageTiles" Margin="50,0,0,0"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            Columns="5" TileWidth="128" TileHeight="128"
+            Columns="5" TileWidth="128" TileHeight="128" MinWidth="684" MaxWidth="700"
             Focusable="True"
             SelectionMode="Single"
             SelectionChanged="ImageTiles_SelectionChanged" />
         
-        <!-- Pixiv Catgory Menu -->
+        <!-- Pixiv Category Menu -->
         <mah:HamburgerMenu 
-            Grid.Column="0" x:Name="PixivCatgoryMenu" Margin="0"
+            Grid.Column="0" x:Name="CategoryMenu" Margin="0"
             HorizontalAlignment="Left" VerticalAlignment="Stretch"
             PanePlacement="Left" DisplayMode="CompactOverlay"
-            IsPaneOpen="True" ShowSelectionIndicator="True" OpenPaneLength="280"
+            IsPaneOpen="False" ShowSelectionIndicator="True" OpenPaneLength="280"
             CanResizeOpenPane="False" VerticalScrollBarOnLeftSide="False"
             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
             Background="{DynamicResource MahApps.HamburgerMenu.Pane.Background}"
@@ -104,8 +104,8 @@
             HamburgerButtonHelpText="Change Pixiv Category"
             ItemTemplate="{StaticResource HamburgerMenuIconItem}"
             OptionsItemTemplate="{StaticResource HamburgerMenuIconItem}"
-            MouseRightButtonDown="PixivCatgoryMenu_MouseRightButtonDown"
-            ItemInvoked="PixivCatgoryMenu_ItemInvoked">
+            MouseRightButtonDown="CategoryMenu_MouseRightButtonDown"
+            ItemInvoked="CategoryMenu_ItemInvoked">
             <!--  Header  -->
             <mah:HamburgerMenu.HamburgerButtonTemplate>
                 <DataTemplate>

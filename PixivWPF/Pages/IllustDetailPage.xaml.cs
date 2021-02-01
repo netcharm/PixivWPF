@@ -183,16 +183,19 @@ namespace PixivWPF.Pages
                                 h_max = (int)(host.MaxHeight);
                             }
                             await Task.Delay(1);
-                            var size = browser.Document.Body.ScrollRectangle.Size;
-                            var offset = browser.Document.Body.OffsetRectangle.Top;
-                            if (offset <= 0) offset = 16;
-                            browser.Height = Math.Min(Math.Max(size.Height, h_min), h_max) + offset * 2;
+                            if (browser is System.Windows.Forms.WebBrowser)
+                            {
+                                var size = browser.Document.Body.ScrollRectangle.Size;
+                                var offset = browser.Document.Body.OffsetRectangle.Top;
+                                if (offset <= 0) offset = 16;
+                                browser.Height = Math.Min(Math.Max(size.Height, h_min), h_max) + offset;// * 2;
+                            }
                         }
-                        catch (Exception ex) { ex.ERROR(); }
+                        catch (Exception ex) { ex.ERROR("WEBBROWSER"); }
                     }).InvokeAsync();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("WEBBROWSER"); }
         }
 
         private string MakeIllustTagsHtml(PixivItem item)
@@ -227,7 +230,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ILLUSTTAGS"); }
             return (result);
         }
 
@@ -236,14 +239,14 @@ namespace PixivWPF.Pages
             var result = string.Empty;
             try
             {
-                if (item.IsWork())
+                if (item.IsWork() && !string.IsNullOrEmpty(item.Illust.Caption))
                 {
                     var contents = item.Illust.Caption.HtmlDecode();
                     contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
                     result = contents.GetHtmlFromTemplate(item.Illust.Title);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ILLUSTDESC"); }
             return (result);
         }
 
@@ -294,7 +297,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("USERINFO"); }
             return (result);
         }
 
@@ -312,7 +315,7 @@ namespace PixivWPF.Pages
                 contents = $"<div class=\"desc\">{Environment.NewLine}{contents.Trim()}{Environment.NewLine}</div>";
                 result = contents.GetHtmlFromTemplate(IllustAuthor.Text);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("USERDESC"); }
             return (result);
         }
 
@@ -961,6 +964,7 @@ namespace PixivWPF.Pages
             }
             finally
             {
+                if (Contents is PixivItem) Application.Current.GC(this.Name ?? "IllustDetailPage");
             }
         }
 
@@ -969,6 +973,8 @@ namespace PixivWPF.Pages
             try
             {
                 IllustDetailWait.Show();
+                this.DoEvents();
+                item.AddToHistory();
                 this.DoEvents();
 
                 PreviewViewer.Show(true);
@@ -1085,7 +1091,7 @@ namespace PixivWPF.Pages
                     IllustDescExpander.Hide();
                 }
 
-                SubIllusts.ClearAsync(false);
+                SubIllusts.ClearAsync();
                 PreviewBadge.Badge = item.Illust.PageCount;
                 if (item.IsWork() && item.Illust.PageCount > 1)
                 {
@@ -1109,13 +1115,13 @@ namespace PixivWPF.Pages
                 RelativeItemsExpander.Header = "Related Illusts";
                 RelativeItemsExpander.IsExpanded = false;
                 RelativeItemsExpander.Show();
-                RelativeItems.ClearAsync(false);
+                RelativeItems.ClearAsync();
                 RelativeNextPage.Hide();
 
                 FavoriteItemsExpander.Header = "Author Favorite";
                 FavoriteItemsExpander.IsExpanded = false;
                 FavoriteItemsExpander.Show();
-                FavoriteItems.ClearAsync(false);
+                FavoriteItems.ClearAsync();
                 FavoriteNextPage.Hide();
 #if DEBUG
                 CommentsExpander.IsExpanded = false;
@@ -1138,8 +1144,6 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                //item.Illust.AddToHistory();
-                item.AddToHistory();
                 Application.Current.DoEvents();
                 IllustDetailWait.Hide();
                 Preview.Focus();
@@ -1181,6 +1185,8 @@ namespace PixivWPF.Pages
             try
             {
                 IllustDetailWait.Show();
+                this.DoEvents();
+                item.AddToHistory();
                 this.DoEvents();
 
                 Preview.Dispose();
@@ -1286,8 +1292,6 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                //item.User.AddToHistory();
-                item.AddToHistory();
                 Application.Current.DoEvents();
                 IllustDetailWait.Hide();
             }
@@ -1324,7 +1328,7 @@ namespace PixivWPF.Pages
                     this.DoEvents();
                     #endregion
 
-                    SubIllusts.Clear(false);
+                    SubIllusts.Clear();
 
                     var idx = page * count;
                     if (item.Illust is Pixeez.Objects.IllustWork)
@@ -1396,7 +1400,7 @@ namespace PixivWPF.Pages
                 if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
                 if (!append)
                 {
-                    RelativeItems.Clear(false);
+                    RelativeItems.Clear();
                     relative_illusts.Clear();
                 }
 
@@ -1461,7 +1465,7 @@ namespace PixivWPF.Pages
                 if (!(relative_illusts is List<long?>)) relative_illusts = new List<long?>();
                 if (!append)
                 {
-                    RelativeItems.Clear(false);
+                    RelativeItems.Clear();
                     relative_illusts.Clear();
                 }
 
@@ -1528,7 +1532,7 @@ namespace PixivWPF.Pages
                 if (!(favorite_illusts is List<long?>)) favorite_illusts = new List<long?>();
                 if (!append)
                 {
-                    FavoriteItems.Clear(false);
+                    FavoriteItems.Clear();
                     favorite_illusts.Clear();
                 }
 
@@ -1811,12 +1815,16 @@ namespace PixivWPF.Pages
                 DeleteHtmlRender();
                 IllustAuthorAvatar.Dispose();
                 Preview.Dispose();
-                SubIllusts.ClearAsync(false);
-                RelativeItems.ClearAsync(false);
-                FavoriteItems.ClearAsync(false);
+                SubIllusts.ClearAsync();
+                RelativeItems.ClearAsync();
+                FavoriteItems.ClearAsync();
                 Contents.Source = null;
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ILLUSTDETAIL"); }
+            finally
+            {
+                Application.Current.GC(this.Name ?? "IllustDetailPage");
+            }
         }
 
         public IllustDetailPage()

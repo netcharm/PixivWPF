@@ -417,7 +417,54 @@ namespace PixivWPF.Pages
                     }
                 }).InvokeAsync();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("DOWNLOADMANAGER"); }
+        }
+
+        private async void PART_RemoveAll_Context_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DownloadState state = DownloadState.Unknown;
+                if (sender == PART_RemoveAll_NonExists)
+                {
+                    state = DownloadState.NonExists;
+                }
+                else if (sender == PART_RemoveAll_Failed)
+                {
+                    state = DownloadState.Failed;
+                }
+                else if (sender == PART_RemoveAll_Finished)
+                {
+                    state = DownloadState.Finished;
+                }
+                else if (sender == PART_RemoveAll_Idle)
+                {
+                    state = DownloadState.Idle;
+                }
+                else if (sender == PART_RemoveAll_All)
+                {
+                    
+                }
+                await new Action(() =>
+                {
+                    if (DownloadItems.SelectedItems is IEnumerable && DownloadItems.SelectedItems.Count > 1)
+                    {
+                        var targets = new List<DownloadInfo>();
+                        foreach (var item in DownloadItems.SelectedItems)
+                        {
+                            if (item is DownloadInfo)  targets.Add(item as DownloadInfo);
+                        }
+                        var remove = state == DownloadState.Unknown ? targets : targets.Where(o => o.State == state);
+                        foreach (var i in remove) { i.State = DownloadState.Remove; }
+                    }
+                    else
+                    {
+                        var remove = state == DownloadState.Unknown ? items : items.Where(o => o.State == state);
+                        foreach (var i in remove) { i.State = DownloadState.Remove; }
+                    }
+                }).InvokeAsync();
+            }
+            catch (Exception ex) { ex.ERROR("DOWNLOADMANAGER"); }
         }
 
         private async void PART_CopyID_Click(object sender, RoutedEventArgs e)
@@ -442,5 +489,6 @@ namespace PixivWPF.Pages
                 Commands.CopyDownloadInfo.Execute(GetDownloadInfo());
             }).InvokeAsync(true);
         }
+
     }
 }

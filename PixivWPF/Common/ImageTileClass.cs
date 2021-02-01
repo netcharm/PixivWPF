@@ -1600,7 +1600,7 @@ namespace PixivWPF.Common
 
         public static string GetOriginalUrl(this Pixeez.Objects.Work Illust, int index = -1)
         {
-            var url = Illust.ImageUrls.Original;
+            var url = Illust.ImageUrls is Pixeez.Objects.ImageUrls ? Illust.ImageUrls.Original : string.Empty;
 
             if (Illust is Pixeez.Objects.IllustWork)
             {

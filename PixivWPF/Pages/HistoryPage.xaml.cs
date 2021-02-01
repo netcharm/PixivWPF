@@ -214,7 +214,7 @@ namespace PixivWPF.Pages
 
         public void OpenIllust()
         {
-            Commands.OpenWork.Execute(HistoryItems);
+            Commands.OpenDownloaded.Execute(HistoryItems);
         }
 
         public void OpenCachedImage()

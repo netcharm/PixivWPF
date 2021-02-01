@@ -126,7 +126,7 @@ namespace PixivWPF.Common
         public static ICommand Login { get; } = new DelegateCommand(() =>
         {
             var setting = Application.Current.LoadSetting();
-            var dlgLogin = new PixivLoginDialog() { AccessToken = setting.AccessToken };
+            var dlgLogin = new PixivLoginDialog() { Name = "LoginDialog", AccessToken = setting.AccessToken };
             var ret = dlgLogin.ShowDialog();
             if (ret ?? false) setting.AccessToken = dlgLogin.AccessToken;
         });
@@ -554,7 +554,7 @@ namespace PixivWPF.Common
                         var item = illust.WorkItem();
                         if (item is PixivItem)
                         {
-                            var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Contents = item };
+                            var page = new IllustDetailPage() { Name = "IllustDetail", FontFamily = setting.FontFamily, Contents = item };
                             var viewer = new ContentWindow()
                             {
                                 Title = title,
@@ -630,7 +630,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new IllustImageViewerPage() { FontFamily = setting.FontFamily, Contents = item };
+                        var page = new IllustImageViewerPage() { Name = "IllustPreview", FontFamily = setting.FontFamily, Contents = item };
                         var viewer = new ContentWindow()
                         {
                             Title = $"{title}",
@@ -679,7 +679,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new IllustDetailPage() { FontFamily = setting.FontFamily, Contents = user.UserItem() };
+                        var page = new IllustDetailPage() { Name = "UserDetail", FontFamily = setting.FontFamily, Contents = user.UserItem() };
                         var viewer = new ContentWindow()
                         {
                             Title = title,
@@ -965,7 +965,7 @@ namespace PixivWPF.Common
 
                 await new Action(async () =>
                 {
-                    var page = new HistoryPage() { FontFamily = setting.FontFamily };
+                    var page = new HistoryPage() { Name = "HistoryList", FontFamily = setting.FontFamily };
                     var viewer = new ContentWindow()
                     {
                         Title = title,
@@ -1104,7 +1104,7 @@ namespace PixivWPF.Common
                         await new Action(() =>
                         {
                             if (!(_downManager_page is DownloadManagerPage))
-                                _downManager_page = new DownloadManagerPage() { AutoStart = true };
+                                _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
 
                             setting = Application.Current.LoadSetting();
                             var viewer = new ContentWindow()
@@ -1163,7 +1163,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new SearchResultPage() { FontFamily = setting.FontFamily, Contents = content };
+                        var page = new SearchResultPage() { Name = "SearchResult", FontFamily = setting.FontFamily, Contents = content };
                         var viewer = new ContentWindow()
                         {
                             Title = title,
@@ -1783,6 +1783,11 @@ namespace PixivWPF.Common
                     }).InvokeAsync(true);
                 }
             }
+        });
+
+        public static ICommand CleanLogs { get; } = new DelegateCommand(() =>
+        {
+            Application.Current.CleanLogs();
         });
 
         #region tiles navigation
@@ -2434,7 +2439,7 @@ namespace PixivWPF.Common
                 var title = $"PixivPedia: {contents} ...";
                 if (await title.ActiveByTitle()) return;
 
-                var page = new BrowerPage () { Contents = contents };
+                var page = new BrowerPage () { Name = "PixivPedia", Contents = contents };
                 var viewer = new ContentWindow()
                 {
                     Title = title,
