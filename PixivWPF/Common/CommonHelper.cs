@@ -2736,6 +2736,7 @@ namespace PixivWPF.Common
         private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
         internal static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         internal static string[] trim_str = new string[] { Environment.NewLine };
+        private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
 
         #region Pixiv Token Helper
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
@@ -3000,7 +3001,6 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
         public static string ParseLink(this string link)
         {
             string result = link;
@@ -4101,9 +4101,8 @@ namespace PixivWPF.Common
         {
             var result = DateTime.FromFileTime(0);
             //https://i.pximg.net/img-original/img/2010/11/16/22/34/05/14611687_p0.png
-            var ds = Regex.Replace(url, @"https?://i\.pximg\.net/.*?/(\d{4})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/\d+.*?\.((png)|(jpg)|(gif)|(zip))", "$2-$3-$4T$5:$6:$7+09:00", RegexOptions.IgnoreCase);
+            var ds = Regex.Replace(url, @"https?://i\.pximg\.net/.*?/(\d{4})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/\d+.*?" + regex_img_ext, "$1-$2-$3T$4:$5:$6+09:00", RegexOptions.IgnoreCase);
             DateTime.TryParse(ds, out result);
-            //result = Convert.ToDateTime(ds);
             return (result);
         }
 

@@ -490,6 +490,15 @@ namespace PixivWPF
             Commands.Login.Execute(sender);
         }
 
+        private void CommandLog_Click(object sender, RoutedEventArgs e)
+        {
+            var log_type = string.Empty;
+            if (sender == CommandLog_Info) log_type = "INFO";
+            else if (sender == CommandLog_Debug) log_type = "DEBUG";
+            else if (sender == CommandLog_Error) log_type = "ERROR";
+            Commands.OpenLogs.Execute(log_type);
+        }
+
         internal void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -860,5 +869,6 @@ namespace PixivWPF
 
             if (Contents is Pages.TilesPage) Contents.SetFilter(filter);
         }
+
     }
 }
