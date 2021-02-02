@@ -41,6 +41,13 @@ namespace PixivWPF
 
         private DateTime LastSelectedDate = DateTime.Now;
 
+        public void SetPrefetchPreviewProgress(double progress)
+        {
+            new Action(() => {
+                PreviewPreftchProgress.Text = $"{progress:F0}%";
+            }).Invoke(async: false);            
+        }
+
         public void SetDropBoxState(bool state)
         {
             CommandDropbox.IsChecked = state;

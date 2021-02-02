@@ -111,5 +111,19 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+
+        public async Task<string> DownloadImage(string url, bool overwrite = false, bool login = false)
+        {
+            string result = string.Empty;
+            var file = GetCacheFile(url, overwrite);
+            if (string.IsNullOrEmpty(file))
+            { 
+                file = GetImagePath(url);
+                var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite);
+                if (success) result = file;
+            }
+            return (result);
+        }
+
     }
 }

@@ -631,6 +631,7 @@ namespace PixivWPF.Common
 
                     if (CanUpdateTiles is SemaphoreSlim && CanUpdateTiles.CurrentCount <= 0) CanUpdateTiles.Release();
                     if (AutoGC && count > 0) Application.Current.GC(this.Name, WaitGC, CalcSystemMemoryUsage);
+                    this.DoEvents();
                 }
             }
         }

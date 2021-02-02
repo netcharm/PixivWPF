@@ -5123,6 +5123,26 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static string GetImageCacheFile(this string url)
+        {
+            string result = string.Empty;
+            if (!string.IsNullOrEmpty(url) && cache is CacheImage)
+            {
+                result = cache.GetImagePath(url);
+            }
+            return (result);
+        }
+
+        public static async Task<string> DownloadCacheFile(this string url)
+        {
+            string result = string.Empty;
+            if (!string.IsNullOrEmpty(url) && cache is CacheImage)
+            {
+                result = await cache.DownloadImage(url);
+            }
+            return (result);
+        }
+
         public static CustomImageSource LoadImageFromFile(this string file, Size size = default(Size))
         {
             CustomImageSource result = new CustomImageSource();
