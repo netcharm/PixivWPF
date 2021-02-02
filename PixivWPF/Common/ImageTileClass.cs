@@ -902,11 +902,6 @@ namespace PixivWPF.Common
                         {
                             items.UpdateTilesImageTask(overwrite, cancelSource.Token, parallel, update_semaphore);
                         }, cancelSource.Token, TaskCreationOptions.PreferFairness);
-                        //result.Start();
-                        //await result.ContinueWith((t) =>
-                        //{
-                        //    //SignalCompletion(sw);
-                        //}).InvokeAsync();
                     }).InvokeAsync();
                 }
             }

@@ -538,7 +538,7 @@ namespace PixivWPF.Pages
                 $"Show illusts from category \"{target.ToString()}\" ......".INFO();
                 NextURL = null;
                 ids.Clear();
-                ImageTiles.ClearAsync(false);
+                ImageTiles.ClearAsync();
             }
             else $"Append illusts from category \"{target.ToString()}\" ......".INFO();
                
