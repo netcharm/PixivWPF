@@ -1200,6 +1200,28 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.enabled_mini_toolbar = enabled_mini_toolbar;
             }
         }
+
+        private bool prefetch_preview = true;
+        public bool PrefetchPreview
+        {
+            get { return (Cache is Setting ? Cache.prefetch_preview : prefetch_preview); }
+            set
+            {
+                prefetch_preview = value;
+                if (Cache is Setting) Cache.prefetch_preview = prefetch_preview;
+            }
+        }
+
+        private bool prefetch_pages_thumb = true;
+        public bool PrefetchPagesThumb
+        {
+            get { return (Cache is Setting ? Cache.prefetch_pages_thumb : prefetch_pages_thumb); }
+            set
+            {
+                prefetch_pages_thumb = value;
+                if (Cache is Setting) Cache.prefetch_pages_thumb = prefetch_pages_thumb;
+            }
+        }
         #endregion
 
         #region Favorite/Follow relative

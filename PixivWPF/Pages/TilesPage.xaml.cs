@@ -510,6 +510,7 @@ namespace PixivWPF.Pages
             {
                 if (ImageTiles.Items.Count > 0)
                 {
+                    setting = Application.Current.LoadSetting();
                     var items = ImageTiles.Items.ToArray();
                     foreach (var item in items)
                     {
@@ -517,8 +518,8 @@ namespace PixivWPF.Pages
                         {
                             var url = item.Illust.GetPreviewUrl();
                             var file = url.GetImageCacheFile();
-                            if (!File.Exists(file)) result.Add(url);
-                            if (pages is List<string>) pages.AddRange(GetNonePagesThumb(item.Illust));
+                            if (setting.PrefetchPreview && !File.Exists(file)) result.Add(url);
+                            if (setting.PrefetchPagesThumb && pages is List<string>) pages.AddRange(GetNonePagesThumb(item.Illust));
                         }
                     }
                 }
