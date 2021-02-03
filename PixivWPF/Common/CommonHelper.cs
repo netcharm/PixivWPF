@@ -7039,6 +7039,11 @@ namespace PixivWPF.Common
             return (element.Visibility == Visibility.Visible ? true : false);
         }
 
+        public static bool IsHidden(this UIElement element)
+        {
+            return (element.Visibility != Visibility.Visible ? true : false);
+        }
+
         public static void Show(this ProgressRing progress, bool show, bool active = true)
         {
             if (progress is ProgressRing)

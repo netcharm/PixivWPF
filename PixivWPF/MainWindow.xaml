@@ -168,7 +168,7 @@
             </mah:DropDownButton>
             <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" 
                 HorizontalAlignment="Left" VerticalAlignment="Center"/>
-            <TextBlock x:Name="PreviewPreftchProgress" x:Uid="PreviewPreftchProgress" 
+            <TextBlock x:Name="PreviewPreftchProgress" x:Uid="PreviewPreftchProgress" Visibility="Collapsed"
                 HorizontalAlignment="Left" VerticalAlignment="Center"/>            
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>

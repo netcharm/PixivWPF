@@ -1222,6 +1222,18 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.prefetch_pages_thumb = prefetch_pages_thumb;
             }
         }
+
+        private int thumb_download_parallel = 5;
+        public int ThumbDownloadParallel
+        {
+            get { return (Cache is Setting ? Cache.thumb_download_parallel : thumb_download_parallel); }
+            set
+            {
+                thumb_download_parallel = value;
+                if (Cache is Setting) Cache.thumb_download_parallel = thumb_download_parallel;
+            }
+        }
+
         #endregion
 
         #region Favorite/Follow relative

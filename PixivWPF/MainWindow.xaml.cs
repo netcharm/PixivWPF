@@ -41,10 +41,13 @@ namespace PixivWPF
 
         private DateTime LastSelectedDate = DateTime.Now;
 
-        public void SetPrefetchPreviewProgress(double progress)
+        public void SetPrefetchPreviewProgress(double progress, string tooltip ="")
         {
             new Action(() => {
+                if (PreviewPreftchProgress.IsHidden()) PreviewPreftchProgress.Show();
                 PreviewPreftchProgress.Text = $"{progress:F0}%";
+                if (string.IsNullOrEmpty(tooltip)) PreviewPreftchProgress.ToolTip = null;
+                else PreviewPreftchProgress.ToolTip = tooltip;
             }).Invoke(async: false);            
         }
 

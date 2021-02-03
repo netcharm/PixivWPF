@@ -1378,7 +1378,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR");
+                ex.ERROR(this.Name ?? "SubIllusts");
             }
             finally
             {
@@ -1443,7 +1443,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR");
+                ex.ERROR(this.Name ?? "RelativeItems");
             }
             finally
             {
@@ -1508,7 +1508,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR");
+                ex.ERROR(this.Name ?? "UserWorks");
             }
             finally
             {
@@ -1580,7 +1580,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR");
+                ex.ERROR(this.Name ?? "FavoriteItems");
             }
             finally
             {

@@ -818,9 +818,9 @@ namespace PixivWPF.Common
                             {
                                 if (cancelToken.IsCancellationRequested)
                                     opt.CancellationToken.ThrowIfCancellationRequested();
-                                await Task.Delay(rnd.Next(1, 50));
                                 await new Action(async() =>
                                 {
+                                    await Task.Delay(rnd.Next(1, 50));
                                     try
                                     {
                                         if (item.Count <= 1) item.BadgeValue = string.Empty;
@@ -837,20 +837,16 @@ namespace PixivWPF.Common
                                             img = null;
                                         }
                                     }
-#if DEBUG
                                     catch (Exception ex)
                                     {
-                                        $"Download Thumbnail Failed:\n{ex.Message}".ShowMessageBox("ERROR");
+                                        $"Download Thumbnail Failed:\n{ex.Message}".ERROR("DOWNLOAD");
                                         item.State = TaskStatus.Faulted;
                                     }
-#else
-                                    catch(Exception){ }
-#endif
                                     finally
                                     {
                                         if (item.Source == null && item.Thumb.IsCached())
                                         {
-                                            var thumb = item.Thumb.GetImageCachePath().LoadImageFromFile(new Size(128, 128));
+                                            var thumb = item.Thumb.GetImageCachePath().LoadImageFromFile(size:Application.Current.GetDefaultThumbSize());
                                             item.Source = thumb.Source;
                                             thumb.Source = null;
                                             thumb = null;
@@ -865,7 +861,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                var ert = ex.Message;
+                ex.ERROR("UPDATETILES");
             }
             finally
             {
@@ -1676,6 +1672,16 @@ namespace PixivWPF.Common
                     url = user.profile_image_urls.Small;
             }
             return (url);
+        }
+
+        public static string GetAvatarUrl(this Pixeez.Objects.UserBase user)
+        {
+            return (user != null ? user.GetAvatarUrl() : string.Empty);
+        }
+
+        public static string GetAvatarUrl(this Pixeez.Objects.Work Illust)
+        {
+            return (Illust.User != null ? Illust.User.GetAvatarUrl() : string.Empty);
         }
         #endregion
 
