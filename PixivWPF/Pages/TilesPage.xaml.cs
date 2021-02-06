@@ -169,31 +169,38 @@ namespace PixivWPF.Pages
 
         private void KeepLastSelected(string id)
         {
-            if (ImageTiles.Items.Count > 0)
+            new Action(() =>
             {
-                if (!string.IsNullOrEmpty(id))
+                if (ImageTiles.Items.Count > 0)
                 {
-                    foreach (var item in ImageTiles.Items)
+                    if (!string.IsNullOrEmpty(id))
                     {
-                        if (item is PixivItem)
+                        foreach (var item in ImageTiles.Items)
                         {
-                            var ID = (item as PixivItem).ID;
-                            if (ID.Equals(id, StringComparison.CurrentCultureIgnoreCase))
+                            if (item is PixivItem)
                             {
-                                ImageTiles.SelectedItem = item;
-                                ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
-                                break;
+                                var ID = (item as PixivItem).ID;
+                                if (ID.Equals(id, StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    ImageTiles.SelectedItem = item;
+                                    ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
+                                    this.DoEvents();
+                                    break;
+                                }
                             }
+                            this.DoEvents();
                         }
                     }
+                    if (ImageTiles.SelectedIndex < 0 && string.IsNullOrEmpty(lastSelectedId))
+                    {
+                        ImageTiles.SelectedIndex = 0;
+                        ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
+                        this.DoEvents();
+                    }
+                    StartPrefetching();
+                    this.DoEvents();
                 }
-                if (ImageTiles.SelectedIndex < 0 && string.IsNullOrEmpty(lastSelectedId))
-                {
-                    ImageTiles.SelectedIndex = 0;
-                    ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
-                }
-                if (!PrefetchTask.IsBusy && !PrefetchTask.CancellationPending) PrefetchTask.RunWorkerAsync();
-            }
+            }).Invoke(async: false);
         }
         #endregion
 
@@ -292,6 +299,32 @@ namespace PixivWPF.Pages
             return (result);
         }
 
+        public void FirstCategory()
+        {
+            CategoryMenu.Items.MoveCurrentToFirst();
+        }
+
+        public void LastCategory()
+        {
+            CategoryMenu.Items.MoveCurrentToLast();
+        }
+
+        public void PrevCategory()
+        {
+            if (CategoryMenu.Items.CurrentPosition == 0)
+                CategoryMenu.Items.MoveCurrentToLast();
+            else
+                CategoryMenu.Items.MoveCurrentToPrevious();
+        }
+
+        public void NextCategory()
+        {
+            if (CategoryMenu.Items.CurrentPosition == CategoryMenu.Items.Count - 1)
+                CategoryMenu.Items.MoveCurrentToLast();
+            else
+                CategoryMenu.Items.MoveCurrentToNext();
+        }
+
         public void RefreshPage()
         {
             ShowImages(TargetPage, false, GetLastSelectedID());
@@ -301,7 +334,12 @@ namespace PixivWPF.Pages
         {
             var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
             UpdateTilesThumb(overwrite);
-            if (!PrefetchTask.IsBusy && !PrefetchTask.CancellationPending) PrefetchTask.RunWorkerAsync();
+            StartPrefetching();
+        }
+
+        public void Prefetching()
+        {
+            StartPrefetching();
         }
 
         public void AppendTiles()
@@ -501,49 +539,26 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        #region Prefetch preview background task
-        private BackgroundWorker PrefetchTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+        #region Prefetching background task
+        private SemaphoreSlim CanPrefetching = new SemaphoreSlim(1, 1);
+        private BackgroundWorker PrefetchingTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
 
-        private void GetNonePreviewItems(List<string> illusts, List<string> avatars, List<string> pages)
+        private int CalcPagesThumbItems(IEnumerable<PixivItem> items)
         {
-            try
+            int result = 0;
+            foreach(var item in items)
             {
-                if (ImageTiles.Items.Count > 0)
-                {
-                    new Action(() =>
-                    {
-                        setting = Application.Current.LoadSetting();
-                        var sid = ImageTiles.SelectedItem is PixivItem ? ImageTiles.SelectedItem.ID : string.Empty;
-                        var items = ImageTiles.Items.ToArray().Reverse();
-                        foreach (var item in items)
-                        {
-                            //if (item.ID.Equals(sid)) continue;
-                            if (item.IsWork())
-                            {
-                                var avatar_url = item.Illust.User.GetAvatarUrl();
-                                //var avater_file = avatar_url.GetImageCacheFile();
-                                //if (setting.PrefetchPreview && !string.IsNullOrEmpty(avater_file) && !File.Exists(avater_file)) result.Add(avatar_url);
-                                if (setting.PrefetchPreview) illusts.Add(avatar_url);
-
-                                var preview_url = item.Illust.GetPreviewUrl();// large:setting.SmartPreview);
-                                //var preview_file = preview_url.GetImageCacheFile();
-                                //if (setting.PrefetchPreview && !string.IsNullOrEmpty(preview_file) && !File.Exists(preview_file)) avatars.Add(preview_url);
-                                if (setting.PrefetchPreview) avatars.Add(preview_url);
-
-                                if (setting.PrefetchPagesThumb && pages is List<string>) pages.AddRange(GetNonePagesThumb(item.Illust));
-                            }
-                        }
-                    }).Invoke(async: false);
-                }
+                if (item.Count > 1) result += item.Count;
             }
-            catch (Exception ex) { ex.ERROR("PREVIEWCOUNTING"); }
+            return (result);
         }
 
-        private List<string> GetNonePagesThumb(Pixeez.Objects.Work illust)
+        private async Task<List<string>> GetPagesThumbItems(PixivItem item)
         {
             List<string> pages = new List<string>();
             try
             {
+                var illust = item.Illust;
                 if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
                 {
                     if (illust is Pixeez.Objects.IllustWork)
@@ -556,7 +571,7 @@ namespace PixivWPF.Pages
                                 var thumb_url = page.GetThumbnailUrl();
                                 //var thumb_file = thumb_url.GetImageCacheFile();
                                 //if (setting.PrefetchPreview && !string.IsNullOrEmpty(thumb_file) && !File.Exists(thumb_file)) result.Add(thumb_url);
-                                if (setting.PrefetchPreview) pages.Add(thumb_url);
+                                if (setting.PrefetchingPreview) pages.Add(thumb_url);
                             }
                         }
                     }
@@ -565,10 +580,7 @@ namespace PixivWPF.Pages
                         var subset = illust as Pixeez.Objects.NormalWork;
                         if (subset.PageCount >= 1 && subset.Metadata == null)
                         {
-                            new Action(async () =>
-                            {
-                                illust = await illust.RefreshIllust();
-                            }).Invoke(async: false);
+                            illust = await illust.RefreshIllust();
                         }
                         if (illust.Metadata is Pixeez.Objects.Metadata)
                         {
@@ -577,8 +589,9 @@ namespace PixivWPF.Pages
                                 var thumb_url = page.GetThumbnailUrl();
                                 //var thumb_file = thumb_url.GetImageCacheFile();
                                 //if (setting.PrefetchPreview && !string.IsNullOrEmpty(thumb_file) && !File.Exists(thumb_file)) avatars.Add(thumb_url);
-                                if (setting.PrefetchPreview) pages.Add(thumb_url);
+                                if (setting.PrefetchingPreview) pages.Add(thumb_url);
                             }
+                            item.Illust = illust;
                         }
                     }
                 }
@@ -587,53 +600,94 @@ namespace PixivWPF.Pages
             return (pages);
         }
 
-        private void PrefetchTask_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private bool GetPreviewItems(List<string> illusts, List<string> avatars, List<string> pages)
         {
-            //List<string> pages = new List<string>();
-            //List<string> avatars = new List<string>();
-            //var non_exists = GetNonePreviewItems(pages, avatars);
-            //var count = non_exists.Count + avatars.Count + pages.Count;
-            //var total = ImageTiles.ItemsCount + avatars.Count + pages.Count;
-            //if (total <= 0) return;
-            //var percent = count == 0 ? 1.00 : (total - count) / (double)total;
-            //if (window == null) window = Application.Current.GetMainWindow();
-            //if (window is MainWindow) window.SetPrefetchPreviewProgress(percent * 100, $"{count}/{total}[{non_exists.Count}/{avatars.Count}/{pages.Count}]");
-            //non_exists.Clear();
-            //pages.Clear();
-            //avatars.Clear();
-            //this.Sound();
+            bool result = false;
+            try
+            {
+                if (ImageTiles.Items.Count > 0)
+                {
+                    new Action(async () =>
+                    {
+                        setting = Application.Current.LoadSetting();
+                        var sid = ImageTiles.SelectedItem is PixivItem ? ImageTiles.SelectedItem.ID : string.Empty;
+                        var items = ImageTiles.Items.ToArray().Reverse();
+                        foreach (var item in items)
+                        {
+                            //if (item.ID.Equals(sid)) continue;
+                            if (item.IsWork())
+                            {
+                                var avatar_url = item.Illust.User.GetAvatarUrl();
+                                //var avater_file = avatar_url.GetImageCacheFile();
+                                //if (setting.PrefetchPreview && !string.IsNullOrEmpty(avater_file) && !File.Exists(avater_file)) result.Add(avatar_url);
+                                if (setting.PrefetchingPreview) illusts.Add(avatar_url);
+
+                                var preview_url = item.Illust.GetPreviewUrl();// large:setting.SmartPreview);
+                                //var preview_file = preview_url.GetImageCacheFile();
+                                //if (setting.PrefetchPreview && !string.IsNullOrEmpty(preview_file) && !File.Exists(preview_file)) avatars.Add(preview_url);
+                                if (setting.PrefetchingPreview) avatars.Add(preview_url);
+
+                                if (setting.PrefetchingPagesThumb && pages is List<string>)
+                                {
+                                    var count = pages.Count;
+                                    pages.AddRange(await GetPagesThumbItems(item));
+                                    if (item.Count > 1 && pages.Count - count != item.Count)
+                                        Task.Delay(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
+                                    Application.Current.DoEvents();
+                                }
+                            }
+                        }
+                    }).Invoke(async: false);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("PREVIEWCOUNTING"); }
+            return (result);
         }
 
-        private async void PrefetchTask_DoWork(object sender, DoWorkEventArgs e)
+        private void PrefetchingTask_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            List<string> illusts = new List<string>();
-            List<string> avatars = new List<string>();
-            List<string> pages = new List<string>();
-            GetNonePreviewItems(illusts, avatars, pages);
+            //if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+        }
 
-            double percent = 0;
-            string tooltip = string.Empty;
-
-            var count = illusts.Count + avatars.Count + pages.Count;
-            var total = ImageTiles.ItemsCount + avatars.Count + pages.Count;
-            if (total <= 0) return;
-            percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-            tooltip = $"{count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
-            if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
-            //bg_prefetch.ReportProgress(percent);
-            if (count <= 0) return;
-
+        private void PrefetchingTask_DoWork(object sender, DoWorkEventArgs e)
+        {
             var setting = Application.Current.LoadSetting();
-            var parallel = setting.ThumbDownloadParallel;
-            SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
-
-            foreach (var urls in new List<string>[] { illusts, avatars, pages })
+            try
             {
-                if (PrefetchTask.CancellationPending) break;
-                foreach (var url in urls)
+                if (!setting.PrefetchingPreview) return;
+
+                this.DoEvents();
+                List<string> illusts = new List<string>();
+                List<string> avatars = new List<string>();
+                List<string> pages = new List<string>();
+                var pagesCount = CalcPagesThumbItems(ImageTiles.Items);
+                if (pagesCount <= 0) { e.Cancel = true; return; }
+
+                GetPreviewItems(illusts, avatars, pages);
+
+                double percent = 0;
+                string tooltip = string.Empty;
+
+                var count = illusts.Count + avatars.Count + pages.Count;
+                var total = ImageTiles.ItemsCount + avatars.Count + pages.Count;
+                if (total <= 0) return;
+                percent = count == 0 ? 100 : (total - count) / (double)total * 100;
+                tooltip = $"Calculating : {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
+                if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
+                //bg_prefetch.ReportProgress(percent);
+                if (count <= 0) return;
+
+                var parallel = setting.PrefetchingDownloadParallel;
+                if (setting.ParallelPrefetching)
                 {
-                    if (PrefetchTask.CancellationPending) break;
-                    if (await tasks.WaitAsync(-1))
+                    List<string> needUpdate = new List<string>();
+                    needUpdate.AddRange(illusts);
+                    needUpdate.AddRange(avatars);
+                    needUpdate.AddRange(pages);
+
+                    var opt = new ParallelOptions();
+                    opt.MaxDegreeOfParallelism = parallel;
+                    Parallel.ForEach(needUpdate, opt, (url, loopstate, elementIndex) =>
                     {
                         try
                         {
@@ -642,13 +696,14 @@ namespace PixivWPF.Pages
                             {
                                 if (!File.Exists(file))
                                 {
-                                    file = await url.DownloadCacheFile();
+                                    file = url.DownloadCacheFile().GetAwaiter().GetResult();
                                     if (!string.IsNullOrEmpty(file)) count = count - 1;
                                 }
                                 else count = count - 1;
                             }
+                            if (PrefetchingTask.CancellationPending) { e.Cancel = true; loopstate.Break(); }
                             percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                            tooltip = $"{count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
+                            tooltip = $"Prefetching : {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
                             if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
                             this.DoEvents();
                         }
@@ -659,33 +714,98 @@ namespace PixivWPF.Pages
                                 ex.ERROR("PREFETCH");
                             }).Invoke(async: false);
                         }
-                        finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); }
-                    }
+                        finally { }
+                    });
                 }
-                this.DoEvents();
-            }
-            this.DoEvents();
+                else
+                {
+                    SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
+                    foreach (var urls in new List<string>[] { illusts, avatars, pages })
+                    {
+                        if (PrefetchingTask.CancellationPending) { e.Cancel = true; break; }
+                        foreach (var url in urls)
+                        {
+                            if (PrefetchingTask.CancellationPending) { e.Cancel = true; break; }
+                            if (tasks.Wait(-1))
+                            {
+                                new Action(async () =>
+                                {
+                                    try
+                                    {
+                                        var file = url.GetImageCacheFile();
+                                        if (!string.IsNullOrEmpty(file))
+                                        {
+                                            if (!File.Exists(file))
+                                            {
+                                                file = await url.DownloadCacheFile();
+                                                if (!string.IsNullOrEmpty(file)) count = count - 1;
+                                            }
+                                            else count = count - 1;
+                                        }
+                                        if (PrefetchingTask.CancellationPending) { e.Cancel = true; return; }
+                                        percent = count == 0 ? 100 : (total - count) / (double)total * 100;
+                                        tooltip = $"Prefetching : {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
+                                        if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
+                                        //await Task.Delay(10);
+                                        this.DoEvents();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        new Action(() =>
+                                        {
+                                            ex.ERROR("PREFETCH");
+                                        }).Invoke(async: false);
+                                    }
+                                    finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); }
+                                }).Invoke(async: false);
+                            }
+                        }
+                        this.DoEvents();
+                    }
+                    this.DoEvents();
+                }
 
-            if (count >= 0 && total > 0)
-            {
-                await new Action(() =>
+                var name = e.Argument is string ? (string)e.Argument : string.Empty;
+                if (PrefetchingTask.CancellationPending) { e.Cancel = true; return; }
+                if (count >= 0 && total > 0)
                 {
                     percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                    tooltip = $"{count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
-                    if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
-                    this.DoEvents();
-
+                    tooltip = $"Done : {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
+                    //new Action(() =>
+                    //{
+                        if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
+                        this.DoEvents();
+                    //}).Invoke(async: false);
                     try
                     {
                         illusts.Clear();
                         avatars.Clear();
                         pages.Clear();
                     }
-                    catch (Exception) { }
-                    //this.Sound();
-                    $"Prefetch Preview/Thumbnails : {tooltip}".DEBUG(this.Name ?? "TilePages");
-                }).InvokeAsync();
+                    catch (Exception ex) { ex.ERROR("PREFETCHED"); }
+                    $"Prefetching Preview/Thumbnails : {tooltip}".ShowToast("INFO");
+                    $"Prefetching Preview/Thumbnails : {tooltip}".DEBUG(name ?? "TilePages");
+                }
             }
+            catch (Exception ex) { ex.ERROR("PREFETCHING"); }
+            finally { if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release(); }
+        }
+       
+        public async void StartPrefetching(bool waitcancel = true)
+        {
+            var setting = Application.Current.LoadSetting();
+            if (!setting.PrefetchingPreview) return;
+            StopPrefetching();
+            if (waitcancel && await CanPrefetching.WaitAsync(-1))
+            {
+                if (!PrefetchingTask.IsBusy && !PrefetchingTask.CancellationPending) PrefetchingTask.RunWorkerAsync(this.Name ?? "Tiles");
+            }
+        }
+
+        public void StopPrefetching()
+        {
+            if (PrefetchingTask.IsBusy || PrefetchingTask.CancellationPending) PrefetchingTask.CancelAsync();
+            if(!PrefetchingTask.IsBusy && !PrefetchingTask.CancellationPending && CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
         }
         #endregion
 
@@ -698,32 +818,41 @@ namespace PixivWPF.Pages
         {
             $"{WindowTitle} Loading...".INFO();
 
-            if (PrefetchTask is BackgroundWorker)
-            {
-                PrefetchTask.WorkerReportsProgress = true;
-                PrefetchTask.DoWork += PrefetchTask_DoWork;
-                PrefetchTask.RunWorkerCompleted += PrefetchTask_RunWorkerCompleted;
-            }
-
             setting = Application.Current.LoadSetting();
 
             window = this.GetMainWindow();
-
-            IllustDetail.Content = detail_page;
-
+            this.Name = "CategoryTiles";
             UpdateTheme();
+            this.DoEvents();
+
+            if (PrefetchingTask is BackgroundWorker)
+            {
+                PrefetchingTask.WorkerReportsProgress = true;
+                PrefetchingTask.RunWorkerCompleted += PrefetchingTask_RunWorkerCompleted;
+                PrefetchingTask.DoWork += PrefetchingTask_DoWork;
+            }
 
             ids.Clear();
             ImageTiles.AutoGC = true;
             ImageTiles.WaitGC = true;
             ImageTiles.CalcSystemMemoryUsage = setting.CalcSystemMemoryUsage;
             ImageTiles.Clear();
+            this.DoEvents();
 
             await new Action(() =>
             {
+                IllustDetail.Content = detail_page;
+                this.DoEvents();
                 CategoryMenu.IsPaneOpen = false;
+                this.DoEvents();
                 CategoryMenu.SelectedIndex = GetCategoryIndex(setting.DefaultPage);
-            }).InvokeAsync();
+                this.DoEvents();
+            }).InvokeAsync(true);
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            StopPrefetching();
         }
 
         internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
@@ -731,23 +860,25 @@ namespace PixivWPF.Pages
             if (window == null) window = this.GetMainWindow();
             if (target == PixivPage.My) { ShowUser(0, true); return; }
             if (window is MainWindow) window.UpdateTitle(target.ToString());
+            this.DoEvents();
+
+            StopPrefetching();
 
             if (TargetPage != target)
             {
                 lastSelectedId = string.Empty;
                 TargetPage = target;
+                IsAppend = false;
             }
             if (!IsAppend)
             {
-                var count = ImageTiles.ItemsCount;
-
                 $"Show illusts from category \"{target.ToString()}\" ......".INFO();
                 NextURL = null;
                 ids.Clear();
                 ImageTiles.ClearAsync();
+                this.DoEvents();
             }
             else $"Append illusts from category \"{target.ToString()}\" ......".INFO();
-            if (PrefetchTask.IsBusy || PrefetchTask.CancellationPending) PrefetchTask.CancelAsync();
 
             ImageTiles.SelectedIndex = -1;
             LastPage = target;
@@ -850,7 +981,7 @@ namespace PixivWPF.Pages
                     ShowRanking(NextURL, "month");
                     break;
             }
-
+            this.DoEvents();
             if (!string.IsNullOrEmpty(id)) lastSelectedId = id;
         }
 
@@ -904,6 +1035,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -957,6 +1089,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1010,6 +1143,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1063,6 +1197,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1119,6 +1254,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1176,6 +1312,7 @@ namespace PixivWPF.Pages
                                 this.DoEvents();
                             }
                         }
+                        if(!Application.Current.IsLogin()) await Task.Delay(250);
                         this.DoEvents();
                         ImageTiles.UpdateTilesImage();
                     }
@@ -1230,6 +1367,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1295,6 +1433,7 @@ namespace PixivWPF.Pages
                             ex.Message.ShowMessageBox("ERROR");
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1355,6 +1494,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1436,6 +1576,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1493,6 +1634,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1549,6 +1691,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1605,6 +1748,7 @@ namespace PixivWPF.Pages
                             this.DoEvents();
                         }
                     }
+                    if(!Application.Current.IsLogin()) await Task.Delay(250);
                     this.DoEvents();
                     ImageTiles.UpdateTilesImage();
                 }
@@ -1857,5 +2001,6 @@ namespace PixivWPF.Pages
                 //if (!bg_prefetch.IsBusy && !bg_prefetch.CancellationPending) bg_prefetch.RunWorkerAsync(); 
             }
         }
+
     }
 }

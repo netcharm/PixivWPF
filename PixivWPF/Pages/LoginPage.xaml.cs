@@ -72,6 +72,7 @@ namespace PixivWPF.Pages
                 edProxy.Text = setting.Proxy;
                 chkUseProxy.IsChecked = setting.UsingProxy;
                 chkUseProxyDown.IsChecked = setting.DownloadUsingProxy;
+                Application.Current.DoEvents();
             }
             catch (Exception ex) { ex.ERROR(); }
             finally

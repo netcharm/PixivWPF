@@ -53,6 +53,67 @@ namespace PixivWPF.Pages
             btnSavePage.Enable(btnViewNextPage.IsEnabled, btnSavePage.IsVisible);
         }
 
+        public void UpdateDownloadState(int? illustid = null, bool? exists = null)
+        {
+            try
+            {
+                if (Contents.HasUser())
+                {
+                    var tooltip = InfoBar.ToolTip is string ? (string)InfoBar.ToolTip : string.Empty;
+                    if (!string.IsNullOrEmpty(tooltip))
+                    {
+                        var tips = tooltip.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                        for (var i = 0; i < tips.Length; i++)
+                        {
+                            if (tips[i].StartsWith("Downloaded")) tips[i] = $"Downloaded    = {Contents.Illust.IsDownloaded(Contents.Index)}";
+                            else continue;
+                        }
+                        InfoBar.ToolTip = string.Join(Environment.NewLine, tips);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("DOWNLOADSTATE"); }
+        }
+
+        public async void UpdateDownloadStateAsync(int? illustid = null, bool? exists = null)
+        {
+            await new Action(() =>
+            {
+                UpdateDownloadState(illustid, exists);
+            }).InvokeAsync();
+        }
+
+        public void UpdateLikeState(int illustid = -1, bool is_user = false)
+        {
+            try
+            {
+                if (Contents.HasUser())
+                {
+                    var tooltip = InfoBar.ToolTip is string ? (string)InfoBar.ToolTip : string.Empty;
+                    if(!string.IsNullOrEmpty(tooltip))
+                    {
+                        var tips = tooltip.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                        for(var i = 0; i < tips.Length; i++)
+                        {
+                            if (tips[i].StartsWith("Artwork Liked")) tips[i] = $"Artwork Liked = {Contents.Illust.IsLiked()}";
+                            else if (tips[i].StartsWith("Artist Liked")) tips[i] = $"Artist Liked  = {Contents.User.IsLiked()}";
+                            else continue;
+                        }
+                        InfoBar.ToolTip = string.Join(Environment.NewLine, tips);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("LIKESTATE"); }
+        }
+
+        public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        {
+            await new Action(() =>
+            {
+                UpdateLikeState(illustid, is_user);
+            }).InvokeAsync();
+        }
+
         private void ChangeIllustPage(int offset)
         {
             if (Contents.IsWork())
@@ -131,12 +192,16 @@ namespace PixivWPF.Pages
                         }
                         PreviewSize.Text = $"{width:F0}x{height:F0}";
                         StringBuilder sb = new StringBuilder();
-                        sb.AppendLine($"Dimension   = {width:F0} x {height:F0}");
-                        sb.AppendLine($"Aspect Rate = {aspect.Item1:G5} : {aspect.Item2:G5}");
-                        sb.AppendLine($"Resolution  = {dpiX:F0}DPI : {dpiY:F0}DPI");
-                        sb.AppendLine($"Memory Size = {width * height * img.ColorDepth / 8 / 1024.0 / 1024.0:F2} M");
-                        sb.AppendLine($"File Size   = {img.Size / 1024.0 / 1024.0:F2} M");
-                        PreviewSize.ToolTip = sb.ToString().Trim();
+                        sb.AppendLine($"Artwork Liked = {Contents.Illust.IsLiked()}");
+                        sb.AppendLine($"Artist Liked  = {Contents.User.IsLiked()}");
+                        if (Contents.Index >= 0) sb.AppendLine($"Page Index    = {Contents.Index}");
+                        sb.AppendLine($"Downloaded    = {Contents.Illust.IsDownloaded(Contents.Index)}");
+                        sb.AppendLine($"Dimension     = {width:F0} x {height:F0}");
+                        sb.AppendLine($"Aspect Rate   = {aspect.Item1:G5} : {aspect.Item2:G5}");
+                        sb.AppendLine($"Resolution    = {dpiX:F0}DPI : {dpiY:F0}DPI");
+                        sb.AppendLine($"Memory Usage  = {width * height * img.ColorDepth / 8 / 1024.0 / 1024.0:F2} M");
+                        sb.AppendLine($"File Size     = {img.Size / 1024.0 / 1024.0:F2} M");
+                        InfoBar.ToolTip = sb.ToString().Trim();
                         Page_SizeChanged(null, null);
                         PreviewWait.Hide();
                     }
@@ -182,6 +247,12 @@ namespace PixivWPF.Pages
                         ActionViewPageSep.Hide();
                     }
 
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine($"Favorited   = {Contents.Illust.IsLiked()}");
+                    sb.AppendLine($"Page Index  = {Contents.Index}");
+                    sb.AppendLine($"Downloaded  = {Contents.Illust.IsDownloaded(Contents.Index)}");
+                    InfoBar.ToolTip = sb.ToString().Trim();
+
                     PreviewImage = await GetPreviewImage(overwrite);
 
                     if (window == null)
@@ -204,6 +275,7 @@ namespace PixivWPF.Pages
             }
         }
 
+        #region Common Actions
         public void ChangeIllustLikeState()
         {
             try
@@ -289,11 +361,11 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        public void CopyPreview()
+        public void CopyPreview(bool loadfromfile = false)
         {
             if (!string.IsNullOrEmpty(PreviewImageUrl))
             {
-                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+                if (loadfromfile || Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
                     Commands.CopyImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
                 else
                     Commands.CopyImage.Execute(PreviewImage);
@@ -351,6 +423,7 @@ namespace PixivWPF.Pages
             if (InSearching) return;
             ChangeIllustPage(1);
         }
+        #endregion
 
         public bool InSearching
         {
@@ -511,10 +584,7 @@ namespace PixivWPF.Pages
                 }
                 else if (sender == ActionCopyPreview)
                 {
-                    if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
-                        Commands.CopyImage.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
-                    else
-                        Commands.CopyImage.Execute(PreviewImage);
+                    CopyPreview();
                 }
                 else if (sender == ActionSendIllustToInstance)
                 {

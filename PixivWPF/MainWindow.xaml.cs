@@ -45,7 +45,7 @@ namespace PixivWPF
         {
             new Action(() => {
                 if (PreviewPreftchProgress.IsHidden()) PreviewPreftchProgress.Show();
-                PreviewPreftchProgress.Text = $"{progress:F0}%";
+                PreviewPreftchProgress.Text = $"{Math.Floor(progress):F0}%";
                 if (string.IsNullOrEmpty(tooltip)) PreviewPreftchProgress.ToolTip = null;
                 else PreviewPreftchProgress.ToolTip = tooltip;
             }).Invoke(async: false);            
@@ -132,6 +132,11 @@ namespace PixivWPF
         public void RefreshThumbnail()
         {
             if (Contents is Pages.TilesPage) Contents.RefreshThumbnail();
+        }
+
+        public void Prefetching()
+        {
+            if (Contents is Pages.TilesPage) Contents.Prefetching();
         }
 
         public void AppendTiles()
@@ -275,9 +280,10 @@ namespace PixivWPF
 
                 using (StreamReader sw = new StreamReader(ps))
                 {
-                    var contents = sw.ReadToEnd().Trim();
+                    var contents = sw.ReadToEnd().Trim('"').Trim();
                     $"RECEIVED => {contents}".INFO();
-                    if (contents.StartsWith("cmd:", StringComparison.CurrentCultureIgnoreCase))
+                    
+                    if (Regex.IsMatch(contents, @"^cmd[.,;:=%_+\-].*?", RegexOptions.IgnoreCase))
                     {
                         Application.Current.ProcessCommand(contents);
                     }
@@ -509,7 +515,7 @@ namespace PixivWPF
             Commands.OpenLogs.Execute(log_type);
         }
 
-        internal void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
+        private void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -523,6 +529,11 @@ namespace PixivWPF
                 }
             }
             catch { }
+        }
+
+        private void PreviewPreftchProgress_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && e.ClickCount == 2) Prefetching();
         }
 
         private void CommandNavRecents_Click(object sender, RoutedEventArgs e)
@@ -879,6 +890,7 @@ namespace PixivWPF
 
             if (Contents is Pages.TilesPage) Contents.SetFilter(filter);
         }
+
 
     }
 }

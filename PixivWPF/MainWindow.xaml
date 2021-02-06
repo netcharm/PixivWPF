@@ -169,7 +169,7 @@
             <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" 
                 HorizontalAlignment="Left" VerticalAlignment="Center"/>
             <TextBlock x:Name="PreviewPreftchProgress" x:Uid="PreviewPreftchProgress" Visibility="Collapsed"
-                HorizontalAlignment="Left" VerticalAlignment="Center"/>            
+                HorizontalAlignment="Left" VerticalAlignment="Center" MouseDown="PreviewPreftchProgress_MouseDown"/>            
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
 

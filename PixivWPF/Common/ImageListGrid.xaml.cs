@@ -186,6 +186,8 @@ namespace PixivWPF.Common
         [Description("Get or Set Image Tiles Count after filtered/current be displayed")]
         [Category("Common Properties")]
         public int ItemsCount { get { return (PART_ImageTiles.Items != null ? PART_ImageTiles.Items.Count : 0); } }
+        
+        public int Count { get { return (ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0); } }
         #endregion
 
         #region Scroll Viewer Helper
@@ -573,10 +575,21 @@ namespace PixivWPF.Common
             }
         }
 
-        public async void Clear(bool batch = true)
+        public async Task<bool> CanAdd(bool force = false)
+        {
+            bool result = false;
+            if (force || await CanUpdateTiles.WaitAsync(-1))
+            {
+                result = true;
+                if (CanUpdateTiles is SemaphoreSlim && CanUpdateTiles.CurrentCount < 1) CanUpdateTiles.Release();
+            }
+            return (result);
+        }
+
+        public async void Clear(bool batch = true, bool force = false)
         {
             if (UpdateTileTask.IsBusy) UpdateTileTask.CancelAsync();
-            if (await CanUpdateTiles.WaitAsync(TimeSpan.FromSeconds(2)))
+            if (force || await CanUpdateTiles.WaitAsync(TimeSpan.FromSeconds(2)))
             {
                 var count = ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0;
                 var items = ItemList is ObservableCollection<PixivItem> ? ItemList.ToList() : new List<PixivItem>();
@@ -610,8 +623,17 @@ namespace PixivWPF.Common
                         }
                         items.Clear();
                         this.DoEvents();
-                        if (batch) PART_ImageTiles.UpdateLayout();
-                        else PART_ImageTiles.InvalidateVisual();
+                        //if (batch) PART_ImageTiles.UpdateLayout();
+                        //else PART_ImageTiles.InvalidateVisual();
+                        PART_ImageTiles.UpdateLayout();
+                        if (force)
+                        {
+                            CanvasList.Clear();
+                            ImageList.Clear();
+                            RingList.Clear();
+                            ItemList.Clear();
+                        }
+                        await Task.Delay(1);
                         this.DoEvents();
                     }
                 }
@@ -625,20 +647,20 @@ namespace PixivWPF.Common
             }
         }
 
-        public async void ClearAsync(bool batch = true)
+        public async void ClearAsync(bool batch = true, bool force = false)
         {
             if (ItemList is ObservableCollection<PixivItem> && ItemList.Count > 0)
             {
                 await new Action(() =>
                 {
-                    Clear(batch);
+                    Clear(batch, force);
                 }).InvokeAsync(true);
             }
         }
 
         private BackgroundWorker UpdateTileTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
 
-        private async void UpdateTileTask_DoWork(object sender, DoWorkEventArgs e)
+        private void UpdateTileTask_DoWork(object sender, DoWorkEventArgs e)
         {
             var overwrite = e.Argument is bool ? (bool)e.Argument : false;
             var needUpdate = ItemList.Where(item => item.Source == null || overwrite);
@@ -648,87 +670,64 @@ namespace PixivWPF.Common
                 try
                 {
                     var setting = Application.Current.LoadSetting();
-                    var parallel = setting.ThumbDownloadParallel;
+                    var parallel = setting.PrefetchingDownloadParallel;
 
                     if (parallel <= 0) parallel = 1;
                     else if (parallel >= total) parallel = total;
 
-                    SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
-                    foreach (var item in needUpdate)
+                    if (setting.ParallelPrefetching)
                     {
-                        if (await tasks.WaitAsync(-1))
+                        var opt = new ParallelOptions();
+                        opt.MaxDegreeOfParallelism = parallel;
+                        Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                         {
-                            if (UpdateTileTask.CancellationPending) { tasks.Release(); break; }
-                            new Action(async () =>
+                            try
                             {
-                                try
+                                if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                                item.State = TaskStatus.Running;
+                                var img = item.Thumb.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultThumbSize()).GetAwaiter().GetResult();
+                                if (UpdateTileTask.CancellationPending) { img.Source = null; img = null; e.Cancel = true; return; }
+                                if (item.Source == null) item.Source = img.Source;
+                                if (item.Source is ImageSource)
+                                    item.State = TaskStatus.RanToCompletion;
+                                else
+                                    item.State = TaskStatus.Faulted;
+                                img.Source = null;
+                                img = null;
+                            }
+                            catch (Exception ex) { ex.ERROR("DOWNLOAD"); }
+                            finally { }
+                        });
+                    }
+                    else
+                    {
+                        SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
+                        foreach (var item in needUpdate)
+                        {
+                            if (UpdateTileTask.CancellationPending) { tasks.Release(); e.Cancel = true; break; }
+                            if (tasks.Wait(-1))
+                            {
+                                new Action(async () =>
                                 {
-                                    item.State = TaskStatus.Running;
-                                    var img = await item.Thumb.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultThumbSize());
-                                    if (UpdateTileTask.CancellationPending) { img.Source = null; img = null; return; }
-                                    if (item.Source == null) item.Source = img.Source;
-                                    if (item.Source is ImageSource)
-                                        item.State = TaskStatus.RanToCompletion;
-                                    else
-                                        item.State = TaskStatus.Faulted;
-                                    img.Source = null;
-                                    img = null;
-                                }
-                                catch(Exception ex) { ex.ERROR("DOWNLOAD"); }
-                                finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); }
-                            }).Invoke(async: false);
+                                    try
+                                    {
+                                        item.State = TaskStatus.Running;
+                                        var img = await item.Thumb.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultThumbSize());
+                                        if (UpdateTileTask.CancellationPending) { img.Source = null; img = null; e.Cancel = true; return; }
+                                        if (item.Source == null) item.Source = img.Source;
+                                        if (item.Source is ImageSource)
+                                            item.State = TaskStatus.RanToCompletion;
+                                        else
+                                            item.State = TaskStatus.Faulted;
+                                        img.Source = null;
+                                        img = null;
+                                    }
+                                    catch (Exception ex) { ex.ERROR("DOWNLOAD"); }
+                                    finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); }
+                                }).Invoke(async: false);
+                            }
                         }
                     }
-
-                    //Random rnd = new Random();
-                    //var opt = new ParallelOptions();
-                    ////opt.TaskScheduler = TaskScheduler.Current;
-                    //opt.MaxDegreeOfParallelism = parallel;
-                    //
-                    //var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
-                    //{
-                    //    try
-                    //    {
-                    //        if(UpdateTileTask.CancellationPending) loopstate.Break();
-                    //
-                    //        if (item.Count <= 1) item.BadgeValue = string.Empty;
-                    //        if (item.Source == null || overwrite)
-                    //        {
-                    //            var task = new Action(async ()=>
-                    //            {
-                    //                item.State = TaskStatus.Running;
-                    //                var img = await item.Thumb.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultThumbSize());
-                    //                //if(UpdateTileTask.CancellationPending) { loopstate.Break(); img.Source = null; img = null; }
-                    //                if (item.Source == null) item.Source = img.Source;
-                    //                if(item.Source is ImageSource)
-                    //                    item.State = TaskStatus.RanToCompletion;
-                    //                else
-                    //                    item.State = TaskStatus.Faulted;
-                    //                img.Source = null;
-                    //                img = null;
-                    //            }).InvokeAsync(true);
-                    //            Task.WaitAll(new Task[] { task });
-                    //        }
-                    //    }
-                    //    catch (Exception ex)
-                    //    {
-                    //        $"Download Thumbnail Failed:\n{ex.Message}".ERROR("DOWNLOAD");
-                    //        item.State = TaskStatus.Faulted;
-                    //    }
-                    //    finally
-                    //    {
-                    //        if (item.Source == null && item.Thumb.IsCached())
-                    //        {
-                    //            var thumb = item.Thumb.GetImageCachePath().LoadImageFromFile(size:Application.Current.GetDefaultThumbSize());
-                    //            item.Source = thumb.Source;
-                    //            thumb.Source = null;
-                    //            thumb = null;
-                    //        }
-                    //        this.DoEvents();
-                    //        if(UpdateTileTask.CancellationPending) loopstate.Break();
-                    //    }
-                    //});
-                    //if (ret.IsCompleted) { }
                 }
                 catch (Exception ex)
                 {
@@ -748,42 +747,26 @@ namespace PixivWPF.Common
             if (ItemList.Count <= 0) return;
             var setting = Application.Current.LoadSetting();
             if (UpdateTileTask.IsBusy) UpdateTileTask.CancelAsync();
-            if (await CanUpdateTiles.WaitAsync(TimeSpan.FromMilliseconds(250)))
+            if (await CanUpdateTiles.WaitAsync(TimeSpan.FromMilliseconds(500)))
             {
                 try
                 {
-                    if (!UpdateTileTask.IsBusy && !UpdateTileTask.CancellationPending) UpdateTileTask.RunWorkerAsync(overwrite);
+                    if (UpdateTileTask.IsBusy || UpdateTileTask.CancellationPending) UpdateTileTask.CancelAsync();
+
+                    if (!UpdateTileTask.IsBusy && !UpdateTileTask.CancellationPending)
+                    {
+                        new Action(() =>
+                        {
+                            UpdateTileTask.RunWorkerAsync(overwrite);
+                        }).Invoke(async: false);
+                    }
                 }
-                catch(Exception ex) { ex.ERROR(this.Name ?? "UpdateTilesTask"); }
-                finally 
+                catch (Exception ex) { ex.ERROR(this.Name ?? "UpdateTilesTask"); }
+                finally
                 {
                     if (CanUpdateTiles is SemaphoreSlim && CanUpdateTiles.CurrentCount <= 0) CanUpdateTiles.Release();
                 }
             }
-
-            //if (await CanUpdateTiles.WaitAsync(TimeSpan.FromSeconds(2)))
-            //{
-            //    foreach (var item in Items.Where(item => item.Source != null))
-            //    {
-            //        var id = GetID(item);
-            //        if (RingList.ContainsKey(id)) RingList[id].Hide();
-            //    }
-            //    UpdateLayout();
-            //    this.DoEvents();
-
-            //    if (lastTask is Task) lastTask.Dispose();
-            //    var needUpdate = Items.Where(item => item.Source == null || overwrite);
-            //    if (needUpdate.Count() > 0)
-            //    {
-            //        foreach (var item in ItemList)
-            //        {
-            //            if (item.TileWidth != TileWidth) item.TileWidth = TileWidth;
-            //            if (item.TileHeight != TileHeight) item.TileHeight = TileHeight;
-            //        }
-            //        lastTask = await Items.UpdateTilesThumb(lastTask, overwrite, cancelTokenSource, parallel, updating_semaphore);
-            //    }
-            //    if (CanUpdateTiles is SemaphoreSlim && CanUpdateTiles.CurrentCount <= 0) CanUpdateTiles.Release();
-            //}
         }
         #endregion
 

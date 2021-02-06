@@ -313,9 +313,13 @@ namespace PixivWPF.Common
     #region Hotkey
     public class HotKeyConfig
     {
+        public string Name { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public string DisplayDescription { get; set; } = string.Empty;
         [JsonConverter(typeof(StringEnumConverter))]
         public System.Windows.Forms.Keys Keys { get; set; } = default(System.Windows.Forms.Keys);
+        [JsonIgnore]
         [JsonConverter(typeof(ICommandTypeConverter<Prism.Commands.DelegateCommand>))]
         public ICommand Command { get; set; } = default(ICommand);
     }
@@ -565,124 +569,6 @@ namespace PixivWPF.Common
                 mem_pb_after = Application.Current.MemoryUsage(true);// process.PrivateMemorySize64;
                 $"System Memory Usage (WS/PB): {mem_ws_before / M:F2}M/{mem_pb_before / M:F2}M => {mem_ws_after / M:F2}M/{mem_pb_after / M:F2}M".DEBUG(name ?? string.Empty);
             }
-        }
-
-        private static string pipe_name = string.Empty;
-        public static string PipeName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(pipe_name)) pipe_name = PipeServerName();
-                return (pipe_name);
-            }
-        }
-
-        public static string PipeServerName()
-        {
-#if DEBUG
-            return ($"PixivWPF-Search-Debug-{Application.Current.GetPID()}");
-#else
-            return ($"PixivWPF-Search-{Application.Current.GetPID()}");
-#endif
-        }
-
-        public static string PipeServerName(this Application app)
-        {
-            return (PipeName);
-        }
-
-        public static bool Exists(this Application app)
-        {
-            bool result = false;
-            var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
-            foreach (var pipe in pipes)
-            {
-                if (Regex.IsMatch(pipe, $@"PixivWPF-Search-\d+", RegexOptions.IgnoreCase))
-                {
-                    result = true;
-                    break;
-                }
-            }
-            return (result);
-        }
-
-        public static async void Active(this Application app, string param = "")
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(param) || $"{PID}".Equals(param))
-                {
-                    await new Action(() =>
-                    {
-                        var main = app.GetMainWindow();
-                        if (main is Window)
-                        {
-                            main.Activate();
-                        }
-                    }).InvokeAsync(true);
-                }
-            }
-            catch (Exception ex) { ex.ERROR(); }
-        }
-
-        public static bool Activate(this Application app)
-        {
-            bool result = false;
-            try
-            {
-#if DEBUG
-                var pat = $@"(.*?)PixivWPF-Search-Debug-(\d+)";
-#else
-                var pat = $@"(.*?)PixivWPF-Search-(\d+)";
-#endif
-                var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
-                foreach (var pipe in pipes)
-                {
-                    if (Regex.IsMatch(pipe, pat, RegexOptions.IgnoreCase))
-                    {
-                        result = true;
-                        var pid = Regex.Replace(pipe, pat, "$2", RegexOptions.IgnoreCase);
-                        var cmd = string.IsNullOrEmpty(pid) ? $"Cmd:Active" : $"Cmd:Active:{pid}";
-                        Commands.SendToOtherInstance.Execute(cmd);
-                        break;
-                    }
-                }
-            }
-            catch (Exception ex) { ex.ERROR(); }
-            return (result);
-        }
-
-        public static bool ProcessCommand(this Application app, string command)
-        {
-            bool result = false;
-            try
-            {
-                var kv = command.Substring(4).Split(new char[] { '-', '_', ':', '+', '=' });
-                var action = kv[0];
-                var param = kv.Length == 2 ? kv[1] : string.Empty;
-                if (action.StartsWith("min", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    Application.Current.MinimizedWindows(string.IsNullOrEmpty(param) ? "r18" : param);
-                }
-                else if (action.StartsWith("active", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    Application.Current.Active(param);
-                }
-                else if (action.StartsWith("openlog", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    Commands.OpenLogs.Execute(param);
-                }
-                else if (action.StartsWith("writelog", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    if (!string.IsNullOrEmpty(param)) Commands.WriteLogs.Execute(param);
-                }
-                else if (action.StartsWith("cleanlog", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    if (!string.IsNullOrEmpty(param)) Commands.CleanLogs.Execute(null);
-                }
-            }
-            catch (Exception ex) { ex.ERROR(); }
-            return (result);
         }
         #endregion
 
@@ -1186,6 +1072,28 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static Window GetLatestWindow(this Application app)
+        {
+            Window result = null;
+            try
+            {
+                app.Dispatcher.Invoke(() =>
+                {
+                    var wins = new List<Window>();
+                    foreach (Window win in app.Windows)
+                    {
+                        if (win.Title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (win.Content is DownloadManagerPage) continue;
+                        else if (win.Content is LoginPage) continue;
+                        else if (win is ContentWindow) wins.Add(win);
+                    }
+                    result = wins.LastOrDefault();
+                });
+            }
+            catch (Exception ex) { ex.ERROR("GETLASTESTWINDOW"); }
+            return (result);
+        }
+
         public static PixivLoginDialog GetLoginWindow(this Application app)
         {
             PixivLoginDialog result = null;
@@ -1205,7 +1113,7 @@ namespace PixivWPF.Common
                     }
                 });
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("GETLOGINWINDOW"); }
             return (result);
         }
 
@@ -1339,6 +1247,11 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         }
 
+        public static bool IsLogin(this Application app)
+        {
+            return (GetLoginWindow(app) != null ? true : false);
+        }
+
         public static bool InSearching(this Application app)
         {
             var win = GetActiveWindow(app);
@@ -1367,6 +1280,149 @@ namespace PixivWPF.Common
                 return ((win as ContentWindow).InSearching);
             else return (false);
         }
+
+        public static async void Active(this Application app, string param = "")
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(param) || $"{PID}".Equals(param))
+                {
+                    await new Action(() =>
+                    {
+                        var main = app.GetMainWindow();
+                        if (main is Window)
+                        {
+                            main.Activate();
+                        }
+                    }).InvokeAsync(true);
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+        }
+
+        public static bool Activate(this Application app)
+        {
+            bool result = false;
+            try
+            {
+#if DEBUG
+                var pat = $@"(.*?)PixivWPF-Search-Debug-(\d+)";
+#else
+                var pat = $@"(.*?)PixivWPF-Search-(\d+)";
+#endif
+                var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
+                foreach (var pipe in pipes)
+                {
+                    if (Regex.IsMatch(pipe, pat, RegexOptions.IgnoreCase))
+                    {
+                        result = true;
+                        var pid = Regex.Replace(pipe, pat, "$2", RegexOptions.IgnoreCase);
+                        var cmd = string.IsNullOrEmpty(pid) ? $"Cmd:Active" : $"Cmd:Active:{pid}";
+                        Commands.SendToOtherInstance.Execute(cmd);
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+        #endregion
+
+        #region Application NamedPipe Helper
+        private static string pipe_name = string.Empty;
+        public static string PipeName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(pipe_name)) pipe_name = PipeServerName();
+                return (pipe_name);
+            }
+        }
+
+        public static string PipeServerName()
+        {
+#if DEBUG
+            return ($"PixivWPF-Search-Debug-{Application.Current.GetPID()}");
+#else
+            return ($"PixivWPF-Search-{Application.Current.GetPID()}");
+#endif
+        }
+
+        public static string PipeServerName(this Application app)
+        {
+            return (PipeName);
+        }
+
+        public static bool PipeExists(this Application app)
+        {
+            bool result = false;
+            var pipes = Directory.GetFiles("\\\\.\\pipe\\", "PixivWPF*");
+            foreach (var pipe in pipes)
+            {
+                if (Regex.IsMatch(pipe, $@"PixivWPF-Search-\d+", RegexOptions.IgnoreCase))
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return (result);
+        }
+
+        public static bool ProcessCommand(this Application app, string command)
+        {
+            bool result = false;
+            try
+            {
+                var kv = command.Substring(4).Split(new char[] { '-', '_', ':', '+', '=' });
+                var action = kv[0];
+                var param = kv.Length == 2 ? kv[1] : string.Empty;
+                if (action.StartsWith("min", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Application.Current.MinimizedWindows(string.IsNullOrEmpty(param) ? "r18" : param);
+                }
+                else if (action.StartsWith("active", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Application.Current.Active(param);
+                }
+                else if (action.StartsWith("openlog", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Commands.OpenLogs.Execute(param);
+                }
+                else if (action.StartsWith("writelog", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (!string.IsNullOrEmpty(param)) Commands.WriteLogs.Execute(param);
+                }
+                else if (action.StartsWith("cleanlog", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (!string.IsNullOrEmpty(param)) Commands.CleanLogs.Execute(null);
+                }
+                else
+                {
+                    foreach(var hotkey in HotkeyConfig)
+                    {
+                        try
+                        {
+                            if (action.Equals(hotkey.Name, StringComparison.CurrentCultureIgnoreCase) ||
+                                action.Equals(hotkey.DisplayName, StringComparison.CurrentCultureIgnoreCase) ||
+                                action.Equals(hotkey.Description, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                new Action(() =>
+                                {
+                                    var win = Application.Current.GetActiveWindow();
+                                    if (win == null) Application.Current.GetLatestWindow();
+                                    if (win == null) win = Application.Current.GetMainWindow();
+                                    if (win is Window && !win.InSearching()) hotkey.Command.Execute(win);
+                                }).Invoke(true);
+                                break;
+                            }
+                        }
+                        catch(Exception ex) { ex.ERROR("NAMEDPIPE_CMD"); }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
         #endregion
 
         #region Application LOG Helper
@@ -1390,8 +1446,10 @@ namespace PixivWPF.Common
             Console.WriteLine($"{prefix}{contents}");
 #else
             if (IsConsole) Console.WriteLine(contents);
-#endif
-            logger.Trace($"{prefix}{contents}");
+#endif            
+            new Action(() => {
+                logger.Trace($"{prefix}{contents}");
+            }).Invoke(async: false);
         }
 
         public static void DEBUG(this string contents, string tag = "")
@@ -1400,7 +1458,9 @@ namespace PixivWPF.Common
 #if DEBUG
             Debug.WriteLine($"{prefix}{contents}");
 #endif
-            logger.Debug($"{prefix}{contents}");
+            new Action(() => { 
+                logger.Debug($"{prefix}{contents}");
+            }).Invoke(async: false);
         }
 
         public static void INFO(this string contents, string tag = "")
@@ -1411,7 +1471,9 @@ namespace PixivWPF.Common
 #else
             if (IsConsole) Console.WriteLine(contents);
 #endif
-            logger.Info($"{prefix}{contents}");
+            new Action(() => {
+                logger.Info($"{prefix}{contents}");
+            }).Invoke(async: false);           
         }
 
         public static void WARN(this string contents, string tag = "")
@@ -1422,7 +1484,9 @@ namespace PixivWPF.Common
 #else
             if (IsConsole) Console.WriteLine(contents);
 #endif
-            logger.Warn($"{prefix}{contents}");
+            new Action(() => {
+                logger.Warn($"{prefix}{contents}");
+            }).Invoke(async: false);            
         }
 
         public static void ERROR(this string contents, string tag = "")
@@ -1433,7 +1497,9 @@ namespace PixivWPF.Common
 #else
             if (IsConsole) Console.WriteLine(contents);
 #endif
-            logger.Error($"{prefix}{contents}");
+            new Action(() => {
+                 logger.Error($"{prefix}{contents}");
+            }).Invoke(async: false);
         }
 
         public static void FATAL(this string contents, string tag = "")
@@ -1444,7 +1510,9 @@ namespace PixivWPF.Common
 #else
             if (IsConsole) Console.WriteLine(contents);
 #endif
-            logger.Fatal($"{prefix}{contents}");
+            new Action(() => {
+                logger.Fatal($"{prefix}{contents}");
+            }).Invoke(async: false); 
         }
 
         public static void LOG(this string contents, string title = "", string tag = "")
@@ -1998,61 +2066,77 @@ namespace PixivWPF.Common
         private static List<HotKeyConfig> HotkeyConfig = new List<HotKeyConfig>()
         {
             #region Illust Nav
-            new HotKeyConfig() { Description = "IllustFirst", Command = Commands.FirstIllust,
+            new HotKeyConfig() { Name = "IllustFirst", Command = Commands.FirstIllust,
                                  Keys = System.Windows.Forms.Keys.Home },
-            new HotKeyConfig() { Description = "IllustLast", Command = Commands.LastIllust,
+            new HotKeyConfig() { Name = "IllustLast", Command = Commands.LastIllust,
                                  Keys = System.Windows.Forms.Keys.End },
-            new HotKeyConfig() { Description = "IllustPrev", Command = Commands.PrevIllust,
+            new HotKeyConfig() { Name = "IllustPrev", Command = Commands.PrevIllust,
                                  Keys = System.Windows.Forms.Keys.OemOpenBrackets },
-            new HotKeyConfig() { Description = "IllustNext", Command = Commands.NextIllust,
+            new HotKeyConfig() { Name = "IllustNext", Command = Commands.NextIllust,
                                  Keys = System.Windows.Forms.Keys.OemCloseBrackets },
-            new HotKeyConfig() { Description = "IllustPrevPage", Command = Commands.PrevIllustPage,
+            new HotKeyConfig() { Name = "IllustPrevPage", Command = Commands.PrevIllustPage,
                                  Keys = System.Windows.Forms.Keys.OemOpenBrackets | System.Windows.Forms.Keys.Shift },
-            new HotKeyConfig() { Description = "IllustNextPage", Command = Commands.NextIllustPage,
+            new HotKeyConfig() { Name = "IllustNextPage", Command = Commands.NextIllustPage,
                                  Keys = System.Windows.Forms.Keys.OemCloseBrackets | System.Windows.Forms.Keys.Shift },
+            new HotKeyConfig() { Name = "IllustPrevCategory", Command = Commands.PrevCategory,
+                                 Keys = System.Windows.Forms.Keys.OemSemicolon },
+            new HotKeyConfig() { Name = "IllustNextCategory", Command = Commands.NextCategory,
+                                 Keys = System.Windows.Forms.Keys.OemQuotes },
             #endregion
             #region Scroll Tiles
-            new HotKeyConfig() { Description = "TilesScrollPageUp", Command = Commands.ScrollPageUp,
+            new HotKeyConfig() { Name = "TilesScrollPageUp", Command = Commands.ScrollPageUp,
                                  Keys = System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Shift },
-            new HotKeyConfig() { Description = "TilesScrollPageDown", Command = Commands.ScrollPageDown,
+            new HotKeyConfig() { Name = "TilesScrollPageDown", Command = Commands.ScrollPageDown,
                                  Keys = System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Shift },
-            new HotKeyConfig() { Description = "TilesScrollPageTop", Command = Commands.ScrollPageFirst,
+            new HotKeyConfig() { Name = "TilesScrollPageTop", Command = Commands.ScrollPageFirst,
                                  Keys = System.Windows.Forms.Keys.PageUp | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "TilesScrollPageBottom", Command = Commands.ScrollPageLast,
+            new HotKeyConfig() { Name = "TilesScrollPageBottom", Command = Commands.ScrollPageLast,
                                  Keys = System.Windows.Forms.Keys.PageDown | System.Windows.Forms.Keys.Control },
             #endregion
             #region Update Tiles
-            new HotKeyConfig() { Description = "TilesRefresh", Command = Commands.RefreshPage,
+            new HotKeyConfig() { Name = "TilesRefresh", Command = Commands.RefreshPage,
                                  Keys = System.Windows.Forms.Keys.F5 },
-            new HotKeyConfig() { Description = "TilesAppend", Command = Commands.AppendTiles,
+            new HotKeyConfig() { Name = "TilesAppend", Command = Commands.AppendTiles,
                                  Keys = System.Windows.Forms.Keys.F3 },
-            new HotKeyConfig() { Description = "TilesRefreshThumbnail", Command = Commands.RefreshPageThumb,
+            new HotKeyConfig() { Name = "TilesRefreshThumbnail", Command = Commands.RefreshPageThumb,
                                  Keys = System.Windows.Forms.Keys.F6 },
             #endregion
-            #region Open/Copy 
-            new HotKeyConfig() { Description = "OpenHistory", Command = Commands.OpenHistory,
-                                 Keys = System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "OpenWork", Command = Commands.OpenWork,
-                                 Keys = System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "OpenUser", Command = Commands.OpenUser,
-                                 Keys = System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "OpenDownloaded", Command = Commands.OpenDownloaded,
-                                 Keys = System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "OpenCached", Command = Commands.OpenCachedImage,
-                                 Keys = System.Windows.Forms.Keys.K | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "CopyPreview", Command = Commands.CopyImage,
+            #region Info
+            new HotKeyConfig() { Name = "OpenLogs", Command = Commands.OpenLogs,
+                                 Keys = System.Windows.Forms.Keys.None },
+            new HotKeyConfig() { Name = "CopyArtworkID", Command = Commands.CopyArtworkIDs,
+                                 Keys = System.Windows.Forms.Keys.None },
+            new HotKeyConfig() { Name = "CopyArtistID", Command = Commands.CopyArtistIDs,
+                                 Keys = System.Windows.Forms.Keys.None },
+            #endregion
+            #region Copy
+            new HotKeyConfig() { Name = "CopyPreview", Command = Commands.CopyImage,
                                  Keys = System.Windows.Forms.Keys.P | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Name = "Copy", Command = Commands.Copy,
+                                 Keys = System.Windows.Forms.Keys.None },
+            #endregion
+            #region Open
+            new HotKeyConfig() { Name = "OpenHistory", Command = Commands.OpenHistory,
+                                 Keys = System.Windows.Forms.Keys.H | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Name = "OpenWork", Command = Commands.OpenWork,
+                                 Keys = System.Windows.Forms.Keys.N | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Name = "OpenUser", Command = Commands.OpenUser,
+                                 Keys = System.Windows.Forms.Keys.U | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Name = "OpenDownloaded", Command = Commands.OpenDownloaded,
+                                 Keys = System.Windows.Forms.Keys.O | System.Windows.Forms.Keys.Control },
+            new HotKeyConfig() { Name = "OpenCached", Command = Commands.OpenCachedImage,
+                                 Keys = System.Windows.Forms.Keys.K | System.Windows.Forms.Keys.Control },
             #endregion
             #region Save
-            new HotKeyConfig() { Description = "SaveIllust", Command = Commands.SaveIllust,
+            new HotKeyConfig() { Name = "SaveIllust", Command = Commands.SaveIllust,
                                  Keys = System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control },
-            new HotKeyConfig() { Description = "SaveIllustAll", Command = Commands.SaveIllustAll,
+            new HotKeyConfig() { Name = "SaveIllustAll", Command = Commands.SaveIllustAll,
                                  Keys = System.Windows.Forms.Keys.S | System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift },
             #endregion
             #region Change Like State
-            new HotKeyConfig() { Description = "ChangeIllustLikeState", Command = Commands.ChangeIllustLikeState,
+            new HotKeyConfig() { Name = "ChangeIllustLikeState", Command = Commands.ChangeIllustLikeState,
                                  Keys = System.Windows.Forms.Keys.F7 },
-            new HotKeyConfig() { Description = "ChangeUserLikeState", Command = Commands.ChangeUserLikeState,
+            new HotKeyConfig() { Name = "ChangeUserLikeState", Command = Commands.ChangeUserLikeState,
                                  Keys = System.Windows.Forms.Keys.F8 }
             #endregion
         };
@@ -2127,9 +2211,17 @@ namespace PixivWPF.Common
 
                 foreach (var hotkey in HotkeyConfig)
                 {
-                    var key = Key2String(hotkey.Keys);
-                    $"Binding hotkey \"{key}\" to \"{hotkey.Description}\" ......".INFO();
-                    BindHotkey(app, hotkey.Description, hotkey.Keys, hotkey.Command);
+                    var cmd_name = hotkey.Name ?? hotkey.DisplayName ?? hotkey.Description ?? hotkey.DisplayDescription ?? "UNKNOWN";
+                    if (hotkey.Keys == System.Windows.Forms.Keys.None)
+                    {
+                        $"Command \"{cmd_name}\" not binding to any hotkey.".INFO();
+                    }
+                    else
+                    {
+                        var key = Key2String(hotkey.Keys);
+                        $"Command \"{cmd_name}\" binding to hotkey \"{key}\" ......".INFO();
+                        BindHotkey(app, cmd_name, hotkey.Keys, hotkey.Command);
+                    }
                 }
 #if DEBUG
                 ApplicationHotKeys.HotkeyTriggered += ApplicationHotKeys_HotkeyTriggered;
@@ -2144,7 +2236,6 @@ namespace PixivWPF.Common
                     File.WriteAllText(hotkey_config, text, new UTF8Encoding(true));
                 }
 #endif
-                //ApplicationHotKeys.StartListening();
             }
         }
 #if DEBUG
@@ -2350,6 +2441,11 @@ namespace PixivWPF.Common
                 var end = range_count > 0 ? $"{range_count}" : string.Empty;
                 httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
             }
+
+            ///
+            /// if httpclient throw exception of "send request error", maybe need add code like below line 
+            ///
+            //System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;//（ | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;）
 
             return (httpClient);
         }
@@ -2800,6 +2896,7 @@ namespace PixivWPF.Common
                 try
                 {
                     if (GetWindow<PixivLoginDialog>() is MetroWindow) return (result);
+                    Application.Current.DoEvents();
 
                     setting = Application.Current.LoadSetting();
                     if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
@@ -2816,13 +2913,14 @@ namespace PixivWPF.Common
                             }
                             catch (Exception ex)
                             {
-                                ex.ERROR();
+                                ex.ERROR("SHOWLOGIN");
                                 result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
                             }
                         }
                         else
                         {
                             "Show Login Dialog ......".INFO();
+                            Application.Current.DoEvents();
                             var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
                             var ret = dlgLogin.ShowDialog();
                             result = dlgLogin.Tokens;
@@ -4618,6 +4716,8 @@ namespace PixivWPF.Common
                         var w = win as ContentWindow;
                         if (w.Content is IllustDetailPage)
                             (w.Content as IllustDetailPage).UpdateDownloadStateAsync(illustid, exists);
+                        else if (w.Content is IllustImageViewerPage)
+                            (w.Content as IllustImageViewerPage).UpdateDownloadStateAsync(illustid, exists);
                         else if (w.Content is SearchResultPage)
                             (w.Content as SearchResultPage).UpdateDownloadStateAsync(illustid, exists);
                         else if (w.Content is HistoryPage)
@@ -6339,6 +6439,7 @@ namespace PixivWPF.Common
                 result = ret.Item1;
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
+                if (item.Source == null) item.State = TaskStatus.RanToCompletion;
             }
 
             return (result);
@@ -6432,6 +6533,7 @@ namespace PixivWPF.Common
                 result = ret.Item1;
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
+                if (item.Source == null) item.State = TaskStatus.RanToCompletion;
             }
             return (result);
         }
@@ -6490,6 +6592,7 @@ namespace PixivWPF.Common
                 result = ret.Item1;
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
+                if (item.Source == null) item.State = TaskStatus.RanToCompletion;
             }
             return (result);
         }
@@ -6591,6 +6694,7 @@ namespace PixivWPF.Common
                     {
                         item.IsFavorited = result;
                     }
+                    if (item.Source == null) item.State = TaskStatus.RanToCompletion;
                 }
                 catch (Exception ex) { ex.ERROR(); }
             }
@@ -6686,6 +6790,7 @@ namespace PixivWPF.Common
                     {
                         item.IsFavorited = result;
                     }
+                    if (item.Source == null) item.State = TaskStatus.RanToCompletion;
                 }
                 catch (Exception ex) { ex.ERROR(); }
             }
@@ -6754,6 +6859,7 @@ namespace PixivWPF.Common
                     {
                         item.IsFavorited = result;
                     }
+                    if (item.Source == null) item.State = TaskStatus.RanToCompletion;
                 }
                 catch (Exception ex) { ex.ERROR(); }
             }
@@ -6905,6 +7011,8 @@ namespace PixivWPF.Common
                         var w = win as ContentWindow;
                         if (w.Content is IllustDetailPage)
                             (w.Content as IllustDetailPage).UpdateLikeStateAsync(illustid, is_user);
+                        else if (w.Content is IllustImageViewerPage)
+                            (w.Content as IllustImageViewerPage).UpdateLikeStateAsync(illustid, is_user);
                         else if (w.Content is SearchResultPage)
                             (w.Content as SearchResultPage).UpdateLikeStateAsync(illustid, is_user);
                         else if (w.Content is DownloadManagerPage)
@@ -7798,11 +7906,7 @@ namespace PixivWPF.Common
                 }).InvokeAsync(true);
 
             }
-#if DEBUG
-            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
-#else
-            catch (Exception ex) { ex.ERROR(); }
-#endif
+            catch (Exception ex) { ex.ERROR("SHOWTOAST"); }
         }
 
         public async static void ShowToast(this string content, string title, bool messagebox = false)
@@ -7835,11 +7939,7 @@ namespace PixivWPF.Common
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                 }).InvokeAsync(true);
             }
-#if DEBUG
-            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
-#else
-            catch (Exception ex) { ex.ERROR(); }
-#endif
+            catch (Exception ex) { ex.ERROR("SHOWTOAST"); }
         }
         #endregion
 

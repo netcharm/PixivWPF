@@ -1202,7 +1202,7 @@ namespace PixivWPF.Common
         }
 
         private bool prefetch_preview = true;
-        public bool PrefetchPreview
+        public bool PrefetchingPreview
         {
             get { return (Cache is Setting ? Cache.prefetch_preview : prefetch_preview); }
             set
@@ -1213,7 +1213,7 @@ namespace PixivWPF.Common
         }
 
         private bool prefetch_pages_thumb = true;
-        public bool PrefetchPagesThumb
+        public bool PrefetchingPagesThumb
         {
             get { return (Cache is Setting ? Cache.prefetch_pages_thumb : prefetch_pages_thumb); }
             set
@@ -1223,17 +1223,27 @@ namespace PixivWPF.Common
             }
         }
 
-        private int thumb_download_parallel = 5;
-        public int ThumbDownloadParallel
+        private int prefetch_download_parallel = 5;
+        public int PrefetchingDownloadParallel
         {
-            get { return (Cache is Setting ? Cache.thumb_download_parallel : thumb_download_parallel); }
+            get { return (Cache is Setting ? Cache.prefetch_download_parallel : prefetch_download_parallel); }
             set
             {
-                thumb_download_parallel = value;
-                if (Cache is Setting) Cache.thumb_download_parallel = thumb_download_parallel;
+                prefetch_download_parallel = value;
+                if (Cache is Setting) Cache.prefetch_download_parallel = prefetch_download_parallel;
             }
         }
 
+        private bool parallel_prefetching = true;
+        public bool ParallelPrefetching
+        {
+            get { return (Cache is Setting ? Cache.parallel_prefetching : parallel_prefetching); }
+            set
+            {
+                parallel_prefetching = value;
+                if (Cache is Setting) Cache.parallel_prefetching = parallel_prefetching;
+            }
+        }
         #endregion
 
         #region Favorite/Follow relative

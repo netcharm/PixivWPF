@@ -1397,8 +1397,7 @@ namespace PixivWPF.Common
                 }
                 else if (illust.PageCount.Value > 1 && illust.meta_pages.Count() == illust.PageCount.Value)
                 {
-                    if (idx < 0) idx = 0;
-                    if (idx > illust.PageCount) idx = illust.PageCount.Value - 1;
+                    idx = Math.Max(0, Math.Min(idx, illust.PageCount ?? 1 - 1));
                     var pages = illust.meta_pages[idx];
                     url = pages.GetThumbnailUrl();
                 }
@@ -1418,8 +1417,7 @@ namespace PixivWPF.Common
                 }
                 else if (illust.PageCount.Value > 1 && illust.meta_pages.Count() == illust.PageCount.Value)
                 {
-                    if (idx < 0) idx = 0;
-                    if (idx > illust.PageCount) idx = illust.PageCount.Value - 1;
+                    idx = Math.Max(0, Math.Min(idx, illust.PageCount ?? 1 - 1));
                     var pages = illust.meta_pages[idx];
                     url = pages.GetPreviewUrl(large);
                 }
@@ -1439,8 +1437,7 @@ namespace PixivWPF.Common
                 }
                 else if (illust.PageCount.Value > 1 && illust.meta_pages.Count() == illust.PageCount.Value)
                 {
-                    if (idx < 0) idx = 0;
-                    if (idx > illust.PageCount) idx = illust.PageCount.Value - 1;
+                    idx = Math.Max(0, Math.Min(idx, illust.PageCount ?? 1 - 1));
                     var pages = illust.meta_pages[idx];
                     url = pages.GetOriginalUrl();
                 }
@@ -1726,7 +1723,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == PixivItemType.Page)
+                    if (item.ItemType == PixivItemType.Page || item.ItemType == PixivItemType.Pages)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }
@@ -1741,7 +1738,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == PixivItemType.Pages)
+                    if (item.ItemType == PixivItemType.Pages || item.ItemType == PixivItemType.Page)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
             }

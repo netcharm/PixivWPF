@@ -17,7 +17,7 @@
       AllowDrop="True"
       d:DesignHeight="700" d:DesignWidth="1420"
       Title="Image Master Detail Viewer"
-      Loaded="Page_Loaded"
+      Loaded="Page_Loaded" Unloaded="Page_Unloaded"
       PreviewMouseDown="Page_PreviewMouseDown"
       PreviewMouseWheel="Page_PreviewMouseWheel">
 

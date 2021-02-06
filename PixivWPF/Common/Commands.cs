@@ -131,6 +131,47 @@ namespace PixivWPF.Common
             if (ret ?? false) setting.AccessToken = dlgLogin.AccessToken;
         });
 
+        public static ICommand Copy { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is string)
+            {
+                CopyText.Execute(obj);
+            }
+            else if (obj is HtmlTextData)
+            {
+                CopyHtml.Execute(obj);
+            }
+            else if (obj is TilesPage)
+            {
+                var page = obj as TilesPage;
+                if(page.IllustDetail.Content is IllustDetailPage)
+                {
+                    (page.IllustDetail.Content as IllustDetailPage).Copy();
+                }
+            }
+            else if (obj is IllustDetailPage)
+            {
+                (obj as IllustDetailPage).Copy();
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).CopyPreview();
+            }
+            else if (obj is DownloadManagerPage)
+            {
+                CopyDownloadInfo.Execute((obj as DownloadManagerPage).GetDownloadInfo());
+            }
+            else if (obj is Window)
+            {
+                var win = obj as Window;
+                if (win.Content is Page) Copy.Execute(win.Content);
+            }
+            else
+            {
+                if (obj != null) CopyText.Execute(obj.ToString());
+            }
+        });
+
         public static ICommand CopyText { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is string)
@@ -1791,6 +1832,58 @@ namespace PixivWPF.Common
         });
 
         #region tiles navigation
+        public static ICommand PrevCategory { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).PrevCategory();
+            }
+            else if (obj is Window)
+            {
+                var win = Application.Current.GetMainWindow();
+                if (win is MainWindow && win.Content is TilesPage) PrevCategory.Execute(win.Content);
+            }
+        });
+
+        public static ICommand NextCategory { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).NextCategory();
+            }
+            else if (obj is Window)
+            {
+                var win = Application.Current.GetMainWindow();
+                if (win is MainWindow && win.Content is TilesPage) NextCategory.Execute(win.Content);
+            }
+        });
+
+        public static ICommand FirstCategory { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).FirstCategory();
+            }
+            else if (obj is Window)
+            {
+                var win = Application.Current.GetMainWindow();
+                if (win is MainWindow && win.Content is TilesPage) FirstCategory.Execute(win.Content);
+            }
+        });
+
+        public static ICommand LastCategory { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            if (obj is TilesPage)
+            {
+                (obj as TilesPage).LastCategory();
+            }
+            else if (obj is Window)
+            {
+                var win = Application.Current.GetMainWindow();
+                if (win is MainWindow && win.Content is TilesPage) LastCategory.Execute(win.Content);
+            }
+        });
+
         public static ICommand RefreshPage { get; } = new DelegateCommand<dynamic>(obj =>
         {
             if (obj is TilesPage)

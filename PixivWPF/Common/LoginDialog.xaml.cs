@@ -38,10 +38,13 @@ namespace PixivWPF.Common
             MaxHeight = (Content as Pages.LoginPage).MaxHeight;
             MinWidth = (Content as Pages.LoginPage).Width;
             MaxWidth = (Content as Pages.LoginPage).Width;
+            Application.Current.DoEvents();
 
             Topmost = true;
+            Application.Current.DoEvents();
 
             UpdateTheme();
+            Application.Current.DoEvents();
         }
     }
 }
