@@ -93,27 +93,27 @@ namespace PixivWPF.Pages
             }
         }
 
-        private SemaphoreSlim CanUpdating = new SemaphoreSlim(1, 1);
         private void ShowHistory(bool overwrite = false)
         {
             try
             {
                 HistoryItems.Wait();
+                var setting = Application.Current.LoadSetting();
                 if (HistoryItems.ItemsCount <= 0 || Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    HistoryItems.Clear();
-                    Application.Current.DoEvents();
+                    HistoryItems.Clear(setting.BatchClearThumbnails);
+                    this.DoEvents();
                     HistoryItems.Items.AddRange(Application.Current.HistorySource());
-                    Application.Current.DoEvents();
+                    this.DoEvents();
                 }
                 else
                 {
                     UpdateLikeState();
-                    Application.Current.DoEvents();
+                    this.DoEvents();
                     UpdateDownloadState();
-                    Application.Current.DoEvents();
+                    this.DoEvents();
                 }
-                HistoryItems.UpdateTilesImage(overwrite, 5, CanUpdating);
+                HistoryItems.UpdateTilesImage(overwrite);
             }
             catch (Exception ex)
             {
@@ -131,7 +131,7 @@ namespace PixivWPF.Pages
             finally
             {
                 HistoryItems.Ready();
-                Application.Current.DoEvents();
+                this.DoEvents();
             }
         }
 
@@ -140,10 +140,8 @@ namespace PixivWPF.Pages
             try
             {
                 var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
-
-                if (CanUpdating is SemaphoreSlim && CanUpdating.CurrentCount == 0) CanUpdating.Release();
-                HistoryItems.UpdateTilesImage(overwrite, 5, CanUpdating);
-                Application.Current.DoEvents();
+                HistoryItems.UpdateTilesImage(overwrite);
+                this.DoEvents();
             }
             catch (Exception ex) { ex.ERROR(); }
         }
@@ -326,7 +324,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                HistoryItems.Clear();
+                HistoryItems.Clear(batch: false, force: true);
                 Contents = null;
             }
             catch (Exception ex) { ex.ERROR(); }
@@ -349,7 +347,6 @@ namespace PixivWPF.Pages
 
             try
             {
-                if (CanUpdating is SemaphoreSlim && CanUpdating.CurrentCount == 0) CanUpdating.Release();
                 UpdateDetail();
             }
             catch (Exception ex) { ex.ERROR(); }

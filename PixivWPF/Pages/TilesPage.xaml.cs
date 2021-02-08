@@ -633,7 +633,7 @@ namespace PixivWPF.Pages
                                     pages.AddRange(await GetPagesThumbItems(item));
                                     if (item.Count > 1 && pages.Count - count != item.Count)
                                         Task.Delay(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
-                                    Application.Current.DoEvents();
+                                    this.DoEvents();
                                 }
                             }
                         }
@@ -672,7 +672,7 @@ namespace PixivWPF.Pages
                 var total = ImageTiles.ItemsCount + avatars.Count + pages.Count;
                 if (total <= 0) return;
                 percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                tooltip = $"Calculating : {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
+                tooltip = $"Calculating [ {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count} ]";
                 if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
                 //bg_prefetch.ReportProgress(percent);
                 if (count <= 0) return;
@@ -701,9 +701,9 @@ namespace PixivWPF.Pages
                                 }
                                 else count = count - 1;
                             }
-                            if (PrefetchingTask.CancellationPending) { e.Cancel = true; loopstate.Break(); }
+                            if (PrefetchingTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
                             percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                            tooltip = $"Prefetching : {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
+                            tooltip = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count} ]";
                             if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
                             this.DoEvents();
                         }
@@ -744,7 +744,7 @@ namespace PixivWPF.Pages
                                         }
                                         if (PrefetchingTask.CancellationPending) { e.Cancel = true; return; }
                                         percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                                        tooltip = $"Prefetching : {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
+                                        tooltip = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count} ]";
                                         if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
                                         //await Task.Delay(10);
                                         this.DoEvents();
@@ -770,7 +770,7 @@ namespace PixivWPF.Pages
                 if (count >= 0 && total > 0)
                 {
                     percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                    tooltip = $"Done : {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count}";
+                    tooltip = $"Done [ {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count} ]";
                     //new Action(() =>
                     //{
                         if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
@@ -805,7 +805,7 @@ namespace PixivWPF.Pages
         public void StopPrefetching()
         {
             if (PrefetchingTask.IsBusy || PrefetchingTask.CancellationPending) PrefetchingTask.CancelAsync();
-            if(!PrefetchingTask.IsBusy && !PrefetchingTask.CancellationPending && CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+            if (!PrefetchingTask.IsBusy && !PrefetchingTask.CancellationPending && CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
         }
         #endregion
 
@@ -836,11 +836,11 @@ namespace PixivWPF.Pages
             ImageTiles.AutoGC = true;
             ImageTiles.WaitGC = true;
             ImageTiles.CalcSystemMemoryUsage = setting.CalcSystemMemoryUsage;
-            ImageTiles.Clear();
             this.DoEvents();
 
-            await new Action(() =>
+            await new Action(async () =>
             {
+                await Task.Delay(1);
                 IllustDetail.Content = detail_page;
                 this.DoEvents();
                 CategoryMenu.IsPaneOpen = false;
@@ -875,7 +875,7 @@ namespace PixivWPF.Pages
                 $"Show illusts from category \"{target.ToString()}\" ......".INFO();
                 NextURL = null;
                 ids.Clear();
-                ImageTiles.ClearAsync();
+                ImageTiles.ClearAsync(setting.BatchClearThumbnails);
                 this.DoEvents();
             }
             else $"Append illusts from category \"{target.ToString()}\" ......".INFO();
@@ -1952,6 +1952,7 @@ namespace PixivWPF.Pages
         private void CategoryMenu_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             setting.DefaultPage = GetPageTypeByCategory(CategoryMenu.SelectedItem);
+            setting.Save();
         }
 
         private void ImageTiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1964,7 +1965,11 @@ namespace PixivWPF.Pages
                 if (ImageTiles.SelectedItem is PixivItem)
                 {
                     var item = ImageTiles.SelectedItem as PixivItem;
-
+                    if (item.Thumb.IsCached() && item.Source == null)
+                    {
+                        item.Source = item.Thumb.LoadImageFromFile(size: Application.Current.GetDefaultThumbSize()).Source;
+                        item.State = TaskStatus.RanToCompletion;
+                    }
                     if (item.IsUser())
                     {
                         item.IsDownloaded = false;
@@ -1983,8 +1988,8 @@ namespace PixivWPF.Pages
 
                     if (string.IsNullOrEmpty(ID_O) || !ID_N.Equals(ID_O, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        detail_page.Contents = item;
                         $"ID: {item.ID}, {item.Illust.Title} Loading...".INFO();
+                        detail_page.Contents = item;
                         detail_page.UpdateDetail(item);
                     }
 

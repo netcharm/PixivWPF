@@ -271,7 +271,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                ResultItems.Clear();
+                ResultItems.Clear(batch: false, force: true);
                 Contents = null;
             }
             catch (Exception ex) { ex.ERROR(); }
@@ -360,10 +360,10 @@ namespace PixivWPF.Pages
                 if (string.IsNullOrEmpty(content)) return;
 
                 ResultItems.Wait();
-
+                var setting = Application.Current.LoadSetting();
                 if (!append)
                 {
-                    ResultItems.Clear();
+                    ResultItems.Clear(setting.BatchClearThumbnails);
                     id_user.Clear();
                     id_illust.Clear();
                 }
@@ -530,7 +530,7 @@ namespace PixivWPF.Pages
 
                     if (window != null)
                     {
-                        Application.Current.DoEvents();
+                        this.DoEvents();
                         await Task.Delay(1);
                         window.Close();
                     }

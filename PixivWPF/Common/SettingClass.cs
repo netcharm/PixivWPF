@@ -594,94 +594,6 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region UI theme/font relative
-        [JsonIgnore]
-        private FontFamily fontfamily = SystemFonts.MessageFontFamily;
-        [JsonIgnore]
-        public FontFamily FontFamily { get { return (fontfamily); } }
-
-        private bool using_custom_font = false;
-        public bool UseCustomFont
-        {
-            get { return (Cache is Setting ? Cache.using_custom_font : using_custom_font); }
-            set
-            {
-                using_custom_font = value;
-                if (Cache is Setting) Cache.using_custom_font = using_custom_font;
-            }
-        }
-
-        private string custom_fontname = string.Empty;
-        public string FontName
-        {
-            get { return (Cache is Setting ? Cache.custom_fontname : custom_fontname); }
-            set
-            {
-                custom_fontname = value;
-                if (Cache is Setting) Cache.custom_fontname = custom_fontname;
-            }
-        }
-
-        private string theme = string.Empty;
-        [JsonProperty("Theme")]
-        public string CurrentTheme
-        {
-            get { return (Cache is Setting ? Cache.theme : theme); }
-            set
-            {
-                theme = value;
-                if (Cache is Setting) Cache.theme = theme;
-            }
-        }
-
-        private string accent = string.Empty;
-        [JsonProperty("Accent")]
-        public string CurrentAccent
-        {
-            get { return (Cache is Setting ? Cache.accent : accent); }
-            set
-            {
-                accent = value;
-                if (Cache is Setting) Cache.accent = accent;
-            }
-        }
-        #endregion
-
-        #region network relative
-        private string proxy = string.Empty;
-        public string Proxy
-        {
-            get { return (Cache is Setting ? Cache.proxy : proxy); }
-            set
-            {
-                proxy = value;
-                if (Cache is Setting) Cache.proxy = proxy;
-            }
-        }
-
-        private string[] proxy_bypass = new string[] { "127.0.0.1", "localhost", "0.0.0.0", "192.168.1.*", "10.0.0.*" };
-        public string[] ProxyBypass
-        {
-            get { return (Cache is Setting ? Cache.proxy_bypass : proxy_bypass); }
-            set
-            {
-                proxy_bypass = value;
-                if (Cache is Setting) Cache.proxy_bypass = proxy_bypass;
-            }
-        }
-
-        private bool using_proxy = false;
-        public bool UsingProxy
-        {
-            get { return (Cache is Setting ? Cache.using_proxy : using_proxy); }
-            set
-            {
-                using_proxy = value;
-                if (Cache is Setting) Cache.using_proxy = using_proxy;
-            }
-        }
-        #endregion
-
         #region Pixiv account relative
         private string accesstoken = string.Empty;
         public string AccessToken
@@ -893,6 +805,94 @@ namespace PixivWPF.Common
             {
                 expdurtime = value;
                 if (Cache is Setting) Cache.expdurtime = expdurtime;
+            }
+        }
+        #endregion
+
+        #region UI theme/font relative
+        [JsonIgnore]
+        private FontFamily fontfamily = SystemFonts.MessageFontFamily;
+        [JsonIgnore]
+        public FontFamily FontFamily { get { return (fontfamily); } }
+
+        private bool using_custom_font = false;
+        public bool UseCustomFont
+        {
+            get { return (Cache is Setting ? Cache.using_custom_font : using_custom_font); }
+            set
+            {
+                using_custom_font = value;
+                if (Cache is Setting) Cache.using_custom_font = using_custom_font;
+            }
+        }
+
+        private string custom_fontname = string.Empty;
+        public string FontName
+        {
+            get { return (Cache is Setting ? Cache.custom_fontname : custom_fontname); }
+            set
+            {
+                custom_fontname = value;
+                if (Cache is Setting) Cache.custom_fontname = custom_fontname;
+            }
+        }
+
+        private string theme = string.Empty;
+        [JsonProperty("Theme")]
+        public string CurrentTheme
+        {
+            get { return (Cache is Setting ? Cache.theme : theme); }
+            set
+            {
+                theme = value;
+                if (Cache is Setting) Cache.theme = theme;
+            }
+        }
+
+        private string accent = string.Empty;
+        [JsonProperty("Accent")]
+        public string CurrentAccent
+        {
+            get { return (Cache is Setting ? Cache.accent : accent); }
+            set
+            {
+                accent = value;
+                if (Cache is Setting) Cache.accent = accent;
+            }
+        }
+        #endregion
+
+        #region network relative
+        private string proxy = string.Empty;
+        public string Proxy
+        {
+            get { return (Cache is Setting ? Cache.proxy : proxy); }
+            set
+            {
+                proxy = value;
+                if (Cache is Setting) Cache.proxy = proxy;
+            }
+        }
+
+        private string[] proxy_bypass = new string[] { "127.0.0.1", "localhost", "0.0.0.0", "192.168.1.*", "10.0.0.*" };
+        public string[] ProxyBypass
+        {
+            get { return (Cache is Setting ? Cache.proxy_bypass : proxy_bypass); }
+            set
+            {
+                proxy_bypass = value;
+                if (Cache is Setting) Cache.proxy_bypass = proxy_bypass;
+            }
+        }
+
+        private bool using_proxy = false;
+        public bool UsingProxy
+        {
+            get { return (Cache is Setting ? Cache.using_proxy : using_proxy); }
+            set
+            {
+                using_proxy = value;
+                if (Cache is Setting) Cache.using_proxy = using_proxy;
             }
         }
         #endregion
@@ -1132,6 +1132,17 @@ namespace PixivWPF.Common
             {
                 seamless_view = value;
                 if (Cache is Setting) Cache.seamless_view = seamless_view;
+            }
+        }
+
+        private bool batch_clear_thumb = false;
+        public bool BatchClearThumbnails
+        {
+            get { return (Cache is Setting ? Cache.batch_clear_thumb : batch_clear_thumb); }
+            set
+            {
+                batch_clear_thumb = value;
+                if (Cache is Setting) Cache.batch_clear_thumb = batch_clear_thumb;
             }
         }
 

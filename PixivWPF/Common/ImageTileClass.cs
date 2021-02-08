@@ -1759,7 +1759,7 @@ namespace PixivWPF.Common
                         item.ItemType == PixivItemType.Page ||
                         item.ItemType == PixivItemType.Pages ||
                         item.ItemType == PixivItemType.User)
-                        result = item.User is Pixeez.Objects.UserBase ? true : false;
+                        result = item.User is Pixeez.Objects.UserBase || (item.Illust is Pixeez.Objects.Work && item.Illust.User is Pixeez.Objects.UserBase) ? true : false;
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
@@ -1797,7 +1797,7 @@ namespace PixivWPF.Common
                         item.ItemType == PixivItemType.Works ||
                         item.ItemType == PixivItemType.Page ||
                         item.ItemType == PixivItemType.Pages)
-                        result = item.Count > 1 ? true : false;
+                        result = item.Illust is Pixeez.Objects.Work && item.Count > 1 ? true : false;
                 }
             }
             catch (Exception ex) { ex.ERROR(); }

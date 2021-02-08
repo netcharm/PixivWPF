@@ -329,6 +329,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region Speech Synthesis routines
+        public SemaphoreSlim CanPlay = new SemaphoreSlim(1, 1);
         public static List<InstalledVoice> InstalledVoices { get; private set; } = null;
         private Queue<KeyValuePair<string, CultureInfo>> PlayQueue = new Queue<KeyValuePair<string, CultureInfo>>();
 
@@ -379,9 +380,11 @@ namespace PixivWPF.Common
             nametable = SetNames(names);
         }
 
-        private async void Synth_StateChanged(object sender, StateChangedEventArgs e)
+        private void Synth_StateChanged(object sender, StateChangedEventArgs e)
         {
             if (synth == null) return;
+
+            if (CancelRequested) { synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
 
             if (synth.State == SynthesizerState.Paused)
             {
@@ -395,58 +398,56 @@ namespace PixivWPF.Common
             {
 
             }
-            if (StateChanged is Action<StateChangedEventArgs>) await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
-            {
-                StateChanged(e);
-            }, DispatcherPriority.Background);
+            if (StateChanged is Action<SpeakProgressEventArgs>) StateChanged.Invoke(e);
         }
 
-        private async void Synth_SpeakStarted(object sender, SpeakStartedEventArgs e)
+        private void Synth_SpeakStarted(object sender, SpeakStartedEventArgs e)
         {
             if (synth == null) return;
 
-            if (SpeakStarted is Action<SpeakStartedEventArgs>) await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
-            {
-                SpeakStarted(e);
-            }, DispatcherPriority.Background);
+            if (CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
+
+            if (SpeakStarted is Action<SpeakProgressEventArgs>) SpeakStarted.Invoke(e);
         }
 
-        private async void Synth_SpeakProgress(object sender, SpeakProgressEventArgs e)
+        private void Synth_SpeakProgress(object sender, SpeakProgressEventArgs e)
         {
             if (synth == null) return;
 
-            if (CancelRequested)
-                synth.SpeakAsyncCancelAll();
+            if (e.Cancelled || CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
 
-            if (SpeakProgress is Action<SpeakProgressEventArgs>) await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
-            {
-                SpeakProgress(e);
-            }, DispatcherPriority.Background);
+            if (SpeakProgress is Action<SpeakProgressEventArgs>) SpeakProgress.Invoke(e);
         }
 
-        private async void Synth_SpeakCompleted(object sender, SpeakCompletedEventArgs e)
+        private void Synth_SpeakCompleted(object sender, SpeakCompletedEventArgs e)
         {
             if (synth == null) return;
+
+            if (CanPlay is SemaphoreSlim && CanPlay.CurrentCount < 1) CanPlay.Release();
+            CancelRequested = false;
 
             if (!e.Cancelled && PlayQueue.Count > 0)
             {
-                var first = PlayQueue.Dequeue();
-                Play(first.Key, first.Value);
+                if (CancelRequested)
+                {
+                    synth.SpeakAsyncCancelAll(); PlayQueue.Clear();
+                }
+                else
+                {
+                    var first = PlayQueue.Dequeue();
+                    Play(first.Key, first.Value);
+                }
             }
             else
             {
-                if (SpeakCompleted is Action<SpeakCompletedEventArgs>) await Dispatcher.CurrentDispatcher.InvokeAsync(() =>
-                {
-                    SpeakCompleted(e);
-                }, DispatcherPriority.Background);
+                if (SpeakCompleted is Action<SpeakProgressEventArgs>) SpeakCompleted.Invoke(e);
                 lastPrompt = null;
-                CancelRequested = false;
             }
         }
         #endregion
 
         #region Play contents routines
-        public void Play(string text, CultureInfo locale = null, bool async = true)
+        public async void Play(string text, CultureInfo locale = null, bool async = true)
         {
             if (string.IsNullOrEmpty(text.Trim())) return;
 
@@ -460,61 +461,66 @@ namespace PixivWPF.Common
                 return;
             }
 
-            try
+            Stop();
+            if (await CanPlay.WaitAsync(1000))
             {
-                Stop();
-
-                if (!(locale is CultureInfo)) locale = DetectCulture(text);
-
-                var voice = GetCustomVoiceName(locale);
-                if (string.IsNullOrEmpty(voice)) synth.SelectVoice(voice_default);
-                else synth.SelectVoice(voice);
-
-                synth.Volume = Math.Max(0, Math.Min(PlayVolume, 100));  // 0...100
-                //synth.Rate = 0;     // -10...10
-                if (AutoChangeSpeechSpeed && (SimpleCultureDetect || !AltPlayMixedCulture))
+                try
                 {
-                    if (text.Equals(SPEECH_TEXT, StringComparison.CurrentCultureIgnoreCase) &&
-                        SPEECH_CULTURE.IetfLanguageTag.Equals(locale.IetfLanguageTag, StringComparison.CurrentCultureIgnoreCase))
-                        SPEECH_SLOW = !SPEECH_SLOW;
+                    CancelRequested = false;
+
+                    if (!(locale is CultureInfo)) locale = DetectCulture(text);
+
+                    var voice = GetCustomVoiceName(locale);
+                    if (string.IsNullOrEmpty(voice)) synth.SelectVoice(voice_default);
+                    else synth.SelectVoice(voice);
+
+                    synth.Volume = Math.Max(0, Math.Min(PlayVolume, 100));  // 0...100
+                                                                            //synth.Rate = 0;     // -10...10
+                    if (AutoChangeSpeechSpeed && (SimpleCultureDetect || !AltPlayMixedCulture))
+                    {
+                        if (text.Equals(SPEECH_TEXT, StringComparison.CurrentCultureIgnoreCase) &&
+                            SPEECH_CULTURE.IetfLanguageTag.Equals(locale.IetfLanguageTag, StringComparison.CurrentCultureIgnoreCase))
+                            SPEECH_SLOW = !SPEECH_SLOW;
+                        else
+                            SPEECH_SLOW = false;
+
+                        if (SPEECH_SLOW) synth.Rate = Math.Max(-10, Math.Min(PlaySlowRate, 10));
+                        else synth.Rate = Math.Max(-10, Math.Min(PlayNormalRate, 10));
+                    }
+
+                    // Configure the audio output. 
+                    synth.SetOutputToDefaultAudioDevice();
+
+                    if (async)
+                        lastPrompt = synth.SpeakAsync(text);  // Asynchronous
                     else
-                        SPEECH_SLOW = false;
+                        synth.Speak(text);       // Synchronous
 
-                    if (SPEECH_SLOW) synth.Rate = Math.Max(-10, Math.Min(PlaySlowRate, 10));
-                    else synth.Rate = Math.Max(-10, Math.Min(PlayNormalRate, 10));
+                    if (AutoChangeSpeechSpeed && (SimpleCultureDetect || !AltPlayMixedCulture))
+                    {
+                        SPEECH_TEXT = text;
+                        SPEECH_CULTURE = locale;
+                    }
                 }
-
-                // Configure the audio output. 
-                synth.SetOutputToDefaultAudioDevice();
-
-                if (async)
-                    lastPrompt = synth.SpeakAsync(text);  // Asynchronous
-                else
-                    synth.Speak(text);       // Synchronous
-
-                if (AutoChangeSpeechSpeed && (SimpleCultureDetect || !AltPlayMixedCulture))
+                catch (Exception ex)
                 {
-                    SPEECH_TEXT = text;
-                    SPEECH_CULTURE = locale;
+                    ex.Message.DEBUG();
                 }
-            }
-#if DEBUG
-            catch (Exception ex)
-            {
-                ex.Message.DEBUG();
-            }
-#else
-            catch (Exception ex) { ex.ERROR(); }
-#endif            
+                finally
+                {
+                }
+            }         
         }
 
-        public void Play(string text, string locale, bool async = true)
+        public async void Play(string text, string locale, bool async = true)
         {
+            await Task.Delay(1);
+            this.DoEvents();
             Play(text, FindCultureByName(locale), async);
         }
 
         private Prompt lastPrompt = null;
-        public void Play(PromptBuilder prompt, CultureInfo locale = null, bool async = true)
+        public async void Play(PromptBuilder prompt, CultureInfo locale = null, bool async = true)
         {
             if (!(synth is SpeechSynthesizer)) return;
 
@@ -527,50 +533,50 @@ namespace PixivWPF.Common
                 return;
             }
 
-            try
+            Stop();
+            if (await CanPlay.WaitAsync(1000))
             {
-                Stop();
-
-                if (!(locale is CultureInfo)) locale = prompt.Culture;
-
-                var voice = GetCustomVoiceName(locale);
-                if (string.IsNullOrEmpty(voice)) synth.SelectVoice(voice_default);
-                else synth.SelectVoice(voice);
-
-                synth.Volume = Math.Max(0, Math.Min(PlayVolume, 100));  // 0...100
-                //synth.Rate = 0;     // -10...10
-                var prompt_xml = prompt.ToXml();
-                if (AutoChangeSpeechSpeed)
+                try
                 {
-                    if (prompt_xml.Equals(SPEECH_TEXT, StringComparison.CurrentCultureIgnoreCase) &&
-                        SPEECH_CULTURE.IetfLanguageTag.Equals(locale.IetfLanguageTag, StringComparison.CurrentCultureIgnoreCase))
-                        SPEECH_SLOW = !SPEECH_SLOW;
+                    CancelRequested = false;
+
+                    if (!(locale is CultureInfo)) locale = prompt.Culture;
+
+                    var voice = GetCustomVoiceName(locale);
+                    if (string.IsNullOrEmpty(voice)) synth.SelectVoice(voice_default);
+                    else synth.SelectVoice(voice);
+
+                    synth.Volume = Math.Max(0, Math.Min(PlayVolume, 100));  // 0...100
+                                                                            //synth.Rate = 0;     // -10...10
+                    var prompt_xml = prompt.ToXml();
+                    if (AutoChangeSpeechSpeed)
+                    {
+                        if (prompt_xml.Equals(SPEECH_TEXT, StringComparison.CurrentCultureIgnoreCase) &&
+                            SPEECH_CULTURE.IetfLanguageTag.Equals(locale.IetfLanguageTag, StringComparison.CurrentCultureIgnoreCase))
+                            SPEECH_SLOW = !SPEECH_SLOW;
+                        else
+                            SPEECH_SLOW = false;
+
+                        if (SPEECH_SLOW) synth.Rate = Math.Max(-10, Math.Min(PlaySlowRate, 10));
+                        else synth.Rate = Math.Max(-10, Math.Min(PlayNormalRate, 10));
+                    }
+
+                    // Configure the audio output. 
+                    synth.SetOutputToDefaultAudioDevice();
+
+                    if (async)
+                        lastPrompt = synth.SpeakAsync(prompt);  // Asynchronous
                     else
-                        SPEECH_SLOW = false;
+                        synth.Speak(prompt);       // Synchronous
 
-                    if (SPEECH_SLOW) synth.Rate = Math.Max(-10, Math.Min(PlaySlowRate, 10));
-                    else synth.Rate = Math.Max(-10, Math.Min(PlayNormalRate, 10));
+                    SPEECH_TEXT = prompt_xml;
+                    SPEECH_CULTURE = prompt.Culture;
                 }
-
-                // Configure the audio output. 
-                synth.SetOutputToDefaultAudioDevice();
-
-                if (async)
-                    lastPrompt = synth.SpeakAsync(prompt);  // Asynchronous
-                else
-                    synth.Speak(prompt);       // Synchronous
-
-                SPEECH_TEXT = prompt_xml;
-                SPEECH_CULTURE = prompt.Culture;
+                catch (Exception ex)
+                {
+                    ex.ERROR("SPEECH");
+                }
             }
-#if DEBUG
-            catch (Exception ex)
-            {
-                ex.Message.DEBUG();
-            }
-#else
-            catch (Exception ex) { ex.ERROR(); }
-#endif            
         }
 
         public void Play(PromptBuilder prompt, string locale, bool async = true)
@@ -685,7 +691,7 @@ namespace PixivWPF.Common
                     synth.Pause();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SPEECH"); }
         }
 
         public void Resume()
@@ -697,11 +703,11 @@ namespace PixivWPF.Common
                     synth.Resume();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SPEECH"); }
         }
 
         private bool CancelRequested = false;
-        public void Stop()
+        public async void Stop()
         {
             try
             {
@@ -710,16 +716,13 @@ namespace PixivWPF.Common
                     if (synth.State != SynthesizerState.Ready)
                     {
                         CancelRequested = true;
-                        if (lastPrompt is Prompt)
-                        {
-                            synth.SpeakAsyncCancel(lastPrompt);
-                        }
+                        if (lastPrompt is Prompt) synth.SpeakAsyncCancel(lastPrompt);
                         synth.SpeakAsyncCancelAll();
-                        Thread.Sleep(50);
+                        await Task.Delay(1);
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SPEECH"); }
         }
         #endregion
 
@@ -739,7 +742,7 @@ namespace PixivWPF.Common
                 voice_default = synth.Voice.Name;
                 InstalledVoices = synth.GetInstalledVoices().ToList();
             }
-            catch (Exception ex) { ex.ERROR(); synth = null; }
+            catch (Exception ex) { ex.ERROR("SPEECH"); synth = null; }
         }
 
         ~SpeechTTS()
@@ -748,7 +751,7 @@ namespace PixivWPF.Common
             {
                 if (synth is SpeechSynthesizer) synth.Dispose();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SPEECH"); }
         }
         #endregion
     }
@@ -898,7 +901,7 @@ namespace PixivWPF.Common
                 if (culture is CultureInfo && culture.EnglishName.StartsWith("unk", StringComparison.CurrentCultureIgnoreCase))
                     culture = null;
             }
-            catch (Exception ex) { ex.ERROR(); culture = null; }
+            catch (Exception ex) { ex.ERROR("SPEECH"); culture = null; }
             finally { }
             return (culture);
         }
@@ -917,7 +920,6 @@ namespace PixivWPF.Common
                 {
                     await new Action(() =>
                     {
-                        Stop();
                         if (culture == null)
                         {
                             if (SimpleCultureDetect)
@@ -930,10 +932,11 @@ namespace PixivWPF.Common
                         }
                         else
                             t2s.Play(text, culture, async);
-                    }).InvokeAsync();
+                    }).InvokeAsync(true);
+                    Application.Current.DoEvents();
                 }
             }
-            catch (Exception ex) { Debug.WriteLine(ex.Message); }
+            catch (Exception ex) { ex.ERROR("SPEECH"); }
         }
 
         public static void Play(this string text, string lang, bool async = true)
@@ -959,7 +962,6 @@ namespace PixivWPF.Common
                 {
                     await new Action(() =>
                     {
-                        Stop();
                         if (culture == null)
                         {
                             if (SimpleCultureDetect)
@@ -969,10 +971,11 @@ namespace PixivWPF.Common
                         }
                         else
                             t2s.Play(string.Join(Environment.NewLine, texts), culture, async);
-                    }).InvokeAsync();
+                    }).InvokeAsync(true);
+                    Application.Current.DoEvents();
                 }
             }
-            catch (Exception ex) { Debug.WriteLine(ex.Message); }
+            catch (Exception ex) { ex.ERROR("SPEECH"); }
         }
 
         public static void Play(this IEnumerable<string> texts, string lang, bool async = true)
@@ -992,7 +995,7 @@ namespace PixivWPF.Common
             {
                 if (t2s is SpeechTTS) t2s.Pause();
             }
-            catch (Exception ex) { Debug.WriteLine(ex.Message); }
+            catch (Exception ex) { ex.ERROR("SPEECH"); }
         }
 
         public static void Resume()
@@ -1001,7 +1004,7 @@ namespace PixivWPF.Common
             {
                 if (t2s is SpeechTTS) t2s.Resume();
             }
-            catch (Exception ex) { Debug.WriteLine(ex.Message); }
+            catch (Exception ex) { ex.ERROR("SPEECH"); }
         }
 
         public static void Stop()
@@ -1010,7 +1013,7 @@ namespace PixivWPF.Common
             {
                 if (t2s is SpeechTTS) t2s.Stop();
             }
-            catch (Exception ex) { Debug.WriteLine(ex.Message); }
+            catch (Exception ex) { ex.ERROR("SPEECH"); }
         }
         #endregion
     }

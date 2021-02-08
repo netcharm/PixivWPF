@@ -1146,7 +1146,7 @@ namespace PixivWPF.Common
                     {
                         Random rnd = new Random();
                         await Task.Delay(rnd.Next(20, 200));
-                        Application.Current.DoEvents();
+                        this.DoEvents();
 
                         if (Application.Current.DownloadUsingToken())
                             target_file = await DownloadAsync(continuation, restart);
@@ -1166,13 +1166,13 @@ namespace PixivWPF.Common
                 {
                     cancelSource.Cancel();
                     await Task.Delay(250);
-                    Application.Current.DoEvents();
+                    this.DoEvents();
                 }
                 if (cancelReadStreamSource is CancellationTokenSource && !cancelReadStreamSource.IsCancellationRequested)
                 {
                     cancelReadStreamSource.Cancel();
                     await Task.Delay(250);
-                    Application.Current.DoEvents();
+                    this.DoEvents();
                 }
                 try
                 {

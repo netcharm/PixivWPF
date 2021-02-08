@@ -72,7 +72,7 @@ namespace PixivWPF.Pages
                 edProxy.Text = setting.Proxy;
                 chkUseProxy.IsChecked = setting.UsingProxy;
                 chkUseProxyDown.IsChecked = setting.DownloadUsingProxy;
-                Application.Current.DoEvents();
+                this.DoEvents();
             }
             catch (Exception ex) { ex.ERROR(); }
             finally
@@ -132,7 +132,7 @@ namespace PixivWPF.Pages
                         setting.DownloadUsingProxy = useproxydown;
                         setting.Proxy = proxy;
                         await Task.Delay(1);
-                        Application.Current.DoEvents();
+                        this.DoEvents();
                         setting.User = user;
                         setting.Pass = pass;
                         setting.MyInfo = result.Authorize.User;

@@ -57,7 +57,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (Contents.HasUser())
+                if (Contents.IsWork())
                 {
                     var tooltip = InfoBar.ToolTip is string ? (string)InfoBar.ToolTip : string.Empty;
                     if (!string.IsNullOrEmpty(tooltip))
@@ -65,7 +65,7 @@ namespace PixivWPF.Pages
                         var tips = tooltip.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                         for (var i = 0; i < tips.Length; i++)
                         {
-                            if (tips[i].StartsWith("Downloaded")) tips[i] = $"Downloaded    = {Contents.Illust.IsDownloaded(Contents.Index)}";
+                            if (tips[i].StartsWith("Downloaded")) tips[i] = $"Downloaded    = {Contents.IsDownloaded}";
                             else continue;
                         }
                         InfoBar.ToolTip = string.Join(Environment.NewLine, tips);
@@ -95,8 +95,8 @@ namespace PixivWPF.Pages
                         var tips = tooltip.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                         for(var i = 0; i < tips.Length; i++)
                         {
-                            if (tips[i].StartsWith("Artwork Liked")) tips[i] = $"Artwork Liked = {Contents.Illust.IsLiked()}";
-                            else if (tips[i].StartsWith("Artist Liked")) tips[i] = $"Artist Liked  = {Contents.User.IsLiked()}";
+                            if (tips[i].StartsWith("Artwork Liked")) tips[i] = $"Artwork Liked = {Contents.IsFavorited}";
+                            else if (tips[i].StartsWith("Artist Liked")) tips[i] = $"Artist Liked  = {Contents.IsFollowed}";
                             else continue;
                         }
                         InfoBar.ToolTip = string.Join(Environment.NewLine, tips);
@@ -129,8 +129,11 @@ namespace PixivWPF.Pages
                 if (index_n == index_p) return;
 
                 var i = illust.WorkItem();
-                if (i is PixivItem)
+                if (i.IsWork())
                 {
+                    i.IsFavorited = illust.IsLiked();
+                    i.IsFollowed = illust.User.IsLiked();
+                    i.IsDownloaded = illust.IsDownloaded(index_n);
                     i.NextURL = Contents.NextURL;
                     i.Thumb = illust.GetThumbnailUrl(index_n);
                     i.Index = index_n;
@@ -192,10 +195,10 @@ namespace PixivWPF.Pages
                         }
                         PreviewSize.Text = $"{width:F0}x{height:F0}";
                         StringBuilder sb = new StringBuilder();
-                        sb.AppendLine($"Artwork Liked = {Contents.Illust.IsLiked()}");
-                        sb.AppendLine($"Artist Liked  = {Contents.User.IsLiked()}");
+                        sb.AppendLine($"Artwork Liked = {Contents.IsFavorited}");
+                        sb.AppendLine($"Artist Liked  = {Contents.IsFollowed}");
                         if (Contents.Index >= 0) sb.AppendLine($"Page Index    = {Contents.Index}");
-                        sb.AppendLine($"Downloaded    = {Contents.Illust.IsDownloaded(Contents.Index)}");
+                        sb.AppendLine($"Downloaded    = {Contents.IsDownloaded}");
                         sb.AppendLine($"Dimension     = {width:F0} x {height:F0}");
                         sb.AppendLine($"Aspect Rate   = {aspect.Item1:G5} : {aspect.Item2:G5}");
                         sb.AppendLine($"Resolution    = {dpiX:F0}DPI : {dpiY:F0}DPI");

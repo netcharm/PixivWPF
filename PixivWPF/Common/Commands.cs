@@ -1799,29 +1799,16 @@ namespace PixivWPF.Common
             setting = Application.Current.LoadSetting();
             var logs = Application.Current.GetLogs();
 
-            if (obj is string && !string.IsNullOrEmpty(obj as string))
+            var content = obj is string && !string.IsNullOrEmpty(obj as string) ? obj as string : "INFO";
+            foreach (var log in logs)
             {
-                var content = obj as string;
-                foreach (var log in logs)
+                if (log.ToLower().Contains(content.ToLower()))
                 {
-                    if (log.ToLower().Contains(content.ToLower()))
-                    {
-                        await new Action(() =>
-                        {
-                            log.OpenFileWithShell(command: setting.ShellLogViewer);
-                        }).InvokeAsync(true);
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                foreach (var log in logs)
-                {                    
                     await new Action(() =>
                     {
                         log.OpenFileWithShell(command: setting.ShellLogViewer);
                     }).InvokeAsync(true);
+                    break;
                 }
             }
         });
