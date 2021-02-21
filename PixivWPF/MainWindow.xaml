@@ -168,7 +168,7 @@
             </mah:DropDownButton>
             <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" 
                 HorizontalAlignment="Left" VerticalAlignment="Center"/>
-            <TextBlock x:Name="PreviewPreftchProgress" x:Uid="PreviewPreftchProgress" Visibility="Collapsed"
+            <TextBlock x:Name="PreviewPreftchProgress" x:Uid="PreviewPreftchProgress" Visibility="Collapsed" Margin="4,0,0,0"
                 HorizontalAlignment="Left" VerticalAlignment="Center" MouseDown="PreviewPreftchProgress_MouseDown"/>            
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
@@ -220,25 +220,30 @@
                     Text="&#xE77B;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
-            <Button x:Name="CommandLog" Click="CommandLog_Click"
-                    ToolTip="Open Logs">
+            <Button x:Name="CommandLog" x:Uid="CommandLog" ToolTip="Open Logs" Click="CommandLog_Click">
                 <TextBlock 
                     Text="&#xE8BC;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <Button.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="CommandLog_Info" Header="Info Log" Click="CommandLog_Click" />
-                        <MenuItem x:Name="CommandLog_Debug" Header="Debug Log" Click="CommandLog_Click" />
-                        <MenuItem x:Name="CommandLog_Error" Header="Error Log" Click="CommandLog_Click" />
+                        <MenuItem x:Name="CommandLog_Info" x:Uid="CommandLog_Info" Header="Info Log" Click="CommandLog_Click" />
+                        <MenuItem x:Name="CommandLog_Debug" x:Uid="CommandLog_Debug" Header="Debug Log" Click="CommandLog_Click" />
+                        <MenuItem x:Name="CommandLog_Error" x:Uid="CommandLog_Error" Header="Error Log" Click="CommandLog_Click" />
+                        <Separator/>
+                        <MenuItem x:Name="CommandLog_Folder" x:Uid="CommandLog_Folder" Header="Open Log Folder" Click="CommandLog_Click" />
                     </ContextMenu>
                 </Button.ContextMenu>
             </Button>
-            <!--<Button Click="CommandToggleTheme_Click"
-                    ToolTip="Toggle Application Theme Style">
+            <Button x:Name="CommandRestart" x:Uid="CommandRestart" ToolTip="Restart Application" Click="CommandRestart_Click">
                 <TextBlock 
-                    Text="&#xF08C;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                    Text="&#xE777;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Button>-->
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem x:Name="CommandUpgrade" x:Uid="CommandUpgrade" Header="Upgrade Application" Click="CommandRestart_Click" />
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
             <mah:SplitButton x:Name="CommandToggleTheme" MinWidth="96" MaxWidth="120"
                              ToolTip="Toggle Application Theme"
                              UseLayoutRounding="True"

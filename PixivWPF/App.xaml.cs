@@ -49,7 +49,23 @@ namespace PixivWPF
             finally
             {
                 var setting = this.LoadSetting(true);
-                if (setting.SingleInstance && Current.Activate()) Current.Shutdown(-1);
+                if (setting.SingleInstance && Current.Activate())
+                {
+                    var checkinstance = true;
+                    if (e.Args.Length > 0)
+                    {
+                        foreach (var arg in e.Args)
+                        {
+                            var param = new string[] { "nocheckinstance", "restart"};
+                            if (param.Contains(arg.Trim('"').ToLower()))
+                            {
+                                checkinstance = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (checkinstance) Current.Shutdown(-1);
+                }
             }
         }
 

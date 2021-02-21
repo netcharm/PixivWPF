@@ -322,6 +322,7 @@ namespace PixivWPF.Common
         [JsonIgnore]
         [JsonConverter(typeof(ICommandTypeConverter<Prism.Commands.DelegateCommand>))]
         public ICommand Command { get; set; } = default(ICommand);
+        public dynamic CommandParams { get; set; } = null;
     }
     #endregion
 
@@ -524,6 +525,12 @@ namespace PixivWPF.Common
         public static Process GetCurrentProcess(this Application app)
         {
             return (CurrentProcess);
+        }
+
+        public static Image GetIcon()
+        {
+            var image = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
+            return (image);
         }
 
         public static long MemoryUsage(this Application app, bool is_private = false)
@@ -1530,14 +1537,29 @@ namespace PixivWPF.Common
         public static void TRACE(this Exception ex, string tag = "")
         {
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
-            var contents = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}{Environment.NewLine}Source => {ex.Source}{Environment.NewLine}Base => {ex.GetBaseException()}";
+            List<string> lines = new List<string>();
+            lines.Add($"{ex.Message}");
+            lines.Add($"{ex.StackTrace}");
+            lines.Add($"  Inner => {ex.InnerException}");
+            lines.Add($"  Base => {ex.GetBaseException()}");
+            lines.Add($"  Root => {ex.GetRootException()}");
+            lines.Add($"  Source => {ex.Source}");
+            lines.Add($"  Data => {ex.Data}");
+            var contents = string.Join(Environment.NewLine, lines);
             contents.TRACE(tag);
         }
 
         public static void DEBUG(this Exception ex, string tag = "")
         {
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
-            var contents = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}{Environment.NewLine}Root => {ex.GetRootException()}{Environment.NewLine}Inner => {ex.InnerException}";
+            List<string> lines = new List<string>();
+            lines.Add($"{ex.Message}");
+            lines.Add($"{ex.StackTrace}");
+            lines.Add($"  Inner => {ex.InnerException}");
+            lines.Add($"  Base => {ex.GetBaseException()}");
+            lines.Add($"  Root => {ex.GetRootException()}");
+            lines.Add($"  Data => {ex.Data}");
+            var contents = string.Join(Environment.NewLine, lines);
             contents.DEBUG(tag);
         }
 
@@ -1551,21 +1573,28 @@ namespace PixivWPF.Common
         public static void WARN(this Exception ex, string tag = "")
         {
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
-            var contents = $"{ex.Message}{Environment.NewLine}{ex.Source}";
+            var contents = $"{ex.Message}";
             contents.WARN(tag);
         }
 
         public static void ERROR(this Exception ex, string tag = "")
         {
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
-            var contents = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}{Environment.NewLine}Source => {ex.Source}";
+            List<string> lines = new List<string>();
+            lines.Add($"{ex.Message}");
+            lines.Add($"{ex.StackTrace}");
+            var contents = string.Join(Environment.NewLine, lines);
             contents.ERROR(tag);
         }
 
         public static void FATAL(this Exception ex, string tag = "")
         {
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
-            var contents = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+            List<string> lines = new List<string>();
+            lines.Add($"{ex.Message}");
+            lines.Add($"{ex.StackTrace}");
+            lines.Add($"  Data => {ex.Data}");
+            var contents = string.Join(Environment.NewLine, lines);
             contents.FATAL(tag);
         }
 
@@ -1605,6 +1634,28 @@ namespace PixivWPF.Common
             if (logger is NLog.Logger) NLog.LogManager.Shutdown();
         }
 
+        public static string GetLogsFolder(this Application app)
+        {
+            var logs = string.Empty;
+            try
+            {
+                foreach (var target in NLog.LogManager.Configuration.ConfiguredNamedTargets)
+                {
+                    if (target is NLog.Targets.FileTarget)
+                    {
+                        var fileTarget = target as NLog.Targets.FileTarget;
+                        var logEventInfo = new NLog.LogEventInfo() { Level = NLog.LogLevel.Info, TimeStamp = DateTime.Now };
+                        string fileName = fileTarget.FileName.Render(logEventInfo);
+                        logs = Path.GetDirectoryName(fileName);
+                        if (string.IsNullOrEmpty(logs)) logs = Path.GetFullPath(".");
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (logs);
+        }
+
         public static IList<string> GetLogs(this Application app)
         {
             var logs = new List<string>();
@@ -1621,7 +1672,7 @@ namespace PixivWPF.Common
                         foreach (var level in NLog.LogLevel.AllLoggingLevels)
                         {
                             var logEventInfo = new NLog.LogEventInfo() { Level = level, TimeStamp = DateTime.Now };
-                            string fileName = fileTarget.FileName.Render(logEventInfo);
+                            var fileName = Path.GetFullPath(fileTarget.FileName.Render(logEventInfo));
                             if (File.Exists(fileName)) logs.Add(fileName);
                         }
                     }
@@ -2083,6 +2134,12 @@ namespace PixivWPF.Common
 
         private static List<HotKeyConfig> HotkeyConfig = new List<HotKeyConfig>()
         {
+            #region Application
+            new HotKeyConfig() { Name = "RestartApplication", Command = Commands.RestartApplication,
+                                 Keys = System.Windows.Forms.Keys.None },
+            new HotKeyConfig() { Name = "UpgradeApplication", Command = Commands.UpgradeApplication, 
+                                 Keys = System.Windows.Forms.Keys.None },
+            #endregion
             #region Illust Nav
             new HotKeyConfig() { Name = "IllustFirst", Command = Commands.FirstIllust,
                                  Keys = System.Windows.Forms.Keys.Home },
@@ -2859,7 +2916,7 @@ namespace PixivWPF.Common
         internal static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         internal static string[] trim_str = new string[] { Environment.NewLine };
         private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
-
+        private static string regex_symbol = @"([\u0020-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u007E])";
         #region Pixiv Token Helper
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
         private static async Task<Pixeez.Tokens> RefreshToken()
@@ -3506,13 +3563,6 @@ namespace PixivWPF.Common
 
                 if (TagsWildecardT2S is ConcurrentDictionary<string, string>)
                 {
-                    //List<int> escapes = new List<int>();
-                    //for(var i = 0; i<result.Length;i++)
-                    //{
-                    //    if (result[i] == '\\') escapes.Add(i);
-                    //}
-                    result = result.Replace("\\", "");
-
                     var alpha = Regex.IsMatch(result, @"^[\u0020-\u007E]*$", RegexOptions.IgnoreCase);
                     var text = alpha ? src : result;
                     foreach (var kv in TagsWildecardT2S)
@@ -3528,7 +3578,8 @@ namespace PixivWPF.Common
                             result = Regex.Replace(result, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
                         }
                     }
-                    result = alpha && !Regex.IsMatch(text, result, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
+                    var result_o = Regex.Replace(result, regex_symbol, "\\$1", RegexOptions.IgnoreCase);
+                    result = alpha && !Regex.IsMatch(text, result_o, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                 }
             }
             catch (Exception ex) { ex.ERROR("TRANSLATE"); }
@@ -4124,23 +4175,29 @@ namespace PixivWPF.Common
             bool result = false;
             try
             {
+                var file = string.IsNullOrEmpty(command) ? Path.GetFullPath(FileName) : FileName;
                 var WinDir = Environment.GetEnvironmentVariable("WinDir");
                 if (ShowFolder)
                 {
-                    if (!string.IsNullOrEmpty(FileName))
+                    if (!string.IsNullOrEmpty(file))
                     {
                         Application.Current.ReleaseKeyboardModifiers();
                         Application.Current.DoEvents();
 
                         var shell = string.IsNullOrEmpty(WinDir) ? "explorer.exe" : Path.Combine(WinDir, "explorer.exe");
-                        if (File.Exists(FileName))
+                        if (File.Exists(file))
                         {
-                            Process.Start(shell, $"/select,\"{FileName}\"");
+                            Process.Start(shell, $"/select,\"{file}\"");
+                            result = true;
+                        }
+                        else if(Directory.Exists(file))
+                        {
+                            Process.Start(shell, $"\"{file}\"");
                             result = true;
                         }
                         else
                         {
-                            var folder = Path.GetDirectoryName(FileName);
+                            var folder = Path.GetDirectoryName(file);
                             if (Directory.Exists(folder))
                             {
                                 Process.Start(shell, $"\"{folder}\"");
@@ -4151,7 +4208,7 @@ namespace PixivWPF.Common
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
+                    if (!string.IsNullOrEmpty(file) && File.Exists(file))
                     {
                         var UsingOpenWith = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false;
                         var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
@@ -4163,13 +4220,14 @@ namespace PixivWPF.Common
 
                         if (UsingOpenWith && openwith_exists)
                         {
-                            Process.Start(OpenWith, FileName);
+                            Process.Start(OpenWith, file);
+                            result = true;
                         }
                         else
                         {
                             setting = Application.Current.LoadSetting();
                             var alt_viewer = (int)(Keyboard.Modifiers & (ModifierKeys.Alt | ModifierKeys.Control)) == 3 ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
-                            var IsImage = ext_imgs.Contains(Path.GetExtension(FileName).ToLower()) ? true : false;
+                            var IsImage = ext_imgs.Contains(Path.GetExtension(file).ToLower()) ? true : false;
                             if (alt_viewer && IsImage)
                             {
                                 if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
@@ -4180,20 +4238,25 @@ namespace PixivWPF.Common
                                     var cmd_found = setting.ShellImageViewerCmd.Where();
                                     if (cmd_found.Length > 0) setting.ShellImageViewerCmd = cmd_found.First();
                                 }
-                                var args = $"{setting.ShellImageViewerParams} \"{FileName}\"";
+                                var args = $"{setting.ShellImageViewerParams} \"{file}\"";
                                 if (string.IsNullOrEmpty(setting.ShellImageViewerCmd))
-                                    Process.Start(FileName);
+                                    Process.Start(file);
                                 else
                                     Process.Start(setting.ShellImageViewerCmd, args);
                             }
                             else
                             {
                                 if (string.IsNullOrEmpty(command))
-                                    Process.Start(FileName);
+                                    Process.Start(file);
                                 else
-                                    Process.Start(command, $"{setting.ShellLogViewerParams} \"{FileName}\"");
+                                    Process.Start(command, $"{setting.ShellLogViewerParams} \"{file}\"");
                             }
                         }
+                        result = true;
+                    }
+                    else if(File.Exists(command))
+                    {
+                        Process.Start(command, $"{file}");
                         result = true;
                     }
                 }
@@ -6085,6 +6148,11 @@ namespace PixivWPF.Common
         public static async Task<Pixeez.Objects.Work> RefreshIllust(this Pixeez.Objects.Work Illust, Pixeez.Tokens tokens = null)
         {
             var result = Illust.Id != null ? await RefreshIllust(Illust.Id.Value, tokens) : Illust;
+            if (result == null)
+            {
+                "404 (Not Found) or 503 (Service Unavailable)".ShowToast("INFO");
+                return (result);
+            }
             try
             {
                 if (Illust is Pixeez.Objects.IllustWork)
@@ -6143,7 +6211,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(IllustID))
                     result = await RefreshIllust(Convert.ToInt32(IllustID), tokens);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("REFRESHILLUST"); }
             return (result);
         }
 
@@ -6166,7 +6234,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("REFRESHILLUST"); }
+            catch (Exception ex) { ex.ERROR("REFRESHILLUST"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
             return (result);
         }
 
@@ -6176,33 +6244,36 @@ namespace PixivWPF.Common
             try
             {
                 var user = await Illust.User.RefreshUser(tokens);
-                if (user.Id.Value == Illust.User.Id.Value)
+                if (user is Pixeez.Objects.UserBase && user.Id.Value == Illust.User.Id.Value)
                 {
                     //Illust.User.is_followed = user.is_followed;
                     result = user;
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("REFRESHUSER"); }
             return (result);
         }
 
         public static async Task<Pixeez.Objects.UserBase> RefreshUser(this Pixeez.Objects.UserBase User, Pixeez.Tokens tokens = null)
         {
             var user = await RefreshUser(User.Id.Value);
-            User.is_followed = user.is_followed;
             try
             {
-                if (User is Pixeez.Objects.User)
+                if (user is Pixeez.Objects.UserBase)
                 {
-                    var u = User as Pixeez.Objects.User;
-                    u.IsFollowed = user.IsFollowed;
-                    u.IsFollower = user.IsFollower;
-                    u.IsFollowing = user.IsFollowing;
-                    u.IsFriend = user.IsFriend;
-                    u.IsPremium = user.IsFriend;
+                    User.is_followed = user.is_followed;
+                    if (User is Pixeez.Objects.User)
+                    {
+                        var u = User as Pixeez.Objects.User;
+                        u.IsFollowed = user.IsFollowed;
+                        u.IsFollower = user.IsFollower;
+                        u.IsFollowing = user.IsFollowing;
+                        u.IsFriend = user.IsFriend;
+                        u.IsPremium = user.IsFriend;
+                    }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("REFRESHUSER"); }
             return (user);
         }
 
@@ -6215,7 +6286,7 @@ namespace PixivWPF.Common
                 {
                     result = await RefreshUser(Convert.ToInt32(UserID), tokens);
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("REFRESHUSER"); }
             }
             return (result);
         }
@@ -6237,7 +6308,7 @@ namespace PixivWPF.Common
                     if (user.Id.Value == UserID) result = user;
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("REFRESHUSER"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
             return (result);
         }
 
@@ -6251,7 +6322,7 @@ namespace PixivWPF.Common
                     long id = -1;
                     if (long.TryParse(UserID, out id)) result = await RefreshUserInfo(id, tokens);
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("REFRESHUSERINFO"); }
             }
             return (result);
         }
@@ -6273,7 +6344,7 @@ namespace PixivWPF.Common
                     if (userinfo.user.Id.Value == UserID) result = userinfo;
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("REFRESHUSERINFO"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
             return (result);
         }
 
@@ -6520,13 +6591,6 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    //var bs = await illust.RefreshIllustBookmarkState();
-                    //result = new Tuple<bool, Pixeez.Objects.Work>(bs.IsBookmarked, illust);
-                    //var info = "Unliked";
-                    //var title = result.Item1 ? "Failed" : "Succeed";
-                    //var fail = result.Item1 ?  "isn't" : "is";
-                    //$"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl(), title);
-
                     illust = await illust.RefreshIllust();
                     if (illust != null)
                     {
@@ -7101,6 +7165,20 @@ namespace PixivWPF.Common
                             item.IsFavorited = item.IsFollowed = false;
                         }
                     }
+                    if (item.Source == null)
+                    {
+                        new Action(async () =>
+                        {
+                            var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize());
+                            if (thumb != null && thumb.Source != null)
+                            {
+                                item.Source = thumb.Source;
+                                item.State = TaskStatus.RanToCompletion;
+                                thumb.Source = null;
+                                thumb = null;
+                            }
+                        }).Invoke(async: true);
+                    }
                 }
                 catch { }
             }
@@ -7128,9 +7206,7 @@ namespace PixivWPF.Common
             {
                 new Action(() =>
                 {
-                    if (icon == null)
-                        icon = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
-                    win.Icon = icon.Source;
+                    win.Icon = icon == null || icon.Source == null ? "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage().Source : icon.Source;
 
                     if (win is MainWindow)
                     {
@@ -7778,12 +7854,51 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private static TaskDialog MakeTaskDialog(string title, string content, MessageBoxImage image, TaskDialogStandardButtons buttons)
+        {
+            var dlg_icon = TaskDialogStandardIcon.Information;
+            switch (image)
+            {
+                case MessageBoxImage.Error:
+                    dlg_icon = TaskDialogStandardIcon.Error;
+                    break;
+                case MessageBoxImage.Information:
+                    dlg_icon = TaskDialogStandardIcon.Information;
+                    break;
+                case MessageBoxImage.Warning:
+                    dlg_icon = TaskDialogStandardIcon.Warning;
+                    break;
+                case MessageBoxImage.Question:
+                    dlg_icon = TaskDialogStandardIcon.Shield;
+                    break;
+                default:
+                    dlg_icon = TaskDialogStandardIcon.None;
+                    break;
+            }
+            var dlg_btns = TaskDialogStandardButtons.Ok;
+            var dlg = new TaskDialog()
+            {
+                FooterIcon = dlg_icon,
+                Icon = dlg_icon,
+                Cancelable = true,
+                StandardButtons = dlg_btns,
+                Text = content,
+                DetailsExpandedText = content,
+                InstructionText = title
+            };
+            return (dlg);
+        }
+
         public static async void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             content.LOG(title);
 
             await Task.Delay(1);
             _MessageDialogList[title] = content;
+
+            //var dlg = MakeTaskDialog(title, content, image, TaskDialogStandardButtons.Ok);
+            //dlg.Show();
+
             MessageBox.Show(content, title, MessageBoxButton.OK, image);
             var value = string.Empty;
             _MessageDialogList.TryRemove(title, out value);
@@ -7913,7 +8028,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                content.LOG(title);
+                content.Replace("\r\n", " ").Replace("\n\r", " ").Replace("\r", " ").Replace("\n", " ").LOG(title);
 
                 setting = Application.Current.LoadSetting();
 
@@ -7953,7 +8068,7 @@ namespace PixivWPF.Common
             {
                 if (messagebox) { content.ShowMessageBox(title); return; }
 
-                content.LOG(title);
+                content.Replace("\r\n", " ").Replace("\n\r", " ").Replace("\r", " ").Replace("\n", " ").LOG(title);
 
                 setting = Application.Current.LoadSetting();
 

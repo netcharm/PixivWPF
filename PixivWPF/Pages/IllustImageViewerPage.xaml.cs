@@ -450,7 +450,8 @@ namespace PixivWPF.Pages
                 Contents.Source = null;
                 this.DataContext = null;
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("DisposePreview"); }
+            finally{ Application.Current.GC(name: this.Name ?? this.GetType().Name, wait: true); }
         }
 
         public IllustImageViewerPage()

@@ -274,7 +274,8 @@ namespace PixivWPF.Pages
                 ResultItems.Clear(batch: false, force: true);
                 Contents = null;
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("DisposeSearchResult"); }
+            finally { Application.Current.GC(name: this.Name ?? this.GetType().Name, wait: true); }
         }
 
         public SearchResultPage()

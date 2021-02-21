@@ -195,6 +195,8 @@
                         <MenuItem x:Name="CommandLog_Info" Header="Info Log" Click="CommandLog_Click" />
                         <MenuItem x:Name="CommandLog_Debug" Header="Debug Log" Click="CommandLog_Click" />
                         <MenuItem x:Name="CommandLog_Error" Header="Error Log" Click="CommandLog_Click" />
+                        <Separator/>
+                        <MenuItem x:Name="CommandLog_Folder" Header="Open Log Folder" Click="CommandLog_Click" />                        
                     </ContextMenu>
                 </Button.ContextMenu>
             </Button>            

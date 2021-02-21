@@ -327,7 +327,7 @@ namespace PixivWPF.Pages
                 HistoryItems.Clear(batch: false, force: true);
                 Contents = null;
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("DisposeHistory"); }
         }
 
         public HistoryPage()

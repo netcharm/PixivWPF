@@ -171,8 +171,7 @@
             </ListView.CacheMode>
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Top" 
-                               Orientation="Horizontal" />
+                    <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Top" Orientation="Horizontal" Grid.IsSharedSizeScope="True" UseLayoutRounding="True" ScrollViewer.CanContentScroll="True" ClipToBounds="True" />
                     <!--<UniformGrid x:Name="PART_ImageTiles_UniformGrid" 
                         ClipToBounds="True" Focusable="True" Height="Auto" Width="Auto"
                         HorizontalAlignment="Center" VerticalAlignment="Top"

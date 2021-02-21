@@ -123,6 +123,68 @@ namespace PixivWPF.Common
             }).InvokeAsync(realtime);
         }
 
+        public static ICommand RestartApplication { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            try
+            {
+                if (obj is MetroWindow)
+                {
+                    setting = Application.Current.LoadSetting();
+                    RestartApplication.Execute(setting.ConfirmRestart);
+                }
+                else
+                {
+                    setting = Application.Current.LoadSetting();
+                    var confirm = obj is bool ? (bool)obj : setting.ConfirmRestart;
+                    var process = Application.Current.GetCurrentProcess();
+                    var ret = confirm ? MessageBox.Show("Restart Application?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes : true;
+                    if (ret)
+                    {
+                        "nocheckinstance".OpenFileWithShell(command: process.MainModule.FileName);
+                        var mainwindow = Application.Current.GetMainWindow();
+                        if (mainwindow is MainWindow) mainwindow.CloseApplication(false);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("RESTART"); }
+            finally { }
+        });
+
+        public static ICommand UpgradeApplication { get; } = new DelegateCommand<dynamic>(obj =>
+        {
+            try
+            {
+                if (obj is MetroWindow)
+                {
+                    setting = Application.Current.LoadSetting();
+                    UpgradeApplication.Execute(setting.ConfirmUpgrade);
+                }
+                else
+                {
+                    setting = Application.Current.LoadSetting();
+                    if (string.IsNullOrEmpty(setting.UpgradeLaunch)) return;
+                    if (!(setting.UpgradeFiles is List<string>) || setting.UpgradeFiles.Count <= 0) return;
+
+                    var confirm = obj is bool ? (bool)obj : setting.ConfirmUpgrade;
+                    var ret = confirm ? MessageBox.Show("Upgrade Application?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes : true;
+                    if (ret)
+                    {
+                        var files = string.Join(" ", setting.UpgradeFiles.Select(o=> $"\"{o.Trim()}\""));
+                        if ($"upgrade {files}".OpenFileWithShell(command: setting.UpgradeLaunch))
+                        {
+                            Task.Delay(500).GetAwaiter().GetResult();
+                            Application.Current.DoEvents();
+                            //Application.Current.Delay(250);
+                            var mainwindow = Application.Current.GetMainWindow();
+                            if (mainwindow is MainWindow) mainwindow.CloseApplication(false);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("UPGRADE"); }
+            finally { }
+        });
+
         public static ICommand Login { get; } = new DelegateCommand(() =>
         {
             var setting = Application.Current.LoadSetting();
@@ -1376,7 +1438,7 @@ namespace PixivWPF.Common
                             else
                             {
                                 illust = await illust.RefreshIllust();
-                                if (illust.Metadata != null && illust.Metadata.Pages != null)
+                                if (illust != null && illust.Metadata != null && illust.Metadata.Pages != null)
                                 {
                                     illust.Cache();
                                     foreach (var p in illust.Metadata.Pages)
@@ -1796,19 +1858,35 @@ namespace PixivWPF.Common
 
         public static ICommand OpenLogs { get; } = new DelegateCommand<string>(async obj =>
         {
-            setting = Application.Current.LoadSetting();
             var logs = Application.Current.GetLogs();
 
             var content = obj is string && !string.IsNullOrEmpty(obj as string) ? obj as string : "INFO";
-            foreach (var log in logs)
+            if (content.ToLower().Contains("folder"))
             {
-                if (log.ToLower().Contains(content.ToLower()))
+                if (logs.Count > 0)
                 {
-                    await new Action(() =>
+                    var file = logs.FirstOrDefault();
+                    file.OpenFileWithShell(ShowFolder: true);
+                }
+                else
+                {
+                    var folder = Application.Current.GetLogsFolder();
+                    folder.OpenFileWithShell(ShowFolder: true);
+                }
+            }
+            else
+            {
+                setting = Application.Current.LoadSetting();
+                foreach (var log in logs)
+                {
+                    if (log.ToLower().Contains(content.ToLower()))
                     {
-                        log.OpenFileWithShell(command: setting.ShellLogViewer);
-                    }).InvokeAsync(true);
-                    break;
+                        await new Action(() =>
+                        {
+                            log.OpenFileWithShell(command: setting.ShellLogViewer);
+                        }).InvokeAsync(true);
+                        break;
+                    }
                 }
             }
         });

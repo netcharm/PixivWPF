@@ -32,7 +32,7 @@ namespace PixivWPF.Pages
         private Rectangle PreviewPopupBackground = null;
         private IList<Button> PreviewPopupToolButtons = new List<Button>();
         private System.Timers.Timer PreviewPopupTimer = null;
-        private void InitTaskTimer(ref System.Timers.Timer timer)
+        private void InitPopupTimer(ref System.Timers.Timer timer)
         {
             if (timer == null)
             {
@@ -833,15 +833,11 @@ namespace PixivWPF.Pages
                             IllustDownloaded.ToolTip = string.Empty;
                             //ToolTipService.SetToolTip(IllustDownloaded, null);
                         }
-                    }
-                    if (Contents.Thumb.IsCached() && Contents.Source == null)
-                    {
-                        Contents.Source = Contents.Thumb.LoadImageFromFile(size: Application.Current.GetDefaultThumbSize()).Source;
-                        Contents.State = TaskStatus.RanToCompletion;
-                    }
+                    }                    
                 }
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADMARK"); }
+            finally { UpdateContentsThumbnail(item); }
         }
 
         private void UpdateFavMark(Pixeez.Objects.Work illust)
@@ -898,13 +894,6 @@ namespace PixivWPF.Pages
                 {
                     UpdateFollowMark(Contents.User);
                     if (Contents.IsWork()) UpdateFavMark(Contents.Illust);
-                    if (Contents.Thumb.IsCached() && Contents.Source == null)
-                    {
-                        var thumb = Contents.Thumb.LoadImageFromFile(size: Application.Current.GetDefaultThumbSize());
-                        Contents.Source = thumb.Source;
-                        Contents.State = TaskStatus.RanToCompletion;
-                        thumb.Source = null;
-                    }
                 }
                 if (SubIllusts.Items.Count > 0)
                 {
@@ -920,6 +909,10 @@ namespace PixivWPF.Pages
                 }
             }
             catch (Exception ex) { ex.ERROR("LIKESTATE"); }
+            finally
+            {
+                UpdateContentsThumbnail(Contents);
+            }
         }
         #endregion
 
@@ -1152,6 +1145,26 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        private async void UpdateContentsThumbnail(PixivItem item = null, bool overwrite = false)
+        {
+            try
+            {
+                if (item == null) item = Contents;
+                if (item.Source == null)
+                {
+                    var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize());
+                    if (thumb != null && thumb.Source != null)
+                    {
+                        item.Source = thumb.Source;
+                        item.State = TaskStatus.RanToCompletion;
+                        thumb.Source = null;
+                        thumb = null;
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("UpdateThumb"); }
+        }
+
         public async void UpdateThumb(bool full = false, bool overwrite = false)
         {
             overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : overwrite;
@@ -1193,9 +1206,10 @@ namespace PixivWPF.Pages
                                 }
                             }
                         }
+                        UpdateContentsThumbnail(overwrite: overwrite);
                     }
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("UPATETHUMB"); }
                 finally
                 {
                     IllustDetailWait.Hide();
@@ -1215,40 +1229,34 @@ namespace PixivWPF.Pages
                 var force = ModifierKeys.Control.IsModified();
                 if (item.IsWork())
                 {
+                    Contents = item;
                     await new Action(async () =>
                     {
-                        IllustDetailWait.Show();
+                        //IllustDetailWait.Show();
                         if (force)
                         {
                             var illust = await item.ID.RefreshIllust();
                             if (illust is Pixeez.Objects.Work)
                                 item.Illust = illust;
                             else
-#if DEBUG
-                                "Illust not exists or deleted".ShowMessageBox("ERROR[ILLUST]");
-#else
-                                "Illust not exists or deleted".ShowToast("ERROR[ILLUST]");
-#endif
+                                "Illust not exists or deleted".ShowToast("INFO");
                         }
                         UpdateDetailIllust(item);
                     }).InvokeAsync(true);
                 }
                 else if (item.IsUser())
                 {
+                    Contents = item;
                     await new Action(async () =>
                     {
-                        IllustDetailWait.Show();
+                        //IllustDetailWait.Show();
                         if (force)
                         {
                             var user = await item.UserID.RefreshUser();
                             if (user is Pixeez.Objects.User)
                                 item.User = user;
                             else
-#if DEBUG
-                                "User not exists or deleted".ShowMessageBox("ERROR[USER]");
-#else
-                                "User not exists or deleted".ShowToast("ERROR[USER]");
-#endif
+                                "User not exists or deleted".ShowToast("INFO");
                         }
                         UpdateDetailUser(item, force);
                     }).InvokeAsync();
@@ -1257,12 +1265,13 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR");
+                ex.ERROR("UPDATEILLUST");
                 IllustDetailWait.Hide();
             }
             finally
             {
-                if (Contents.HasUser()) Application.Current.GC(this.Name ?? "IllustDetailPage");
+                //UpdateContentsThumbnail();
+                //if (Contents.HasUser()) Application.Current.GC(this.Name ?? "IllustDetailPage");
             }
         }
 
@@ -1270,8 +1279,8 @@ namespace PixivWPF.Pages
         {
             try
             {
-                IllustDetailWait.Show();
-                this.DoEvents();
+                //IllustDetailWait.Show();
+                //this.DoEvents();
                 item.AddToHistory();
                 this.DoEvents();
 
@@ -1399,7 +1408,7 @@ namespace PixivWPF.Pages
                     PreviewBadge.Show();
                     SubIllustsExpander.Show();
                     if (SubIllustsExpander.IsExpanded)
-                        ShowIllustPagesAsync(Contents);
+                        ShowIllustPagesAsync(item);
                     else
                         SubIllustsExpander.IsExpanded = true;
                 }
@@ -1437,12 +1446,9 @@ namespace PixivWPF.Pages
                 if (!SubIllustsExpander.IsShown())
                     ActionRefreshPreview();
             }
-            catch (OperationCanceledException) { }
-            catch (ObjectDisposedException) { }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR");
-            }
+            catch (OperationCanceledException ex) { ex.ERROR("UpdateIllustDetail"); }
+            catch (ObjectDisposedException ex) { ex.ERROR("UpdateIllustDetail"); }
+            catch (Exception ex){ ex.ERROR("UpdateIllustDetail"); }
             finally
             {
                 this.DoEvents();
@@ -2123,10 +2129,10 @@ namespace PixivWPF.Pages
                 Preview.Dispose();
                 Contents.Source = null;
             }
-            catch (Exception ex) { ex.ERROR("ILLUSTDETAIL"); }
+            catch (Exception ex) { ex.ERROR("DisposeIllustDetail"); }
             finally
             {
-                Application.Current.GC(name: this.Name ?? "IllustDetailPage", wait: true);
+                Application.Current.GC(name: this.Name ?? this.GetType().Name, wait: true);
             }
         }
 
@@ -2184,7 +2190,7 @@ namespace PixivWPF.Pages
                         button.MouseLeave += PreviewPopup_MouseLeave;
                     }
 
-                    InitTaskTimer(ref PreviewPopupTimer);
+                    InitPopupTimer(ref PreviewPopupTimer);
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
@@ -3532,20 +3538,17 @@ namespace PixivWPF.Pages
 
             if (Contents.IsWork())
             {
-                IllustDetailWait.Show();
-
+                //IllustDetailWait.Show();
                 try
                 {
                     IllustCommentsHtml.Navigate("about:blank");
-
-                    var result = await tokens.GetIllustComments(Contents.ID, "0", true);
-                    foreach (var comment in result.comments)
-                    {
-                        //comment.
-                    }
+                    //var result = await tokens.GetIllustComments(Contents.ID, "0", true);
+                    //foreach (var comment in result.comments)
+                    //{
+                    //    //comment.
+                    //}
                 }
-                catch (Exception ex) { ex.ERROR(); }
-
+                catch (Exception ex) { ex.ERROR("IllustComments"); }
                 IllustDetailWait.Hide();
             }
         }

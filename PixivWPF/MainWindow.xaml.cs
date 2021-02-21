@@ -41,6 +41,32 @@ namespace PixivWPF
 
         private DateTime LastSelectedDate = DateTime.Now;
 
+        private bool IsShutdowning = false;
+        public bool CloseApplication(bool confirm = true)
+        {
+            bool result = false;
+            var ret = confirm ? MessageBox.Show("Continue Exit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes : true;
+            if (ret)
+            {
+                IsShutdowning = true;
+                pipeOnClosing = true;
+                ReleaseNamedPipeServer();
+                Application.Current.ReleaseAppWatcher();
+                Application.Current.LoadSetting().LocalStorage.ReleaseDownloadedWatcher();
+
+                if (setting is Setting) setting.Save(true);
+
+                foreach (Window win in Application.Current.Windows)
+                {
+                    if (win is MainWindow) continue;
+                    else win.Close();
+                }
+                Application.Current.Shutdown();
+            }
+            else result = true;
+            return (result);
+        }    
+
         public void SetPrefetchPreviewProgress(double progress, string tooltip ="")
         {
             new Action(() => {
@@ -360,47 +386,15 @@ namespace PixivWPF
             CreateNamedPipeServer();
         }
 
-#if DEBUG
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            pipeOnClosing = true;
-            ReleaseNamedPipeServer();
-            Application.Current.ReleaseAppWatcher();
-            Application.Current.LoadSetting().LocalStorage.ReleaseDownloadedWatcher();
-
-            if (setting is Setting) setting.Save(true);
-
-            foreach (Window win in Application.Current.Windows)
-            {
-                if (win == this) continue;
-                win.Close();
-            }
-            Application.Current.Shutdown();
-        }
+#if DEBUG0
+            e.Cancel = CloseApplication(false);
 #else
-        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
             setting = Application.Current.LoadSetting();
-            var ret = setting.NoConfirmExit ? true : MessageBox.Show("Continue Exit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Yes;
-            if (ret)
-            {
-                pipeOnClosing = true;
-                ReleaseNamedPipeServer();
-                Application.Current.ReleaseAppWatcher();
-                Application.Current.LoadSetting().LocalStorage.ReleaseDownloadedWatcher();
-
-                if (setting is Setting) setting.Save(true);
-
-                foreach (Window win in Application.Current.Windows)
-                {
-                    if (win is MainWindow) continue;
-                    else win.Close();
-                }
-                Application.Current.Shutdown();
-            }
-            else e.Cancel = true;
-        }
+            e.Cancel = IsShutdowning ? false : CloseApplication(setting.ConfirmExit);
 #endif
+        }
 
         private void MainWindow_DragOver(object sender, DragEventArgs e)
         {
@@ -512,7 +506,16 @@ namespace PixivWPF
             if (sender == CommandLog_Info) log_type = "INFO";
             else if (sender == CommandLog_Debug) log_type = "DEBUG";
             else if (sender == CommandLog_Error) log_type = "ERROR";
+            else if(sender == CommandLog_Folder) log_type = "FOLDER";
             Commands.OpenLogs.Execute(log_type);
+        }
+
+        private void CommandRestart_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender == CommandRestart)
+                Commands.RestartApplication.Execute(null);
+            else if (sender == CommandUpgrade)
+                Commands.UpgradeApplication.Execute(null);
         }
 
         private void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
@@ -890,7 +893,6 @@ namespace PixivWPF
 
             if (Contents is Pages.TilesPage) Contents.SetFilter(filter);
         }
-
 
     }
 }

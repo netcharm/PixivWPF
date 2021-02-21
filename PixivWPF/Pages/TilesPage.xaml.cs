@@ -582,7 +582,7 @@ namespace PixivWPF.Pages
                         {
                             illust = await illust.RefreshIllust();
                         }
-                        if (illust.Metadata is Pixeez.Objects.Metadata)
+                        if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
                         {
                             foreach (var page in illust.Metadata.Pages)
                             {
@@ -611,7 +611,7 @@ namespace PixivWPF.Pages
                     {
                         setting = Application.Current.LoadSetting();
                         var sid = ImageTiles.SelectedItem is PixivItem ? ImageTiles.SelectedItem.ID : string.Empty;
-                        var items = ImageTiles.Items.ToArray().Reverse();
+                        var items = ImageTiles.Items.Reverse().ToList();
                         foreach (var item in items)
                         {
                             //if (item.ID.Equals(sid)) continue;
@@ -661,9 +661,8 @@ namespace PixivWPF.Pages
                 List<string> avatars = new List<string>();
                 List<string> pages = new List<string>();
                 var pagesCount = CalcPagesThumbItems(ImageTiles.Items);
-                if (pagesCount <= 0) { e.Cancel = true; return; }
-
                 GetPreviewItems(illusts, avatars, pages);
+                if (pagesCount != pages.Count) { e.Cancel = true; return; }
 
                 double percent = 0;
                 string tooltip = string.Empty;
@@ -1967,8 +1966,14 @@ namespace PixivWPF.Pages
                     var item = ImageTiles.SelectedItem as PixivItem;
                     if (item.Thumb.IsCached() && item.Source == null)
                     {
-                        item.Source = item.Thumb.LoadImageFromFile(size: Application.Current.GetDefaultThumbSize()).Source;
-                        item.State = TaskStatus.RanToCompletion;
+                        var thumb = item.Thumb.LoadImageFromFile(size: Application.Current.GetDefaultThumbSize());
+                        if (thumb != null && thumb != null)
+                        {
+                            item.Source = thumb.Source;
+                            item.State = TaskStatus.RanToCompletion;
+                            thumb.Source = null;
+                            thumb = null;
+                        }
                     }
                     if (item.IsUser())
                     {
@@ -1989,7 +1994,7 @@ namespace PixivWPF.Pages
                     if (string.IsNullOrEmpty(ID_O) || !ID_N.Equals(ID_O, StringComparison.CurrentCultureIgnoreCase))
                     {
                         $"ID: {item.ID}, {item.Illust.Title} Loading...".INFO();
-                        detail_page.Contents = item;
+                        //detail_page.Contents = item;
                         detail_page.UpdateDetail(item);
                     }
 

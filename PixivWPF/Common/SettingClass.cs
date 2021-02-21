@@ -64,29 +64,6 @@ namespace PixivWPF.Common
         [JsonIgnore]
         public static bool StartUp { get; internal set; } = false;
 
-        private bool no_confirm_exit = false;
-        public bool NoConfirmExit
-        {
-            get { return (Cache is Setting ? Cache.no_confirm_exit : no_confirm_exit); }
-            set
-            {
-                no_confirm_exit = value;
-                if (Cache is Setting) Cache.no_confirm_exit = no_confirm_exit;
-            }
-        }
-
-        private PixivPage default_page = PixivPage.Recommanded;
-        [JsonConverter(typeof(StringEnumConverter))]
-        public PixivPage DefaultPage
-        {
-            get { return (Cache is Setting ? Cache.default_page : default_page); }
-            set
-            {
-                default_page = value;
-                if (Cache is Setting) Cache.default_page = default_page;
-            }
-        }
-
         private bool single_instance = true;
         public bool SingleInstance
         {
@@ -107,6 +84,61 @@ namespace PixivWPF.Common
                 calc_system_memory_usage = value;
                 if (Cache is Setting) Cache.calc_system_memory_usage = calc_system_memory_usage;
             }
+        }
+
+        private bool confirm_exit = true;
+        public bool ConfirmExit
+        {
+            get { return (Cache is Setting ? Cache.confirm_exit : confirm_exit); }
+            set
+            {
+                confirm_exit = value;
+                if (Cache is Setting) Cache.confirm_exit = confirm_exit;
+            }
+        }
+
+        private bool confirm_restart = true;
+        public bool ConfirmRestart
+        {
+            get { return (Cache is Setting ? Cache.confirm_restart : confirm_restart); }
+            set
+            {
+                confirm_restart = value;
+                if (Cache is Setting) Cache.confirm_restart = confirm_restart;
+            }
+        }
+
+        private bool confirm_upgrade = true;
+        public bool ConfirmUpgrade
+        {
+            get { return (Cache is Setting ? Cache.confirm_upgrade : confirm_upgrade); }
+            set
+            {
+                confirm_upgrade = value;
+                if (Cache is Setting) Cache.confirm_upgrade = confirm_upgrade;
+            }
+        }
+
+        private string upgrade_app = string.Empty;
+        public string UpgradeLaunch
+        {
+            get { return (Cache is Setting ? Cache.upgrade_app : upgrade_app); }
+            set
+            {
+                upgrade_app = value;
+                if (Cache is Setting) Cache.upgrade_app = upgrade_app;
+            }
+        }
+
+        private List<string> upgrade_files = new List<string>();
+        public List<string> UpgradeFiles
+        {
+            get { return (Cache is Setting ? Cache.upgrade_files : upgrade_files); }
+            //set
+            //{
+            //    upgrade_files = value;
+            //    if (Cache is Setting) Cache.upgrade_files = upgrade_files;
+            //}
         }
         #endregion
 
@@ -1102,6 +1134,18 @@ namespace PixivWPF.Common
         #endregion
 
         #region Viewing relative
+        private PixivPage default_page = PixivPage.Recommanded;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public PixivPage DefaultPage
+        {
+            get { return (Cache is Setting ? Cache.default_page : default_page); }
+            set
+            {
+                default_page = value;
+                if (Cache is Setting) Cache.default_page = default_page;
+            }
+        }
+
         private AutoExpandMode auto_expand = AutoExpandMode.AUTO;
         public AutoExpandMode AutoExpand
         {

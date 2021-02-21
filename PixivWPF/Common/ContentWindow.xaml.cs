@@ -215,6 +215,7 @@ namespace PixivWPF.Common
             if (sender == CommandLog_Info) log_type = "INFO";
             else if (sender == CommandLog_Debug) log_type = "DEBUG";
             else if (sender == CommandLog_Error) log_type = "ERROR";
+            else if (sender == CommandLog_Folder) log_type = "FOLDER";
             Commands.OpenLogs.Execute(log_type);
         }
 
