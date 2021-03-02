@@ -109,6 +109,8 @@ namespace PixivWPF.Common
         {
             try
             {
+                if (Application.Current.GetLoginWindow() != null) { e.Cancel = true; return; }
+
                 this.WindowState = WindowState.Minimized;
                 //this.Hide();
 
@@ -130,16 +132,16 @@ namespace PixivWPF.Common
                 {
                     (Content as Page).DataContext = null;
                 }
-
-                if (Application.Current.GetLoginWindow() != null) e.Cancel = true;
             }
-            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[CLOSEWIN]"); }
+            catch (Exception ex) { ex.Message.ShowToast("ERROR", tag: "CLOSEWIN"); }
             finally
             {
-                Content = null;
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
+                if (!e.Cancel)
+                {
+                    var name = Content is Page ? (Content as Page).Name ?? (Content as Page).GetType().Name : Content.GetType().Name;
+                    Content = null;
+                    Application.Current.GC(name: name, wait: true);
+                }
             }
         }
 

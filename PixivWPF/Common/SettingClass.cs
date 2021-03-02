@@ -474,10 +474,15 @@ namespace PixivWPF.Common
                             try
                             {
                                 var tags = File.ReadAllText(default_tags);
-                                CommonHelper.TagsCache = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags);
+                                var t2s = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags);
+                                var keys = t2s.Keys.ToList();
+                                foreach (var k in keys)
+                                {
+                                    CommonHelper.TagsCache[k.Trim()] = t2s[k].Trim();
+                                }
                                 tags_changed = true;
                             }
-                            catch (Exception ex) { ex.ERROR(); }
+                            catch (Exception ex) { ex.ERROR("LoadTags"); }
                         }
 
                         LoadCustomTags(force);
@@ -487,7 +492,7 @@ namespace PixivWPF.Common
                         if (tags_changed) CommonHelper.UpdateIllustTagsAsync();
                     }
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("LoadTags"); }
                 finally
                 {
                     if (TagsReadWrite is SemaphoreSlim && TagsReadWrite.CurrentCount <= 0) TagsReadWrite.Release();
@@ -519,32 +524,28 @@ namespace PixivWPF.Common
                             try
                             {
                                 var tags_t2s = File.ReadAllText(custom_tags);
-                                CommonHelper.TagsT2S = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags_t2s);
-                                var keys = CommonHelper.TagsT2S.Keys.ToList();
+                                var t2s = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags_t2s);
+                                var keys = t2s.Keys.ToList();
                                 foreach (var k in keys)
                                 {
-                                    CommonHelper.TagsT2S[k.Trim()] = CommonHelper.TagsT2S[k].Trim();
+                                    CommonHelper.TagsT2S[k.Trim()] = t2s[k].Trim();
                                 }
                                 tags_changed = true;
                             }
                             catch (Exception ex)
-                            { 
-                                ex.Message.DEBUG();
+                            {
                                 $"Custom Translation Tags Loading Error:\n{ex.Message}".ShowToast("ERROR[Tags]");
                             }
                         }
                         else
                         {
-                            try
+                            if (CommonHelper.TagsT2S is ConcurrentDictionary<string, string>)
                             {
-                                if (CommonHelper.TagsT2S is ConcurrentDictionary<string, string>)
-                                {
-                                    CommonHelper.TagsT2S.Clear();
-                                    tags_changed = true;
-                                }
+                                CommonHelper.TagsT2S.Clear();
+                                tags_changed = true;
                             }
-                            catch (Exception ex) { ex.ERROR(); }
                         }
+
                         if (tags_changed)
                         {
                             CommonHelper.UpdateIllustTagsAsync();
@@ -552,7 +553,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("LoadCustomTags"); }
                 finally
                 {
                     if (CustomTagsReadWrite is SemaphoreSlim && CustomTagsReadWrite.CurrentCount <= 0) CustomTagsReadWrite.Release();
@@ -583,31 +584,26 @@ namespace PixivWPF.Common
                             try
                             {
                                 var tags_t2s_widecard = File.ReadAllText(custom_widecard_tags);
-                                CommonHelper.TagsWildecardT2S = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags_t2s_widecard);
-                                var keys = CommonHelper.TagsWildecardT2S.Keys.ToList();
+                                var t2s = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags_t2s_widecard);
+                                var keys = t2s.Keys.ToList();
                                 foreach (var k in keys)
                                 {
-                                    CommonHelper.TagsWildecardT2S[k.Trim()] = CommonHelper.TagsWildecardT2S[k].Trim();
+                                    CommonHelper.TagsWildecardT2S[k.Trim()] = t2s[k].Trim();
                                 }
                                 tags_changed = true;
                             }
                             catch (Exception ex)
-                            { 
-                                ex.Message.DEBUG();
+                            {
                                 $"Custom Translation Wildcard Tags Loading Error:\n{ex.Message}".ShowToast("ERROR[Tags]");
                             }
                         }
                         else
                         {
-                            try
+                            if (CommonHelper.TagsWildecardT2S is ConcurrentDictionary<string, string>)
                             {
-                                if (CommonHelper.TagsWildecardT2S is ConcurrentDictionary<string, string>)
-                                {
-                                    CommonHelper.TagsWildecardT2S.Clear();
-                                    tags_changed = true;
-                                }
+                                CommonHelper.TagsWildecardT2S.Clear();
+                                tags_changed = true;
                             }
-                            catch (Exception ex) { ex.ERROR(); }
                         }
 
                         if (tags_changed)
@@ -617,7 +613,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("LoadCustomWidecardTags"); }
                 finally
                 {
                     if (CustomWildcardTagsReadWrite is SemaphoreSlim && CustomWildcardTagsReadWrite.CurrentCount <= 0) CustomWildcardTagsReadWrite.Release();

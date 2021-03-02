@@ -47,22 +47,7 @@ namespace PixivWPF.Pages
         #region Time Checking
         private System.Timers.Timer autoTaskTimer = null;
 
-        private void InitTaskTimer()
-        {
-            try
-            {
-                var setting = Application.Current.LoadSetting();
-                if (autoTaskTimer == null)
-                {
-                    autoTaskTimer = new System.Timers.Timer(setting.ToastShowTimes * 1000) { AutoReset = true, Enabled = false };
-                    autoTaskTimer.Elapsed += Timer_Elapsed;
-                    autoTaskTimer.Enabled = true;
-                }
-            }
-            catch (Exception ex) { ex.ERROR(); }
-        }
-
-        private async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private async void CheckJobStateAsync()
         {
             try
             {
@@ -88,7 +73,27 @@ namespace PixivWPF.Pages
                     }
                 }).InvokeAsync();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("CheckJobState"); }
+        }
+
+        private void InitTaskTimer()
+        {
+            try
+            {
+                if (autoTaskTimer == null)
+                {
+                    var setting = Application.Current.LoadSetting();
+                    autoTaskTimer = new System.Timers.Timer(TimeSpan.FromSeconds(setting.ToastShowTimes).TotalMilliseconds) { AutoReset = true, Enabled = false };
+                    autoTaskTimer.Elapsed += Timer_Elapsed;
+                    autoTaskTimer.Enabled = true;
+                }
+            }
+            catch (Exception ex) { ex.ERROR("InitTaskTimer"); }
+        }
+
+        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            CheckJobStateAsync();
         }
         #endregion
 
@@ -300,6 +305,8 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            if (Window == null) Window = Window.GetWindow(this);
+
             setting = Application.Current.LoadSetting();
             if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
             if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
@@ -307,8 +314,7 @@ namespace PixivWPF.Pages
 
             DownloadItems.ItemsSource = items;
             InitTaskTimer();
-
-            if (Window == null) Window = Window.GetWindow(this);
+            UpdateStateInfo();
         }
 
         private void DownloadItem_TargetUpdated(object sender, DataTransferEventArgs e)

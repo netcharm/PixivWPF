@@ -540,6 +540,7 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Prefetching background task
+        private CancellationTokenSource PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
         private SemaphoreSlim CanPrefetching = new SemaphoreSlim(1, 1);
         private BackgroundWorker PrefetchingTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
 
@@ -693,12 +694,12 @@ namespace PixivWPF.Pages
                             var file = url.GetImageCacheFile();
                             if (!string.IsNullOrEmpty(file))
                             {
-                                if (!File.Exists(file))
+                                if (File.Exists(file)) count = count - 1;
+                                else 
                                 {
                                     file = url.DownloadCacheFile().GetAwaiter().GetResult();
                                     if (!string.IsNullOrEmpty(file)) count = count - 1;
                                 }
-                                else count = count - 1;
                             }
                             if (PrefetchingTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
                             percent = count == 0 ? 100 : (total - count) / (double)total * 100;
@@ -706,14 +707,8 @@ namespace PixivWPF.Pages
                             if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
                             this.DoEvents();
                         }
-                        catch (Exception ex)
-                        {
-                            new Action(() =>
-                            {
-                                ex.ERROR("PREFETCH");
-                            }).Invoke(async: false);
-                        }
-                        finally { }
+                        catch (Exception ex) { ex.ERROR("PREFETCHING"); }
+                        finally { this.DoEvents(); Task.Delay(1); }
                     });
                 }
                 else
@@ -725,7 +720,7 @@ namespace PixivWPF.Pages
                         foreach (var url in urls)
                         {
                             if (PrefetchingTask.CancellationPending) { e.Cancel = true; break; }
-                            if (tasks.Wait(-1))
+                            if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
                             {
                                 new Action(async () =>
                                 {
@@ -734,12 +729,12 @@ namespace PixivWPF.Pages
                                         var file = url.GetImageCacheFile();
                                         if (!string.IsNullOrEmpty(file))
                                         {
-                                            if (!File.Exists(file))
+                                            if (File.Exists(file)) count = count - 1;
+                                            else
                                             {
                                                 file = await url.DownloadCacheFile();
                                                 if (!string.IsNullOrEmpty(file)) count = count - 1;
                                             }
-                                            else count = count - 1;
                                         }
                                         if (PrefetchingTask.CancellationPending) { e.Cancel = true; return; }
                                         percent = count == 0 ? 100 : (total - count) / (double)total * 100;
@@ -748,14 +743,8 @@ namespace PixivWPF.Pages
                                         //await Task.Delay(10);
                                         this.DoEvents();
                                     }
-                                    catch (Exception ex)
-                                    {
-                                        new Action(() =>
-                                        {
-                                            ex.ERROR("PREFETCH");
-                                        }).Invoke(async: false);
-                                    }
-                                    finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); }
+                                    catch (Exception ex) { ex.ERROR("PREFETCHING"); }
+                                    finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
                                 }).Invoke(async: false);
                             }
                         }
@@ -782,8 +771,7 @@ namespace PixivWPF.Pages
                         pages.Clear();
                     }
                     catch (Exception ex) { ex.ERROR("PREFETCHED"); }
-                    $"Prefetching Preview/Thumbnails : {tooltip}".ShowToast("INFO");
-                    $"Prefetching Preview/Thumbnails : {tooltip}".DEBUG(name ?? "TilePages");
+                    $"Prefetching Previews, Avatars, Thumbnails : {Environment.NewLine}  {tooltip}".ShowToast("INFO", tag: name ?? GetType().Name);
                 }
             }
             catch (Exception ex) { ex.ERROR("PREFETCHING"); }
@@ -797,13 +785,24 @@ namespace PixivWPF.Pages
             StopPrefetching();
             if (waitcancel && await CanPrefetching.WaitAsync(-1))
             {
-                if (!PrefetchingTask.IsBusy && !PrefetchingTask.CancellationPending) PrefetchingTask.RunWorkerAsync(this.Name ?? "Tiles");
+                if (!PrefetchingTask.IsBusy && !PrefetchingTask.CancellationPending)
+                {
+                    new Action(() =>
+                    {
+                        PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
+                        PrefetchingTask.RunWorkerAsync(this.Name ?? "Tiles");
+                    }).Invoke(async: false);
+                }
             }
         }
 
         public void StopPrefetching()
         {
-            if (PrefetchingTask.IsBusy || PrefetchingTask.CancellationPending) PrefetchingTask.CancelAsync();
+            if (PrefetchingTask.IsBusy || PrefetchingTask.CancellationPending)
+            {
+                PrefetchingTask.CancelAsync();
+                if (PrefetchingTaskCancelTokenSource is CancellationTokenSource) PrefetchingTaskCancelTokenSource.Cancel();
+            }
             if (!PrefetchingTask.IsBusy && !PrefetchingTask.CancellationPending && CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
         }
         #endregion
@@ -820,7 +819,6 @@ namespace PixivWPF.Pages
             setting = Application.Current.LoadSetting();
 
             window = this.GetMainWindow();
-            this.Name = "CategoryTiles";
             UpdateTheme();
             this.DoEvents();
 
@@ -871,13 +869,14 @@ namespace PixivWPF.Pages
             }
             if (!IsAppend)
             {
-                $"Show illusts from category \"{target.ToString()}\" ......".INFO();
+                $"Show illusts from category \"{target.ToString()}\" ...".INFO();
                 NextURL = null;
                 ids.Clear();
                 ImageTiles.ClearAsync(setting.BatchClearThumbnails);
+                //ImageTiles.Clear(setting.BatchClearThumbnails);
                 this.DoEvents();
             }
-            else $"Append illusts from category \"{target.ToString()}\" ......".INFO();
+            else $"Append illusts from category \"{target.ToString()}\" ...".INFO();
 
             ImageTiles.SelectedIndex = -1;
             LastPage = target;
@@ -1044,11 +1043,12 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    //var n = nameof(ShowRecommanded);
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1098,11 +1098,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1152,11 +1152,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1206,11 +1206,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1263,11 +1263,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1322,11 +1322,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1376,11 +1376,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1442,11 +1442,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1503,11 +1503,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1585,11 +1585,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1643,11 +1643,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1700,11 +1700,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally
@@ -1757,11 +1757,11 @@ namespace PixivWPF.Pages
                 ImageTiles.Fail();
                 if (ex is NullReferenceException)
                 {
-                    "No Result".ShowMessageBox("INFO");
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
                 else
                 {
-                    ex.Message.ShowMessageBox("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
                 }
             }
             finally

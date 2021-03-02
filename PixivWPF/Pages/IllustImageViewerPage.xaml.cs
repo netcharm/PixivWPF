@@ -159,7 +159,7 @@ namespace PixivWPF.Pages
                 if (IsOriginal)
                 {
                     var original = await OriginalImageUrl.LoadImageFromUrl(overwrite);
-                    if (original.Source != null) img = original;
+                    if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath)) img = original;
                 }
                 else
                 {
@@ -170,9 +170,13 @@ namespace PixivWPF.Pages
                          preview.Source.Height < setting.PreviewUsingLargeMinHeight))
                     {
                         var original = await OriginalImageUrl.LoadImageFromUrl();
-                        if (original.Source != null) img = original;
+                        if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath)) img = original;
                     }
-                    else img = preview;
+                    else
+                    {
+                        img.Source = preview.Source;
+                        if (!string.IsNullOrEmpty(preview.SourcePath)) img.SourcePath = preview.SourcePath;
+                    }
                 }
 
                 if (c_item.IsSameIllust(Contents))
@@ -211,7 +215,7 @@ namespace PixivWPF.Pages
                     else PreviewWait.Fail();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
             finally
             {
                 img.Source = null;
@@ -288,7 +292,7 @@ namespace PixivWPF.Pages
                     Commands.ChangeIllustLikeState.Execute(Contents);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ChangeIllustLikeState"); }
         }
 
         public void ChangeUserLikeState()
@@ -300,7 +304,7 @@ namespace PixivWPF.Pages
                     Commands.ChangeUserLikeState.Execute(Contents);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ChangeUserLikeState"); }
         }
 
         public void OpenUser()
@@ -451,7 +455,7 @@ namespace PixivWPF.Pages
                 this.DataContext = null;
             }
             catch (Exception ex) { ex.ERROR("DisposePreview"); }
-            finally{ Application.Current.GC(name: this.Name ?? this.GetType().Name, wait: true); }
+            finally{ }
         }
 
         public IllustImageViewerPage()

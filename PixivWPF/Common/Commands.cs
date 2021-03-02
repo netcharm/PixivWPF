@@ -37,7 +37,7 @@ namespace PixivWPF.Common
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             //use the default serialization - it works fine
-            serializer.Serialize(writer, value);
+            serializer.Serialize(writer, nameof(value));
         }
     }
     #endregion
@@ -70,7 +70,7 @@ namespace PixivWPF.Common
     {
         private static Setting setting = Application.Current.LoadSetting();
 
-        private static DownloadManagerPage _downManager_page = new DownloadManagerPage();
+        private static DownloadManagerPage _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
 
         private const int WIDTH_MIN = 720;
         private const int HEIGHT_MIN = 524;
@@ -657,7 +657,7 @@ namespace PixivWPF.Common
                         var item = illust.WorkItem();
                         if (item is PixivItem)
                         {
-                            var page = new IllustDetailPage() { Name = "IllustDetail", FontFamily = setting.FontFamily, Contents = item };
+                            var page = new IllustDetailPage() { Name = $"IllustDetail_{item.ID}", FontFamily = setting.FontFamily, Contents = item };
                             var viewer = new ContentWindow()
                             {
                                 Title = title,
@@ -727,13 +727,14 @@ namespace PixivWPF.Common
                     else
                         item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
 
-                    var suffix = item.Count > 1 ? $" - {item.Index}/{item.Count}" : string.Empty;
+                    //var suffix = item.Count > 1 ? $" - {item.Index}/{item.Count}" : string.Empty;
+                    var suffix = item.Count > 1 ? $"_{item.Index}_{item.Count}" : string.Empty;
                     var title = $"Preview ID: {item.ID}, {item.Subject}";
                     if (await title.ActiveByTitle()) return;
 
                     await new Action(async () =>
                     {
-                        var page = new IllustImageViewerPage() { Name = "IllustPreview", FontFamily = setting.FontFamily, Contents = item };
+                        var page = new IllustImageViewerPage() { Name = $"IllustPreview_{item.ID}{suffix}", FontFamily = setting.FontFamily, Contents = item };
                         var viewer = new ContentWindow()
                         {
                             Title = $"{title}",
@@ -763,7 +764,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR[PREVIEW]");
+                ex.Message.ShowToast("ERROR", tag: "PREVIEW");
             }
         });
 
@@ -782,7 +783,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new IllustDetailPage() { Name = "UserDetail", FontFamily = setting.FontFamily, Contents = user.UserItem() };
+                        var page = new IllustDetailPage() { Name = $"UserDetail_{user.Id}", FontFamily = setting.FontFamily, Contents = user.UserItem() };
                         var viewer = new ContentWindow()
                         {
                             Title = title,
@@ -801,8 +802,7 @@ namespace PixivWPF.Common
                 else if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
-                    if (item.IsWork() || item.IsUser())
-                        OpenUser.Execute(item.User);
+                    if (item.HasUser()) OpenUser.Execute(item.User);
                 }
                 else if (obj is ImageListGrid)
                 {

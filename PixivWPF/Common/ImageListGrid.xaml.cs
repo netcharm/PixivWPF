@@ -489,7 +489,11 @@ namespace PixivWPF.Common
 
         public void Cancel()
         {
-            if (UpdateTileTask.IsBusy) UpdateTileTask.CancelAsync();
+            if (UpdateTileTask.IsBusy)
+            {
+                UpdateTileTask.CancelAsync();
+                if (UpdateTileTaskCancelTokenSource is CancellationTokenSource) UpdateTileTaskCancelTokenSource.Cancel();
+            }
         }
         #endregion
 
@@ -543,7 +547,7 @@ namespace PixivWPF.Common
             {
                 if (async)
                 {
-                    await new Action(() =>
+                    await new Action(async () =>
                     {
                         if (source == null)
                         {
@@ -553,6 +557,7 @@ namespace PixivWPF.Common
                                 if (batch) canvas.InvalidateVisual();
                                 else canvas.UpdateLayout();
                                 canvas.DoEvents();
+                                await Task.Delay(1);
                             }
                         }
                         else
@@ -566,7 +571,8 @@ namespace PixivWPF.Common
                 }
                 else
                 {
-                    new Action(() => {
+                    new Action(() => 
+                    {
                         if (source == null)
                         {
                             if (canvas.Background != null)
@@ -575,6 +581,7 @@ namespace PixivWPF.Common
                                 if (batch) canvas.InvalidateVisual();
                                 else canvas.UpdateLayout();
                                 canvas.DoEvents();
+                                Task.Delay(1);
                             }
                         }
                         else
@@ -584,57 +591,34 @@ namespace PixivWPF.Common
                             canvas.Background = new ImageBrush(source) { Stretch = Stretch.Uniform, TileMode = TileMode.None };
                             if (canvas.Background.CanFreeze) canvas.Background.Freeze();
                         }
-                    }).Invoke(async: false);
+                    }).Invoke(async: async);
                 }
             }
         }
 
-        private async void RenderImage(Image image, ImageSource source, bool batch = false, bool async = false)
+        private void RenderImage(Image image, ImageSource source, bool batch = false, bool async = false)
         {
             if (image is Image)
             {
-                if (async)
+                new Action(() =>
                 {
-                    await new Action(() =>
+                    if (source == null)
                     {
-                        if (source == null)
+                        if (image.Source != null)
                         {
-                            if (image.Source != null)
-                            {
-                                image.Source = null;
-                                if (batch) image.InvalidateVisual();
-                                else image.UpdateLayout();
-                                image.DoEvents();
-                            }
+                            image.Source = null;
+                            if (batch) image.InvalidateVisual();
+                            else image.UpdateLayout();
+                            image.DoEvents();
+                            Task.Delay(1);
                         }
-                        else
-                        {
-                            image.Source = source;
-                            if (image.Source.CanFreeze) image.Source.Freeze();
-                        }
-                    }).InvokeAsync(true);
-                }
-                else
-                {
-                    new Action(() =>
+                    }
+                    else
                     {
-                        if (source == null)
-                        {
-                            if (image.Source != null)
-                            {
-                                image.Source = null;
-                                if (batch) image.InvalidateVisual();
-                                else image.UpdateLayout();
-                                image.DoEvents();
-                            }
-                        }
-                        else
-                        {
-                            image.Source = source;
-                            if (image.Source.CanFreeze) image.Source.Freeze();
-                        }
-                    }).Invoke(async: false);
-                }
+                        image.Source = source;
+                        if (image.Source.CanFreeze) image.Source.Freeze();
+                    }
+                }).Invoke(async: async);
             }
         }
 
@@ -653,7 +637,7 @@ namespace PixivWPF.Common
         public async void Clear(bool batch = true, bool force = false)
         {
             ClearRequested = true;
-            if (UpdateTileTask.IsBusy) UpdateTileTask.CancelAsync();
+            Cancel();
             var count = ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0;
             try
             {
@@ -662,16 +646,10 @@ namespace PixivWPF.Common
                     if (count > 0)
                     {
                         var items = ItemList is ObservableCollection<PixivItem> ? ItemList.ToList() : new List<PixivItem>();
-                        
-                        //foreach (var item in items) item.State = TaskStatus.Canceled;
-                        //await Task.Delay(count*15);
-                        //this.DoEvents();
 
                         for (var i = 0; i < items.Count; i++)
                         {
-                            var item = items[i];
-                            var id = GetID(item);
-
+                            var id = GetID(items[i]);
                             if (RingList.ContainsKey(id))
                             {
                                 ProgressRingCloud ring = null;
@@ -687,7 +665,7 @@ namespace PixivWPF.Common
                                 Canvas canvas = null;
                                 if (CanvasList.TryRemove(id, out canvas) && canvas is Canvas) RenderCanvas(canvas, null, batch);
                             }
-                            ItemList.Remove(item);
+                            ItemList.Remove(items[i]);
                             this.DoEvents();
                         }
                         items.Clear();
@@ -703,15 +681,14 @@ namespace PixivWPF.Common
                             ItemList.Clear();
                         }
                         ClearRequested = false;
-                        //await Task.Delay(1);
                         this.DoEvents();
+                        await Task.Delay(1);
                     }
                 }
             }
             catch (Exception ex) { ex.ERROR(this.Name ?? string.Empty); }
             finally
             {
-                //PART_ImageTiles.
                 if (CanUpdateItems is SemaphoreSlim && CanUpdateItems.CurrentCount <= 0) CanUpdateItems.Release();
                 if (AutoGC && count > 0) Application.Current.GC(this.Name, WaitGC, CalcSystemMemoryUsage);
                 this.DoEvents();
@@ -731,6 +708,7 @@ namespace PixivWPF.Common
         }
 
         private BackgroundWorker UpdateTileTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+        private CancellationTokenSource UpdateTileTaskCancelTokenSource = new CancellationTokenSource();
 
         private void UpdateTileTask_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -793,17 +771,17 @@ namespace PixivWPF.Common
                                 if (item.Source == null) item.Source = img.Source;
                                 if (item.Source is ImageSource)
                                     item.State = TaskStatus.RanToCompletion;
-                                else
-                                    item.State = TaskStatus.Faulted;
                                 img.Source = null;
                                 img = null;
                             }
+                            else item.State = TaskStatus.Faulted;
                         }
                         catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
                         finally { this.DoEvents(); }
                     });
 
                     if (UpdateTileTask.CancellationPending || ClearRequested) { e.Cancel = true; return; }
+                    var thumb_size = Application.Current.GetDefaultThumbSize();
                     if (setting.ParallelPrefetching)
                     {
                         Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
@@ -814,7 +792,7 @@ namespace PixivWPF.Common
                                 if (!cached.Contains(item))
                                 {
                                     item.State = TaskStatus.Running;
-                                    var img = item.Thumb.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultThumbSize()).GetAwaiter().GetResult();
+                                    var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult();
                                     this.DoEvents();
                                     if (UpdateTileTask.CancellationPending || ClearRequested) { if (img != null) { img.Source = null; img = null; } e.Cancel = true; loopstate.Stop(); }
                                     if (img != null && img.Source != null)
@@ -822,15 +800,14 @@ namespace PixivWPF.Common
                                         if (item.Source == null) item.Source = img.Source;
                                         if (item.Source is ImageSource)
                                             item.State = TaskStatus.RanToCompletion;
-                                        else
-                                            item.State = TaskStatus.Faulted;
                                         img.Source = null;
                                         img = null;
                                     }
+                                    else item.State = TaskStatus.Faulted;
                                 }
                             }
                             catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
-                            finally { this.DoEvents(); }
+                            finally { this.DoEvents(); Task.Delay(1); }
                         });
                     }
                     else
@@ -839,14 +816,14 @@ namespace PixivWPF.Common
                         foreach (var item in needUpdate)
                         {
                             if (UpdateTileTask.CancellationPending || ClearRequested) { tasks.Release(); e.Cancel = true; break; }
-                            if (tasks.Wait(-1))
+                            if (tasks.Wait(-1, UpdateTileTaskCancelTokenSource.Token))
                             {
                                 new Action(async () =>
                                 {
                                     try
                                     {
                                         item.State = TaskStatus.Running;
-                                        var img = await item.Thumb.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultThumbSize());
+                                        var img = await item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size);
                                         if (UpdateTileTask.CancellationPending || ClearRequested) { if (img != null) { img.Source = null; img = null; } e.Cancel = true; return; }
                                         this.DoEvents();
                                         if (img != null && img.Source != null)
@@ -854,14 +831,13 @@ namespace PixivWPF.Common
                                             if (item.Source == null) item.Source = img.Source;
                                             if (item.Source is ImageSource)
                                                 item.State = TaskStatus.RanToCompletion;
-                                            else
-                                                item.State = TaskStatus.Faulted;
                                             img.Source = null;
                                             img = null;
                                         }
+                                        else item.State = TaskStatus.Faulted;
                                     }
                                     catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
-                                    finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); this.DoEvents(); }
+                                    finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
                                 }).Invoke(async: false);
                             }
                         }
@@ -883,8 +859,8 @@ namespace PixivWPF.Common
         {
             this.DoEvents();
             if (ItemList.Count <= 0) return;
+            Cancel();
             var setting = Application.Current.LoadSetting();
-            if (UpdateTileTask.IsBusy) UpdateTileTask.CancelAsync();
             if (!ClearRequested && await CanUpdateItems.WaitAsync(TimeSpan.FromMilliseconds(500)))
             {
                 try
@@ -893,6 +869,7 @@ namespace PixivWPF.Common
                     {
                         new Action(() =>
                         {
+                            UpdateTileTaskCancelTokenSource = new CancellationTokenSource();
                             UpdateTileTask.RunWorkerAsync(overwrite);
                         }).Invoke(async: false);
                     }

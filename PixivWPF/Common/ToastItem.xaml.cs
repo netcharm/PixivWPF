@@ -241,7 +241,7 @@ namespace PixivWPF.Common
                     Application.Current.AddToast(parentWindow);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ToastLoaded"); }
 
             try
             {
@@ -250,7 +250,7 @@ namespace PixivWPF.Common
                 ButtonOpenFile = new CustomButton() { Button = OpenFile, Kind = ButtonOpenFileIcon, Text = ButtonOpenFileLabel };
                 ButtonOpenFolder = new CustomButton() { Button = OpenFolder, Kind = ButtonOpenFolderIcon, Text = ButtonOpenFolderLabel };
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ToastLoaded"); }
 
             try
             {

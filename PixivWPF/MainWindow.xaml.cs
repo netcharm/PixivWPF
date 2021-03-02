@@ -376,7 +376,7 @@ namespace PixivWPF
             DatePicker.Language = System.Windows.Markup.XmlLanguage.GetLanguage(System.Globalization.CultureInfo.CurrentCulture.IetfLanguageTag);
             #endregion
 
-            Contents = new Pages.TilesPage() { FontFamily = FontFamily };
+            Contents = new Pages.TilesPage() { Name = "CategoryTiles", FontFamily = FontFamily };
             Content = Contents;
 
             NavPageTitle.Text = Contents.TargetPage.ToString();

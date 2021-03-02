@@ -41,6 +41,7 @@ using WPFNotification.Core.Configuration;
 using WPFNotification.Model;
 using WPFNotification.Services;
 using PixivWPF.Pages;
+using System.Runtime.CompilerServices;
 
 namespace PixivWPF.Common
 {
@@ -319,9 +320,10 @@ namespace PixivWPF.Common
         public string DisplayDescription { get; set; } = string.Empty;
         [JsonConverter(typeof(StringEnumConverter))]
         public System.Windows.Forms.Keys Keys { get; set; } = default(System.Windows.Forms.Keys);
-        [JsonIgnore]
+        //[JsonIgnore]
         [JsonConverter(typeof(ICommandTypeConverter<Prism.Commands.DelegateCommand>))]
         public ICommand Command { get; set; } = default(ICommand);
+        public string CommandName { get; set; } = string.Empty;
         public dynamic CommandParams { get; set; } = null;
     }
     #endregion
@@ -378,7 +380,7 @@ namespace PixivWPF.Common
             string result = file;
 
             result = CommonHelper.ChangeSaveTarget(file);
-
+            if(!string.IsNullOrEmpty(result)) result.INFO("ChangeSaveTarget");
             return (result);
         }
         #endregion
@@ -1433,6 +1435,21 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application LOG Helper
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static string GetCurrentMethod(this Application app)
+        {
+            var st = new StackTrace();
+            var sf = st.GetFrame(1);
+
+            return sf.GetMethod().Name;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string CurrentMethodName(this Application app)
+        {
+            return (MethodBase.GetCurrentMethod().Name);
+        }
+
         private static bool IsConsole
         {
             get
@@ -1540,11 +1557,12 @@ namespace PixivWPF.Common
             List<string> lines = new List<string>();
             lines.Add($"{ex.Message}");
             lines.Add($"{ex.StackTrace}");
-            lines.Add($"  Inner => {ex.InnerException}");
-            lines.Add($"  Base => {ex.GetBaseException()}");
-            lines.Add($"  Root => {ex.GetRootException()}");
+            lines.Add($"  Inner  => {ex.InnerException}");
+            lines.Add($"  Base   => {ex.GetBaseException()}");
+            lines.Add($"  Root   => {ex.GetRootException()}");
+            lines.Add($"  Method => {ex.TargetSite}");
             lines.Add($"  Source => {ex.Source}");
-            lines.Add($"  Data => {ex.Data}");
+            lines.Add($"  Data   => {ex.Data}");
             var contents = string.Join(Environment.NewLine, lines);
             contents.TRACE(tag);
         }
@@ -1556,9 +1574,9 @@ namespace PixivWPF.Common
             lines.Add($"{ex.Message}");
             lines.Add($"{ex.StackTrace}");
             lines.Add($"  Inner => {ex.InnerException}");
-            lines.Add($"  Base => {ex.GetBaseException()}");
-            lines.Add($"  Root => {ex.GetRootException()}");
-            lines.Add($"  Data => {ex.Data}");
+            lines.Add($"  Base  => {ex.GetBaseException()}");
+            lines.Add($"  Root  => {ex.GetRootException()}");
+            lines.Add($"  Data  => {ex.Data}");
             var contents = string.Join(Environment.NewLine, lines);
             contents.DEBUG(tag);
         }
@@ -1696,53 +1714,55 @@ namespace PixivWPF.Common
         private static System.Timers.Timer autoTaskTimer = null;
         private static ConcurrentDictionary<Window, long> toast_list = new ConcurrentDictionary<Window, long>();
 
-        private static void InitTaskTimer()
-        {
-            try
-            {
-                var setting = LoadSetting(Application.Current);
-                if (autoTaskTimer == null)
-                {
-                    autoTaskTimer = new System.Timers.Timer(setting.ToastShowTimes * 1000) { AutoReset = true, Enabled = false };
-                    autoTaskTimer.Elapsed += Timer_Elapsed;
-                    autoTaskTimer.Enabled = true;
-                }
-            }
-            catch (Exception ex) { ex.ERROR(); }
-        }
-
         public static void AddToast(this Application app, Window win)
         {
             InitTaskTimer();
-            var now = Environment.TickCount;
-            toast_list[win] = now;
-            Timer_Elapsed(app, null);
+            toast_list[win] = Environment.TickCount;
+            CloseToastAsync();
         }
 
-        private static async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private static async void CloseToastAsync()
         {
-            if (!(toast_list is ConcurrentDictionary<Window, long>) || toast_list.Count <= 0) return;
             await new Action(() =>
             {
                 var setting = Application.Current.LoadSetting();
                 var now = Environment.TickCount;
-                foreach (var kv in toast_list)
+                long value = 0L;
+                foreach (var kv in toast_list.ToList())
                 {
                     var delta = Math.Abs(TimeSpan.FromMilliseconds(now - kv.Value).TotalSeconds);
                     if (delta >= setting.ToastShowTimes + 5)
                     {
                         try
                         {
-                            if (kv.Key is Window)
-                                kv.Key.Close();
-                            long value = 0L;
+                            if (kv.Key is Window) kv.Key.Close();
                             toast_list.TryRemove(kv.Key, out value);
                         }
-                        catch (Exception ex) { ex.ERROR(); }
+                        catch (Exception ex) { ex.ERROR("CloseToastAsync"); }
                     }
+                    else if(!(kv.Key is Window)) toast_list.TryRemove(kv.Key, out value);
                 }
             }).InvokeAsync();
+        }
 
+        private static void InitTaskTimer()
+        {
+            try
+            {
+                if (autoTaskTimer == null)
+                {
+                    var setting = LoadSetting(Application.Current);
+                    autoTaskTimer = new System.Timers.Timer(TimeSpan.FromSeconds(setting.ToastShowTimes).TotalMilliseconds) { AutoReset = true, Enabled = false };
+                    autoTaskTimer.Elapsed += Timer_Elapsed;
+                    autoTaskTimer.Enabled = true;
+                }
+            }
+            catch (Exception ex) { ex.ERROR("InitTaskTimer"); }
+        }
+
+        private static void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            if (toast_list is ConcurrentDictionary<Window, long> && toast_list.Count > 0) CloseToastAsync();
             Commands.SaveOpenedWindows.Execute(null);
         }
         #endregion
@@ -2235,7 +2255,7 @@ namespace PixivWPF.Common
                             Application.Current.DoEvents();
                         }
                         var key_name = string.IsNullOrEmpty(e.ChordName) ? string.Join("+", e.Keys.Select(k => k.ToString())) : e.ChordName;
-                        $"Description: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
+                        $"Description: {e.Description}, Keys: \"{ApplicationCulture.TextInfo.ToTitleCase(key_name)}\"".DEBUG();
                         await new Action(() =>
                         {
                             var win = Application.Current.GetActiveWindow();
@@ -2297,7 +2317,7 @@ namespace PixivWPF.Common
                     else
                     {
                         var key = Key2String(hotkey.Keys);
-                        $"Command \"{cmd_name}\" binding to hotkey \"{key}\" ......".INFO();
+                        $"Command \"{cmd_name}\" binding to hotkey \"{key}\"...".INFO();
                         BindHotkey(app, cmd_name, hotkey.Keys, hotkey.Command);
                     }
                 }
@@ -2622,16 +2642,20 @@ namespace PixivWPF.Common
         {
             if (action is Action)
             {
-                Dispatcher dispatcher = action.AppDispatcher();
-                if (async)
+                try
                 {
-                    if (realtime)
-                        await dispatcher.BeginInvoke(action, DispatcherPriority.Send);
+                    Dispatcher dispatcher = action.AppDispatcher();
+                    if (async)
+                    {
+                        if (realtime)
+                            await dispatcher.BeginInvoke(action, DispatcherPriority.Send);
+                        else
+                            await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
+                    }
                     else
-                        await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
+                        dispatcher.Invoke(action);
                 }
-                else
-                    dispatcher.Invoke(action);
+                catch (Exception ex) { ex.ERROR("Invoke"); }
             }
         }
 
@@ -2645,7 +2669,7 @@ namespace PixivWPF.Common
                 else
                     await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }
 
         public static async Task InvokeAsync(this Action action, CancellationToken cancelToken, bool realtime = false)
@@ -2658,7 +2682,7 @@ namespace PixivWPF.Common
                 else
                     await dispatcher.InvokeAsync(action, DispatcherPriority.Background, cancelToken);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }
 
         public static async Task InvokeAsync(this Action action, DispatcherPriority priority)
@@ -2668,7 +2692,7 @@ namespace PixivWPF.Common
                 Dispatcher dispatcher = action.AppDispatcher();
                 await dispatcher.InvokeAsync(action, priority);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }
 
         public static async Task InvokeAsync(this Action action, DispatcherPriority priority, CancellationToken cancelToken)
@@ -2678,9 +2702,8 @@ namespace PixivWPF.Common
                 Dispatcher dispatcher = action.AppDispatcher();
                 await dispatcher.InvokeAsync(action, priority, cancelToken);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }
-
         #endregion
 
         #region AES Encrypt/Decrypt helper
@@ -2710,9 +2733,16 @@ namespace PixivWPF.Common
                                 using (StreamWriter sw = new StreamWriter(cs))
                                 {
                                     sw.Write(uni_text);
+                                    sw.Flush();
+                                    sw.Close();
+                                    sw.Dispose();
                                 }
                                 encrypt = Convert.ToBase64String(ms.ToArray());
+                                cs.Close();
+                                cs.Dispose();
                             }
+                            ms.Close();
+                            ms.Dispose();
                         }
                     }
                     else
@@ -2723,8 +2753,12 @@ namespace PixivWPF.Common
                             {
                                 cs.Write(dataByteArray, 0, dataByteArray.Length);
                                 cs.FlushFinalBlock();
+                                cs.Close();
+                                cs.Dispose();
                             }
                             encrypt = Convert.ToBase64String(ms.ToArray());
+                            ms.Close();
+                            ms.Dispose();
                         }
                     }
                 }
@@ -2762,8 +2796,12 @@ namespace PixivWPF.Common
                                 using (StreamReader sr = new StreamReader(cs))
                                 {
                                     uni_text = sr.ReadToEnd();
+                                    sr.Close();
+                                    sr.Dispose();
                                 }
                             }
+                            ms.Close();
+                            ms.Dispose();
                         }
                     }
                     else
@@ -2774,8 +2812,12 @@ namespace PixivWPF.Common
                             {
                                 cs.Write(dataByteArray, 0, dataByteArray.Length);
                                 cs.FlushFinalBlock();
+                                cs.Close();
+                                cs.Dispose();
                             }
                             uni_text = Encoding.UTF8.GetString(ms.ToArray());
+                            ms.Close();
+                            ms.Dispose();
                         }
                     }
                     if (uni_text.StartsWith(ProcessorID)) decrypt = uni_text.Replace($"{ProcessorID}", "");
@@ -2902,21 +2944,20 @@ namespace PixivWPF.Common
     {
         private static Setting setting = Application.Current.LoadSetting();
         private static CacheImage cache = new CacheImage();
-        public static ConcurrentDictionary<long?, Pixeez.Objects.Work> IllustCache = new ConcurrentDictionary<long?, Pixeez.Objects.Work>();
-        public static ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
-        public static ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
+        private static ConcurrentDictionary<long?, Pixeez.Objects.Work> IllustCache = new ConcurrentDictionary<long?, Pixeez.Objects.Work>();
+        private static ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
+        private static ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
 
-        public static ConcurrentDictionary<string, string> TagsCache = new ConcurrentDictionary<string, string>();
-        public static ConcurrentDictionary<string, string> TagsT2S = new ConcurrentDictionary<string, string>();
-        public static ConcurrentDictionary<string, string> TagsWildecardT2S = new ConcurrentDictionary<string, string>();
-
-        public static DateTime SelectedDate { get; set; } = DateTime.Now;
+        public static ConcurrentDictionary<string, string> TagsCache { get; } = new ConcurrentDictionary<string, string>();
+        public static ConcurrentDictionary<string, string> TagsT2S { get; } = new ConcurrentDictionary<string, string>();
+        public static ConcurrentDictionary<string, string> TagsWildecardT2S { get; } = new ConcurrentDictionary<string, string>();
 
         private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
-        internal static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
-        internal static string[] trim_str = new string[] { Environment.NewLine };
+        private static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
+        private static string[] trim_str = new string[] { Environment.NewLine };
         private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
-        private static string regex_symbol = @"([\u0020-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u007E])";
+        private static string regex_symbol = @"([\u0020-\u002F\u003A-\u0040\u005B-\u005E\u007B-\u007E])";
+
         #region Pixiv Token Helper
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
         private static async Task<Pixeez.Tokens> RefreshToken()
@@ -3003,7 +3044,7 @@ namespace PixivWPF.Common
                         }
                         else
                         {
-                            "Show Login Dialog ......".INFO();
+                            "Show Login Dialog...".INFO();
                             Application.Current.DoEvents();
                             var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
                             var ret = dlgLogin.ShowDialog();
@@ -4414,6 +4455,8 @@ namespace PixivWPF.Common
                         pngDec = null;
                         fbmp = null;
                         bmp = null;
+                        ms.Close();
+                        ms.Dispose();
                     }
                 }
                 catch (Exception exx)
@@ -5253,6 +5296,50 @@ namespace PixivWPF.Common
             while (!IsFileReady(filename)) { }
         }
 
+        public static bool IsLocked(this string file)
+        {
+            bool result = false;
+            try
+            {
+                using (FileStream stream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    stream.Close();
+                }
+            }
+            catch (Exception)
+            {
+                //the file is unavailable because it is:
+                //still being written to
+                //or being processed by another thread
+                //or does not exist (has already been processed)
+                result = true;
+            }
+            //file is not locked
+            return (result);
+        }
+
+        public static bool IsLocked(this FileInfo file)
+        {
+            bool result = false;
+            try
+            {
+                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    stream.Close();
+                }
+            }
+            catch (Exception)
+            {
+                //the file is unavailable because it is:
+                //still being written to
+                //or being processed by another thread
+                //or does not exist (has already been processed)
+                result = true;
+            }
+            //file is not locked
+            return(result);
+        }
+
         public static bool IsCached(this string url)
         {
             bool result = false;
@@ -5351,6 +5438,8 @@ namespace PixivWPF.Common
                     result.SourcePath = file;
                     result.Size = stream.Length;
                     result.ColorDepth = result.Source is BitmapSource ? (result.Source as BitmapSource).Format.BitsPerPixel : 32;
+                    stream.Close();
+                    stream.Dispose();
                 }
             }
             return (result);
@@ -5382,40 +5471,44 @@ namespace PixivWPF.Common
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
                 setting = Application.Current.LoadSetting();
-                using (var httpClient = Application.Current.GetHttpClient())
+                try
                 {
-                    try
+                    using (var client = Application.Current.GetHttpClient())
                     {
-                        using (var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+                        using (var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
                         {
-                            try
-                            {
-                                response.EnsureSuccessStatusCode();
-                                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                            response.EnsureSuccessStatusCode();
+                            string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
 
-                                using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                            using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                            {
+                                var target = Path.GetDirectoryName(file);
+                                if (!Directory.Exists(target)) Directory.CreateDirectory(target);
+                                //int wait_count = 0;
+                                //while (file.IsFileLocked() && wait_count < 10) { wait_count++; await Task.Delay(1000); }
+                                //if(await sr.WriteToFile(file)) result = file;
+                                using (var ms = new MemoryStream())
                                 {
-                                    using (var ms = new MemoryStream())
+                                    await sr.CopyToAsync(ms);
+                                    if (ms.Length > 0)
                                     {
-                                        var target = Path.GetDirectoryName(file);
-                                        if (!Directory.Exists(target)) Directory.CreateDirectory(target);
-                                        await sr.CopyToAsync(ms);
+                                        int wait_count = 0;
+                                        while (file.IsLocked() && wait_count < 10) { wait_count++; await Task.Delay(1000); }
                                         File.WriteAllBytes(file, ms.ToArray());
                                         result = file;
                                     }
+                                    ms.Close();
+                                    ms.Dispose();
                                 }
+                                sr.Close();
+                                sr.Dispose();
                             }
-                            catch (Exception ex)
-                            {
-                                ex.Message.DEBUG();
-                            }
+                            response.Dispose();
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        ex.Message.DEBUG();
+                        client.Dispose();
                     }
                 }
+                catch (Exception ex) { ex.ERROR("DOWNLOAD"); }
             }
             return (result);
         }
@@ -5426,20 +5519,32 @@ namespace PixivWPF.Common
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
                 if (tokens == null) tokens = await ShowLogin();
-                using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                try
                 {
-                    if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
+                    using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
                     {
-                        using (var ms = await response.ToMemoryStream())
+                        if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
                         {
                             var target = Path.GetDirectoryName(file);
                             if (!Directory.Exists(target)) Directory.CreateDirectory(target);
-                            File.WriteAllBytes(file, ms.ToArray());
-                            result = file;
+                            using (var ms = await response.ToMemoryStream())
+                            {
+                                if (ms.Length > 0)
+                                {
+                                    int wait_count = 0;
+                                    while (file.IsLocked() && wait_count < 10) { wait_count++; await Task.Delay(1000); }
+                                    //if(await ms.WriteToFile(file)) result = file;
+                                    File.WriteAllBytes(file, ms.ToArray());
+                                    result = file;
+                                }
+                                ms.Close();
+                            }
                         }
+                        else result = string.Empty;
+                        response.Dispose();
                     }
-                    else result = string.Empty;
                 }
+                catch (Exception ex) { ex.ERROR("DOWNLOAD"); }
             }
             return (result);
         }
@@ -5661,6 +5766,8 @@ namespace PixivWPF.Common
                         image.StreamSource = ms;
                         image.EndInit();
                         image.Freeze();
+                        ms.Close();
+                        ms.Dispose();
                     }
                     result = image;
                 }
@@ -5754,6 +5861,11 @@ namespace PixivWPF.Common
                     }
                     bmp.Render(drawingVisual);
                     result.Source = bmp;
+
+                    src.Dispose();
+                    root.UpdateLayout();
+                    root = null;
+                    img = null;
                 }).Invoke(async: false);
             }
 #if DEBUG
@@ -5970,6 +6082,31 @@ namespace PixivWPF.Common
 #endif
         }
 
+        public static async Task<bool> WriteToFile(this Stream source, string target, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
+        {
+            var result = false;
+            byte[] buffer = new byte[bufferSize];
+            using (var ms = new MemoryStream())
+            {
+                using (var fs = new FileStream(target, mode, access, share, bufferSize, true))
+                {
+                    await source.CopyToAsync(ms, bufferSize);
+                    if (ms.Length > 0)
+                    {
+                        ms.Seek(0, SeekOrigin.Begin);
+                        await ms.CopyToAsync(fs, bufferSize);
+                        //await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
+                        await fs.FlushAsync();
+                        result = true;
+                    }
+                    fs.Close();
+                    fs.Dispose();
+                }
+                ms.Close();
+                ms.Dispose();
+            }
+            return (result);
+        }
         #endregion
 
         #region Illust routines
@@ -7685,8 +7822,8 @@ namespace PixivWPF.Common
                 var dw = rect.Width;
                 var dh = rect.Height;
 
-                window.MaxWidth = Math.Min(window.MaxWidth, dw);
-                window.MaxHeight = Math.Min(window.MaxHeight, dh);
+                //window.MaxWidth = Math.Min(window.MaxWidth, dw + 16);
+                //window.MaxHeight = Math.Min(window.MaxHeight, dh + 16);
 
                 if (window.Left + window.Width > dw) window.Left = window.Left + window.Width - dw;
                 if (window.Top + window.Height > dh) window.Top = window.Top + window.Height - dh;
@@ -7827,7 +7964,7 @@ namespace PixivWPF.Common
                 {
                     setting.LastFolder = dlg.FileName;
                     result = dlg.FileName;
-                    // Do something with selected folder string                   
+                    // Do something with selected folder string
                 }
             }
             else
@@ -8024,11 +8161,11 @@ namespace PixivWPF.Common
 #endif
         }
 
-        public async static void ShowToast(this string content, string title, string imgsrc, string state = "", string state_description = "")
+        public async static void ShowToast(this string content, string title, string imgsrc, string state = "", string state_description = "", string tag = "")
         {
             try
             {
-                content.Replace("\r\n", " ").Replace("\n\r", " ").Replace("\r", " ").Replace("\n", " ").LOG(title);
+                content.Replace("\r\n", " ").Replace("\n\r", " ").Replace("\r", " ").Replace("\n", " ").LOG(title, tag);
 
                 setting = Application.Current.LoadSetting();
 
@@ -8062,13 +8199,13 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SHOWTOAST"); }
         }
 
-        public async static void ShowToast(this string content, string title, bool messagebox = false)
+        public async static void ShowToast(this string content, string title, bool messagebox = false, string tag = "")
         {
             try
             {
                 if (messagebox) { content.ShowMessageBox(title); return; }
 
-                content.Replace("\r\n", " ").Replace("\n\r", " ").Replace("\r", " ").Replace("\n", " ").LOG(title);
+                content.Replace("\r\n", " ").Replace("\n\r", " ").Replace("\r", " ").Replace("\n", " ").LOG(title, tag);
 
                 setting = Application.Current.LoadSetting();
 
@@ -8087,7 +8224,8 @@ namespace PixivWPF.Common
                     Message = content
                 };
 
-                await new Action(() => {
+                await new Action(() =>
+                {
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                 }).InvokeAsync(true);
@@ -8577,7 +8715,7 @@ namespace PixivWPF.Common
                     image.UpdateLayout();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("DisposeImage"); }
         }
 
         public static void Dispose<T>(this T[] array)
@@ -8602,7 +8740,7 @@ namespace PixivWPF.Common
                     Array.Resize<T>(ref array, 0);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ClearArray"); }
         }
 
         public static void Clear<T>(this T[] array, ref T[] target)
@@ -8615,7 +8753,7 @@ namespace PixivWPF.Common
                     Array.Resize<T>(ref array, 0);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ClearArray"); }
         }
         #endregion
 

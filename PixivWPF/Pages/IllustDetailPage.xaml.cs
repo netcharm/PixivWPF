@@ -717,11 +717,11 @@ namespace PixivWPF.Pages
             {
                 if (Contents.IsWork())
                 {
-                    IllustTitle.ToolTip = IllustTitle.Text.TranslatedText();
                     RefreshHtmlRender(IllustTagsHtml);
+                    IllustTitle.ToolTip = IllustTitle.Text.TranslatedText();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("UpdateIllustTags"); }
         }
 
         public void UpdateIllustDesc()
@@ -730,7 +730,7 @@ namespace PixivWPF.Pages
             {
                 RefreshHtmlRender(IllustDescHtml);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("UpdateIllustDesc"); }
         }
 
         public void UpdateWebContent()
@@ -740,7 +740,7 @@ namespace PixivWPF.Pages
                 RefreshHtmlRender(IllustTagsHtml);
                 RefreshHtmlRender(IllustDescHtml);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("UpdateWebContent"); }
         }
         #endregion
 
@@ -833,7 +833,7 @@ namespace PixivWPF.Pages
                             IllustDownloaded.ToolTip = string.Empty;
                             //ToolTipService.SetToolTip(IllustDownloaded, null);
                         }
-                    }                    
+                    }
                 }
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADMARK"); }
@@ -1010,7 +1010,10 @@ namespace PixivWPF.Pages
                 {
                     if (SubIllusts.Items.Count <= 0)
                     {
-                        Commands.OpenCachedImage.Execute(Contents);
+                        if (string.IsNullOrEmpty(PreviewImagePath))
+                            Commands.OpenCachedImage.Execute(Contents);                        
+                        else
+                            Commands.OpenCachedImage.Execute(PreviewImagePath);
                     }
                     else if (SubIllusts.SelectedItems.Count > 0)
                     {
@@ -1021,7 +1024,10 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        Commands.OpenCachedImage.Execute(SubIllusts.Items[0]);
+                        if (string.IsNullOrEmpty(PreviewImagePath))
+                            Commands.OpenCachedImage.Execute(SubIllusts.Items[0]);
+                        else
+                            Commands.OpenCachedImage.Execute(PreviewImagePath);
                     }
                 }
             }
@@ -1142,7 +1148,7 @@ namespace PixivWPF.Pages
                     UpdateWebContent();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
         }
 
         private async void UpdateContentsThumbnail(PixivItem item = null, bool overwrite = false)
@@ -1162,7 +1168,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("UpdateThumb"); }
+            catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
         }
 
         public async void UpdateThumb(bool full = false, bool overwrite = false)
@@ -1265,7 +1271,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.ERROR("UPDATEILLUST");
+                ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name);
                 IllustDetailWait.Hide();
             }
             finally
@@ -1328,7 +1334,6 @@ namespace PixivWPF.Pages
                 AuthorAvatarWait.Show();
 
                 IllustTitle.Text = $"{item.Illust.Title}";
-                IllustTitle.ToolTip = IllustTitle.Text.TranslatedText();
 
                 if (item.Sanity.Equals("18+"))
                     IllustSanity.Text = "18";
@@ -1359,7 +1364,7 @@ namespace PixivWPF.Pages
 
                 if (item.Illust.Tags.Count > 0)
                 {
-                    RefreshHtmlRender(IllustTagsHtml);
+                    UpdateIllustTags();
 
                     IllustTagExpander.Header = "Tags";
                     if (setting.AutoExpand == AutoExpandMode.AUTO ||
@@ -1381,7 +1386,7 @@ namespace PixivWPF.Pages
 
                 if (!string.IsNullOrEmpty(item.Illust.Caption) && item.Illust.Caption.Length > 0)
                 {
-                    RefreshHtmlRender(IllustDescHtml);
+                    UpdateIllustDesc();
 
                     if (setting.AutoExpand == AutoExpandMode.AUTO ||
                         setting.AutoExpand == AutoExpandMode.ON ||
@@ -1446,9 +1451,9 @@ namespace PixivWPF.Pages
                 if (!SubIllustsExpander.IsShown())
                     ActionRefreshPreview();
             }
-            catch (OperationCanceledException ex) { ex.ERROR("UpdateIllustDetail"); }
-            catch (ObjectDisposedException ex) { ex.ERROR("UpdateIllustDetail"); }
-            catch (Exception ex){ ex.ERROR("UpdateIllustDetail"); }
+            catch (OperationCanceledException ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
+            catch (ObjectDisposedException ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
+            catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
             finally
             {
                 this.DoEvents();
@@ -2130,10 +2135,7 @@ namespace PixivWPF.Pages
                 Contents.Source = null;
             }
             catch (Exception ex) { ex.ERROR("DisposeIllustDetail"); }
-            finally
-            {
-                Application.Current.GC(name: this.Name ?? this.GetType().Name, wait: true);
-            }
+            finally { }
         }
 
         public IllustDetailPage()
@@ -2543,13 +2545,13 @@ namespace PixivWPF.Pages
         }
 
         private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
-        {
-            var overwrite = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
-            ActionRefreshPreview(overwrite);
+        {            
+            ActionRefreshPreview();
         }
 
         private async void ActionRefreshPreview(bool overwrite = false)
         {
+            overwrite = Keyboard.Modifiers == ModifierKeys.Control ? true : overwrite;
             if (Contents.IsWork())
             {
                 setting = Application.Current.LoadSetting();

@@ -89,7 +89,7 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool IsFavorited
         {
-            get { return (FavMarkVisibility == Visibility.Visible ? true : false); }
+            get { return (FavMarkVisibility == Visibility.Visible ? true : Illust.IsLiked()); }
             set
             {
                 if (value) FavMarkVisibility = Visibility.Visible;
@@ -106,7 +106,7 @@ namespace PixivWPF.Common
         [DefaultValue(false)]
         public bool IsFollowed
         {
-            get { return (FollowMarkVisibility == Visibility.Visible ? true : false); }
+            get { return (FollowMarkVisibility == Visibility.Visible ? true : User.IsLiked()); }
             set
             {
                 if (value) FollowMarkVisibility = Visibility.Visible;
@@ -184,10 +184,10 @@ namespace PixivWPF.Common
         {
             get
             {
-                if(UsePartDownloaded)
-                    return (IsPartDownloadedVisibility == Visibility.Visible ? true : false);
+                if (UsePartDownloaded)
+                    return (IsPartDownloadedVisibility == Visibility.Visible ? true : Illust.IsPartDownloaded());
                 else
-                    return (IsDownloadedVisibility == Visibility.Visible ? true : false);
+                    return (IsDownloadedVisibility == Visibility.Visible ? true : Illust.IsDownloaded(Count > 1));
             }
             set
             {

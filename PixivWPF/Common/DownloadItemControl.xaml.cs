@@ -837,6 +837,8 @@ namespace PixivWPF.Common
                             Received = _DownloadBuffer.Length;
                         }
                     }
+                    ms.Close();
+                    ms.Dispose();
                 }
             }
             return (result);
