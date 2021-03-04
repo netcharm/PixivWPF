@@ -912,7 +912,7 @@ namespace PixivWPF.Common
                 CleanBuffer();
 
                 var state = "Succeed";
-                $"[{FileName}] {state}.".INFO();
+                $"{FileName} {state}.".INFO("Download");
                 if (setting.DownloadCompletedToast)
                     $"{Path.GetFileName(FileName)} is saved!".ShowDownloadToast(state, ThumbnailUrl, FileName, state);
                 if (setting.DownloadCompletedSound && StartTick.DeltaSeconds(EndTick) > setting.DownloadCompletedSoundForElapsedSeconds)

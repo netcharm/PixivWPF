@@ -2,6 +2,7 @@
 using PixivWPF.Common;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Media;
 using System.Text;
@@ -174,6 +175,8 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
+                        img.ColorDepth = preview.ColorDepth;
+                        img.Size = preview.Size;
                         img.Source = preview.Source;
                         if (!string.IsNullOrEmpty(preview.SourcePath)) img.SourcePath = preview.SourcePath;
                     }
@@ -183,6 +186,9 @@ namespace PixivWPF.Pages
                 {
                     if (img.Source != null)
                     {
+                        if (img.Size == 0 && !string.IsNullOrEmpty(img.SourcePath)) img.Size = new FileInfo(img.SourcePath).Length;
+                        if (img.ColorDepth == 0 && img.Source != null) img.ColorDepth = 32;
+
                         Preview.Source = img.Source;
                         var dpiX = DPI.Default.X;
                         var dpiY = DPI.Default.Y;

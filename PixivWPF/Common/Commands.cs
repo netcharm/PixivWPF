@@ -709,10 +709,8 @@ namespace PixivWPF.Common
                     if (win.Content is Page) OpenWork.Execute(win.Content);
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[ILLUST]");
-            }
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[ILLUST]"); }
+            //catch (Exception ex) { ex.ShowExceptionMessageBox("ERROR[ILLUST]"); }
         });
 
         public static ICommand OpenWorkPreview { get; } = new DelegateCommand<dynamic>(async obj =>

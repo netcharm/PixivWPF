@@ -83,19 +83,20 @@
 
         <!-- Tiles List -->
         <Common:ImageListGrid
-            Grid.Column="0" x:Name="ImageTiles" x:Uid="ImageTiles" Margin="50,0,0,0"
+            Grid.Column="0" x:Name="ImageTiles" x:Uid="ImageTiles" Margin="49,0,0,0"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            Columns="5" TileWidth="128" TileHeight="128" MinWidth="684" MaxWidth="700"
+            Columns="5" TileWidth="128" TileHeight="128" MinWidth="680" MaxWidth="694"
             Focusable="True"
             SelectionMode="Single"
             SelectionChanged="ImageTiles_SelectionChanged" />
-        
+           
         <!-- Pixiv Category Menu -->
-        <mah:HamburgerMenu 
+        <mah:HamburgerMenu
             Grid.Column="0" x:Name="CategoryMenu" Margin="0"
             HorizontalAlignment="Left" VerticalAlignment="Stretch"
             PanePlacement="Left" DisplayMode="CompactOverlay"
-            IsPaneOpen="False" ShowSelectionIndicator="True" OpenPaneLength="280"
+            IsPaneOpen="False" ShowSelectionIndicator="True" 
+            OpenPaneLength="280" CompactPaneLength="48"
             CanResizeOpenPane="False" VerticalScrollBarOnLeftSide="False"
             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
             Background="{DynamicResource MahApps.HamburgerMenu.Pane.Background}"

@@ -5299,11 +5299,16 @@ namespace PixivWPF.Common
         public static bool IsLocked(this string file)
         {
             bool result = false;
+            FileStream stream = null;
             try
             {
-                using (FileStream stream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.None))
+                if (File.Exists(file))
                 {
-                    stream.Close();
+                    using (stream = File.Open(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    {
+                        stream.Close();
+                        stream.Dispose();
+                    }
                 }
             }
             catch (Exception)
@@ -5313,6 +5318,8 @@ namespace PixivWPF.Common
                 //or being processed by another thread
                 //or does not exist (has already been processed)
                 result = true;
+                try { if (stream is FileStream) { stream.Close(); stream.Dispose(); } }
+                catch (Exception) { }
             }
             //file is not locked
             return (result);
@@ -5321,11 +5328,16 @@ namespace PixivWPF.Common
         public static bool IsLocked(this FileInfo file)
         {
             bool result = false;
+            FileStream stream = null;
             try
             {
-                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
-                {
-                    stream.Close();
+                if (file.Exists)
+                {                    
+                    using (stream = file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    {
+                        stream.Close();
+                        stream.Dispose();
+                    }
                 }
             }
             catch (Exception)
@@ -5335,6 +5347,8 @@ namespace PixivWPF.Common
                 //or being processed by another thread
                 //or does not exist (has already been processed)
                 result = true;
+                try { if (stream is FileStream) { stream.Close(); stream.Dispose(); } }
+                catch (Exception) { }
             }
             //file is not locked
             return(result);
@@ -5495,6 +5509,7 @@ namespace PixivWPF.Common
                                         int wait_count = 0;
                                         while (file.IsLocked() && wait_count < 10) { wait_count++; await Task.Delay(1000); }
                                         File.WriteAllBytes(file, ms.ToArray());
+                                        await Task.Delay(50);
                                         result = file;
                                     }
                                     ms.Close();
@@ -5535,6 +5550,7 @@ namespace PixivWPF.Common
                                     while (file.IsLocked() && wait_count < 10) { wait_count++; await Task.Delay(1000); }
                                     //if(await ms.WriteToFile(file)) result = file;
                                     File.WriteAllBytes(file, ms.ToArray());
+                                    await Task.Delay(50);
                                     result = file;
                                 }
                                 ms.Close();
@@ -6327,14 +6343,6 @@ namespace PixivWPF.Common
                         i.IsManga = r.IsManga;
                     }
                 }
-
-                if (string.IsNullOrEmpty(result.ImageUrls.Px128x128)) result.ImageUrls.Px128x128 = Illust.ImageUrls.Px128x128;
-                if (string.IsNullOrEmpty(result.ImageUrls.Px480mw)) result.ImageUrls.Px480mw = Illust.ImageUrls.Px480mw;
-                if (string.IsNullOrEmpty(result.ImageUrls.SquareMedium)) result.ImageUrls.SquareMedium = Illust.ImageUrls.SquareMedium;
-                if (string.IsNullOrEmpty(result.ImageUrls.Small)) result.ImageUrls.Small = Illust.ImageUrls.Small;
-                if (string.IsNullOrEmpty(result.ImageUrls.Medium)) result.ImageUrls.Medium = Illust.ImageUrls.Medium;
-                if (string.IsNullOrEmpty(result.ImageUrls.Large)) result.ImageUrls.Large = Illust.ImageUrls.Large;
-                if (string.IsNullOrEmpty(result.ImageUrls.Original)) result.ImageUrls.Original = Illust.ImageUrls.Original;
             }
             catch (Exception ex) { ex.ERROR("REFRESHILLUST"); }
             return (result);
@@ -6626,9 +6634,10 @@ namespace PixivWPF.Common
             try
             {
                 var mode = pub ? "public" : "private";
-                await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, mode);
+                var ret = await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, mode);
+                if (!ret) return (result);
             }
-            catch (Exception ex) { ex.ERROR("LIKEILLUST"); }
+            catch (Exception ex) { ex.ERROR("AddMyFavoriteWorksAsync"); }
             finally
             {
                 try
@@ -6644,7 +6653,7 @@ namespace PixivWPF.Common
                         $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl(), title, pub_like);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("LIKEILLUST"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+                catch (Exception ex) { ex.ERROR("RefreshIllust"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
             }
 
             return (result);
@@ -6720,10 +6729,23 @@ namespace PixivWPF.Common
 
             try
             {
-                await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
-                await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
+                var works = await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
+                if (works is Pixeez.Objects.Paginated<Pixeez.Objects.UsersFavoriteWork>)
+                {
+                    foreach(var ufw in works)
+                    {
+                        var id = ufw.Id;
+                        if (id.Value == illust.Id.Value)
+                        {
+                            var work = ufw.Work;
+                            
+                            break;
+                        }
+                    }
+                }
+                //ret = await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
             }
-            catch (Exception ex) { ex.ERROR("UNLIKEILLUST"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+            catch (Exception ex) { ex.ERROR("DeleteMyFavoriteWorksAsync"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
             finally
             {
                 try
@@ -6738,7 +6760,7 @@ namespace PixivWPF.Common
                         $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl(), title);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("UNLIKEILLUST"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+                catch (Exception ex) { ex.ERROR("RefreshIllust"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
             }
 
             return (result);
@@ -6875,9 +6897,10 @@ namespace PixivWPF.Common
             try
             {
                 var mode = pub ? "public" : "private";
-                await tokens.AddFavouriteUser((long)user.Id, mode);
+                var ret = await tokens.AddFavouriteUser((long)user.Id, mode);
+                if (!ret) return (result);
             }
-            catch (Exception ex) { ex.ERROR("LIKEUSER"); }
+            catch (Exception ex) { ex.ERROR("AddFavouriteUser"); }
             finally
             {
                 try
@@ -6893,7 +6916,7 @@ namespace PixivWPF.Common
                         $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".ShowToast(title, user.GetAvatarUrl(), title, pub_like);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("LIKEUSER"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+                catch (Exception ex) { ex.ERROR("RefreshUser"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
             }
             return (result);
         }
@@ -6977,10 +7000,11 @@ namespace PixivWPF.Common
 
             try
             {
-                await tokens.DeleteFavouriteUser(user.Id.ToString());
-                await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
+                var ret_public = await tokens.DeleteFavouriteUser(user.Id.ToString());
+                if (!ret_public) return (result);
+                //var ret_private = await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
             }
-            catch (Exception ex) { ex.ERROR("UNLIKEUSER"); }
+            catch (Exception ex) { ex.ERROR("DeleteFavouriteUser"); }
             finally
             {
                 try
@@ -6995,7 +7019,7 @@ namespace PixivWPF.Common
                         $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl(), title);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("UNLIKEUSER"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+                catch (Exception ex) { ex.ERROR("RefreshUser"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
             }
             return (result);
         }
@@ -7144,7 +7168,28 @@ namespace PixivWPF.Common
         public static void Cache(this Pixeez.Objects.Work illust)
         {
             if (illust is Pixeez.Objects.Work)
+            {
+                if(IllustCache.ContainsKey(illust.Id))
+                {
+                    var illust_old = IllustCache[illust.Id];
+                    if (illust.ImageUrls != null && illust_old.ImageUrls != null)
+                    {
+                        if (illust.ImageUrls.Px128x128 == null) illust.ImageUrls.Px128x128 = illust_old.ImageUrls.Px128x128;
+                        if (illust.ImageUrls.Small == null) illust.ImageUrls.Small = illust_old.ImageUrls.Small;
+                        if (illust.ImageUrls.Medium == null) illust.ImageUrls.Medium = illust_old.ImageUrls.Medium;
+                        if (illust.ImageUrls.Large == null) illust.ImageUrls.Large = illust_old.ImageUrls.Large;
+                        if (illust.ImageUrls.Px480mw == null) illust.ImageUrls.Px480mw = illust_old.ImageUrls.Px480mw;
+                        if (illust.ImageUrls.SquareMedium == null) illust.ImageUrls.SquareMedium = illust_old.ImageUrls.SquareMedium;
+                        if (illust.ImageUrls.Original == null)
+                        {
+                            illust.ImageUrls.Original = string.IsNullOrEmpty(illust_old.ImageUrls.Original) ? illust.ImageUrls.Large : illust_old.ImageUrls.Original;
+                            if (illust.ImageUrls.Original.Equals(illust.ImageUrls.Large) && !string.IsNullOrEmpty(illust_old.ImageUrls.Large))
+                                illust.ImageUrls.Large = illust_old.ImageUrls.Large;
+                        }
+                    }
+                }
                 IllustCache[illust.Id] = illust;
+            }                
         }
 
         public static void Cache(this Pixeez.Objects.UserInfo userinfo)
@@ -8026,16 +8071,59 @@ namespace PixivWPF.Common
             return (dlg);
         }
 
+        public static async void ShowExceptionMessageBox(this Exception ex, string title)
+        {
+            ex.LOG(title);
+            await Task.Delay(1);
+            _MessageDialogList[title] = ex.Message;
+            var dialog = new TaskDialog()
+            {
+                Cancelable = true,
+                StandardButtons = TaskDialogStandardButtons.Ok,
+                Icon = TaskDialogStandardIcon.Error,
+                FooterIcon = TaskDialogStandardIcon.Error,
+                ExpansionMode = TaskDialogExpandedDetailsLocation.ExpandFooter,
+                DetailsExpanded = false,
+                DetailsExpandedText = ex.StackTrace,
+                Text = ex.Message,
+                FooterText = ex.Message,
+            };
+            var ret = dialog.Show();
+            var value = string.Empty;
+            _MessageDialogList.TryRemove(title, out value);
+        }
+
+        public static async Task<bool> ShowExceptionDialogBox(this Exception ex, string title)
+        {
+            var result = false;
+            ex.LOG(title);
+            await Task.Delay(1);
+            _MessageDialogList[title] = ex.Message;
+            var dialog = new TaskDialog()
+            {
+                Cancelable = true,
+                StandardButtons = TaskDialogStandardButtons.Cancel | TaskDialogStandardButtons.Ok,
+                Icon = TaskDialogStandardIcon.Error,
+                FooterIcon = TaskDialogStandardIcon.Error,
+                ExpansionMode = TaskDialogExpandedDetailsLocation.ExpandFooter,
+                DetailsExpanded = false,
+                DetailsExpandedText = ex.StackTrace,
+                Text = ex.Message,
+                FooterText = ex.Message,
+            };
+            var ret = dialog.Show();
+            if (ret == TaskDialogResult.Ok || ret == TaskDialogResult.Yes || ret == TaskDialogResult.Close) result = true;
+            var value = string.Empty;
+            _MessageDialogList.TryRemove(title, out value);
+            return (result);
+        }
+
         public static async void ShowMessageBox(this string content, string title, MessageBoxImage image = MessageBoxImage.Information)
         {
             content.LOG(title);
 
             await Task.Delay(1);
             _MessageDialogList[title] = content;
-
-            //var dlg = MakeTaskDialog(title, content, image, TaskDialogStandardButtons.Ok);
-            //dlg.Show();
-
             MessageBox.Show(content, title, MessageBoxButton.OK, image);
             var value = string.Empty;
             _MessageDialogList.TryRemove(title, out value);

@@ -1274,6 +1274,17 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool prefetch_pages_preview = false;
+        public bool PrefetchingPagesPreview
+        {
+            get { return (Cache is Setting ? Cache.prefetch_pages_preview : prefetch_pages_preview); }
+            set
+            {
+                prefetch_pages_preview = value;
+                if (Cache is Setting) Cache.prefetch_pages_preview = prefetch_pages_preview;
+            }
+        }
+
         private int prefetch_download_parallel = 5;
         public int PrefetchingDownloadParallel
         {

@@ -547,9 +547,10 @@ namespace PixivWPF.Pages
         private int CalcPagesThumbItems(IEnumerable<PixivItem> items)
         {
             int result = 0;
+            setting = Application.Current.LoadSetting();
             foreach(var item in items)
             {
-                if (item.Count > 1) result += item.Count;
+                if (item.Count > 1) result += setting.PrefetchingPagesPreview ? item.Count * 2 : item.Count;
             }
             return (result);
         }
@@ -559,40 +560,37 @@ namespace PixivWPF.Pages
             List<string> pages = new List<string>();
             try
             {
-                var illust = item.Illust;
-                if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
+                if (setting.PrefetchingPagesThumb)
                 {
-                    if (illust is Pixeez.Objects.IllustWork)
+                    var illust = item.Illust;
+                    if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
                     {
-                        var subset = illust as Pixeez.Objects.IllustWork;
-                        if (subset.meta_pages.Count() > 1)
+                        if (illust is Pixeez.Objects.IllustWork)
                         {
-                            foreach (var page in subset.meta_pages)
+                            var subset = illust as Pixeez.Objects.IllustWork;
+                            if (subset.meta_pages.Count() > 1)
                             {
-                                var thumb_url = page.GetThumbnailUrl();
-                                //var thumb_file = thumb_url.GetImageCacheFile();
-                                //if (setting.PrefetchPreview && !string.IsNullOrEmpty(thumb_file) && !File.Exists(thumb_file)) result.Add(thumb_url);
-                                if (setting.PrefetchingPreview) pages.Add(thumb_url);
+                                foreach (var page in subset.meta_pages)
+                                {
+                                    pages.Add(page.GetThumbnailUrl());
+                                }
                             }
                         }
-                    }
-                    else if (illust is Pixeez.Objects.NormalWork)
-                    {
-                        var subset = illust as Pixeez.Objects.NormalWork;
-                        if (subset.PageCount >= 1 && subset.Metadata == null)
+                        else if (illust is Pixeez.Objects.NormalWork)
                         {
-                            illust = await illust.RefreshIllust();
-                        }
-                        if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
-                        {
-                            foreach (var page in illust.Metadata.Pages)
+                            var subset = illust as Pixeez.Objects.NormalWork;
+                            if (subset.PageCount >= 1 && subset.Metadata == null)
                             {
-                                var thumb_url = page.GetThumbnailUrl();
-                                //var thumb_file = thumb_url.GetImageCacheFile();
-                                //if (setting.PrefetchPreview && !string.IsNullOrEmpty(thumb_file) && !File.Exists(thumb_file)) avatars.Add(thumb_url);
-                                if (setting.PrefetchingPreview) pages.Add(thumb_url);
+                                illust = await illust.RefreshIllust();
                             }
-                            item.Illust = illust;
+                            if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
+                            {
+                                item.Illust = illust;
+                                foreach (var page in illust.Metadata.Pages)
+                                {
+                                    pages.Add(page.GetThumbnailUrl());
+                                }
+                            }
                         }
                     }
                 }
@@ -601,12 +599,56 @@ namespace PixivWPF.Pages
             return (pages);
         }
 
-        private bool GetPreviewItems(List<string> illusts, List<string> avatars, List<string> pages)
+        private async Task<List<string>> GetPagesPreviewItems(PixivItem item)
+        {
+            List<string> pages = new List<string>();
+            try
+            {
+                if (setting.PrefetchingPagesPreview)
+                {
+                    var illust = item.Illust;
+                    if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
+                    {
+                        if (illust is Pixeez.Objects.IllustWork)
+                        {
+                            var subset = illust as Pixeez.Objects.IllustWork;
+                            if (subset.meta_pages.Count() > 1)
+                            {
+                                foreach (var page in subset.meta_pages)
+                                {
+                                    pages.Add(page.GetPreviewUrl());
+                                }
+                            }
+                        }
+                        else if (illust is Pixeez.Objects.NormalWork)
+                        {
+                            var subset = illust as Pixeez.Objects.NormalWork;
+                            if (subset.PageCount >= 1 && subset.Metadata == null)
+                            {
+                                illust = await illust.RefreshIllust();
+                            }
+                            if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
+                            {
+                                item.Illust = illust;
+                                foreach (var page in illust.Metadata.Pages)
+                                {
+                                    pages.Add(page.GetPreviewUrl());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("PAGESCOUNTING"); }
+            return (pages);
+        }
+
+        private bool GetPreviewItems(List<string> illusts, List<string> avatars, List<string> page_thumbs, List<string> page_previews)
         {
             bool result = false;
             try
             {
-                if (ImageTiles.Items.Count > 0)
+                if (setting.PrefetchingPreview && ImageTiles.Items.Count > 0)
                 {
                     new Action(async () =>
                     {
@@ -615,24 +657,27 @@ namespace PixivWPF.Pages
                         var items = ImageTiles.Items.Reverse().ToList();
                         foreach (var item in items)
                         {
-                            //if (item.ID.Equals(sid)) continue;
                             if (item.IsWork())
                             {
-                                var avatar_url = item.Illust.User.GetAvatarUrl();
-                                //var avater_file = avatar_url.GetImageCacheFile();
-                                //if (setting.PrefetchPreview && !string.IsNullOrEmpty(avater_file) && !File.Exists(avater_file)) result.Add(avatar_url);
-                                if (setting.PrefetchingPreview) illusts.Add(avatar_url);
+                                illusts.Add(item.Illust.GetPreviewUrl());
+                                avatars.Add(item.Illust.GetAvatarUrl());
 
-                                var preview_url = item.Illust.GetPreviewUrl();// large:setting.SmartPreview);
-                                //var preview_file = preview_url.GetImageCacheFile();
-                                //if (setting.PrefetchPreview && !string.IsNullOrEmpty(preview_file) && !File.Exists(preview_file)) avatars.Add(preview_url);
-                                if (setting.PrefetchingPreview) avatars.Add(preview_url);
-
-                                if (setting.PrefetchingPagesThumb && pages is List<string>)
+                                if (setting.PrefetchingPagesThumb && item.Count > 1 && page_thumbs is List<string>)
                                 {
-                                    var count = pages.Count;
-                                    pages.AddRange(await GetPagesThumbItems(item));
-                                    if (item.Count > 1 && pages.Count - count != item.Count)
+                                    var count = page_thumbs.Count;
+                                    var p_count = item.Count;
+                                    page_thumbs.AddRange(await GetPagesThumbItems(item));
+                                    if (page_thumbs.Count - count != p_count)
+                                        Task.Delay(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
+                                    this.DoEvents();
+                                }
+
+                                if (setting.PrefetchingPagesPreview && item.Count > 1 && page_previews is List<string>)
+                                {
+                                    var count = page_previews.Count;
+                                    var p_count = item.Count;
+                                    page_previews.AddRange(await GetPagesPreviewItems(item));
+                                    if (page_previews.Count - count != p_count)
                                         Task.Delay(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
                                     this.DoEvents();
                                 }
@@ -660,19 +705,20 @@ namespace PixivWPF.Pages
                 this.DoEvents();
                 List<string> illusts = new List<string>();
                 List<string> avatars = new List<string>();
-                List<string> pages = new List<string>();
+                List<string> page_thumbs = new List<string>();
+                List<string> page_previews = new List<string>();
                 var pagesCount = CalcPagesThumbItems(ImageTiles.Items);
-                GetPreviewItems(illusts, avatars, pages);
-                if (pagesCount != pages.Count) { e.Cancel = true; return; }
+                GetPreviewItems(illusts, avatars, page_thumbs, page_previews);
+                if (pagesCount != page_thumbs.Count + page_previews.Count) { e.Cancel = true; return; }
 
                 double percent = 0;
                 string tooltip = string.Empty;
 
-                var count = illusts.Count + avatars.Count + pages.Count;
-                var total = ImageTiles.ItemsCount + avatars.Count + pages.Count;
+                var total = illusts.Count + avatars.Count + page_thumbs.Count + page_previews.Count;
                 if (total <= 0) return;
+                var count = total;
                 percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                tooltip = $"Calculating [ {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count} ]";
+                tooltip = $"Calculating [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
                 if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
                 //bg_prefetch.ReportProgress(percent);
                 if (count <= 0) return;
@@ -683,7 +729,8 @@ namespace PixivWPF.Pages
                     List<string> needUpdate = new List<string>();
                     needUpdate.AddRange(illusts);
                     needUpdate.AddRange(avatars);
-                    needUpdate.AddRange(pages);
+                    needUpdate.AddRange(page_thumbs);
+                    needUpdate.AddRange(page_previews);
 
                     var opt = new ParallelOptions();
                     opt.MaxDegreeOfParallelism = parallel;
@@ -703,7 +750,7 @@ namespace PixivWPF.Pages
                             }
                             if (PrefetchingTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
                             percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                            tooltip = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count} ]";
+                            tooltip = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count}]";
                             if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
                             this.DoEvents();
                         }
@@ -714,7 +761,7 @@ namespace PixivWPF.Pages
                 else
                 {
                     SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
-                    foreach (var urls in new List<string>[] { illusts, avatars, pages })
+                    foreach (var urls in new List<string>[] { illusts, avatars, page_thumbs })
                     {
                         if (PrefetchingTask.CancellationPending) { e.Cancel = true; break; }
                         foreach (var url in urls)
@@ -738,7 +785,7 @@ namespace PixivWPF.Pages
                                         }
                                         if (PrefetchingTask.CancellationPending) { e.Cancel = true; return; }
                                         percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                                        tooltip = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count} ]";
+                                        tooltip = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
                                         if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
                                         //await Task.Delay(10);
                                         this.DoEvents();
@@ -758,7 +805,7 @@ namespace PixivWPF.Pages
                 if (count >= 0 && total > 0)
                 {
                     percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                    tooltip = $"Done [ {count} / {total}, {illusts.Count} / {avatars.Count} / {pages.Count} ]";
+                    tooltip = $"Done [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
                     //new Action(() =>
                     //{
                         if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
@@ -768,7 +815,7 @@ namespace PixivWPF.Pages
                     {
                         illusts.Clear();
                         avatars.Clear();
-                        pages.Clear();
+                        page_thumbs.Clear();
                     }
                     catch (Exception ex) { ex.ERROR("PREFETCHED"); }
                     $"Prefetching Previews, Avatars, Thumbnails : {Environment.NewLine}  {tooltip}".ShowToast("INFO", tag: name ?? GetType().Name);
@@ -1993,7 +2040,10 @@ namespace PixivWPF.Pages
 
                     if (string.IsNullOrEmpty(ID_O) || !ID_N.Equals(ID_O, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        $"ID: {item.ID}, {item.Illust.Title} Loading...".INFO();
+                        if(item.IsWork())
+                            $"ID: {item.ID}, {item.Illust.Title} Loading...".INFO();
+                        else if(item.IsUser())
+                            $"UserID: {item.ID}, {item.User.Name} Loading...".INFO();
                         //detail_page.Contents = item;
                         detail_page.UpdateDetail(item);
                     }

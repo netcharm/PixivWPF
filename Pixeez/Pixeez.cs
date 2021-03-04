@@ -186,7 +186,7 @@ namespace Pixeez
             //httpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
             //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
             httpClient.DefaultRequestHeaders.ConnectionClose = true;
-            
+
             //httpClient.Timeout = TimeSpan.FromSeconds(60);
 
             return (httpClient);
@@ -246,10 +246,11 @@ namespace Pixeez
 
             var result = new Pixeez.AuthResult();
             result.Authorize = authorize;
-            result.Key = new AuthKey() {
+            result.Key = new AuthKey()
+            {
                 Password = password,
                 Username = username,
-                KeyExpTime = authorize.ExpiresIn.HasValue ? DateTime.UtcNow.AddSeconds(authorize.ExpiresIn.Value) : DateTime.UtcNow.AddSeconds(3600*365)
+                KeyExpTime = authorize.ExpiresIn.HasValue ? DateTime.UtcNow.AddSeconds(authorize.ExpiresIn.Value) : DateTime.UtcNow.AddSeconds(3600 * 365)
             };
             result.Tokens = new Tokens(authorize.AccessToken) { RefreshToken = authorize.RefreshToken };
             return result;
@@ -531,7 +532,7 @@ namespace Pixeez
                         asyncResponse = new AsyncResponse(response);
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     var r = ex.Message;
                 }
@@ -605,7 +606,8 @@ namespace Pixeez
             //var dic = new Dictionary<string, string>(param);
             //var ret = await AccessNewApiAsync<T>(url, true, dic, type);
             //return (ret);
-            return await AccessApiAsync<T>(await this.SendRequestAsync(type, url, param, headers));
+            var response = await this.SendRequestAsync(type, url, param, headers);
+            return (response == null ? default(T) : await AccessApiAsync<T>(response));
         }
 
         /// <summary>
@@ -616,23 +618,25 @@ namespace Pixeez
         /// <returns></returns>
         private async Task<T> AccessApiAsync<T>(AsyncResponse res) where T : class
         {
+            T result = default(T);
             using (var response = res)
             {
-                if (response.Source.IsSuccessStatusCode)
+                if (response != null && response.Source.IsSuccessStatusCode)
                 {
-                    var json = await response.GetResponseStringAsync();
-                    var obj = JToken.Parse(json).SelectToken("response").ToObject<T>();
+                    var len = response.Source.Content.Headers.ContentLength ?? -1;
+                    if (len > 2 || len < 0)
+                    {
+                        var json = await response.GetResponseStringAsync();
+                        var obj = JToken.Parse(json).SelectToken("response").ToObject<T>();
 
-                    if (obj is IPagenated)
-                        ((IPagenated)obj).Pagination = JToken.Parse(json).SelectToken("pagination").ToObject<Pagination>();
+                        if (obj is IPagenated)
+                            ((IPagenated)obj).Pagination = JToken.Parse(json).SelectToken("pagination").ToObject<Pagination>();
 
-                    return obj;
-                }
-                else
-                {
-                    return null;
+                        result = obj;
+                    }
                 }
             }
+            return (result);
         }
 
         /// <summary>
@@ -651,26 +655,24 @@ namespace Pixeez
                 //using (var res = await SendRequestAsync(methodtype, url, dic))
                 using (var res = await SendRequestWithoutAuthAsync(methodtype, url, req_auth, dic))
                 {
-                    if (res.Source.IsSuccessStatusCode)
+                    if (res != null && res.Source.IsSuccessStatusCode)
                     {
                         var str = await res.GetResponseStringAsync();
                         return JToken.Parse(str).ToObject<T>();
                     }
-                    else
-                        return default(T);
+                    else return default(T);
                 }
             }
             else
             {
                 using (var res = await SendRequestWithoutAuthAsync(methodtype, url, req_auth, dic))
                 {
-                    if (res.Source.IsSuccessStatusCode)
+                    if (res != null && res.Source.IsSuccessStatusCode)
                     {
                         var str = await res.GetResponseStringAsync();
                         return JToken.Parse(str).ToObject<T>();
                     }
-                    else
-                        return default(T);
+                    else return default(T);
                 }
             }
         }
@@ -767,24 +769,38 @@ namespace Pixeez
         /// <param name="user_id"></param>
         /// <param name="publicity"></param>
         /// <returns></returns>
-        public async Task AddFavouriteUser(long user_id, string publicity = "public")
+        public async Task<bool> AddFavouriteUser(long user_id, string publicity = "public")
         {
+            bool result = false;
             var url = "https://public-api.secure.pixiv.net/v1/me/favorite-users.json";
             var param = new Dictionary<string, string>
             {
                 { "target_user_id", user_id.ToString() },
                 { "publicity", publicity }
             };
-            using (var res = await SendRequestAsync(MethodType.POST, url, param ))
+            using (var res = await SendRequestAsync(MethodType.POST, url, param))
             {
-                var code = res.Source.EnsureSuccessStatusCode();
-                var result = await res.GetResponseStringAsync();
-
+                if (res is AsyncResponse)
+                {
+                    try
+                    {
+                        result = res.Source.IsSuccessStatusCode;
+                        var code = res.Source.EnsureSuccessStatusCode();
+                        var len = res.Source.Content.Headers.ContentLength ?? 0;
+                        if (len > 2)
+                        {
+                            var response = await res.GetResponseStringAsync();
+                        }
+                    }
+                    catch (Exception ex) { var r = ex.Message; }
+                }
             }
+            return (result);
         }
 
-        public async Task AddFollowUser(long user_id, string restrict = "public")
+        public async Task<bool> AddFollowUser(long user_id, string restrict = "public")
         {
+            bool result = false;
             var url = "https://app-api.pixiv.net/v1/user/follow/add";
             var param = new Dictionary<string, string>
             {
@@ -793,17 +809,26 @@ namespace Pixeez
             };
             using (var res = await SendRequestAsync(MethodType.POST, url, param))
             {
-                var code = res.Source.EnsureSuccessStatusCode();
-                var result = await res.GetResponseStringAsync();
-
+                try
+                {
+                    result = res.Source.IsSuccessStatusCode;
+                    var code = res.Source.EnsureSuccessStatusCode();
+                    var len = res.Source.Content.Headers.ContentLength ?? 0;
+                    if (len > 2)
+                    {
+                        var response = await res.GetResponseStringAsync();
+                    }
+                }
+                catch (Exception ex) { var r = ex.Message; }
             }
+            return (result);
         }
 
-        public async Task AddFollowUser(string user_id, string restrict = "public")
+        public async Task<bool> AddFollowUser(string user_id, string restrict = "public")
         {
             long uid = 0;
             long.TryParse(user_id, out uid);
-            await AddFollowUser(uid, restrict);
+            return (await AddFollowUser(uid, restrict));
         }
 
         /// <summary>
@@ -812,22 +837,34 @@ namespace Pixeez
         /// <param name="user_id"></param>
         /// <param name="publicity"></param>
         /// <returns></returns>
-        public async Task DeleteFavouriteUser(string user_id, string publicity = "public")
+        public async Task<bool> DeleteFavouriteUser(string user_id, string publicity = "public")
         {
+            bool result = false;
             var url = "https://public-api.secure.pixiv.net/v1/me/favorite-users.json";
             var param = new Dictionary<string, string> {
                 { "delete_ids", user_id.ToString() },
-                { "publicity", publicity }
+                //{ "publicity", publicity }
             };
             using (var res = await SendRequestAsync(MethodType.DELETE, url, param))
             {
-                var code = res.Source.EnsureSuccessStatusCode();
-                var result = await res.GetResponseStringAsync();
+                try
+                {
+                    result = res.Source.IsSuccessStatusCode;
+                    var code = res.Source.EnsureSuccessStatusCode();
+                    var len = res.Source.Content.Headers.ContentLength ?? 0;
+                    if (len > 2)
+                    {
+                        var response = await res.GetResponseStringAsync();
+                    }
+                }
+                catch (Exception ex) { var r = ex.Message; }
             }
+            return (result);
         }
 
-        public async Task DeleteFollowUser(long user_id)
+        public async Task<bool> DeleteFollowUser(long user_id)
         {
+            bool result = false;
             var url = "https://app-api.pixiv.net/v1/user/follow/delete";
             var param = new Dictionary<string, string>
             {
@@ -835,17 +872,26 @@ namespace Pixeez
             };
             using (var res = await SendRequestAsync(MethodType.POST, url, param))
             {
-                var code = res.Source.EnsureSuccessStatusCode();
-                var result = await res.GetResponseStringAsync();
-
+                try
+                {
+                    result = res.Source.IsSuccessStatusCode;
+                    var code = res.Source.EnsureSuccessStatusCode();
+                    var len = res.Source.Content.Headers.ContentLength ?? 0;
+                    if (len > 2)
+                    {
+                        var response = await res.GetResponseStringAsync();
+                    }
+                }
+                catch (Exception ex) { var r = ex.Message; }
             }
+            return (result);
         }
 
-        public async Task DeleteFollowUser(string user_id)
+        public async Task<bool> DeleteFollowUser(string user_id)
         {
             long uid = 0;
             long.TryParse(user_id, out uid);
-            await DeleteFollowUser(uid);
+            return(await DeleteFollowUser(uid));
         }
 
         /// <summary>
@@ -984,8 +1030,9 @@ namespace Pixeez
         /// <para>- <c>string</c> publicity (optional) [ public, private ]</para>
         /// </summary>
         /// <returns>UsersWorks. (Pagenated)</returns>
-        public async Task AddMyFavoriteWorksAsync(long workId, IEnumerable<string> tags = null, string publicity = "public")
+        public async Task<bool> AddMyFavoriteWorksAsync(long workId, IEnumerable<string> tags = null, string publicity = "public")
         {
+            bool result = false;
             var url = "https://app-api.pixiv.net/v2/illust/bookmark/add";
 
             var param = new Dictionary<string, string>
@@ -999,8 +1046,22 @@ namespace Pixeez
 
             using (var res = await SendRequestWithoutAuthAsync(MethodType.POST, url, param: param, needauth: true))
             {
-                var code = res.Source.EnsureSuccessStatusCode();
+                if (res is AsyncResponse)
+                {
+                    try
+                    {
+                        var code = res.Source.EnsureSuccessStatusCode();
+                        var len = res.Source.Content.Headers.ContentLength ?? 0;
+                        if (len > 2)
+                        {
+                            var response = await res.GetResponseStringAsync();
+                        }
+                        result = true;
+                    }
+                    catch (Exception ex) { var r = ex.Message; }
+                }
             }
+            return (result);
         }
 
         /// <summary>
@@ -1522,6 +1583,7 @@ namespace Pixeez
         /// <returns>Works.</returns>
         public async Task<List<NormalWork>> GetWorksAsync(long illustId)
         {
+            var result = default(List<NormalWork>);
             var url = "https://public-api.secure.pixiv.net/v1/works/" + illustId.ToString() + ".json";
 
             var param = new Dictionary<string, string>
@@ -1534,12 +1596,10 @@ namespace Pixeez
 
             try
             {
-                return await AccessApiAsync<List<NormalWork>>(MethodType.GET, url, param);
+                result = await AccessApiAsync<List<NormalWork>>(MethodType.GET, url, param);
             }
-            catch(Exception)
-            {
-                return (null);
-            }
+            catch (Exception ex) { var r = ex.Message; }
+            return (result);
         }
         #endregion
     }

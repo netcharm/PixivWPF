@@ -347,8 +347,11 @@ namespace PixivWPF.Pages
             browser = null;
             try
             {
+                var bg = Theme.WhiteColor;
                 browser = new WebBrowserEx()
                 {
+                    BackColor = System.Drawing.Color.FromArgb(0xFF, bg.R, bg.G, bg.B),
+                    Height = 0,
                     DocumentText = string.Empty.GetHtmlFromTemplate(),
                     Dock = System.Windows.Forms.DockStyle.Fill,
                     ScriptErrorsSuppressed = true,
@@ -357,8 +360,8 @@ namespace PixivWPF.Pages
                     AllowNavigation = true,
                     AllowWebBrowserDrop = false
                 };
-                browser.Navigate("about:blank");
-                browser.Document.Write(string.Empty);
+                //browser.Navigate("about:blank");
+                //browser.Document.Write(string.Empty);
 
                 if (browser is WebBrowserEx)
                 {
@@ -454,7 +457,7 @@ namespace PixivWPF.Pages
                     }).InvokeAsync();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("RefreshHtmlRender"); }
         }
         #endregion
 

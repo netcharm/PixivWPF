@@ -107,7 +107,7 @@ namespace PixivWPF
             if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
             {
                 NavPageTitle.Text = $"{title}[{Contents.SelectedDate.ToString("yyyy-MM-dd")}]";
-                CommandNavDate.IsEnabled = true;
+                CommandDatePicker.IsEnabled = true;
             }
             else if (title.Equals("My"))
             {
@@ -116,7 +116,7 @@ namespace PixivWPF
             else
             {
                 NavPageTitle.Text = title;
-                CommandNavDate.IsEnabled = false;
+                CommandDatePicker.IsEnabled = false;
             }
         }
 
@@ -424,21 +424,6 @@ namespace PixivWPF
                 Application.Current.RebindHotKeys();
         }
 
-        private void RecentsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (e.AddedItems.Count > 0)
-            {
-                var item = e.AddedItems[0];
-                if (item is string)
-                {
-                    var contents = item as string;
-                    var id = Regex.Replace(contents, @"ID:\s*?(\d+),.*?$", "$1", RegexOptions.IgnoreCase);
-                    JumpTo(id);
-                }
-                RecentsPopup.IsOpen = false;
-            }
-        }
-
         private void DatePicker_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
         {
             //if (Contents is Pages.TilesPage && DatePicker.SelectedDate.HasValue && DatePicker.SelectedDate.Value <= DateTime.Now)
@@ -518,15 +503,15 @@ namespace PixivWPF
                 Commands.UpgradeApplication.Execute(null);
         }
 
-        private void CommandNavRefresh_Click(object sender, RoutedEventArgs e)
+        private void CommandRefresh_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (sender == CommandNavRefresh)
+                if (sender == CommandRefresh)
                 {
                     RefreshPage();
                 }
-                else if (sender == CommandNavRefreshThumb)
+                else if (sender == CommandRefreshThumb)
                 {
                     RefreshThumbnail();
                 }
@@ -539,7 +524,7 @@ namespace PixivWPF
             if (e.LeftButton == MouseButtonState.Pressed && e.ClickCount == 2) Prefetching();
         }
 
-        private void CommandNavRecents_Click(object sender, RoutedEventArgs e)
+        private void CommandRecents_Click(object sender, RoutedEventArgs e)
         {
             setting = Application.Current.LoadSetting();
             var recents = Application.Current.HistoryRecentIllusts(setting.MostRecents);
@@ -552,20 +537,31 @@ namespace PixivWPF
             RecentsPopup.IsOpen = true;
         }
 
-        private void CommandNavDate_Click(object sender, RoutedEventArgs e)
+        private void CommandRecentsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count > 0)
+            {
+                var item = e.AddedItems[0];
+                if (item is string)
+                {
+                    var contents = item as string;
+                    var id = Regex.Replace(contents, @"ID:\s*?(\d+),.*?$", "$1", RegexOptions.IgnoreCase);
+                    JumpTo(id);
+                }
+                RecentsPopup.IsOpen = false;
+            }
+        }
+
+        private void CommandDatePicker_Click(object sender, RoutedEventArgs e)
         {
             var title = Contents.TargetPage.ToString();
             if (title.StartsWith("Ranking", StringComparison.CurrentCultureIgnoreCase))
             {
                 DatePickerPopup.IsOpen = true;
-                ////var point = CommandNavDate.PointToScreen(Mouse.GetPosition(CommandNavDate));
-                //var point = CommandNavDate.PointToScreen(new Point(0, CommandNavDate.ActualHeight));
-                ////var point = CommandNavDate.TransformToAncestor(Application.Current.MainWindow).Transform(new Point(0,0));
-                //Commands.DatePicker.Execute(point);
             }
         }
 
-        internal void CommandNavNext_Click(object sender, RoutedEventArgs e)
+        internal void CommandNext_Click(object sender, RoutedEventArgs e)
         {
             AppendTiles();
         }
