@@ -378,9 +378,7 @@ namespace PixivWPF.Common
         public static string SaveTarget(this Application app, string file = "")
         {
             string result = file;
-
             result = CommonHelper.ChangeSaveTarget(file);
-            if(!string.IsNullOrEmpty(result)) result.INFO("ChangeSaveTarget");
             return (result);
         }
         #endregion
@@ -2513,7 +2511,7 @@ namespace PixivWPF.Common
                 //MaxConnectionsPerServer = 30,
                 MaxRequestContentBufferSize = buffersize,
                 //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
-                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass),
+                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass.ToArray()),
                 UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
             };
 
@@ -2553,7 +2551,7 @@ namespace PixivWPF.Common
             var setting = LoadSetting(app);
 
             var webRequest = WebRequest.Create(string.Empty);
-            webRequest.Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass);
+            webRequest.Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass.ToArray());
 
             //webRequest.ContentType = "application/octet-stream";
             //webRequest.Headers.Add("Content-Type", "application/octet-stream");
@@ -2985,7 +2983,7 @@ namespace PixivWPF.Common
                         try
                         {
                             setting = Application.Current.LoadSetting();
-                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
+                            var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass.ToArray(), setting.UsingProxy);
                             setting.AccessToken = authResult.Authorize.AccessToken;
                             setting.RefreshToken = authResult.Authorize.RefreshToken;
                             setting.ExpTime = authResult.Key.KeyExpTime.ToLocalTime();
@@ -3291,8 +3289,8 @@ namespace PixivWPF.Common
                 else if (content.Equals("<img", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals(">", StringComparison.CurrentCultureIgnoreCase)) continue;
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/artworks/\d+)" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/users/\d+)" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(en/)?artworks/\d+)" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(en/)?users/\d+)" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
 
@@ -4401,175 +4399,6 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Loading Image from InterNet/LocalCache routines
-        public static async Task<MemoryStream> ToMemoryStream(this Pixeez.AsyncResponse response)
-        {
-            MemoryStream result = null;
-            using (var stream = await response.GetResponseStreamAsync())
-            {
-                result = new MemoryStream();
-                await stream.CopyToAsync(result);
-            }
-            return (result);
-        }
-
-        public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
-        {
-            if (dpiX == source.DpiX || dpiY == source.DpiY) return (source);
-
-            int width = source.PixelWidth;
-            int height = source.PixelHeight;
-
-            var palette = source.Palette;
-            int stride = width * ((source.Format.BitsPerPixel + 31) / 32 * 4);
-            byte[] pixelData = new byte[stride * height];
-            source.CopyPixels(pixelData, stride, 0);
-
-            BitmapSource result = source;
-            try
-            {
-                var bmp = BitmapSource.Create(width, height, dpiX, dpiY, source.Format, palette, pixelData, stride);
-                result = null;
-                result = bmp;
-                result.Freeze();
-                bmp = null;
-            }
-            catch (Exception ex)
-            {
-                ex.ERROR("CONVERT");
-                try
-                {
-                    using (var ms = new MemoryStream())
-                    {
-                        var bmp = BitmapSource.Create(width, height, dpiX, dpiY, source.Format, palette, pixelData, stride);
-                        PngBitmapEncoder pngEnc = new PngBitmapEncoder();
-                        var fbmp = BitmapFrame.Create(bmp);
-                        pngEnc.Frames.Add(fbmp);
-                        pngEnc.Save(ms);
-                        var pngDec = new PngBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-                        result = pngDec.Frames[0];
-                        result.Freeze();
-
-                        pngEnc.Frames.Clear();
-                        pngEnc = null;
-                        pngDec = null;
-                        fbmp = null;
-                        bmp = null;
-                        ms.Close();
-                        ms.Dispose();
-                    }
-                }
-                catch (Exception exx)
-                {
-                    exx.Message.ShowMessageBox("ERROR");
-                }
-            }
-            finally
-            {
-                Array.Clear(pixelData, 0, pixelData.Length);
-                Array.Resize(ref pixelData, 0);
-                pixelData = null;
-            }
-            return result;
-        }
-
-        public static ImageSource ToImageSource(this Stream stream, Size size = default(Size))
-        {
-            setting = Application.Current.LoadSetting();
-            var dpi = DPI.Default;
-
-            BitmapSource result = null;
-            try
-            {
-                var bmp = new BitmapImage();
-                bmp.BeginInit();
-                if (!size.Equals(default(Size)) && size.Width >= 0 && size.Height >= 0)
-                {
-                    bmp.DecodePixelWidth = (int)Math.Ceiling(size.Width * dpi.ScaleX);
-                    bmp.DecodePixelHeight = (int)Math.Ceiling(size.Height * dpi.ScaleY);
-                }
-                bmp.CacheOption = BitmapCacheOption.OnLoad;
-                bmp.CreateOptions = BitmapCreateOptions.None;
-                bmp.StreamSource = stream;
-                bmp.EndInit();
-                bmp.Freeze();
-
-                result = bmp;
-                result.Freeze();
-                bmp = null;
-            }
-            catch (Exception ex)
-            {
-                var ret = ex.Message;
-                try
-                {
-                    var bmp = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-                    result = null;
-                    result = bmp;
-                    result.Freeze();
-                    bmp = null;
-                }
-                catch (Exception exx)
-                {
-                    var retx = exx.Message;
-                }
-            }
-            finally
-            {
-                if (setting.AutoConvertDPI && result is ImageSource)
-                {
-                    try
-                    {
-                        if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
-                        //if (result.DpiX > dpi.X15 || result.DpiY > dpi.Y15)
-                        {
-                            var bmp = ConvertBitmapDPI(result, dpi.X, dpi.Y);
-                            result = null;
-                            result = bmp;
-                            result.Freeze();
-                            bmp = null;
-                        }
-                    }
-                    catch (Exception ex) { ex.ERROR(); }
-                }
-            }
-            return (result);
-        }
-
-        public static BitmapSource ToBitmapSource(this ImageSource source)
-        {
-            BitmapSource result = source is BitmapSource ? source as BitmapSource : null;
-            try
-            {
-                if (result == null && source is ImageSource && source.Width > 0 && source.Height > 0)
-                {
-                    var dpi = DPI.Default;
-                    RenderTargetBitmap target = new RenderTargetBitmap((int)(source.Width), (int)(source.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
-                    DrawingVisual drawingVisual = new DrawingVisual();
-                    using (DrawingContext drawingContext = drawingVisual.RenderOpen())
-                    {
-                        drawingContext.DrawImage(source, new Rect(0, 0, source.Width, source.Height));
-                    }
-                    target.Render(drawingVisual);
-
-                    int width = target.PixelWidth;
-                    int height = target.PixelHeight;
-                    var palette = target.Palette;
-                    int stride = width * ((target.Format.BitsPerPixel + 31) / 32 * 4);
-                    byte[] pixelData = new byte[stride * height];
-                    target.CopyPixels(pixelData, stride, 0);
-
-                    result = BitmapSource.Create(width, height,
-                                                target.DpiX, target.DpiY,
-                                                target.Format, target.Palette,
-                                                pixelData, stride);
-                }
-            }
-            catch (Exception ex) { ex.ERROR(); }
-            return (result);
-        }
-        #endregion
-
         #region Downloaded Cache routines
         private static ConcurrentDictionary<string, bool> _cachedDownloadedList = new ConcurrentDictionary<string, bool>();
         internal static void UpdateDownloadedListCache(this string folder, bool cached = true)
@@ -5252,6 +5081,17 @@ namespace PixivWPF.Common
         #endregion
 
         #region Load/Save Image routines
+        private static Dictionary<string, string[]> exts = new Dictionary<string, string[]>()
+        {
+            { ".png", new string[] { ".png", "image/png", "PNG" } },
+            { ".bmp", new string[] { ".bmp", "image/bmp", "image/bitmap" } },
+            { ".gif", new string[] { ".gif", "image/gif", "image/gif89" } },
+            { ".tif", new string[] { ".tif", "image/tiff", "image/tif", ".tiff" } },
+            { ".tiff", new string[] { ".tif", "image/tiff", "image/tif", ".tiff" } },
+            { ".jpg", new string[] { ".jpg", "image/jpg", "image/jpeg", ".jpeg" } },
+            { ".jpeg", new string[] { ".jpg", "image/jpg", "image/jpeg", ".jpeg" } },
+        };
+
         public static string GetPixivLinkPattern(this string url)
         {
             return (@"http(s)*://.*?\.((pixiv\..*?)|(pximg\..*?))/");
@@ -5836,90 +5676,6 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        private static void Arrange(UIElement element, int width, int height)
-        {
-            element.Measure(new Size(width, height));
-            element.Arrange(new Rect(0, 0, width, height));
-            element.UpdateLayout();
-        }
-
-        public static Image GetThemedImage(this Uri uri)
-        {
-            Image result = new Image() { Source = new BitmapImage(uri) };
-            try
-            {
-                new Action(() =>
-                {
-                    var dpi = new DPI();
-
-                    var img = new BitmapImage(uri);
-                    var src = new Image() { Source = img, Width = img.Width, Height = img.Height, Opacity = 0.8 };
-                    src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.WindowTitleColor };
-                    //img.Effect = new TranspranceEffect() { TransColor = Theme.WindowTitleColor };
-                    //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
-                    //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.MahApps.Colors.Accent };
-                    //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Colors.Transparent };
-                    //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.WindowTitleColor };
-                    //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.WindowTitleColor };
-
-                    Grid root = new Grid();
-                    root.Background = Theme.WindowTitleBrush;
-                    Arrange(root, (int)src.Width, (int)src.Height);
-                    root.Children.Add(src);
-                    Arrange(src, (int)src.Width, (int)src.Height);
-
-                    RenderTargetBitmap bmp = new RenderTargetBitmap((int)(src.Width), (int)(src.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
-                    DrawingVisual drawingVisual = new DrawingVisual();
-                    using (DrawingContext drawingContext = drawingVisual.RenderOpen())
-                    {
-                        VisualBrush visualBrush = new VisualBrush(root);
-                        drawingContext.DrawRectangle(visualBrush, null, new Rect(new Point(), new Size(src.Width, src.Height)));
-                    }
-                    bmp.Render(drawingVisual);
-                    result.Source = bmp;
-
-                    src.Dispose();
-                    root.UpdateLayout();
-                    root = null;
-                    img = null;
-                }).Invoke(async: false);
-            }
-#if DEBUG
-            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
-#else
-            catch (Exception ex) { ex.ERROR("THEME"); }
-#endif
-            return (result);
-        }
-
-        private static byte[] ClipboardBuffer = null;
-        public static byte[] ToBytes(this string file)
-        {
-            if (string.IsNullOrEmpty(file)) return (null);
-
-            byte[] result = null;
-
-            if (File.Exists(file))
-            {
-                result = File.ReadAllBytes(file);
-            }
-
-            return (result);
-        }
-
-        public static async Task<byte[]> ToBytes(this BitmapSource bitmap, string fmt = "")
-        {
-            if (string.IsNullOrEmpty(fmt)) fmt = ".png";
-            return ((await bitmap.ToMemoryStream(fmt)).ToArray());
-        }
-
-        public static async Task<byte[]> ToBytes(this byte[] buffer, string fmt = "")
-        {
-            if (string.IsNullOrEmpty(fmt)) fmt = ".png";
-            var bitmap = await buffer.ToBitmapSource();
-            return (await bitmap.ToBytes(fmt));
-        }
-
         public static async Task<BitmapSource> ToBitmapSource(this byte[] buffer)
         {
             BitmapSource result = null;
@@ -5984,20 +5740,297 @@ namespace PixivWPF.Common
                 encoder.Save(result);
                 await result.FlushAsync();
             }
-            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[ENCODER]"); }
+            catch (Exception ex) { ex.ERROR("ENCODER"); }
             return (result);
         }
 
-        private static Dictionary<string, string[]> exts = new Dictionary<string, string[]>()
+        public static async Task<MemoryStream> ToMemoryStream(this Pixeez.AsyncResponse response)
         {
-            { ".png", new string[] { ".png", "image/png", "PNG" } },
-            { ".bmp", new string[] { ".bmp", "image/bmp", "image/bitmap" } },
-            { ".gif", new string[] { ".gif", "image/gif", "image/gif89" } },
-            { ".tif", new string[] { ".tif", "image/tiff", "image/tif", ".tiff" } },
-            { ".tiff", new string[] { ".tif", "image/tiff", "image/tif", ".tiff" } },
-            { ".jpg", new string[] { ".jpg", "image/jpg", "image/jpeg", ".jpeg" } },
-            { ".jpeg", new string[] { ".jpg", "image/jpg", "image/jpeg", ".jpeg" } },
-        };
+            MemoryStream result = null;
+            using (var stream = await response.GetResponseStreamAsync())
+            {
+                result = new MemoryStream();
+                await stream.CopyToAsync(result);
+            }
+            return (result);
+        }
+
+        public static ImageSource ToImageSource(this Stream stream, Size size = default(Size))
+        {
+            setting = Application.Current.LoadSetting();
+            var dpi = DPI.Default;
+
+            BitmapSource result = null;
+            try
+            {
+                var bmp = new BitmapImage();
+                bmp.BeginInit();
+                bmp.CreateOptions = BitmapCreateOptions.None;
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                if (!size.Equals(default(Size)) && size.Width >= 0 && size.Height >= 0)
+                {
+                    bmp.DecodePixelWidth = (int)Math.Ceiling(size.Width * dpi.ScaleX);
+                    bmp.DecodePixelHeight = (int)Math.Ceiling(size.Height * dpi.ScaleY);
+                }
+                bmp.StreamSource = stream;
+                bmp.EndInit();
+                bmp.Freeze();
+
+                result = bmp;
+                result.Freeze();
+                bmp = null;
+            }
+            catch (Exception ex)
+            {
+                // maybe loading webp.
+                var ret = ex.Message;
+                try
+                {
+                    //result = stream.ToWriteableBitmap(size);
+                    var bmp0 = BitmapFrame.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.None);
+                    var bmp = bmp0.ResizeImage(size) as BitmapSource;
+
+                    result = null;
+                    result = bmp == null ? bmp0 : bmp;
+                    result.Freeze();
+                    bmp = null;
+                    bmp0 = null;
+                }
+                catch (Exception exx) { exx.ERROR("ToImageSource"); }
+            }
+            finally
+            {
+                if (setting.AutoConvertDPI && result is ImageSource)
+                {
+                    try
+                    {
+                        if (result.DpiX != dpi.X || result.DpiY != dpi.Y)
+                        //if (result.DpiX > dpi.X15 || result.DpiY > dpi.Y15)
+                        {
+                            var bmp = ConvertBitmapDPI(result, dpi.X, dpi.Y);
+                            result = null;
+                            result = bmp;
+                            result.Freeze();
+                            bmp = null;
+                        }
+                    }
+                    catch (Exception ex) { ex.ERROR("ConvertDPI"); }
+                }
+            }
+            return (result);
+        }
+
+        public static BitmapSource ToBitmapSource(this ImageSource source, Size size = default(Size))
+        {
+            BitmapSource result = source is BitmapSource ? source as BitmapSource : null;
+            try
+            {
+                if (result == null && source is ImageSource && source.Width > 0 && source.Height > 0)
+                {
+                    var dpi = DPI.Default;
+                    RenderTargetBitmap target = null;
+                    if (size != default(Size) && size.Width > 0 && size.Height > 0)
+                        target = new RenderTargetBitmap((int)(size.Width), (int)(size.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+                    else
+                        target = new RenderTargetBitmap((int)(source.Width), (int)(source.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+
+                    DrawingVisual drawingVisual = new DrawingVisual();
+                    using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+                    {
+                        drawingContext.DrawImage(source, new Rect(0, 0, target.Width, target.Height));
+                    }
+                    target.Render(drawingVisual);
+
+                    int width = target.PixelWidth;
+                    int height = target.PixelHeight;
+                    var palette = target.Palette;
+                    int stride = width * ((target.Format.BitsPerPixel + 31) / 32 * 4);
+                    byte[] pixelData = new byte[stride * height];
+                    target.CopyPixels(pixelData, stride, 0);
+
+                    result = BitmapSource.Create(width, height,
+                                                target.DpiX, target.DpiY,
+                                                target.Format, target.Palette,
+                                                pixelData, stride);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("ToBitmapSource"); }
+            return (result);
+        }
+
+        public static WriteableBitmap ToWriteableBitmap(this Stream stream, Size size = default(Size))
+        {
+            WriteableBitmap result = default(WriteableBitmap);
+            try
+            {
+                setting = Application.Current.LoadSetting();
+                var dpi = DPI.Default;
+
+                var bmp = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.None);
+                result = bmp.ToWriteableBitmap(size);
+                result.Freeze();
+                bmp = null;
+            }
+            catch (Exception ex) { ex.ERROR("ToWriteableBitmap"); }
+            return (result);
+        }
+
+        public static WriteableBitmap ToWriteableBitmap(this BitmapSource bitmap, Size size = default(Size))
+        {
+            WriteableBitmap result = default(WriteableBitmap);
+            try
+            {
+                setting = Application.Current.LoadSetting();
+                var dpi = DPI.Default;
+
+                int width = bitmap.PixelWidth;
+                int height = bitmap.PixelHeight;
+                int stride = width * ((bitmap.Format.BitsPerPixel + 31) / 32 * 4);
+                byte[] pixelData = new byte[stride * height];
+                bitmap.CopyPixels(pixelData, stride, 0);
+                var format = bitmap.Format.ToString().Equals(PixelFormats.Default.ToString()) ? PixelFormats.Pbgra32 : bitmap.Format;
+
+                var src = BitmapSource.Create(width, height, dpi.X, dpi.Y, format, bitmap.Palette, pixelData, stride);
+                var wbs = new WriteableBitmap(src);
+
+                if (false && !size.Equals(default(Size)) && size.Width >= 0 && size.Height >= 0)
+                {
+                    int width_new =(int)(size.Width * dpi.ScaleX);
+                    int height_new =(int)(size.Height * dpi.ScaleY);
+                    result = new WriteableBitmap(width_new, height_new, dpi.X, dpi.Y, wbs.Format, wbs.Palette);
+                    lock (result)
+                    {
+                        using (result.GetBitmapContext())
+                        {
+                            result.Blit(new Rect(0, 0, width_new, height_new), wbs, new Rect(0, 0, width, height));
+                        }
+                    }
+                }
+                else
+                {
+                    result = wbs;
+                }
+                result.Freeze();
+                wbs = null;
+                bitmap = null;
+            }
+            catch (Exception ex) { ex.ERROR("ToWriteableBitmap"); }
+            return (result);
+        }
+
+        public static byte[] ToBytes(this string file)
+        {
+            if (string.IsNullOrEmpty(file)) return (null);
+
+            byte[] result = null;
+
+            if (File.Exists(file))
+            {
+                result = File.ReadAllBytes(file);
+            }
+
+            return (result);
+        }
+
+        public static async Task<byte[]> ToBytes(this BitmapSource bitmap, string fmt = "")
+        {
+            if (string.IsNullOrEmpty(fmt)) fmt = ".png";
+            return ((await bitmap.ToMemoryStream(fmt)).ToArray());
+        }
+
+        public static async Task<byte[]> ToBytes(this byte[] buffer, string fmt = "")
+        {
+            if (string.IsNullOrEmpty(fmt)) fmt = ".png";
+            var bitmap = await buffer.ToBitmapSource();
+            return (await bitmap.ToBytes(fmt));
+        }
+
+        public static BitmapSource ConvertBitmapDPI(this BitmapSource source, double dpiX = 96, double dpiY = 96)
+        {
+            if (dpiX == source.DpiX || dpiY == source.DpiY) return (source);
+
+            int width = source.PixelWidth;
+            int height = source.PixelHeight;
+
+            var palette = source.Palette;
+            int stride = width * ((source.Format.BitsPerPixel + 31) / 32 * 4);
+            byte[] pixelData = new byte[stride * height];
+            source.CopyPixels(pixelData, stride, 0);
+
+            BitmapSource result = source;
+            try
+            {
+                var bmp = BitmapSource.Create(width, height, dpiX, dpiY, source.Format, palette, pixelData, stride);
+                result = null;
+                result = bmp;
+                result.Freeze();
+                bmp = null;
+            }
+            catch (Exception ex)
+            {
+                ex.ERROR("CONVERT");
+                try
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        var bmp = BitmapSource.Create(width, height, dpiX, dpiY, source.Format, palette, pixelData, stride);
+                        PngBitmapEncoder pngEnc = new PngBitmapEncoder();
+                        var fbmp = BitmapFrame.Create(bmp);
+                        pngEnc.Frames.Add(fbmp);
+                        pngEnc.Save(ms);
+                        var pngDec = new PngBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                        result = pngDec.Frames[0];
+                        result.Freeze();
+
+                        pngEnc.Frames.Clear();
+                        pngEnc = null;
+                        pngDec = null;
+                        fbmp = null;
+                        bmp = null;
+                        ms.Close();
+                        ms.Dispose();
+                    }
+                }
+                catch (Exception exx)
+                {
+                    exx.Message.ShowMessageBox("ERROR");
+                }
+            }
+            finally
+            {
+                Array.Clear(pixelData, 0, pixelData.Length);
+                Array.Resize(ref pixelData, 0);
+                pixelData = null;
+            }
+            return result;
+        }
+
+        public static ImageSource ResizeImage(this ImageSource source, Size size)
+        {
+            if (size == default(Size) || size.Width <= 0 || size.Height <= 0) return (source);
+            else return (source.ResizeImage(size.Width, size.Height));
+        }
+
+        public static ImageSource ResizeImage(this ImageSource source, double width, double height)
+        {
+            ImageSource result = source;
+            try
+            {
+                if (source is BitmapSource && width > 0 && height > 0)
+                {
+                    var dpi = DPI.Default;
+                    var factorX = source is BitmapSource ? dpi.X / (source as BitmapSource).DpiX : 1.0;
+                    var factorY = source is BitmapSource ? dpi.Y / (source as BitmapSource).DpiY : 1.0;
+                    var scale = new ScaleTransform(width * factorX / source.Width, height *factorY / source.Height);
+                    result = new TransformedBitmap(source as BitmapSource, scale);
+                    result.Freeze();
+                }
+            }
+            catch (Exception ex) { ex.ERROR("ResizeImage"); }
+            return (result);
+        }
+
+        private static byte[] ClipboardBuffer = null;
 
         public static async void CopyImage(this ImageSource source)
         {
@@ -7369,7 +7402,7 @@ namespace PixivWPF.Common
 
         #endregion
 
-        #region UI Element Show/Hide
+        #region UI Element Relative
         public static string GetUid(this object obj)
         {
             string result = string.Empty;
@@ -7379,6 +7412,55 @@ namespace PixivWPF.Common
                 result = (obj as UIElement).Uid;
             }
 
+            return (result);
+        }
+
+        public static Image GetThemedImage(this Uri uri)
+        {
+            Image result = new Image() { Source = new BitmapImage(uri) };
+            try
+            {
+                new Action(() =>
+                {
+                    var dpi = new DPI();
+
+                    var img = new BitmapImage(uri);
+                    var src = new Image() { Source = img, Width = img.Width, Height = img.Height, Opacity = 0.8 };
+                    src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.WindowTitleColor };
+                    //img.Effect = new TranspranceEffect() { TransColor = Theme.WindowTitleColor };
+                    //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
+                    //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromArgb(0xff, 0x00, 0x96, 0xfa), TargetColor = Theme.MahApps.Colors.Accent };
+                    //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Colors.Transparent };
+                    //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.WindowTitleColor };
+                    //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.WindowTitleColor };
+
+                    Grid root = new Grid();
+                    root.Background = Theme.WindowTitleBrush;
+                    Arrange(root, (int)src.Width, (int)src.Height);
+                    root.Children.Add(src);
+                    Arrange(src, (int)src.Width, (int)src.Height);
+
+                    RenderTargetBitmap bmp = new RenderTargetBitmap((int)(src.Width), (int)(src.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+                    DrawingVisual drawingVisual = new DrawingVisual();
+                    using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+                    {
+                        VisualBrush visualBrush = new VisualBrush(root);
+                        drawingContext.DrawRectangle(visualBrush, null, new Rect(new Point(), new Size(src.Width, src.Height)));
+                    }
+                    bmp.Render(drawingVisual);
+                    result.Source = bmp;
+
+                    src.Dispose();
+                    root.UpdateLayout();
+                    root = null;
+                    img = null;
+                }).Invoke(async: false);
+            }
+#if DEBUG
+            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
+#else
+            catch (Exception ex) { ex.ERROR("THEME"); }
+#endif
             return (result);
         }
 
@@ -7436,6 +7518,13 @@ namespace PixivWPF.Common
                 }).Invoke(async: false);
             }
             catch (Exception ex) { ex.ERROR(); }
+        }
+
+        private static void Arrange(UIElement element, int width, int height)
+        {
+            element.Measure(new Size(width, height));
+            element.Arrange(new Rect(0, 0, width, height));
+            element.UpdateLayout();
         }
 
         public static bool IsShown(this UIElement element)
@@ -8007,9 +8096,10 @@ namespace PixivWPF.Common
                 if (!(dm is ContentWindow)) dm = Application.Current.MainWindow;
                 if (dlg.ShowDialog(dm) == CommonFileDialogResult.Ok)
                 {
-                    setting.LastFolder = dlg.FileName;
                     result = dlg.FileName;
+                    setting.LastFolder = dlg.FileName;
                     // Do something with selected folder string
+                    if (!string.IsNullOrEmpty(setting.LastFolder)) setting.LastFolder.INFO("ChangeSaveFolder");
                 }
             }
             else
@@ -8022,6 +8112,7 @@ namespace PixivWPF.Common
                     {
                         file = dlgSave.FileName;
                         setting.LastFolder = Path.GetDirectoryName(file);
+                        if (!string.IsNullOrEmpty(setting.LastFolder)) setting.LastFolder.INFO("ChangeSaveFolder");
                     }
                 }
                 result = Path.Combine(setting.LastFolder, Path.GetFileName(file));

@@ -256,6 +256,11 @@ namespace Pixeez
             return result;
         }
 
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string devicetoken, string proxy, IList<string> proxybypass, bool useproxy = false)
+        {
+            return (await AuthorizeAsync(username, password, refreshtoken, devicetoken, proxy, proxybypass.ToArray(), useproxy));
+        }
+
         /// <summary>
         /// support proxy, modified by netcharm
         /// </summary>
@@ -315,6 +320,11 @@ namespace Pixeez
             return result;
         }
 
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, IList<string> proxybypass, bool useproxy = false)
+        {
+            return (await (AuthorizeAsync(username, password, refreshtoken, proxy, proxybypass.ToArray(), useproxy)));
+        }
+
         /// <summary>
         /// support proxy, modified by netcharm
         /// </summary>
@@ -359,6 +369,11 @@ namespace Pixeez
             return result;
         }
 
+        public static async Task<AuthResult> AuthorizeAsync(string username, string password, string proxy, IList<string> proxybypass, bool useproxy = false)
+        {
+            return (await AuthorizeAsync(username, password, proxy, proxybypass.ToArray(), useproxy));
+        }
+
         /// <summary>
         /// support proxy, modified by netcharm
         /// </summary>
@@ -374,12 +389,25 @@ namespace Pixeez
             return new Tokens(accessToken);
         }
 
+        public static Tokens AuthorizeWithAccessToken(string accessToken, string proxy, IList<string> proxybypass, bool useproxy = false)
+        {
+            Proxy = proxy;
+            ProxyBypass = proxybypass.ToArray();
+            UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
+            return new Tokens(accessToken);
+        }
+
         public static Tokens AuthorizeWithAccessToken(string accessToken, string refreshToken, string proxy, string[] proxybypass, bool useproxy = false)
         {
             Proxy = proxy;
             ProxyBypass = proxybypass;
             UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
             return new Tokens(accessToken, refreshToken);
+        }
+
+        public static Tokens AuthorizeWithAccessToken(string accessToken, string refreshToken, string proxy, IList<string> proxybypass, bool useproxy = false)
+        {
+            return (AuthorizeWithAccessToken(accessToken, refreshToken, proxy, proxybypass.ToArray(), useproxy));
         }
     }
 

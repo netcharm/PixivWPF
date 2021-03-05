@@ -54,12 +54,10 @@ namespace PixivWPF
                 Application.Current.ReleaseAppWatcher();
                 Application.Current.LoadSetting().LocalStorage.ReleaseDownloadedWatcher();
 
-                if (setting is Setting) setting.Save(true);
-
                 foreach (Window win in Application.Current.Windows)
                 {
                     if (win is MainWindow) continue;
-                    else win.Close();
+                    else if(win is MetroWindow) win.Close();
                 }
                 Application.Current.Shutdown();
             }
@@ -67,13 +65,19 @@ namespace PixivWPF
             return (result);
         }    
 
-        public void SetPrefetchPreviewProgress(double progress, string tooltip ="")
+        public void SetPrefetchingProgress(double progress, string tooltip ="", TaskStatus state = TaskStatus.Created)
         {
             new Action(() => {
-                if (PreviewPreftchProgress.IsHidden()) PreviewPreftchProgress.Show();
-                PreviewPreftchProgress.Text = $"{Math.Floor(progress):F0}%";
-                if (string.IsNullOrEmpty(tooltip)) PreviewPreftchProgress.ToolTip = null;
-                else PreviewPreftchProgress.ToolTip = tooltip;
+                if (PreftchingProgress.IsHidden()) PreftchingProgress.Show();
+                if (string.IsNullOrEmpty(tooltip)) PreftchingProgress.ToolTip = null;
+                else PreftchingProgress.ToolTip = tooltip;
+
+                PreftchingProgressInfo.Text = $"{Math.Floor(progress):F0}%";
+
+                if (state == TaskStatus.Running)
+                    PreftchingProgressState.Text = $"\uF16A";
+                else
+                    PreftchingProgressState.Text = $"";
             }).Invoke(async: false);            
         }
 
@@ -517,11 +521,6 @@ namespace PixivWPF
                 }
             }
             catch { }
-        }
-
-        private void PreviewPreftchProgress_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed && e.ClickCount == 2) Prefetching();
         }
 
         private void CommandRecents_Click(object sender, RoutedEventArgs e)

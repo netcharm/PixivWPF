@@ -186,7 +186,7 @@ namespace PixivWPF.Pages
 
                     webHtml.Stop();
                     HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(currentUri);
-                    if (setting.UsingProxy) myRequest.Proxy = new WebProxy(setting.Proxy, true, setting.ProxyBypass);
+                    if (setting.UsingProxy) myRequest.Proxy = new WebProxy(setting.Proxy, true, setting.ProxyBypass.ToArray());
                     myRequest.Timeout = setting.DownloadHttpTimeout;
                     myRequest.KeepAlive = true;
 

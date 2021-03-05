@@ -134,11 +134,11 @@ namespace PixivWPF.Common
         public List<string> UpgradeFiles
         {
             get { return (Cache is Setting ? Cache.upgrade_files : upgrade_files); }
-            //set
-            //{
-            //    upgrade_files = value;
-            //    if (Cache is Setting) Cache.upgrade_files = upgrade_files;
-            //}
+            internal set
+            {
+                upgrade_files = value;
+                if (Cache is Setting) Cache.upgrade_files = upgrade_files;
+            }
         }
         #endregion
 
@@ -272,8 +272,6 @@ namespace PixivWPF.Common
                 {
                     if (Cache is Setting)
                     {
-                        //UpdateCache(this);
-
                         if (string.IsNullOrEmpty(configfile)) configfile = config;
 
                         if (Cache.LocalStorage.Count(o => o.Folder.Equals(Cache.SaveFolder)) < 0 && !string.IsNullOrEmpty(Cache.SaveFolder))
@@ -285,6 +283,9 @@ namespace PixivWPF.Common
                         {
                             Cache.LocalStorage.Add(new StorageType(Cache.LastFolder, true));
                         }
+
+                        Cache.UpgradeFiles = Cache.UpgradeFiles.Distinct().ToList();
+                        Cache.ProxyBypass = Cache.ProxyBypass.Distinct().ToList();
 
                         Cache.LocalStorage = Cache.LocalStorage.Distinct(new StorageTypeComparer()).ToList();
                         UpdateContentsTemplete();
@@ -356,6 +357,9 @@ namespace PixivWPF.Common
                                 Cache.LocalStorage.Add(new StorageType(Cache.LastFolder, true));
 
                             Cache.LocalStorage.InitDownloadedWatcher();
+
+                            Cache.UpgradeFiles = Cache.UpgradeFiles.Distinct().ToList();
+                            Cache.ProxyBypass = Cache.ProxyBypass.Distinct().ToList();
 
                             #region Setup UI font
                             if (Cache.UseCustomFont && !string.IsNullOrEmpty(Cache.FontName))
@@ -902,8 +906,8 @@ namespace PixivWPF.Common
             }
         }
 
-        private string[] proxy_bypass = new string[] { "127.0.0.1", "localhost", "0.0.0.0", "192.168.1.*", "10.0.0.*" };
-        public string[] ProxyBypass
+        private List<string> proxy_bypass = new List<string>() { "127.0.0.1", "localhost", "0.0.0.0", "192.168.1.*", "10.0.0.*" };
+        public List<string> ProxyBypass
         {
             get { return (Cache is Setting ? Cache.proxy_bypass : proxy_bypass); }
             set

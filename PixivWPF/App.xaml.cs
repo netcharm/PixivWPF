@@ -74,8 +74,8 @@ namespace PixivWPF
             try
             {
                 "======================== Application Shutdown now... ========================".NOTICE();
+                Current.UnbindHotkeys();
                 this.SaveSetting(true);
-                Current.UnbindHotkeys();                
             }
             catch (Exception ex) { ex.ERROR("APP_EXIT"); }
             finally

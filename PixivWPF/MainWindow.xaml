@@ -53,13 +53,14 @@
                     Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
-            <Button x:Name="CommandRefreshThumb" x:Uid="CommandNavRefreshThumb" 
-                Click="CommandRefresh_Click"
-                ToolTip="Refresh Thumbnails">
-                <TextBlock 
-                    Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Button>
+            <StackPanel x:Name="PreftchingProgress" Orientation="Horizontal" Width="Auto" HorizontalAlignment="Center">
+                <Button x:Name="CommandRefreshThumb" x:Uid="CommandNavRefreshThumb" Click="CommandRefresh_Click" ToolTip="Refresh Thumbnails">
+                    <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+                <TextBlock x:Name="PreftchingProgressInfo" x:Uid="PreviewPreftchProgress" VerticalAlignment="Center" Text="" />
+                <TextBlock x:Name="PreftchingProgressState" x:Uid="PreviewPreftchProgressState" Margin="2,0,0,0" VerticalAlignment="Center" 
+                           Text="" FontSize="16" FontFamily="Segoe MDL2 Assets" />
+            </StackPanel>            
             <Button x:Name="CommandRecents" x:Uid="CommandNavRecents" 
                 Click="CommandRecents_Click"
                 ToolTip="Recents">
@@ -166,10 +167,7 @@
                     </MenuItem>
                 </mah:DropDownButton.Items>
             </mah:DropDownButton>
-            <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" 
-                HorizontalAlignment="Left" VerticalAlignment="Center"/>
-            <TextBlock x:Name="PreviewPreftchProgress" x:Uid="PreviewPreftchProgress" Visibility="Collapsed" Margin="4,0,0,0"
-                HorizontalAlignment="Left" VerticalAlignment="Center" MouseDown="PreviewPreftchProgress_MouseDown"/>            
+            <TextBlock x:Name="NavPageTitle" x:Uid="NavPageTitle" Margin="4,0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
 

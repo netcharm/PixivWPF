@@ -719,7 +719,7 @@ namespace PixivWPF.Pages
                 var count = total;
                 percent = count == 0 ? 100 : (total - count) / (double)total * 100;
                 tooltip = $"Calculating [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
-                if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
+                if (window is MainWindow) window.SetPrefetchingProgress(percent, tooltip, TaskStatus.Running);
                 //bg_prefetch.ReportProgress(percent);
                 if (count <= 0) return;
 
@@ -751,7 +751,7 @@ namespace PixivWPF.Pages
                             if (PrefetchingTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
                             percent = count == 0 ? 100 : (total - count) / (double)total * 100;
                             tooltip = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count}]";
-                            if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
+                            if (window is MainWindow) window.SetPrefetchingProgress(percent, tooltip, TaskStatus.Running);
                             this.DoEvents();
                         }
                         catch (Exception ex) { ex.ERROR("PREFETCHING"); }
@@ -786,7 +786,7 @@ namespace PixivWPF.Pages
                                         if (PrefetchingTask.CancellationPending) { e.Cancel = true; return; }
                                         percent = count == 0 ? 100 : (total - count) / (double)total * 100;
                                         tooltip = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
-                                        if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
+                                        if (window is MainWindow) window.SetPrefetchingProgress(percent, tooltip, TaskStatus.Running);
                                         //await Task.Delay(10);
                                         this.DoEvents();
                                     }
@@ -808,7 +808,7 @@ namespace PixivWPF.Pages
                     tooltip = $"Done [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
                     //new Action(() =>
                     //{
-                        if (window is MainWindow) window.SetPrefetchPreviewProgress(percent, tooltip);
+                        if (window is MainWindow) window.SetPrefetchingProgress(percent, tooltip, TaskStatus.RanToCompletion);
                         this.DoEvents();
                     //}).Invoke(async: false);
                     try
