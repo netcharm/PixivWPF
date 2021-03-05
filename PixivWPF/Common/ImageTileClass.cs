@@ -846,7 +846,7 @@ namespace PixivWPF.Common
                                     {
                                         if (item.Source == null && item.Thumb.IsCached())
                                         {
-                                            var thumb = item.Thumb.GetImageCachePath().LoadImageFromFile(size:Application.Current.GetDefaultThumbSize());
+                                            var thumb = await item.Thumb.GetImageCachePath().LoadImageFromFile(size:Application.Current.GetDefaultThumbSize());
                                             item.Source = thumb.Source;
                                             thumb.Source = null;
                                             thumb = null;

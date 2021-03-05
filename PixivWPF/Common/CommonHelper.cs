@@ -4656,7 +4656,7 @@ namespace PixivWPF.Common
                             w.Value.Dispose();
                         }
                     }
-                    catch { }
+                    catch(Exception ex) { ex.ERROR("ReleaseDownloadedWatcher"); }
                 }
                 _watchers.Clear();
             }
@@ -5080,7 +5080,7 @@ namespace PixivWPF.Common
         #endregion
         #endregion
 
-        #region Load/Save Image routines
+        #region Download/Convert/Resize Image routines
         private static Dictionary<string, string[]> exts = new Dictionary<string, string[]>()
         {
             { ".png", new string[] { ".png", "image/png", "PNG" } },
@@ -5115,7 +5115,7 @@ namespace PixivWPF.Common
                 return (false);
         }
 
-        internal static bool IsFileReady(this string filename)
+        private static bool IsFileReady(this string filename)
         {
             // If the file can be opened for exclusive access it means that the file
             // is no longer locked by another process.
@@ -5129,7 +5129,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(); return false; }
         }
 
-        internal static void WaitForFile(this string filename)
+        private static void WaitForFile(this string filename)
         {
             //This will lock the execution until the file is ready
             //TODO: Add some logic to make it async and cancelable
@@ -5271,310 +5271,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> DownloadCacheFile(this string url)
-        {
-            string result = string.Empty;
-            if (!string.IsNullOrEmpty(url) && cache is CacheImage)
-            {
-                result = await cache.DownloadImage(url);
-            }
-            return (result);
-        }
-
-        public static CustomImageSource LoadImageFromFile(this string file, Size size = default(Size))
-        {
-            CustomImageSource result = new CustomImageSource();
-            if (!string.IsNullOrEmpty(file) && File.Exists(file))
-            {
-                using (Stream stream = new MemoryStream(File.ReadAllBytes(file)))
-                {
-                    result.Source = stream.ToImageSource(size);
-                    result.SourcePath = file;
-                    result.Size = stream.Length;
-                    result.ColorDepth = result.Source is BitmapSource ? (result.Source as BitmapSource).Format.BitsPerPixel : 32;
-                    stream.Close();
-                    stream.Dispose();
-                }
-            }
-            return (result);
-        }
-
-        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size = default(Size))
-        {
-            CustomImageSource result = new CustomImageSource();
-            if (!string.IsNullOrEmpty(url) && cache is CacheImage)
-            {
-                result = await cache.GetImage(url, overwrite, login, size);
-            }
-            return (result);
-        }
-
-        public static async Task<CustomImageSource> LoadImageFromUri(this Uri uri, bool overwrite = false, Pixeez.Tokens tokens = null, Size size = default(Size))
-        {
-            CustomImageSource result = new CustomImageSource();
-            if (uri.IsUnc || uri.IsFile)
-                result = LoadImageFromFile(uri.LocalPath, size);
-            else if (!(uri.IsLoopback || uri.IsAbsoluteUri))
-                result = await LoadImageFromUrl(uri.OriginalString, overwrite, false, size);
-            return (result);
-        }
-
-        public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true)
-        {
-            var result = string.Empty;
-            if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
-            {
-                setting = Application.Current.LoadSetting();
-                try
-                {
-                    using (var client = Application.Current.GetHttpClient())
-                    {
-                        using (var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
-                        {
-                            response.EnsureSuccessStatusCode();
-                            string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
-
-                            using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
-                            {
-                                var target = Path.GetDirectoryName(file);
-                                if (!Directory.Exists(target)) Directory.CreateDirectory(target);
-                                //int wait_count = 0;
-                                //while (file.IsFileLocked() && wait_count < 10) { wait_count++; await Task.Delay(1000); }
-                                //if(await sr.WriteToFile(file)) result = file;
-                                using (var ms = new MemoryStream())
-                                {
-                                    await sr.CopyToAsync(ms);
-                                    if (ms.Length > 0)
-                                    {
-                                        int wait_count = 0;
-                                        while (file.IsLocked() && wait_count < 10) { wait_count++; await Task.Delay(1000); }
-                                        File.WriteAllBytes(file, ms.ToArray());
-                                        await Task.Delay(50);
-                                        result = file;
-                                    }
-                                    ms.Close();
-                                    ms.Dispose();
-                                }
-                                sr.Close();
-                                sr.Dispose();
-                            }
-                            response.Dispose();
-                        }
-                        client.Dispose();
-                    }
-                }
-                catch (Exception ex) { ex.ERROR("DOWNLOAD"); }
-            }
-            return (result);
-        }
-
-        public static async Task<string> DownloadImage(this string url, string file, Pixeez.Tokens tokens, bool overwrite = true)
-        {
-            var result = string.Empty;
-            if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
-            {
-                if (tokens == null) tokens = await ShowLogin();
-                try
-                {
-                    using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
-                    {
-                        if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
-                        {
-                            var target = Path.GetDirectoryName(file);
-                            if (!Directory.Exists(target)) Directory.CreateDirectory(target);
-                            using (var ms = await response.ToMemoryStream())
-                            {
-                                if (ms.Length > 0)
-                                {
-                                    int wait_count = 0;
-                                    while (file.IsLocked() && wait_count < 10) { wait_count++; await Task.Delay(1000); }
-                                    //if(await ms.WriteToFile(file)) result = file;
-                                    File.WriteAllBytes(file, ms.ToArray());
-                                    await Task.Delay(50);
-                                    result = file;
-                                }
-                                ms.Close();
-                            }
-                        }
-                        else result = string.Empty;
-                        response.Dispose();
-                    }
-                }
-                catch (Exception ex) { ex.ERROR("DOWNLOAD"); }
-            }
-            return (result);
-        }
-
-        public static async Task<bool> SaveImage(this string url, string file, bool overwrite = true)
-        {
-            bool result = false;
-            if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
-
-            if (!string.IsNullOrEmpty(file))
-            {
-                try
-                {
-                    var unc = file.IndexOf("file:\\\\\\");
-                    if (unc > 0) file = file.Substring(0, unc - 1);
-                    else if (unc == 0) file = file.Substring(8);
-
-                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, overwrite));
-                }
-                catch (Exception ex)
-                {
-                    if (ex is IOException)
-                    {
-
-                    }
-                    else
-                    {
-                        ex.Message.ShowMessageBox("ERROR");
-                    }
-                }
-            }
-            return (result);
-        }
-
-        public static async Task<bool> SaveImage(this string url, Pixeez.Tokens tokens, string file, bool overwrite = true)
-        {
-            bool result = false;
-            if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
-
-            if (!string.IsNullOrEmpty(file))
-            {
-                try
-                {
-                    var unc = file.IndexOf("file:\\\\\\");
-                    if (unc > 0) file = file.Substring(0, unc - 1);
-                    else if (unc == 0) file = file.Substring(8);
-
-                    //if (string.IsNullOrEmpty(await url.DownloadImage(file, overwrite)))
-                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, tokens, overwrite));
-                }
-                catch (Exception ex)
-                {
-                    if (ex is IOException)
-                    {
-
-                    }
-                    else
-                    {
-                        ex.Message.ShowMessageBox("ERROR");
-                    }
-                }
-            }
-            return (result);
-        }
-
-        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, bool is_meta_single_page = false, bool overwrite = true)
-        {
-            string result = string.Empty;
-
-            var file = Application.Current.SaveTarget(url.GetImageName(is_meta_single_page));
-
-            try
-            {
-                if (!string.IsNullOrEmpty(file))
-                {
-                    result = await url.DownloadImage(file, tokens, overwrite);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex is IOException)
-                {
-
-                }
-                else
-                {
-                    ex.Message.ShowMessageBox("ERROR[SAVEIMAGE]");
-                }
-            }
-            return (result);
-        }
-
-        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
-        {
-            var file = await url.SaveImage(tokens, is_meta_single_page, overwrite);
-            var id = url.GetIllustId();
-
-            if (!string.IsNullOrEmpty(file))
-            {
-                File.SetCreationTime(file, dt);
-                File.SetLastWriteTime(file, dt);
-                File.SetLastAccessTime(file, dt);
-                var state = "Succeed";
-                $"{Path.GetFileName(file)} is saved!".ShowDownloadToast(state, file, state);
-
-                if (Regex.IsMatch(file, @"_ugoira\d+\.", RegexOptions.IgnoreCase))
-                {
-                    var ugoira_url = url.Replace("img-original", "img-zip-ugoira");
-                    //ugoira_url = Regex.Replace(ugoira_url, @"(_ugoira)(\d+)(\..*?)", "_ugoira1920x1080.zip", RegexOptions.IgnoreCase);
-                    ugoira_url = Regex.Replace(ugoira_url, @"_ugoira\d+\..*?$", "_ugoira1920x1080.zip", RegexOptions.IgnoreCase);
-                    var ugoira_file = await ugoira_url.SaveImage(tokens, dt, true, overwrite);
-                    if (!string.IsNullOrEmpty(ugoira_file))
-                    {
-                        File.SetCreationTime(ugoira_file, dt);
-                        File.SetLastWriteTime(ugoira_file, dt);
-                        File.SetLastAccessTime(ugoira_file, dt);
-                        state = "Succeed";
-                        $"{Path.GetFileName(ugoira_file)} is saved!".ShowDownloadToast(state, ugoira_file, state);
-                    }
-                    else
-                    {
-                        state = "Failed";
-                        $"Save {Path.GetFileName(ugoira_url)} failed!".ShowDownloadToast(state, "", state);
-                    }
-                }
-            }
-            else
-            {
-                var state = "Failed";
-                $"Save {Path.GetFileName(url)} failed!".ShowDownloadToast(state, "", state);
-            }
-            return (file);
-        }
-
-        public static async Task<List<string>> SaveImage(Dictionary<string, DateTime> files, Pixeez.Tokens tokens, bool is_meta_single_page = false)
-        {
-            List<string> result = new List<string>();
-
-            foreach (var file in files)
-            {
-                var f = await file.Key.SaveImage(tokens, file.Value, is_meta_single_page);
-                result.Add(f);
-            }
-            SystemSounds.Beep.Play();
-
-            return (result);
-        }
-
-        public static void SaveImage(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
-        {
-            Commands.AddDownloadItem.Execute(new DownloadParams()
-            {
-                Url = url,
-                ThumbUrl = thumb,
-                Timestamp = dt,
-                IsSinglePage = is_meta_single_page,
-                OverwriteExists = overwrite
-            });
-        }
-
-        public static void SaveImages(Dictionary<Tuple<string, bool>, Tuple<string, DateTime>> files, bool overwrite = true)
-        {
-            foreach (var file in files)
-            {
-                var url = file.Key.Item1;
-                var is_meta_single_page =  file.Key.Item2;
-                var thumb = file.Value.Item1;
-                var dt = file.Value.Item2;
-                url.SaveImage(thumb, dt, is_meta_single_page, overwrite);
-            }
-            SystemSounds.Beep.Play();
-        }
-
-        public static async Task<ImageSource> GetImageFromURL(this string url)
+        public static async Task<ImageSource> ToImageSource(this string url)
         {
             ImageSource result = null;
 
@@ -5653,6 +5350,8 @@ namespace PixivWPF.Common
             using (var stream = await response.GetResponseStreamAsync())
             {
                 result = stream.ToImageSource(size);
+                stream.Close();
+                stream.Dispose();
             }
             return (result);
         }
@@ -6007,27 +5706,38 @@ namespace PixivWPF.Common
 
         public static ImageSource ResizeImage(this ImageSource source, Size size)
         {
-            if (size == default(Size) || size.Width <= 0 || size.Height <= 0) return (source);
-            else return (source.ResizeImage(size.Width, size.Height));
-        }
-
-        public static ImageSource ResizeImage(this ImageSource source, double width, double height)
-        {
             ImageSource result = source;
             try
             {
-                if (source is BitmapSource && width > 0 && height > 0)
+                var width = size.Width;
+                var height = size.Height;
+                if (width > 0 && height > 0)
                 {
-                    var dpi = DPI.Default;
-                    var factorX = source is BitmapSource ? dpi.X / (source as BitmapSource).DpiX : 1.0;
-                    var factorY = source is BitmapSource ? dpi.Y / (source as BitmapSource).DpiY : 1.0;
-                    var scale = new ScaleTransform(width * factorX / source.Width, height *factorY / source.Height);
-                    result = new TransformedBitmap(source as BitmapSource, scale);
-                    result.Freeze();
+                    if (source is BitmapSource)
+                    {
+                        var bitmap = source as BitmapSource;
+                        var dpi = DPI.Default;
+                        var factorX = dpi.X / bitmap.DpiX;
+                        var factorY = dpi.Y / bitmap.DpiY;
+                        var scale = new ScaleTransform(width * factorX / source.Width, height * factorY / source.Height);
+                        result = new TransformedBitmap(bitmap, scale);
+                        result.Freeze();
+                    }
+                    else
+                    {
+                        result = source.ToBitmapSource(size);
+                        result.Freeze();
+                    }
                 }
             }
             catch (Exception ex) { ex.ERROR("ResizeImage"); }
             return (result);
+        }
+
+        public static ImageSource ResizeImage(this ImageSource source, double width, double height)
+        {
+            if (width <= 0 || height <= 0) return (source);
+            else return (source.ResizeImage(new Size(width, height)));
         }
 
         private static byte[] ClipboardBuffer = null;
@@ -6131,30 +5841,319 @@ namespace PixivWPF.Common
 #endif
         }
 
-        public static async Task<bool> WriteToFile(this Stream source, string target, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
+        public static async Task<bool> WriteToFile(this Stream source, string file, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
         {
             var result = false;
-            byte[] buffer = new byte[bufferSize];
             using (var ms = new MemoryStream())
             {
-                using (var fs = new FileStream(target, mode, access, share, bufferSize, true))
+                if(source.CanSeek) source.Seek(0, SeekOrigin.Begin);
+                await source.CopyToAsync(ms, bufferSize);
+                if (ms.Length > 0)
                 {
-                    await source.CopyToAsync(ms, bufferSize);
-                    if (ms.Length > 0)
+                    var folder = Path.GetDirectoryName(file);
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                    int wait_count = 10;
+                    while (file.IsLocked() && wait_count > 0) { wait_count--; await Task.Delay(1000); }
+                    using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
                     {
-                        ms.Seek(0, SeekOrigin.Begin);
-                        await ms.CopyToAsync(fs, bufferSize);
-                        //await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
+                        await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
                         await fs.FlushAsync();
+                        fs.Close();
+                        fs.Dispose();
                         result = true;
                     }
-                    fs.Close();
-                    fs.Dispose();
                 }
                 ms.Close();
                 ms.Dispose();
             }
             return (result);
+        }
+        #endregion
+
+        #region Load/Save Image routines
+        public static async Task<CustomImageSource> LoadImageFromFile(this string file, Size size = default(Size))
+        {
+            CustomImageSource result = new CustomImageSource();
+            if (!string.IsNullOrEmpty(file) && File.Exists(file))
+            {
+                try
+                {
+                    int wait_count = 10;
+                    while (file.IsLocked() && wait_count > 0) { wait_count--; await Task.Delay(1000); }
+                    using (Stream stream = new MemoryStream(File.ReadAllBytes(file)))
+                    {
+                        result.Source = stream.ToImageSource(size);
+                        result.SourcePath = file;
+                        result.Size = stream.Length;
+                        result.ColorDepth = result.Source is BitmapSource ? (result.Source as BitmapSource).Format.BitsPerPixel : 32;
+                        stream.Close();
+                        stream.Dispose();
+                    }
+                }
+                catch(Exception ex) { ex.ERROR("LoadImageFromFile"); }
+            }
+            return (result);
+        }
+
+        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size = default(Size))
+        {
+            CustomImageSource result = new CustomImageSource();
+            if (!string.IsNullOrEmpty(url) && cache is CacheImage)
+            {
+                result = await cache.GetImage(url, overwrite, login, size);
+            }
+            return (result);
+        }
+
+        public static async Task<CustomImageSource> LoadImageFromUri(this Uri uri, bool overwrite = false, Pixeez.Tokens tokens = null, Size size = default(Size))
+        {
+            CustomImageSource result = new CustomImageSource();
+            if (uri.IsUnc || uri.IsFile)
+                result = await LoadImageFromFile(uri.LocalPath, size);
+            else if (!(uri.IsLoopback || uri.IsAbsoluteUri))
+                result = await LoadImageFromUrl(uri.OriginalString, overwrite, false, size);
+            return (result);
+        }
+
+        public static async Task<string> DownloadCacheFile(this string url)
+        {
+            string result = string.Empty;
+            if (!string.IsNullOrEmpty(url) && cache is CacheImage)
+            {
+                result = await cache.DownloadImage(url);
+            }
+            return (result);
+        }
+
+        public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true)
+        {
+            var result = string.Empty;
+            if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
+            {
+                setting = Application.Current.LoadSetting();
+                try
+                {
+                    using (var client = Application.Current.GetHttpClient())
+                    {
+                        using (var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+                        {
+                            //response.EnsureSuccessStatusCode();
+                            if (response != null && response.StatusCode == HttpStatusCode.OK)
+                            {
+                                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                                using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                                {
+                                    if (await sr.WriteToFile(file)) result = file;
+                                    sr.Close();
+                                    sr.Dispose();
+                                }
+                            }
+                            response.Dispose();
+                        }
+                        client.Dispose();
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("DOWNLOAD"); }
+            }
+            return (result);
+        }
+
+        public static async Task<string> DownloadImage(this string url, string file, Pixeez.Tokens tokens, bool overwrite = true)
+        {
+            var result = string.Empty;
+            if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
+            {
+                if (tokens == null) tokens = await ShowLogin();
+                try
+                {
+                    using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                    {
+                        //response.Source.EnsureSuccessStatusCode();
+                        if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
+                        {
+                            using (var sr = await response.GetResponseStreamAsync())
+                            {
+                                if (await sr.WriteToFile(file)) result = file;
+                                sr.Close();
+                                sr.Dispose();
+                            }
+                        }
+                        response.Dispose();
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("DOWNLOAD"); }
+            }
+            return (result);
+        }
+
+        public static async Task<bool> SaveImage(this string url, string file, bool overwrite = true)
+        {
+            bool result = false;
+            if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
+
+            if (!string.IsNullOrEmpty(file))
+            {
+                try
+                {
+                    var unc = file.IndexOf("file:\\\\\\");
+                    if (unc > 0) file = file.Substring(0, unc - 1);
+                    else if (unc == 0) file = file.Substring(8);
+
+                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, overwrite));
+                }
+                catch (Exception ex)
+                {
+                    if (ex is IOException)
+                    {
+
+                    }
+                    else
+                    {
+                        ex.ERROR("SaveImage");
+                    }
+                }
+            }
+            return (result);
+        }
+
+        public static async Task<bool> SaveImage(this string url, Pixeez.Tokens tokens, string file, bool overwrite = true)
+        {
+            bool result = false;
+            if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
+
+            if (!string.IsNullOrEmpty(file))
+            {
+                try
+                {
+                    var unc = file.IndexOf("file:\\\\\\");
+                    if (unc > 0) file = file.Substring(0, unc - 1);
+                    else if (unc == 0) file = file.Substring(8);
+
+                    //if (string.IsNullOrEmpty(await url.DownloadImage(file, overwrite)))
+                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, tokens, overwrite));
+                }
+                catch (Exception ex)
+                {
+                    if (ex is IOException)
+                    {
+
+                    }
+                    else
+                    {
+                        ex.ERROR("SaveImage");
+                    }
+                }
+            }
+            return (result);
+        }
+
+        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, bool is_meta_single_page = false, bool overwrite = true)
+        {
+            string result = string.Empty;
+
+            var file = Application.Current.SaveTarget(url.GetImageName(is_meta_single_page));
+
+            try
+            {
+                if (!string.IsNullOrEmpty(file))
+                {
+                    result = await url.DownloadImage(file, tokens, overwrite);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is IOException)
+                {
+
+                }
+                else
+                {
+                    ex.ERROR("SaveImage");
+                }
+            }
+            return (result);
+        }
+
+        public static async Task<string> SaveImage(this string url, Pixeez.Tokens tokens, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        {
+            var file = await url.SaveImage(tokens, is_meta_single_page, overwrite);
+            var id = url.GetIllustId();
+
+            if (!string.IsNullOrEmpty(file))
+            {
+                File.SetCreationTime(file, dt);
+                File.SetLastWriteTime(file, dt);
+                File.SetLastAccessTime(file, dt);
+                var state = "Succeed";
+                $"{Path.GetFileName(file)} is saved!".ShowDownloadToast(state, file, state);
+
+                if (Regex.IsMatch(file, @"_ugoira\d+\.", RegexOptions.IgnoreCase))
+                {
+                    var ugoira_url = url.Replace("img-original", "img-zip-ugoira");
+                    //ugoira_url = Regex.Replace(ugoira_url, @"(_ugoira)(\d+)(\..*?)", "_ugoira1920x1080.zip", RegexOptions.IgnoreCase);
+                    ugoira_url = Regex.Replace(ugoira_url, @"_ugoira\d+\..*?$", "_ugoira1920x1080.zip", RegexOptions.IgnoreCase);
+                    var ugoira_file = await ugoira_url.SaveImage(tokens, dt, true, overwrite);
+                    if (!string.IsNullOrEmpty(ugoira_file))
+                    {
+                        File.SetCreationTime(ugoira_file, dt);
+                        File.SetLastWriteTime(ugoira_file, dt);
+                        File.SetLastAccessTime(ugoira_file, dt);
+                        state = "Succeed";
+                        $"{Path.GetFileName(ugoira_file)} is saved!".ShowDownloadToast(state, ugoira_file, state);
+                    }
+                    else
+                    {
+                        state = "Failed";
+                        $"Save {Path.GetFileName(ugoira_url)} failed!".ShowDownloadToast(state, "", state);
+                    }
+                }
+            }
+            else
+            {
+                var state = "Failed";
+                $"Save {Path.GetFileName(url)} failed!".ShowDownloadToast(state, "", state);
+            }
+            return (file);
+        }
+
+        public static async Task<List<string>> SaveImage(Dictionary<string, DateTime> files, Pixeez.Tokens tokens, bool is_meta_single_page = false)
+        {
+            List<string> result = new List<string>();
+
+            foreach (var file in files)
+            {
+                var f = await file.Key.SaveImage(tokens, file.Value, is_meta_single_page);
+                result.Add(f);
+            }
+            SystemSounds.Beep.Play();
+
+            return (result);
+        }
+
+        public static void SaveImage(this string url, string thumb, DateTime dt, bool is_meta_single_page = false, bool overwrite = true)
+        {
+            Commands.AddDownloadItem.Execute(new DownloadParams()
+            {
+                Url = url,
+                ThumbUrl = thumb,
+                Timestamp = dt,
+                IsSinglePage = is_meta_single_page,
+                OverwriteExists = overwrite
+            });
+        }
+
+        public static void SaveImages(Dictionary<Tuple<string, bool>, Tuple<string, DateTime>> files, bool overwrite = true)
+        {
+            foreach (var file in files)
+            {
+                var url = file.Key.Item1;
+                var is_meta_single_page =  file.Key.Item2;
+                var thumb = file.Value.Item1;
+                var dt = file.Value.Item2;
+                url.SaveImage(thumb, dt, is_meta_single_page, overwrite);
+            }
+            SystemSounds.Beep.Play();
         }
         #endregion
 

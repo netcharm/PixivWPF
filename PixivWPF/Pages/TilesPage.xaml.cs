@@ -2001,7 +2001,7 @@ namespace PixivWPF.Pages
             setting.Save();
         }
 
-        private void ImageTiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void ImageTiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
@@ -2013,7 +2013,7 @@ namespace PixivWPF.Pages
                     var item = ImageTiles.SelectedItem as PixivItem;
                     if (item.Thumb.IsCached() && item.Source == null)
                     {
-                        var thumb = item.Thumb.LoadImageFromFile(size: Application.Current.GetDefaultThumbSize());
+                        var thumb = await item.Thumb.LoadImageFromFile(size: Application.Current.GetDefaultThumbSize());
                         if (thumb != null && thumb != null)
                         {
                             item.Source = thumb.Source;

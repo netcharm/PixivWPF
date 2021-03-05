@@ -90,18 +90,18 @@ namespace PixivWPF.Common
 
             if (!string.IsNullOrEmpty(file))
             {
-                result = file.LoadImageFromFile(size);
+                result = await file.LoadImageFromFile(size);
             }
             else
             {
                 file = GetImagePath(url);
                 var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite);
-                if (success) result = file.LoadImageFromFile(size);
+                if (success) result = await file.LoadImageFromFile(size);
             }
 
             if (!(result.Source is ImageSource) && (url.IsDownloadedAsync(out fp, true) || url.IsDownloadedAsync(out fp)))
             {
-                result = fp.LoadImageFromFile(size);
+                result = await fp.LoadImageFromFile(size);
             }
 
             if (result.Source is ImageSource && !string.IsNullOrEmpty(id))
