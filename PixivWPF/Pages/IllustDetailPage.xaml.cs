@@ -110,7 +110,7 @@ namespace PixivWPF.Pages
                 // Add the hit test result to the list that will be processed after the enumeration.
                 hitResultsList.Add(result.VisualHit);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("MyHitTestResult"); }
             return (behavior);
         }
 
@@ -142,7 +142,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch { }
+            catch(Exception ex) { ex.ERROR("IsElement"); }
 
             return (result);
         }
@@ -159,7 +159,7 @@ namespace PixivWPF.Pages
                 else if (browser == IllustCommentsHtml)
                     result = commentsHost;
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("GetHtmlHost"); }
             return (result);
         }
 
@@ -389,7 +389,7 @@ namespace PixivWPF.Pages
                 UpdateTheme();
                 UpdateLayout();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("CreateHtmlRender"); }
         }
 
         private void DeleteHtmlRender()
@@ -421,7 +421,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch { }
+            catch(Exception ex) { ex.ERROR("DeleteHtmlRender"); }
         }
 
         private async void RefreshHtmlRender(System.Windows.Forms.WebBrowser browser)
@@ -777,7 +777,7 @@ namespace PixivWPF.Pages
                     UpdateDownloadState(illustid, exists);
                 }).InvokeAsync();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("UpdateDownloadState"); }
         }
 
         private void UpdateDownloadedMark()
@@ -789,7 +789,7 @@ namespace PixivWPF.Pages
                     UpdateDownloadedMark(Contents);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("UpdateDownloadedMark"); }
         }
 
         private void UpdateDownloadedMark(PixivItem item, bool? exists = null)
@@ -931,7 +931,7 @@ namespace PixivWPF.Pages
                 else if (Contents.IsWork())
                     Commands.ChangeIllustLikeState.Execute(Contents);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ChangeIllustLikeState"); }
         }
 
         public void ChangeUserLikeState()
@@ -945,7 +945,7 @@ namespace PixivWPF.Pages
                 else if (Contents.HasUser())
                     Commands.ChangeUserLikeState.Execute(Contents);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ChangeUserLikeState"); }
         }
 
         public void OpenUser()
@@ -959,7 +959,7 @@ namespace PixivWPF.Pages
                 else if (Contents.IsWork())
                     Commands.OpenUser.Execute(Contents);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("OpenUser"); }
         }
 
         public void OpenIllust()
@@ -998,7 +998,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("OpenIllust"); }
         }
 
         public void OpenCachedImage()
@@ -1034,7 +1034,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("OpenCachedImage"); }
         }
 
         public void SaveIllust()
@@ -1050,7 +1050,7 @@ namespace PixivWPF.Pages
                 else if (Contents.IsWork())
                     Commands.SaveIllust.Execute(Contents);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SaveIllust"); }
         }
 
         public void SaveIllustAll()
@@ -1064,7 +1064,7 @@ namespace PixivWPF.Pages
                 else if (Contents.IsWork())
                     Commands.SaveIllustAll.Execute(Contents);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SaveIllustAll"); }
         }
 
         public void CopyPreview(bool loadfromfile = false)
@@ -2198,7 +2198,7 @@ namespace PixivWPF.Pages
                     InitPopupTimer(ref PreviewPopupTimer);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("Loaded"); }
 
             if (Contents.HasUser()) UpdateDetail(Contents);
         }

@@ -51,6 +51,22 @@ namespace PixivWPF.Common
 
         public bool InSearching { get { return (SearchBox.IsKeyboardFocusWithin); } }
 
+        public void JumpTo(string id)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(id))
+                {
+                    var win = this.GetMainWindow();
+                    if (win is MainWindow && (win as MainWindow).Contents is TilesPage)
+                    {
+                        (win as MainWindow).Contents.JumpTo(id);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("RecentJumpTo"); }
+        }
+
         public ContentWindow()
         {
             InitializeComponent();
@@ -71,13 +87,13 @@ namespace PixivWPF.Common
         {
             $"{Title} Loading...".INFO();
 
-            CommandPageRefresh.Hide();
+            CommandRefresh.Hide();
             CommandFilter.Hide();
 
             if (Content is BrowerPage)
             {
                 CommandPageRead.Show();
-                CommandPageRefreshThumb.ToolTip = "Refresh";
+                CommandRefreshThumb.ToolTip = "Refresh";
             }
             else
                 CommandPageRead.Hide();
@@ -87,10 +103,10 @@ namespace PixivWPF.Common
                 Content is SearchResultPage ||
                 Content is HistoryPage)
             {
-                CommandPageRefresh.Show();
+                CommandRefresh.Show();
                 if (!(Content is IllustImageViewerPage))
                 {
-                    CommandPageRefreshThumb.Show();
+                    CommandRefreshThumb.Show();
                     CommandFilter.Show();
                 }
             }
@@ -190,11 +206,11 @@ namespace PixivWPF.Common
             if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
         }
 
-        private void CommandPageRefresh_Click(object sender, RoutedEventArgs e)
+        private void CommandRefresh_Click(object sender, RoutedEventArgs e)
         {
-            if(sender == CommandPageRefresh)
+            if(sender == CommandRefresh)
                 Commands.RefreshPage.Execute(Content);
-            else if(sender == CommandPageRefreshThumb)
+            else if(sender == CommandRefreshThumb)
                 Commands.RefreshPageThumb.Execute(Content);
         }
 
@@ -554,5 +570,32 @@ namespace PixivWPF.Common
                 (Content as HistoryPage).SetFilter(filter);
         }
 
+        private void CommandRecents_Click(object sender, RoutedEventArgs e)
+        {
+            var setting = Application.Current.LoadSetting();
+            var recents = Application.Current.HistoryRecentIllusts(setting.MostRecents);
+            RecentsList.Items.Clear();
+            //var contents = recents.Select(item => $"ID: {item.ID}, {item.Illust.Title}").ToList();
+            foreach (var item in recents)
+            {
+                RecentsList.Items.Add($"ID: {item.ID}, {new string(item.Illust.Title.Take(32).ToArray())} ");
+            }
+            RecentsPopup.IsOpen = true;
+        }
+
+        private void CommandRecentsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count > 0)
+            {
+                var item = e.AddedItems[0];
+                if (item is string)
+                {
+                    var contents = item as string;
+                    var id = Regex.Replace(contents, @"ID:\s*?(\d+),.*?$", "$1", RegexOptions.IgnoreCase);
+                    JumpTo(id);
+                }
+                RecentsPopup.IsOpen = false;
+            }
+        }
     }
 }

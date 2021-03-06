@@ -88,7 +88,7 @@ namespace PixivWPF.Common
                 if (gallery.Name.Equals("SubIllusts", StringComparison.CurrentCultureIgnoreCase))
                     result = true;
             }
-            catch (Exception ex) { ex.ERROR("SUBPAGES"); }
+            catch (Exception ex) { ex.ERROR("IsPagesGallary"); }
             return (result);
         }
 
@@ -103,7 +103,7 @@ namespace PixivWPF.Common
                     gallery.Name.Equals("HistoryItems", StringComparison.CurrentCultureIgnoreCase))
                     result = true;
             }
-            catch (Exception ex) { ex.ERROR("GALLARY"); }
+            catch (Exception ex) { ex.ERROR("IsNormalGallary"); }
             return (result);
         }
 
@@ -146,7 +146,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("RESTART"); }
+            catch (Exception ex) { ex.ERROR("RestartApplication"); }
             finally { }
         });
 
@@ -181,7 +181,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("UPGRADE"); }
+            catch (Exception ex) { ex.ERROR("UpgradeApplication"); }
             finally { }
         });
 
@@ -219,6 +219,14 @@ namespace PixivWPF.Common
             {
                 (obj as IllustImageViewerPage).CopyPreview();
             }
+            else if (obj is HistoryPage)
+            {
+                (obj as HistoryPage).Copy();
+            }
+            else if (obj is SearchResultPage)
+            {
+                (obj as SearchResultPage).Copy();
+            }
             else if (obj is DownloadManagerPage)
             {
                 CopyDownloadInfo.Execute((obj as DownloadManagerPage).GetDownloadInfo());
@@ -236,25 +244,29 @@ namespace PixivWPF.Common
 
         public static ICommand CopyText { get; } = new DelegateCommand<dynamic>(obj =>
         {
-            if (obj is string)
+            try
             {
-                var text = obj as string;
-                if (!string.IsNullOrEmpty(text))
+                if (obj is string)
                 {
-                    var data = new DataObject();
-                    data.SetData(DataFormats.Text, text);
-                    data.SetData(DataFormats.UnicodeText, text);
-                    Clipboard.SetDataObject(data, true);
+                    var text = obj as string;
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        var data = new DataObject();
+                        data.SetData(DataFormats.Text, text);
+                        data.SetData(DataFormats.UnicodeText, text);
+                        Clipboard.SetDataObject(data, true);
+                    }
+                }
+                else if (obj is HtmlTextData)
+                {
+                    CopyHtml.Execute(obj);
+                }
+                else
+                {
+                    if (obj != null) CopyText.Execute(obj.ToString());
                 }
             }
-            else if (obj is HtmlTextData)
-            {
-                CopyHtml.Execute(obj);
-            }
-            else
-            {
-                if (obj != null) CopyText.Execute(obj.ToString());
-            }
+            catch (Exception ex) { ex.ERROR("CopyText"); }
         });
 
         public static ICommand CopyHtml { get; } = new DelegateCommand<dynamic>(obj =>
@@ -279,7 +291,7 @@ namespace PixivWPF.Common
                     CopyText.Execute(obj);
                 }
             }
-            catch (Exception ex) { ex.ERROR("COPY"); }
+            catch (Exception ex) { ex.ERROR("CopyHtml"); }
         });
 
         public static ICommand CopyArtworkIDs { get; } = new DelegateCommand<dynamic>(obj =>
@@ -605,9 +617,9 @@ namespace PixivWPF.Common
 
         public static ICommand OpenItem { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if (obj is PixivItem)
+            try
             {
-                try
+                if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
                     if (item.IsWork())
@@ -624,19 +636,19 @@ namespace PixivWPF.Common
                         OpenUser.Execute(item.User);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("OPEN"); }
-            }
-            else if (obj is ImageListGrid)
-            {
-                var list = obj as ImageListGrid;
-                foreach (var item in list.GetSelected())
+                else if (obj is ImageListGrid)
                 {
-                    await new Action(() =>
+                    var list = obj as ImageListGrid;
+                    foreach (var item in list.GetSelected())
                     {
-                        OpenItem.Execute(item);
-                    }).InvokeAsync();
+                        await new Action(() =>
+                        {
+                            OpenItem.Execute(item);
+                        }).InvokeAsync();
+                    }
                 }
             }
+            catch (Exception ex) { ex.ERROR("OpenItem"); }
         });
 
         public static ICommand OpenWork { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -709,8 +721,7 @@ namespace PixivWPF.Common
                     if (win.Content is Page) OpenWork.Execute(win.Content);
                 }
             }
-            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[ILLUST]"); }
-            //catch (Exception ex) { ex.ShowExceptionMessageBox("ERROR[ILLUST]"); }
+            catch (Exception ex) { ex.ERROR("OpenWork"); }
         });
 
         public static ICommand OpenWorkPreview { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -760,10 +771,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowToast("ERROR", tag: "PREVIEW");
-            }
+            catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenWorkPreview"); }
         });
 
         public static ICommand OpenUser { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -834,10 +842,7 @@ namespace PixivWPF.Common
                     if (win.Content is Page) OpenUser.Execute(win.Content);
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[USER]");
-            }
+            catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenUser"); }
         });
 
         public static ICommand OpenGallery { get; } = new DelegateCommand<dynamic>(obj =>
@@ -939,10 +944,7 @@ namespace PixivWPF.Common
                     if (win.Content is Page) OpenDownloaded.Execute(win.Content);
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
-            }
+            catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
         });
 
         public static ICommand OpenCachedImage { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -989,13 +991,9 @@ namespace PixivWPF.Common
                 }
                 else if (obj is string)
                 {
-                    try
-                    {
-                        string s = obj as string;
-                        Uri url = null;
-                        if (!string.IsNullOrEmpty(s) && Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out url)) ShellOpenFile.Execute(url);
-                    }
-                    catch (Exception ex) { ex.ERROR("CACHEDIMAGE"); }
+                    string s = obj as string;
+                    Uri url = null;
+                    if (!string.IsNullOrEmpty(s) && Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out url)) ShellOpenFile.Execute(url);
                 }
                 else if (obj is ImageListGrid)
                 {
@@ -1051,10 +1049,7 @@ namespace PixivWPF.Common
                     if (win.Content is Page) OpenCachedImage.Execute(win.Content);
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
-            }
+            catch (Exception ex) { ex.ERROR("OpenCachedImage"); }
         });
 
         public static ICommand OpenHistory { get; } = new DelegateCommand(async () =>
@@ -1083,10 +1078,7 @@ namespace PixivWPF.Common
                     Application.Current.DoEvents();
                 }).InvokeAsync();
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[HISTORY]");
-            }
+            catch (Exception ex) { ex.ERROR("OpenHistory"); }
         });
 
         public static ICommand AddToHistory { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -1109,10 +1101,7 @@ namespace PixivWPF.Common
                         Application.Current.DoEvents();
                     }).InvokeAsync();
                 }
-                catch (Exception ex)
-                {
-                    ex.Message.ShowMessageBox("ERROR[HISTORY]");
-                }
+                catch (Exception ex) { ex.ERROR("AddToHistory"); }
             }
         });
 
@@ -1225,7 +1214,7 @@ namespace PixivWPF.Common
                         }).InvokeAsync(true);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("DOWNLOADMANAGER"); }
+                catch (Exception ex) { ex.ERROR("OpenDownloadManager"); }
                 finally
                 {
                     if (CanOpenDownloadManager is SemaphoreSlim && CanOpenDownloadManager.CurrentCount <= 0) CanOpenDownloadManager.Release();
@@ -1271,9 +1260,9 @@ namespace PixivWPF.Common
                             Width = WIDTH_SEARCH,
                             Height = HEIGHT_DEF,
                             MinWidth = WIDTH_SEARCH,
+                            MaxWidth = WIDTH_SEARCH,
                             MinHeight = HEIGHT_MIN,
                             MaxHeight = HEIGHT_MAX,
-                            MaxWidth = WIDTH_MIN + 16,
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
@@ -1296,7 +1285,7 @@ namespace PixivWPF.Common
                                 OpenSearch.Execute(link);
                             }).InvokeAsync();
                         }
-                        catch (Exception ex) { ex.ERROR("SEARCH"); }
+                        catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenSearch"); }
                     }
                 }).InvokeAsync();
             }
@@ -1764,7 +1753,7 @@ namespace PixivWPF.Common
                         if (File.Exists(fp_d)) fp_d.OpenFileWithShell();
                     }
                 }
-                catch (Exception ex) { ex.ERROR("SHELL"); }
+                catch (Exception ex) { ex.ERROR("ShellOpenFile"); }
             }
             else if (obj is PixivItem)
             {
@@ -1807,7 +1796,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { ex.ERROR("SAVEOPENED"); }
+                catch (Exception ex) { ex.ERROR("SaveOpenedWindows"); }
             }).InvokeAsync();
         });
 
@@ -1826,7 +1815,7 @@ namespace PixivWPF.Common
                         OpenSearch.Execute(links);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("LOADLASTOPENED"); }
+                catch (Exception ex) { ex.ERROR("LoadLastOpenedWindows"); }
             }).InvokeAsync();
         });
 
@@ -2315,10 +2304,7 @@ namespace PixivWPF.Common
                     gallery.LikeIllust(pub);
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
-            }
+            catch (Exception ex) { ex.ERROR("LikeIllust"); }
         });
 
         public static ICommand UnLikeIllust { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -2341,10 +2327,7 @@ namespace PixivWPF.Common
                     gallery.UnLikeIllust();
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
-            }
+            catch (Exception ex) { ex.ERROR("UnLikeIllust"); }
         });
 
         public static ICommand ChangeIllustLikeState { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -2420,7 +2403,7 @@ namespace PixivWPF.Common
                 }
                 else if (obj is HistoryPage)
                 {
-                    (obj as IllustDetailPage).ChangeIllustLikeState();
+                    (obj as HistoryPage).ChangeIllustLikeState();
                 }
                 else if (obj is SearchResultPage)
                 {
@@ -2432,10 +2415,7 @@ namespace PixivWPF.Common
                     if (win.Content is Page) ChangeIllustLikeState.Execute(win.Content);
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
-            }
+            catch (Exception ex) { ex.ERROR("ChangeIllustLikeState"); }
         });
 
         public static ICommand LikeUser { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -2461,10 +2441,7 @@ namespace PixivWPF.Common
                     gallery.LikeUser(pub);
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
-            }
+            catch (Exception ex) { ex.ERROR("LikeUser"); }
         });
 
         public static ICommand UnLikeUser { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -2487,10 +2464,7 @@ namespace PixivWPF.Common
                     gallery.UnLikeUser();
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
-            }
+            catch (Exception ex) { ex.ERROR("UnLikeUser"); }
         });
 
         public static ICommand ChangeUserLikeState { get; } = new DelegateCommand<dynamic>(async obj =>
@@ -2566,7 +2540,7 @@ namespace PixivWPF.Common
                 }
                 else if (obj is HistoryPage)
                 {
-                    (obj as IllustDetailPage).ChangeUserLikeState();
+                    (obj as HistoryPage).ChangeUserLikeState();
                 }
                 else if (obj is SearchResultPage)
                 {
@@ -2578,10 +2552,7 @@ namespace PixivWPF.Common
                     if (win.Content is Page) ChangeUserLikeState.Execute(win.Content);
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[DOWNLOADED]");
-            }
+            catch (Exception ex) { ex.ERROR("ChangeUserLikeState"); }
         });
         #endregion
 

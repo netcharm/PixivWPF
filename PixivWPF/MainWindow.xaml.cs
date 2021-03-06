@@ -216,7 +216,7 @@ namespace PixivWPF
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("RecentJumpTo"); }
         }
 
         public void FirstIllust()
@@ -284,17 +284,17 @@ namespace PixivWPF
                 {
                     if (pipeServer.IsConnected) pipeServer.Disconnect();
                 }
-                catch { }
+                catch(Exception ex) { ex.ERROR("ReleaseNamedPipeServer"); }
                 try
                 {
                     pipeServer.Close();
                 }
-                catch { }
+                catch(Exception ex) { ex.ERROR("ReleaseNamedPipeServer"); }
                 try
                 {
                     pipeServer.Dispose();
                 }
-                catch { }
+                catch(Exception ex) { ex.ERROR("ReleaseNamedPipeServer"); }
                 pipeServer = null;
             }
             return (true);
@@ -337,10 +337,7 @@ namespace PixivWPF
 
                 if (ps.IsConnected) ps.Disconnect();
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[PIPE]!");
-            }
+            catch (Exception ex) { ex.ERROR("PIPE"); }
             finally
             {
                 if (pipeServer is NamedPipeServerStream && !pipeOnClosing) CreateNamedPipeServer();
@@ -520,7 +517,7 @@ namespace PixivWPF
                     RefreshThumbnail();
                 }
             }
-            catch { }
+            catch(Exception ex) { ex.ERROR("CommandRefresh"); }
         }
 
         private void CommandRecents_Click(object sender, RoutedEventArgs e)

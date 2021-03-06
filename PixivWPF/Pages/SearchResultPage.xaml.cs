@@ -231,6 +231,19 @@ namespace PixivWPF.Pages
             }
         }
 
+        public void Copy()
+        {
+            List<string> info = new List<string>();
+            foreach (var item in ResultItems.GetSelected(WithSelectionOrder: false, NonForAll: true))
+            {
+                if(item.IsUser())
+                    info.Add($"UID:{item.ID}, UNAME:{item.User.Name}");
+                else if(item.IsWork())
+                    info.Add($"ID:{item.ID}, Title:{item.Illust.Title}, UID:{item.UserID}, UNAME:{item.User.Name}");
+            }
+            Commands.CopyText.Execute(string.Join(Environment.NewLine, info));
+        }
+
         public void SetFilter(string filter)
         {
             try

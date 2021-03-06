@@ -123,12 +123,12 @@ namespace PixivWPF.Pages
                     webHtml.Dispose(true);
                 }
             }
-            catch { }
+            catch(Exception ex) { ex.ERROR("DeleteHtmlRender"); }
             try
             {
                 if (webHost is WindowsFormsHostEx) webHost.Dispose();
             }
-            catch { }
+            catch(Exception ex) { ex.ERROR("DeleteHtmlRender"); }
         }
 
         private bool TrySetSuppressScriptErrors(System.Windows.Forms.WebBrowser webBrowser, bool value)

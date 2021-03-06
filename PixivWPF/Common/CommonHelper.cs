@@ -797,7 +797,7 @@ namespace PixivWPF.Common
                             w.Value.Dispose();
                         }
                     }
-                    catch { }
+                    catch(Exception ex) { ex.ERROR("ReleaseAppWatcher"); }
                 }
                 _watchers.Clear();
             }
@@ -3521,7 +3521,7 @@ namespace PixivWPF.Common
                                 }
                             }
                         }
-                        catch { }
+                        catch(Exception ex) { ex.ERROR("ParseLinks"); }
                     }
                 }
                 if (linkexists) continue;
@@ -4760,7 +4760,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { ex.ERROR("UpdateDownloadState"); }
         }
         #endregion
 
@@ -7394,7 +7394,7 @@ namespace PixivWPF.Common
                         }).Invoke(async: true);
                     }
                 }
-                catch { }
+                catch(Exception ex) { ex.ERROR("UpdateLikeState"); }
             }
         }
         #endregion
@@ -8409,6 +8409,12 @@ namespace PixivWPF.Common
                 }).InvokeAsync(true);
             }
             catch (Exception ex) { ex.ERROR("SHOWTOAST"); }
+        }
+        
+        public static void ShowExceptionToast(this Exception ex, bool messagebox = false, string tag = "")
+        {
+            ex.ERROR(tag);
+            ex.Message.ShowToast($"ERROR[{tag}]", messagebox, tag);
         }
         #endregion
 
