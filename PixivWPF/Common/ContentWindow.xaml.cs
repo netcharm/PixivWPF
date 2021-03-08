@@ -13,6 +13,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
@@ -50,6 +51,41 @@ namespace PixivWPF.Common
         }
 
         public bool InSearching { get { return (SearchBox.IsKeyboardFocusWithin); } }
+
+        private Storyboard PreftchingStateRing = null;
+        public void SetPrefetchingProgress(double progress, string tooltip = "", TaskStatus state = TaskStatus.Created)
+        {
+            new Action(() =>
+            {
+                if (PreftchingProgress.IsHidden()) PreftchingProgress.Show();
+                if (string.IsNullOrEmpty(tooltip)) PreftchingProgress.ToolTip = null;
+                else PreftchingProgress.ToolTip = tooltip;
+
+                PreftchingProgressInfo.Text = $"{Math.Floor(progress):F0}%";
+
+                if (PreftchingStateRing == null) PreftchingStateRing = (Storyboard)PreftchingProgressState.FindResource("PreftchingStateRing");
+                if (state == TaskStatus.Created)
+                {
+                    PreftchingProgressInfo.Hide();
+                    PreftchingProgressState.Hide();
+                }
+                else if (state == TaskStatus.WaitingToRun)
+                {
+                    PreftchingProgressInfo.Show();
+                    PreftchingProgressState.Show();
+                    if (PreftchingStateRing != null) PreftchingStateRing.Begin();
+                }
+                else if (state == TaskStatus.Running)
+                {
+                    // do something
+                }
+                else
+                {
+                    if (PreftchingStateRing != null) PreftchingStateRing.Stop();
+                    PreftchingProgressState.Hide();
+                }
+            }).Invoke(async: false);
+        }
 
         public void JumpTo(string id)
         {
@@ -94,6 +130,7 @@ namespace PixivWPF.Common
             {
                 CommandPageRead.Show();
                 CommandRefreshThumb.ToolTip = "Refresh";
+                PreftchingProgress.Hide();
             }
             else
                 CommandPageRead.Hide();
@@ -107,6 +144,7 @@ namespace PixivWPF.Common
                 if (!(Content is IllustImageViewerPage))
                 {
                     CommandRefreshThumb.Show();
+                    PreftchingProgress.Show();
                     CommandFilter.Show();
                 }
             }
@@ -132,7 +170,7 @@ namespace PixivWPF.Common
 
                 if (Content is DownloadManagerPage)
                     (Content as DownloadManagerPage).Pos = new Point(this.Left, this.Top);
-                else if(Content is HistoryPage)
+                else if (Content is HistoryPage)
                     (Content as HistoryPage).Pos = new Point(this.Left, this.Top);
 
                 if (Content is IllustDetailPage)
@@ -182,7 +220,7 @@ namespace PixivWPF.Common
         private void MetroWindow_MouseDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = false;
-            if(e.ChangedButton == MouseButton.Middle)
+            if (e.ChangedButton == MouseButton.Middle)
             {
                 if (Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -208,10 +246,38 @@ namespace PixivWPF.Common
 
         private void CommandRefresh_Click(object sender, RoutedEventArgs e)
         {
-            if(sender == CommandRefresh)
+            if (sender == CommandRefresh)
                 Commands.RefreshPage.Execute(Content);
-            else if(sender == CommandRefreshThumb)
+            else if (sender == CommandRefreshThumb)
                 Commands.RefreshPageThumb.Execute(Content);
+        }
+
+        private void CommandRecents_Click(object sender, RoutedEventArgs e)
+        {
+            var setting = Application.Current.LoadSetting();
+            var recents = Application.Current.HistoryRecentIllusts(setting.MostRecents);
+            RecentsList.Items.Clear();
+            //var contents = recents.Select(item => $"ID: {item.ID}, {item.Illust.Title}").ToList();
+            foreach (var item in recents)
+            {
+                RecentsList.Items.Add($"ID: {item.ID}, {new string(item.Illust.Title.Take(32).ToArray())} ");
+            }
+            RecentsPopup.IsOpen = true;
+        }
+
+        private void CommandRecentsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count > 0)
+            {
+                var item = e.AddedItems[0];
+                if (item is string)
+                {
+                    var contents = item as string;
+                    var id = Regex.Replace(contents, @"ID:\s*?(\d+),.*?$", "$1", RegexOptions.IgnoreCase);
+                    JumpTo(id);
+                }
+                RecentsPopup.IsOpen = false;
+            }
         }
 
         private void CommandPageRead_Click(object sender, RoutedEventArgs e)
@@ -353,7 +419,7 @@ namespace PixivWPF.Common
             if (!(sender is MenuItem)) return;
             if (sender == LiveFilterFavoritedRange) return;
 
-#region pre-define filter menus list
+            #region pre-define filter menus list
             var menus_type = new List<MenuItem>() {
                 LiveFilterUser, LiveFilterWork
             };
@@ -390,7 +456,7 @@ namespace PixivWPF.Common
             };
 
             var menus = new List<IEnumerable<MenuItem>>() { menus_type, menus_fav_no, menus_fast, menus_fav, menus_follow, menus_down, menus_sanity };
-#endregion
+            #endregion
 
             var idx = "LiveFilter".Length;
 
@@ -411,7 +477,7 @@ namespace PixivWPF.Common
             if (menu == LiveFilterNone)
             {
                 LiveFilterNone.IsChecked = true;
-#region un-check all filter conditions
+                #region un-check all filter conditions
                 foreach (var fmenus in menus)
                 {
                     foreach (var fmenu in fmenus)
@@ -420,12 +486,12 @@ namespace PixivWPF.Common
                         fmenu.IsEnabled = true;
                     }
                 }
-#endregion
+                #endregion
             }
             else
             {
                 LiveFilterNone.IsChecked = false;
-#region filter by item type 
+                #region filter by item type 
                 foreach (var fmenu in menus_type)
                 {
                     if (menus_type.Contains(menu))
@@ -453,8 +519,8 @@ namespace PixivWPF.Common
                     foreach (var fmenu in menus_sanity)
                         fmenu.IsEnabled = true;
                 }
-#endregion
-#region filter by favirited number
+                #endregion
+                #region filter by favirited number
                 LiveFilterFavoritedRange.IsChecked = false;
                 foreach (var fmenu in menus_fav_no)
                 {
@@ -470,8 +536,8 @@ namespace PixivWPF.Common
                             LiveFilterFavoritedRange.IsChecked = true;
                     }
                 }
-#endregion
-#region filter by fast simple filter
+                #endregion
+                #region filter by fast simple filter
                 LiveFilterFast.IsChecked = false;
                 foreach (var fmenu in menus_fast)
                 {
@@ -488,8 +554,8 @@ namespace PixivWPF.Common
                             LiveFilterFast.IsChecked = true;
                     }
                 }
-#endregion
-#region filter by favorited state
+                #endregion
+                #region filter by favorited state
                 foreach (var fmenu in menus_fav)
                 {
                     if (menus_fav.Contains(menu))
@@ -499,8 +565,8 @@ namespace PixivWPF.Common
                     }
                     if (fmenu.IsChecked) filter_fav = fmenu.Name.Substring(idx);
                 }
-#endregion
-#region filter by followed state
+                #endregion
+                #region filter by followed state
                 foreach (var fmenu in menus_follow)
                 {
                     if (menus_follow.Contains(menu))
@@ -510,8 +576,8 @@ namespace PixivWPF.Common
                     }
                     if (fmenu.IsChecked) filter_follow = fmenu.Name.Substring(idx);
                 }
-#endregion
-#region filter by downloaded state
+                #endregion
+                #region filter by downloaded state
                 foreach (var fmenu in menus_down)
                 {
                     if (menus_down.Contains(menu))
@@ -521,8 +587,8 @@ namespace PixivWPF.Common
                     }
                     if (fmenu.IsChecked) filter_down = fmenu.Name.Substring(idx);
                 }
-#endregion
-#region filter by sanity state
+                #endregion
+                #region filter by sanity state
                 LiveFilterSanity.IsChecked = false;
                 foreach (var fmenu in menus_sanity)
                 {
@@ -538,7 +604,7 @@ namespace PixivWPF.Common
                             LiveFilterSanity.IsChecked = true;
                     }
                 }
-                if(LiveFilterSanity_OptIncludeUnder.IsChecked)
+                if (LiveFilterSanity_OptIncludeUnder.IsChecked)
                 {
                     LiveFilterSanity_NoR18.IsChecked = LiveFilterSanity_R18.IsChecked = false;
                     LiveFilterSanity_NoR18.IsEnabled = LiveFilterSanity_R18.IsEnabled = false;
@@ -547,7 +613,7 @@ namespace PixivWPF.Common
                 {
                     LiveFilterSanity_NoR18.IsEnabled = LiveFilterSanity_R18.IsEnabled = true;
                 }
-#endregion
+                #endregion
             }
 
             var filter = new FilterParam()
@@ -568,34 +634,6 @@ namespace PixivWPF.Common
                 (Content as SearchResultPage).SetFilter(filter);
             else if (Content is HistoryPage)
                 (Content as HistoryPage).SetFilter(filter);
-        }
-
-        private void CommandRecents_Click(object sender, RoutedEventArgs e)
-        {
-            var setting = Application.Current.LoadSetting();
-            var recents = Application.Current.HistoryRecentIllusts(setting.MostRecents);
-            RecentsList.Items.Clear();
-            //var contents = recents.Select(item => $"ID: {item.ID}, {item.Illust.Title}").ToList();
-            foreach (var item in recents)
-            {
-                RecentsList.Items.Add($"ID: {item.ID}, {new string(item.Illust.Title.Take(32).ToArray())} ");
-            }
-            RecentsPopup.IsOpen = true;
-        }
-
-        private void CommandRecentsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (e.AddedItems.Count > 0)
-            {
-                var item = e.AddedItems[0];
-                if (item is string)
-                {
-                    var contents = item as string;
-                    var id = Regex.Replace(contents, @"ID:\s*?(\d+),.*?$", "$1", RegexOptions.IgnoreCase);
-                    JumpTo(id);
-                }
-                RecentsPopup.IsOpen = false;
-            }
         }
     }
 }

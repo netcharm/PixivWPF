@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Navigation;
 
 using MahApps.Metro.Controls;
@@ -57,28 +59,72 @@ namespace PixivWPF
                 foreach (Window win in Application.Current.Windows)
                 {
                     if (win is MainWindow) continue;
-                    else if(win is MetroWindow) win.Close();
+                    else if (win is MetroWindow) win.Close();
                 }
                 Application.Current.Shutdown();
             }
             else result = true;
             return (result);
-        }    
+        }
 
-        public void SetPrefetchingProgress(double progress, string tooltip ="", TaskStatus state = TaskStatus.Created)
+        private void SetPrefetchingProgressState(FrameworkElement target, bool active)
         {
-            new Action(() => {
+            if (target is FrameworkElement)
+            {
+                DoubleAnimation _ani = null;
+                RotateTransform _rot = null;
+                if (active)
+                {
+                    _rot = new RotateTransform(0);
+                    _ani = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(5)) { AutoReverse = false, RepeatBehavior = RepeatBehavior.Forever };
+                    Timeline.SetDesiredFrameRate(_ani, 15);
+                    target.RenderTransform = _rot;
+                }
+                if (target.RenderTransform is RotateTransform) target.RenderTransform.BeginAnimation(RotateTransform.AngleProperty, _ani);
+                target.RenderTransform = _rot;
+                target.IsEnabled = active;
+            }
+        }
+
+        private Storyboard PreftchingStateRing = null;
+        public void SetPrefetchingProgress(double progress, string tooltip = "", TaskStatus state = TaskStatus.Created)
+        {
+            new Action(() =>
+            {
                 if (PreftchingProgress.IsHidden()) PreftchingProgress.Show();
                 if (string.IsNullOrEmpty(tooltip)) PreftchingProgress.ToolTip = null;
                 else PreftchingProgress.ToolTip = tooltip;
 
                 PreftchingProgressInfo.Text = $"{Math.Floor(progress):F0}%";
 
-                if (state == TaskStatus.Running)
-                    PreftchingProgressState.Text = $"\uF16A";
+                if(PreftchingStateRing == null) PreftchingStateRing = (Storyboard)PreftchingProgressState.FindResource("PreftchingStateRing");
+                if (state == TaskStatus.Created)
+                {
+                    PreftchingProgressInfo.Hide();
+                    PreftchingProgressState.Hide();
+                }
+                else if (state == TaskStatus.WaitingToRun)
+                {
+                    PreftchingProgressInfo.Show();
+                    PreftchingProgressState.Show();
+                    if (PreftchingStateRing != null) PreftchingStateRing.Begin();
+
+                    //SetPrefetchingProgressState(PreftchingProgressState, true);
+                    //PreftchingProgressState.Text = $"\uF16A";
+                }
+                else if (state == TaskStatus.Running)
+                {
+                    //PreftchingProgressState.Text = $"\uF16A";
+                }
                 else
-                    PreftchingProgressState.Text = $"";
-            }).Invoke(async: false);            
+                {
+                    //PreftchingProgressState.Text = $"";
+                    //SetPrefetchingProgressState(PreftchingProgressState, false);
+
+                    if (PreftchingStateRing != null) PreftchingStateRing.Stop();
+                    PreftchingProgressState.Hide();
+                }
+            }).Invoke(async: false);
         }
 
         public void SetDropBoxState(bool state)
@@ -284,17 +330,17 @@ namespace PixivWPF
                 {
                     if (pipeServer.IsConnected) pipeServer.Disconnect();
                 }
-                catch(Exception ex) { ex.ERROR("ReleaseNamedPipeServer"); }
+                catch (Exception ex) { ex.ERROR("ReleaseNamedPipeServer"); }
                 try
                 {
                     pipeServer.Close();
                 }
-                catch(Exception ex) { ex.ERROR("ReleaseNamedPipeServer"); }
+                catch (Exception ex) { ex.ERROR("ReleaseNamedPipeServer"); }
                 try
                 {
                     pipeServer.Dispose();
                 }
-                catch(Exception ex) { ex.ERROR("ReleaseNamedPipeServer"); }
+                catch (Exception ex) { ex.ERROR("ReleaseNamedPipeServer"); }
                 pipeServer = null;
             }
             return (true);
@@ -312,7 +358,7 @@ namespace PixivWPF
                 {
                     var contents = sw.ReadToEnd().Trim('"').Trim();
                     $"RECEIVED => {contents}".INFO();
-                    
+
                     if (Regex.IsMatch(contents, @"^cmd[.,;:=%_+\-].*?", RegexOptions.IgnoreCase))
                     {
                         Application.Current.ProcessCommand(contents);
@@ -492,7 +538,7 @@ namespace PixivWPF
             if (sender == CommandLog_Info) log_type = "INFO";
             else if (sender == CommandLog_Debug) log_type = "DEBUG";
             else if (sender == CommandLog_Error) log_type = "ERROR";
-            else if(sender == CommandLog_Folder) log_type = "FOLDER";
+            else if (sender == CommandLog_Folder) log_type = "FOLDER";
             Commands.OpenLogs.Execute(log_type);
         }
 
@@ -517,7 +563,7 @@ namespace PixivWPF
                     RefreshThumbnail();
                 }
             }
-            catch(Exception ex) { ex.ERROR("CommandRefresh"); }
+            catch (Exception ex) { ex.ERROR("CommandRefresh"); }
         }
 
         private void CommandRecents_Click(object sender, RoutedEventArgs e)
@@ -885,6 +931,5 @@ namespace PixivWPF
 
             if (Contents is Pages.TilesPage) Contents.SetFilter(filter);
         }
-
     }
 }

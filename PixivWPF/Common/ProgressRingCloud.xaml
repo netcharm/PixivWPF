@@ -31,6 +31,7 @@
         <!-- Loading Progress Ring -->
         <mah:ProgressRing 
             Grid.Row="0" Grid.Column="0" x:Name="PART_Ring"
+            IsLarge="True" IsManipulationEnabled="True"
             IsEnabled="{Binding Path=IsEnabled, ElementName=PART_Grid, Mode=OneWay, IsAsync=True}" 
             IsActive="{Binding Path=IsActive, ElementName=PART_Wait, Mode=OneWay, IsAsync=True}" 
             Visibility="{Binding Path=Visibility, ElementName=PART_Grid, Mode=OneWay, IsAsync=True}"

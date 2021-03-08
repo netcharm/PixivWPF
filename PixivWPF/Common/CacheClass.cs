@@ -96,6 +96,7 @@ namespace PixivWPF.Common
             {
                 file = GetImagePath(url);
                 var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite);
+                await Task.Delay(50);
                 if (success) result = await file.LoadImageFromFile(size);
             }
 

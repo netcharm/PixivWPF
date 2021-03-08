@@ -16,6 +16,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Permissions;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -41,7 +42,6 @@ using WPFNotification.Core.Configuration;
 using WPFNotification.Model;
 using WPFNotification.Services;
 using PixivWPF.Pages;
-using System.Runtime.CompilerServices;
 
 namespace PixivWPF.Common
 {
@@ -536,7 +536,7 @@ namespace PixivWPF.Common
         public static long MemoryUsage(this Application app, bool is_private = false)
         {
             long result = -1;
-            if (current_process == null) current_process = System.Diagnostics.Process.GetCurrentProcess();            
+            if (current_process == null) current_process = System.Diagnostics.Process.GetCurrentProcess();
             try
             {
                 using (PerformanceCounter PC = new PerformanceCounter())
@@ -797,7 +797,7 @@ namespace PixivWPF.Common
                             w.Value.Dispose();
                         }
                     }
-                    catch(Exception ex) { ex.ERROR("ReleaseAppWatcher"); }
+                    catch (Exception ex) { ex.ERROR("ReleaseAppWatcher"); }
                 }
                 _watchers.Clear();
             }
@@ -1405,7 +1405,7 @@ namespace PixivWPF.Common
                 }
                 else
                 {
-                    foreach(var hotkey in HotkeyConfig)
+                    foreach (var hotkey in HotkeyConfig)
                     {
                         try
                         {
@@ -1423,7 +1423,7 @@ namespace PixivWPF.Common
                                 break;
                             }
                         }
-                        catch(Exception ex) { ex.ERROR("NAMEDPIPE_CMD"); }
+                        catch (Exception ex) { ex.ERROR("NAMEDPIPE_CMD"); }
                     }
                 }
             }
@@ -1467,7 +1467,8 @@ namespace PixivWPF.Common
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
 #endif            
-            new Action(() => {
+            new Action(() =>
+            {
                 logger.Trace($"{prefix}{contents}");
             }).Invoke(async: false);
         }
@@ -1478,7 +1479,8 @@ namespace PixivWPF.Common
 #if DEBUG
             Debug.WriteLine($"{prefix}{contents}");
 #endif
-            new Action(() => { 
+            new Action(() =>
+            {
                 logger.Debug($"{prefix}{contents}");
             }).Invoke(async: false);
         }
@@ -1489,9 +1491,10 @@ namespace PixivWPF.Common
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
 #endif
-            new Action(() => {
+            new Action(() =>
+            {
                 logger.Info($"{prefix}{contents}");
-            }).Invoke(async: false);           
+            }).Invoke(async: false);
         }
 
         public static void WARN(this string contents, string tag = "")
@@ -1500,9 +1503,10 @@ namespace PixivWPF.Common
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
 #endif
-            new Action(() => {
+            new Action(() =>
+            {
                 logger.Warn($"{prefix}{contents}");
-            }).Invoke(async: false);            
+            }).Invoke(async: false);
         }
 
         public static void ERROR(this string contents, string tag = "")
@@ -1511,8 +1515,9 @@ namespace PixivWPF.Common
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
 #endif
-            new Action(() => {
-                 logger.Error($"{prefix}{contents}");
+            new Action(() =>
+            {
+                logger.Error($"{prefix}{contents}");
             }).Invoke(async: false);
         }
 
@@ -1522,9 +1527,10 @@ namespace PixivWPF.Common
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
 #endif
-            new Action(() => {
+            new Action(() =>
+            {
                 logger.Fatal($"{prefix}{contents}");
-            }).Invoke(async: false); 
+            }).Invoke(async: false);
         }
 
         public static void NOTICE(this string contents, string tag = "")
@@ -1533,7 +1539,8 @@ namespace PixivWPF.Common
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
 #endif
-            new Action(() => {
+            new Action(() =>
+            {
                 logger.Info($"{prefix}{contents}");
                 logger.Debug($"{prefix}{contents}");
                 logger.Error($"{prefix}{contents}");
@@ -1625,7 +1632,7 @@ namespace PixivWPF.Common
 
         public static void LOG(this object obj, string contents, string title = "INFO")
         {
-            if(obj != null)
+            if (obj != null)
             {
                 var log = NLog.LogManager.GetLogger(obj.GetType().Name);
                 if (title.ToUpper().Contains("INFO")) log.Info(contents);
@@ -1738,7 +1745,7 @@ namespace PixivWPF.Common
                         }
                         catch (Exception ex) { ex.ERROR("CloseToastAsync"); }
                     }
-                    else if(!(kv.Key is Window)) toast_list.TryRemove(kv.Key, out value);
+                    else if (!(kv.Key is Window)) toast_list.TryRemove(kv.Key, out value);
                 }
             }).InvokeAsync();
         }
@@ -2155,7 +2162,7 @@ namespace PixivWPF.Common
             #region Application
             new HotKeyConfig() { Name = "RestartApplication", Command = Commands.RestartApplication,
                                  Keys = System.Windows.Forms.Keys.None },
-            new HotKeyConfig() { Name = "UpgradeApplication", Command = Commands.UpgradeApplication, 
+            new HotKeyConfig() { Name = "UpgradeApplication", Command = Commands.UpgradeApplication,
                                  Keys = System.Windows.Forms.Keys.None },
             #endregion
             #region Illust Nav
@@ -2515,6 +2522,7 @@ namespace PixivWPF.Common
                 UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
             };
 
+            //Maybe HttpClientFactory.Create() 
             var httpClient = new HttpClient(handler, true)
             {
                 Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout),
@@ -3521,7 +3529,7 @@ namespace PixivWPF.Common
                                 }
                             }
                         }
-                        catch(Exception ex) { ex.ERROR("ParseLinks"); }
+                        catch (Exception ex) { ex.ERROR("ParseLinks"); }
                     }
                 }
                 if (linkexists) continue;
@@ -4229,7 +4237,7 @@ namespace PixivWPF.Common
                             Process.Start(shell, $"/select,\"{file}\"");
                             result = true;
                         }
-                        else if(Directory.Exists(file))
+                        else if (Directory.Exists(file))
                         {
                             Process.Start(shell, $"\"{file}\"");
                             result = true;
@@ -4293,7 +4301,7 @@ namespace PixivWPF.Common
                         }
                         result = true;
                     }
-                    else if(File.Exists(command))
+                    else if (File.Exists(command))
                     {
                         Process.Start(command, $"{file}");
                         result = true;
@@ -4656,7 +4664,7 @@ namespace PixivWPF.Common
                             w.Value.Dispose();
                         }
                     }
-                    catch(Exception ex) { ex.ERROR("ReleaseDownloadedWatcher"); }
+                    catch (Exception ex) { ex.ERROR("ReleaseDownloadedWatcher"); }
                 }
                 _watchers.Clear();
             }
@@ -5172,7 +5180,7 @@ namespace PixivWPF.Common
             try
             {
                 if (file.Exists)
-                {                    
+                {
                     using (stream = file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None))
                     {
                         stream.Close();
@@ -5191,7 +5199,7 @@ namespace PixivWPF.Common
                 catch (Exception) { }
             }
             //file is not locked
-            return(result);
+            return (result);
         }
 
         public static bool IsCached(this string url)
@@ -5846,7 +5854,7 @@ namespace PixivWPF.Common
             var result = false;
             using (var ms = new MemoryStream())
             {
-                if(source.CanSeek) source.Seek(0, SeekOrigin.Begin);
+                if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
                 await source.CopyToAsync(ms, bufferSize);
                 if (ms.Length > 0)
                 {
@@ -5891,7 +5899,7 @@ namespace PixivWPF.Common
                         stream.Dispose();
                     }
                 }
-                catch(Exception ex) { ex.ERROR("LoadImageFromFile"); }
+                catch (Exception ex) { ex.ERROR("LoadImageFromFile"); }
             }
             return (result);
         }
@@ -5954,7 +5962,7 @@ namespace PixivWPF.Common
                         client.Dispose();
                     }
                 }
-                catch (Exception ex) { ex.ERROR("DOWNLOAD"); }
+                catch (Exception ex) { ex.ERROR("DownloadImage"); }
             }
             return (result);
         }
@@ -5982,7 +5990,7 @@ namespace PixivWPF.Common
                         response.Dispose();
                     }
                 }
-                catch (Exception ex) { ex.ERROR("DOWNLOAD"); }
+                catch (Exception ex) { ex.ERROR("DownloadImage"); }
             }
             return (result);
         }
@@ -6764,13 +6772,13 @@ namespace PixivWPF.Common
                 var works = await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
                 if (works is Pixeez.Objects.Paginated<Pixeez.Objects.UsersFavoriteWork>)
                 {
-                    foreach(var ufw in works)
+                    foreach (var ufw in works)
                     {
                         var id = ufw.Id;
                         if (id.Value == illust.Id.Value)
                         {
                             var work = ufw.Work;
-                            
+
                             break;
                         }
                     }
@@ -7201,7 +7209,7 @@ namespace PixivWPF.Common
         {
             if (illust is Pixeez.Objects.Work)
             {
-                if(IllustCache.ContainsKey(illust.Id))
+                if (IllustCache.ContainsKey(illust.Id))
                 {
                     var illust_old = IllustCache[illust.Id];
                     if (illust.ImageUrls != null && illust_old.ImageUrls != null)
@@ -7221,7 +7229,7 @@ namespace PixivWPF.Common
                     }
                 }
                 IllustCache[illust.Id] = illust;
-            }                
+            }
         }
 
         public static void Cache(this Pixeez.Objects.UserInfo userinfo)
@@ -7394,7 +7402,7 @@ namespace PixivWPF.Common
                         }).Invoke(async: true);
                     }
                 }
-                catch(Exception ex) { ex.ERROR("UpdateLikeState"); }
+                catch (Exception ex) { ex.ERROR("UpdateLikeState"); }
             }
         }
         #endregion
@@ -7851,7 +7859,7 @@ namespace PixivWPF.Common
                     result = Application.Current.MainWindow as MainWindow;
                 });
             }
-            catch(Exception ex) { ex.ERROR("GETMAINWINDOW"); }
+            catch (Exception ex) { ex.ERROR("GETMAINWINDOW"); }
             return (result);
         }
 
@@ -8327,7 +8335,8 @@ namespace PixivWPF.Common
                     Tag = tag
                 };
 
-                await new Action(() => {
+                await new Action(() =>
+                {
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                 }).InvokeAsync(true);
@@ -8368,7 +8377,8 @@ namespace PixivWPF.Common
                     Tag = null
                 };
 
-                await new Action(() => {
+                await new Action(() =>
+                {
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                 }).InvokeAsync(true);
@@ -8410,7 +8420,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex) { ex.ERROR("SHOWTOAST"); }
         }
-        
+
         public static void ShowExceptionToast(this Exception ex, bool messagebox = false, string tag = "")
         {
             ex.ERROR(tag);

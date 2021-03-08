@@ -206,7 +206,7 @@ namespace PixivWPF.Common
             else if (obj is TilesPage)
             {
                 var page = obj as TilesPage;
-                if(page.IllustDetail.Content is IllustDetailPage)
+                if (page.IllustDetail.Content is IllustDetailPage)
                 {
                     (page.IllustDetail.Content as IllustDetailPage).Copy();
                 }
@@ -1146,7 +1146,7 @@ namespace PixivWPF.Common
             else if (obj is Window)
             {
                 var win = obj as Window;
-                if(win.Content is Page) Open.Execute(win.Content);
+                if (win.Content is Page) Open.Execute(win.Content);
             }
             else if (obj is string)
             {

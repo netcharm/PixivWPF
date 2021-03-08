@@ -241,6 +241,7 @@
     <Compile Include="Common\PixivItemTile.xaml.cs">
       <DependentUpon>PixivItemTile.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\PrefetchingClass.cs" />
     <Compile Include="Common\ProgressRingCloud.xaml.cs">
       <DependentUpon>ProgressRingCloud.xaml</DependentUpon>
     </Compile>

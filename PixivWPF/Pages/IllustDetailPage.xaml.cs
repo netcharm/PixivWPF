@@ -27,6 +27,7 @@ namespace PixivWPF.Pages
 
         public Window ParentWindow { get { return (Application.Current.GetActiveWindow()); } }
         public PixivItem Contents { get; set; } = null;
+        private PrefetchingClass PrefetchingItems = null;
 
         private Popup PreviewPopup = null;
         private Rectangle PreviewPopupBackground = null;
@@ -1203,11 +1204,11 @@ namespace PixivWPF.Pages
                         {
                             if (Contents.IsWork() || Contents.IsUser())
                             {
-                                if (SubIllusts.IsKeyboardFocusWithin)
+                                if (SubIllustsExpander.IsKeyboardFocusWithin || SubIllusts.IsKeyboardFocusWithin)
                                     SubIllusts.UpdateTilesImage(overwrite);
-                                else if (RelativeItems.IsKeyboardFocusWithin)
+                                else if (RelativeItemsExpander.IsKeyboardFocusWithin || RelativeItems.IsKeyboardFocusWithin)
                                     RelativeItems.UpdateTilesImage(overwrite);
-                                else if (FavoriteItems.IsKeyboardFocusWithin)
+                                else if (FavoriteItemsExpander.IsKeyboardFocusWithin || FavoriteItems.IsKeyboardFocusWithin)
                                     FavoriteItems.UpdateTilesImage(overwrite);
                                 else
                                 {
@@ -1216,6 +1217,15 @@ namespace PixivWPF.Pages
                             }
                         }
                         UpdateContentsThumbnail(overwrite: overwrite);
+                        if(PrefetchingItems is PrefetchingClass)
+                        {
+                            var items = new List<PixivItem>();
+                            items.Add(Contents);
+                            items.AddRange(RelativeItems.Items);
+                            items.AddRange(FavoriteItems.Items);
+                            PrefetchingItems.Items = items;
+                            PrefetchingItems.Start();
+                        }
                     }
                 }
                 catch (Exception ex) { ex.ERROR("UPATETHUMB"); }
@@ -1685,7 +1695,8 @@ namespace PixivWPF.Pages
                     if (SubIllusts.SelectedIndex != index) SubIllusts.SelectedIndex = index;
 
                     this.DoEvents();
-                    SubIllusts.UpdateTilesImage();
+                    //SubIllusts.UpdateTilesImage();
+                    UpdateThumb();
                 }
             }
             catch (Exception ex)
@@ -1753,7 +1764,9 @@ namespace PixivWPF.Pages
                         this.DoEvents();
                     }
                     this.DoEvents();
-                    RelativeItems.UpdateTilesImage();
+                    //RelativeItems.UpdateTilesImage();
+                    if (relatives.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowRelative");
+                    else UpdateThumb();
                 }
             }
             catch (Exception ex)
@@ -1890,7 +1903,9 @@ namespace PixivWPF.Pages
                         this.DoEvents();
                     }
                     this.DoEvents();
-                    FavoriteItems.UpdateTilesImage();
+                    //FavoriteItems.UpdateTilesImage();
+                    if (favorites.illusts.Count() <= 0) "No Result".ShowToast("INFO", tag: "ShowFavorite");
+                    else UpdateThumb();
                 }
             }
             catch (Exception ex)
@@ -2180,6 +2195,7 @@ namespace PixivWPF.Pages
             FavoriteRefresh.MouseOverAction();
             #endregion
 
+            #region Preview Popup
             try
             {
                 PreviewPopup = (Popup)FindResource("PreviewPopup");
@@ -2199,6 +2215,24 @@ namespace PixivWPF.Pages
                 }
             }
             catch (Exception ex) { ex.ERROR("Loaded"); }
+            #endregion
+
+            if (PrefetchingItems == null) PrefetchingItems = new PrefetchingClass()
+            {
+                Name = "DetailPagePrefetching",
+                ReportProgressSlim = () => {
+                    var percent = PrefetchingItems.Percentage;
+                    var tooltip = PrefetchingItems.Description;
+                    var state = PrefetchingItems.State;
+                    if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
+                    if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                },
+                ReportProgress = (percent, tooltip, state) =>
+                {
+                    if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
+                    if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                }
+            };
 
             if (Contents.HasUser()) UpdateDetail(Contents);
         }
