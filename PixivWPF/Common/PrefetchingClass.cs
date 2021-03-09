@@ -258,7 +258,7 @@ namespace PixivWPF.Common
 
                     var opt = new ParallelOptions();
                     opt.MaxDegreeOfParallelism = parallel;
-                    Parallel.ForEach(needUpdate, opt, (url, loopstate, elementIndex) =>
+                    Parallel.ForEach(needUpdate, opt, (url, loopstate, urlIndex) =>
                     {
                         try
                         {
@@ -291,7 +291,7 @@ namespace PixivWPF.Common
                             this.DoEvents();
                         }
                         catch (Exception ex) { ex.ERROR("PREFETCHING"); }
-                        finally { this.DoEvents(); Task.Delay(1); }
+                        finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                     });
                 }
                 else

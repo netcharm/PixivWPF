@@ -42,6 +42,7 @@ using WPFNotification.Core.Configuration;
 using WPFNotification.Model;
 using WPFNotification.Services;
 using PixivWPF.Pages;
+using System.Net.Http.Headers;
 
 namespace PixivWPF.Common
 {
@@ -2539,12 +2540,10 @@ namespace PixivWPF.Common
             httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
             //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
             //httpClient.DefaultRequestHeaders.ConnectionClose = true;
-            if (continuation && range_start > 0)
-            {
-                var start = $"{range_start}";
-                var end = range_count > 0 ? $"{range_count}" : string.Empty;
-                httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
-            }
+
+            var start = !continuation || range_start <= 0 ? "0" : $"{range_start}";
+            var end = range_count > 0 ? $"{range_count}" : string.Empty;
+            httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
 
             ///
             /// if httpclient throw exception of "send request error", maybe need add code like below line 
@@ -5877,6 +5876,66 @@ namespace PixivWPF.Common
             }
             return (result);
         }
+
+        public static async Task<bool> WriteToFile(this Stream source, string file, Action<double, double> progressAction, ContentRangeHeaderValue range, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
+        {
+            var result = false;
+            using (var ms = new MemoryStream())
+            {
+                if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
+                var length = range.HasLength ? range.Length ?? 0 : 0;
+                int received = 0;
+                if (length <= 0)
+                {
+                    await source.CopyToAsync(ms, bufferSize);
+                    length = received = (int)ms.Length;
+                }
+                else
+                {
+                    setting = Application.Current.LoadSetting();
+                    bufferSize = setting.DownloadHttpStreamBlockSize;
+                    byte[] bytes = new byte[bufferSize];
+                    int bytesread = 0;
+                    do
+                    {
+                        var cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                        using (cancelReadStreamSource.Token.Register(() => source.Close()))
+                        {
+                            bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelReadStreamSource.Token).ConfigureAwait(false);
+                        }
+
+                        if (bytesread > 0 && bytesread <= bufferSize && received < length)
+                        {
+                            received += bytesread;
+                            await ms.WriteAsync(bytes, 0, bytesread);
+                            if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+                        }
+                    } while (bytesread > 0 && received < length);
+                }
+
+                if (received == length && ms.Length > 0)
+                {
+                    var folder = Path.GetDirectoryName(file);
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                    int wait_count = 10;
+                    while (file.IsLocked() && wait_count > 0) { wait_count--; await Task.Delay(1000); }
+                    using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
+                    {
+                        await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
+                        await fs.FlushAsync();
+                        fs.Close();
+                        fs.Dispose();
+                        result = true;
+                    }
+                    if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+                }
+
+                ms.Close();
+                ms.Dispose();
+            }
+            return (result);
+        }
         #endregion
 
         #region Load/Save Image routines
@@ -5904,23 +5963,23 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size = default(Size))
+        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size = default(Size), Action<double, double> progressAction = null)
         {
             CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
-                result = await cache.GetImage(url, overwrite, login, size);
+                result = await cache.GetImage(url, overwrite, login, size, progressAction);
             }
             return (result);
         }
 
-        public static async Task<CustomImageSource> LoadImageFromUri(this Uri uri, bool overwrite = false, Pixeez.Tokens tokens = null, Size size = default(Size))
+        public static async Task<CustomImageSource> LoadImageFromUri(this Uri uri, bool overwrite = false, Pixeez.Tokens tokens = null, Size size = default(Size), Action<double, double> progressAction = null)
         {
             CustomImageSource result = new CustomImageSource();
             if (uri.IsUnc || uri.IsFile)
                 result = await LoadImageFromFile(uri.LocalPath, size);
             else if (!(uri.IsLoopback || uri.IsAbsoluteUri))
-                result = await LoadImageFromUrl(uri.OriginalString, overwrite, false, size);
+                result = await LoadImageFromUrl(uri.OriginalString, overwrite, false, size, progressAction);
             return (result);
         }
 
@@ -5934,7 +5993,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true)
+        public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null)
         {
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
@@ -5947,12 +6006,18 @@ namespace PixivWPF.Common
                         using (var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
                         {
                             //response.EnsureSuccessStatusCode();
-                            if (response != null && response.StatusCode == HttpStatusCode.OK)
+                            if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
                             {
+                                var length = response.Content.Headers.ContentLength ?? 0;
+                                var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
+                                var pos = range.From ?? 0;
+                                var Length = range.Length ?? 0;
+
                                 string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                                 using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                                 {
-                                    if (await sr.WriteToFile(file)) result = file;
+                                    var ret = progressAction is Action<double, double> ? await sr.WriteToFile(file, progressAction, range) : await sr.WriteToFile(file);
+                                    if (ret) result = file;
                                     sr.Close();
                                     sr.Dispose();
                                 }
@@ -5995,7 +6060,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> SaveImage(this string url, string file, bool overwrite = true)
+        public static async Task<bool> SaveImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null)
         {
             bool result = false;
             if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
@@ -6008,7 +6073,7 @@ namespace PixivWPF.Common
                     if (unc > 0) file = file.Substring(0, unc - 1);
                     else if (unc == 0) file = file.Substring(8);
 
-                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, overwrite));
+                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, overwrite, progressAction));
                 }
                 catch (Exception ex)
                 {

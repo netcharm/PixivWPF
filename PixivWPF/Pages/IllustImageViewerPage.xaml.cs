@@ -28,7 +28,7 @@ namespace PixivWPF.Pages
     {
         private Window window = null;
 
-        public Window ParentWindow { get { return (Application.Current.GetActiveWindow()); } }
+        public Window ParentWindow { get { return (window == null ? Window.GetWindow(this) : window); } }
         public PixivItem Contents { get; set; } = null;
 
         private string PreviewImageUrl = string.Empty;
@@ -147,30 +147,51 @@ namespace PixivWPF.Pages
             }
         }
 
+        private Action<double, double> reportProgress = null;
         private async Task<CustomImageSource> GetPreviewImage(bool overwrite = false)
         {
             CustomImageSource img = new CustomImageSource();
+
             try
             {
                 var setting = Application.Current.LoadSetting();
 
+                if (reportProgress == null)
+                {
+                    // no progress ring display in below action
+                    reportProgress = (received, length) =>
+                    {
+                        var percent = length <= 0 ? 0 : received / length * 100;
+                        var state = received == length ? TaskStatus.RanToCompletion : TaskStatus.Running;
+                        var state_info = "Idle";
+                        if (state == TaskStatus.Running) state_info = "Downloading";
+                        else if (state == TaskStatus.RanToCompletion) state_info = "Finished";
+                        else if (received > length) state_info = "Finished";
+                        else state_info = "Failed";
+                        var tooltip = $"{state_info}: {received} / {length} Bytes, {received / 1024:F2} / {length / 1024:F2} KB";
+                        if (ParentWindow is ContentWindow)
+                            (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                    };
+                }
+
                 PreviewWait.Show();
 
+                if (reportProgress is Action<double, double>) reportProgress.Invoke(0, 0);
                 var c_item = Contents;
                 if (IsOriginal)
                 {
-                    var original = await OriginalImageUrl.LoadImageFromUrl(overwrite);
+                    var original = await OriginalImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress);
                     if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath)) img = original;
                 }
                 else
                 {
-                    var preview = await PreviewImageUrl.LoadImageFromUrl(overwrite);
+                    var preview = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress);
                     if (setting.SmartPreview &&
                         (preview.Source == null ||
                          preview.Source.Width < setting.PreviewUsingLargeMinWidth ||
                          preview.Source.Height < setting.PreviewUsingLargeMinHeight))
                     {
-                        var original = await OriginalImageUrl.LoadImageFromUrl();
+                        var original = await OriginalImageUrl.LoadImageFromUrl(progressAction: reportProgress);
                         if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath)) img = original;
                     }
                     else
@@ -189,6 +210,7 @@ namespace PixivWPF.Pages
                         if (img.Size == 0 && !string.IsNullOrEmpty(img.SourcePath)) img.Size = new FileInfo(img.SourcePath).Length;
                         if (img.ColorDepth == 0 && img.Source != null) img.ColorDepth = 32;
 
+                        if (reportProgress is Action<double, double>) reportProgress.Invoke(img.Size, img.Size);
                         Preview.Source = img.Source;
                         var dpiX = DPI.Default.X;
                         var dpiY = DPI.Default.Y;
@@ -224,6 +246,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
             finally
             {
+                if (reportProgress is Action<double, double> && img.Source != null) reportProgress.Invoke(img.Size, img.Size);
                 img.Source = null;
                 if (Preview.Source == null) PreviewWait.Fail();
             }

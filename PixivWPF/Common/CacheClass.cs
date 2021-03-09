@@ -80,7 +80,7 @@ namespace PixivWPF.Common
             return (file);
         }
 
-        public async Task<CustomImageSource> GetImage(string url, bool overwrite = false, bool login = false, Size size = default(Size))
+        public async Task<CustomImageSource> GetImage(string url, bool overwrite = false, bool login = false, Size size = default(Size), Action<double, double> progressAction = null)
         {
             CustomImageSource result = new CustomImageSource();
             var file = GetCacheFile(url, overwrite);
@@ -95,7 +95,7 @@ namespace PixivWPF.Common
             else
             {
                 file = GetImagePath(url);
-                var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite);
+                var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite, progressAction);
                 await Task.Delay(50);
                 if (success) result = await file.LoadImageFromFile(size);
             }
