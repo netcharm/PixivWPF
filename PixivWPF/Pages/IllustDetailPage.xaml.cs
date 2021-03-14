@@ -25,7 +25,7 @@ namespace PixivWPF.Pages
     {
         private Setting setting = Application.Current.LoadSetting();
 
-        public Window ParentWindow { get { return (Application.Current.GetActiveWindow()); } }
+        public Window ParentWindow { get; private set; } = null;
         public PixivItem Contents { get; set; } = null;
         private PrefetchingClass PrefetchingItems = null;
 
@@ -1184,6 +1184,19 @@ namespace PixivWPF.Pages
                 {
                     if (Contents.HasUser())
                     {
+                        if (ParentWindow is ContentWindow && PrefetchingItems is PrefetchingClass)
+                        {
+                            var items = new List<PixivItem>();
+                            items.Add(Contents);
+                            items.AddRange(RelativeItems.Items);
+                            items.AddRange(FavoriteItems.Items);
+                            if (items.Count > 0)
+                            {
+                                PrefetchingItems.Items = items;
+                                PrefetchingItems.Start(overwrite: overwrite);
+                            }
+                        }
+
                         if (full)
                         {
                             SubIllusts.UpdateTilesImage(overwrite);
@@ -1217,18 +1230,6 @@ namespace PixivWPF.Pages
                             }
                         }
                         UpdateContentsThumbnail(overwrite: overwrite);
-                        if (PrefetchingItems is PrefetchingClass)
-                        {
-                            var items = new List<PixivItem>();
-                            items.Add(Contents);
-                            items.AddRange(RelativeItems.Items);
-                            items.AddRange(FavoriteItems.Items);
-                            if (items.Count > 0)
-                            {
-                                PrefetchingItems.Items = items;
-                                PrefetchingItems.Start();
-                            }
-                        }
                     }
                 }
                 catch (Exception ex) { ex.ERROR("UPATETHUMB"); }
@@ -1251,7 +1252,7 @@ namespace PixivWPF.Pages
                 var force = ModifierKeys.Control.IsModified();
                 if (item.IsWork())
                 {
-                    PrefetchingItems.Name = "IllustPagePrefetching";
+                    PrefetchingItems.Name = $"IllustPagePrefetching_{item.ID}";
                     Contents = item;
                     await new Action(async () =>
                     {
@@ -1269,7 +1270,7 @@ namespace PixivWPF.Pages
                 }
                 else if (item.IsUser())
                 {
-                    PrefetchingItems.Name = "UserPagePrefetching";
+                    PrefetchingItems.Name = $"UserPagePrefetching_{item.ID}";
                     Contents = item;
                     await new Action(async () =>
                     {
@@ -2116,11 +2117,10 @@ namespace PixivWPF.Pages
         {
             get
             {
-                var parent = ParentWindow;
-                if (parent is MainWindow)
-                    return ((parent as MainWindow).InSearching);
-                else if (parent is ContentWindow)
-                    return ((parent as ContentWindow).InSearching);
+                if (ParentWindow is MainWindow)
+                    return ((ParentWindow as MainWindow).InSearching);
+                else if (ParentWindow is ContentWindow)
+                    return ((ParentWindow as ContentWindow).InSearching);
                 else return (false);
             }
         }
@@ -2130,7 +2130,9 @@ namespace PixivWPF.Pages
         {
             try
             {
-                SubIllusts.Clear(batch: false, force: true);
+                if (PrefetchingItems is PrefetchingClass) PrefetchingItems.Dispose();
+
+                    SubIllusts.Clear(batch: false, force: true);
                 this.DoEvents();
                 RelativeItems.Clear(batch: false, force: true);
                 this.DoEvents();
@@ -2170,6 +2172,8 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            ParentWindow = Window.GetWindow(this);
+
             RelativeItems.Columns = 5;
             FavoriteItems.Columns = 5;
 

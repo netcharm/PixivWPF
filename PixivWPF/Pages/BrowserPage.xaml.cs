@@ -27,6 +27,8 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class BrowerPage : Page
     {
+        public Window ParentWindow { get; private set; }
+
         private bool bCancel = false;
         private WindowsFormsHostEx webHost;
         private WebBrowserEx webHtml;
@@ -534,6 +536,7 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            ParentWindow = Window.GetWindow(this);
             if (!string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
         }
 

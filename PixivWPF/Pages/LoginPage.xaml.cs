@@ -24,7 +24,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class LoginPage : Page
     {
-        public PixivLoginDialog Window { get; set; } = null;
+        public PixivLoginDialog ParentWindow { get; internal set; } = null;
 
         private Setting setting = Application.Current.LoadSetting();
         private Pixeez.Tokens tokens = null;
@@ -34,8 +34,8 @@ namespace PixivWPF.Pages
             try
             {
                 LoginWait.Hide();
-                if (Window is Window)
-                    Window.Close();
+                if (ParentWindow is Window)
+                    ParentWindow.Close();
                 else
                     Application.Current.Shutdown();
             }
@@ -51,6 +51,7 @@ namespace PixivWPF.Pages
         {
             try
             {
+                ParentWindow = Window.GetWindow(this) as PixivLoginDialog;
                 setting = Application.Current.LoadSetting();
 #if DEBUG
                 var logo = System.IO.Path.Combine(Application.Current.GetRoot(), "Assets", "pixiv-logo.png");
@@ -85,7 +86,7 @@ namespace PixivWPF.Pages
 
         private async void Login_Click(object sender, RoutedEventArgs e)
         {
-            if(Window == null) Window = this.GetActiveWindow<PixivLoginDialog>();
+            if(ParentWindow == null) ParentWindow = Window.GetWindow(this) as PixivLoginDialog;
 
             setting = Application.Current.LoadSetting();
 
@@ -141,11 +142,11 @@ namespace PixivWPF.Pages
 
                     if (tokens is Pixeez.Tokens && !string.IsNullOrEmpty(tokens.AccessToken))
                     {
-                        if (Window is PixivLoginDialog)
+                        if (ParentWindow is PixivLoginDialog)
                         {
-                            Window.AccessToken = tokens.AccessToken;
-                            Window.RefreshToken = tokens.RefreshToken;
-                            Window.Tokens = tokens;
+                            ParentWindow.AccessToken = tokens.AccessToken;
+                            ParentWindow.RefreshToken = tokens.RefreshToken;
+                            ParentWindow.Tokens = tokens;
                             CloseWindow();
                         }
                     }

@@ -1209,7 +1209,7 @@ namespace PixivWPF.Common
                                 FontFamily = setting.FontFamily,
                                 Content = _downManager_page
                             };
-                            _downManager_page.Window = viewer;
+                            _downManager_page.ParentWindow = viewer;
                             viewer.Show();
                         }).InvokeAsync(true);
                     }

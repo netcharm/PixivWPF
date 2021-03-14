@@ -28,7 +28,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class DownloadManagerPage : Page
     {
-        public Window Window { get; set; } = null;
+        public Window ParentWindow { get; internal set; } = null;
         public Point Pos { get; set; } = new Point(0, 0);
 
         private Setting setting = Application.Current.LoadSetting();
@@ -151,7 +151,7 @@ namespace PixivWPF.Pages
 
         private async void UpdateStateInfo()
         {
-            if (Window is Window && Window.WindowState != WindowState.Minimized)
+            if (ParentWindow is Window && ParentWindow.WindowState != WindowState.Minimized)
             {
                 if (await CanUpdateState.WaitAsync(0))
                 {
@@ -305,7 +305,7 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            if (Window == null) Window = Window.GetWindow(this);
+            ParentWindow = Window.GetWindow(this);
 
             setting = Application.Current.LoadSetting();
             if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;

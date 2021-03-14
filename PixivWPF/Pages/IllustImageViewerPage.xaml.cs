@@ -26,9 +26,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class IllustImageViewerPage : Page
     {
-        private Window window = null;
-
-        public Window ParentWindow { get { return (window == null ? Window.GetWindow(this) : window); } }
+        public Window ParentWindow { get; private set; }
         public PixivItem Contents { get; set; } = null;
 
         private string PreviewImageUrl = string.Empty;
@@ -291,24 +289,12 @@ namespace PixivWPF.Pages
 
                     PreviewImage = await GetPreviewImage(overwrite);
 
-                    if (window == null)
-                    {
-                        window = this.GetActiveWindow();
-                    }
-                    else
-                    {
-                        window.Title = $"Preview ID: {Contents.ID}, {Contents.Subject}";
-                    }
+                    if (ParentWindow == null) ParentWindow = Window.GetWindow(this);
+                    else ParentWindow.Title = $"Preview ID: {Contents.ID}, {Contents.Subject}";
                 }
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR");
-            }
-            finally
-            {
-                Preview.Focus();
-            }
+            catch (Exception ex) { ex.ERROR("UpdatePreview"); }
+            finally { Preview.Focus(); }
         }
 
         #region Common Actions
@@ -465,11 +451,10 @@ namespace PixivWPF.Pages
         {
             get
             {
-                var parent = ParentWindow;
-                if (parent is MainWindow)
-                    return ((parent as MainWindow).InSearching);
-                else if (parent is ContentWindow)
-                    return ((parent as ContentWindow).InSearching);
+                if (ParentWindow is MainWindow)
+                    return ((ParentWindow as MainWindow).InSearching);
+                else if (ParentWindow is ContentWindow)
+                    return ((ParentWindow as ContentWindow).InSearching);
                 else return (false);
             }
         }
@@ -494,8 +479,8 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            window = Window.GetWindow(this);
-            if (window is Window)
+            ParentWindow = Window.GetWindow(this);
+            if (ParentWindow is Window)
             {
                 #region ToolButton MouseOver action
                 btnViewPrevPage.MouseOverAction();
@@ -512,9 +497,9 @@ namespace PixivWPF.Pages
                 //    UpdateDetail(Contents, Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control);
                 //});
 
-                var titleheight = window is MetroWindow ? (window as MetroWindow).TitleBarHeight : 0;
-                window.Width += window.BorderThickness.Left + window.BorderThickness.Right;
-                window.Height -= window.BorderThickness.Top + window.BorderThickness.Bottom + (32 - titleheight % 32);
+                var titleheight = ParentWindow is MetroWindow ? (ParentWindow as MetroWindow).TitleBarHeight : 0;
+                ParentWindow.Width += ParentWindow.BorderThickness.Left + ParentWindow.BorderThickness.Right;
+                ParentWindow.Height -= ParentWindow.BorderThickness.Top + ParentWindow.BorderThickness.Bottom + (32 - titleheight % 32);
 
                 if (Contents is PixivItem) UpdateDetail(Contents);
             }

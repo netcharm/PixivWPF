@@ -276,7 +276,10 @@ namespace PixivWPF.Common
             switch(State)
             {
                 case TaskStatus.Created:
-                    _Disable_();                    
+                    _Disable_();
+                    break;
+                case TaskStatus.WaitingToRun:
+                    _Disable_();
                     break;
                 case TaskStatus.Running:
                     _Show_();

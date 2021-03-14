@@ -27,7 +27,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class SearchResultPage : Page
     {
-        private Window window = null;
+        public Window ParentWindow { get; private set; }
 
         private string result_filter = string.Empty;
 
@@ -92,7 +92,7 @@ namespace PixivWPF.Pages
                 }
                 finally
                 {
-                    if (window != null) window.SizeToContent = SizeToContent.WidthAndHeight;
+                    if (ParentWindow != null) ParentWindow.SizeToContent = SizeToContent.WidthAndHeight;
                     if (CanUpdateing is SemaphoreSlim && CanUpdateing.CurrentCount <= 0) CanUpdateing.Release();
                 }
             }
@@ -298,6 +298,8 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            ParentWindow = Window.GetWindow(this);
+
             #region Update ContextMenu
             var cmr = Resources["MenuSearchResult"] as ContextMenu;
             if (cmr is ContextMenu)
@@ -341,7 +343,6 @@ namespace PixivWPF.Pages
             SearchRefreshThumb.MouseOverAction();
             #endregion
 
-            window = Window.GetWindow(this);
             if (!string.IsNullOrEmpty(Contents)) UpdateDetail(Contents);
         }
 
@@ -542,11 +543,11 @@ namespace PixivWPF.Pages
                 {
                     if (ResultItems.Items.Count() <= 0) "No Result".ShowToast("INFO");
 
-                    if (window != null)
+                    if (ParentWindow != null)
                     {
                         this.DoEvents();
                         await Task.Delay(1);
-                        window.Close();
+                        ParentWindow.Close();
                     }
                 }
             }
@@ -565,10 +566,10 @@ namespace PixivWPF.Pages
             }
             finally
             {
-                if (window is ContentWindow)
+                if (ParentWindow is ContentWindow)
                 {
                     ResultItems.Ready();
-                    (window as MetroWindow).AdjustWindowPos();
+                    (ParentWindow as MetroWindow).AdjustWindowPos();
                 }
             }
         }

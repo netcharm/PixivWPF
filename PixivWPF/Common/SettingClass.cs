@@ -461,22 +461,21 @@ namespace PixivWPF.Common
                 try
                 {
                     var default_tags = Cache is Setting ? Cache.TagsFile : tagsfile;
-                    var custom_tags = Cache is Setting ? Cache.CustomTagsFile : tagsfile_t2s;
-                    var custom_widecard_tags = Cache is Setting ? Cache.CustomWildcardTagsFile : tagsfile_t2s_widecard;
 
                     force = force || CommonHelper.TagsCache.Count <= 0;
-                    var filetime = custom_tags.GetFileTime("m");
-                    if (!File.Exists(custom_tags)) filetime = lastTagsUpdate + TimeSpan.FromSeconds(1);
+                    var exists = File.Exists(default_tags);
+                    var filetime = exists ? default_tags.GetFileTime("m") : lastTagsUpdate + TimeSpan.FromSeconds(1);
 
                     if (force && lastTagsUpdate.DeltaMilliseconds(filetime) > 5)
                     {
                         lastTagsUpdate = filetime;
 
                         bool tags_changed = false;
-                        if (all && File.Exists(default_tags))
+                        if (all && exists)
                         {
                             try
                             {
+                                default_tags.WaitFileUnlock();
                                 var tags = File.ReadAllText(default_tags);
                                 var t2s = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags);
                                 var keys = t2s.Keys.ToList();
@@ -515,19 +514,18 @@ namespace PixivWPF.Common
                     var custom_tags = Cache is Setting ? Cache.CustomTagsFile : tagsfile_t2s;
 
                     force = force || CommonHelper.TagsT2S.Count <= 0;
-                    var filetime = custom_tags.GetFileTime("m");
-                    if (!File.Exists(custom_tags)) filetime = lastTagsUpdate + TimeSpan.FromSeconds(1);
+                    var exists = File.Exists(custom_tags);
+                    var filetime = exists ? custom_tags.GetFileTime("m") : lastCustomTagsUpdate + TimeSpan.FromSeconds(1);
 
                     if (force && lastCustomTagsUpdate.DeltaMilliseconds(filetime) > 5)
                     {
                         lastCustomTagsUpdate = filetime;
-
                         bool tags_changed = false;
-
-                        if (File.Exists(custom_tags))
+                        if (exists)
                         {
                             try
                             {
+                                custom_tags.WaitFileUnlock();
                                 var tags_t2s = File.ReadAllText(custom_tags);
                                 var t2s = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags_t2s);
                                 var keys = t2s.Keys.ToList();
@@ -577,18 +575,18 @@ namespace PixivWPF.Common
                     var custom_widecard_tags = Cache is Setting ? Cache.CustomWildcardTagsFile : tagsfile_t2s_widecard;
 
                     force = force || CommonHelper.TagsWildecardT2S.Count <= 0;
-                    var filetime = custom_widecard_tags.GetFileTime("m");
-                    if (!File.Exists(custom_widecard_tags)) filetime = lastTagsUpdate + TimeSpan.FromSeconds(1);
+                    var exists = File.Exists(custom_widecard_tags);
+                    var filetime = exists ? custom_widecard_tags.GetFileTime("m") : lastCustomWildcardTagsUpdate + TimeSpan.FromSeconds(1);
 
                     if (force && lastCustomWildcardTagsUpdate.DeltaMilliseconds(filetime) > 5)
                     {
                         lastCustomWildcardTagsUpdate = filetime;
-
                         bool tags_changed = false;
-                        if (File.Exists(custom_widecard_tags))
+                        if (exists)
                         {
                             try
                             {
+                                custom_widecard_tags.WaitFileUnlock();
                                 var tags_t2s_widecard = File.ReadAllText(custom_widecard_tags);
                                 var t2s = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags_t2s_widecard);
                                 var keys = t2s.Keys.ToList();

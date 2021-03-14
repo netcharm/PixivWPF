@@ -24,7 +24,7 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class TilesPage : Page
     {
-        private MainWindow window = null;
+        public MainWindow ParentWindow { get; private set; }
         private IllustDetailPage detail_page = new IllustDetailPage() { Name="IllustDetail" };
 
         internal string lastSelectedId = string.Empty;
@@ -555,7 +555,7 @@ namespace PixivWPF.Pages
 
             setting = Application.Current.LoadSetting();
 
-            window = this.GetMainWindow();
+            ParentWindow = Window.GetWindow(this) as MainWindow;
             UpdateTheme();
             this.DoEvents();
 
@@ -568,11 +568,11 @@ namespace PixivWPF.Pages
                     var percent = PrefetchingItems.Percentage;
                     var tooltip = PrefetchingItems.Description;
                     var state = PrefetchingItems.State;
-                    if (window is MainWindow) window.SetPrefetchingProgress(percent, tooltip, state);
+                    if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
                 },
                 ReportProgress = (percent, tooltip, state) =>
                 {
-                    if (window is MainWindow) window.SetPrefetchingProgress(percent, tooltip, state);
+                    if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
                 }
             };
 
@@ -596,18 +596,14 @@ namespace PixivWPF.Pages
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            if (PrefetchingItems is PrefetchingClass)
-            {
-                PrefetchingItems.Stop();
-                PrefetchingItems.Dispose();
-            }
+            if (PrefetchingItems is PrefetchingClass) PrefetchingItems.Dispose();
         }
 
         internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
         {
-            if (window == null) window = this.GetMainWindow();
+            if (ParentWindow == null) ParentWindow = this.GetMainWindow();
             if (target == PixivPage.My) { ShowUser(0, true); return; }
-            if (window is MainWindow) window.UpdateTitle(target.ToString());
+            if (ParentWindow is MainWindow) ParentWindow.UpdateTitle(target.ToString());
             this.DoEvents();
 
             if (PrefetchingItems is PrefetchingClass) PrefetchingItems.Stop();
@@ -623,8 +619,7 @@ namespace PixivWPF.Pages
                 $"Show illusts from category \"{target.ToString()}\" ...".INFO();
                 NextURL = null;
                 ids.Clear();
-                ImageTiles.ClearAsync(setting.BatchClearThumbnails, force: true);
-                //ImageTiles.Clear(setting.BatchClearThumbnails);
+                ImageTiles.ClearAsync(batch: setting.BatchClearThumbnails, force: true);
                 this.DoEvents();
             }
             else $"Append illusts from category \"{target.ToString()}\" ...".INFO();
@@ -1765,6 +1760,5 @@ namespace PixivWPF.Pages
                 //if (!bg_prefetch.IsBusy && !bg_prefetch.CancellationPending) bg_prefetch.RunWorkerAsync(); 
             }
         }
-
     }
 }

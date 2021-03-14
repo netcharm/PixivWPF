@@ -67,25 +67,6 @@ namespace PixivWPF
             return (result);
         }
 
-        private void SetPrefetchingProgressState(FrameworkElement target, bool active)
-        {
-            if (target is FrameworkElement)
-            {
-                DoubleAnimation _ani = null;
-                RotateTransform _rot = null;
-                if (active)
-                {
-                    _rot = new RotateTransform(0);
-                    _ani = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(5)) { AutoReverse = false, RepeatBehavior = RepeatBehavior.Forever };
-                    Timeline.SetDesiredFrameRate(_ani, 15);
-                    target.RenderTransform = _rot;
-                }
-                if (target.RenderTransform is RotateTransform) target.RenderTransform.BeginAnimation(RotateTransform.AngleProperty, _ani);
-                target.RenderTransform = _rot;
-                target.IsEnabled = active;
-            }
-        }
-
         private Storyboard PreftchingStateRing = null;
         public void SetPrefetchingProgress(double progress, string tooltip = "", TaskStatus state = TaskStatus.Created)
         {
@@ -108,19 +89,13 @@ namespace PixivWPF
                     PreftchingProgressInfo.Show();
                     PreftchingProgressState.Show();
                     if (PreftchingStateRing != null) PreftchingStateRing.Begin();
-
-                    //SetPrefetchingProgressState(PreftchingProgressState, true);
-                    //PreftchingProgressState.Text = $"\uF16A";
                 }
                 else if (state == TaskStatus.Running)
                 {
-                    //PreftchingProgressState.Text = $"\uF16A";
+                    // do something
                 }
                 else
                 {
-                    //PreftchingProgressState.Text = $"";
-                    //SetPrefetchingProgressState(PreftchingProgressState, false);
-
                     if (PreftchingStateRing != null) PreftchingStateRing.Stop();
                     PreftchingProgressState.Hide();
                 }
@@ -357,7 +332,7 @@ namespace PixivWPF
                 using (StreamReader sw = new StreamReader(ps))
                 {
                     var contents = sw.ReadToEnd().Trim('"').Trim();
-                    $"RECEIVED => {contents}".INFO();
+                    $"RECEIVED => {contents}".DEBUG("NamedPipe");
 
                     if (Regex.IsMatch(contents, @"^cmd[.,;:=%_+\-].*?", RegexOptions.IgnoreCase))
                     {

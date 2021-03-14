@@ -11,9 +11,20 @@ using System.Windows;
 
 namespace PixivWPF.Common
 {
+    class PrefetchingOpts
+    {
+        public string Name { get; set; } = string.Empty;
+        public int PrefetchingDownloadParallel { get; set; } = 5;
+        public bool ParallelPrefetching { get; set; } = true;
+        public bool PrefetchingPreview { get; set; } = true;
+        public bool IncludePageThumb { get; set; } = true;
+        public bool IncludePagePreview { get; set; } = true;
+        public bool Overwrite { get; set; } = false;
+    }
+
     class PrefetchingClass : IDisposable
     {
-        private ConcurrentDictionary<string, bool> PrefetchedList = new ConcurrentDictionary<string, bool>();
+        public ConcurrentDictionary<string, bool> PrefetchedList { get; private set; } = new ConcurrentDictionary<string, bool>();
         private CancellationTokenSource PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
         private SemaphoreSlim CanPrefetching = new SemaphoreSlim(1, 1);
         private BackgroundWorker PrefetchingTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
@@ -34,13 +45,14 @@ namespace PixivWPF.Common
 
         public string Name { get; set; } = "PixivItems";
 
+        private PrefetchingOpts Options { get; set; } = new PrefetchingOpts();
         private int CalcPagesThumbItems(IEnumerable<PixivItem> items)
         {
             int result = 0;
             var setting = Application.Current.LoadSetting();
             foreach (var item in items)
             {
-                if (item.Count > 1) result += setting.PrefetchingPagesPreview ? item.Count * 2 : item.Count;
+                if (item.Count > 1) result += Options.IncludePagePreview ? item.Count * 2 : item.Count;
             }
             return (result);
         }
@@ -50,8 +62,7 @@ namespace PixivWPF.Common
             List<string> pages = new List<string>();
             try
             {
-                var setting = Application.Current.LoadSetting();
-                if (setting.PrefetchingPagesThumb)
+                if (Options.IncludePageThumb)
                 {
                     var illust = item.Illust;
                     if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
@@ -96,8 +107,7 @@ namespace PixivWPF.Common
             List<string> pages = new List<string>();
             try
             {
-                var setting = Application.Current.LoadSetting();
-                if (setting.PrefetchingPagesPreview)
+                if (Options.IncludePagePreview)
                 {
                     var illust = item.Illust;
                     if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
@@ -142,12 +152,10 @@ namespace PixivWPF.Common
             bool result = false;
             try
             {
-                var setting = Application.Current.LoadSetting();
-                if (setting.PrefetchingPreview && Items.Count > 0)
+                if (Options.PrefetchingPreview && Items.Count > 0)
                 {
                     new Action(async () =>
                     {
-                        setting = Application.Current.LoadSetting();
                         var items = Items.Reverse().ToList();
                         foreach (var item in items)
                         {
@@ -158,7 +166,7 @@ namespace PixivWPF.Common
                                 var avatar = item.Illust.GetAvatarUrl();
                                 if(!avatars.Contains(avatar)) avatars.Add(avatar);
 
-                                if (setting.PrefetchingPagesThumb && item.Count > 1 && page_thumbs is List<string>)
+                                if (Options.IncludePageThumb && item.Count > 1 && page_thumbs is List<string>)
                                 {
                                     var count = page_thumbs.Count;
                                     var p_count = item.Count;
@@ -168,7 +176,7 @@ namespace PixivWPF.Common
                                     this.DoEvents();
                                 }
 
-                                if (setting.PrefetchingPagesPreview && item.Count > 1 && page_previews is List<string>)
+                                if (Options.IncludePagePreview && item.Count > 1 && page_previews is List<string>)
                                 {
                                     var count = page_previews.Count;
                                     var p_count = item.Count;
@@ -191,10 +199,14 @@ namespace PixivWPF.Common
         {
             if (Items.Count > 0)
             {
-                //state = TaskStatus.RanToCompletion;
-                //if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                //else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, TaskStatus.RanToCompletion);
+                if (state == TaskStatus.Faulted)
+                {
+                    //state = TaskStatus.RanToCompletion;
+                    if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
+                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, state);
+                }
                 if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+                //Application.Current.MergeToSystemPrefetchedList(PrefetchedList);
             }
         }
 
@@ -210,10 +222,10 @@ namespace PixivWPF.Common
 
         private void PrefetchingTask_DoWork(object sender, DoWorkEventArgs e)
         {
-            var setting = Application.Current.LoadSetting();
             try
             {
-                if (!setting.PrefetchingPreview) return;
+                var args = e.Argument is PrefetchingOpts ? e.Argument as PrefetchingOpts : new PrefetchingOpts();
+                if (!args.PrefetchingPreview) return;
 
                 this.DoEvents();
                 List<string> illusts = new List<string>();
@@ -233,8 +245,8 @@ namespace PixivWPF.Common
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, state);
 
-                var parallel = setting.PrefetchingDownloadParallel;
-                if (setting.ParallelPrefetching)
+                var parallel = args.PrefetchingDownloadParallel;
+                if (args.ParallelPrefetching)
                 {
                     List<string> needUpdate = new List<string>();
                     needUpdate.AddRange(illusts);
@@ -273,7 +285,7 @@ namespace PixivWPF.Common
                                 }
                                 else
                                 {
-                                    file = url.DownloadCacheFile().GetAwaiter().GetResult();
+                                    file = url.DownloadCacheFile(args.Overwrite).GetAwaiter().GetResult();
                                     if (!string.IsNullOrEmpty(file))
                                     {
                                         PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
@@ -320,7 +332,7 @@ namespace PixivWPF.Common
                                             }
                                             else
                                             {
-                                                file = await url.DownloadCacheFile();
+                                                file = await url.DownloadCacheFile(args.Overwrite);
                                                 if (!string.IsNullOrEmpty(file))
                                                 {
                                                     PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
@@ -348,7 +360,6 @@ namespace PixivWPF.Common
                     this.DoEvents();
                 }
 
-                var name = e.Argument is string ? (string)e.Argument : string.Empty;
                 if (PrefetchingTask.CancellationPending) { e.Cancel = true; return; }
                 if (count >= 0 && total > 0)
                 {
@@ -366,7 +377,7 @@ namespace PixivWPF.Common
                         page_previews.Clear();
                     }
                     catch (Exception ex) { ex.ERROR("PREFETCHED"); }
-                    $"Prefetching Previews, Avatars, Thumbnails : {Environment.NewLine}  {Description}".ShowToast("INFO", tag: name ?? GetType().Name);
+                    $"Prefetching Previews, Avatars, Thumbnails : {Environment.NewLine}  {Description}".ShowToast("INFO", tag: args.Name ?? GetType().Name);
                 }
             }
             catch (Exception ex)
@@ -383,26 +394,36 @@ namespace PixivWPF.Common
             }
         }
 
-        public void Start(IEnumerable<PixivItem> items, bool waitcancel = true)
+        public void Start(IEnumerable<PixivItem> items, bool include_page_thumb = true, bool include_page_preview = true, bool overwrite = false, bool force = true)
         {
             Stop();
+            //PrefetchedList = Application.Current.MergeFromSystemPrefetchedList(PrefetchedList);
             if (items is IEnumerable<PixivItem>) { Items = items.ToList(); }
-            Start(waitcancel);
+            Start(include_page_thumb, include_page_preview, overwrite, force);
         }
 
-        public async void Start(bool waitcancel = true)
+        public async void Start(bool include_page_thumb = true, bool include_page_preview = true, bool overwrite = false, bool force = false)
         {
             var setting = Application.Current.LoadSetting();
-            if (!setting.PrefetchingPreview) return;
+            Options = new PrefetchingOpts()
+            {
+                Name = this.Name ?? GetType().Name ?? "PixivItems",
+                PrefetchingPreview = setting.PrefetchingPreview,
+                PrefetchingDownloadParallel = setting.PrefetchingDownloadParallel,
+                IncludePageThumb = include_page_thumb,
+                IncludePagePreview = include_page_preview,
+                Overwrite = overwrite
+            };
+            if (!Options.PrefetchingPreview) return;
             Stop();
-            if (waitcancel && await CanPrefetching.WaitAsync(-1))
+            if (force || await CanPrefetching.WaitAsync(-1))
             {
                 if (!PrefetchingTask.IsBusy && !PrefetchingTask.CancellationPending)
                 {
                     new Action(() =>
                     {
                         PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
-                        PrefetchingTask.RunWorkerAsync(this.Name ?? "PixivItems");
+                        PrefetchingTask.RunWorkerAsync(Options);
                     }).Invoke(async: false);
                 }
             }
@@ -462,6 +483,8 @@ namespace PixivWPF.Common
         public void Dispose()
         {
             Stop();
+            int count = 50;
+            while (PrefetchingTask.IsBusy && count > 0) { Task.Delay(100).GetAwaiter().GetResult(); count--; }
             if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
             PrefetchingTask.Dispose();
             PrefetchedList.Clear();

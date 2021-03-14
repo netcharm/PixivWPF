@@ -201,7 +201,7 @@ namespace PixivWPF.Common
                         if (start && !Instance.IsDownloading) Instance.Start(setting.DownloadWithFailResume);
                     }).InvokeAsync();
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_Start"); }
             }
         }
 
@@ -234,7 +234,7 @@ namespace PixivWPF.Common
                         Instance.CleanBuffer();
                         Instance = null;
                     }
-                    catch (Exception ex) { ex.ERROR(); }
+                    catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_Dispose"); }
                 }));
             }
             Thumbnail = null;
@@ -265,7 +265,7 @@ namespace PixivWPF.Common
                     NotifyPropertyChanged();
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_UpdateLikeState"); }
         }
 
         public void RefreshState()
@@ -290,7 +290,7 @@ namespace PixivWPF.Common
                     else if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail();
                     img.Source = null;
                 }
-                catch (Exception ex) { ex.ERROR(); if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail(); }
+                catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_RefreshThumbnail"); if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail(); }
                 finally
                 {
                     if (Thumbnail == null && Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail();
@@ -580,7 +580,7 @@ namespace PixivWPF.Common
                         lastRateA = rateA;
                         lastReceived = 0;
                     }
-                    catch (Exception ex) { ex.ERROR(); }
+                    catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_InitProgress"); }
                     lastTick = EndTick;
                 }
             });
@@ -684,7 +684,7 @@ namespace PixivWPF.Common
                     PART_OpenFile.IsEnabled = miOpenImage.IsEnabled;
                     PART_OpenFolder.IsEnabled = miOpenFolder.IsEnabled;
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_CheckProperties"); }
             }
         }
 
@@ -724,7 +724,7 @@ namespace PixivWPF.Common
             {
                 if (_DownloadBuffer is byte[]) _DownloadBuffer.Dispose(ref _DownloadBuffer);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_CleanBuffer"); }
         }
 
         private HttpClient httpClient = null;
@@ -934,7 +934,7 @@ namespace PixivWPF.Common
                     httpClient = null;
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_DownloadFinally"); }
 
             if (cancelSource is CancellationTokenSource) cancelSource.Dispose();
             cancelSource = null;
@@ -963,6 +963,7 @@ namespace PixivWPF.Common
                 catch (Exception ex)
                 {
                     FailReason = ex.Message;
+                    ex.ERROR($"{this.Name ?? GetType().Name}_DownloadDirectAsync");
                 }
                 finally
                 {
@@ -1023,7 +1024,7 @@ namespace PixivWPF.Common
                 State = DownloadState.Downloading;
                 result = await SaveFile(FileName, file);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_DownloadFromFile"); }
             finally
             {
                 DownloadFinally(out result);
@@ -1185,7 +1186,7 @@ namespace PixivWPF.Common
                         httpClient = null;
                     }
                 }
-                catch (Exception ex) { ex.ERROR(); Canceling = false; }
+                catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_Cancel"); Canceling = false; }
                 finally
                 {
                     FailReason = "Manual Canceled!";
@@ -1249,7 +1250,7 @@ namespace PixivWPF.Common
                     if (PART_Preview.Source != null) PART_Preview.Source = null;
                     PART_Preview.UpdateLayout();
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_~DownloadItem"); }
             }));           
             PART_Preview = null;
         }

@@ -25,7 +25,8 @@ namespace PixivWPF.Pages
     /// </summary>
     public partial class HistoryPage : Page
     {
-        private Window window = null;
+        public Window ParentWindow { get; private set; }
+
         public Point Pos { get; set; } = new Point(0, 0);
 
         private string result_filter = string.Empty;
@@ -149,10 +150,10 @@ namespace PixivWPF.Pages
         internal void UpdateDetail()
         {
             ShowHistory();
-            if (window != null)
+            if (ParentWindow != null)
             {
-                window.SizeToContent = SizeToContent.WidthAndHeight;
-                if (window is ContentWindow) (window as ContentWindow).AdjustWindowPos();
+                ParentWindow.SizeToContent = SizeToContent.WidthAndHeight;
+                if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).AdjustWindowPos();
             }
         }
 
@@ -350,12 +351,12 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            window = Window.GetWindow(this);
+            ParentWindow = Window.GetWindow(this);
 
-            if (window != null)
+            if (ParentWindow != null)
             {
-                var wa = System.Windows.Forms.Screen.GetWorkingArea(new System.Drawing.Point((int)window.Left, (int)window.Top));
-                window.MaxHeight = Math.Min(960, wa.Height);
+                var wa = System.Windows.Forms.Screen.GetWorkingArea(new System.Drawing.Point((int)ParentWindow.Left, (int)ParentWindow.Top));
+                ParentWindow.MaxHeight = Math.Min(960, wa.Height);
             }
 
             try
@@ -376,7 +377,7 @@ namespace PixivWPF.Pages
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (window is ContentWindow) (window as ContentWindow).AdjustWindowPos();
+            if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).AdjustWindowPos();
         }
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)

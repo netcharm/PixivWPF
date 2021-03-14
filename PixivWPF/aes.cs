@@ -58,19 +58,19 @@ namespace netcharm
             {
                 Console.WriteLine(content);
             }
-            catch(Exception) {}            
+            catch (Exception) { }
         }
-                
-        public static void ERR(this string content, string title="")
+
+        public static void ERR(this string content, string title = "")
         {
             try
             {
-                if(string.IsNullOrEmpty(title)) title = "ERROR";
+                if (string.IsNullOrEmpty(title)) title = "ERROR";
                 Console.Error.WriteLine($"{title}:{content}");
             }
-            catch(Exception) {}            
+            catch (Exception) { }
         }
-        
+
         public static string ProcessorID { get; set; } = string.Empty;
         public static string GetProcessorID()
         {
@@ -199,42 +199,42 @@ namespace netcharm
             return decrypt;
         }
         #endregion
-          
+
         public static void Main(string[] args)
         {
             var title = Console.Title;
             //LOG(args.Length);
             if (args.Length < 3) return;
-            
+
             ProcessorID = GetProcessorID();
-            
+
             var cmd = args[0].ToLower();
-            if(cmd.Equals("-e")) 
-            { 
+            if (cmd.Equals("-e"))
+            {
                 var u = args[2].AesEncrypt(args[1], false);
                 LOG($"PID: {ProcessorID}, KEY: {args[1]}, TEXT: {args[2]}");
                 LOG($"AES: {u}");
             }
-            else if(cmd.Equals("-ea")) 
-            { 
+            else if (cmd.Equals("-ea"))
+            {
                 var u = args[2].AesEncrypt(args[1], true);
                 LOG($"PID: {ProcessorID}, KEY: {args[1]}, TEXT: {args[2]}");
                 LOG($"AES: {u}");
             }
-            else if(cmd.Equals("-d"))
+            else if (cmd.Equals("-d"))
             {
                 var u = args[2].AesDecrypt(args[1], false);
                 LOG($"PID: {ProcessorID}, KEY: {args[1]}, AES: {args[2]}");
-                LOG($"Text: {u}");			
+                LOG($"Text: {u}");
             }
-            else if(cmd.Equals("-da"))
+            else if (cmd.Equals("-da"))
             {
                 var u = args[2].AesDecrypt(args[1], true);
                 LOG($"PID: {ProcessorID}, KEY: {args[1]}, AES: {args[2]}");
-                LOG($"Text: {u}");			
+                LOG($"Text: {u}");
             }
-            
+
             Console.Title = title;
         }
     }
-}  
+}
