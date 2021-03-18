@@ -955,7 +955,7 @@ namespace PixivWPF.Common
                 else
                     result = 0;
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("GetAccentIndex"); }
             return (result);
         }
 
@@ -966,7 +966,7 @@ namespace PixivWPF.Common
                 Theme.CurrentAccent = accent;
                 app.UpdateTheme();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SetAccent"); }
         }
 
         public static void SetStyle(this Application app, string style)
@@ -976,7 +976,7 @@ namespace PixivWPF.Common
                 Theme.CurrentStyle = style;
                 app.UpdateTheme();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SetStyle"); }
         }
 
         public static void SetTheme(this Application app, string theme)
@@ -986,7 +986,7 @@ namespace PixivWPF.Common
                 Theme.Change(theme);
                 app.UpdateTheme();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SetTheme"); }
         }
 
         public static void SetTheme(this Application app, string style, string accent)
@@ -996,7 +996,7 @@ namespace PixivWPF.Common
                 Theme.Change(style, accent);
                 app.UpdateTheme();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SetTheme"); }
         }
 
         public static void ToggleTheme(this Application app)
@@ -1006,7 +1006,7 @@ namespace PixivWPF.Common
                 Theme.Toggle();
                 app.UpdateTheme();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ToggleTheme"); }
         }
 
         public static void UpdateTheme(this Application app)
@@ -1039,7 +1039,7 @@ namespace PixivWPF.Common
 
                 Theme.SetSyncMode(sync);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SetThemeSync"); }
         }
         #endregion
 
@@ -3174,7 +3174,7 @@ namespace PixivWPF.Common
                             sb.AppendLine(html ? body.InnerHtml : body.InnerText);
                         }
                     }
-                    result = sb.Length > 0 ? sb.ToString().Trim() : string.Empty;
+                    result = sb.Length > 0 ? sb.ToString().Trim().KatakanaHalfToFull() : string.Empty;
                 }
             }
             catch (Exception ex) { ex.ERROR("GetBrowserText"); }
@@ -3608,6 +3608,74 @@ namespace PixivWPF.Common
         #endregion
 
         #region Text process routines
+        #region Kana Half To Full Lookup Map
+        private static Dictionary<string, string> KanaToFullMap = new Dictionary<string, string>()
+        {
+            {"ｸﾞ", "グ"}, {"ﾎﾟ", "ポ"}, {"ｹﾞ", "ゲ"}, {"ｶﾞ", "ガ"}, {"ｷﾞ", "ギ"},
+            {"ｺﾞ", "ゴ"}, {"ｻﾞ", "ザ"}, {"ｼﾞ", "ジ"}, {"ｽﾞ", "ズ"}, {"ｾﾞ", "ゼ"},
+            {"ﾀﾞ", "ダ"}, {"ﾂﾞ", "ヅ"}, {"ﾁﾞ", "ヂ"}, {"ｿﾞ", "ゾ"}, {"ﾃﾞ", "デ"},
+            {"ﾄﾞ", "ド"}, {"ﾊﾞ", "バ"}, {"ﾊﾟ", "パ"}, {"ﾋﾞ", "ビ"}, {"ﾋﾟ", "ピ"},
+            {"ﾍﾞ", "ベ"}, {"ﾌﾟ", "プ"}, {"ﾍﾟ", "ペ"}, {"ﾎﾞ", "ボ"}, {"ﾌﾞ", "ブ"},
+
+            {"ｧ", "ァ"}, {"ｱ", "ア"}, {"ｨ", "ィ"}, {"ｲ", "イ"}, {"ｩ", "ゥ"},
+            {"ｳ", "ウ"}, {"ｪ", "ェ"}, {"ｴ", "エ"}, {"ｫ", "ォ"}, {"ｵ", "オ"},
+            {"ｶ", "カ"}, {"ｷ", "キ"}, {"ｸ", "ク"}, {"ｹ", "ケ"}, {"ｺ", "コ"},
+            {"ｻ", "サ"}, {"ｼ", "シ"}, {"ｽ", "ス"}, {"ｾ", "セ"}, {"ｿ", "ソ"},
+            {"ﾀ", "タ"}, {"ﾁ", "チ"}, {"ｯ", "ッ"}, {"ﾂ", "ツ"}, {"ﾃ", "テ"},
+            {"ﾄ", "ト"}, {"ﾅ", "ナ"}, {"ﾆ", "ニ"}, {"ﾇ", "ヌ"}, {"ﾈ", "ネ"},
+            {"ﾉ", "ノ"}, {"ﾊ", "ハ"}, {"ﾋ", "ヒ"}, {"ﾌ", "フ"}, {"ﾍ", "ヘ"},
+            {"ﾎ", "ホ"}, {"ﾏ", "マ"}, {"ﾐ", "ミ"}, {"ﾑ", "ム"}, {"ﾒ", "メ"},
+            {"ﾓ", "モ"}, {"ｬ", "ャ"}, {"ﾔ", "ヤ"}, {"ｭ", "ュ"}, {"ﾕ", "ユ"},
+            {"ｮ", "ョ"}, {"ﾖ", "ヨ"}, {"ﾗ", "ラ"}, {"ﾘ", "リ"}, {"ﾙ", "ル"},
+            {"ﾚ", "レ"}, {"ﾛ", "ロ"}, /*{"ﾜ", "ヮ"},*/ {"ﾜ", "ワ"}, {"ｦ", "ヲ"},
+            {"ﾝ", "ン"}, {"ｰ", "ー"},
+
+            //{"A", "Ａ"}, {"B", "Ｂ"}, {"C", "Ｃ"}, {"D", "Ｄ"}, {"E", "Ｅ"},
+            //{"F", "Ｆ"}, {"G", "Ｇ"}, {"H", "Ｈ"}, {"I", "Ｉ"}, {"J", "Ｊ"},
+            //{"K", "Ｋ"}, {"L", "Ｌ"}, {"M", "Ｍ"}, {"N", "Ｎ"}, {"O", "Ｏ"},
+            //{"P", "Ｐ"}, {"Q", "Ｑ"}, {"R", "Ｒ"}, {"S", "Ｓ"}, {"T", "Ｔ"},
+            //{"U", "Ｕ"}, {"V", "Ｖ"}, {"W", "Ｗ"}, {"X", "Ｘ"}, {"Y", "Ｙ"},
+            //{"Z", "Ｚ"}, {"a", "ａ"}, {"b", "ｂ"}, {"c", "ｃ"}, {"d", "ｄ"},
+            //{"e", "ｅ"}, {"f", "ｆ"}, {"g", "ｇ"}, {"h", "ｈ"}, {"i", "ｉ"},
+            //{"j", "ｊ"}, {"k", "ｋ"}, {"l", "ｌ"}, {"m", "ｍ"}, {"n", "ｎ"},
+            //{"o", "ｏ"}, {"p", "ｐ"}, {"q", "ｑ"}, {"r", "ｒ"}, {"s", "ｓ"},
+            //{"t", "ｔ"}, {"u", "ｕ"}, {"v", "ｖ"}, {"w", "ｗ"}, {"x", "ｘ"},
+            //{"y", "ｙ"}, {"z", "ｚ"}, {",", "、"},
+        };
+        #endregion
+
+        public static string KatakanaHalfToFull(this string text, bool lookup = true)
+        {
+            if (string.IsNullOrEmpty(text)) return (string.Empty);
+
+            var result = text;
+            if (lookup)
+            {
+                foreach (var kana in KanaToFullMap)
+                {
+                    var k = kana.Key;
+                    var v = kana.Value;
+                    result = result.Replace(k, v);
+                }
+            }
+            else
+            {
+                for (var i = 0; i < text.Length; i++)
+                {
+                    if (text[i] == 32)
+                    {
+                        result += (char)12288;
+                    }
+                    if (text[i] < 127)
+                    {
+                        result += (char)(text[i] + 65248);
+                    }
+                }
+                if (string.IsNullOrEmpty(result)) result = text;
+            }
+            return result;
+        }
+
         public static string TranslatedText(this string src, string translated = default(string))
         {
             var result = src;
@@ -7664,7 +7732,7 @@ namespace PixivWPF.Common
                     }
                 }).Invoke(async: false);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("UpdateTheme"); }
         }
 
         private static void Arrange(UIElement element, int width, int height)
@@ -8497,16 +8565,18 @@ namespace PixivWPF.Common
             {
                 if (title.Equals(lastToastTitle) && content.Equals(lastToastContent)) return;
 
+                lastToastTitle = title;
+                lastToastContent = content;
+
                 content.LOG(title);
 
                 setting = Application.Current.LoadSetting();
 
-                lastToastTitle = title;
-                lastToastContent = content;
-
-                INotificationDialogService _dialogService = new NotificationDialogService();
-                NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-                NotificationConfiguration cfg = new NotificationConfiguration(
+                await new Action(() =>
+                {
+                    INotificationDialogService _dialogService = new NotificationDialogService();
+                    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                    NotificationConfiguration cfg = new NotificationConfiguration(
                     //new TimeSpan(0, 0, 30), 
                     TimeSpan.FromSeconds(setting.ToastShowTimes),
                     cfgDefault.Width+32, cfgDefault.Height,
@@ -8514,42 +8584,38 @@ namespace PixivWPF.Common
                     //cfgDefault.TemplateName, 
                     cfgDefault.NotificationFlowDirection);
 
-                var newNotification = new CustomToast()
-                {
-                    Type = ToastType.DOWNLOAD,
-                    Title = title,
-                    ImgURL = imgsrc,
-                    Message = content,
-                    Extra = string.IsNullOrEmpty(file) ? string.Empty : file,
-                    State = state,
-                    StateDescription = state_description,
-                    Tag = tag
-                };
+                    var newNotification = new CustomToast()
+                    {
+                        Type = ToastType.DOWNLOAD,
+                        Title = title,
+                        ImgURL = imgsrc,
+                        Message = content,
+                        Extra = string.IsNullOrEmpty(file) ? string.Empty : file,
+                        State = state,
+                        StateDescription = state_description,
+                        Tag = tag
+                    };
 
-                await new Action(() =>
-                {
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                 }).InvokeAsync(true);
             }
-#if DEBUG
-            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR[TOAST]"); }
-#else
-            catch (Exception ex) { ex.ERROR(); }
-#endif
+            catch (Exception ex) { ex.ERROR("ShowDownloadToast"); }
         }
 
         public async static void ShowToast(this string content, string title, string imgsrc, string state = "", string state_description = "", string tag = "")
         {
             try
             {
-                content.Replace("\r\n", " ").Replace("\n\r", " ").Replace("\r", " ").Replace("\n", " ").LOG(title, tag);
+                Regex.Replace(content, @"(\r\n|\n\r|\r|\r|\s)+", " ", RegexOptions.IgnoreCase).LOG(title, tag);
 
                 setting = Application.Current.LoadSetting();
 
-                INotificationDialogService _dialogService = new NotificationDialogService();
-                NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-                NotificationConfiguration cfg = new NotificationConfiguration(
+                await new Action(() =>
+                {
+                    INotificationDialogService _dialogService = new NotificationDialogService();
+                    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                    NotificationConfiguration cfg = new NotificationConfiguration(
                     //new TimeSpan(0, 0, 30), 
                     TimeSpan.FromSeconds(setting.ToastShowTimes),
                     cfgDefault.Width + 32, cfgDefault.Height,
@@ -8557,25 +8623,23 @@ namespace PixivWPF.Common
                     //cfgDefault.TemplateName, 
                     cfgDefault.NotificationFlowDirection);
 
-                var newNotification = new CustomToast()
-                {
-                    Type = ToastType.OK,
-                    Title = title,
-                    ImgURL = imgsrc,
-                    Message = content,
-                    State = state,
-                    StateDescription = state_description,
-                    Tag = null
-                };
+                    var newNotification = new CustomToast()
+                    {
+                        Type = ToastType.OK,
+                        Title = title,
+                        ImgURL = imgsrc,
+                        Message = content,
+                        State = state,
+                        StateDescription = state_description,
+                        Tag = null
+                    };
 
-                await new Action(() =>
-                {
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                 }).InvokeAsync(true);
 
             }
-            catch (Exception ex) { ex.ERROR("SHOWTOAST"); }
+            catch (Exception ex) { ex.ERROR("ShowToast"); }
         }
 
         public async static void ShowToast(this string content, string title, bool messagebox = false, string tag = "")
@@ -8584,32 +8648,32 @@ namespace PixivWPF.Common
             {
                 if (messagebox) { content.ShowMessageBox(title); return; }
 
-                content.Replace("\r\n", " ").Replace("\n\r", " ").Replace("\r", " ").Replace("\n", " ").LOG(title, tag);
+                Regex.Replace(content, @"(\r\n|\n\r|\r|\r|\s)+", " ", RegexOptions.IgnoreCase).LOG(title, tag);
 
                 setting = Application.Current.LoadSetting();
 
-                INotificationDialogService _dialogService = new NotificationDialogService();
-                NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-                NotificationConfiguration cfg = new NotificationConfiguration(
+                await new Action(() =>
+                {
+                    INotificationDialogService _dialogService = new NotificationDialogService();
+                    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                    NotificationConfiguration cfg = new NotificationConfiguration(
                     TimeSpan.FromSeconds(setting.ToastShowTimes),
                     cfgDefault.Width + 32, cfgDefault.Height,
                     "ToastTemplate",
                     //cfgDefault.TemplateName, 
                     cfgDefault.NotificationFlowDirection);
 
-                var newNotification = new CustomToast()
-                {
-                    Title = title,
-                    Message = content
-                };
+                    var newNotification = new CustomToast()
+                    {
+                        Title = title,
+                        Message = content
+                    };
 
-                await new Action(() =>
-                {
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
                 }).InvokeAsync(true);
             }
-            catch (Exception ex) { ex.ERROR("SHOWTOAST"); }
+            catch (Exception ex) { ex.ERROR("ShowToast"); }
         }
 
         public static void ShowExceptionToast(this Exception ex, bool messagebox = false, string tag = "")

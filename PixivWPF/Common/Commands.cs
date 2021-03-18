@@ -1774,6 +1774,47 @@ namespace PixivWPF.Common
             Application.Current.SaveTags();
         });
 
+        public static ICommand OpenTags { get; } = new DelegateCommand<string>(async obj =>
+        {
+            setting = Application.Current.LoadSetting();
+            var root = Application.Current.GetRoot();
+            var tags = new List<string>()
+            {
+                Path.Combine(root, setting.CustomTagsFile),
+                Path.Combine(root, setting.CustomWildcardTagsFile),
+                Path.Combine(root, setting.TagsFile)
+            };
+            var content = obj is string && !string.IsNullOrEmpty(obj as string) ? obj as string : setting.CustomTagsFile;
+            if (content.ToLower().Contains("folder"))
+            {
+                if (tags.Count > 0)
+                {
+                    var file = tags.FirstOrDefault();
+                    file.OpenFileWithShell(ShowFolder: true);
+                }
+                else
+                {
+                    root.OpenFileWithShell(ShowFolder: true);
+                }
+            }
+            else
+            {
+                foreach (var tag in tags)
+                {
+                    if (tag.ToLower().Contains(content.ToLower()))
+                    {
+                        await new Action(() =>
+                        {
+                            var viewer = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewer : setting.ShellTextViewer;
+                            if(string.IsNullOrEmpty(viewer)) viewer = "notepad.exe";
+                            tag.OpenFileWithShell(command: viewer);
+                        }).InvokeAsync(true);
+                        break;
+                    }
+                }
+            }
+        });
+
         private static DateTime lastSaveOpenedWindows = setting.LastOpenedFile.GetFileTime();
         public static ICommand SaveOpenedWindows { get; } = new DelegateCommand<bool?>(async obj =>
         {
@@ -1870,7 +1911,9 @@ namespace PixivWPF.Common
                     {
                         await new Action(() =>
                         {
-                            log.OpenFileWithShell(command: setting.ShellLogViewer);
+                            var viewer = string.IsNullOrEmpty(setting.ShellLogViewer) ? setting.ShellTextViewer : setting.ShellLogViewer;
+                            if (string.IsNullOrEmpty(viewer)) viewer = "notepad.exe";
+                            log.OpenFileWithShell(command: viewer);
                         }).InvokeAsync(true);
                         break;
                     }

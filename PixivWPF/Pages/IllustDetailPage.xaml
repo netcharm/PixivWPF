@@ -361,13 +361,11 @@
                     </Grid.Resources>
                     <Grid.Background>
                         <ImageBrush ImageSource="pack://application:,,,/PixivWPF;component/Resources/CheckboardPattern_32.png" 
-                        TileMode="Tile"  Opacity="0.10" 
-                        ViewportUnits="Absolute" Viewport="0,0,32,32"/>
+                            TileMode="Tile"  Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
                     </Grid.Background>
                     <Viewbox x:Name="PreviewViewbox" StretchDirection="DownOnly">
                         <Image x:Name="Preview" x:Uid="Preview" Stretch="None" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               SnapsToDevicePixels="True" />
+                               HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True" />
                     </Viewbox>
                     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0"
                         Visibility="{Binding Visibility, Mode=OneWay, ElementName=IllustSanityInfo}">
@@ -913,6 +911,16 @@
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="ActionOpenCustomTags" Header="Open Custom Tags File" Click="ActionOpenTagsFile_Click"/>
+                                <MenuItem x:Name="ActionOpenCustomWildTags" Header="Open Custom Wildcard Tags File" Click="ActionOpenTagsFile_Click"/>
+                                <Separator/>
+                                <MenuItem x:Name="ActionOpenPixivTags" Header="Open Pixiv Tags File" Click="ActionOpenTagsFile_Click"/>
+                                <Separator/>
+                                <MenuItem x:Name="ActionOpenTagsFolder" Header="Open Tags Files Folder" Click="ActionOpenTagsFile_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
                     </Button>
                 </StackPanel>
 

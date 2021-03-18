@@ -27,7 +27,7 @@ namespace PixivWPF.Pages
 
         public Window ParentWindow { get; private set; } = null;
         public PixivItem Contents { get; set; } = null;
-        private PrefetchingClass PrefetchingItems = null;
+        private PrefetchingTask PrefetchingItems = null;
 
         private Popup PreviewPopup = null;
         private Rectangle PreviewPopupBackground = null;
@@ -1184,7 +1184,7 @@ namespace PixivWPF.Pages
                 {
                     if (Contents.HasUser())
                     {
-                        if (ParentWindow is ContentWindow && PrefetchingItems is PrefetchingClass)
+                        if (ParentWindow is ContentWindow && PrefetchingItems is PrefetchingTask)
                         {
                             var items = new List<PixivItem>();
                             items.Add(Contents);
@@ -2130,7 +2130,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (PrefetchingItems is PrefetchingClass) PrefetchingItems.Dispose();
+                if (PrefetchingItems is PrefetchingTask) PrefetchingItems.Dispose();
 
                     SubIllusts.Clear(batch: false, force: true);
                 this.DoEvents();
@@ -2225,17 +2225,17 @@ namespace PixivWPF.Pages
                     InitPopupTimer(ref PreviewPopupTimer);
                 }
             }
-            catch (Exception ex) { ex.ERROR("Loaded"); }
+            catch (Exception ex) { ex.ERROR("PreviewPopupLoaded"); }
             #endregion
 
             #region Prefetching
-            if (PrefetchingItems == null) PrefetchingItems = new PrefetchingClass()
+            if (PrefetchingItems == null) PrefetchingItems = new PrefetchingTask()
             {
                 Name = "DetailPagePrefetching",
                 ReportProgressSlim = () =>
                 {
                     var percent = PrefetchingItems.Percentage;
-                    var tooltip = PrefetchingItems.Description;
+                    var tooltip = PrefetchingItems.Comments;
                     var state = PrefetchingItems.State;
                     if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
                     if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
@@ -2989,6 +2989,17 @@ namespace PixivWPF.Pages
 #else
             catch (Exception ex) { ex.ERROR(); }
 #endif
+        }
+
+        private void ActionOpenTagsFile_Click(object sender, RoutedEventArgs e)
+        {
+            setting = Application.Current.LoadSetting();
+            var tag_type = string.Empty;
+            if (sender == ActionOpenPixivTags) tag_type = setting.TagsFile;
+            else if (sender == ActionOpenCustomTags) tag_type = setting.CustomTagsFile;
+            else if (sender == ActionOpenCustomWildTags) tag_type = setting.CustomWildcardTagsFile;
+            else if (sender == ActionOpenTagsFolder) tag_type = "folder";
+            Commands.OpenTags.Execute(tag_type);
         }
 
         private long lastMouseDown = Environment.TickCount;
@@ -4111,7 +4122,6 @@ namespace PixivWPF.Pages
         }
 
         #endregion
-
     }
 
 }

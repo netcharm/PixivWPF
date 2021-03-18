@@ -216,6 +216,39 @@ namespace PixivWPF.Common
             }
         }
 
+        private static System.Windows.Media.Effects.DropShadowEffect GetDropShadow(System.Windows.Media.Effects.DropShadowEffect effect, Color color)
+        {
+            var result = effect;
+            if (effect is System.Windows.Media.Effects.DropShadowEffect)
+            {
+                var drop = effect as System.Windows.Media.Effects.DropShadowEffect;
+                result = new System.Windows.Media.Effects.DropShadowEffect()
+                {
+                    Color = color,
+                    BlurRadius = drop.BlurRadius,
+                    Opacity = drop.Opacity,
+                    RenderingBias = drop.RenderingBias,
+                    ShadowDepth = drop.ShadowDepth,
+                    Direction = drop.Direction
+                };
+            }
+            return (result);
+        }
+
+        private static void ChangeDropShadowColor()
+        {
+            try
+            {
+                var drop_glow = Application.Current.FindResource("DropGlow");
+                if (drop_glow is System.Windows.Media.Effects.DropShadowEffect)
+                    Application.Current.Resources["DropGlow"] = GetDropShadow(drop_glow as System.Windows.Media.Effects.DropShadowEffect, IdealForeground);
+                var drop_mark = Application.Current.FindResource("DropMark");
+                if (drop_mark is System.Windows.Media.Effects.DropShadowEffect)
+                    Application.Current.Resources["DropMark"] = GetDropShadow(drop_mark as System.Windows.Media.Effects.DropShadowEffect, AccentColor);
+            }
+            catch(Exception ex) { ex.ERROR("ChangeDropShadowColor"); }
+        }           
+
         public static string CurrentTheme
         {
             get { return(ThemeManager.Current.DetectTheme(Application.Current).Name); }
@@ -227,6 +260,9 @@ namespace PixivWPF.Common
                     var theme = ThemeManager.Current.DetectTheme(Application.Current);
                     var color = theme.ColorScheme;
                     var style = theme.BaseColorScheme;
+
+                    ChangeDropShadowColor();
+
                     setting = Application.Current.LoadSetting();
                     if (!setting.CurrentAccent.Equals(color, StringComparison.CurrentCultureIgnoreCase) ||
                         !setting.CurrentTheme.Equals(style, StringComparison.CurrentCultureIgnoreCase))
@@ -247,6 +283,9 @@ namespace PixivWPF.Common
                 if (Accents.Contains(value))
                 {
                     ThemeManager.Current.ChangeThemeColorScheme(Application.Current, value);
+
+                    ChangeDropShadowColor();
+
                     setting = Application.Current.LoadSetting();
                     if (!setting.CurrentAccent.Equals(value, StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -265,6 +304,9 @@ namespace PixivWPF.Common
                 if (Styles.Contains(value))
                 {
                     ThemeManager.Current.ChangeThemeBaseColor(Application.Current, value);
+
+                    ChangeDropShadowColor();
+
                     setting = Application.Current.LoadSetting();
                     if (!setting.CurrentTheme.Equals(value, StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -675,6 +717,15 @@ namespace PixivWPF.Common
         }
 
         public static Color IdealForeground
+        {
+            get
+            {
+                var appTheme = ThemeManager.Current.DetectTheme(Application.Current);
+                return (Color)appTheme.Resources["MahApps.Colors.IdealForeground"];
+            }
+        }
+
+        public static Color IdealForegroundColor
         {
             get
             {

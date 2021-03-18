@@ -198,7 +198,7 @@ namespace PixivWPF.Pages
                         ImageTiles.ScrollIntoView(ImageTiles.SelectedItem);
                         this.DoEvents();
                     }
-                    if (PrefetchingItems is PrefetchingClass) PrefetchingItems.Start();
+                    Prefetching();
                     this.DoEvents();
                 }
             }).Invoke(async: false);
@@ -335,12 +335,12 @@ namespace PixivWPF.Pages
         {
             var overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
             UpdateTilesThumb(overwrite);
-            if (PrefetchingItems is PrefetchingClass) PrefetchingItems.Start();
+            Prefetching();
         }
 
         public void Prefetching()
         {
-            if (PrefetchingItems is PrefetchingClass) PrefetchingItems.Start();
+            if (PrefetchingItems is PrefetchingTask) PrefetchingItems.Start(reverse: true);
         }
 
         public void AppendTiles()
@@ -541,7 +541,7 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Prefetching background task
-        private PrefetchingClass PrefetchingItems = null;
+        private PrefetchingTask PrefetchingItems = null;
         #endregion
 
         public TilesPage()
@@ -559,14 +559,14 @@ namespace PixivWPF.Pages
             UpdateTheme();
             this.DoEvents();
 
-            if (PrefetchingItems == null) PrefetchingItems = new PrefetchingClass()
+            if (PrefetchingItems == null) PrefetchingItems = new PrefetchingTask()
             {
                 Name = "TilesPrefetching",
                 Items = ImageTiles.Items,
                 ReportProgressSlim = () =>
                 {
                     var percent = PrefetchingItems.Percentage;
-                    var tooltip = PrefetchingItems.Description;
+                    var tooltip = PrefetchingItems.Comments;
                     var state = PrefetchingItems.State;
                     if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
                 },
@@ -596,7 +596,7 @@ namespace PixivWPF.Pages
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            if (PrefetchingItems is PrefetchingClass) PrefetchingItems.Dispose();
+            if (PrefetchingItems is PrefetchingTask) PrefetchingItems.Dispose();
         }
 
         internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
@@ -606,7 +606,7 @@ namespace PixivWPF.Pages
             if (ParentWindow is MainWindow) ParentWindow.UpdateTitle(target.ToString());
             this.DoEvents();
 
-            if (PrefetchingItems is PrefetchingClass) PrefetchingItems.Stop();
+            if (PrefetchingItems is PrefetchingTask) PrefetchingItems.Stop();
 
             if (TargetPage != target)
             {

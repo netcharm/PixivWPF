@@ -291,6 +291,7 @@ namespace PixivWPF.Common
                         UpdateContentsTemplete();
 
                         var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
+                        configfile.WaitFileUnlock();
                         File.WriteAllText(configfile, text, new UTF8Encoding(true));
 
                         SaveTags();
@@ -334,6 +335,7 @@ namespace PixivWPF.Common
                         lastConfigUpdate = filetime;
                         if (File.Exists(configfile))
                         {
+                            configfile.WaitFileUnlock();
                             var dso = new JsonSerializerSettings(){ Error = (se, ev) => ev.ErrorContext.Handled = true };
                             var text = File.ReadAllText(configfile);
                             if (Cache is Setting && text.Length > 20)
@@ -431,6 +433,7 @@ namespace PixivWPF.Common
                         try
                         {
                             var tags = JsonConvert.SerializeObject(CommonHelper.TagsCache, Formatting.Indented);
+                            tagsfile.WaitFileUnlock();
                             File.WriteAllText(tagsfile, tags, new UTF8Encoding(true));
                         }
                         catch (Exception ex) { ex.ERROR(); }
@@ -1573,6 +1576,17 @@ namespace PixivWPF.Common
             {
                 shell_log_viewer_params = value;
                 if (Cache is Setting) Cache.shell_log_viewer_params = shell_log_viewer_params;
+            }
+        }
+
+        private string shell_text_viewer = string.Empty;
+        public string ShellTextViewer
+        {
+            get { return (Cache is Setting ? Cache.shell_text_viewer : shell_text_viewer); }
+            set
+            {
+                shell_text_viewer = value;
+                if (Cache is Setting) Cache.shell_text_viewer = shell_text_viewer;
             }
         }
         #endregion

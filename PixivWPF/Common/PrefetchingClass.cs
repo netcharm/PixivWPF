@@ -20,32 +20,28 @@ namespace PixivWPF.Common
         public bool IncludePageThumb { get; set; } = true;
         public bool IncludePagePreview { get; set; } = true;
         public bool Overwrite { get; set; } = false;
+        public bool ReverseOrder { get; set; } = false;
     }
 
-    class PrefetchingClass : IDisposable
+    class PrefetchingTask : IDisposable
     {
-        public ConcurrentDictionary<string, bool> PrefetchedList { get; private set; } = new ConcurrentDictionary<string, bool>();
         private CancellationTokenSource PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
         private SemaphoreSlim CanPrefetching = new SemaphoreSlim(1, 1);
-        private BackgroundWorker PrefetchingTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+        private BackgroundWorker PrefetchingBgWorker = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+        private PrefetchingOpts Options { get; set; } = new PrefetchingOpts();
 
+        public string Name { get; set; } = "PixivItems";
+        public DateTime LastStartTime { get; private set; } = DateTime.Now;
+        public DateTime LastDoneTime { get; private set; } = DateTime.Now;
+        public ConcurrentDictionary<string, bool> PrefetchedList { get; private set; } = new ConcurrentDictionary<string, bool>();
         public IList<PixivItem> Items { get; set; } = new List<PixivItem>();
-
-        private double percent = 0;
-        public double Percentage { get { return (percent); } }
-
-        private string info = string.Empty;
-        public string Description { get { return (info); } }
-
-        private TaskStatus state = TaskStatus.Created;
-        public TaskStatus State { get { return (state); } }
+        public double Percentage { get; private set; } = 0;
+        public string Comments { get; private set; } = string.Empty;
+        public TaskStatus State { get; private set; } = TaskStatus.Created;
 
         public Action<double, string, TaskStatus> ReportProgress { get; set; } = null;
         public Action ReportProgressSlim { get; set; } = null;
 
-        public string Name { get; set; } = "PixivItems";
-
-        private PrefetchingOpts Options { get; set; } = new PrefetchingOpts();
         private int CalcPagesThumbItems(IEnumerable<PixivItem> items)
         {
             int result = 0;
@@ -156,7 +152,7 @@ namespace PixivWPF.Common
                 {
                     new Action(async () =>
                     {
-                        var items = Items.Reverse().ToList();
+                        var items = Items.ToList();
                         foreach (var item in items)
                         {
                             if (item.IsWork())
@@ -164,7 +160,7 @@ namespace PixivWPF.Common
                                 var preview = item.Illust.GetPreviewUrl();
                                 if (!illusts.Contains(preview)) illusts.Add(preview);
                                 var avatar = item.Illust.GetAvatarUrl();
-                                if(!avatars.Contains(avatar)) avatars.Add(avatar);
+                                if (!avatars.Contains(avatar)) avatars.Add(avatar);
 
                                 if (Options.IncludePageThumb && item.Count > 1 && page_thumbs is List<string>)
                                 {
@@ -199,15 +195,15 @@ namespace PixivWPF.Common
         {
             if (Items.Count > 0)
             {
-                if (state == TaskStatus.Faulted)
+                if (State == TaskStatus.Faulted)
                 {
-                    //state = TaskStatus.RanToCompletion;
+                    //State = TaskStatus.RanToCompletion;
                     if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, state);
+                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                 }
-                if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
                 //Application.Current.MergeToSystemPrefetchedList(PrefetchedList);
             }
+            if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
         }
 
         private void PrefetchingTask_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -215,8 +211,7 @@ namespace PixivWPF.Common
             if (Items.Count > 0)
             {
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, state);
-                if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
             }
         }
 
@@ -227,6 +222,7 @@ namespace PixivWPF.Common
                 var args = e.Argument is PrefetchingOpts ? e.Argument as PrefetchingOpts : new PrefetchingOpts();
                 if (!args.PrefetchingPreview) return;
 
+                LastStartTime = DateTime.Now;
                 this.DoEvents();
                 List<string> illusts = new List<string>();
                 List<string> avatars = new List<string>();
@@ -239,33 +235,33 @@ namespace PixivWPF.Common
                 var total = illusts.Count + avatars.Count + page_thumbs.Count + page_previews.Count;
                 if (total <= 0) { e.Cancel = true; return; }
                 var count = total;
-                percent = count == 0 ? 100 : 0;
-                info = $"Calculating [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
-                state = TaskStatus.WaitingToRun;
+                Percentage = count == 0 ? 100 : 0;
+                Comments = $"Calculating [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
+                State = TaskStatus.WaitingToRun;
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, state);
+                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
 
                 var parallel = args.PrefetchingDownloadParallel;
                 if (args.ParallelPrefetching)
                 {
                     List<string> needUpdate = new List<string>();
-                    needUpdate.AddRange(illusts);
-                    needUpdate.AddRange(avatars);
-                    needUpdate.AddRange(page_thumbs);
-                    needUpdate.AddRange(page_previews);
+                    needUpdate.AddRange(args.ReverseOrder ? illusts.Reverse<string>() : illusts);
+                    needUpdate.AddRange(args.ReverseOrder ? avatars.Reverse<string>() : avatars);
+                    needUpdate.AddRange(args.ReverseOrder ? page_thumbs.Reverse<string>() : page_thumbs);
+                    needUpdate.AddRange(args.ReverseOrder ? page_previews.Reverse<string>() : page_previews);
 
-                    foreach (var url in needUpdate.Where(url => File.Exists(url.GetImageCacheFile())))
+                    foreach (var url in needUpdate.Where(url => !PrefetchedList.ContainsKey(url) && File.Exists(url.GetImageCacheFile())))
                     {
                         PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                         //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
                     }
                     needUpdate = needUpdate.Where(url => !PrefetchedList.ContainsKey(url) || !PrefetchedList[url]).ToList();
                     count = needUpdate.Count;
-                    percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                    info = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count}]";
-                    state = TaskStatus.Running;
+                    Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
+                    Comments = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count}]";
+                    State = TaskStatus.Running;
                     if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, state);
+                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                     this.DoEvents();
 
                     var opt = new ParallelOptions();
@@ -294,12 +290,12 @@ namespace PixivWPF.Common
                                     }
                                 }
                             }
-                            if (PrefetchingTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
-                            percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                            info = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count}]";
-                            state = TaskStatus.Running;
+                            if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
+                            Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
+                            Comments = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count}]";
+                            State = TaskStatus.Running;
                             if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                            else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, state);
+                            else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)this.Percentage, Comments, State);
                             this.DoEvents();
                         }
                         catch (Exception ex) { ex.ERROR("PREFETCHING"); }
@@ -311,10 +307,10 @@ namespace PixivWPF.Common
                     SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
                     foreach (var urls in new List<string>[] { illusts, avatars, page_thumbs, page_previews })
                     {
-                        if (PrefetchingTask.CancellationPending) { e.Cancel = true; break; }
+                        if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
                         foreach (var url in urls)
                         {
-                            if (PrefetchingTask.CancellationPending) { e.Cancel = true; break; }
+                            if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
                             if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
                             {
                                 new Action(async () =>
@@ -341,12 +337,12 @@ namespace PixivWPF.Common
                                                 }
                                             }
                                         }
-                                        if (PrefetchingTask.CancellationPending) { e.Cancel = true; return; }
-                                        percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                                        info = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
-                                        state = TaskStatus.Running;
+                                        if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; return; }
+                                        Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
+                                        Comments = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
+                                        State = TaskStatus.Running;
                                         if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                                        else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, state);
+                                        else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                                         //await Task.Delay(10);
                                         this.DoEvents();
                                     }
@@ -360,14 +356,14 @@ namespace PixivWPF.Common
                     this.DoEvents();
                 }
 
-                if (PrefetchingTask.CancellationPending) { e.Cancel = true; return; }
+                if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; return; }
                 if (count >= 0 && total > 0)
                 {
-                    percent = count == 0 ? 100 : (total - count) / (double)total * 100;
-                    info = $"Done [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
-                    state = TaskStatus.RanToCompletion;
+                    Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
+                    Comments = $"Done [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
+                    State = TaskStatus.RanToCompletion;
                     if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, state);
+                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                     this.DoEvents();
                     try
                     {
@@ -377,33 +373,35 @@ namespace PixivWPF.Common
                         page_previews.Clear();
                     }
                     catch (Exception ex) { ex.ERROR("PREFETCHED"); }
-                    $"Prefetching Previews, Avatars, Thumbnails : {Environment.NewLine}  {Description}".ShowToast("INFO", tag: args.Name ?? GetType().Name);
+                    $"Prefetching Previews, Avatars, Thumbnails : {Environment.NewLine}  {Comments}".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
                 }
             }
             catch (Exception ex)
             {
                 ex.ERROR("PREFETCHING");
-                info = $"Failed {info}";
-                state = TaskStatus.Faulted;
+                Comments = $"Failed {Comments}";
+                State = TaskStatus.Faulted;
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(percent, info, state);
+                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
             }
             finally
             {
                 if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+                LastStartTime = DateTime.Now;
             }
         }
 
-        public void Start(IEnumerable<PixivItem> items, bool include_page_thumb = true, bool include_page_preview = true, bool overwrite = false, bool force = true)
+        public void Start(IEnumerable<PixivItem> items, bool include_page_thumb = true, bool include_page_preview = true, bool overwrite = false, bool reverse = false, bool force = true)
         {
             Stop();
             //PrefetchedList = Application.Current.MergeFromSystemPrefetchedList(PrefetchedList);
             if (items is IEnumerable<PixivItem>) { Items = items.ToList(); }
-            Start(include_page_thumb, include_page_preview, overwrite, force);
+            Start(include_page_thumb, include_page_preview, overwrite, reverse, force);
         }
 
-        public async void Start(bool include_page_thumb = true, bool include_page_preview = true, bool overwrite = false, bool force = false)
+        public async void Start(bool include_page_thumb = true, bool include_page_preview = true, bool overwrite = false, bool reverse = false, bool force = false)
         {
+            Stop();
             var setting = Application.Current.LoadSetting();
             Options = new PrefetchingOpts()
             {
@@ -412,18 +410,18 @@ namespace PixivWPF.Common
                 PrefetchingDownloadParallel = setting.PrefetchingDownloadParallel,
                 IncludePageThumb = include_page_thumb,
                 IncludePagePreview = include_page_preview,
+                ReverseOrder = reverse,
                 Overwrite = overwrite
             };
             if (!Options.PrefetchingPreview) return;
-            Stop();
             if (force || await CanPrefetching.WaitAsync(-1))
             {
-                if (!PrefetchingTask.IsBusy && !PrefetchingTask.CancellationPending)
+                if (!PrefetchingBgWorker.IsBusy && !PrefetchingBgWorker.CancellationPending)
                 {
                     new Action(() =>
                     {
                         PrefetchingTaskCancelTokenSource = new CancellationTokenSource();
-                        PrefetchingTask.RunWorkerAsync(Options);
+                        PrefetchingBgWorker.RunWorkerAsync(Options);
                     }).Invoke(async: false);
                 }
             }
@@ -431,51 +429,51 @@ namespace PixivWPF.Common
 
         public void Stop()
         {
-            if (PrefetchingTask.IsBusy || PrefetchingTask.CancellationPending)
+            if (PrefetchingBgWorker.IsBusy || PrefetchingBgWorker.CancellationPending)
             {
-                PrefetchingTask.CancelAsync();
+                PrefetchingBgWorker.CancelAsync();
                 if (PrefetchingTaskCancelTokenSource is CancellationTokenSource) PrefetchingTaskCancelTokenSource.Cancel();
             }
-            if (!PrefetchingTask.IsBusy && !PrefetchingTask.CancellationPending && CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+            if (!PrefetchingBgWorker.IsBusy && !PrefetchingBgWorker.CancellationPending && CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
         }
 
-        public PrefetchingClass()
+        public PrefetchingTask()
         {
-            if (PrefetchingTask == null) new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-            if (PrefetchingTask is BackgroundWorker)
+            if (PrefetchingBgWorker == null) new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+            if (PrefetchingBgWorker is BackgroundWorker)
             {
-                PrefetchingTask.WorkerReportsProgress = true;
-                PrefetchingTask.WorkerSupportsCancellation = true;
-                PrefetchingTask.RunWorkerCompleted += PrefetchingTask_RunWorkerCompleted;
-                PrefetchingTask.ProgressChanged += PrefetchingTask_ProgressChanged;
-                PrefetchingTask.DoWork += PrefetchingTask_DoWork;
+                PrefetchingBgWorker.WorkerReportsProgress = true;
+                PrefetchingBgWorker.WorkerSupportsCancellation = true;
+                PrefetchingBgWorker.RunWorkerCompleted += PrefetchingTask_RunWorkerCompleted;
+                PrefetchingBgWorker.ProgressChanged += PrefetchingTask_ProgressChanged;
+                PrefetchingBgWorker.DoWork += PrefetchingTask_DoWork;
             }
         }
 
-        public PrefetchingClass(Action<double, string, TaskStatus> ReportAction = null)
+        public PrefetchingTask(Action<double, string, TaskStatus> ReportAction = null)
         {
-            if (PrefetchingTask == null) new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-            if (PrefetchingTask is BackgroundWorker)
+            if (PrefetchingBgWorker == null) new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+            if (PrefetchingBgWorker is BackgroundWorker)
             {
-                PrefetchingTask.WorkerReportsProgress = true;
-                PrefetchingTask.WorkerSupportsCancellation = true;
-                PrefetchingTask.RunWorkerCompleted += PrefetchingTask_RunWorkerCompleted;
-                PrefetchingTask.ProgressChanged += PrefetchingTask_ProgressChanged;
-                PrefetchingTask.DoWork += PrefetchingTask_DoWork;
+                PrefetchingBgWorker.WorkerReportsProgress = true;
+                PrefetchingBgWorker.WorkerSupportsCancellation = true;
+                PrefetchingBgWorker.RunWorkerCompleted += PrefetchingTask_RunWorkerCompleted;
+                PrefetchingBgWorker.ProgressChanged += PrefetchingTask_ProgressChanged;
+                PrefetchingBgWorker.DoWork += PrefetchingTask_DoWork;
                 ReportProgress = ReportAction;
             }
         }
 
-        public PrefetchingClass(Action ReportAction = null)
+        public PrefetchingTask(Action ReportAction = null)
         {
-            if (PrefetchingTask == null) new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-            if (PrefetchingTask is BackgroundWorker)
+            if (PrefetchingBgWorker == null) new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+            if (PrefetchingBgWorker is BackgroundWorker)
             {
-                PrefetchingTask.WorkerReportsProgress = true;
-                PrefetchingTask.WorkerSupportsCancellation = true;
-                PrefetchingTask.RunWorkerCompleted += PrefetchingTask_RunWorkerCompleted;
-                PrefetchingTask.ProgressChanged += PrefetchingTask_ProgressChanged;
-                PrefetchingTask.DoWork += PrefetchingTask_DoWork;
+                PrefetchingBgWorker.WorkerReportsProgress = true;
+                PrefetchingBgWorker.WorkerSupportsCancellation = true;
+                PrefetchingBgWorker.RunWorkerCompleted += PrefetchingTask_RunWorkerCompleted;
+                PrefetchingBgWorker.ProgressChanged += PrefetchingTask_ProgressChanged;
+                PrefetchingBgWorker.DoWork += PrefetchingTask_DoWork;
                 ReportProgressSlim = ReportAction;
             }
         }
@@ -484,9 +482,9 @@ namespace PixivWPF.Common
         {
             Stop();
             int count = 50;
-            while (PrefetchingTask.IsBusy && count > 0) { Task.Delay(100).GetAwaiter().GetResult(); count--; }
+            while (PrefetchingBgWorker.IsBusy && count > 0) { Task.Delay(100).GetAwaiter().GetResult(); count--; }
             if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
-            PrefetchingTask.Dispose();
+            PrefetchingBgWorker.Dispose();
             PrefetchedList.Clear();
             Items.Clear();
         }
