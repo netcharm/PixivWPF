@@ -180,7 +180,7 @@ namespace Pixeez
             httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
             httpClient.DefaultRequestHeaders.Add("X-Client-Time", time);
-            httpClient.DefaultRequestHeaders.Add("X-Client-Hash", $"{time}{PIXIV.HashSecret}".MD5Hash());
+            httpClient.DefaultRequestHeaders.Add("X-Client-Hash", $"{time}{HashSecret}".MD5Hash());
 
             //httpClient.DefaultRequestHeaders.Add("Connection", "close");
             //httpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
@@ -728,7 +728,8 @@ namespace Pixeez
             var param = new Dictionary<string, string>
             {
                 { "profile_image_sizes", "px_170x170,px_50x50" } ,
-                { "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
+                //{ "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
+                { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
                 { "include_stats", "1" } ,
                 { "include_profile", "1" } ,
                 { "include_workspace", "1" } ,
@@ -1616,10 +1617,9 @@ namespace Pixeez
 
             var param = new Dictionary<string, string>
             {
-                { "profile_image_sizes", "px_170x170,px_50x50" },
-                //{ "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" },
                 { "image_sizes", "px_128x128,small,medium,large,px_480mw" } ,
                 { "include_stats", "true" },
+                { "include_sanity_level", "true" },
             };
 
             try

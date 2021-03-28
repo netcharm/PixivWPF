@@ -43,7 +43,7 @@ namespace PixivWPF
                 Current.DispatcherUnhandledException += NBug.Handler.DispatcherUnhandledException;
 
                 Current.InitAppWatcher(Current.GetRoot());
-                Current.BindHotkeys();
+                Current.BindingHotkeys();
             }
             catch(Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
             finally
@@ -74,7 +74,6 @@ namespace PixivWPF
             try
             {
                 "======================== Application Shutdown now... ========================".NOTICE();
-                Current.UnbindHotkeys();
                 this.SaveSetting(true);
             }
             catch (Exception ex) { ex.ERROR("APP_EXIT"); }

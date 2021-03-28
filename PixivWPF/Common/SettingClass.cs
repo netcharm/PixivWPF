@@ -327,13 +327,14 @@ namespace PixivWPF.Common
                 try
                 {
                     if (string.IsNullOrEmpty(configfile)) configfile = Cache is Setting ? Instance.ConfigFile : config;
+                    var exists = File.Exists(configfile);
                     var filetime = configfile.GetFileTime("m");
-                    if (!File.Exists(configfile)) filetime = lastConfigUpdate + TimeSpan.FromSeconds(1);
+                    if (!exists) filetime = lastConfigUpdate + TimeSpan.FromSeconds(1);
 
                     if (!(Cache is Setting) || (force && lastConfigUpdate.DeltaMilliseconds(filetime) > 250))
                     {
                         lastConfigUpdate = filetime;
-                        if (File.Exists(configfile))
+                        if (exists)
                         {
                             configfile.WaitFileUnlock();
                             var dso = new JsonSerializerSettings(){ Error = (se, ev) => ev.ErrorContext.Handled = true };
@@ -1589,6 +1590,18 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.shell_text_viewer = shell_text_viewer;
             }
         }
+
+        private string shell_text_viewer_params = string.Empty;
+        public string ShellTextViewerParams
+        {
+            get { return (Cache is Setting ? Cache.shell_text_viewer_params : shell_text_viewer_params); }
+            set
+            {
+                shell_text_viewer_params = value;
+                if (Cache is Setting) Cache.shell_text_viewer_params = shell_text_viewer_params;
+            }
+        }
+
         #endregion
 
         #region Window relative

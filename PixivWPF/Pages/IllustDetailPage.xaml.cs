@@ -1151,6 +1151,15 @@ namespace PixivWPF.Pages
                 {
                     UpdateWebContent();
                 }
+                if(IllustActions.ContextMenu is ContextMenu)
+                {
+                    //foreach(var item in IllustActions.ContextMenu.Items)
+                    //{
+                    //    if (item is MenuItem) (item as MenuItem).Foreground = Application.Current.GetForegroundBrush();
+                    //    IllustActions.ContextMenu.InvalidateVisual();
+                    //}
+                    IllustActions.ContextMenu.InvalidateVisual();
+                }
             }
             catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
         }
@@ -3600,7 +3609,7 @@ namespace PixivWPF.Pages
             var tokens = await CommonHelper.ShowLogin();
             if (tokens == null) return;
 
-            if (Contents.IsWork())
+            if (Contents.IsWork() && IllustCommentsHtml is WebBrowserEx)
             {
                 //IllustDetailWait.Show();
                 try

@@ -534,12 +534,6 @@ namespace PixivWPF.Common
             return (CurrentProcess);
         }
 
-        public static Image GetIcon()
-        {
-            var image = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
-            return (image);
-        }
-
         public static long MemoryUsage(this Application app, bool is_private = false)
         {
             long result = -1;
@@ -745,6 +739,8 @@ namespace PixivWPF.Common
             try
             {
                 Application.Current.ReleaseAppWatcher();
+                if (_watchers == null) _watchers = new ConcurrentDictionary<string, FileSystemWatcher>();
+
                 var watcher = new FileSystemWatcher(folder, "*.*")
                 {
                     //NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.DirectoryName,
@@ -762,7 +758,8 @@ namespace PixivWPF.Common
 
                 // Begin watching.
                 watcher.EnableRaisingEvents = true;
-                _watchers[folder] = watcher;
+                _watchers.AddOrUpdate(folder, watcher, (k, v) => watcher);
+                //_watchers[folder] = watcher;
             }
             catch (Exception ex) { ex.ERROR("CONFIGWATCHER"); }
         }
@@ -812,6 +809,43 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application Theme Helper
+        private static Uri _IconUri = null;
+        private static Uri IconUri { get { if (_IconUri == null) _IconUri = "Resources/pixiv-icon.ico".MakePackUri(); return (_IconUri); } }
+        private static Image DefaultIcon = null;
+        private static Image ThemedIcon = null;
+        private static CustomImageSource ThemedIconSource = null;
+
+        public static CustomImageSource GetThemedIcon(this Application app)
+        {
+            if (DefaultIcon == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
+            if (ThemedIconSource == null) ThemedIconSource = new CustomImageSource() { Source = IconUri.CreateThemedImage() };
+            return (ThemedIconSource);
+        }
+
+        public static void RefreshThemedIcon(this Application app)
+        {
+            if (DefaultIcon == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
+            if (ThemedIconSource == null)
+                ThemedIconSource = new CustomImageSource() { Source = IconUri.CreateThemedImage() };
+            else
+                ThemedIconSource.Source = IconUri.CreateThemedImage();
+            if (ThemedIcon is Image) ThemedIcon.Dispose();
+            ThemedIcon = new Image() { Source = ThemedIconSource.Source };
+        }
+
+        public static Image GetIcon(this Application app)
+        {
+            if (DefaultIcon == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
+            if (ThemedIcon == null) ThemedIcon = new Image() { Source = GetThemedIcon(app).Source };
+            return (ThemedIcon);
+        }
+
+        public static Image GetDefalutIcon(this Application app)
+        {
+            if (DefaultIcon == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
+            return (DefaultIcon);
+        }
+
         public static IList<string> GetAccents(this Application app)
         {
             return (Theme.Accents);
@@ -1013,6 +1047,7 @@ namespace PixivWPF.Common
         {
             try
             {
+                app.RefreshThemedIcon();
                 CommonHelper.UpdateTheme();
             }
             catch (Exception ex) { ex.ERROR("UPDATETHEME"); }
@@ -1470,6 +1505,7 @@ namespace PixivWPF.Common
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         public static void TRACE(this string contents, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
@@ -1482,6 +1518,7 @@ namespace PixivWPF.Common
 
         public static void DEBUG(this string contents, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
 #if DEBUG
             Debug.WriteLine($"{prefix}{contents}");
@@ -1494,6 +1531,7 @@ namespace PixivWPF.Common
 
         public static void INFO(this string contents, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
@@ -1506,6 +1544,7 @@ namespace PixivWPF.Common
 
         public static void WARN(this string contents, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
@@ -1518,18 +1557,31 @@ namespace PixivWPF.Common
 
         public static void ERROR(this string contents, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
 #endif
-            new Action(() =>
+            var main = Application.Current.GetMainWindow();
+            if (main is MainWindow && main.IsShown())
             {
-                logger.Error($"{prefix}{contents}");
-            }).Invoke(async: false);
+                new Action(() =>
+                {
+                    logger.Error($"{prefix}{contents}");
+                }).Invoke(async: false);
+            }
+            else
+            {
+                new Action(() =>
+                {
+                    logger.Error($"{prefix}{contents}");
+                }).Invoke();
+            }
         }
 
         public static void FATAL(this string contents, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
@@ -1542,6 +1594,7 @@ namespace PixivWPF.Common
 
         public static void NOTICE(this string contents, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
 #if DEBUG            
             Debug.WriteLine($"{prefix}{contents}");
@@ -1556,6 +1609,7 @@ namespace PixivWPF.Common
 
         public static void LOG(this string contents, string title = "", string tag = "")
         {
+            if(logger == null) logger = NLog.LogManager.GetCurrentClassLogger();
             if (title.ToUpper().Contains("INFO")) contents.INFO(tag);
             else if (title.ToUpper().Contains("ERROR")) contents.ERROR(tag);
             else if (title.ToUpper().Contains("WARN")) contents.WARN(tag);
@@ -1565,6 +1619,7 @@ namespace PixivWPF.Common
 
         public static void TRACE(this Exception ex, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             List<string> lines = new List<string>();
             lines.Add($"{ex.Message}");
@@ -1581,6 +1636,7 @@ namespace PixivWPF.Common
 
         public static void DEBUG(this Exception ex, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             List<string> lines = new List<string>();
             lines.Add($"{ex.Message}");
@@ -1595,6 +1651,7 @@ namespace PixivWPF.Common
 
         public static void INFO(this Exception ex, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             var contents = $"{ex.Message}";
             contents.INFO(tag);
@@ -1602,6 +1659,7 @@ namespace PixivWPF.Common
 
         public static void WARN(this Exception ex, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             var contents = $"{ex.Message}";
             contents.WARN(tag);
@@ -1609,6 +1667,7 @@ namespace PixivWPF.Common
 
         public static void ERROR(this Exception ex, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             List<string> lines = new List<string>();
             lines.Add($"{ex.Message}");
@@ -1619,6 +1678,7 @@ namespace PixivWPF.Common
 
         public static void FATAL(this Exception ex, string tag = "")
         {
+            if (logger == null) StartLog(null);
             var prefix = string.IsNullOrEmpty(tag) ? string.Empty : $"[{tag}]";
             List<string> lines = new List<string>();
             lines.Add($"{ex.Message}");
@@ -1630,6 +1690,7 @@ namespace PixivWPF.Common
 
         public static void LOG(this Exception ex, string title = "ERROR", string tag = "")
         {
+            if (logger == null) StartLog(null);
             if (title.ToUpper().Contains("INFO")) ex.INFO(tag);
             else if (title.ToUpper().Contains("ERROR")) ex.ERROR(tag);
             else if (title.ToUpper().Contains("WARN")) ex.WARN(tag);
@@ -1639,6 +1700,7 @@ namespace PixivWPF.Common
 
         public static void LOG(this object obj, string contents, string title = "INFO")
         {
+            if (logger == null) StartLog(null);
             if (obj != null)
             {
                 var log = NLog.LogManager.GetLogger(obj.GetType().Name);
@@ -1666,6 +1728,7 @@ namespace PixivWPF.Common
 
         public static string GetLogsFolder(this Application app)
         {
+            if (logger == null) StartLog(null);
             var logs = string.Empty;
             try
             {
@@ -1688,6 +1751,7 @@ namespace PixivWPF.Common
 
         public static IList<string> GetLogs(this Application app)
         {
+            if (logger == null) StartLog(null);
             var logs = new List<string>();
             try
             {
@@ -1714,6 +1778,7 @@ namespace PixivWPF.Common
 
         public static void CleanLogs(this Application app)
         {
+            if (logger == null) StartLog(null);
             var logs = GetLogs(app);
             foreach (var log in logs)
             {
@@ -2280,7 +2345,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }
         }
 
-        public static void BindHotkeys(this Application app, bool global = false)
+        public static void BindingHotkeys(this Application app, bool global = false)
         {
             if (global)
             {
@@ -2366,7 +2431,7 @@ namespace PixivWPF.Common
             $"Hotkey_Triggered: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
         }
 #endif
-        public static void UnbindHotkeys(this Application app)
+        public static void ReleaseHotkeys(this Application app)
         {
             try
             {
@@ -2391,8 +2456,8 @@ namespace PixivWPF.Common
             {
                 if (full)
                 {
-                    UnbindHotkeys(app);
-                    BindHotkeys(app, global);
+                    ReleaseHotkeys(app);
+                    BindingHotkeys(app, global);
                 }
                 else
                 {
@@ -2441,7 +2506,7 @@ namespace PixivWPF.Common
                     result = true;
                 }
             }
-            catch(Exception ex) { ex.ERROR("MergeToSystemPrefetchedList"); }
+            catch (Exception ex) { ex.ERROR("MergeToSystemPrefetchedList"); }
             return (result);
         }
 
@@ -2552,50 +2617,103 @@ namespace PixivWPF.Common
         #endregion
 
         #region Network Common Helper
-        public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
+        private static ConcurrentDictionary<string, HttpClient> HttpClientList = new ConcurrentDictionary<string, HttpClient>();
+
+        private static HttpClient CreateHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
         {
             var setting = LoadSetting(app);
             var buffersize = 100 * 1024 * 1024;
-            HttpClientHandler handler = new HttpClientHandler()
-            {
-                AllowAutoRedirect = true,
-                AutomaticDecompression = DecompressionMethods.Deflate,
-                UseCookies = true,
-                MaxAutomaticRedirections = 15,
-                //MaxConnectionsPerServer = 30,
-                MaxRequestContentBufferSize = buffersize,
-                //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
-                Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass.ToArray()),
-                UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
-            };
-
-            //Maybe HttpClientFactory.Create() 
-            var httpClient = new HttpClient(handler, true)
-            {
-                Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout),
-                MaxResponseContentBufferSize = buffersize
-            };
-            //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
-            httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
-            httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
-            httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
-            //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
-            httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
-            //httpClient.DefaultRequestHeaders.Add("Connection", "Close");
-            httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
-            //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
-            //httpClient.DefaultRequestHeaders.ConnectionClose = true;
-
-            var start = !continuation || range_start <= 0 ? "0" : $"{range_start}";
-            var end = range_count > 0 ? $"{range_count}" : string.Empty;
-            httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
+            HttpClient httpClient = null;
 
             ///
             /// if httpclient throw exception of "send request error", maybe need add code like below line 
             ///
-            //System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;//（ | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;）
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
+            try
+            {
+                HttpClientHandler handler = new HttpClientHandler()
+                {
+                    AllowAutoRedirect = true,
+                    AutomaticDecompression = DecompressionMethods.Deflate,
+                    UseCookies = true,
+                    MaxAutomaticRedirections = 15,
+                    //MaxConnectionsPerServer = 30,
+                    MaxRequestContentBufferSize = buffersize,
+                    //SslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12,
+                    Proxy = string.IsNullOrEmpty(setting.Proxy) ? null : new WebProxy(setting.Proxy, true, setting.ProxyBypass.ToArray()),
+                    UseProxy = string.IsNullOrEmpty(setting.Proxy) || !setting.DownloadUsingProxy ? false : true
+                };
 
+                //Maybe HttpClientFactory.Create() 
+                httpClient = new HttpClient(handler, true)
+                {
+                    Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout),
+                    MaxResponseContentBufferSize = buffersize
+                };
+                //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/octet-stream");
+                httpClient.DefaultRequestHeaders.Add("App-OS", "ios");
+                httpClient.DefaultRequestHeaders.Add("App-OS-Version", "12.2");
+                httpClient.DefaultRequestHeaders.Add("App-Version", "7.6.2");
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivIOSApp/7.6.2 (iOS 12.2; iPhone9,1)");
+                //httpClient.DefaultRequestHeaders.Add("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)");
+                httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
+                //httpClient.DefaultRequestHeaders.Add("Connection", "Close");
+                httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
+                //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
+                //httpClient.DefaultRequestHeaders.ConnectionClose = true;
+
+                var start = !continuation || range_start <= 0 ? "0" : $"{range_start}";
+                var end = range_count > 0 ? $"{range_count}" : string.Empty;
+                httpClient.DefaultRequestHeaders.Add("Range", $"bytes={start}-{end}");
+            }
+            catch (Exception ex) { ex.ERROR("CreateHttpClient"); }
+            return (httpClient);
+        }
+
+        public static void ReleaseHttpClient(this Application app)
+        {
+            if(HttpClientList is ConcurrentDictionary<string, HttpClient>)
+            {
+                foreach(var client in HttpClientList.Keys.ToList())
+                {
+                    try
+                    {
+                        HttpClient httpClient = null;
+                        if (HttpClientList.TryRemove(client, out httpClient))
+                        {
+                            if (httpClient is HttpClient)
+                            {
+                                httpClient.CancelPendingRequests();
+                                httpClient.Dispose();
+                                httpClient = null;
+                            }
+                        }
+                    }
+                    catch(Exception ex) { ex.ERROR($"ReleaseHttpClient_{client}"); }
+                }
+            }
+        }
+
+        public static HttpClient GetHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0, bool is_download = false)
+        {
+            var setting = LoadSetting(app);
+            HttpClient httpClient = null;
+            if ((setting.UsingProxy && !is_download) || (setting.DownloadUsingProxy && is_download))
+            {
+                if (!HttpClientList.TryGetValue(setting.Proxy, out httpClient) || !(httpClient is HttpClient))
+                {
+                    httpClient = CreateHttpClient(app, continuation, range_start, range_count);
+                    HttpClientList.AddOrUpdate(setting.Proxy, httpClient, (k, v) => httpClient);
+                }
+            }
+            else
+            {
+                if (!HttpClientList.TryGetValue("noproxy", out httpClient) || !(httpClient is HttpClient))
+                {
+                    httpClient = CreateHttpClient(app, continuation, range_start, range_count);
+                    HttpClientList.AddOrUpdate("noproxy", httpClient, (k, v) => httpClient);
+                }
+            }
             return (httpClient);
         }
 
@@ -2999,9 +3117,21 @@ namespace PixivWPF.Common
         private static ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
         private static ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
 
-        public static ConcurrentDictionary<string, string> TagsCache { get; } = new ConcurrentDictionary<string, string>();
-        public static ConcurrentDictionary<string, string> TagsT2S { get; } = new ConcurrentDictionary<string, string>();
-        public static ConcurrentDictionary<string, string> TagsWildecardT2S { get; } = new ConcurrentDictionary<string, string>();
+        private static ConcurrentDictionary<string, string> _TagsCache = null;
+        public static ConcurrentDictionary<string, string> TagsCache
+        {
+            get { if (_TagsCache == null) _TagsCache = new ConcurrentDictionary<string, string>(); return (_TagsCache); }
+        }
+        private static ConcurrentDictionary<string, string> _TagsT2S = null;
+        public static ConcurrentDictionary<string, string> TagsT2S
+        {
+            get { if (_TagsT2S == null) _TagsT2S = new ConcurrentDictionary<string, string>(); return (_TagsT2S); }
+        }
+        private static ConcurrentDictionary<string, string> _TagsWildecardT2S = null;
+        public static ConcurrentDictionary<string, string> TagsWildecardT2S
+        {
+            get { if (_TagsWildecardT2S == null) _TagsWildecardT2S = new ConcurrentDictionary<string, string>(); return (_TagsWildecardT2S); }
+        }
 
         private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
         private static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
@@ -3148,7 +3278,7 @@ namespace PixivWPF.Common
         #endregion
 
         #region WebBrowser helper
-        public static string GetText(this System.Windows.Forms.WebBrowser browser, bool html = false)
+        public static string GetText(this System.Windows.Forms.WebBrowser browser, bool html = false, bool all_without_selection = true)
         {
             string result = string.Empty;
             try
@@ -3166,7 +3296,7 @@ namespace PixivWPF.Common
                         if (range != null)
                             sb.AppendLine(html ? range.htmlText : range.text);
                     }
-                    else
+                    else if(all_without_selection)
                     {
                         var bodies = browser.Document.GetElementsByTagName("body");
                         foreach (System.Windows.Forms.HtmlElement body in bodies)
@@ -3189,7 +3319,7 @@ namespace PixivWPF.Common
             Uri unc = null;
             var invalid = new List<char> { '<', ':', '>' };
             try
-            {                
+            {
                 if (!string.IsNullOrEmpty(text) && !invalid.Contains(text.FirstOrDefault()) && Uri.TryCreate(text, UriKind.RelativeOrAbsolute, out unc))
                 {
                     result = unc.IsAbsoluteUri ? unc.IsFile : false;
@@ -4324,7 +4454,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false, string command = "")
+        public static bool OpenFileWithShell(this string FileName, bool ShowFolder = false, string command = "", string custom_params = "")
         {
             bool result = false;
             try
@@ -4396,14 +4526,14 @@ namespace PixivWPF.Common
                                 if (string.IsNullOrEmpty(setting.ShellImageViewerCmd))
                                     Process.Start(file);
                                 else
-                                    Process.Start(setting.ShellImageViewerCmd, args);
+                                    Process.Start(setting.ShellImageViewerCmd, args.Trim());
                             }
                             else
                             {
                                 if (string.IsNullOrEmpty(command))
                                     Process.Start(file);
                                 else
-                                    Process.Start(command, $"{setting.ShellLogViewerParams} \"{file}\"");
+                                    Process.Start(command, $"{custom_params} \"{file}\"".Trim());
                             }
                         }
                         result = true;
@@ -4487,6 +4617,7 @@ namespace PixivWPF.Common
                 {
                     var fdt = url.ParseDateTime();
                     if (fdt.Year <= 1601) return;
+                    fileinfo.WaitFileUnlock();
                     if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
                     if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
                     if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
@@ -4501,6 +4632,7 @@ namespace PixivWPF.Common
             {
                 if (File.Exists(file))
                 {
+                    file.WaitFileUnlock();
                     FileInfo fi = new FileInfo(file);
                     fi.Touch(url, local);
                 }
@@ -4709,6 +4841,7 @@ namespace PixivWPF.Common
             }
 
             storages.ReleaseDownloadedWatcher();
+            if (_watchers == null) _watchers = new ConcurrentDictionary<string, FileSystemWatcher>();
 
             foreach (var i in items)
             {
@@ -4730,7 +4863,7 @@ namespace PixivWPF.Common
                     // Begin watching.
                     watcher.EnableRaisingEvents = true;
 
-                    _watchers[folder] = watcher;
+                    _watchers.AddOrUpdate(folder, watcher, (k, v) => watcher);
                 }
             }
         }
@@ -5269,7 +5402,7 @@ namespace PixivWPF.Common
         {
             int wait_count = times;
             while (file.IsLocked() && wait_count > 0) { wait_count--; await Task.Delay(interval); }
-            return(true);
+            return (true);
         }
 
         public static async Task<bool> WaitFileUnlockAsync(this string filename, int interval = 50, int times = 20)
@@ -5414,7 +5547,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<ImageSource> ToImageSource(this string url)
+        public static async Task<ImageSource> ToImageSource(this string url, Size size = default(Size))
         {
             ImageSource result = null;
 
@@ -5448,27 +5581,15 @@ namespace PixivWPF.Common
             }
             try
             {
-                using (HttpClient client = Application.Current.GetHttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("Content-Type", ContentType);
-                    HttpResponseMessage response = await client.GetAsync(url);
-                    byte[] content = await response.Content.ReadAsByteArrayAsync();
-                    //return "data:image/png;base64," + Convert.ToBase64String(content);
-                    BitmapImage image = new BitmapImage();
-                    image.BeginInit();
-                    image.CacheOption = BitmapCacheOption.OnLoad;
-                    using (var ms = new MemoryStream(content))
-                    {
-                        image.StreamSource = ms;
-                        image.EndInit();
-                        image.Freeze();
-                        ms.Close();
-                        ms.Dispose();
-                    }
-                    result = image;
-                }
+                var dpi = DPI.Default;
+                HttpClient client = Application.Current.GetHttpClient(is_download: true);
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Add("Content-Type", ContentType);
+                HttpResponseMessage response = await client.SendAsync(request);
+                byte[] content = await response.Content.ReadAsByteArrayAsync();
+                result = await content.ToBitmapSource(size);
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ToImageSource"); }
 
             return (result);
         }
@@ -5518,7 +5639,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<BitmapSource> ToBitmapSource(this byte[] buffer)
+        public static async Task<BitmapSource> ToBitmapSource(this byte[] buffer, Size size = default(Size))
         {
             BitmapSource result = null;
             try
@@ -5527,8 +5648,12 @@ namespace PixivWPF.Common
                 ms.Seek(0, SeekOrigin.Begin);
                 result = BitmapFrame.Create(ms);
                 await ms.FlushAsync();
+                if (size.Width > 0 && size.Height > 0 && (size.Width != result.PixelWidth || size.Height != result.PixelHeight))
+                {
+                    result = result.ToBitmapSource(size);
+                }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ToBitmapSource"); }
             return (result);
         }
 
@@ -5667,7 +5792,7 @@ namespace PixivWPF.Common
             BitmapSource result = source is BitmapSource ? source as BitmapSource : null;
             try
             {
-                if (source is ImageSource && source.Width > 0 && source.Height > 0 && size.Width > 0 && size.Height > 0 && (source.Width != size.Width || source.Height != size.Height) )
+                if (source is ImageSource && source.Width > 0 && source.Height > 0 && size.Width > 0 && size.Height > 0 && (source.Width != size.Width || source.Height != size.Height))
                 {
                     var dpi = DPI.Default;
                     RenderTargetBitmap target = null;
@@ -5696,7 +5821,6 @@ namespace PixivWPF.Common
                                                 pixelData, stride);
                     pixelData = null;
                     target = null;
-
                 }
             }
             catch (Exception ex) { ex.ERROR("ToBitmapSource"); }
@@ -5924,7 +6048,7 @@ namespace PixivWPF.Common
                 #endregion
                 Clipboard.SetDataObject(dataPackage, true);
             }
-            catch (Exception ex) { ex.Message.DEBUG(); }
+            catch (Exception ex) { ex.ERROR("CopyImage"); }
         }
 
         public static async void CopyImage(this string file)
@@ -5977,14 +6101,7 @@ namespace PixivWPF.Common
                     Clipboard.SetDataObject(dataPackage, true);
                 }
             }
-#if DEBUG
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR[CLIPBOARD]");
-            }
-#else
-            catch (Exception ex) { ex.ERROR(); }
-#endif
+            catch (Exception ex) { ex.ERROR("CopyImage"); }
         }
 
         public static async Task<bool> WriteToFile(this Stream source, string file, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
@@ -6139,37 +6256,33 @@ namespace PixivWPF.Common
                 HttpResponseMessage response = null;
                 try
                 {
-                    using (client = Application.Current.GetHttpClient())
+                    client = Application.Current.GetHttpClient(is_download: true);
+                    using (response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
                     {
-                        using (response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+                        //response.EnsureSuccessStatusCode();
+                        if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
                         {
-                            //response.EnsureSuccessStatusCode();
-                            if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
-                            {
-                                var length = response.Content.Headers.ContentLength ?? 0;
-                                var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
-                                var pos = range.From ?? 0;
-                                var Length = range.Length ?? 0;
+                            var length = response.Content.Headers.ContentLength ?? 0;
+                            var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
+                            var pos = range.From ?? 0;
+                            var Length = range.Length ?? 0;
 
-                                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
-                                using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
-                                {
-                                    var ret = progressAction is Action<double, double> ? await sr.WriteToFile(file, progressAction, range) : await sr.WriteToFile(file);
-                                    if (ret) result = file;
-                                    sr.Close();
-                                    sr.Dispose();
-                                }
+                            string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                            using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                            {
+                                var ret = progressAction is Action<double, double> ? await sr.WriteToFile(file, progressAction, range) : await sr.WriteToFile(file);
+                                if (ret) result = file;
+                                sr.Close();
+                                sr.Dispose();
                             }
-                            response.Dispose();
                         }
-                        client.Dispose();
+                        response.Dispose();
                     }
                 }
                 catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
                 finally
                 {
                     if (response is HttpResponseMessage) response.Dispose();
-                    if (client is HttpClient) client.Dispose();
                 }
             }
             return (result);
@@ -7630,17 +7743,17 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static Image GetThemedImage(this Uri uri)
+        public static ImageSource CreateThemedImage(this Uri uri)
         {
-            Image result = new Image() { Source = new BitmapImage(uri) };
+            ImageSource result = new BitmapImage(uri);
             try
             {
                 new Action(() =>
                 {
                     var dpi = new DPI();
 
-                    var img = new BitmapImage(uri);
-                    var src = new Image() { Source = img, Width = img.Width, Height = img.Height, Opacity = 0.8 };
+                    var src = Application.Current.GetDefalutIcon();
+                    src.Opacity = 0.8;
                     src.Effect = new ThresholdEffect() { Threshold = 0.67, BlankColor = Theme.WindowTitleColor };
                     //img.Effect = new TranspranceEffect() { TransColor = Theme.WindowTitleColor };
                     //img.Effect = new TransparenceEffect() { TransColor = Color.FromRgb(0x00, 0x96, 0xfa) };
@@ -7648,44 +7761,44 @@ namespace PixivWPF.Common
                     //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Colors.Transparent };
                     //img.Effect = new ReplaceColorEffect() { Threshold = 0.5, SourceColor = Color.FromRgb(0x00, 0x96, 0xfa), TargetColor = Theme.WindowTitleColor };
                     //img.Effect = new ExcludeReplaceColorEffect() { Threshold = 0.05, ExcludeColor = Colors.White, TargetColor = Theme.WindowTitleColor };
+                    int width = (int)src.Source.Width;
+                    int height = (int)src.Source.Height;
 
                     Grid root = new Grid();
                     root.Background = Theme.WindowTitleBrush;
-                    Arrange(root, (int)src.Width, (int)src.Height);
-                    root.Children.Add(src);
-                    Arrange(src, (int)src.Width, (int)src.Height);
+                    Arrange(root, width, height);
+                    if (root.Children.Count <= 0)
+                    {
+                        root.Children.Add(src);
+                        Arrange(src, width, height);
+                    }
 
-                    RenderTargetBitmap bmp = new RenderTargetBitmap((int)(src.Width), (int)(src.Height), dpi.X, dpi.Y, PixelFormats.Pbgra32);
+                    RenderTargetBitmap bmp = new RenderTargetBitmap(width, height, dpi.X, dpi.Y, PixelFormats.Pbgra32);
                     DrawingVisual drawingVisual = new DrawingVisual();
                     using (DrawingContext drawingContext = drawingVisual.RenderOpen())
                     {
                         VisualBrush visualBrush = new VisualBrush(root);
-                        drawingContext.DrawRectangle(visualBrush, null, new Rect(new Point(), new Size(src.Width, src.Height)));
+                        drawingContext.DrawRectangle(visualBrush, null, new Rect(new Point(), new Size(width, height)));
                     }
                     bmp.Render(drawingVisual);
-                    result.Source = bmp;
+                    result = bmp;
 
-                    src.Dispose();
+                    root.Children.Clear();
                     root.UpdateLayout();
                     root = null;
-                    img = null;
                 }).Invoke(async: false);
             }
-#if DEBUG
-            catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
-#else
-            catch (Exception ex) { ex.ERROR("THEME"); }
-#endif
+            catch (Exception ex) { ex.ERROR("CreateThemedImage"); }
             return (result);
         }
 
-        public static void UpdateTheme(this Window win, Image icon = null)
+        public static void UpdateTheme(this Window win, ImageSource icon = null)
         {
             try
             {
                 new Action(() =>
                 {
-                    win.Icon = icon == null || icon.Source == null ? "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage().Source : icon.Source;
+                    win.Icon = icon == null ? Application.Current.GetIcon().Source : icon;
 
                     if (win is MainWindow)
                     {
@@ -7725,10 +7838,10 @@ namespace PixivWPF.Common
             {
                 new Action(() =>
                 {
-                    var img = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
+                    var img = Application.Current.GetThemedIcon();
                     foreach (Window win in Application.Current.Windows)
                     {
-                        if (win is MetroWindow) win.UpdateTheme(img);
+                        if (win is MetroWindow) win.UpdateTheme(img.Source);
                     }
                 }).Invoke(async: false);
             }
@@ -8607,37 +8720,40 @@ namespace PixivWPF.Common
         {
             try
             {
-                Regex.Replace(content, @"(\r\n|\n\r|\r|\r|\s)+", " ", RegexOptions.IgnoreCase).LOG(title, tag);
+                Regex.Replace(content, @"(\r\n|\n\r|\r|\n|\s)+", " ", RegexOptions.IgnoreCase).LOG(title, tag);
 
                 setting = Application.Current.LoadSetting();
-
-                await new Action(() =>
+                var main = Application.Current.GetMainWindow();
+                if (main is MainWindow && main.IsShown())
                 {
-                    INotificationDialogService _dialogService = new NotificationDialogService();
-                    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-                    NotificationConfiguration cfg = new NotificationConfiguration(
-                    //new TimeSpan(0, 0, 30), 
-                    TimeSpan.FromSeconds(setting.ToastShowTimes),
-                    cfgDefault.Width + 32, cfgDefault.Height,
-                    "ToastTemplate",
-                    //cfgDefault.TemplateName, 
-                    cfgDefault.NotificationFlowDirection);
-
-                    var newNotification = new CustomToast()
+                    await new Action(() =>
                     {
-                        Type = ToastType.OK,
-                        Title = title,
-                        ImgURL = imgsrc,
-                        Message = content,
-                        State = state,
-                        StateDescription = state_description,
-                        Tag = null
-                    };
+                        INotificationDialogService _dialogService = new NotificationDialogService();
+                        NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                        NotificationConfiguration cfg = new NotificationConfiguration(
+                            //new TimeSpan(0, 0, 30), 
+                            TimeSpan.FromSeconds(setting.ToastShowTimes),
+                            cfgDefault.Width + 32, cfgDefault.Height,
+                            "ToastTemplate",
+                            //cfgDefault.TemplateName, 
+                            cfgDefault.NotificationFlowDirection
+                        );
 
-                    _dialogService.ClearNotifications();
-                    _dialogService.ShowNotificationWindow(newNotification, cfg);
-                }).InvokeAsync(true);
+                        var newNotification = new CustomToast()
+                        {
+                            Type = ToastType.OK,
+                            Title = title,
+                            ImgURL = imgsrc,
+                            Message = content,
+                            State = state,
+                            StateDescription = state_description,
+                            Tag = null
+                        };
 
+                        _dialogService.ClearNotifications();
+                        _dialogService.ShowNotificationWindow(newNotification, cfg);
+                    }).InvokeAsync(true);
+                }
             }
             catch (Exception ex) { ex.ERROR("ShowToast"); }
         }
@@ -8648,30 +8764,35 @@ namespace PixivWPF.Common
             {
                 if (messagebox) { content.ShowMessageBox(title); return; }
 
-                Regex.Replace(content, @"(\r\n|\n\r|\r|\r|\s)+", " ", RegexOptions.IgnoreCase).LOG(title, tag);
+                Regex.Replace(content, @"(\r\n|\n\r|\r|\n|\s)+", " ", RegexOptions.IgnoreCase).LOG(title, tag);
 
-                setting = Application.Current.LoadSetting();
-
-                await new Action(() =>
+                var main = Application.Current.GetMainWindow();
+                if (main is MainWindow && main.IsShown())
                 {
-                    INotificationDialogService _dialogService = new NotificationDialogService();
-                    NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
-                    NotificationConfiguration cfg = new NotificationConfiguration(
-                    TimeSpan.FromSeconds(setting.ToastShowTimes),
-                    cfgDefault.Width + 32, cfgDefault.Height,
-                    "ToastTemplate",
-                    //cfgDefault.TemplateName, 
-                    cfgDefault.NotificationFlowDirection);
+                    setting = Application.Current.LoadSetting();
 
-                    var newNotification = new CustomToast()
+                    await new Action(() =>
                     {
-                        Title = title,
-                        Message = content
-                    };
+                        INotificationDialogService _dialogService = new NotificationDialogService();
+                        NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
+                        NotificationConfiguration cfg = new NotificationConfiguration(
+                            TimeSpan.FromSeconds(setting.ToastShowTimes),
+                            cfgDefault.Width + 32, cfgDefault.Height,
+                            "ToastTemplate",
+                            //cfgDefault.TemplateName, 
+                            cfgDefault.NotificationFlowDirection
+                        );
 
-                    _dialogService.ClearNotifications();
-                    _dialogService.ShowNotificationWindow(newNotification, cfg);
-                }).InvokeAsync(true);
+                        var newNotification = new CustomToast()
+                        {
+                            Title = title,
+                            Message = content
+                        };
+
+                        _dialogService.ClearNotifications();
+                        _dialogService.ShowNotificationWindow(newNotification, cfg);
+                    }).InvokeAsync(true);
+                }
             }
             catch (Exception ex) { ex.ERROR("ShowToast"); }
         }
@@ -8847,8 +8968,8 @@ namespace PixivWPF.Common
                 //box.WindowStyle = WindowStyle.None;
                 box.Title = "DropBox";
 
-                box.Content = "Resources/pixiv-icon.ico".MakePackUri().GetThemedImage();
-                box.Icon = (box.Content as Image).Source;
+                box.Content = Application.Current.GetIcon();
+                box.Icon = (box.Content as CustomImageSource).Source;
                 //box.Content = img;
 
                 if (setting.DropBoxPosition != null)

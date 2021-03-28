@@ -42,6 +42,8 @@ namespace PixivWPF.Common
     {
         private Setting setting = Application.Current.LoadSetting();
 
+        public string Name { get; set; } = string.Empty;
+
         private string tooltip = string.Empty;
         public string ToolTip
         {
@@ -87,6 +89,7 @@ namespace PixivWPF.Common
                 url = value;
                 UpdateLikeState();
                 FileName = Application.Current.SaveTarget(url.GetImageName(singlefile));
+                if(!string.IsNullOrEmpty(FileName)) Name = Path.GetFileNameWithoutExtension(FileName);
                 NotifyPropertyChanged("UrlChanged");
             }
         }
@@ -731,13 +734,22 @@ namespace PixivWPF.Common
         private async Task<HttpResponseMessage> GetAsyncResponse(string Url, bool continuation = false)
         {
             var start = _DownloadBuffer is byte[] ? _DownloadBuffer.Length : 0;
-            httpClient = Application.Current.GetHttpClient(continuation, start);
-            return (await httpClient.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead));
+            if (!continuation || start <= 0) start = 0;
+            var request = new HttpRequestMessage(HttpMethod.Get, Url);
+            request.Headers.Add("Range", $"bytes={start}-");
+
+            httpClient = Application.Current.GetHttpClient(continuation, is_download: true);
+            return (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead));
         }
 
         private async Task<string> DownloadStreamAsync(HttpResponseMessage response, bool continuation = true)
         {
             string result = string.Empty;
+            if (response == null)
+            {
+                FailReason = "Response is NULL";
+                return (string.Empty);
+            }
             using (var ms = new MemoryStream())
             {
                 try
@@ -930,8 +942,8 @@ namespace PixivWPF.Common
                 if (httpClient is HttpClient)
                 {
                     httpClient.CancelPendingRequests();
-                    httpClient.Dispose();
-                    httpClient = null;
+                    //httpClient.Dispose();
+                    //httpClient = null;
                 }
             }
             catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_DownloadFinally"); }
@@ -953,7 +965,6 @@ namespace PixivWPF.Common
                 try
                 {
                     DownloadPreProcess(restart);
-
                     using (var response = await GetAsyncResponse(Url, continuation))
                     {
                         EndTick = DateTime.Now;
@@ -963,7 +974,7 @@ namespace PixivWPF.Common
                 catch (Exception ex)
                 {
                     FailReason = ex.Message;
-                    ex.ERROR($"{this.Name ?? GetType().Name}_DownloadDirectAsync");
+                    ex.ERROR($"{Name ?? GetType().Name ?? Info.Name}_DownloadDirectAsync");
                 }
                 finally
                 {
@@ -1182,8 +1193,8 @@ namespace PixivWPF.Common
                     if (httpClient is HttpClient)
                     {
                         httpClient.CancelPendingRequests();
-                        httpClient.Dispose();
-                        httpClient = null;
+                        //httpClient.Dispose();
+                        //httpClient = null;
                     }
                 }
                 catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_Cancel"); Canceling = false; }

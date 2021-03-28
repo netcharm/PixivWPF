@@ -52,9 +52,12 @@ namespace PixivWPF
             {
                 IsShutdowning = true;
                 pipeOnClosing = true;
+
                 ReleaseNamedPipeServer();
-                Application.Current.ReleaseAppWatcher();
                 Application.Current.LoadSetting().LocalStorage.ReleaseDownloadedWatcher();
+                Application.Current.ReleaseAppWatcher();
+                Application.Current.ReleaseHttpClient();
+                Application.Current.ReleaseHotkeys();
 
                 foreach (Window win in Application.Current.Windows)
                 {

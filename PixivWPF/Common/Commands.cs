@@ -251,10 +251,8 @@ namespace PixivWPF.Common
                     var text = obj as string;
                     if (!string.IsNullOrEmpty(text))
                     {
-                        var data = new DataObject();
-                        data.SetData(DataFormats.Text, text);
-                        data.SetData(DataFormats.UnicodeText, text);
-                        Clipboard.SetDataObject(data, true);
+                        text = text.KatakanaHalfToFull();
+                        ClipboardHelper.CopyToClipboard(text, text);
                     }
                 }
                 else if (obj is HtmlTextData)
@@ -278,13 +276,14 @@ namespace PixivWPF.Common
                     var text = obj as string;
                     if (!string.IsNullOrEmpty(text))
                     {
+                        text = text.KatakanaHalfToFull();
                         ClipboardHelper.CopyToClipboard(text, text);
                     }
                 }
                 else if (obj is HtmlTextData)
                 {
                     var ht = obj as HtmlTextData;
-                    ClipboardHelper.CopyToClipboard(ht.Html, ht.Text);
+                    ClipboardHelper.CopyToClipboard(ht.Html.KatakanaHalfToFull(), ht.Text.KatakanaHalfToFull());
                 }
                 else
                 {
@@ -737,7 +736,7 @@ namespace PixivWPF.Common
                         item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
 
                     //var suffix = item.Count > 1 ? $" - {item.Index}/{item.Count}" : string.Empty;
-                    var suffix = item.Count > 1 ? $"_{item.Index}_{item.Count}" : string.Empty;
+                    var suffix = item.Count > 1 ? $"_{item.Index}_{item.Count}".Replace("-1", "0") : string.Empty;
                     var title = $"Preview ID: {item.ID}, {item.Subject}";
                     if (await title.ActiveByTitle()) return;
 
@@ -1785,7 +1784,7 @@ namespace PixivWPF.Common
                 Path.Combine(root, setting.TagsFile)
             };
             var content = obj is string && !string.IsNullOrEmpty(obj as string) ? obj as string : setting.CustomTagsFile;
-            if (content.ToLower().Contains("folder"))
+            if (content.Equals("folder", StringComparison.CurrentCultureIgnoreCase))
             {
                 if (tags.Count > 0)
                 {
@@ -1800,14 +1799,15 @@ namespace PixivWPF.Common
             else
             {
                 foreach (var tag in tags)
-                {
-                    if (tag.ToLower().Contains(content.ToLower()))
+                {                    
+                    if (tag.StartsWith(content, StringComparison.CurrentCultureIgnoreCase))
                     {
                         await new Action(() =>
                         {
                             var viewer = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewer : setting.ShellTextViewer;
-                            if(string.IsNullOrEmpty(viewer)) viewer = "notepad.exe";
-                            tag.OpenFileWithShell(command: viewer);
+                            var param = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewerParams : setting.ShellTextViewerParams;
+                            if (string.IsNullOrEmpty(viewer)) viewer = "notepad.exe";
+                            tag.OpenFileWithShell(command: viewer, custom_params: param);
                         }).InvokeAsync(true);
                         break;
                     }
@@ -1912,8 +1912,9 @@ namespace PixivWPF.Common
                         await new Action(() =>
                         {
                             var viewer = string.IsNullOrEmpty(setting.ShellLogViewer) ? setting.ShellTextViewer : setting.ShellLogViewer;
+                            var param = string.IsNullOrEmpty(setting.ShellLogViewer) ? setting.ShellTextViewerParams : setting.ShellLogViewerParams;
                             if (string.IsNullOrEmpty(viewer)) viewer = "notepad.exe";
-                            log.OpenFileWithShell(command: viewer);
+                            log.OpenFileWithShell(command: viewer, custom_params: param);
                         }).InvokeAsync(true);
                         break;
                     }
