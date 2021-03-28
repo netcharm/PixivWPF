@@ -606,9 +606,10 @@ namespace PixivWPF.Pages
                                             imgElemt.SetAttribute("src", new Uri(System.IO.Path.Combine(Application.Current.GetRoot(), "no_image.png")).AbsoluteUri);
                                         else if (src.IsPixivImage())
                                         {
-                                            var img = await src.LoadImageFromUrl();
-                                            if (!string.IsNullOrEmpty(img.SourcePath)) imgElemt.SetAttribute("src", new Uri(img.SourcePath).AbsoluteUri);
-                                            img.Source = null;
+                                            using (var img = await src.LoadImageFromUrl())
+                                            {
+                                                if (!string.IsNullOrEmpty(img.SourcePath)) imgElemt.SetAttribute("src", new Uri(img.SourcePath).AbsoluteUri);
+                                            }
                                         }
                                     }
                                     catch (Exception ex) { ex.ERROR("BROWSER"); }
@@ -1171,13 +1172,13 @@ namespace PixivWPF.Pages
                 if (item == null) item = Contents;
                 if (item.Source == null)
                 {
-                    var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize());
-                    if (thumb != null && thumb.Source != null)
+                    using (var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
                     {
-                        item.Source = thumb.Source;
-                        item.State = TaskStatus.RanToCompletion;
-                        thumb.Source = null;
-                        thumb = null;
+                        if (thumb.Source != null)
+                        {
+                            item.Source = thumb.Source;
+                            item.State = TaskStatus.RanToCompletion;
+                        }
                     }
                 }
             }
@@ -1501,12 +1502,13 @@ namespace PixivWPF.Pages
                     {
                         PreviewViewer.Show();
                         PreviewWait.Show();
-                        var bg = await user_backgroundimage_url.LoadImageFromUrl(overwrite);
-                        if (bg.Source == null) PreviewWait.Fail();
-                        else PreviewWait.Hide();
-                        Preview.Dispose();
-                        Preview.Source = bg.Source;
-                        bg.Source = null;
+                        using (var bg = await user_backgroundimage_url.LoadImageFromUrl(overwrite))
+                        {
+                            if (bg.Source == null) PreviewWait.Fail();
+                            else PreviewWait.Hide();
+                            Preview.Dispose();
+                            Preview.Source = bg.Source;
+                        }
                     }
                     catch (Exception ex) { ex.ERROR(); PreviewWait.Fail(); }
                 }
@@ -2629,29 +2631,37 @@ namespace PixivWPF.Pages
                         if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index);
-                        var img = await PreviewImageUrl.LoadImageFromUrl(overwrite);
-                        if (setting.SmartPreview &&
-                            (img.Source == null ||
-                             img.Source.Width < setting.PreviewUsingLargeMinWidth ||
-                             img.Source.Height < setting.PreviewUsingLargeMinHeight))
+                        using (var img = await PreviewImageUrl.LoadImageFromUrl(overwrite))
                         {
-                            PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, true);
-                            var large = await PreviewImageUrl.LoadImageFromUrl(overwrite);
-                            if (large.Source != null) img = large;
-                        }
-
-                        if (c_item.IsSameIllust(Contents))
-                        {
-                            if (img.Source != null)
+                            if (setting.SmartPreview &&
+                                (img.Source == null ||
+                                 img.Source.Width < setting.PreviewUsingLargeMinWidth ||
+                                 img.Source.Height < setting.PreviewUsingLargeMinHeight))
                             {
-                                //Preview.Dispose();
-                                Preview.Source = img.Source;
-                                PreviewImagePath = img.SourcePath;
-                                PreviewWait.Hide();
+                                PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, true);
+                                using (var large = await PreviewImageUrl.LoadImageFromUrl(overwrite))
+                                {
+                                    if (large.Source != null)
+                                    {
+                                        img.Source = large.Source;
+                                        img.Size = large.Size;
+                                        img.SourcePath = large.SourcePath;
+                                        img.ColorDepth = large.ColorDepth;
+                                    }
+                                }
                             }
-                            else PreviewWait.Fail();
+                            if (c_item.IsSameIllust(Contents))
+                            {
+                                if (img.Source != null)
+                                {
+                                    //Preview.Dispose();
+                                    Preview.Source = img.Source;
+                                    PreviewImagePath = img.SourcePath;
+                                    PreviewWait.Hide();
+                                }
+                                else PreviewWait.Fail();
+                            }
                         }
-                        img.Source = null;
                     }
                     catch (Exception ex) { ex.ERROR(); PreviewWait.Fail(); }
                     finally
@@ -2676,18 +2686,19 @@ namespace PixivWPF.Pages
 
                         var c_item = Contents;
                         AvatarImageUrl = Contents.User.GetAvatarUrl();
-                        var img =  await AvatarImageUrl.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultAvatarSize());
-                        if (c_item.IsSameIllust(Contents))
+                        using (var img = await AvatarImageUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultAvatarSize()))
                         {
-                            if (img.Source != null)
+                            if (c_item.IsSameIllust(Contents))
                             {
-                                //IllustAuthorAvatar.Dispose();
-                                IllustAuthorAvatar.Source = img.Source;
-                                AuthorAvatarWait.Hide();
+                                if (img.Source != null)
+                                {
+                                    //IllustAuthorAvatar.Dispose();
+                                    IllustAuthorAvatar.Source = img.Source;
+                                    AuthorAvatarWait.Hide();
+                                }
+                                else AuthorAvatarWait.Fail();
                             }
-                            else AuthorAvatarWait.Fail();
                         }
-                        img.Source = null;
                     }
                     catch (Exception ex) { ex.ERROR(); AuthorAvatarWait.Fail(); btnAuthorAvatar.Show(); }
                     finally

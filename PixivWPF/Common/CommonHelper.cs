@@ -294,12 +294,6 @@ namespace PixivWPF.Common
         public long ColorDepth { get; set; } = 0;
         public string SourcePath { get; set; } = string.Empty;
 
-        ~CustomImageSource()
-        {
-            Source = null;
-            SourcePath = string.Empty;
-        }
-
         public CustomImageSource()
         {
         }
@@ -310,10 +304,32 @@ namespace PixivWPF.Common
             SourcePath = path;
         }
 
+        ~CustomImageSource()
+        {
+            Dispose(false);
+        }
+
+        public void Close()
+        {
+            Dispose();
+        }
+
+        private bool disposed = false;
         public void Dispose()
         {
-            SourcePath = null;
-            Source = null;
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed) return;
+            if (disposing)
+            {
+                SourcePath = null;
+                Source = null;
+            }
+            disposed = true;
         }
     }
     #endregion
@@ -7039,10 +7055,11 @@ namespace PixivWPF.Common
                 item.IsFavorited = result;
                 if (item.Source == null)
                 {
-                    var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize());
-                    item.Source = thumb.Source;
-                    item.State = TaskStatus.RanToCompletion;
-                    thumb.Source = null;
+                    using (var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
+                    {
+                        item.Source = thumb.Source;
+                        item.State = TaskStatus.RanToCompletion;
+                    }
                 }
             }
 
@@ -7145,10 +7162,11 @@ namespace PixivWPF.Common
                 item.IsFavorited = result;
                 if (item.Source == null)
                 {
-                    var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize());
-                    item.Source = thumb.Source;
-                    item.State = TaskStatus.RanToCompletion;
-                    thumb.Source = null;
+                    using (var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
+                    {
+                        item.Source = thumb.Source;
+                        item.State = TaskStatus.RanToCompletion;
+                    }
                 }
             }
             return (result);
@@ -7307,10 +7325,11 @@ namespace PixivWPF.Common
                     }
                     if (item.Source == null)
                     {
-                        var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize());
-                        item.Source = thumb.Source;
-                        item.State = TaskStatus.RanToCompletion;
-                        thumb.Source = null;
+                        using (var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
+                        {
+                            item.Source = thumb.Source;
+                            item.State = TaskStatus.RanToCompletion;
+                        }
                     }
                 }
                 catch (Exception ex) { ex.ERROR("LIKEUSER"); }
@@ -7410,10 +7429,11 @@ namespace PixivWPF.Common
                     }
                     if (item.Source == null)
                     {
-                        var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize());
-                        item.Source = thumb.Source;
-                        item.State = TaskStatus.RanToCompletion;
-                        thumb.Source = null;
+                        using (var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
+                        {
+                            item.Source = thumb.Source;
+                            item.State = TaskStatus.RanToCompletion;
+                        }
                     }
                 }
                 catch (Exception ex) { ex.ERROR("UNLIKEUSER"); }
@@ -7712,13 +7732,13 @@ namespace PixivWPF.Common
                     {
                         new Action(async () =>
                         {
-                            var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize());
-                            if (thumb != null && thumb.Source != null)
+                            using (var thumb = await item.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
                             {
-                                item.Source = thumb.Source;
-                                item.State = TaskStatus.RanToCompletion;
-                                thumb.Source = null;
-                                thumb = null;
+                                if (thumb.Source != null)
+                                {
+                                    item.Source = thumb.Source;
+                                    item.State = TaskStatus.RanToCompletion;
+                                }
                             }
                         }).Invoke(async: true);
                     }
@@ -7767,11 +7787,8 @@ namespace PixivWPF.Common
                     Grid root = new Grid();
                     root.Background = Theme.WindowTitleBrush;
                     Arrange(root, width, height);
-                    if (root.Children.Count <= 0)
-                    {
-                        root.Children.Add(src);
-                        Arrange(src, width, height);
-                    }
+                    root.Children.Add(src);
+                    Arrange(src, width, height);
 
                     RenderTargetBitmap bmp = new RenderTargetBitmap(width, height, dpi.X, dpi.Y, PixelFormats.Pbgra32);
                     DrawingVisual drawingVisual = new DrawingVisual();

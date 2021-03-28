@@ -27,7 +27,7 @@ namespace PixivWPF.Common
     /// <summary>
     /// ImageListGrid.xaml 的交互逻辑
     /// </summary>
-    public partial class ImageListGrid : UserControl, INotifyPropertyChanged
+    public partial class ImageListGrid : UserControl, INotifyPropertyChanged, IDisposable
     {
         #region Tile Items
         private ConcurrentDictionary<string, ProgressRingCloud> RingList = new ConcurrentDictionary<string, ProgressRingCloud>();
@@ -352,24 +352,24 @@ namespace PixivWPF.Common
             SelectionChanged?.Invoke(sender, e);
             foreach (var item in e.AddedItems)
             {
-                if(item is PixivItem)
+                if (item is PixivItem)
                 {
                     var p = item as PixivItem;
-                    new Action(async () => 
+                    new Action(async () =>
                     {
                         if (p.Source == null && !string.IsNullOrEmpty(p.Thumb))
                         {
-                            var thumb = await p.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize());
-                            if (thumb.Source != null)
+                            using (var thumb = await p.Thumb.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
                             {
-                                p.Source = thumb.Source;
-                                p.State = TaskStatus.RanToCompletion;
+                                if (thumb.Source != null)
+                                {
+                                    p.Source = thumb.Source;
+                                    p.State = TaskStatus.RanToCompletion;
+                                }
                             }
-                            thumb.Source = null;
-                            thumb = null;
                         }
                     }).Invoke(async: false);
-                    
+
                 }
             }
         }
@@ -571,7 +571,7 @@ namespace PixivWPF.Common
                 }
                 else
                 {
-                    new Action(() => 
+                    new Action(() =>
                     {
                         if (source == null)
                         {
@@ -765,18 +765,22 @@ namespace PixivWPF.Common
                         {
                             if (UpdateTileTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
                             item.State = TaskStatus.Running;
-                            var img = item.Thumb.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultThumbSize()).GetAwaiter().GetResult();
-                            this.DoEvents();
-                            if (UpdateTileTask.CancellationPending) { if (img != null) { img.Source = null; img = null; } e.Cancel = true; loopstate.Stop(); $"{UpdateTileTask.CancellationPending}".DEBUG("LoadImageFromUrl_Cancel"); }
-                            if (img != null && img.Source != null)
+                            using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize()).GetAwaiter().GetResult())
                             {
-                                if (item.Source == null) item.Source = img.Source;
-                                if (item.Source is ImageSource)
-                                    item.State = TaskStatus.RanToCompletion;
-                                img.Source = null;
-                                img = null;
+                                this.DoEvents();
+                                if (UpdateTileTask.CancellationPending)
+                                {
+                                    e.Cancel = true;
+                                    loopstate.Stop();
+                                    $"{UpdateTileTask.CancellationPending}".DEBUG("LoadImageFromUrl_Cancel");
+                                }
+                                if (img.Source != null)
+                                {
+                                    if (item.Source == null) item.Source = img.Source;
+                                    if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
+                                }
+                                else item.State = TaskStatus.Faulted;
                             }
-                            else item.State = TaskStatus.Faulted;
                         }
                         catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
                         finally { this.DoEvents(); }
@@ -795,18 +799,17 @@ namespace PixivWPF.Common
                                 if (!cached.Contains(item))
                                 {
                                     item.State = TaskStatus.Running;
-                                    var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult();
-                                    this.DoEvents();
-                                    if (UpdateTileTask.CancellationPending) { if (img != null) { img.Source = null; img = null; } e.Cancel = true; loopstate.Stop(); }
-                                    if (img != null && img.Source != null)
+                                    using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult())
                                     {
-                                        if (item.Source == null) item.Source = img.Source;
-                                        if (item.Source is ImageSource)
-                                            item.State = TaskStatus.RanToCompletion;
-                                        img.Source = null;
-                                        img = null;
+                                        this.DoEvents();
+                                        if (UpdateTileTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
+                                        if (img.Source != null)
+                                        {
+                                            if (item.Source == null) item.Source = img.Source;
+                                            if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
+                                        }
+                                        else item.State = TaskStatus.Faulted;
                                     }
-                                    else item.State = TaskStatus.Faulted;
                                 }
                             }
                             catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
@@ -827,18 +830,17 @@ namespace PixivWPF.Common
                                     try
                                     {
                                         item.State = TaskStatus.Running;
-                                        var img = await item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size);
-                                        if (UpdateTileTask.CancellationPending) { if (img != null) { img.Source = null; img = null; } e.Cancel = true; return; }
-                                        this.DoEvents();
-                                        if (img != null && img.Source != null)
+                                        using (var img = await item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size))
                                         {
-                                            if (item.Source == null) item.Source = img.Source;
-                                            if (item.Source is ImageSource)
-                                                item.State = TaskStatus.RanToCompletion;
-                                            img.Source = null;
-                                            img = null;
+                                            if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                                            this.DoEvents();
+                                            if (img.Source != null)
+                                            {
+                                                if (item.Source == null) item.Source = img.Source;
+                                                if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
+                                            }
+                                            else item.State = TaskStatus.Faulted;
                                         }
-                                        else item.State = TaskStatus.Faulted;
                                     }
                                     catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
                                     finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
@@ -929,6 +931,33 @@ namespace PixivWPF.Common
             PART_ImageTiles.ItemsSource = ItemList;
         }
 
+        ~ImageListGrid()
+        {
+            Dispose(false);
+        }
+
+        public void Close()
+        {
+            Dispose();
+        }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed) return;
+            if (disposing)
+            {
+                Clear(false, true);
+            }
+            disposed = true;
+        }
+
         private void TileBadge_TargetUpdated(object sender, DataTransferEventArgs e)
         {
             if (sender is Badged && e.Property != null)
@@ -977,7 +1006,7 @@ namespace PixivWPF.Common
                                     ImageList[id] = image;
                                 }
                             }
-                            else if(ring.State == TaskStatus.Canceled)
+                            else if (ring.State == TaskStatus.Canceled)
                             {
                                 if (canvas is Canvas)
                                 {

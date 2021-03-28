@@ -215,9 +215,10 @@ namespace PixivWPF.Common
                 {
                     if (Preview.Source == null)
                     {
-                        var img = await url.LoadImageFromUrl(size:Application.Current.GetDefaultThumbSize());
-                        Preview.Source = img.Source;
-                        img.Source = null;
+                        using (var img = await url.LoadImageFromUrl(size: Application.Current.GetDefaultThumbSize()))
+                        {
+                            Preview.Source = img.Source;
+                        }
                     }
                 }
             }

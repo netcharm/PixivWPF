@@ -38,7 +38,7 @@ namespace PixivWPF.Common
         ulong MinRate { get; set; } = 0;
     }
 
-    public class DownloadInfo : INotifyPropertyChanged
+    public class DownloadInfo : INotifyPropertyChanged, IDisposable
     {
         private Setting setting = Application.Current.LoadSetting();
 
@@ -89,7 +89,7 @@ namespace PixivWPF.Common
                 url = value;
                 UpdateLikeState();
                 FileName = Application.Current.SaveTarget(url.GetImageName(singlefile));
-                if(!string.IsNullOrEmpty(FileName)) Name = Path.GetFileNameWithoutExtension(FileName);
+                if (!string.IsNullOrEmpty(FileName)) Name = Path.GetFileNameWithoutExtension(FileName);
                 NotifyPropertyChanged("UrlChanged");
             }
         }
@@ -169,7 +169,7 @@ namespace PixivWPF.Common
         public bool IsFav
         {
             get { return (is_fav); }
-            set { is_fav = value;  NotifyPropertyChanged("IsFav"); }
+            set { is_fav = value; NotifyPropertyChanged("IsFav"); }
         }
 
         private bool is_follow = false;
@@ -224,23 +224,45 @@ namespace PixivWPF.Common
             setting = Application.Current.LoadSetting();
         }
 
+        ~DownloadInfo()
+        {
+            Dispose(false);
+        }
+
+        public void Close()
+        {
+            Dispose();
+        }
+
+        private bool disposed = false;
         public void Dispose()
         {
-            if (Instance is DownloadItem)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed) return;
+            if (disposing)
             {
-                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(delegate
+                if (Instance is DownloadItem)
                 {
-                    try
+                    Dispatcher.CurrentDispatcher.BeginInvoke(new Action(delegate
                     {
-                        Instance.PART_ThumbnailWait.Hide();
-                        Instance.PART_Preview.Dispose();
-                        Instance.CleanBuffer();
-                        Instance = null;
-                    }
-                    catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_Dispose"); }
-                }));
+                        try
+                        {
+                            Instance.PART_ThumbnailWait.Hide();
+                            Instance.PART_Preview.Dispose();
+                            Instance.CleanBuffer();
+                            Instance = null;
+                        }
+                        catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_Dispose"); }
+                    }));
+                }
+                Thumbnail = null;
             }
-            Thumbnail = null;
+            disposed = true;
         }
 
         public void UpdateDownloadState(int? illustid = null, bool? exists = null)
@@ -284,14 +306,15 @@ namespace PixivWPF.Common
                 {
                     if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Show();
 
-                    var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size:Application.Current.GetDefaultThumbSize());
-                    if (img.Source != null)
+                    using (var img = await ThumbnailUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize()))
                     {
-                        Thumbnail = img.Source;
-                        if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Hide();
+                        if (img.Source != null)
+                        {
+                            Thumbnail = img.Source;
+                            if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Hide();
+                        }
+                        else if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail();
                     }
-                    else if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail();
-                    img.Source = null;
                 }
                 catch (Exception ex) { ex.ERROR($"{GetType().Name}_{IllustID}_RefreshThumbnail"); if (Instance is DownloadItem) Instance.PART_ThumbnailWait.Fail(); }
                 finally
@@ -317,7 +340,7 @@ namespace PixivWPF.Common
     /// <summary>
     /// DownloadItemControl.xaml 的交互逻辑
     /// </summary>
-    public partial class DownloadItem : UserControl, INotifyPropertyChanged
+    public partial class DownloadItem : UserControl, INotifyPropertyChanged, IDisposable
     {
         private Setting setting = Application.Current.LoadSetting();
 
@@ -652,7 +675,7 @@ namespace PixivWPF.Common
                         miRemove.IsEnabled = true;
                         miStopDownload.IsEnabled = false;
                     }
-                    else if(State == DownloadState.Remove)
+                    else if (State == DownloadState.Remove)
                     {
                         PART_Preview.Dispose();
                     }
@@ -1254,16 +1277,38 @@ namespace PixivWPF.Common
 
         ~DownloadItem()
         {
-            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(delegate
+            Dispose(false);
+        }
+
+        public void Close()
+        {
+            Dispose();
+        }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed) return;
+            if (disposing)
             {
-                try
+                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(delegate
                 {
-                    if (PART_Preview.Source != null) PART_Preview.Source = null;
-                    PART_Preview.UpdateLayout();
-                }
-                catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_~DownloadItem"); }
-            }));           
-            PART_Preview = null;
+                    try
+                    {
+                        if (PART_Preview.Source != null) PART_Preview.Source = null;
+                        PART_Preview.UpdateLayout();
+                    }
+                    catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_~DownloadItem"); }
+                }));
+                PART_Preview = null;
+            }
+            disposed = true;
         }
 
         private void Download_Loaded(object sender, RoutedEventArgs e)
@@ -1317,7 +1362,7 @@ namespace PixivWPF.Common
             }
             else if (sender == miRefreshThumb || sender == PART_ThumbnailWait)
             {
-                if(Info is DownloadInfo ) Info.RefreshThumbnail();
+                if (Info is DownloadInfo) Info.RefreshThumbnail();
             }
             else if ((sender == miOpenIllust || sender == PART_OpenIllust) && !string.IsNullOrEmpty(Url))
             {

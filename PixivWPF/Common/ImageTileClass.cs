@@ -32,14 +32,33 @@ namespace PixivWPF.Common
         public bool SanityOption_IncludeUnder { get; set; } = true;
     }
 
-    public class PixivItem : FrameworkElement, INotifyPropertyChanged
+    public class PixivItem : FrameworkElement, INotifyPropertyChanged, IDisposable
     {
         ~PixivItem()
         {
-            if (source is ImageSource)
+            Dispose(false);
+        }
+
+        public void Close()
+        {
+            Dispose();
+        }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed) return;
+            if (disposing)
             {
                 source = null;
             }
+            disposed = true;
         }
 
         public PixivItemType ItemType { get; set; } = PixivItemType.None;

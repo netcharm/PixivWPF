@@ -13,7 +13,7 @@ using System.Windows.Threading;
 
 namespace PixivWPF.Common
 {
-    public class SpeechTTS
+    public class SpeechTTS : IDisposable
     {
         #region Culture routines
         public CultureInfo Culture { get; set; } = CultureInfo.CurrentCulture;
@@ -509,7 +509,7 @@ namespace PixivWPF.Common
                 finally
                 {
                 }
-            }         
+            }
         }
 
         public async void Play(string text, string locale, bool async = true)
@@ -747,11 +747,33 @@ namespace PixivWPF.Common
 
         ~SpeechTTS()
         {
-            try
+            Dispose(false);
+        }
+
+        public void Close()
+        {
+            Dispose();
+        }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed) return;
+            if (disposing)
             {
-                if (synth is SpeechSynthesizer) synth.Dispose();
+                try
+                {
+                    if (synth is SpeechSynthesizer) synth.Dispose();
+                }
+                catch (Exception ex) { ex.ERROR("SPEECH"); }
             }
-            catch (Exception ex) { ex.ERROR("SPEECH"); }
+            disposed = true;
         }
         #endregion
     }

@@ -478,15 +478,37 @@ namespace PixivWPF.Common
             }
         }
 
+        ~PrefetchingTask()
+        {
+            Dispose(false);
+        }
+
+        public void Close()
+        {
+            Dispose();
+        }
+
+        private bool disposed = false;
         public void Dispose()
         {
-            Stop();
-            int count = 50;
-            while (PrefetchingBgWorker.IsBusy && count > 0) { Task.Delay(100).GetAwaiter().GetResult(); count--; }
-            if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
-            PrefetchingBgWorker.Dispose();
-            PrefetchedList.Clear();
-            Items.Clear();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed) return;
+            if (disposing)
+            {
+                Stop();
+                int count = 50;
+                while (PrefetchingBgWorker.IsBusy && count > 0) { Task.Delay(100).GetAwaiter().GetResult(); count--; }
+                if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
+                PrefetchingBgWorker.Dispose();
+                PrefetchedList.Clear();
+                Items.Clear();
+            }
+            disposed = true;
         }
     }
 }

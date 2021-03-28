@@ -178,26 +178,32 @@ namespace PixivWPF.Pages
                 var c_item = Contents;
                 if (IsOriginal)
                 {
-                    var original = await OriginalImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress);
-                    if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath)) img = original;
+                    using (var original = await OriginalImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress))
+                    {
+                        if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath)) img = original;
+                    }
                 }
                 else
                 {
-                    var preview = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress);
-                    if (setting.SmartPreview &&
-                        (preview.Source == null ||
-                         preview.Source.Width < setting.PreviewUsingLargeMinWidth ||
-                         preview.Source.Height < setting.PreviewUsingLargeMinHeight))
+                    using (var preview = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress))
                     {
-                        var original = await OriginalImageUrl.LoadImageFromUrl(progressAction: reportProgress);
-                        if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath)) img = original;
-                    }
-                    else
-                    {
-                        img.ColorDepth = preview.ColorDepth;
-                        img.Size = preview.Size;
-                        img.Source = preview.Source;
-                        if (!string.IsNullOrEmpty(preview.SourcePath)) img.SourcePath = preview.SourcePath;
+                        if (setting.SmartPreview &&
+                            (preview.Source == null ||
+                             preview.Source.Width < setting.PreviewUsingLargeMinWidth ||
+                             preview.Source.Height < setting.PreviewUsingLargeMinHeight))
+                        {
+                            using (var original = await OriginalImageUrl.LoadImageFromUrl(progressAction: reportProgress))
+                            {
+                                if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath)) img = original;
+                            }
+                        }
+                        else
+                        {
+                            img.ColorDepth = preview.ColorDepth;
+                            img.Size = preview.Size;
+                            img.Source = preview.Source;
+                            if (!string.IsNullOrEmpty(preview.SourcePath)) img.SourcePath = preview.SourcePath;
+                        }
                     }
                 }
 
