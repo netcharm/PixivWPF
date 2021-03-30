@@ -618,7 +618,7 @@ namespace PixivWPF.Common
                         if (tags_changed)
                         {
                             CommonHelper.UpdateIllustTagsAsync();
-                            if(StartUp) "Custom Translation Wildcard Tags Reloaded".ShowToast("INFO");
+                            if (StartUp) "Custom Translation Wildcard Tags Reloaded".ShowToast("INFO");
                         }
                     }
                 }
@@ -1075,6 +1075,17 @@ namespace PixivWPF.Common
             {
                 download_completed_sound_elapsed = value;
                 if (Cache is Setting) Cache.download_completed_sound_elapsed = download_completed_sound_elapsed;
+            }
+        }
+
+        private bool download_attach_metainfo = false;
+        public bool DownloadAttachMetaInfo
+        {
+            get { return (Cache is Setting ? Cache.download_attach_metainfo : download_attach_metainfo); }
+            set
+            {
+                download_attach_metainfo = value;
+                if (Cache is Setting) Cache.download_attach_metainfo = download_attach_metainfo;
             }
         }
 

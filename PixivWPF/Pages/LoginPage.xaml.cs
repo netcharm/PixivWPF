@@ -75,18 +75,17 @@ namespace PixivWPF.Pages
                 chkUseProxyDown.IsChecked = setting.DownloadUsingProxy;
                 this.DoEvents();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("LoginLoaded"); }
             finally
             {
                 //if(Window is Window) Window.SizeToContent = SizeToContent.WidthAndHeight;
                 edUser.Focus();
             }
-
         }
 
         private async void Login_Click(object sender, RoutedEventArgs e)
         {
-            if(ParentWindow == null) ParentWindow = Window.GetWindow(this) as PixivLoginDialog;
+            if (ParentWindow == null) ParentWindow = Window.GetWindow(this) as PixivLoginDialog;
 
             setting = Application.Current.LoadSetting();
 
@@ -184,7 +183,7 @@ namespace PixivWPF.Pages
                 bool useproxy = chkUseProxy.IsChecked == true ? true : false;
                 setting.UsingProxy = useproxy;
             }
-            else if(sender == chkUseProxyDown)
+            else if (sender == chkUseProxyDown)
             {
                 bool useproxy = chkUseProxyDown.IsChecked == true ? true : false;
                 setting.DownloadUsingProxy = useproxy;

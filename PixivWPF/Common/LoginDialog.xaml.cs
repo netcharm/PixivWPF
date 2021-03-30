@@ -33,12 +33,17 @@ namespace PixivWPF.Common
         {
             InitializeComponent();
 
-            Content = new Pages.LoginPage() { ParentWindow = this };
-            MinHeight = (Content as Pages.LoginPage).MinHeight;
-            MaxHeight = (Content as Pages.LoginPage).MaxHeight;
-            MinWidth = (Content as Pages.LoginPage).Width;
-            MaxWidth = (Content as Pages.LoginPage).Width;
-            this.DoEvents();
+            var login = new Pages.LoginPage() { ParentWindow = this };
+            new Action(() =>
+            {
+                MinHeight = login.MinHeight;
+                MaxHeight = login.MaxHeight;
+                MinWidth = login.Width;
+                MaxWidth = login.Width;
+                Content = login;
+                this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                this.DoEvents();
+            }).Invoke(async: false);
 
             Topmost = true;
             this.DoEvents();

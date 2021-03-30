@@ -2663,7 +2663,7 @@ namespace PixivWPF.Pages
                             }
                         }
                     }
-                    catch (Exception ex) { ex.ERROR(); PreviewWait.Fail(); }
+                    catch (Exception ex) { ex.ERROR("ActionRefreshPreview"); PreviewWait.Fail(); }
                     finally
                     {
                         if (Preview.Source == null) PreviewWait.Fail();
@@ -2700,7 +2700,7 @@ namespace PixivWPF.Pages
                             }
                         }
                     }
-                    catch (Exception ex) { ex.ERROR(); AuthorAvatarWait.Fail(); btnAuthorAvatar.Show(); }
+                    catch (Exception ex) { ex.ERROR("ActionRefreshAvatar"); AuthorAvatarWait.Fail(); btnAuthorAvatar.Show(); }
                     finally
                     {
                         if (IllustAuthorAvatar.Source == null) AuthorAvatarWait.Fail();

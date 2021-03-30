@@ -89,10 +89,10 @@ namespace PixivWPF.Pages
                 if (Contents.HasUser())
                 {
                     var tooltip = InfoBar.ToolTip is string ? (string)InfoBar.ToolTip : string.Empty;
-                    if(!string.IsNullOrEmpty(tooltip))
+                    if (!string.IsNullOrEmpty(tooltip))
                     {
                         var tips = tooltip.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                        for(var i = 0; i < tips.Length; i++)
+                        for (var i = 0; i < tips.Length; i++)
                         {
                             if (tips[i].StartsWith("Artwork Liked")) tips[i] = $"Artwork Liked = {Contents.IsFavorited}";
                             else if (tips[i].StartsWith("Artist Liked")) tips[i] = $"Artist Liked  = {Contents.IsFollowed}";
@@ -180,7 +180,13 @@ namespace PixivWPF.Pages
                 {
                     using (var original = await OriginalImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress))
                     {
-                        if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath)) img = original;
+                        if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath))
+                        {
+                            img.ColorDepth = original.ColorDepth;
+                            img.Size = original.Size;
+                            img.Source = original.Source;
+                            img.SourcePath = original.SourcePath;
+                        }
                     }
                 }
                 else
@@ -194,7 +200,13 @@ namespace PixivWPF.Pages
                         {
                             using (var original = await OriginalImageUrl.LoadImageFromUrl(progressAction: reportProgress))
                             {
-                                if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath)) img = original;
+                                if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath))
+                                {
+                                    img.ColorDepth = original.ColorDepth;
+                                    img.Size = original.Size;
+                                    img.Source = original.Source;
+                                    img.SourcePath = original.SourcePath;
+                                }
                             }
                         }
                         else
@@ -472,10 +484,10 @@ namespace PixivWPF.Pages
                 Preview.Dispose();
                 if (PreviewImage is CustomImageSource) PreviewImage.Source = null;
                 Contents.Source = null;
-                this.DataContext = null;
+                DataContext = null;
             }
             catch (Exception ex) { ex.ERROR("DisposePreview"); }
-            finally{ }
+            finally { }
         }
 
         public IllustImageViewerPage()

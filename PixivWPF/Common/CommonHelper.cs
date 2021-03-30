@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -1625,7 +1626,7 @@ namespace PixivWPF.Common
 
         public static void LOG(this string contents, string title = "", string tag = "")
         {
-            if(logger == null) logger = NLog.LogManager.GetCurrentClassLogger();
+            if (logger == null) logger = NLog.LogManager.GetCurrentClassLogger();
             if (title.ToUpper().Contains("INFO")) contents.INFO(tag);
             else if (title.ToUpper().Contains("ERROR")) contents.ERROR(tag);
             else if (title.ToUpper().Contains("WARN")) contents.WARN(tag);
@@ -2688,9 +2689,9 @@ namespace PixivWPF.Common
 
         public static void ReleaseHttpClient(this Application app)
         {
-            if(HttpClientList is ConcurrentDictionary<string, HttpClient>)
+            if (HttpClientList is ConcurrentDictionary<string, HttpClient>)
             {
-                foreach(var client in HttpClientList.Keys.ToList())
+                foreach (var client in HttpClientList.Keys.ToList())
                 {
                     try
                     {
@@ -2705,7 +2706,7 @@ namespace PixivWPF.Common
                             }
                         }
                     }
-                    catch(Exception ex) { ex.ERROR($"ReleaseHttpClient_{client}"); }
+                    catch (Exception ex) { ex.ERROR($"ReleaseHttpClient_{client}"); }
                 }
             }
         }
@@ -3312,7 +3313,7 @@ namespace PixivWPF.Common
                         if (range != null)
                             sb.AppendLine(html ? range.htmlText : range.text);
                     }
-                    else if(all_without_selection)
+                    else if (all_without_selection)
                     {
                         var bodies = browser.Document.GetElementsByTagName("body");
                         foreach (System.Windows.Forms.HtmlElement body in bodies)
@@ -4511,6 +4512,7 @@ namespace PixivWPF.Common
                     if (!string.IsNullOrEmpty(file) && File.Exists(file))
                     {
                         var UsingOpenWith = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false;
+                        var ShowProperties = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
                         var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
                         var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
                         var openwith_exists = File.Exists(OpenWith) ?  true : false;
@@ -4522,6 +4524,10 @@ namespace PixivWPF.Common
                         {
                             Process.Start(OpenWith, file);
                             result = true;
+                        }
+                        else if (ShowProperties)
+                        {
+                            file.OpenShellFileProperty();
                         }
                         else
                         {
@@ -4566,6 +4572,18 @@ namespace PixivWPF.Common
             {
                 Application.Current.DoEvents();
             }
+            return (result);
+        }
+
+        public static bool OpenShellFileProperty(this string FileName)
+        {
+            bool result = false;
+            try
+            {
+                //result = ShowFileProperties(FileName);
+                result = ShellProperties.Show(FileName) == 0 ? true : false;
+            }
+            catch (Exception ex) { ex.ERROR("OpenShellFileProperty"); }
             return (result);
         }
 
@@ -4625,6 +4643,65 @@ namespace PixivWPF.Common
             else return (dt);
         }
 
+        public static void AttachMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
+                var illust = id.FindIllust();
+                if (illust is Pixeez.Objects.Work)
+                {
+                    var uid = $"{illust.User.Id}";
+                    bool is_png = fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase);
+                    string name = Path.GetFileNameWithoutExtension(fileinfo.Name);
+                    if (Microsoft.WindowsAPICodePack.Shell.ShellObject.IsPlatformSupported)
+                    {
+                        using (var sh = Microsoft.WindowsAPICodePack.Shell.ShellFile.FromFilePath(fileinfo.FullName))
+                        {
+                            if (sh.Properties.System.Photo.DateTaken.Value == null) sh.Properties.System.Photo.DateTaken.Value = dt;
+                            if (!is_png)
+                            {
+                                if (sh.Properties.System.DateAcquired.Value == null)
+                                    sh.Properties.System.DateAcquired.Value = dt;
+
+                                if (sh.Properties.System.Subject.Value == null)
+                                    sh.Properties.System.Subject.Value = illust.Caption ?? string.Empty;
+                                if (sh.Properties.System.Title.Value == null)
+                                    sh.Properties.System.Title.Value = illust.Title ?? string.Empty;
+                                if (sh.Properties.System.Author.Value == null)
+                                    sh.Properties.System.Author.Value = new string[] { illust.User.Name ?? string.Empty, $"uid:{illust.User.Id ?? -1}" };
+                                if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != illust.Tags.Count)
+                                    sh.Properties.System.Keywords.Value = illust.Tags.ToArray();
+                                if (sh.Properties.System.Copyright.Value == null)
+                                    sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}";
+
+                                if (sh.Properties.System.Comment.Value == null)
+                                    sh.Properties.System.Comment.Value = id.ArtworkLink();
+
+                                //if (sh.Properties.System.Contact.Webpage.Value == null) sh.Properties.System.Contact.Webpage.Value = id.ArtworkLink();
+
+                                //if (sh.Properties.System.Media.AuthorUrl.Value == null) sh.Properties.System.Media.AuthorUrl.Value = uid.ArtistLink();
+                                //if (sh.Properties.System.Media.PromotionUrl.Value == null) sh.Properties.System.Media.PromotionUrl.Value = id.ArtworkLink();
+
+                                if (illust.IsLiked())
+                                {
+                                    if (sh.Properties.System.SimpleRating.Value != 4)
+                                        sh.Properties.System.SimpleRating.Value = 4;
+                                }
+                                else
+                                {
+                                    if (sh.Properties.System.SimpleRating.Value != null)
+                                        sh.Properties.System.SimpleRating.ClearValue();
+                                }
+                            }
+                        }
+                        //sh.Update();
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("AttachMetaInfo"); }
+        }
+
         public static void Touch(this FileInfo fileinfo, string url, bool local = false)
         {
             try
@@ -4634,6 +4711,7 @@ namespace PixivWPF.Common
                     var fdt = url.ParseDateTime();
                     if (fdt.Year <= 1601) return;
                     fileinfo.WaitFileUnlock();
+                    if (setting.DownloadAttachMetaInfo) fileinfo.AttachMetaInfo(dt: fdt);
                     if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
                     if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
                     if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
@@ -7855,7 +7933,7 @@ namespace PixivWPF.Common
             {
                 new Action(() =>
                 {
-                    var img = Application.Current.GetThemedIcon();
+                    var img = Application.Current.GetIcon();
                     foreach (Window win in Application.Current.Windows)
                     {
                         if (win is MetroWindow) win.UpdateTheme(img.Source);
@@ -8985,9 +9063,9 @@ namespace PixivWPF.Common
                 //box.WindowStyle = WindowStyle.None;
                 box.Title = "DropBox";
 
-                box.Content = Application.Current.GetIcon();
-                box.Icon = (box.Content as CustomImageSource).Source;
-                //box.Content = img;
+                var icon = Application.Current.GetIcon();
+                box.Content = icon;
+                box.Icon = icon.Source;
 
                 if (setting.DropBoxPosition != null)
                 {

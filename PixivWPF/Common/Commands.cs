@@ -1768,6 +1768,47 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand ShellOpenFileProperty { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
+                if (!string.IsNullOrEmpty(content))
+                {
+                    await new Action(() =>
+                    {
+                        content.OpenShellFileProperty();
+                    }).InvokeAsync(true);
+                }
+            }
+            else if (obj is Uri)
+            {
+                try
+                {
+                    var url = obj as Uri;
+                    if ((url.IsFile || url.IsUnc) && File.Exists(url.LocalPath)) url.LocalPath.OpenFileWithShell();
+                    else if (url.IsAbsoluteUri)
+                    {
+                        string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCachePath();
+                        if (File.Exists(fp_d)) fp_d.OpenShellFileProperty();
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("ShellOpenFile"); }
+            }
+            else if (obj is PixivItem)
+            {
+                var item = obj as PixivItem;
+                string fp = item.Illust.GetOriginalUrl(item.Index).GetImageCachePath();
+                if (!string.IsNullOrEmpty(fp))
+                {
+                    await new Action(() =>
+                    {
+                        fp.OpenShellFileProperty();
+                    }).InvokeAsync(true);
+                }
+            }
+        });
+
         public static ICommand SaveTags { get; } = new DelegateCommand(() =>
         {
             Application.Current.SaveTags();
@@ -1799,7 +1840,7 @@ namespace PixivWPF.Common
             else
             {
                 foreach (var tag in tags)
-                {                    
+                {
                     if (tag.StartsWith(content, StringComparison.CurrentCultureIgnoreCase))
                     {
                         await new Action(() =>

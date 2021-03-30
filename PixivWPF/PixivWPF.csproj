@@ -249,6 +249,7 @@
       <DependentUpon>ProgressRingCloud.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\ShaderEffects.cs" />
+    <Compile Include="Common\ShellProperties.cs" />
     <Compile Include="Common\SpeechTTS.cs" />
     <Compile Include="Common\ToastItem.xaml.cs">
       <DependentUpon>ToastItem.xaml</DependentUpon>
