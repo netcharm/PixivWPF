@@ -729,7 +729,7 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        public static PixivItem WorkItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "")
+        public static PixivItem WorkItem(this Pixeez.Objects.Work illust, string url = "", string nexturl = "", PixivItemType work_type = PixivItemType.Work)
         {
             PixivItem result = null;
             try
@@ -769,7 +769,7 @@ namespace PixivWPF.Common
                         var title = Regex.Replace(illust.Title, @"[\n\r]", "", RegexOptions.IgnoreCase);
                         result = new PixivItem()
                         {
-                            ItemType = PixivItemType.Work,
+                            ItemType = work_type,
                             NextURL = nexturl,
                             Thumb = url,
                             Index = -1,
@@ -789,7 +789,7 @@ namespace PixivWPF.Common
                             DisplayTitle = true,
                             Caption = illust.Caption,
                             ToolTip = $"📅[{illust.GetDateTime()}]{tooltip}",
-                            IsDownloaded = illust == null ? false : illust.IsPartDownloadedAsync(),
+                            IsDownloaded = work_type != PixivItemType.Work || illust == null ? false : illust.IsPartDownloadedAsync(),
                             Tag = illust
                         };
                     }
@@ -955,11 +955,9 @@ namespace PixivWPF.Common
                     var url = pages.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var i = illust.WorkItem(url, nexturl);
+                        var i = illust.WorkItem(url, nexturl, work_type: PixivItemType.Pages);
                         if (i is PixivItem)
                         {
-                            //i.Thumb = url;
-                            i.ItemType = PixivItemType.Pages;
                             i.DisplayTitle = false;
                             i.Index = index;
                             i.Count = illust.PageCount ?? 0;
@@ -992,11 +990,9 @@ namespace PixivWPF.Common
                     var url = page.GetThumbnailUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var i = illust.WorkItem(url, nexturl);
+                        var i = illust.WorkItem(url, nexturl, work_type: PixivItemType.Page);
                         if (i is PixivItem)
                         {
-                            //i.Thumb = url;
-                            i.ItemType = PixivItemType.Page;
                             i.DisplayTitle = false;
                             i.Index = index;
                             i.Count = illust.PageCount ?? 0;

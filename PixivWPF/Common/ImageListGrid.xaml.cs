@@ -369,7 +369,6 @@ namespace PixivWPF.Common
                             }
                         }
                     }).Invoke(async: false);
-
                 }
             }
         }
@@ -890,8 +889,9 @@ namespace PixivWPF.Common
             }
         }
 
-        public async void UpdateTilesState(bool fuzzy = true)
+        public async void UpdateTilesState()
         {
+            if (CanUpdateItems is SemaphoreSlim && CanUpdateItems.CurrentCount <= 0) return;
             if (Items is ObservableCollection<PixivItem> && Items.Count > 0)
             {
                 try
@@ -899,13 +899,17 @@ namespace PixivWPF.Common
                     foreach (var item in SelectedItems.Count > 0 ? SelectedItems : Items)
                     {
                         if (item.Illust == null) continue;
-
-                        bool part_down = item.Illust.IsPartDownloadedAsync();
-                        if (item.IsPartDownloaded != part_down) item.IsPartDownloaded = part_down;
-
-                        bool download = fuzzy ? part_down : item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
-                        if (item.IsDownloaded != download) item.IsDownloaded = download;
-
+                        if (item.IsPage())
+                        {
+                            bool download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
+                            if (item.IsDownloaded != download) item.IsDownloaded = download;
+                        }
+                        else
+                        {
+                            bool part_down = item.Illust.IsPartDownloadedAsync();
+                            if (item.IsPartDownloaded != part_down) item.IsPartDownloaded = part_down;
+                            item.IsDownloaded = item.IsPartDownloaded;
+                        }
                         item.IsFavorited = item.IsLiked() && item.IsDisplayFavMark;
                         this.DoEvents();
                     }

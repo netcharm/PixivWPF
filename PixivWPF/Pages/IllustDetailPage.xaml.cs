@@ -770,7 +770,7 @@ namespace PixivWPF.Pages
                 if (Contents.HasUser())
                 {
                     UpdateDownloadedMark(Contents);
-                    SubIllusts.UpdateTilesState(false);
+                    SubIllusts.UpdateTilesState();
                     this.DoEvents();
                 }
 
@@ -823,7 +823,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, item.Illust.PageCount<=1);
+                        var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, item.Illust.PageCount <= 1);
                         if (download)
                         {
                             IllustDownloaded.Show();
@@ -1039,6 +1039,47 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("OpenCachedImage"); }
         }
 
+        public void OpenImageProperties()
+        {
+            try
+            {
+                if (RelativeItems.IsKeyboardFocusWithin)
+                    Commands.OpenFileProperties.Execute(RelativeItems);
+                else if (FavoriteItems.IsKeyboardFocusWithin)
+                    Commands.OpenFileProperties.Execute(FavoriteItems);
+                else if (Contents.IsWork())
+                {
+                    var alt = Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+
+                    if (SubIllusts.Items.Count <= 0)
+                    {
+                        if (alt)
+                            Commands.OpenFileProperties.Execute(PreviewImagePath);
+                        else
+                            Commands.OpenFileProperties.Execute(Contents);
+                    }
+                    else if (SubIllusts.SelectedItems.Count > 0)
+                    {
+                        foreach (var item in SubIllusts.GetSelected())
+                        {
+                            if (alt)
+                                Commands.OpenFileProperties.Execute(Contents.Illust.GetPreviewUrl().GetImageCacheFile());
+                            else
+                                Commands.OpenFileProperties.Execute(Contents);
+                        }
+                    }
+                    else
+                    {
+                        if (alt)
+                            Commands.OpenFileProperties.Execute(PreviewImagePath);
+                        else
+                            Commands.OpenFileProperties.Execute(SubIllusts.Items[0]);
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("OpenImageProperties"); }
+        }
+
         public void SaveIllust()
         {
             try
@@ -1152,7 +1193,7 @@ namespace PixivWPF.Pages
                 {
                     UpdateWebContent();
                 }
-                if(IllustActions.ContextMenu is ContextMenu)
+                if (IllustActions.ContextMenu is ContextMenu)
                 {
                     //foreach(var item in IllustActions.ContextMenu.Items)
                     //{
@@ -1349,7 +1390,7 @@ namespace PixivWPF.Pages
                 }
                 stat_tip.Add($"Size      : {item.Illust.Width}x{item.Illust.Height}");
 
-                UpdateDownloadedMark();
+                if (item.Count <= 1) UpdateDownloadedMark();
 
                 IllustSize.Text = $"{item.Illust.Width}x{item.Illust.Height}";
                 IllustViewed.Text = stat_viewed;
@@ -2143,7 +2184,7 @@ namespace PixivWPF.Pages
             {
                 if (PrefetchingItems is PrefetchingTask) PrefetchingItems.Dispose();
 
-                    SubIllusts.Clear(batch: false, force: true);
+                SubIllusts.Clear(batch: false, force: true);
                 this.DoEvents();
                 RelativeItems.Clear(batch: false, force: true);
                 this.DoEvents();
@@ -3313,16 +3354,18 @@ namespace PixivWPF.Pages
                         SubIllusts.SelectedItem = lastSelectionItem;
                         return;
                     }
-                    SubIllusts.UpdateTilesState(false);
+                    SubIllusts.UpdateTilesState();
 
-                    Contents.IsDownloaded = Contents.Illust.IsPartDownloadedAsync();
+                    var part_down = SubIllusts.Items.Where(i => i.IsDownloaded).Count() > 0;
+                    if (Contents.IsDownloaded != part_down) Contents.IsDownloaded = part_down; // Contents.Illust.IsPartDownloadedAsync();
+
                     int idx = -1;
                     int.TryParse(SubIllusts.SelectedItem.BadgeValue, out idx);
                     if (idx - 1 != Contents.Index)
                     {
                         Contents.Index = idx - 1;
-                        UpdateLikeState();
-                        UpdateDownloadedMark(SubIllusts.SelectedItem);
+                        //UpdateLikeState();
+                        //UpdateDownloadedMark(SubIllusts.SelectedItem);
                     }
                     e.Handled = true;
 

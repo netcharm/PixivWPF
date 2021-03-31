@@ -848,7 +848,7 @@ namespace PixivWPF.Common
                     else
                     {
                         result = await Url.DownloadImage(FileName);
-                        result.Touch(Url);
+                        result.Touch(Url, meta: true);
                         Length = result.GetFileLength();
                         if (Length <= 0) throw new Exception($"Download {Path.GetFileName(FileName)} Failed! File not exists.");
                         Received = Length;

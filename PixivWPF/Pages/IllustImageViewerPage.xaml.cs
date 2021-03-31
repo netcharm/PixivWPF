@@ -379,7 +379,22 @@ namespace PixivWPF.Pages
                         Commands.OpenCachedImage.Execute(PreviewImage);
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("OpenCachedImage"); }
+        }
+
+        public void OpenImageProperties()
+        {
+            try
+            {
+                if (Contents.IsWork())
+                {
+                    if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+                        Commands.OpenFileProperties.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
+                    else
+                        Commands.OpenFileProperties.Execute(Contents);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("OpenImageProperties"); }
         }
 
         public void SaveIllust()

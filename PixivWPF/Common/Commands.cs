@@ -1051,6 +1051,103 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("OpenCachedImage"); }
         });
 
+        public static ICommand OpenFileProperties { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                if (obj is CustomImageSource)
+                {
+                    var img = obj as CustomImageSource;
+                    if (!string.IsNullOrEmpty(img.SourcePath) && File.Exists(img.SourcePath)) ShellOpenFile.Execute(img.SourcePath);
+                }
+                else if (obj is string)
+                {
+                    string s = obj as string;
+                    Uri url = null;
+                    if (!string.IsNullOrEmpty(s) && Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out url)) ShellOpenFile.Execute(url);
+                }
+                else if (obj is PixivItem)
+                {
+                    var item = obj as PixivItem;
+                    if (item.IsWork())
+                    {
+                        var illust = item.Illust;
+
+                        if (item.Index >= 0)
+                        {
+                            string fp = string.Empty;
+                            item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
+                            string fp_d = item.IsDownloaded ? fp : string.Empty;
+                            string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
+                            string fp_p = illust.GetPreviewUrl(item.Index).GetImageCachePath();
+
+                            if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
+                            else if (File.Exists(fp_o)) ShellOpenFileProperty.Execute(fp_o);
+                            else if (File.Exists(fp_p)) ShellOpenFileProperty.Execute(fp_p);
+                        }
+                        else
+                        {
+                            string fp = string.Empty;
+                            item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
+                            string fp_d = item.IsDownloaded ? fp : string.Empty;
+                            string fp_o = illust.GetOriginalUrl().GetImageCachePath();
+                            string fp_p = illust.GetPreviewUrl().GetImageCachePath();
+
+                            if (File.Exists(fp_d)) ShellOpenFileProperty.Execute(fp_d);
+                            else if (File.Exists(fp_o)) ShellOpenFileProperty.Execute(fp_o);
+                            else if (File.Exists(fp_p)) ShellOpenFileProperty.Execute(fp_p);
+                        }
+                    }
+                }
+                else if (obj is ImageListGrid)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as ImageListGrid;
+                        foreach (var item in gallery.GetSelected())
+                        {
+                            await new Action(() =>
+                            {
+                                OpenFileProperties.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
+                }
+                else if (obj is IList<PixivItem>)
+                {
+                    await new Action(async () =>
+                    {
+                        var gallery = obj as IList<PixivItem>;
+                        foreach (var item in gallery)
+                        {
+                            await new Action(() =>
+                            {
+                                OpenFileProperties.Execute(item);
+                            }).InvokeAsync();
+                        }
+                    }).InvokeAsync();
+                }
+                else if (obj is TilesPage)
+                {
+                    (obj as TilesPage).OpenImageProperties();
+                }
+                else if (obj is IllustDetailPage)
+                {
+                    (obj as IllustDetailPage).OpenImageProperties();
+                }
+                else if (obj is IllustImageViewerPage)
+                {
+                    (obj as IllustImageViewerPage).OpenImageProperties();
+                }
+                else if (obj is Window)
+                {
+                    var win = obj as Window;
+                    if (win.Content is Page) OpenFileProperties.Execute(win.Content);
+                }
+            }
+            catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
+        });
+
         public static ICommand OpenHistory { get; } = new DelegateCommand(async () =>
         {
             try

@@ -220,6 +220,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Common\ApplicationExtensions.cs" />
     <Compile Include="Common\CacheClass.cs" />
     <Compile Include="Common\ClipboardHelper.cs" />
     <Compile Include="Common\Commands.cs" />
