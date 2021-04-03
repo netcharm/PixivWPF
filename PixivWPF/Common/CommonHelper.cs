@@ -365,6 +365,10 @@ namespace PixivWPF.Common
         private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
         private static string regex_symbol = @"([\u0020-\u002F\u003A-\u0040\u005B-\u005E\u007B-\u007E])";
 
+        private static double VALUE_GB = 1024 * 1024 * 1024;
+        private static double VALUE_MB = 1024 * 1024;
+        private static double VALUE_KB = 1024;
+
         #region Pixiv Token Helper
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
         private static async Task<Pixeez.Tokens> RefreshToken()
@@ -1172,8 +1176,8 @@ namespace PixivWPF.Common
                 // Remove any JavaScript
                 result = Regex.Replace(result, "<script.*?</script>", "", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-                result = Regex.Replace(result, @"&#x([0-9a-fA-F]+);", delegate (Match m) { return (char.ConvertFromUtf32(Convert.ToInt32(m.Groups[1].Value, 16))); }, RegexOptions.IgnoreCase);
-                result = Regex.Replace(result, @"&#(\d+);", delegate (Match m) { return (char.ConvertFromUtf32(Convert.ToInt32(m.Groups[1].Value))); }, RegexOptions.IgnoreCase);
+                result = Regex.Replace(result, @"&#x([0-9a-fA-F]{1,6});", m => char.ConvertFromUtf32(Convert.ToInt32(m.Groups[1].Value, 16)));
+                result = Regex.Replace(result, @"&#(\d+){1,6};", m => char.ConvertFromUtf32(Convert.ToInt32(m.Groups[1].Value)));
 
                 // Replace special characters like &, <, >, " etc.
                 StringBuilder sb = new StringBuilder(result);
@@ -1724,8 +1728,12 @@ namespace PixivWPF.Common
                 {
                     if (!string.IsNullOrEmpty(file) && File.Exists(file))
                     {
-                        var UsingOpenWith = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false;
-                        var ShowProperties = Keyboard.Modifiers == ModifierKeys.Control ? true : false;
+                        setting = Application.Current.LoadSetting();
+
+                        var AltViewer = (int)(Keyboard.Modifiers & (ModifierKeys.Alt | ModifierKeys.Control)) == 3 ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
+                        var ShowProperties = Keyboard.Modifiers == ModifierKeys.Alt ? true : false;
+                        var UsingOpenWith = !ShowProperties && Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? true : false;
+
                         var SysDir = Path.Combine(WinDir, Environment.Is64BitOperatingSystem ? "SysWOW64" : "System32", "OpenWith.exe");
                         var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
                         var openwith_exists = File.Exists(OpenWith) ?  true : false;
@@ -1733,21 +1741,19 @@ namespace PixivWPF.Common
                         Application.Current.ReleaseKeyboardModifiers();
                         Application.Current.DoEvents();
 
-                        if (UsingOpenWith && openwith_exists)
+                        if (ShowProperties)
+                        {
+                            file.OpenShellFileProperty();
+                        }
+                        else if (UsingOpenWith && openwith_exists)
                         {
                             Process.Start(OpenWith, file);
                             result = true;
                         }
-                        else if (ShowProperties)
-                        {
-                            file.OpenShellFileProperty();
-                        }
                         else
                         {
-                            setting = Application.Current.LoadSetting();
-                            var alt_viewer = (int)(Keyboard.Modifiers & (ModifierKeys.Alt | ModifierKeys.Control)) == 3 ? !setting.ShellImageViewerEnabled : setting.ShellImageViewerEnabled;
                             var IsImage = ext_imgs.Contains(Path.GetExtension(file).ToLower()) ? true : false;
-                            if (alt_viewer && IsImage)
+                            if (AltViewer && IsImage)
                             {
                                 if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
                                     !setting.ShellImageViewerCmd.ToLower().Contains(setting.ShellImageViewer.ToLower()))
@@ -1808,14 +1814,43 @@ namespace PixivWPF.Common
                 var di = item as DownloadInfo;
                 var fail = string.IsNullOrEmpty(di.FailReason) ? string.Empty : $", Reason: {di.FailReason.Replace(Environment.NewLine, $"\t{Environment.NewLine}")}".Trim();
                 var delta = di.EndTime - di.StartTime;
-                var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / 1024.0 / delta.TotalSeconds;
+                var rate = delta.TotalSeconds <= 0 ? 0 : di.Received / delta.TotalSeconds;
                 result.Add($"URL    : {di.Url}");
                 result.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
                 result.Add($"State  : {di.State}{fail}");
                 result.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.Days * 24 + delta.Hours}:{delta.Minutes}:{delta.Seconds} s");
-                result.Add($"Status : {di.Received / 1024.0:0.} KB / {di.Length / 1024.0:0.} KB ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate:0.00} KB/s");
+                result.Add($"Status : {di.Received.SmartFileSize()} / {di.Length.SmartFileSize()} ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate.SmartSpeedRate()}");
             }
             return (result);
+        }
+
+        public static Func<double, string> SmartSpeedRateFunc = (v) => { return(SmartSpeedRate(v)); };
+
+        public static string SmartSpeedRate(this long v, double factor = 1, bool unit = true) { return (SmartSpeedRate((double)v, factor, unit)); }
+
+        public static string SmartSpeedRate(this double v, double factor = 1, bool unit = true)
+        {
+            string v_str = string.Empty;
+            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) v_str = $"0 B/s";
+            else if (v >= VALUE_MB) v_str = $"{v / factor / VALUE_MB:F2} MB/s";
+            else if (v >= VALUE_KB) v_str = $"{v / factor / VALUE_KB:F2} KB/s";
+            else v_str = $"{v / factor:F2} B/s";
+            return (unit ? v_str : v_str.Split().First());
+        }
+
+        public static Func<double, string> SmartFileSizeFunc = (v) => { return(SmartFileSize(v)); };
+
+        public static string SmartFileSize(this long v, double factor = 1, bool unit = true) { return (SmartFileSize((double)v, factor, unit)); }
+
+        public static string SmartFileSize(this double v, double factor = 1, bool unit = true)
+        {
+            string v_str = string.Empty;
+            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) v_str = $"0 B";
+            else if (v >= VALUE_GB) v_str = $"{v / factor / VALUE_GB:F2} GB";
+            else if (v >= VALUE_MB) v_str = $"{v / factor / VALUE_MB:F2} MB";
+            else if (v >= VALUE_KB) v_str = $"{v / factor / VALUE_KB:F2} KB";
+            else v_str = $"{v / factor:F0} B";
+            return (unit ? v_str : v_str.Split().First());
         }
         #endregion
 
@@ -1929,14 +1964,19 @@ namespace PixivWPF.Common
                 {
                     new Action(() =>
                     {
-                        var fdt = url.ParseDateTime();
-                        if (fdt.Year <= 1601) return;
-                        fileinfo.WaitFileUnlock();
-                        //if (meta && setting.DownloadAttachMetaInfo) fileinfo.AttachMetaInfo(dt: fdt);
-                        if (setting.DownloadAttachMetaInfo) fileinfo.AttachMetaInfo(dt: fdt);
-                        if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
-                        if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
-                        if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
+                        try
+                        {
+                            var fdt = url.ParseDateTime();
+                            if (fdt.Year <= 1601) return;
+                            fileinfo.WaitFileUnlock();
+                            //if (meta && setting.DownloadAttachMetaInfo) fileinfo.AttachMetaInfo(dt: fdt);
+                            if (setting.DownloadAttachMetaInfo) fileinfo.AttachMetaInfo(dt: fdt);
+                            fileinfo.WaitFileUnlock();
+                            if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
+                            if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
+                            if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
+                        }
+                        catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
                     }).Invoke(async: true);
                 }
             }
@@ -1982,7 +2022,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                catch (Exception ex) { ex.ERROR(); }
+                catch (Exception ex) { ex.ERROR("UpdateDownloadedListCache"); }
             }
         }
 
@@ -2445,39 +2485,42 @@ namespace PixivWPF.Common
         {
             bool result = false;
             filepath = string.Empty;
-
-            var file = url.GetImageName(is_meta_single_page);
-            foreach (var local in setting.LocalStorage)
+            try
             {
-                if (string.IsNullOrEmpty(local.Folder)) continue;
-
-                var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
-                if (Directory.Exists(folder))
+                var file = url.GetImageName(is_meta_single_page);
+                foreach (var local in setting.LocalStorage)
                 {
-                    folder.UpdateDownloadedListCacheAsync(local.Cached);
+                    if (string.IsNullOrEmpty(local.Folder)) continue;
 
-                    var f = Path.Combine(folder, file);
-                    if (local.Cached)
+                    var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
+                    if (Directory.Exists(folder))
                     {
-                        if (f.DownloadedCacheExistsAsync())
+                        //folder.UpdateDownloadedListCacheAsync(local.Cached);
+
+                        var f = Path.Combine(folder, file);
+                        if (local.Cached)
                         {
-                            filepath = f;
-                            result = true;
-                            break;
+                            if (f.DownloadedCacheExistsAsync())
+                            {
+                                filepath = f;
+                                result = true;
+                                break;
+                            }
                         }
-                    }
-                    else
-                    {
-                        if (File.Exists(f))
+                        else
                         {
-                            filepath = f;
-                            result = true;
-                            break;
+                            if (File.Exists(f))
+                            {
+                                filepath = f;
+                                result = true;
+                                break;
+                            }
                         }
                     }
                 }
+                if (!string.IsNullOrEmpty(filepath)) filepath.Touch(url, meta: true);
             }
-            if(!string.IsNullOrEmpty(filepath)) filepath.Touch(url, meta: true);
+            catch (Exception ex) { ex.ERROR("IsDownloaded"); }
             return (result);
         }
         #endregion
@@ -2585,51 +2628,67 @@ namespace PixivWPF.Common
         internal static bool IsPartDownloaded(this string url, out string filepath)
         {
             bool result = false;
-            var file = url.GetImageName(true);
-
             filepath = string.Empty;
-            foreach (var local in setting.LocalStorage)
+            try
             {
-                if (string.IsNullOrEmpty(local.Folder)) continue;
-
-                var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
-                if (Directory.Exists(folder))
+                var file_s = url.GetImageName(true);
+                var file_m = url.GetImageName(false);
+                foreach (var local in setting.LocalStorage)
                 {
-                    folder.UpdateDownloadedListCacheAsync(local.Cached);
+                    if (string.IsNullOrEmpty(local.Folder)) continue;
 
-                    var f = Path.Combine(folder, file);
-                    if (local.Cached)
+                    var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
+                    if (Directory.Exists(folder))
                     {
-                        if (f.DownloadedCacheExistsAsync())
+                        //folder.UpdateDownloadedListCacheAsync(local.Cached);
+
+                        var f_s = Path.Combine(folder, file_s);
+                        var f_m = Path.Combine(folder, file_m);
+                        if (local.Cached)
                         {
-                            filepath = f;
+                            if (f_s.DownloadedCacheExistsAsync())
+                            {
+                                filepath = f_s;
+                                result = true;
+                                break;
+                            }
+                            else if (f_m.DownloadedCacheExistsAsync())
+                            {
+                                filepath = f_m;
+                                result = true;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if (File.Exists(f_s))
+                            {
+                                filepath = f_s;
+                                result = true;
+                                break;
+                            }
+                            else if (File.Exists(f_m))
+                            {
+                                filepath = f_m;
+                                result = true;
+                                break;
+                            }
+                        }
+
+                        var fn = Path.GetFileNameWithoutExtension(file_s);
+                        var files = Directory.GetFiles(folder, $"{fn}_*.*").NaturalSort();
+                        if (files.Count() > 0)
+                        {
+                            foreach (var fc in files.Skip(1)) fc.Touch(url, meta: false);
+                            filepath = files.First();
                             result = true;
-                            break;
                         }
                     }
-                    else
-                    {
-                        if (File.Exists(f))
-                        {
-                            filepath = f;
-                            result = true;
-                            break;
-                        }
-                    }
-
-                    var fn = Path.GetFileNameWithoutExtension(file);
-                    var files = Directory.GetFiles(folder, $"{fn}_*.*").OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(50, '0')));
-                    if (files.Count() > 0)
-                    {
-                        foreach (var fc in files.Skip(1)) fc.Touch(url, meta: false);
-                        filepath = files.First();
-                        result = true;
-                    }
+                    if (result) break;
                 }
-                if (result) break;
+                if (!string.IsNullOrEmpty(filepath)) filepath.Touch(url, meta: true);
             }
-            if (!string.IsNullOrEmpty(filepath)) filepath.Touch(url, meta: true);
-
+            catch (Exception ex) { ex.ERROR("IsPartDownloaded"); }
             return (result);
         }
 
@@ -3417,7 +3476,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("CopyImage"); }
         }
 
-        public static async Task<bool> WriteToFile(this Stream source, string file, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
+        public static async Task<bool> WriteToFile_(this Stream source, string file, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
         {
             var result = false;
             using (var ms = new MemoryStream())
@@ -3429,14 +3488,16 @@ namespace PixivWPF.Common
                     var folder = Path.GetDirectoryName(file);
                     if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 
-                    await file.WaitFileUnlockAsync(1000, 10);
-                    using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
+                    if (await file.WaitFileUnlockAsync(1000, 10))
                     {
-                        await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
-                        await fs.FlushAsync();
-                        fs.Close();
-                        fs.Dispose();
-                        result = true;
+                        using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
+                        {
+                            await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
+                            await fs.FlushAsync();
+                            fs.Close();
+                            fs.Dispose();
+                            result = true;
+                        }
                     }
                 }
                 ms.Close();
@@ -3445,18 +3506,19 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> WriteToFile(this Stream source, string file, Action<double, double> progressAction, ContentRangeHeaderValue range, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
+        public static async Task<bool> WriteToFile(this Stream source, string file, Action<double, double> progressAction = null, ContentRangeHeaderValue range = null, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
         {
             var result = false;
             using (var ms = new MemoryStream())
             {
                 if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
-                var length = range.HasLength ? range.Length ?? 0 : 0;
+                var length = range is ContentRangeHeaderValue && range.HasLength ? range.Length ?? 0 : 0;
                 int received = 0;
                 if (length <= 0)
                 {
                     await source.CopyToAsync(ms, bufferSize);
                     length = received = (int)ms.Length;
+                    if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
                 }
                 else
                 {
@@ -3486,14 +3548,16 @@ namespace PixivWPF.Common
                     var folder = Path.GetDirectoryName(file);
                     if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 
-                    await file.WaitFileUnlockAsync(1000, 10);
-                    using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
+                    if (await file.WaitFileUnlockAsync(1000, 10))
                     {
-                        await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
-                        await fs.FlushAsync();
-                        fs.Close();
-                        fs.Dispose();
-                        result = true;
+                        using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
+                        {
+                            await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
+                            await fs.FlushAsync();
+                            fs.Close();
+                            fs.Dispose();
+                            result = true;
+                        }
                     }
                     if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
                 }
@@ -3513,15 +3577,17 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    await file.WaitFileUnlockAsync(500, 10);
-                    using (Stream stream = new MemoryStream(File.ReadAllBytes(file)))
+                    if (await file.WaitFileUnlockAsync(500, 10))
                     {
-                        result.Source = stream.ToImageSource(size);
-                        result.SourcePath = file;
-                        result.Size = stream.Length;
-                        result.ColorDepth = result.Source is BitmapSource ? (result.Source as BitmapSource).Format.BitsPerPixel : 32;
-                        stream.Close();
-                        stream.Dispose();
+                        using (Stream stream = new MemoryStream(File.ReadAllBytes(file)))
+                        {
+                            result.Source = stream.ToImageSource(size);
+                            result.SourcePath = file;
+                            result.Size = stream.Length;
+                            result.ColorDepth = result.Source is BitmapSource ? (result.Source as BitmapSource).Format.BitsPerPixel : 32;
+                            stream.Close();
+                            stream.Dispose();
+                        }
                     }
                 }
                 catch (Exception ex) { ex.ERROR("LoadImageFromFile"); }
@@ -3579,11 +3645,13 @@ namespace PixivWPF.Common
                             var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
                             var pos = range.From ?? 0;
                             var Length = range.Length ?? 0;
+                            if (progressAction is Action<double, double>) progressAction.Invoke(0, Length);
 
                             string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                             using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                             {
-                                var ret = progressAction is Action<double, double> ? await sr.WriteToFile(file, progressAction, range) : await sr.WriteToFile(file);
+                                //var ret = progressAction is Action<double, double> ? await sr.WriteToFile(file, progressAction, range) : await sr.WriteToFile(file);
+                                var ret = await sr.WriteToFile(file, progressAction, range);
                                 if (ret) result = file;
                                 sr.Close();
                                 sr.Dispose();
@@ -6589,6 +6657,15 @@ namespace PixivWPF.Common
         #endregion
 
         #region Misc Helper
+        public static IList<string> NaturalSort(this IList<string> list, int padding = 16)
+        {
+            try
+            {
+                return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+            }
+            catch(Exception ex) { ex.ERROR("NaturalSort"); return (list); }
+        }
+
         public static void Dispose(this Image image)
         {
             try

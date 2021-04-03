@@ -574,16 +574,16 @@ namespace PixivWPF.Common
                         #region Update ProgressBar & Progress Info Text
                         var deltaA = (EndTick - StartTick).TotalSeconds;
                         var deltaC = (EndTick - lastTick).TotalSeconds;
-                        var rateA = deltaA > 0 ? received / deltaA / 1024.0 : 0;
-                        var rateC = deltaC > 0 ? lastReceived / deltaC / 1024.0 : lastRate;
+                        var rateA = deltaA > 0 ? received / deltaA : 0;
+                        var rateC = deltaC > 0 ? lastReceived / deltaC : lastRate;
                         lastRates.Enqueue(rateC);
                         if (lastRates.Count > lastRatesCount) lastRates.Dequeue();
-                        if (rateC > 0 || deltaC >= 1) lastRate = lastRates.Average();
+                        if (rateC > 0 || deltaC >= 1) lastRate = lastRates.Average(o => double.IsNaN(o) || o < 0 ? 0 : o);
 
                         var percent = total > 0 ? received / total : 0;
                         PART_DownloadProgress.Value = percent * 100;
                         PART_DownloadProgressPercent.Text = $"{State.ToString()}: {PART_DownloadProgress.Value:0.0}%";
-                        PART_DownInfo.Text = $"Status : {Info.Received / 1024.0:0.} KB / {Info.Length / 1024.0:0.} KB, {lastRate:0.00} / {rateA:0.00} KB/s";
+                        PART_DownInfo.Text = $"Status : {Info.Received.SmartFileSize()} / {Info.Length.SmartFileSize()}, {lastRate.SmartSpeedRate()} / {rateA.SmartSpeedRate()}";
                         #endregion
 
                         #region Update Progress Info Text Color Gradient

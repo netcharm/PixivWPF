@@ -280,18 +280,17 @@ namespace PixivWPF.Common
                 mem_pb_before = Application.Current.MemoryUsage(true);// process.PrivateMemorySize64;
             }
 
-            double M = 1024.0 * 1024.0;
             var before = System.GC.GetTotalMemory(true);
             System.GC.Collect();
             if (wait) System.GC.WaitForPendingFinalizers();
             var after = System.GC.GetTotalMemory(true);
-            $"Managed Memory Usage: {before / M:F2}M => {after / M:F2}M".DEBUG(name ?? string.Empty);
+            $"Managed Memory Usage: {before.SmartFileSize()} => {after.SmartFileSize()}".DEBUG(name ?? string.Empty);
 
             if (system_memory)
             {
                 mem_ws_after = Application.Current.MemoryUsage();// process.WorkingSet64;
                 mem_pb_after = Application.Current.MemoryUsage(true);// process.PrivateMemorySize64;
-                $"System Memory Usage (WS/PB): {mem_ws_before / M:F2}M/{mem_pb_before / M:F2}M => {mem_ws_after / M:F2}M/{mem_pb_after / M:F2}M".DEBUG(name ?? string.Empty);
+                $"System Memory Usage (WS/PB): {mem_ws_before.SmartFileSize()} / {mem_pb_before.SmartFileSize()} => {mem_ws_after.SmartFileSize()} / {mem_pb_after.SmartFileSize()}".DEBUG(name ?? string.Empty);
             }
         }
         #endregion

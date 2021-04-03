@@ -794,7 +794,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("UpdateDownloadedMark"); }
         }
 
-        private void UpdateDownloadedMark(PixivItem item, bool? exists = null)
+        private void UpdateDownloadedMark(PixivItem item, bool? exists = null, bool? downloaded=null)
         {
             try
             {
@@ -804,7 +804,7 @@ namespace PixivWPF.Pages
                     var index = item.Index;
                     if (index < 0)
                     {
-                        var download = item.Illust.IsPartDownloadedAsync(out fp);
+                        var download = downloaded ?? item.Illust.IsPartDownloadedAsync(out fp);
                         if (item.IsDownloaded != download) item.IsDownloaded = download;
                         if (item.IsDownloaded)
                         {
@@ -823,7 +823,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        var download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, item.Illust.PageCount <= 1);
+                        var download = downloaded ?? item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, item.Illust.PageCount <= 1);
                         if (download)
                         {
                             IllustDownloaded.Show();
@@ -1751,6 +1751,7 @@ namespace PixivWPF.Pages
                     this.DoEvents();
                     index = Math.Max(0, Math.Min(index, SubIllusts.ItemsCount - 1));
                     if (SubIllusts.SelectedIndex != index) SubIllusts.SelectedIndex = index;
+                    UpdateDownloadedMark(SubIllusts.SelectedItem);
 
                     this.DoEvents();
                     if (ParentWindow is MainWindow) SubIllusts.UpdateTilesImage();
@@ -2672,7 +2673,7 @@ namespace PixivWPF.Pages
                         if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index);
-                        using (var img = await PreviewImageUrl.LoadImageFromUrl(overwrite))
+                        using (var img = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage))
                         {
                             if (setting.SmartPreview &&
                                 (img.Source == null ||
@@ -2680,7 +2681,7 @@ namespace PixivWPF.Pages
                                  img.Source.Height < setting.PreviewUsingLargeMinHeight))
                             {
                                 PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, true);
-                                using (var large = await PreviewImageUrl.LoadImageFromUrl(overwrite))
+                                using (var large = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage))
                                 {
                                     if (large.Source != null)
                                     {
@@ -3364,8 +3365,8 @@ namespace PixivWPF.Pages
                     if (idx - 1 != Contents.Index)
                     {
                         Contents.Index = idx - 1;
-                        //UpdateLikeState();
-                        //UpdateDownloadedMark(SubIllusts.SelectedItem);
+                        UpdateLikeState();
+                        UpdateDownloadedMark(SubIllusts.SelectedItem);
                     }
                     e.Handled = true;
 

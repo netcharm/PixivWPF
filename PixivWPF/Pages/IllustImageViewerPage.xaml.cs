@@ -145,6 +145,12 @@ namespace PixivWPF.Pages
             }
         }
 
+        private const int down_rate_mv = 10;
+        private DateTime down_start = DateTime.Now;
+        private DateTime down_stop = DateTime.Now;
+        private DateTime down_last_report = DateTime.Now;
+        private double down_last_received = 0;
+        private Queue<double> down_rate = new Queue<double>(down_rate_mv);
         private Action<double, double> reportProgress = null;
         private async Task<CustomImageSource> GetPreviewImage(bool overwrite = false)
         {
@@ -153,12 +159,34 @@ namespace PixivWPF.Pages
             try
             {
                 var setting = Application.Current.LoadSetting();
+                down_rate.Clear();
+                down_rate.Enqueue(0);
+                down_start = DateTime.Now;
+                down_last_report = DateTime.Now;
+                down_last_received = 0;
 
                 if (reportProgress == null)
                 {
                     // no progress ring display in below action
                     reportProgress = (received, length) =>
                     {
+                        down_stop = DateTime.Now;
+                        if (down_last_received <= 0) down_last_report = down_stop - TimeSpan.FromSeconds(1);
+                        var diff_t = (down_stop - down_last_report).TotalSeconds;
+                        if (diff_t >= 0.1)
+                        {
+                            var diff_b = Math.Max(0, received - down_last_received);
+                            var rate_n = diff_t <= 0 ? 0 : diff_b / diff_t ;
+                            System.Diagnostics.Debug.WriteLine($"{diff_b} b, {diff_t} s, {rate_n} b/s");
+                            down_rate.Enqueue(rate_n);
+                            if (down_rate.Count > down_rate_mv) down_rate.Dequeue();
+                            down_last_received = received;
+                            down_last_report = down_stop;
+                        }
+                        var rate_c = down_rate.Count > 0 ? down_rate.Average(o => double.IsNaN(o) || o < 0 ? 0 : o) : 0;
+                        var rate_a = received / (down_stop - down_start).TotalSeconds;
+                        var speed = $"Speed (rts.): {rate_c.SmartSpeedRate()}{Environment.NewLine}Speed (avg.): {rate_a.SmartSpeedRate()}";
+
                         var percent = length <= 0 ? 0 : received / length * 100;
                         var state = received == length ? TaskStatus.RanToCompletion : TaskStatus.Running;
                         var state_info = "Idle";
@@ -166,9 +194,12 @@ namespace PixivWPF.Pages
                         else if (state == TaskStatus.RanToCompletion) state_info = "Finished";
                         else if (received > length) state_info = "Finished";
                         else state_info = "Failed";
-                        var tooltip = $"{state_info}: {received} / {length} Bytes, {received / 1024:F2} / {length / 1024:F2} KB";
-                        if (ParentWindow is ContentWindow)
-                            (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                        var info = $"{state_info}: {received} B / {length} B, {received.SmartFileSize()} / {length.SmartFileSize()}";
+                        var tooltip = $"{info}{Environment.NewLine}{speed}";
+
+                        if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                        //if (PreviewWait.ReportPercentage is Action<double, double>) PreviewWait.ReportPercentage.Invoke(received, length);
+                        if (PreviewWait.ReportPercentageSlim is Action<double>) PreviewWait.ReportPercentageSlim.Invoke(percent);
                     };
                 }
 
@@ -250,8 +281,8 @@ namespace PixivWPF.Pages
                         sb.AppendLine($"Dimension     = {width:F0} x {height:F0}");
                         sb.AppendLine($"Aspect Rate   = {aspect.Item1:G5} : {aspect.Item2:G5}");
                         sb.AppendLine($"Resolution    = {dpiX:F0}DPI : {dpiY:F0}DPI");
-                        sb.AppendLine($"Memory Usage  = {width * height * img.ColorDepth / 8 / 1024.0 / 1024.0:F2} M");
-                        sb.AppendLine($"File Size     = {img.Size / 1024.0 / 1024.0:F2} M");
+                        sb.AppendLine($"Memory Usage  = {(width * height * img.ColorDepth / 8).SmartFileSize()}");
+                        sb.AppendLine($"File Size     = {img.Size.SmartFileSize()}");
                         InfoBar.ToolTip = sb.ToString().Trim();
                         Page_SizeChanged(null, null);
                         PreviewWait.Hide();
@@ -566,6 +597,7 @@ namespace PixivWPF.Pages
 
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            e.Handled = true;
             ChangeIllustPage(-Math.Sign(e.Delta));
         }
 
@@ -577,7 +609,7 @@ namespace PixivWPF.Pages
             e.Handled = false;
             if (e.Device is MouseDevice)
             {
-                if (e.ChangedButton == MouseButton.Left)
+                if (sender == PreviewBox && e.ChangedButton == MouseButton.Left)
                 {
                     if (e.ClickCount >= 2)
                     {
@@ -611,7 +643,7 @@ namespace PixivWPF.Pages
 
         private void Preview_MouseMove(object sender, MouseEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (sender == PreviewBox && e.LeftButton == MouseButtonState.Pressed)
             {
                 if (PreviewBox.Stretch == Stretch.None)
                 {

@@ -19,7 +19,7 @@
       SizeChanged="Page_SizeChanged"
       Loaded="Page_Loaded" Unloaded="Page_Unloaded">
 
-    <Grid>
+    <Grid MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" MouseMove="Preview_MouseMove">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -114,7 +114,7 @@
                         TileMode="Tile"  Opacity="0.10" 
                         ViewportUnits="Absolute" Viewport="0,0,32,32"/>
         </Grid.Background>
-
+       
         <!-- Illust Preview -->
         <ScrollViewer Grid.Row="0" x:Name="PreviewScroll" 
                       HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">

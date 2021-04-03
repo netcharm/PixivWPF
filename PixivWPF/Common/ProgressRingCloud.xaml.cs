@@ -31,7 +31,7 @@ namespace PixivWPF.Common
             set { SetCurrentValue(IsActiveProperty, value); /*NotifyPropertyChanged("IsActive");*/ }
         }
         public static readonly DependencyProperty IsActiveProperty = DependencyProperty.Register(
-            "IsActive", typeof( bool ), typeof( ProgressRingCloud ), 
+            "IsActive", typeof( bool ), typeof( ProgressRingCloud ),
             new PropertyMetadata( true, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
@@ -42,7 +42,7 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ReloadEnabledProperty, value); }
         }
         public static readonly DependencyProperty ReloadEnabledProperty = DependencyProperty.Register(
-            "ReloadEnabled", typeof( bool ), typeof( ProgressRingCloud ), 
+            "ReloadEnabled", typeof( bool ), typeof( ProgressRingCloud ),
             new PropertyMetadata( false, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
@@ -53,7 +53,7 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ReloadSymbolProperty, value); }
         }
         public static readonly DependencyProperty ReloadSymbolProperty = DependencyProperty.Register(
-            "ReloadSymbol", typeof( string ), typeof( ProgressRingCloud ), 
+            "ReloadSymbol", typeof( string ), typeof( ProgressRingCloud ),
             new PropertyMetadata( "\uE149", new PropertyChangedCallback(OnPropertyChanged) )
         );
 
@@ -64,7 +64,7 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ReloadSymbolFontFamilyProperty, value); }
         }
         public static readonly DependencyProperty ReloadSymbolFontFamilyProperty = DependencyProperty.Register(
-            "ReloadSymbolFontFamily", typeof( FontFamily ), typeof( ProgressRingCloud ), 
+            "ReloadSymbolFontFamily", typeof( FontFamily ), typeof( ProgressRingCloud ),
             new PropertyMetadata( new FontFamily("Segoe MDL2 Assets"), new PropertyChangedCallback(OnPropertyChanged) )
         );
 
@@ -75,7 +75,7 @@ namespace PixivWPF.Common
             set { SetCurrentValue(WaitSymbolProperty, value); }
         }
         public static readonly DependencyProperty WaitSymbolProperty = DependencyProperty.Register(
-            "WaitSymbol", typeof( string ), typeof( ProgressRingCloud ), 
+            "WaitSymbol", typeof( string ), typeof( ProgressRingCloud ),
             new PropertyMetadata( "\uEDE4", new PropertyChangedCallback(OnPropertyChanged) )
         );
 
@@ -86,7 +86,7 @@ namespace PixivWPF.Common
             set { SetCurrentValue(WaitSymbolFontFamilyProperty, value); }
         }
         public static readonly DependencyProperty WaitSymbolFontFamilyProperty = DependencyProperty.Register(
-            "WaitSymbolFontFamily", typeof( FontFamily ), typeof( ProgressRingCloud ), 
+            "WaitSymbolFontFamily", typeof( FontFamily ), typeof( ProgressRingCloud ),
             new PropertyMetadata( new FontFamily("Segoe MDL2 Assets"), new PropertyChangedCallback(OnPropertyChanged) )
         );
 
@@ -97,7 +97,7 @@ namespace PixivWPF.Common
             set { SetCurrentValue(StateProperty, value); /*NotifyPropertyChanged("State");*/ }
         }
         public static readonly DependencyProperty StateProperty = DependencyProperty.Register(
-            "State", typeof( TaskStatus ), typeof( ProgressRingCloud ), 
+            "State", typeof( TaskStatus ), typeof( ProgressRingCloud ),
             new PropertyMetadata( TaskStatus.RanToCompletion, new PropertyChangedCallback(OnPropertyChanged))
         );
 
@@ -129,7 +129,7 @@ namespace PixivWPF.Common
             }
         }
         public static readonly DependencyProperty SizeProperty = DependencyProperty.Register(
-            "Size", typeof( double ), typeof( ProgressRingCloud ), 
+            "Size", typeof( double ), typeof( ProgressRingCloud ),
             new PropertyMetadata( 64.0, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
@@ -140,7 +140,7 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ShadowColorProperty, value); /*NotifyPropertyChanged("ShadowColor");*/ }
         }
         public static readonly DependencyProperty ShadowColorProperty = DependencyProperty.Register(
-            "ShadowColor", typeof( Color ), typeof( ProgressRingCloud ), 
+            "ShadowColor", typeof( Color ), typeof( ProgressRingCloud ),
             new PropertyMetadata( default(Color), new PropertyChangedCallback(OnPropertyChanged) )
         );
 
@@ -151,7 +151,7 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ShadowDepthProperty, value); /*NotifyPropertyChanged("ShadowDepth");*/ }
         }
         public static readonly DependencyProperty ShadowDepthProperty = DependencyProperty.Register(
-            "ShadowDepth", typeof( double ), typeof( ProgressRingCloud ), 
+            "ShadowDepth", typeof( double ), typeof( ProgressRingCloud ),
             new PropertyMetadata( 0.0, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
@@ -162,8 +162,8 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ShadowBlurRadiusProperty, value); /*NotifyPropertyChanged("ShadowBlurRadius");*/ }
         }
         public static readonly DependencyProperty ShadowBlurRadiusProperty = DependencyProperty.Register(
-            "ShadowBlurRadius", typeof( double ), typeof( ProgressRingCloud ), 
-            new PropertyMetadata( 5.0, new PropertyChangedCallback(OnPropertyChanged) )
+            "ShadowBlurRadius", typeof( double ), typeof( ProgressRingCloud ),
+            new PropertyMetadata( 3.0, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
         [Description("Shadow Opacity"), Category("Appearance")]
@@ -173,7 +173,7 @@ namespace PixivWPF.Common
             set { SetCurrentValue(ShadowOpacityProperty, value); /*NotifyPropertyChanged("ShadowOpacity");*/ }
         }
         public static readonly DependencyProperty ShadowOpacityProperty = DependencyProperty.Register(
-            "ShadowOpacity", typeof( double ), typeof( ProgressRingCloud ), 
+            "ShadowOpacity", typeof( double ), typeof( ProgressRingCloud ),
             new PropertyMetadata( 1.0, new PropertyChangedCallback(OnPropertyChanged) )
         );
 
@@ -185,6 +185,29 @@ namespace PixivWPF.Common
         public ProgressRingCloud()
         {
             InitializeComponent();
+
+            PART_Percentage.Text = string.Empty;
+
+            ReportPercentageSlim = (value) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (!string.IsNullOrEmpty(PART_Mark.Text)) PART_Mark.Text = string.Empty;
+                    PART_Percentage.Text = $"{ Math.Floor(Math.Max(0, value)):F0}%";
+                    this.DoEvents();
+                });
+            };
+
+            ReportPercentage = (value, total) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (!string.IsNullOrEmpty(PART_Mark.Text)) PART_Mark.Text = string.Empty;
+                    var percent = value <= 0 ? 0 : value / total * 100;
+                    PART_Percentage.Text = $"{Math.Floor(percent):F0}%";
+                    this.DoEvents();
+                });
+            };
         }
 
         public void Dispose()
@@ -208,6 +231,8 @@ namespace PixivWPF.Common
                 PART_Mark.Text = WaitSymbol;
                 PART_Mark.FontFamily = WaitSymbolFontFamily;
                 PART_Mark.Visibility = Visibility.Visible;
+                PART_Percentage.Text = string.Empty;
+                PART_Percentage.Visibility = Visibility.Visible;
             }
         }
 
@@ -222,6 +247,7 @@ namespace PixivWPF.Common
                 PART_Mark.Text = WaitSymbol;
                 PART_Mark.FontFamily = WaitSymbolFontFamily;
                 PART_Mark.Visibility = Visibility.Collapsed;
+                PART_Percentage.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -233,9 +259,10 @@ namespace PixivWPF.Common
                 Visibility = Visibility.Visible;
                 PART_Ring.Visibility = Visibility.Collapsed;
                 PART_Reload.Visibility = ReloadEnabled ? Visibility.Visible : Visibility.Collapsed;
-                PART_Mark.Text = ReloadEnabled ? ReloadSymbol : WaitSymbol;
+                PART_Mark.Text = ReloadEnabled ? ReloadSymbol : string.IsNullOrEmpty(PART_Percentage.Text) ? string.Empty : WaitSymbol;
                 PART_Mark.FontFamily = ReloadEnabled ? ReloadSymbolFontFamily : WaitSymbolFontFamily;
                 PART_Mark.Visibility = Visibility.Visible;
+                PART_Percentage.Visibility = Visibility.Visible;
             }
         }
 
@@ -250,6 +277,7 @@ namespace PixivWPF.Common
                 PART_Mark.Text = ReloadEnabled ? ReloadSymbol : WaitSymbol;
                 PART_Mark.FontFamily = ReloadEnabled ? ReloadSymbolFontFamily : WaitSymbolFontFamily;
                 PART_Mark.Visibility = Visibility.Visible;
+                PART_Percentage.Visibility = Visibility.Visible;
             }
         }
 
@@ -273,7 +301,7 @@ namespace PixivWPF.Common
 
         public void UpdateState()
         {
-            switch(State)
+            switch (State)
             {
                 case TaskStatus.Created:
                     _Disable_();
@@ -295,6 +323,9 @@ namespace PixivWPF.Common
                     break;
             }
         }
+
+        public Action<double> ReportPercentageSlim { get; } = null;
+        public Action<double, double> ReportPercentage { get; } = null;
 
         private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -338,7 +369,7 @@ namespace PixivWPF.Common
         {
             if (IsWait)
             {
-                PART_Mark.Text = ReloadEnabled ? ReloadSymbol : WaitSymbol;
+                PART_Mark.Text = ReloadEnabled ? ReloadSymbol : string.IsNullOrEmpty(PART_Percentage.Text) ? WaitSymbol : string.Empty;
                 PART_Mark.FontFamily = ReloadEnabled ? ReloadSymbolFontFamily : WaitSymbolFontFamily;
             }
         }
@@ -347,12 +378,12 @@ namespace PixivWPF.Common
         {
             if (IsFail)
             {
-                PART_Mark.Text = ReloadEnabled ? ReloadSymbol : WaitSymbol;
+                PART_Mark.Text = ReloadEnabled ? ReloadSymbol : string.IsNullOrEmpty(PART_Percentage.Text) ? WaitSymbol : string.Empty;
                 PART_Mark.FontFamily = ReloadEnabled ? ReloadSymbolFontFamily : WaitSymbolFontFamily;
             }
             else
             {
-                PART_Mark.Text = WaitSymbol;
+                PART_Mark.Text = string.IsNullOrEmpty(PART_Percentage.Text) ? WaitSymbol : string.Empty;
                 PART_Mark.FontFamily = WaitSymbolFontFamily;
             }
         }
