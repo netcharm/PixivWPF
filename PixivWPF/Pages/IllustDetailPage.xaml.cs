@@ -2646,6 +2646,24 @@ namespace PixivWPF.Pages
             {
                 Commands.OpenCachedImage.Execute(string.IsNullOrEmpty(PreviewImagePath) ? Contents.Illust.GetPreviewUrl().GetImageCachePath() : PreviewImagePath);
             }
+            else if(sender == PreviewOpenDownloadedProperties)
+            {
+                if (SubIllusts.Items.Count() <= 0)
+                {
+                    if (Contents.IsWork())
+                    {
+                        IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
+                        Commands.OpenFileProperties.Execute(Contents);
+                    }
+                }
+                else
+                {
+                    if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
+                        SubIllusts.SelectedIndex = 0;
+                    IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
+                    Commands.OpenFileProperties.Execute(SubIllusts);
+                }
+            }
         }
 
         private void ActionRefreshPreview_Click(object sender, RoutedEventArgs e)
@@ -4120,6 +4138,21 @@ namespace PixivWPF.Pages
                         else if (host == FavoriteItemsExpander || host == FavoriteItems)
                         {
                             Commands.OpenDownloaded.Execute(FavoriteItems);
+                        }
+                    }
+                    else if (m.Uid.Equals("ActionOpenFileProperties", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (host == SubIllustsExpander || host == SubIllusts)
+                        {
+                            Commands.OpenFileProperties.Execute(SubIllusts);
+                        }
+                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        {
+                            Commands.OpenFileProperties.Execute(RelativeItems);
+                        }
+                        else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                        {
+                            Commands.OpenFileProperties.Execute(FavoriteItems);
                         }
                     }
                 }

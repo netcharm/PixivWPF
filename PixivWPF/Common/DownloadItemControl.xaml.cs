@@ -214,6 +214,9 @@ namespace PixivWPF.Common
 
         public DateTime StartTime { get; internal set; } = DateTime.Now;
         public DateTime EndTime { get; internal set; } = DateTime.Now;
+        public TimeSpan TotalElapsed { get; internal set; } = TimeSpan.FromSeconds(0);
+        public TimeSpan LastTotalElapsed { get; internal set; }
+        public TimeSpan LastElapsed { get; internal set; }
         public DateTime LastModified { get; internal set; }
 
         public double DownRateCurrent { get; set; } = 0;
@@ -550,6 +553,22 @@ namespace PixivWPF.Common
             set { if (Info is DownloadInfo) Info.EndTime = value; }
         }
         private DateTime lastTick = DateTime.Now;
+        private TimeSpan TotalElapsed
+        {
+            get { return (Info is DownloadInfo ? Info.TotalElapsed : default(TimeSpan)); }
+            set { if (Info is DownloadInfo) Info.TotalElapsed = value; }
+        }
+        private TimeSpan LastTotalElapsed
+        {
+            get { return (Info is DownloadInfo ? Info.LastTotalElapsed : default(TimeSpan)); }
+            set { if (Info is DownloadInfo) Info.LastTotalElapsed = value; }
+        }
+        private TimeSpan LastElapsed
+        {
+            get { return (Info is DownloadInfo ? Info.LastElapsed : default(TimeSpan)); }
+            set { if (Info is DownloadInfo) Info.LastElapsed = value; }
+        }
+
         private int lastRatesCount = 5;
         private Queue<double> lastRates = new Queue<double>();
         private double lastRate = 0;
@@ -562,7 +581,7 @@ namespace PixivWPF.Common
         {
             progress = new Progress<Tuple<double, double>>(i =>
             {
-                if ((State == DownloadState.Downloading && EndTick.DeltaSeconds(lastTick) >= 1) ||
+                if ((State == DownloadState.Downloading && LastElapsed.TotalSeconds >= 0.2) ||
                      State == DownloadState.Writing ||
                      State == DownloadState.Finished ||
                      State == DownloadState.NonExists)
@@ -572,13 +591,19 @@ namespace PixivWPF.Common
                     try
                     {
                         #region Update ProgressBar & Progress Info Text
-                        var deltaA = (EndTick - StartTick).TotalSeconds;
-                        var deltaC = (EndTick - lastTick).TotalSeconds;
+                        TotalElapsed = LastTotalElapsed + (EndTick - StartTick);
+                        var deltaA = TotalElapsed.TotalSeconds;
                         var rateA = deltaA > 0 ? received / deltaA : 0;
-                        var rateC = deltaC > 0 ? lastReceived / deltaC : lastRate;
-                        lastRates.Enqueue(rateC);
-                        if (lastRates.Count > lastRatesCount) lastRates.Dequeue();
-                        if (rateC > 0 || deltaC >= 1) lastRate = lastRates.Average(o => double.IsNaN(o) || o < 0 ? 0 : o);
+                        if (lastReceived > 0)
+                        {
+                            var rateC = lastReceived / LastElapsed.TotalSeconds;
+                            if (rateC > 0)
+                            {
+                                lastRates.Enqueue(rateC);
+                                if (lastRates.Count > lastRatesCount) lastRates.Dequeue();
+                                lastRate = lastRates.Average(o => double.IsNaN(o) || o < 0 ? 0 : o);
+                            }
+                        }
 
                         var percent = total > 0 ? received / total : 0;
                         PART_DownloadProgress.Value = percent * 100;
@@ -605,15 +630,17 @@ namespace PixivWPF.Common
 
                         lastRateA = rateA;
                         lastReceived = 0;
+                        lastTick = EndTick;
+                        LastElapsed = new TimeSpan();
                     }
                     catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_InitProgress"); }
-                    lastTick = EndTick;
                 }
             });
         }
 
-        private void UpdateProgress()
+        private void UpdateProgress(bool force = false)
         {
+            if (force) LastElapsed = TimeSpan.FromSeconds(1);
             if (progress is IProgress<Tuple<double, double>>) progress.Report(Progress);
         }
         #endregion
@@ -778,6 +805,7 @@ namespace PixivWPF.Common
                 try
                 {
                     var lastUpdateBuffer = DateTime.Now;
+                    LastElapsed = TimeSpan.FromSeconds(0.1);
 
                     if (continuation && _DownloadBuffer is byte[])
                     {
@@ -803,7 +831,7 @@ namespace PixivWPF.Common
 
                         using (var cs = ce != null && ce == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                         {
-                            lastReceived = ms.Length;
+                            lastReceived = 0;
                             Received = ms.Length;
                             UpdateProgress();
 
@@ -833,12 +861,16 @@ namespace PixivWPF.Common
                                         _DownloadBuffer = ms.ToArray();
                                         lastUpdateBuffer = EndTick;
                                     }
+                                    LastElapsed = EndTick - lastTick;
                                     UpdateProgress();
                                 }
                             } while (bytesread > 0 && Received < Length);
 
                             if (Received == Length && State == DownloadState.Downloading)
                             {
+                                if (TotalElapsed.TotalSeconds == 0) TotalElapsed = LastTotalElapsed + (EndTick - StartTick);
+                                if (LastElapsed.TotalSeconds == 0) LastElapsed = EndTick - StartTick;
+                                if (lastReceived == 0) lastReceived = Received;
                                 _DownloadBuffer = ms.ToArray();
                                 result = await SaveFile(FileName, _DownloadBuffer);
                             }
@@ -857,7 +889,7 @@ namespace PixivWPF.Common
                 }
                 catch (Exception ex)
                 {
-                    var stack = string.IsNullOrEmpty(ex.StackTrace) ? string.Empty : $"\n{ex.StackTrace}";
+                    var stack = string.IsNullOrEmpty(ex.StackTrace) ? string.Empty : $"{Environment.NewLine}{ex.StackTrace}";
                     FailReason = $"{ex.Message}{stack}";
                 }
                 finally
@@ -895,18 +927,24 @@ namespace PixivWPF.Common
 
             if (restart && _DownloadBuffer is byte[]) CleanBuffer();
 
+            LastElapsed = TimeSpan.FromSeconds(0);
             if (_DownloadBuffer is byte[])
             {
-                lastReceived = _DownloadBuffer.Length;
-                Received = lastReceived;
+                TotalElapsed = EndTick - StartTick;
+                Received = _DownloadBuffer.Length;
+                lastReceived = 0;
             }
             else
             {
-                StartTick = DateTime.Now;
+                TotalElapsed = new TimeSpan();
+                Received = 0;
                 lastReceived = 0;
                 Length = Received = 0;
             }
-            UpdateProgress();
+            lastRates.Clear();
+            LastTotalElapsed = TotalElapsed;
+            StartTick = DateTime.Now;
+            UpdateProgress(force: true);
         }
 
         private void DownloadExceptionProcess()
@@ -939,12 +977,15 @@ namespace PixivWPF.Common
 
             setting = Application.Current.LoadSetting();
 
+            LastElapsed = TimeSpan.FromSeconds(0);
+            lastReceived = 0;
+
             if (State == DownloadState.Finished)
             {
                 result = FileName;
                 EndTick = DateTime.Now;
 
-                CleanBuffer();
+                CleanBuffer();                
 
                 var state = "Succeed";
                 $"{FileName} {state}.".INFO("Download");
@@ -1158,6 +1199,7 @@ namespace PixivWPF.Common
                 delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan ? true : false;
                 if (!delta) return;
                 if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) return;
+                restart = true;
             }
 
             if (IsDownloading) await Cancel();
@@ -1398,6 +1440,10 @@ namespace PixivWPF.Common
             else if (sender == miOpenFolder || sender == PART_OpenFolder)
             {
                 FileName.OpenFileWithShell(true);
+            }
+            else if(sender == miOpenImageProperties)
+            {
+                FileName.OpenShellFileProperty();
             }
         }
     }

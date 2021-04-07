@@ -1067,10 +1067,6 @@ namespace PixivWPF.Common
                 {
                     if (TagsT2S.ContainsKey(src)) result = TagsT2S[src];
                     else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
-
-                    var pattern = $@"/{src}/";
-                    if (TagsT2S.ContainsKey(pattern))
-                        result = Regex.Replace(result, src, TagsT2S[pattern], RegexOptions.IgnoreCase);
                 }
 
                 if (TagsWildecardT2S is ConcurrentDictionary<string, string>)
@@ -1079,18 +1075,23 @@ namespace PixivWPF.Common
                     var text = alpha ? src : result;
                     foreach (var kv in TagsWildecardT2S)
                     {
-                        var k = kv.Key.Replace(" ", "\\s");
+                        var k = kv.Key.Replace(" ", @"\s");
                         var v = kv.Value;
-                        if (text.IndexOf(v, 0, StringComparison.OrdinalIgnoreCase) < 0)
-                            text = Regex.Replace(text, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
-
-                        if (k.StartsWith("/") && k.EndsWith("/"))
+                        text = Regex.Replace(text, $@"{k.Trim('/')}", (m) =>
                         {
-                            text = Regex.Replace(text, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
-                            result = Regex.Replace(result, $@"{k.Trim('/')}", v, RegexOptions.IgnoreCase);
-                        }
+                            var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", (idx) =>
+                            {
+                                var i = int.Parse(idx.Groups[1].Value);
+                                return (m.Groups[i].Success ? $"{idx.Groups[2].Value.Trim('%')}" : string.Empty);
+                            });
+                            for (int i = 0; i < m.Groups.Count; i++)
+                            {
+                                vs = vs.Replace($"${i}", m.Groups[i].Value);
+                            }
+                            return (vs);
+                        }, RegexOptions.IgnoreCase);
                     }
-                    var result_o = Regex.Replace(result, regex_symbol, "\\$1", RegexOptions.IgnoreCase);
+                    var result_o = Regex.Replace(result, regex_symbol, @"\$1", RegexOptions.IgnoreCase);
                     result = alpha && !Regex.IsMatch(text, result_o, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                 }
             }
@@ -1818,7 +1819,7 @@ namespace PixivWPF.Common
                 result.Add($"URL    : {di.Url}");
                 result.Add($"File   : {di.FileName}, {di.FileTime.ToString("yyyy-MM-dd HH:mm:sszzz")}");
                 result.Add($"State  : {di.State}{fail}");
-                result.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.Days * 24 + delta.Hours}:{delta.Minutes}:{delta.Seconds} s");
+                result.Add($"Elapsed: {di.StartTime.ToString("yyyy-MM-dd HH:mm:sszzz")} -> {di.EndTime.ToString("yyyy-MM-dd HH:mm:sszzz")}, {delta.SmartElapsed()} s");
                 result.Add($"Status : {di.Received.SmartFileSize()} / {di.Length.SmartFileSize()} ({di.Received} Bytes / {di.Length} Bytes), Rate ≈ {rate.SmartSpeedRate()}");
             }
             return (result);
@@ -1828,21 +1829,30 @@ namespace PixivWPF.Common
 
         public static string SmartSpeedRate(this long v, double factor = 1, bool unit = true) { return (SmartSpeedRate((double)v, factor, unit)); }
 
-        public static string SmartSpeedRate(this double v, double factor = 1, bool unit = true)
+        public static string SmartSpeedRate(this double v, double factor = 1, bool unit = true, bool trimzero = false)
         {
             string v_str = string.Empty;
             if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) v_str = $"0 B/s";
             else if (v >= VALUE_MB) v_str = $"{v / factor / VALUE_MB:F2} MB/s";
             else if (v >= VALUE_KB) v_str = $"{v / factor / VALUE_KB:F2} KB/s";
             else v_str = $"{v / factor:F2} B/s";
-            return (unit ? v_str : v_str.Split().First());
+            if (trimzero)
+            {
+                var vs = v_str.Split().Select(s => s.Trim('0').TrimEnd('.'));
+                return (unit ? string.Join(" ", vs) : vs.First());
+            }
+            else
+            {
+                var vs = v_str.Split().Select(s => s.TrimEnd('.'));
+                return (unit ? string.Join(" ", vs) : vs.First());
+            }
         }
 
         public static Func<double, string> SmartFileSizeFunc = (v) => { return(SmartFileSize(v)); };
 
         public static string SmartFileSize(this long v, double factor = 1, bool unit = true) { return (SmartFileSize((double)v, factor, unit)); }
 
-        public static string SmartFileSize(this double v, double factor = 1, bool unit = true)
+        public static string SmartFileSize(this double v, double factor = 1, bool unit = true, bool trimzero = true)
         {
             string v_str = string.Empty;
             if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) v_str = $"0 B";
@@ -1850,11 +1860,37 @@ namespace PixivWPF.Common
             else if (v >= VALUE_MB) v_str = $"{v / factor / VALUE_MB:F2} MB";
             else if (v >= VALUE_KB) v_str = $"{v / factor / VALUE_KB:F2} KB";
             else v_str = $"{v / factor:F0} B";
-            return (unit ? v_str : v_str.Split().First());
+            if (trimzero)
+            {
+                var vs = v_str.Split().Select(s => s.Trim('0').TrimEnd('.'));
+                return (unit ? string.Join(" ", vs) : vs.First());
+            }
+            else
+            {
+                var vs = v_str.Split().Select(s => s.TrimEnd('.'));
+                return (unit ? string.Join(" ", vs) : vs.First());
+            }
+        }
+
+        public static string SmartElapsed(this TimeSpan delta, bool msec = true, bool unit = false, bool trimzero = true)
+        {
+            var elapsed = "0";
+            if (delta.TotalDays >= 1) elapsed = $"{delta.TotalHours:F0}:{delta.Minutes:00}:{delta.Seconds:00}";
+            else if (delta.TotalHours >= 1) elapsed = $"{delta.Hours:00}:{delta.Minutes:00}:{delta.Seconds:00}";
+            else if (delta.TotalMinutes >= 1) elapsed = $"{delta.Minutes:00}:{delta.Seconds:00}";
+            else if (delta.TotalSeconds >= 1) elapsed = $"{delta.Seconds}";
+            if (msec)
+            {
+                if (trimzero)
+                    elapsed = $"{elapsed}.{delta.Milliseconds:000}".TrimEnd('0').TrimEnd('.');
+                else
+                    elapsed = $"{elapsed}.{delta.Milliseconds:000}".TrimEnd('.');
+            }
+            return (unit ? $"{elapsed} s" : elapsed);
         }
         #endregion
 
-        #region Get Illust Work DateTime
+        #region Illust Work DateTime routines
         private static TimeZoneInfo TokoyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
         private static TimeZoneInfo LocalTimeZone = TimeZoneInfo.Local;
 
@@ -1902,7 +1938,7 @@ namespace PixivWPF.Common
                     System.Diagnostics.Debug.WriteLine($"=> Touching {fileinfo.Name}");
                     if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
                     var illust = id.FindIllust();
-                    if (illust is Pixeez.Objects.Work)
+                    if (illust is Pixeez.Objects.Work && dt != null)
                     {
                         var uid = $"{illust.User.Id}";
                         bool is_png = fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase);
@@ -1925,7 +1961,7 @@ namespace PixivWPF.Common
                                 if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != illust.Tags.Count)
                                     sh.Properties.System.Keywords.Value = illust.Tags.ToArray();
                                 if (sh.Properties.System.Copyright.Value == null)
-                                    sh.Properties.System.Copyright.Value = string.Join("; ", sh.Properties.System.Author.Value);
+                                    sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}";
 
                                 if (sh.Properties.System.Comment.Value == null || !sh.Properties.System.Comment.Value.Equals(illust.Caption.HtmlToText()))
                                     sh.Properties.System.Comment.Value = illust.Caption.HtmlToText();
@@ -1956,7 +1992,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR($"AttachMetaInfo_{fileinfo.Name}"); }
         }
 
-        public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = false)
+        public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = true)
         {
             try
             {
@@ -1968,13 +2004,16 @@ namespace PixivWPF.Common
                         {
                             var fdt = url.ParseDateTime();
                             if (fdt.Year <= 1601) return;
-                            fileinfo.WaitFileUnlock();
-                            //if (meta && setting.DownloadAttachMetaInfo) fileinfo.AttachMetaInfo(dt: fdt);
-                            if (setting.DownloadAttachMetaInfo) fileinfo.AttachMetaInfo(dt: fdt);
-                            fileinfo.WaitFileUnlock();
-                            if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
-                            if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
-                            if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
+                            if (setting.DownloadAttachMetaInfo && meta && fileinfo.WaitFileUnlock())
+                            {
+                                fileinfo.AttachMetaInfo(dt: fdt);
+                            }
+                            if (fileinfo.WaitFileUnlock())
+                            {
+                                if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
+                                if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
+                                if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
+                            }
                         }
                         catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
                     }).Invoke(async: true);
@@ -1983,13 +2022,12 @@ namespace PixivWPF.Common
             catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
         }
 
-        public static void Touch(this string file, string url, bool local = false, bool meta = false)
+        public static void Touch(this string file, string url, bool local = false, bool meta = true)
         {
             try
             {
-                if (File.Exists(file))
+                if (File.Exists(file) && file.WaitFileUnlock())
                 {
-                    file.WaitFileUnlock();
                     FileInfo fi = new FileInfo(file);
                     fi.Touch(url, local, meta);
                 }
@@ -1997,9 +2035,32 @@ namespace PixivWPF.Common
             catch (Exception ex) { var id = Path.GetFileName(file); ex.ERROR($"Touch_{id}"); }
         }
 
-        public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false, bool meta = false)
+        public static void Touch(this string file, Pixeez.Objects.Work Illust, bool local = false, bool meta = true)
         {
             file.Touch(Illust.GetOriginalUrl(), local, meta);
+        }
+
+        public static void Touch(this PixivItem item, bool local = false, bool meta = true)
+        {
+            if (item.IsWork())
+            {
+                if (string.IsNullOrEmpty(item.DownloadedFilePath) || !File.Exists(item.DownloadedFilePath))
+                {
+                    string file = string.Empty;
+                    item.IsDownloaded = item.Illust.IsDownloaded(out file, item.Index, item.Count <= 1);
+                    item.DownloadedFilePath = file;
+                    item.DownloadedTooltip = file;
+                }
+                else
+                {
+                    item.DownloadedFilePath.Touch(item.Illust.GetOriginalUrl(), local, meta);
+                }
+            }
+        }
+
+        public static async void TouchAsync(this string file, string url, bool local = false, bool meta = true)
+        {
+            await new Action(() => { Touch(file, url, local, meta); }).InvokeAsync();
         }
         #endregion
 
@@ -2679,7 +2740,7 @@ namespace PixivWPF.Common
                         var files = Directory.GetFiles(folder, $"{fn}_*.*").NaturalSort();
                         if (files.Count() > 0)
                         {
-                            foreach (var fc in files.Skip(1)) fc.Touch(url, meta: false);
+                            foreach (var fc in files.Skip(1)) fc.Touch(url, meta: true);
                             filepath = files.First();
                             result = true;
                         }
@@ -3476,36 +3537,6 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("CopyImage"); }
         }
 
-        public static async Task<bool> WriteToFile_(this Stream source, string file, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
-        {
-            var result = false;
-            using (var ms = new MemoryStream())
-            {
-                if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
-                await source.CopyToAsync(ms, bufferSize);
-                if (ms.Length > 0)
-                {
-                    var folder = Path.GetDirectoryName(file);
-                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-
-                    if (await file.WaitFileUnlockAsync(1000, 10))
-                    {
-                        using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
-                        {
-                            await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
-                            await fs.FlushAsync();
-                            fs.Close();
-                            fs.Dispose();
-                            result = true;
-                        }
-                    }
-                }
-                ms.Close();
-                ms.Dispose();
-            }
-            return (result);
-        }
-
         public static async Task<bool> WriteToFile(this Stream source, string file, Action<double, double> progressAction = null, ContentRangeHeaderValue range = null, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
         {
             var result = false;
@@ -3650,7 +3681,6 @@ namespace PixivWPF.Common
                             string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                             using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                             {
-                                //var ret = progressAction is Action<double, double> ? await sr.WriteToFile(file, progressAction, range) : await sr.WriteToFile(file);
                                 var ret = await sr.WriteToFile(file, progressAction, range);
                                 if (ret) result = file;
                                 sr.Close();
@@ -5120,10 +5150,8 @@ namespace PixivWPF.Common
         {
             string result = string.Empty;
 
-            if (obj is UIElement)
-            {
-                result = (obj as UIElement).Uid;
-            }
+            try { if (obj is UIElement) result = (obj as UIElement).Uid; }
+            catch (Exception ex) { ex.ERROR("GetUid"); }
 
             return (result);
         }
@@ -6187,100 +6215,6 @@ namespace PixivWPF.Common
         #endregion
 
         #region Drop Window routines
-        private static void DropBox_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                if (sender is ContentWindow)
-                {
-                    var window = sender as ContentWindow;
-                    window.DragMove();
-
-                    var desktop = SystemParameters.WorkArea;
-                    if (window.Left < desktop.Left) window.Left = desktop.Left;
-                    if (window.Top < desktop.Top) window.Top = desktop.Top;
-                    if (window.Left + window.Width > desktop.Left + desktop.Width) window.Left = desktop.Left + desktop.Width - window.Width;
-                    if (window.Top + window.Height > desktop.Top + desktop.Height) window.Top = desktop.Top + desktop.Height - window.Height;
-                    setting.DropBoxPosition = new Point(window.Left, window.Top);
-                    //setting.Save();
-                }
-            }
-            else if (e.ChangedButton == MouseButton.XButton1)
-            {
-                if (sender is ContentWindow)
-                {
-                    //var window = sender as ContentWindow;
-                    //window.Hide();
-                    e.Handled = true;
-                }
-            }
-        }
-
-        private static void DropBox_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                if (sender is ContentWindow && e.ClickCount == 1)
-                {
-                    setting = Application.Current.LoadSetting();
-
-                    var window = sender as ContentWindow;
-
-                    var desktop = SystemParameters.WorkArea;
-                    if (window.Left < desktop.Left) window.Left = desktop.Left;
-                    if (window.Top < desktop.Top) window.Top = desktop.Top;
-                    if (window.Left + window.Width > desktop.Left + desktop.Width) window.Left = desktop.Left + desktop.Width - window.Width;
-                    if (window.Top + window.Height > desktop.Top + desktop.Height) window.Top = desktop.Top + desktop.Height - window.Height;
-                    setting.DropBoxPosition = new Point(window.Left, window.Top);
-                    setting.Save();
-                }
-            }
-        }
-
-        private static void DropBox_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                if (sender is ContentWindow)
-                {
-                    var window = sender as ContentWindow;
-                    // In maximum window state case, window will return normal state and continue moving follow cursor
-                    if (window.WindowState == WindowState.Maximized)
-                    {
-                        window.WindowState = WindowState.Normal;
-                        // 3 or any where you want to set window location affter return from maximum state
-                        //Application.Current.MainWindow.Top = 3;
-                    }
-                    window.DragMove();
-                }
-            }
-        }
-
-        private static void DropBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ClickCount >= 3)
-            {
-                if (sender is ContentWindow)
-                {
-                    var window = sender as ContentWindow;
-                    window.Hide();
-                    window.Close();
-                    window = null;
-                }
-            }
-        }
-
-        private static void DropBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is ContentWindow)
-            {
-                var window = sender as ContentWindow;
-                window.Hide();
-                window.Close();
-                window = null;
-            }
-        }
-
         public static Window DropBoxExists(this Window window)
         {
             Window result = null;
@@ -6303,78 +6237,6 @@ namespace PixivWPF.Common
             }).Invoke(async: false);
         }
 
-        public static bool ShowDropBox(this bool show)
-        {
-            var win = DropBoxExists(null);
-            ContentWindow box = win == null ? null : (ContentWindow)win;
-
-            if (box is ContentWindow)
-            {
-                box.Hide();
-                box.Close();
-                box = null;
-            }
-            else
-            {
-                box = new ContentWindow();
-                box.MouseDown += DropBox_MouseDown;
-                box.MouseUp += DropBox_MouseUp;
-                ///box.MouseMove += DropBox_MouseMove;
-                //box.MouseDoubleClick += DropBox_MouseDoubleClick;
-                box.MouseLeftButtonDown += DropBox_MouseLeftButtonDown;
-                box.Width = 48;
-                box.Height = 48;
-                box.MinWidth = 48;
-                box.MinHeight = 48;
-                box.MaxWidth = 48;
-                box.MaxHeight = 48;
-
-                box.Background = Theme.WindowTitleBrush;
-                box.OverlayBrush = Theme.WindowTitleBrush;
-                //box.OverlayOpacity = 0.8;
-
-                box.Opacity = 0.85;
-                box.AllowsTransparency = true;
-                //box.SaveWindowPosition = true;
-                //box.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-                box.AllowDrop = true;
-                box.Topmost = true;
-                box.ResizeMode = ResizeMode.NoResize;
-                box.ShowInTaskbar = false;
-                box.ShowIconOnTitleBar = false;
-                box.ShowCloseButton = false;
-                box.ShowMinButton = false;
-                box.ShowMaxRestoreButton = false;
-                box.ShowSystemMenuOnRightClick = false;
-                box.ShowTitleBar = false;
-                //box.WindowStyle = WindowStyle.None;
-                box.Title = "DropBox";
-
-                var icon = Application.Current.GetIcon();
-                box.Content = icon;
-                box.Icon = icon.Source;
-
-                if (setting.DropBoxPosition != null)
-                {
-                    double x= setting.DropBoxPosition.X;
-                    double y =setting.DropBoxPosition.Y;
-                    if (x == 0 && y == 0)
-                        box.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-                    else
-                    {
-                        box.Left = x;
-                        box.Top = y;
-                    }
-                }
-
-                box.Show();
-                box.Activate();
-            }
-
-            var result = box is ContentWindow ? box.IsVisible : false;
-            SetDropBoxState(result);
-            return (result);
-        }
         #endregion
     }
 
@@ -6663,7 +6525,7 @@ namespace PixivWPF.Common
             {
                 return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
             }
-            catch(Exception ex) { ex.ERROR("NaturalSort"); return (list); }
+            catch (Exception ex) { ex.ERROR("NaturalSort"); return (list); }
         }
 
         public static void Dispose(this Image image)

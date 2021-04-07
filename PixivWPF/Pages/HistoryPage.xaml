@@ -95,6 +95,11 @@
                     <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionOpenDownloadedProperties" Header="View Downloaded Properties" Click="ActionOpenDownloaded_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>            
             <Separator x:Name="ActionLikeIllustSeparator" x:Uid="ActionLikeIllustSeparator" />
             <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>

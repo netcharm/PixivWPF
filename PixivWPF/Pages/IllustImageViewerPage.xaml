@@ -100,6 +100,16 @@
                         <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem x:Name="ActionOpenDownloaded" x:Uid="OpenDownloaded" Header="Open Downloaded With..." Click="ActionIllustInfo_Click">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="ActionOpenDownloadedProperties" x:Uid="OpenDownloadedProperties" Header="View Downloaded Properties" Click="ActionIllustInfo_Click">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Image" Click="ActionSaveIllust_Click">
                     <MenuItem.Icon>
@@ -196,7 +206,7 @@
             Grid.Row="0" Grid.RowSpan="3" x:Name="PreviewWait" Visibility="Collapsed"
             Size="128" ReloadEnabled="True" ReloadClick="ActionIllustInfo_Click"
             Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
-            ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
+            ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="3" ShadowDepth="1" ShadowOpacity="1"
             VerticalAlignment="Center" HorizontalAlignment="Center"/>
 
     </Grid>

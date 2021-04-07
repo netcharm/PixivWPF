@@ -181,6 +181,11 @@ namespace PixivWPF.Common
         public bool IsWait { get { return (Visibility == Visibility.Visible && IsActive == true); } }
         public bool IsFail { get { return (Visibility == Visibility.Visible && IsActive == false); } }
         public bool IsReady { get { return (Visibility == Visibility.Collapsed && IsActive == false); } }
+        public string PercentageTooltip
+        {
+            get { return (PART_Percentage.ToolTip is string ? PART_Percentage.ToolTip as string : string.Empty); }
+            set { PART_Percentage.ToolTip = value; }
+        }
 
         public ProgressRingCloud()
         {
@@ -204,7 +209,10 @@ namespace PixivWPF.Common
                 {
                     if (!string.IsNullOrEmpty(PART_Mark.Text)) PART_Mark.Text = string.Empty;
                     var percent = value <= 0 ? 0 : value / total * 100;
-                    PART_Percentage.Text = $"{Math.Floor(percent):F0}%";
+                    if (value == 0 && total == 0)
+                        PART_Percentage.Text = $"...";
+                    else
+                        PART_Percentage.Text = $"{Math.Floor(percent):F0}%";
                     this.DoEvents();
                 });
             };

@@ -539,13 +539,16 @@ namespace PixivWPF.Common
 
         public static void RefreshThemedIcon(this Application app)
         {
-            if (DefaultIcon == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
-            if (ThemedIconSource == null)
-                ThemedIconSource = new CustomImageSource() { Source = IconUri.CreateThemedImage() };
-            else
-                ThemedIconSource.Source = IconUri.CreateThemedImage();
-            if (ThemedIcon is Image) ThemedIcon.Dispose();
-            ThemedIcon = new Image() { Source = ThemedIconSource.Source };
+            new Action(() =>
+            {
+                if (DefaultIcon == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
+                if (ThemedIconSource == null)
+                    ThemedIconSource = new CustomImageSource() { Source = IconUri.CreateThemedImage() };
+                else
+                    ThemedIconSource.Source = IconUri.CreateThemedImage();
+                if (ThemedIcon is Image) ThemedIcon.Dispose();
+                ThemedIcon = new Image() { Source = ThemedIconSource.Source };
+            }).Invoke();
         }
 
         public static Image GetIcon(this Application app)
@@ -1092,6 +1095,176 @@ namespace PixivWPF.Common
         }
         #endregion
 
+        #region Application DropBox 
+        private static void DropBox_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                var setting  = Application.Current.LoadSetting();
+                if (sender is ContentWindow)
+                {
+                    var window = sender as ContentWindow;
+                    window.DragMove();
+
+                    var desktop = SystemParameters.WorkArea;
+                    if (window.Left < desktop.Left) window.Left = desktop.Left;
+                    if (window.Top < desktop.Top) window.Top = desktop.Top;
+                    if (window.Left + window.Width > desktop.Left + desktop.Width) window.Left = desktop.Left + desktop.Width - window.Width;
+                    if (window.Top + window.Height > desktop.Top + desktop.Height) window.Top = desktop.Top + desktop.Height - window.Height;
+                    setting.DropBoxPosition = new Point(window.Left, window.Top);
+                    //setting.Save();
+                }
+            }
+            else if (e.ChangedButton == MouseButton.XButton1)
+            {
+                if (sender is ContentWindow)
+                {
+                    //var window = sender as ContentWindow;
+                    //window.Hide();
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private static void DropBox_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                if (sender is ContentWindow && e.ClickCount == 1)
+                {
+                    var setting  = Application.Current.LoadSetting();
+
+                    var window = sender as ContentWindow;
+
+                    var desktop = SystemParameters.WorkArea;
+                    if (window.Left < desktop.Left) window.Left = desktop.Left;
+                    if (window.Top < desktop.Top) window.Top = desktop.Top;
+                    if (window.Left + window.Width > desktop.Left + desktop.Width) window.Left = desktop.Left + desktop.Width - window.Width;
+                    if (window.Top + window.Height > desktop.Top + desktop.Height) window.Top = desktop.Top + desktop.Height - window.Height;
+                    setting.DropBoxPosition = new Point(window.Left, window.Top);
+                    setting.Save();
+                }
+            }
+        }
+
+        private static void DropBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                if (sender is ContentWindow)
+                {
+                    var window = sender as ContentWindow;
+                    // In maximum window state case, window will return normal state and continue moving follow cursor
+                    if (window.WindowState == WindowState.Maximized)
+                    {
+                        window.WindowState = WindowState.Normal;
+                        // 3 or any where you want to set window location affter return from maximum state
+                        //Application.Current.MainWindow.Top = 3;
+                    }
+                    window.DragMove();
+                }
+            }
+        }
+
+        private static void DropBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount >= 3)
+            {
+                if (sender is ContentWindow)
+                {
+                    var window = sender as ContentWindow;
+                    window.Hide();
+                    window.Close();
+                    window = null;
+                }
+            }
+        }
+
+        private static void DropBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is ContentWindow)
+            {
+                var window = sender as ContentWindow;
+                window.Hide();
+                window.Close();
+                window = null;
+            }
+        }
+
+        public static bool ToggleDropBox(this Application app)
+        {
+            var win = app.MainWindow.DropBoxExists();
+            ContentWindow box = win == null ? null : (ContentWindow)win;
+
+            if (box is ContentWindow)
+            {
+                box.Close();
+                box = null;
+            }
+            else
+            {
+                var setting = Application.Current.LoadSetting();
+                box = new ContentWindow();
+                box.MouseDown += DropBox_MouseDown;
+                box.MouseUp += DropBox_MouseUp;
+                ///box.MouseMove += DropBox_MouseMove;
+                //box.MouseDoubleClick += DropBox_MouseDoubleClick;
+                box.MouseLeftButtonDown += DropBox_MouseLeftButtonDown;
+                box.Width = 48;
+                box.Height = 48;
+                box.MinWidth = 48;
+                box.MinHeight = 48;
+                box.MaxWidth = 48;
+                box.MaxHeight = 48;
+
+                box.Background = Theme.WindowTitleBrush;
+                box.OverlayBrush = Theme.WindowTitleBrush;
+                //box.OverlayOpacity = 0.8;
+
+                box.Opacity = 0.85;
+                box.AllowsTransparency = true;
+                //box.SaveWindowPosition = true;
+                //box.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                box.AllowDrop = true;
+                box.Topmost = true;
+                box.ResizeMode = ResizeMode.NoResize;
+                box.ShowInTaskbar = false;
+                box.ShowIconOnTitleBar = false;
+                box.ShowCloseButton = false;
+                box.ShowMinButton = false;
+                box.ShowMaxRestoreButton = false;
+                box.ShowSystemMenuOnRightClick = false;
+                box.ShowTitleBar = false;
+                //box.WindowStyle = WindowStyle.None;
+                box.Title = "DropBox";
+
+                var icon = Application.Current.GetIcon();
+                box.Content = icon;
+                box.Icon = icon.Source;
+
+                if (setting.DropBoxPosition != null)
+                {
+                    double x= setting.DropBoxPosition.X;
+                    double y =setting.DropBoxPosition.Y;
+                    if (x == 0 && y == 0)
+                        box.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                    else
+                    {
+                        box.Left = x;
+                        box.Top = y;
+                    }
+                }
+
+                box.Show();
+                box.Activate();
+            }
+
+            var result = box is ContentWindow ? box.IsVisible : false;
+            result.SetDropBoxState();
+            return (result);
+        }
+        #endregion
+
         #region Application NamedPipe Helper
         private static string pipe_name = string.Empty;
         public static string PipeName
@@ -1582,6 +1755,7 @@ namespace PixivWPF.Common
 
                     var illusts = source.Where(i => i.IsWork()).Distinct();
                     var found = illusts.Where(i => i.Illust.Id == new_id);
+                    var file = string.Empty;
                     if (found.Count() >= 1)
                     {
                         var i = found.FirstOrDefault();
@@ -1589,7 +1763,8 @@ namespace PixivWPF.Common
                         i.User = illust.User;
                         i.IsFollowed = i.Illust.IsLiked();
                         i.IsFavorited = i.User.IsLiked();
-                        i.IsDownloaded = i.Illust.IsPartDownloaded();
+                        i.IsDownloaded = i.Illust.IsPartDownloaded(out file);
+                        i.DownloadedFilePath = file;
                         source.Move(source.IndexOf(i), 0);
                     }
                     else

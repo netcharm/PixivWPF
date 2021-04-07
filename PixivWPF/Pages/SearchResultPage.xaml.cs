@@ -236,9 +236,9 @@ namespace PixivWPF.Pages
             List<string> info = new List<string>();
             foreach (var item in ResultItems.GetSelected(WithSelectionOrder: false, NonForAll: true))
             {
-                if(item.IsUser())
+                if (item.IsUser())
                     info.Add($"UID:{item.ID}, UNAME:{item.User.Name}");
-                else if(item.IsWork())
+                else if (item.IsWork())
                     info.Add($"ID:{item.ID}, Title:{item.Illust.Title}, UID:{item.UserID}, UNAME:{item.User.Name}");
             }
             Commands.CopyText.Execute(string.Join(Environment.NewLine, info));
@@ -541,7 +541,7 @@ namespace PixivWPF.Pages
                 }
                 if (ResultItems.Items.Count() <= 1 && no_filter)
                 {
-                    if (ResultItems.Items.Count() <= 0) "No Result".ShowToast("INFO");
+                    if (ResultItems.Items.Count() <= 0) $"Searching \"{Contents}\" No Result".ShowToast("INFO");
 
                     if (ParentWindow != null)
                     {
@@ -556,8 +556,7 @@ namespace PixivWPF.Pages
                 ResultItems.Fail();
                 if (ex is NullReferenceException)
                 {
-                    //"No Result".ShowMessageBox("WARNING");
-                    "No Result".ShowToast("WARNING");
+                    $"Searching \"{Contents}\" No Result".ShowToast("WARNING");
                 }
                 else
                 {
@@ -661,10 +660,12 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (PixivItem item in ResultItems.SelectedItems)
-                {
-                    Commands.OpenDownloaded.Execute(item);
-                }
+                if (sender.GetUid().Equals("ActionOpenDownloadedProperties"))
+                    foreach (PixivItem item in ResultItems.SelectedItems)
+                        Commands.OpenFileProperties.Execute(item);
+                else if (sender.GetUid().Equals("ActionOpenDownloaded"))
+                    foreach (PixivItem item in ResultItems.SelectedItems)
+                        Commands.OpenDownloaded.Execute(item);
             }
         }
 

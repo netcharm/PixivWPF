@@ -85,6 +85,11 @@
                         <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem x:Name="miOpenImageProperties" x:Uid="OpenFileProperties" Header="View Image Properties" Click="miActions_Click">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </ContextMenu>
         </Grid.ContextMenu>
         <Grid.RowDefinitions>

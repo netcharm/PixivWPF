@@ -181,13 +181,18 @@ namespace PixivWPF.Common
                     (Content as HistoryPage).Dispose();
                 else if (Content is SearchResultPage)
                     (Content as SearchResultPage).Dispose();
+                else if (Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (Content is Image) (Content as Image).Dispose();
+                    false.SetDropBoxState();
+                }
 
                 if (Content is Page)
                 {
                     (Content as Page).DataContext = null;
                 }
             }
-            catch (Exception ex) { ex.Message.ShowToast("ERROR", tag: "CLOSEWIN"); }
+            catch (Exception ex) { ex.ERROR("CLOSEWIN"); }
             finally
             {
                 if (!e.Cancel)

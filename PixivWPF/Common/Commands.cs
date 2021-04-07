@@ -1058,13 +1058,13 @@ namespace PixivWPF.Common
                 if (obj is CustomImageSource)
                 {
                     var img = obj as CustomImageSource;
-                    if (!string.IsNullOrEmpty(img.SourcePath) && File.Exists(img.SourcePath)) ShellOpenFile.Execute(img.SourcePath);
+                    if (!string.IsNullOrEmpty(img.SourcePath) && File.Exists(img.SourcePath)) OpenFileProperties.Execute(img.SourcePath);
                 }
                 else if (obj is string)
                 {
                     string s = obj as string;
                     Uri url = null;
-                    if (!string.IsNullOrEmpty(s) && Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out url)) ShellOpenFile.Execute(url);
+                    if (!string.IsNullOrEmpty(s) && Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out url)) OpenFileProperties.Execute(url);
                 }
                 else if (obj is PixivItem)
                 {
@@ -1081,7 +1081,7 @@ namespace PixivWPF.Common
                             string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
                             string fp_p = illust.GetPreviewUrl(item.Index).GetImageCachePath();
 
-                            if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
+                            if (File.Exists(fp_d)) ShellOpenFileProperty.Execute(fp_d);
                             else if (File.Exists(fp_o)) ShellOpenFileProperty.Execute(fp_o);
                             else if (File.Exists(fp_p)) ShellOpenFileProperty.Execute(fp_p);
                         }
@@ -1145,7 +1145,7 @@ namespace PixivWPF.Common
                     if (win.Content is Page) OpenFileProperties.Execute(win.Content);
                 }
             }
-            catch (Exception ex) { ex.ERROR("OpenDownloaded"); }
+            catch (Exception ex) { ex.ERROR("OpenFileProperties"); }
         });
 
         public static ICommand OpenHistory { get; } = new DelegateCommand(async () =>
@@ -1614,7 +1614,7 @@ namespace PixivWPF.Common
                         LoadLastOpenedWindows.Execute(null);
                     }
                     else if (Keyboard.Modifiers == ModifierKeys.None)
-                        CommonHelper.SetDropBoxState(true.ShowDropBox());
+                        Application.Current.ToggleDropBox();
                 }).InvokeAsync(true);
             }
         });
@@ -2473,7 +2473,8 @@ namespace PixivWPF.Common
                 if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
-                    await item.LikeIllust(pub);
+                    var ret = await item.LikeIllust(pub);
+                    if (ret) item.Touch();
                 }
                 else if (obj is ImageListGrid)
                 {
@@ -2496,7 +2497,8 @@ namespace PixivWPF.Common
                 if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
-                    await item.UnLikeIllust();
+                    var ret = await item.UnLikeIllust();
+                    if (ret) item.Touch();
                 }
                 else if (obj is ImageListGrid)
                 {
@@ -2522,20 +2524,22 @@ namespace PixivWPF.Common
 
                 if (obj is PixivItem)
                 {
+                    var ret = false;
                     var item = obj as PixivItem;
                     if (toggle)
                     {
-                        await item.ToggleLikeIllust(pub);
+                        ret = await item.ToggleLikeIllust(pub);
                     }
                     else
                     {
                         if (Keyboard.Modifiers == ModifierKeys.None)
-                            await item.LikeIllust(pub);
+                            ret = await item.LikeIllust(pub);
                         else if (Keyboard.Modifiers == ModifierKeys.Shift)
-                            await item.LikeIllust(!pub);
+                            ret = await item.LikeIllust(!pub);
                         else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                            await item.UnLikeIllust();
+                            ret = await item.UnLikeIllust();
                     }
+                    if (ret) item.Touch();
                 }
                 else if (obj is ImageListGrid)
                 {

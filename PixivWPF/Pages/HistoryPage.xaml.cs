@@ -498,10 +498,12 @@ namespace PixivWPF.Pages
         {
             if (sender is MenuItem)
             {
-                foreach (PixivItem item in HistoryItems.SelectedItems)
-                {
-                    Commands.OpenDownloaded.Execute(item);
-                }
+                if (sender.GetUid().Equals("ActionOpenDownloadedProperties"))
+                    foreach (PixivItem item in HistoryItems.SelectedItems)
+                        Commands.OpenFileProperties.Execute(item);
+                else if (sender.GetUid().Equals("ActionOpenDownloaded"))
+                    foreach (PixivItem item in HistoryItems.SelectedItems)
+                        Commands.OpenDownloaded.Execute(item);
             }
         }
 

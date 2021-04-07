@@ -125,6 +125,11 @@
                     <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <MenuItem x:Uid="ActionOpenFileProperties" Header="View Downloaded Properties" Click="ActionOpenDownloaded_Click">
+                <MenuItem.Icon>
+                    <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                </MenuItem.Icon>
+            </MenuItem>
             <Separator x:Name="ActionLikeIllustSeparator" x:Uid="ActionLikeIllustSeparator" />
             <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
@@ -437,6 +442,11 @@
                                         <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <MenuItem x:Name="PreviewOpenDownloadedProperties" x:Uid="OpenFileProperties" Header="View Downloaded Properties" Click="ActionOpenIllust_Click">
+                                    <MenuItem.Icon>
+                                        <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </ContextMenu>
                         </ContentControl.ContextMenu>
                         <Grid>
@@ -474,7 +484,7 @@
                                 Grid.Column="1" x:Name="PreviewWait" Size="96" Visibility="Collapsed" 
                                 ReloadEnabled="True" ReloadClick="ActionRefreshPreview_Click"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent" Opacity="0.75"
-                                ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="10" ShadowDepth="1" ShadowOpacity="1"
+                                ShadowColor="{DynamicResource MahApps.Colors.IdealForeground}" ShadowBlurRadius="3" ShadowDepth="1" ShadowOpacity="1"
                                 VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         </Grid>
                     </ContentControl>
