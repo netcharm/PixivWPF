@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -592,12 +594,18 @@ namespace PixivWPF.Common
                             {
                                 custom_widecard_tags.WaitFileUnlock();
                                 var tags_t2s_widecard = File.ReadAllText(custom_widecard_tags);
-                                var t2s = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags_t2s_widecard);
-                                var keys = t2s.Keys.ToList();
+                                var t2s = JsonConvert.DeserializeObject<OrderedDictionary>(tags_t2s_widecard);
                                 CommonHelper.TagsWildecardT2S.Clear();
-                                foreach (var k in keys)
+                                foreach (DictionaryEntry entry in t2s)
                                 {
-                                    CommonHelper.TagsWildecardT2S[k.Trim()] = t2s[k].Trim();
+                                    var k = entry.Key is string ? (entry.Key as string).Trim() : string.Empty;
+                                    var v = entry.Value is string ? (entry.Value as string).Trim() : string.Empty;
+                                    if (CommonHelper.TagsWildecardT2S.Contains(k))
+                                    {
+                                        $"Custom Translation Wildcard Tags Loading Error: key {k} exists".DEBUG("LoadCustomWidecardTags");
+                                        continue;
+                                    }
+                                    CommonHelper.TagsWildecardT2S[k] = v;
                                 }
                                 tags_changed = true;
                             }
@@ -608,7 +616,7 @@ namespace PixivWPF.Common
                         }
                         else
                         {
-                            if (CommonHelper.TagsWildecardT2S is ConcurrentDictionary<string, string>)
+                            if (CommonHelper.TagsWildecardT2S is OrderedDictionary)
                             {
                                 CommonHelper.TagsWildecardT2S.Clear();
                                 tags_changed = true;

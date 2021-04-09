@@ -1,4 +1,4 @@
-<Application x:Class="PixivWPF.App"
+﻿<Application x:Class="PixivWPF.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"	
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
@@ -20,16 +20,20 @@
                 <!-- NotificationUI -> ToastUI -->
                 <ResourceDictionary Source="pack://application:,,,/Common/ToastUI.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            
+
             <ScaleTransform x:Key="FontStretchSemiCondensed" ScaleX="0.75" />
             <ScaleTransform x:Key="FontStretchCondensed" ScaleX="0.8" />
             <ScaleTransform x:Key="FontStretchExpanded" ScaleX="1.2" />
-            
+
             <BooleanToVisibilityConverter x:Key="Bool2Vis"/>
             <DropShadowEffect x:Key="DropGlow" Color="{DynamicResource MahApps.Colors.IdealForeground}" ShadowDepth="0" Opacity="1" BlurRadius="5"/>
             <DropShadowEffect x:Key="DropMark" Color="{DynamicResource MahApps.Colors.Accent}" ShadowDepth="0" Opacity="1" BlurRadius="5"/>
             <BlurEffect x:Key="BlurGlow" Radius="9" RenderingBias="Quality" KernelType="Gaussian"/>
             <BlurEffect x:Key="BlurMark" Radius="5" RenderingBias="Quality" KernelType="Gaussian"/>
+            <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
+                <Setter Property="FontFamily" Value="等距更纱黑体 SC, Sarasa Mono J, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"/>
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

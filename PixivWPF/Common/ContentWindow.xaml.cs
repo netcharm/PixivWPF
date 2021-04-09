@@ -149,7 +149,7 @@ namespace PixivWPF.Common
                 }
             }
 
-            if (this.DropBoxExists() == null)
+            if (Application.Current.DropBoxExists() == null)
                 CommandDropbox.IsChecked = false;
             else
                 CommandDropbox.IsChecked = true;
@@ -227,11 +227,8 @@ namespace PixivWPF.Common
             e.Handled = false;
             if (e.ChangedButton == MouseButton.Middle)
             {
-                if (Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    Hide();
-                }
-                else if (Title.Equals("Download Manager", StringComparison.CurrentCultureIgnoreCase))
+                e.Handled = true;
+                if (Title.Equals("Download Manager", StringComparison.CurrentCultureIgnoreCase))
                 {
                     Hide();
                 }
@@ -239,7 +236,6 @@ namespace PixivWPF.Common
                 {
                     Close();
                 }
-                e.Handled = true;
             }
         }
 

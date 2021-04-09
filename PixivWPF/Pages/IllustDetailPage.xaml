@@ -490,7 +490,7 @@
                     </ContentControl>
                     <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge" 
                             BadgePlacementMode="BottomRight" Margin="0,0,16,16" 
-                            FontSize="16" FontFamily="Consolas" 
+                            FontSize="16" FontFamily="Iosevka, Consolas, Monospace" 
                             Visibility="{Binding Badge}" 
                             BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
                 </Grid>

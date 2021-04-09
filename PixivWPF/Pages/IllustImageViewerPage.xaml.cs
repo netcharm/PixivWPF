@@ -282,13 +282,14 @@ namespace PixivWPF.Pages
                         StringBuilder sb = new StringBuilder();
                         sb.AppendLine($"Artwork Liked = {Contents.IsFavorited}");
                         sb.AppendLine($"Artist Liked  = {Contents.IsFollowed}");
-                        if (Contents.Index >= 0) sb.AppendLine($"Page Index    = {Contents.Index}");
+                        if (Contents.Index >= 0) sb.AppendLine($"Page Index    = {Contents.Index + 1} / {Contents.Count}");
                         sb.AppendLine($"Downloaded    = {Contents.IsDownloaded}");
                         sb.AppendLine($"Dimension     = {width:F0} x {height:F0}");
                         sb.AppendLine($"Aspect Rate   = {aspect.Item1:G5} : {aspect.Item2:G5}");
                         sb.AppendLine($"Resolution    = {dpiX:F0}DPI : {dpiY:F0}DPI");
                         sb.AppendLine($"Memory Usage  = {(width * height * img.ColorDepth / 8).SmartFileSize()}");
                         sb.AppendLine($"File Size     = {img.Size.SmartFileSize()}");
+                        sb.AppendLine($"File Name     = {System.IO.Path.GetFileName(img.SourcePath)}");
                         InfoBar.ToolTip = sb.ToString().Trim();
                         Page_SizeChanged(null, null);
                         PreviewWait.Hide();
@@ -337,9 +338,9 @@ namespace PixivWPF.Pages
                     }
 
                     StringBuilder sb = new StringBuilder();
-                    sb.AppendLine($"Favorited   = {Contents.Illust.IsLiked()}");
-                    sb.AppendLine($"Page Index  = {Contents.Index}");
-                    sb.AppendLine($"Downloaded  = {Contents.Illust.IsDownloaded(Contents.Index)}");
+                    sb.AppendLine($"Favorited  = {Contents.Illust.IsLiked()}");
+                    sb.AppendLine($"Page Index = {Contents.Index + 1} / {Contents.Count}");
+                    sb.AppendLine($"Downloaded = {Contents.Illust.IsDownloaded(Contents.Index)}");
                     InfoBar.ToolTip = sb.ToString().Trim();
 
                     PreviewImage = await GetPreviewImage(overwrite);

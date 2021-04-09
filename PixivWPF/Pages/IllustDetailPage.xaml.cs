@@ -2062,65 +2062,67 @@ namespace PixivWPF.Pages
         public void PrevIllust()
         {
             if (InSearching) return;
-            if (Parent is ContentWindow) PrevIllustPage();
-            else Commands.PrevIllust.Execute(Application.Current.MainWindow);
+            if (Contents.IsWork())
+            {
+                if (ParentWindow is ContentWindow && Contents.Count > 1) PrevIllustPage();
+                else if (ParentWindow is MainWindow) Commands.PrevIllust.Execute(Application.Current.MainWindow);
+            }
         }
 
         public void NextIllust()
         {
             if (InSearching) return;
-            if (Parent is ContentWindow) NextIllustPage();
-            else Commands.NextIllust.Execute(Application.Current.MainWindow);
-        }
-
-        public bool IsFirstPage
-        {
-            get
+            if (Contents.IsWork())
             {
-                return (Contents.IsWork() && Contents.Index == 0);
+                if (ParentWindow is ContentWindow && Contents.Count > 1) NextIllustPage();
+                else if (ParentWindow is MainWindow) Commands.NextIllust.Execute(Application.Current.MainWindow);
             }
         }
 
-        public bool IsLastPage
-        {
-            get
-            {
-                return (Contents.IsWork() && Contents.Index == Contents.Count - 1);
-            }
-        }
+        public bool IsFirstPage { get { return (Contents.IsWork() && Contents.Index == 0); } }
+
+        public bool IsLastPage { get { return (Contents.IsWork() && Contents.Index == Contents.Count - 1); } }
 
         public bool IsMultiPages { get { return (Contents.HasPages()); } }
         public void PrevIllustPage()
         {
-            if (InSearching) return;
-            if (Contents.IsWork())
+            try
             {
-                setting = Application.Current.LoadSetting();
-                if (Contents.Count > 1)
+                if (Contents.IsWork())
                 {
-                    if (Contents.Index > 0)
-                        SubPageNav_Clicked(btnSubPagePrev, new RoutedEventArgs());
-                    else if (setting.SeamlessViewInMainWindow)
-                        PrevIllust();
+                    if (Contents.Count > 1)
+                    {
+                        if (InSearching) return;
+                        setting = Application.Current.LoadSetting();
+                        if (Contents.Index > 0)
+                            SubPageNav_Clicked(btnSubPagePrev, new RoutedEventArgs());
+                        else if (setting.SeamlessViewInMainWindow)
+                            PrevIllust();
+                    }
+                    else PrevIllust();
                 }
-                else PrevIllust();
             }
+            catch(Exception ex) { ex.ERROR("PrevIllustPage"); }
         }
 
         public void NextIllustPage()
         {
-            if (InSearching) return;
             if (Contents.IsWork())
             {
-                setting = Application.Current.LoadSetting();
-                if (Contents.Count > 1)
+                try
                 {
-                    if (Contents.Index < Contents.Count - 1)
-                        SubPageNav_Clicked(btnSubPageNext, new RoutedEventArgs());
-                    else if (setting.SeamlessViewInMainWindow)
-                        NextIllust();
+                    if (Contents.Count > 1)
+                    {
+                        if (InSearching) return;
+                        setting = Application.Current.LoadSetting();
+                        if (Contents.Index < Contents.Count - 1)
+                            SubPageNav_Clicked(btnSubPageNext, new RoutedEventArgs());
+                        else if (setting.SeamlessViewInMainWindow)
+                            NextIllust();
+                    }
+                    else NextIllust();
                 }
-                else NextIllust();
+                catch(Exception ex) { ex.ERROR("NextIllustPage"); }
             }
         }
 
@@ -2311,39 +2313,44 @@ namespace PixivWPF.Pages
 
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
+            e.Handled = false;
             var change_illust = Keyboard.Modifiers == ModifierKeys.Shift;
-            if (PreviewPopup is Popup && PreviewPopup.IsOpen && e.LeftButton != MouseButtonState.Pressed)
+            try
             {
-                PreviewPopup.IsOpen = false;
-                PreviewPopupTimer.Stop();
-            }
+                if (PreviewPopup is Popup && PreviewPopup.IsOpen && e.LeftButton != MouseButtonState.Pressed)
+                {
+                    PreviewPopup.IsOpen = false;
+                    PreviewPopupTimer.Stop();
+                }
 
-            if (change_illust && !(Parent is Frame))
-            {
-                if (e.XButton1 == MouseButtonState.Pressed)
+                if (change_illust && ParentWindow is ContentWindow)
                 {
-                    NextIllust();
-                    e.Handled = true;
+                    if (e.XButton1 == MouseButtonState.Pressed)
+                    {
+                        e.Handled = true;
+                        NextIllust();
+                    }
+                    else if (e.XButton2 == MouseButtonState.Pressed)
+                    {
+                        e.Handled = true;
+                        PrevIllust();
+                    }
                 }
-                else if (e.XButton2 == MouseButtonState.Pressed)
+                else
                 {
-                    PrevIllust();
-                    e.Handled = true;
+                    if (e.XButton1 == MouseButtonState.Pressed)
+                    {
+                        e.Handled = true;
+                        NextIllustPage();
+                    }
+                    else if (e.XButton2 == MouseButtonState.Pressed)
+                    {
+                        e.Handled = true;
+                        PrevIllustPage();
+                    }
                 }
             }
-            else
-            {
-                if (e.XButton1 == MouseButtonState.Pressed)
-                {
-                    NextIllustPage();
-                    e.Handled = true;
-                }
-                else if (e.XButton2 == MouseButtonState.Pressed)
-                {
-                    PrevIllustPage();
-                    e.Handled = true;
-                }
-            }
+            catch(Exception ex) { ex.ERROR("IllustDetailPreviewMouseDown"); }
         }
 
         #region Preview Popup

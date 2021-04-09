@@ -348,15 +348,15 @@ namespace PixivWPF.Common
         {
             get { if (_TagsCache == null) _TagsCache = new ConcurrentDictionary<string, string>(); return (_TagsCache); }
         }
-        private static ConcurrentDictionary<string, string> _TagsT2S = null;
+        private static ConcurrentDictionary<string, string>  _TagsT2S = null;
         public static ConcurrentDictionary<string, string> TagsT2S
         {
             get { if (_TagsT2S == null) _TagsT2S = new ConcurrentDictionary<string, string>(); return (_TagsT2S); }
         }
-        private static ConcurrentDictionary<string, string> _TagsWildecardT2S = null;
-        public static ConcurrentDictionary<string, string> TagsWildecardT2S
+        private static OrderedDictionary _TagsWildecardT2S = null;
+        public static OrderedDictionary TagsWildecardT2S
         {
-            get { if (_TagsWildecardT2S == null) _TagsWildecardT2S = new ConcurrentDictionary<string, string>(); return (_TagsWildecardT2S); }
+            get { if (_TagsWildecardT2S == null) _TagsWildecardT2S = new OrderedDictionary(); return (_TagsWildecardT2S); }
         }
 
         private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
@@ -688,7 +688,8 @@ namespace PixivWPF.Common
             var mr = new List<MatchCollection>();
             foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />", "><", "</a>" }, StringSplitOptions.RemoveEmptyEntries))
             {
-                var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim('"').Trim() : text.Trim();
+                //var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim(new char[] { '"', ' ' } ) : text.Trim();
+                var content = text.Trim(new char[] { ' ', '"', ',' } );
                 if (string.IsNullOrEmpty(content)) continue;
                 else if (content.Equals("<a", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals("<img", StringComparison.CurrentCultureIgnoreCase)) continue;
@@ -1069,17 +1070,17 @@ namespace PixivWPF.Common
                     else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
                 }
 
-                if (TagsWildecardT2S is ConcurrentDictionary<string, string>)
+                if (TagsWildecardT2S is OrderedDictionary)
                 {
                     var alpha = Regex.IsMatch(result, @"^[\u0020-\u007E]*$", RegexOptions.IgnoreCase);
                     var text = alpha ? src : result;
-                    foreach (var kv in TagsWildecardT2S)
+                    foreach (DictionaryEntry entry in TagsWildecardT2S)
                     {
-                        var k = kv.Key.Replace(" ", @"\s");
-                        var v = kv.Value;
-                        text = Regex.Replace(text, $@"{k.Trim('/')}", (m) =>
+                        var k = (entry.Key as string).Replace(" ", @"\s");
+                        var v = entry.Value as string;
+                        text = Regex.Replace(text, $@"{k.Trim('/')}", m =>
                         {
-                            var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", (idx) =>
+                            var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", idx =>
                             {
                                 var i = int.Parse(idx.Groups[1].Value);
                                 return (m.Groups[i].Success ? $"{idx.Groups[2].Value.Trim('%')}" : string.Empty);
@@ -1956,10 +1957,12 @@ namespace PixivWPF.Common
                                     sh.Properties.System.Subject.Value = id.ArtworkLink();
                                 if (sh.Properties.System.Title.Value == null || !sh.Properties.System.Title.Value.Equals(illust.Title))
                                     sh.Properties.System.Title.Value = illust.Title;
+                                sh.Properties.System.Author.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Author.Value == null)
                                     sh.Properties.System.Author.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                sh.Properties.System.Keywords.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != illust.Tags.Count)
-                                    sh.Properties.System.Keywords.Value = illust.Tags.ToArray();
+                                    sh.Properties.System.Keywords.Value = illust.Tags.Distinct().ToArray();
                                 if (sh.Properties.System.Copyright.Value == null)
                                     sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}";
 
@@ -2004,6 +2007,7 @@ namespace PixivWPF.Common
                         {
                             var fdt = url.ParseDateTime();
                             if (fdt.Year <= 1601) return;
+                            setting = Application.Current.LoadSetting();
                             if (setting.DownloadAttachMetaInfo && meta && fileinfo.WaitFileUnlock())
                             {
                                 fileinfo.AttachMetaInfo(dt: fdt);
@@ -6213,31 +6217,6 @@ namespace PixivWPF.Common
             ex.Message.ShowToast($"ERROR[{tag}]", messagebox, tag);
         }
         #endregion
-
-        #region Drop Window routines
-        public static Window DropBoxExists(this Window window)
-        {
-            Window result = null;
-
-            var win  = GetWindowByTitle("Dropbox");
-            if (win is ContentWindow) result = win as ContentWindow;
-
-            return (result);
-        }
-
-        public static void SetDropBoxState(this bool state)
-        {
-            new Action(() =>
-            {
-                var win = GetWindowByTitle("Dropbox");
-                if (win is ContentWindow)
-                    (win as ContentWindow).SetDropBoxState(state);
-                else if (win is MainWindow)
-                    (win as MainWindow).SetDropBoxState(state);
-            }).Invoke(async: false);
-        }
-
-        #endregion
     }
 
     #region Custom Toast 
@@ -6534,8 +6513,12 @@ namespace PixivWPF.Common
             {
                 if (image is Image)
                 {
-                    image.Source = null;
-                    image.UpdateLayout();
+                    //image.AppDispatcher().Invoke(() =>
+                    image.Dispatcher.Invoke(() =>
+                    {
+                        image.Source = null;
+                        image.UpdateLayout();
+                    });
                 }
             }
             catch (Exception ex) { ex.ERROR("DisposeImage"); }

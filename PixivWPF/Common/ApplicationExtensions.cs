@@ -532,35 +532,35 @@ namespace PixivWPF.Common
 
         public static CustomImageSource GetThemedIcon(this Application app)
         {
-            if (DefaultIcon == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
-            if (ThemedIconSource == null) ThemedIconSource = new CustomImageSource() { Source = IconUri.CreateThemedImage() };
+            if (DefaultIcon == null || DefaultIcon.Source == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
+            if (ThemedIconSource == null || ThemedIconSource.Source == null) ThemedIconSource = new CustomImageSource() { Source = IconUri.CreateThemedImage() };
             return (ThemedIconSource);
         }
 
         public static void RefreshThemedIcon(this Application app)
         {
-            new Action(() =>
+            app.Dispatcher.Invoke(() =>
             {
-                if (DefaultIcon == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
+                if (DefaultIcon == null || DefaultIcon.Source == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
                 if (ThemedIconSource == null)
                     ThemedIconSource = new CustomImageSource() { Source = IconUri.CreateThemedImage() };
                 else
                     ThemedIconSource.Source = IconUri.CreateThemedImage();
                 if (ThemedIcon is Image) ThemedIcon.Dispose();
                 ThemedIcon = new Image() { Source = ThemedIconSource.Source };
-            }).Invoke();
+            });
         }
 
         public static Image GetIcon(this Application app)
         {
-            if (DefaultIcon == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
-            if (ThemedIcon == null) ThemedIcon = new Image() { Source = GetThemedIcon(app).Source };
+            if (DefaultIcon == null || DefaultIcon.Source == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
+            if (ThemedIcon == null || ThemedIcon.Source == null) ThemedIcon = new Image() { Source = GetThemedIcon(app).Source };
             return (ThemedIcon);
         }
 
         public static Image GetDefalutIcon(this Application app)
         {
-            if (DefaultIcon == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
+            if (DefaultIcon == null || DefaultIcon.Source == null) DefaultIcon = new Image() { Source = new BitmapImage(IconUri) };
             return (DefaultIcon);
         }
 
@@ -1095,7 +1095,8 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        #region Application DropBox 
+        #region Application DropBox
+        private static string _DropBoxTitle_ = "DropBox";
         private static void DropBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
@@ -1193,7 +1194,7 @@ namespace PixivWPF.Common
 
         public static bool ToggleDropBox(this Application app)
         {
-            var win = app.MainWindow.DropBoxExists();
+            var win = app.DropBoxExists();
             ContentWindow box = win == null ? null : (ContentWindow)win;
 
             if (box is ContentWindow)
@@ -1236,7 +1237,7 @@ namespace PixivWPF.Common
                 box.ShowSystemMenuOnRightClick = false;
                 box.ShowTitleBar = false;
                 //box.WindowStyle = WindowStyle.None;
-                box.Title = "DropBox";
+                box.Title = _DropBoxTitle_;
 
                 var icon = Application.Current.GetIcon();
                 box.Content = icon;
@@ -1262,6 +1263,33 @@ namespace PixivWPF.Common
             var result = box is ContentWindow ? box.IsVisible : false;
             result.SetDropBoxState();
             return (result);
+        }
+
+        public static string DropBoxTitle(this Application app)
+        {
+            return (_DropBoxTitle_);
+        }
+
+        public static Window DropBoxExists(this Application app)
+        {
+            Window result = null;
+
+            var win  = _DropBoxTitle_.GetWindowByTitle();
+            if (win is ContentWindow) result = win as ContentWindow;
+
+            return (result);
+        }
+
+        public static void SetDropBoxState(this bool state)
+        {
+            new Action(() =>
+            {
+                var win = _DropBoxTitle_.GetWindowByTitle();
+                if (win is ContentWindow)
+                    (win as ContentWindow).SetDropBoxState(state);
+                else if (win is MainWindow)
+                    (win as MainWindow).SetDropBoxState(state);
+            }).Invoke(async: false);
         }
         #endregion
 
