@@ -359,6 +359,13 @@ namespace PixivWPF.Common
             get { if (_TagsWildecardT2S == null) _TagsWildecardT2S = new OrderedDictionary(); return (_TagsWildecardT2S); }
         }
 
+        private class TagsWildecardCacheItem
+        {
+            public List<string> Keys { get; set; } = new List<string>();
+            public string Translated { get; set; } = string.Empty;
+        }
+        private static ConcurrentDictionary<string, TagsWildecardCacheItem> _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>();
+
         private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
         private static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         private static string[] trim_str = new string[] { Environment.NewLine };
@@ -1037,6 +1044,25 @@ namespace PixivWPF.Common
             return result;
         }
 
+        public static void TagWildcardCacheUpdate(this DictionaryEntry entry)
+        {
+            try
+            {
+                var k = (entry.Key as string).Trim();
+                var v = (entry.Value as string).Trim();
+
+                foreach(var cache in _TagsWildecardT2SCache)
+                {
+                    if (cache.Value.Keys.Contains(k))
+                    {
+                        cache.Value.Translated = string.Empty;
+                        cache.Value.Keys.Clear();
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("TagWildcardChanged"); }
+        }
+
         public static string TranslatedText(this string src, string translated = default(string))
         {
             var result = src;
@@ -1074,26 +1100,36 @@ namespace PixivWPF.Common
                 {
                     var alpha = Regex.IsMatch(result, @"^[\u0020-\u007E]*$", RegexOptions.IgnoreCase);
                     var text = alpha ? src : result;
-                    foreach (DictionaryEntry entry in TagsWildecardT2S)
+                    if (_TagsWildecardT2SCache.ContainsKey(text) &&
+                        _TagsWildecardT2SCache[text].Keys.Count > 0 &&
+                        !string.IsNullOrEmpty(_TagsWildecardT2SCache[text].Translated))
+                        result = _TagsWildecardT2SCache[text].Translated;
+                    else
                     {
-                        var k = (entry.Key as string).Replace(" ", @"\s");
-                        var v = entry.Value as string;
-                        text = Regex.Replace(text, $@"{k.Trim('/')}", m =>
+                        var keys = new List<string>();
+                        foreach (DictionaryEntry entry in TagsWildecardT2S)
                         {
-                            var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", idx =>
+                            var k = (entry.Key as string).Trim('/').Replace(" ", @"\s");
+                            var v = entry.Value as string;
+                            text = Regex.Replace(text, k, m =>
                             {
-                                var i = int.Parse(idx.Groups[1].Value);
-                                return (m.Groups[i].Success ? $"{idx.Groups[2].Value.Trim('%')}" : string.Empty);
-                            });
-                            for (int i = 0; i < m.Groups.Count; i++)
-                            {
-                                vs = vs.Replace($"${i}", m.Groups[i].Value);
-                            }
-                            return (vs);
-                        }, RegexOptions.IgnoreCase);
+                                var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", idx =>
+                                {
+                                    var i = int.Parse(idx.Groups[1].Value);
+                                    return (m.Groups[i].Success ? $"{idx.Groups[2].Value.Trim('%')}" : string.Empty);
+                                });
+                                for (int i = 0; i < m.Groups.Count; i++)
+                                {
+                                    vs = vs.Replace($"${i}", m.Groups[i].Value);
+                                }
+                                keys.Add(k);
+                                return (vs);
+                            }, RegexOptions.IgnoreCase);
+                        }
+                        var result_o = Regex.Replace(result, regex_symbol, @"\$1", RegexOptions.IgnoreCase);
+                        result = alpha && !Regex.IsMatch(text, result_o, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
+                        if (keys.Count > 0) _TagsWildecardT2SCache[text] = new TagsWildecardCacheItem() { Keys = keys, Translated = result };
                     }
-                    var result_o = Regex.Replace(result, regex_symbol, @"\$1", RegexOptions.IgnoreCase);
-                    result = alpha && !Regex.IsMatch(text, result_o, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                 }
             }
             catch (Exception ex) { ex.ERROR("TRANSLATE"); }
@@ -4674,11 +4710,10 @@ namespace PixivWPF.Common
 
             try
             {
-                var mode = pub ? "public" : "private";
-                var ret = await tokens.AddFavouriteUser((long)user.Id, mode);
+                var ret = await tokens.AddFollowUser(user.Id ?? -1, pub ? "public" : "private");
                 if (!ret) return (result);
             }
-            catch (Exception ex) { ex.ERROR("AddFavouriteUser"); }
+            catch (Exception ex) { ex.ERROR("LikeUser"); }
             finally
             {
                 try
@@ -4779,11 +4814,10 @@ namespace PixivWPF.Common
 
             try
             {
-                var ret_public = await tokens.DeleteFavouriteUser(user.Id.ToString());
-                if (!ret_public) return (result);
-                //var ret_private = await tokens.DeleteFavouriteUser(user.Id.ToString(), "private");
+                var ret = await tokens.DeleteFollowUser(user.Id ?? -1);
+                if (!ret) return (result);
             }
-            catch (Exception ex) { ex.ERROR("DeleteFavouriteUser"); }
+            catch (Exception ex) { ex.ERROR("UnLikeUser"); }
             finally
             {
                 try

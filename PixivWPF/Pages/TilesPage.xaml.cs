@@ -534,11 +534,12 @@ namespace PixivWPF.Pages
                 ex.Message.DEBUG();
             }
         }
+
         public dynamic GetTilesCount()
         {
             List<string> tips = new List<string>();
-            tips.Add($"Illust: {ImageTiles.ItemsCount} of {ImageTiles.Items.Count}");
-            tips.Add($"Page: {ImageTiles.CurrentPage} of {ImageTiles.TotalPages}");
+            tips.Add($"Illust  : {ImageTiles.ItemsCount} of {ImageTiles.Items.Count}");
+            tips.Add($"Page    : {ImageTiles.CurrentPage} of {ImageTiles.TotalPages}");
             if (detail_page is IllustDetailPage)
                 tips.Add(detail_page.GetTilesCount());
             return (string.Join(Environment.NewLine, tips));

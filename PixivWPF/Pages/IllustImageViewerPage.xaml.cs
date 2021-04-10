@@ -200,7 +200,7 @@ namespace PixivWPF.Pages
                         else if (state == TaskStatus.RanToCompletion) state_info = "Finished";
                         else if (received > length) state_info = "Finished";
                         else state_info = "Failed";
-                        var info = $"{state_info}: {received} B / {length} B, {received.SmartFileSize()} / {length.SmartFileSize()}";
+                        var info = $"{state_info.PadRight(12, ' ')}: {received} B / {length} B, {received.SmartFileSize()} / {length.SmartFileSize()}";
                         var tooltip = string.Join(Environment.NewLine, new string[] { info, speed, elapsed });
 
                         if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);

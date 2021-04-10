@@ -595,11 +595,13 @@ namespace PixivWPF.Common
                                 custom_widecard_tags.WaitFileUnlock();
                                 var tags_t2s_widecard = File.ReadAllText(custom_widecard_tags);
                                 var t2s = JsonConvert.DeserializeObject<OrderedDictionary>(tags_t2s_widecard);
+                                var t2s_old = CommonHelper.TagsWildecardT2S.Cast<DictionaryEntry>().ToDictionary(k => (string)k.Key, v => (string)v.Value);
                                 CommonHelper.TagsWildecardT2S.Clear();
                                 foreach (DictionaryEntry entry in t2s)
                                 {
                                     var k = entry.Key is string ? (entry.Key as string).Trim() : string.Empty;
                                     var v = entry.Value is string ? (entry.Value as string).Trim() : string.Empty;
+                                    if (!t2s_old.ContainsKey(k) || !t2s_old[k].Equals(v)) entry.TagWildcardCacheUpdate();
                                     if (CommonHelper.TagsWildecardT2S.Contains(k))
                                     {
                                         $"Custom Translation Wildcard Tags Loading Error: key {k} exists".DEBUG("LoadCustomWidecardTags");
@@ -607,6 +609,7 @@ namespace PixivWPF.Common
                                     }
                                     CommonHelper.TagsWildecardT2S[k] = v;
                                 }
+                                t2s_old.Clear();
                                 tags_changed = true;
                             }
                             catch (Exception ex)

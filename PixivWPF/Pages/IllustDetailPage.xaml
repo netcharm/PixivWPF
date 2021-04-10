@@ -953,7 +953,7 @@
                             Orientation="Horizontal" Margin="0,4,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Top">
                     <Button
-                        x:Name="IllustDescSpeech" x:Uid="Speech"
+                        x:Name="IllustDescSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
                         Visibility="Visible" FontWeight="Normal"
                         ContextMenu="{DynamicResource MenuSpeech}"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
