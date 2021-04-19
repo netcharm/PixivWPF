@@ -24,7 +24,7 @@ namespace PixivWPF.Pages
     /// <summary>
     /// IllustImageViewerPage.xaml 的交互逻辑
     /// </summary>
-    public partial class IllustImageViewerPage : Page
+    public partial class IllustImageViewerPage : Page, IDisposable
     {
         public Window ParentWindow { get; private set; }
         public PixivItem Contents { get; set; } = null;
@@ -530,7 +530,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        internal void Dispose()
+        public void Dispose()
         {
             try
             {

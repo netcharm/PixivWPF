@@ -35,6 +35,8 @@ namespace PixivWPF.Common
         public DateTime LastDoneTime { get; private set; } = DateTime.Now;
         public ConcurrentDictionary<string, bool> PrefetchedList { get; private set; } = new ConcurrentDictionary<string, bool>();
         public IList<PixivItem> Items { get; set; } = new List<PixivItem>();
+        public int Unfinished { get; private set; } = 0;
+        public int Total { get { return (Items is IList<PixivItem> ? Items.Count : 0); } }
         public double Percentage { get; private set; } = 0;
         public string Comments { get; private set; } = string.Empty;
         public TaskStatus State { get; private set; } = TaskStatus.Created;
@@ -217,17 +219,17 @@ namespace PixivWPF.Common
 
         private void PrefetchingTask_DoWork(object sender, DoWorkEventArgs e)
         {
+            List<string> illusts = new List<string>();
+            List<string> avatars = new List<string>();
+            List<string> page_thumbs = new List<string>();
+            List<string> page_previews = new List<string>();
+            List<string> needUpdate = new List<string>();
             try
             {
                 var args = e.Argument is PrefetchingOpts ? e.Argument as PrefetchingOpts : new PrefetchingOpts();
                 if (!args.PrefetchingPreview) return;
 
                 LastStartTime = DateTime.Now;
-                this.DoEvents();
-                List<string> illusts = new List<string>();
-                List<string> avatars = new List<string>();
-                List<string> page_thumbs = new List<string>();
-                List<string> page_previews = new List<string>();
                 var pagesCount = CalcPagesThumbItems(Items);
                 GetPreviewItems(illusts, avatars, page_thumbs, page_previews);
                 if (pagesCount != page_thumbs.Count + page_previews.Count) { e.Cancel = true; return; }
@@ -241,29 +243,36 @@ namespace PixivWPF.Common
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
 
+                needUpdate.AddRange(args.ReverseOrder ? illusts.Reverse<string>() : illusts);
+                needUpdate.AddRange(args.ReverseOrder ? avatars.Reverse<string>() : avatars);
+                needUpdate.AddRange(args.ReverseOrder ? page_thumbs.Reverse<string>() : page_thumbs);
+                needUpdate.AddRange(args.ReverseOrder ? page_previews.Reverse<string>() : page_previews);
+                foreach (var url in needUpdate.Where(url => !PrefetchedList.ContainsKey(url) && File.Exists(url.GetImageCacheFile())))
+                {
+                    PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
+                    //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
+                }
+                needUpdate = needUpdate.Where(url => !PrefetchedList.ContainsKey(url) || !PrefetchedList[url]).ToList();
+                count = needUpdate.Count;
+                Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
+                if (count == 0)
+                {
+                    Comments = $"Done [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
+                    State = TaskStatus.RanToCompletion;
+                }
+                else
+                {
+                    Comments = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count}]";
+                    State = TaskStatus.Running;
+                }
+                if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
+                else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
+                this.DoEvents();
+                if (count == 0) return;
+
                 var parallel = args.PrefetchingDownloadParallel;
                 if (args.ParallelPrefetching)
                 {
-                    List<string> needUpdate = new List<string>();
-                    needUpdate.AddRange(args.ReverseOrder ? illusts.Reverse<string>() : illusts);
-                    needUpdate.AddRange(args.ReverseOrder ? avatars.Reverse<string>() : avatars);
-                    needUpdate.AddRange(args.ReverseOrder ? page_thumbs.Reverse<string>() : page_thumbs);
-                    needUpdate.AddRange(args.ReverseOrder ? page_previews.Reverse<string>() : page_previews);
-
-                    foreach (var url in needUpdate.Where(url => !PrefetchedList.ContainsKey(url) && File.Exists(url.GetImageCacheFile())))
-                    {
-                        PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
-                        //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
-                    }
-                    needUpdate = needUpdate.Where(url => !PrefetchedList.ContainsKey(url) || !PrefetchedList[url]).ToList();
-                    count = needUpdate.Count;
-                    Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
-                    Comments = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count}]";
-                    State = TaskStatus.Running;
-                    if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
-                    this.DoEvents();
-
                     var opt = new ParallelOptions();
                     opt.MaxDegreeOfParallelism = parallel;
                     Parallel.ForEach(needUpdate, opt, (url, loopstate, urlIndex) =>
@@ -305,53 +314,48 @@ namespace PixivWPF.Common
                 else
                 {
                     SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
-                    foreach (var urls in new List<string>[] { illusts, avatars, page_thumbs, page_previews })
+                    foreach (var url in needUpdate)
                     {
                         if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
-                        foreach (var url in urls)
+                        if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
                         {
-                            if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
-                            if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
+                            new Action(async () =>
                             {
-                                new Action(async () =>
+                                try
                                 {
-                                    try
+                                    var file = url.GetImageCacheFile();
+                                    if (!string.IsNullOrEmpty(file))
                                     {
-                                        var file = url.GetImageCacheFile();
-                                        if (!string.IsNullOrEmpty(file))
+                                        if (File.Exists(file))
                                         {
-                                            if (File.Exists(file))
-                                            {
-                                                PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
+                                            PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                                                 //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
                                                 count = count - 1;
-                                            }
-                                            else
+                                        }
+                                        else
+                                        {
+                                            file = await url.DownloadCacheFile(args.Overwrite);
+                                            if (!string.IsNullOrEmpty(file))
                                             {
-                                                file = await url.DownloadCacheFile(args.Overwrite);
-                                                if (!string.IsNullOrEmpty(file))
-                                                {
-                                                    PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
+                                                PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
                                                     //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
                                                     count = count - 1;
-                                                }
                                             }
                                         }
-                                        if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; return; }
-                                        Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
-                                        Comments = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
-                                        State = TaskStatus.Running;
-                                        if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                                        else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
+                                    }
+                                    if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; return; }
+                                    Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
+                                    Comments = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
+                                    State = TaskStatus.Running;
+                                    if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
+                                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                                         //await Task.Delay(10);
                                         this.DoEvents();
-                                    }
-                                    catch (Exception ex) { ex.ERROR("PREFETCHING"); }
-                                    finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
-                                }).Invoke(async: false);
-                            }
+                                }
+                                catch (Exception ex) { ex.ERROR("PREFETCHING"); }
+                                finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
+                            }).Invoke(async: false);
                         }
-                        this.DoEvents();
                     }
                     this.DoEvents();
                 }
@@ -365,14 +369,6 @@ namespace PixivWPF.Common
                     if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                     else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                     this.DoEvents();
-                    try
-                    {
-                        illusts.Clear();
-                        avatars.Clear();
-                        page_thumbs.Clear();
-                        page_previews.Clear();
-                    }
-                    catch (Exception ex) { ex.ERROR("PREFETCHED"); }
                     $"Prefetching Previews, Avatars, Thumbnails : {Environment.NewLine}  {Comments}".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
                 }
             }
@@ -386,6 +382,15 @@ namespace PixivWPF.Common
             }
             finally
             {
+                try
+                {
+                    illusts.Clear();
+                    avatars.Clear();
+                    page_thumbs.Clear();
+                    page_previews.Clear();
+                    needUpdate.Clear();
+                }
+                catch (Exception ex) { ex.ERROR("PREFETCHED"); }
                 if (CanPrefetching is SemaphoreSlim && CanPrefetching.CurrentCount < 1) CanPrefetching.Release();
                 LastStartTime = DateTime.Now;
             }
@@ -405,7 +410,7 @@ namespace PixivWPF.Common
             var setting = Application.Current.LoadSetting();
             Options = new PrefetchingOpts()
             {
-                Name = this.Name ?? GetType().Name ?? "PixivItems",
+                Name = Name ?? GetType().Name ?? "PixivItems",
                 PrefetchingPreview = setting.PrefetchingPreview,
                 PrefetchingDownloadParallel = setting.PrefetchingDownloadParallel,
                 IncludePageThumb = include_page_thumb,

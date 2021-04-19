@@ -25,7 +25,7 @@ namespace PixivWPF.Pages
     /// <summary>
     /// IllustWithTagPage.xaml 的交互逻辑
     /// </summary>
-    public partial class SearchResultPage : Page
+    public partial class SearchResultPage : Page, IDisposable
     {
         public Window ParentWindow { get; private set; }
 
@@ -280,7 +280,7 @@ namespace PixivWPF.Pages
             return ($"Result: {ResultItems.ItemsCount} of {ResultItems.Items.Count}");
         }
 
-        internal void Dispose()
+        public void Dispose()
         {
             try
             {

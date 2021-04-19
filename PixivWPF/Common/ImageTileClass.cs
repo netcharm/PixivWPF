@@ -740,7 +740,7 @@ namespace PixivWPF.Common
 
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().HtmlToText().HtmlDecode(false).InsertLineBreak(64).Take(512));
+                        var tooltip = string.IsNullOrEmpty(illust.Caption) ? string.Empty : "\r\n"+string.Join("", illust.Caption.TrimEnd().HtmlToText().HtmlDecode(false).InsertLineBreak(72).Take(512));
                         var tags_suffix = illust.Tags.Count > 5 ? $" etc. {illust.Tags.Count - 5} tags ..." : string.Empty;
                         var tags = illust.Tags.Count > 0 ? $"\r\n🔖[#{string.Join(", #", illust.Tags.Take(5))}{tags_suffix}]" : string.Empty;
                         var sanity = string.Empty;

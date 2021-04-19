@@ -22,7 +22,7 @@ namespace PixivWPF.Pages
     /// <summary>
     /// PageTiles.xaml 的交互逻辑
     /// </summary>
-    public partial class TilesPage : Page
+    public partial class TilesPage : Page, IDisposable
     {
         public MainWindow ParentWindow { get; private set; }
         private IllustDetailPage detail_page = new IllustDetailPage() { Name="IllustDetail" };
@@ -340,7 +340,7 @@ namespace PixivWPF.Pages
 
         public void Prefetching()
         {
-            if (PrefetchingItems is PrefetchingTask) PrefetchingItems.Start(reverse: true);
+            if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Start(reverse: true);
         }
 
         public void AppendTiles()
@@ -547,8 +547,13 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Prefetching background task
-        private PrefetchingTask PrefetchingItems = null;
+        private PrefetchingTask PrefetchingImagesTask = null;
         #endregion
+
+        public void Dispose()
+        {
+            if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Dispose();
+        }
 
         public TilesPage()
         {
@@ -565,15 +570,15 @@ namespace PixivWPF.Pages
             UpdateTheme();
             this.DoEvents();
 
-            if (PrefetchingItems == null) PrefetchingItems = new PrefetchingTask()
+            if (PrefetchingImagesTask == null) PrefetchingImagesTask = new PrefetchingTask()
             {
                 Name = "TilesPrefetching",
                 Items = ImageTiles.Items,
                 ReportProgressSlim = () =>
                 {
-                    var percent = PrefetchingItems.Percentage;
-                    var tooltip = PrefetchingItems.Comments;
-                    var state = PrefetchingItems.State;
+                    var percent = PrefetchingImagesTask.Percentage;
+                    var tooltip = PrefetchingImagesTask.Comments;
+                    var state = PrefetchingImagesTask.State;
                     if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
                 },
                 ReportProgress = (percent, tooltip, state) =>
@@ -602,7 +607,7 @@ namespace PixivWPF.Pages
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            if (PrefetchingItems is PrefetchingTask) PrefetchingItems.Dispose();
+            Dispose();
         }
 
         internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
@@ -612,7 +617,7 @@ namespace PixivWPF.Pages
             if (ParentWindow is MainWindow) ParentWindow.UpdateTitle(target.ToString());
             this.DoEvents();
 
-            if (PrefetchingItems is PrefetchingTask) PrefetchingItems.Stop();
+            if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
 
             if (TargetPage != target)
             {

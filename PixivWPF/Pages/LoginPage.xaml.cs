@@ -22,7 +22,7 @@ namespace PixivWPF.Pages
     /// <summary>
     /// PageLogin.xaml 的交互逻辑
     /// </summary>
-    public partial class LoginPage : Page
+    public partial class LoginPage : Page, IDisposable
     {
         public PixivLoginDialog ParentWindow { get; internal set; } = null;
 
@@ -39,7 +39,7 @@ namespace PixivWPF.Pages
                 else
                     Application.Current.Shutdown();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("CloseLoginDialog"); }
         }
 
         public LoginPage()
@@ -189,6 +189,11 @@ namespace PixivWPF.Pages
                 setting.DownloadUsingProxy = useproxy;
             }
             setting.Proxy = proxy;
+        }
+
+        public void Dispose()
+        {
+            
         }
     }
 }

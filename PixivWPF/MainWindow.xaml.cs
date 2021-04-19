@@ -421,6 +421,24 @@ namespace PixivWPF
 #endif
         }
 
+        private void MainWindow_StateChanged(object sender, EventArgs e)
+        {
+            LastWindowStates.Enqueue(WindowState);
+            if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
+        }
+
+        private void MetroWindow_Activated(object sender, EventArgs e)
+        {
+            Application.Current.ReleaseKeyboardModifiers(force: false, updown: true);
+            this.DoEvents();
+        }
+
+        private void MetroWindow_Deactivated(object sender, EventArgs e)
+        {
+            Application.Current.ReleaseKeyboardModifiers(updown: true);
+            this.DoEvents();
+        }
+
         private void MainWindow_DragOver(object sender, DragEventArgs e)
         {
             var fmts = e.Data.GetFormats(true);
@@ -437,16 +455,6 @@ namespace PixivWPF
             {
                 Commands.OpenSearch.Execute(link);
             }
-        }
-
-        private void MainWindow_StateChanged(object sender, EventArgs e)
-        {
-            LastWindowStates.Enqueue(WindowState);
-            if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
-            if (Keyboard.Modifiers == ModifierKeys.Shift && WindowState == WindowState.Minimized)
-                Application.Current.ReleaseKeyboardModifiers();
-            else if (Keyboard.Modifiers == ModifierKeys.Control && WindowState == WindowState.Minimized)
-                Application.Current.RebindHotKeys();
         }
 
         private void DatePicker_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
@@ -526,6 +534,16 @@ namespace PixivWPF
                 Commands.RestartApplication.Execute(null);
             else if (sender == CommandUpgrade)
                 Commands.UpgradeApplication.Execute(null);
+        }
+
+        private void CommandTouch_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.OpenTouch.Execute(null);
+        }
+
+        private void CommandAttachMeta_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.OpenAttachMetaInfo.Execute(null);
         }
 
         private void CommandRefresh_Click(object sender, RoutedEventArgs e)

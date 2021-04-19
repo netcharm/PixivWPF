@@ -335,6 +335,15 @@ namespace PixivWPF.Common
     }
     #endregion
 
+    public class TouchFolderInfo
+    {
+        public string FolderName { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public long Index { get; set; } = 0;
+        public long Total { get; set; } = 0;
+        public TaskStatus State { get; set; } = TaskStatus.Created;
+    }
+
     public static class CommonHelper
     {
         private static Setting setting = Application.Current.LoadSetting();
@@ -371,6 +380,7 @@ namespace PixivWPF.Common
         private static string[] trim_str = new string[] { Environment.NewLine };
         private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
         private static string regex_symbol = @"([\u0020-\u002F\u003A-\u0040\u005B-\u005E\u007B-\u007E])";
+        private static string regex_invalid_char  = @"[\u2000-\u200B]";
 
         private static double VALUE_GB = 1024 * 1024 * 1024;
         private static double VALUE_MB = 1024 * 1024;
@@ -671,7 +681,8 @@ namespace PixivWPF.Common
                 else if (Regex.IsMatch(result, @"^(.*?)/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+).*?" + regex_img_ext + "$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?)/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/(\d+).*?" + regex_img_ext + "$", "IllustID: $2", RegexOptions.IgnoreCase);
 
-
+                else if (Regex.IsMatch(result, @"(User|Tag|Caption|Fuzzy|Fuzzy Tag):(\s?.+)", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"(User|Tag|Caption|Fuzzy|Fuzzy Tag):(\s?.+)", "$1:$2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(Path.GetFileNameWithoutExtension(result), @"^((\d+)(_((p)|(ugoira))*\d+)*)"))
                     result = Regex.Replace(Path.GetFileNameWithoutExtension(result), @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
 
@@ -696,7 +707,7 @@ namespace PixivWPF.Common
             foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />", "><", "</a>" }, StringSplitOptions.RemoveEmptyEntries))
             {
                 //var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim(new char[] { '"', ' ' } ) : text.Trim();
-                var content = text.Trim(new char[] { ' ', '"', ',' } );
+                var content = Regex.Replace(text, @"Loading|\.\.\.", "", RegexOptions.IgnoreCase).Trim(new char[] { ' ', '"', ',' } );
                 if (string.IsNullOrEmpty(content)) continue;
                 else if (content.Equals("<a", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals("<img", StringComparison.CurrentCultureIgnoreCase)) continue;
@@ -1051,7 +1062,7 @@ namespace PixivWPF.Common
                 var k = (entry.Key as string).Trim();
                 var v = (entry.Value as string).Trim();
 
-                foreach(var cache in _TagsWildecardT2SCache)
+                foreach (var cache in _TagsWildecardT2SCache)
                 {
                     if (cache.Value.Keys.Contains(k))
                     {
@@ -1232,10 +1243,25 @@ namespace PixivWPF.Common
                 sb.Replace("<br>", "\n<br>");
                 sb.Replace("<br ", "\n<br ");
                 sb.Replace("<p ", "\n<p ");
-                result = Regex.Replace(sb.ToString(), "<[^>]*>", "");
+                result = Regex.Replace(sb.ToString().FilterInvalidChar(), @"<[^>]*>", "").TrimEnd();
             }
             catch (Exception ex) { ex.ERROR("HtmlToText"); result = html.HtmlDecode(false); }
             return result;
+        }
+
+        public static string HtmlToText(this string html, bool decode = false, bool br = false, bool limit = false, int limitcount = 512, bool breakline = false, int breakcount = 72)
+        {
+            var result = html.TrimEnd().HtmlToText();
+            if (decode) result = result.HtmlDecode(br);
+            if (limit) result = string.Join("", result.Take(limitcount));
+            if (breakline) result = result.InsertLineBreak(breakcount);
+            return (result);
+        }
+
+        public static string FilterInvalidChar(this string text)
+        {
+            if (string.IsNullOrEmpty(text)) return (text);
+            else return (Regex.Replace(text, regex_invalid_char, " "));
         }
 
         public static string GetDefaultTemplate()
@@ -1256,25 +1282,26 @@ namespace PixivWPF.Common
                         html.AppendLine("    <META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
                         html.AppendLine("    <META http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />");
                         html.AppendLine("    <STYLE>");
-                        html.AppendLine("      :root { --accent: {% accentcolor_rgb %}; --text: {% textcolor_rgb %} }");
+                        html.AppendLine("      :root {--accent:{% accentcolor_rgb %}; --text:{% textcolor_rgb %} }");
                         html.AppendLine("      *{font-family:\"等距更纱黑体 SC\", FontAwesome, \"Segoe UI Emoji\", \"Segoe MDL2 Assets\", \"Segoe UI\", Iosevka, \"Sarasa Mono J\", \"Sarasa Term J\", \"Sarasa Gothic J\", \"更纱黑体 SC\", 思源黑体, 思源宋体, 微软雅黑, 宋体, 黑体, 楷体, Consolas, \"Courier New\", Tahoma, Arial, Helvetica, sans-serif !important;}");
-                        html.AppendLine("      body{background-color: {% backcolor %} !important;}");
-                        html.AppendLine("      a:link{color:{% accentcolor %} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:hover{color:{% accentcolor %} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:active{color:{% accentcolor %} !important;text-decoration:none !important;}");
-                        html.AppendLine("      a:visited{color:{% accentcolor %} !important;text-decoration:none !important;}");
-                        html.AppendLine("      img{width:auto!important;height:auto!important;max-width:100%!important;max-height:100% !important;}");
-                        html.AppendLine("      .tag{color:{% accentcolor %} !important;background-color:rgba(var(--accent), 10%);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {% accentcolor %};border-left-width:5px;overflow-wrap:break-word;}");
-                        html.AppendLine("      .tag.::before{ content: '#'; }");
-                        html.AppendLine("      .desc{color:{% textcolor %} !important;text-decoration:none !important;width: 99% !important;word-wrap: break-word !important;overflow-wrap: break-word !important;white-space:normal !important;}");
-                        html.AppendLine("      .twitter::before{font-family:FontAwesome; content:''; margin-left:3px; padding-right:4px; color: #1da1f2;}");
+                        html.AppendLine("      body{background-color:{% backcolor %} !important;}");
+                        html.AppendLine("      a:link{color:{% accentcolor %} !important; text-decoration:none !important;}");
+                        html.AppendLine("      a:hover{color:{% accentcolor %} !important; text-decoration:none !important;}");
+                        html.AppendLine("      a:active{color:{% accentcolor %} !important; text-decoration:none !important;}");
+                        html.AppendLine("      a:visited{color:{% accentcolor %} !important; text-decoration:none !important;}");
+                        html.AppendLine("      // a[title]:hover::after{content:attr(title); position:absolute; top:100%; left:0;}");
+                        html.AppendLine("      img{width:auto !important; height:auto !important; max-width:100%! important; max-height:100% !important;}");
+                        html.AppendLine("      .tag{color:{% accentcolor %} !important; background-color:rgba(var(--accent), 10%); line-height:1.6em; padding:0 2px 0 1px; text-decoration:none; border:1px solid {% accentcolor %}; border-left-width:5px; overflow-wrap:break-word; position:relative; display:inline-block; margin-bottom:0.5em;}");
+                        html.AppendLine("      .tag.::before{content:'#';}");
+                        html.AppendLine("      .desc{color:{% textcolor %} !important; text-decoration:none !important; width:99% !important; word-wrap:break-word !important; overflow-wrap:break-word !important; white-space:normal !important; padding-bottom:0.5em !important;}");
+                        html.AppendLine("      .twitter::before{font-family:FontAwesome; content:''; margin-left:3px; padding-right:4px; color:#1da1f2;}");
                         html.AppendLine("      .web::before{content:'🌐'; padding-right:3px; margin-left:-0px;}");
                         html.AppendLine("      .mail::before{content:'🖃'; padding-right:4px; margin-left:2px;}");
-                        html.AppendLine("      .E404{display:block; min-height:calc(95vh); background-image:url('{% site %}/404.jpg'); background-position: center; background-attachment: fixed; background-repeat: no-repeat;}");
+                        html.AppendLine("      .E404{display:block; min-height:calc(95vh); background-image:url('{% site %}/404.jpg'); background-position:center; background-attachment:fixed; background-repeat:no-repeat;}");
                         html.AppendLine("      .E404T{font-size:calc(2.5vw); color:gray; position:fixed; margin-left:calc(50vw); margin-top:calc(50vh);}");
                         html.AppendLine();
-                        html.AppendLine("      @media screen and(-ms-high-contrast: active), (-ms-high-contrast: none) {");
-                        html.AppendLine("      .tag{color:{% accentcolor %} !important;background-color:rgba({% accentcolor_rgb %}, 0.1);line-height:1.6em;padding:0 2px 0 1px;text-decoration:none;border:1px solid {% accentcolor %};border-left-width:5px;overflow-wrap:break-word;}");
+                        html.AppendLine("      @media screen and(-ms-high-contrast:active), (-ms-high-contrast:none) {");
+                        html.AppendLine("      .tag{color:{% accentcolor %} !important; background-color:rgba({% accentcolor_rgb %}, 0.1); line-height:1.6em; padding:0 2px 0 1px; text-decoration:none; border:1px solid {% accentcolor %}; border-left-width:5px; overflow-wrap:break-word; position:relative; display:inline-block; margin-bottom:0.5em;}");
                         html.AppendLine("      }");
                         html.AppendLine("    </STYLE>");
                         html.AppendLine("    <SCRIPT>");
@@ -1332,7 +1359,71 @@ namespace PixivWPF.Common
             template = Regex.Replace(template, @"{%\s*?textcolor_rgb\s*?%}", textcolor_rgb, RegexOptions.IgnoreCase);
             template = Regex.Replace(template, @"{%\s*?contents\s*?%}", contents, RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
+            template = Regex.Replace(template, @"<br\s*/?>(\r\n|\n\r|\n|\r)+", $@"<br />{Environment.NewLine}", RegexOptions.IgnoreCase);
             return (template.ToString());
+        }
+
+        public static string CalcNextUrlPages(this string next_url, string totals = null)
+        {
+            string result = "Unknown";
+            try
+            {
+                var offset = Regex.IsMatch(next_url, @".*?offset=(\d+).*?", RegexOptions.IgnoreCase | RegexOptions.Singleline) ? Regex.Replace(next_url, @".*?offset=(\d+).*?", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline) : string.Empty;
+                if (!string.IsNullOrEmpty(offset))
+                {
+                    int count = 0;
+                    int total = 0;
+                    if (int.TryParse(offset, out count) && int.TryParse(totals, out total))
+                    {
+                        int page = count / 30;
+                        if (total <= 0) result = $"Page: {page}";
+                        else result = $"Page: {page} / {(int)Math.Floor(total / 30.0) + 1}";
+                    }
+                }
+                else
+                {
+                    int total = 0;
+                    if (int.TryParse(totals, out total))
+                    {
+                        int pages = (int)Math.Floor(total / 30.0) + 1;
+                        result = $"Page: {pages} / {pages}";
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("CalcNextUrlPages"); }
+            return (result);
+        }
+
+        public static string CalcNextUrlPages(this string next_url, int total = 0, string current = null)
+        {
+            string result = "Unknown";
+            try
+            {
+                var offset = Regex.IsMatch(next_url, @".*?offset=(\d+).*?", RegexOptions.IgnoreCase | RegexOptions.Singleline) ? Regex.Replace(next_url, @".*?offset=(\d+).*?", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline) : string.Empty;
+                if (!string.IsNullOrEmpty(offset))
+                {
+                    int count = 0;
+                    if (int.TryParse(offset, out count))
+                    {
+                        int page = count / 30;
+                        if (total <= 0) result = $"Page: {page}";
+                        else result = $"Page: {page} / {(int)Math.Floor(total / 30.0) + 1}";
+                    }
+                    else result = $"Page: {1}";
+                }
+                else if (!string.IsNullOrEmpty(current))
+                {
+                    int count = 0;
+                    offset = Regex.Replace(current, @".*?Page\s?:\s?(\d+).*?", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                    if (int.TryParse(offset, out count)) result = $"Page: {count + 1}";
+                }
+                else if(!string.IsNullOrEmpty(next_url))
+                {
+                    result = "Page: 1";
+                }
+            }
+            catch (Exception ex) { ex.ERROR("CalcNextUrlPages"); }
+            return (result);
         }
 
         public static async void UpdateIllustTagsAsync()
@@ -1662,7 +1753,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void ShellOpenPixivPedia(this string contents)
+        public static void OpenPixivPediaWithShell(this string contents)
         {
             if (string.IsNullOrEmpty(contents)) return;
 
@@ -1697,10 +1788,7 @@ namespace PixivWPF.Common
                 Process.Start(url);
                 result = true;
             }
-            catch (Exception ex)
-            {
-                ex.Message.ShowMessageBox("ERROR");
-            }
+            catch (Exception ex) { ex.ERROR("OpenUrlWithShell"); }
 
             return (result);
         }
@@ -1781,7 +1869,7 @@ namespace PixivWPF.Common
 
                         if (ShowProperties)
                         {
-                            file.OpenShellFileProperty();
+                            file.OpenShellProperties();
                         }
                         else if (UsingOpenWith && openwith_exists)
                         {
@@ -1832,7 +1920,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static bool OpenShellFileProperty(this string FileName)
+        public static bool OpenShellProperties(this string FileName)
         {
             bool result = false;
             try
@@ -1840,7 +1928,7 @@ namespace PixivWPF.Common
                 //result = ShowFileProperties(FileName);
                 result = ShellProperties.Show(FileName) == 0 ? true : false;
             }
-            catch (Exception ex) { ex.ERROR("OpenShellFileProperty"); }
+            catch (Exception ex) { ex.ERROR("OpenShellProperties"); }
             return (result);
         }
 
@@ -1931,9 +2019,9 @@ namespace PixivWPF.Common
         private static TimeZoneInfo TokoyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
         private static TimeZoneInfo LocalTimeZone = TimeZoneInfo.Local;
 
-        private static DateTime ParseDateTime(this string url)
+        public static DateTime ParseDateTime(this string url)
         {
-            var result = DateTime.FromFileTime(0);
+            var result = default(DateTime);
             //https://i.pximg.net/img-original/img/2010/11/16/22/34/05/14611687_p0.png
             var ds = Regex.Replace(url, @"https?://i\.pximg\.net/.*?/(\d{4})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/(\d{2})/\d+.*?" + regex_img_ext, "$1-$2-$3T$4:$5:$6+09:00", RegexOptions.IgnoreCase);
             DateTime.TryParse(ds, out result);
@@ -1964,6 +2052,75 @@ namespace PixivWPF.Common
             else return (dt);
         }
 
+        public static async void AttachMetaInfo(this string folder, Action progressAction = null)
+        {
+            if (!string.IsNullOrEmpty(folder))
+            {
+                try
+                {
+                    if (Directory.Exists(folder))
+                    {
+                        AttachMetaInfo(new DirectoryInfo(folder));
+                    }
+                    else if (File.Exists(folder))
+                    {
+                        var illust = await folder.GetIllust();
+                        if (illust is Pixeez.Objects.Work)
+                        {
+                            var url = illust.GetOriginalUrl();
+                            var dt = url.ParseDateTime();
+                            if (dt.Ticks > 0) AttachMetaInfo(new FileInfo(folder), dt);
+                        }
+                    }
+                }
+                catch(Exception ex) { ex.ERROR("AttachMetaInfo"); }
+            }
+        }
+
+        public static void AttachMetaInfo(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<TouchFolderInfo> progressAction = null, bool test = false)
+        {
+            if (Directory.Exists(folderinfo.FullName))
+            {
+                var setting = Application.Current.LoadSetting();
+                var search_opt =  recursion ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+                var files = folderinfo.GetFiles("*.*", search_opt);
+                var flist = files.Where(f => ext_imgs.Contains(f.Extension)).Distinct();
+                var parallel_opt = new ParallelOptions()
+                {
+                    MaxDegreeOfParallelism = setting.PrefetchingDownloadParallel,
+                    CancellationToken = cancelSource is CancellationTokenSource ? cancelSource.Token : CancellationToken.None
+                };
+                var rnd = new Random();
+                var total = flist.Count();
+                var touch_info = new TouchFolderInfo() { FolderName = folderinfo.FullName, Total = total };
+                Parallel.ForEach(flist.NaturalSort(), parallel_opt, (f, loopstate, index) =>
+                {
+                    try
+                    {
+                        if (parallel_opt.CancellationToken.IsCancellationRequested) loopstate.Stop();
+                        var illust = f.FullName.GetIllustId().GetIllust().GetAwaiter().GetResult();
+                        if (illust is Pixeez.Objects.Work)
+                        {
+                            var url = illust.GetOriginalUrl();
+                            var dt = url.ParseDateTime();
+                            if (dt.Ticks > 0 && f.WaitFileUnlock())
+                            {
+                                if (!test)
+                                {
+                                    AttachMetaInfo(f, dt);
+                                    Touch(f, url, meta: false);
+                                }
+                                touch_info.FileName = f.Name;
+                                touch_info.Index = index;
+                                if (progressAction is Action<TouchFolderInfo>) progressAction.Invoke(touch_info);
+                            }
+                        }
+                    }
+                    catch(Exception ex) { ex.ERROR($"AttachMetaInfo_{f.Name}"); }
+                });
+            }
+        }
+
         private static ConcurrentDictionary<string, bool> _MetaTouching_ = new ConcurrentDictionary<string, bool>();
         public static void AttachMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
         {
@@ -1972,10 +2129,12 @@ namespace PixivWPF.Common
                 if (!Microsoft.WindowsAPICodePack.Shell.ShellObject.IsPlatformSupported) return;
                 if (_MetaTouching_.TryAdd(fileinfo.FullName, true))
                 {
+#if DEBUG
                     System.Diagnostics.Debug.WriteLine($"=> Touching {fileinfo.Name}");
+#endif
                     if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
                     var illust = id.FindIllust();
-                    if (illust is Pixeez.Objects.Work && dt != null)
+                    if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
                     {
                         var uid = $"{illust.User.Id}";
                         bool is_png = fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase);
@@ -1989,21 +2148,34 @@ namespace PixivWPF.Common
                                 if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                     sh.Properties.System.DateAcquired.Value = dt;
 
+                                sh.Properties.System.Subject.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Subject.Value == null || !sh.Properties.System.Subject.Value.Equals(id.ArtworkLink()))
                                     sh.Properties.System.Subject.Value = id.ArtworkLink();
-                                if (sh.Properties.System.Title.Value == null || !sh.Properties.System.Title.Value.Equals(illust.Title))
-                                    sh.Properties.System.Title.Value = illust.Title;
+
+                                var title = illust.Title.FilterInvalidChar().TrimEnd();
+                                sh.Properties.System.Title.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Title.Value == null || !sh.Properties.System.Title.Value.Equals(title))
+                                    sh.Properties.System.Title.Value = title;
+
                                 sh.Properties.System.Author.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Author.Value == null)
                                     sh.Properties.System.Author.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+
                                 sh.Properties.System.Keywords.AllowSetTruncatedValue = true;
                                 if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != illust.Tags.Count)
-                                    sh.Properties.System.Keywords.Value = illust.Tags.Distinct().ToArray();
-                                if (sh.Properties.System.Copyright.Value == null)
-                                    sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}";
+                                    sh.Properties.System.Keywords.Value = illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct().ToArray();
 
-                                if (sh.Properties.System.Comment.Value == null || !sh.Properties.System.Comment.Value.Equals(illust.Caption.HtmlToText()))
-                                    sh.Properties.System.Comment.Value = illust.Caption.HtmlToText();
+                                sh.Properties.System.Copyright.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Copyright.Value == null)
+                                    sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
+
+                                var comment = illust.Caption.HtmlToText();
+                                sh.Properties.System.Comment.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Comment.Value == null || !sh.Properties.System.Comment.Value.Equals(comment))
+                                {
+                                    if (string.IsNullOrEmpty(comment)) sh.Properties.System.Comment.ClearValue();
+                                    else sh.Properties.System.Comment.Value = comment;
+                                }
 
                                 //if (sh.Properties.System.Contact.Webpage.Value == null) sh.Properties.System.Contact.Webpage.Value = id.ArtworkLink();
 
@@ -2021,6 +2193,10 @@ namespace PixivWPF.Common
                                         sh.Properties.System.SimpleRating.ClearValue();
                                 }
                             }
+
+                            if (fileinfo.CreationTime.Ticks != dt.Ticks) fileinfo.CreationTime = dt;
+                            if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
+                            if (fileinfo.LastAccessTime.Ticks != dt.Ticks) fileinfo.LastAccessTime = dt;
                         }
                         //sh.Update();
                     }
@@ -2029,6 +2205,47 @@ namespace PixivWPF.Common
                 _MetaTouching_.TryRemove(fileinfo.FullName, out fn);
             }
             catch (Exception ex) { ex.ERROR($"AttachMetaInfo_{fileinfo.Name}"); }
+        }
+
+        public static async void Touch(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<TouchFolderInfo> progressAction = null, bool test = false)
+        {
+            if (Directory.Exists(folderinfo.FullName))
+            {
+                var setting = Application.Current.LoadSetting();
+                var search_opt =  recursion ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+                var files = folderinfo.GetFiles("*.*", search_opt);
+                var flist = files.Where(f => ext_imgs.Contains(f.Extension)).Distinct();
+                var parallel_opt = new ParallelOptions()
+                {
+                    MaxDegreeOfParallelism = setting.PrefetchingDownloadParallel,
+                    CancellationToken = cancelSource is CancellationTokenSource ? cancelSource.Token : CancellationToken.None
+                };
+                var rnd = new Random();
+                var total = flist.Count();
+                var touch_info = new TouchFolderInfo() { FolderName = folderinfo.FullName, Total = total };
+                var tokens = await ShowLogin();
+                Parallel.ForEach(flist.NaturalSort(), parallel_opt, (f, loopstate, index) =>
+                {
+                    try
+                    {
+                        if (parallel_opt.CancellationToken.IsCancellationRequested) loopstate.Stop();
+                        var illust = f.FullName.GetIllustId().GetIllust(tokens: tokens).GetAwaiter().GetResult();
+                        if (illust is Pixeez.Objects.Work)
+                        {
+                            var url = illust.GetOriginalUrl();
+                            var dt = url.ParseDateTime();
+                            if (dt.Ticks > 0 && f.WaitFileUnlock())
+                            {
+                                if (!test) Touch(f, url);
+                                touch_info.FileName = f.Name;
+                                touch_info.Index = index;
+                                if (progressAction is Action<TouchFolderInfo>) progressAction.Invoke(touch_info);
+                            }
+                        }
+                    }
+                    catch (Exception ex) { ex.ERROR($"AttachMetaInfo_{f.Name}"); }
+                });
+            }
         }
 
         public static void Touch(this FileInfo fileinfo, string url, bool local = false, bool meta = true)
@@ -2048,7 +2265,7 @@ namespace PixivWPF.Common
                             {
                                 fileinfo.AttachMetaInfo(dt: fdt);
                             }
-                            if (fileinfo.WaitFileUnlock())
+                            else if (fileinfo.WaitFileUnlock())
                             {
                                 if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
                                 if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
@@ -3648,7 +3865,7 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    if (await file.WaitFileUnlockAsync(500, 10))
+                    if (await file.WaitFileUnlockAsync(250, 20))
                     {
                         using (Stream stream = new MemoryStream(File.ReadAllBytes(file)))
                         {
@@ -3702,32 +3919,35 @@ namespace PixivWPF.Common
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
                 setting = Application.Current.LoadSetting();
-                HttpClient client = null;
                 HttpResponseMessage response = null;
                 try
                 {
-                    client = Application.Current.GetHttpClient(is_download: true);
-                    using (response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+                    HttpClient client = Application.Current.GetHttpClient(is_download: true);
+                    using (var request = Application.Current.GetHttpRequest(url))
                     {
-                        //response.EnsureSuccessStatusCode();
-                        if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
+                        using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
                         {
-                            var length = response.Content.Headers.ContentLength ?? 0;
-                            var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
-                            var pos = range.From ?? 0;
-                            var Length = range.Length ?? 0;
-                            if (progressAction is Action<double, double>) progressAction.Invoke(0, Length);
-
-                            string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
-                            using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                            //response.EnsureSuccessStatusCode();
+                            if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
                             {
-                                var ret = await sr.WriteToFile(file, progressAction, range);
-                                if (ret) result = file;
-                                sr.Close();
-                                sr.Dispose();
+                                var length = response.Content.Headers.ContentLength ?? 0;
+                                var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
+                                var pos = range.From ?? 0;
+                                var Length = range.Length ?? 0;
+                                if (progressAction is Action<double, double>) progressAction.Invoke(0, Length);
+
+                                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                                using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                                {
+                                    var ret = await sr.WriteToFile(file, progressAction, range);
+                                    if (ret) result = file;
+                                    sr.Close();
+                                    sr.Dispose();
+                                }
                             }
+                            response.Dispose();
                         }
-                        response.Dispose();
+                        request.Dispose();
                     }
                 }
                 catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
@@ -4165,8 +4385,9 @@ namespace PixivWPF.Common
             Pixeez.Objects.Work result = null;
             try
             {
-                if (!string.IsNullOrEmpty(IllustID))
-                    result = await RefreshIllust(Convert.ToInt32(IllustID), tokens);
+                long id = 0;
+                if (!string.IsNullOrEmpty(IllustID) && long.TryParse(IllustID, out id))
+                    result = await RefreshIllust(id, tokens);
             }
             catch (Exception ex) { ex.ERROR("REFRESHILLUST"); }
             return (result);
@@ -5082,6 +5303,92 @@ namespace PixivWPF.Common
         public static Pixeez.Objects.UserInfo FindUserInfo(this Pixeez.Objects.UserBase user)
         {
             return (FindUserInfo(user.Id));
+        }
+        #endregion
+
+        #region Get Illust/User/UserInfo
+        public static async Task<Pixeez.Objects.Work> GetIllust(this long id, Pixeez.Tokens tokens = null)
+        {
+            var illust = id.FindIllust();
+            if (!(illust is Pixeez.Objects.Work)) illust = await RefreshIllust(id, tokens);
+            if (IllustCache.ContainsKey(id)) return (illust);
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.Work> GetIllust(this long? id, Pixeez.Tokens tokens = null)
+        {
+            var illust = id.FindIllust();
+            if (!(illust is Pixeez.Objects.Work)) illust = await RefreshIllust(id.Value, tokens);
+            if (id != null && IllustCache.ContainsKey(id)) return (illust);
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.Work> GetIllust(this string id, Pixeez.Tokens tokens = null)
+        {
+            long idv = 0;
+            if (long.TryParse(id, out idv)) return (await GetIllust(idv, tokens));
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.Work> GetIllust(this Pixeez.Objects.Work work, Pixeez.Tokens tokens = null)
+        {
+            return (await GetIllust(work, tokens));
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> GetUser(this long id, Pixeez.Tokens tokens = null)
+        {
+            var user = id.FindUser();
+            if (!(user is Pixeez.Objects.UserBase)) user = await RefreshUser(id, tokens);
+            if (UserCache.ContainsKey(id)) return (user);
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> GetUser(this long? id, Pixeez.Tokens tokens = null)
+        {
+            var user = id.FindUser();
+            if (!(user is Pixeez.Objects.UserBase)) user = await RefreshUser(id.Value, tokens);
+            if (id != null && UserCache.ContainsKey(id)) return (user);
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> GetUser(this string id, Pixeez.Tokens tokens = null)
+        {
+            long idv = 0;
+            if (long.TryParse(id, out idv)) return (await GetUser(idv, tokens));
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.UserBase> GetUser(this Pixeez.Objects.UserBase user, Pixeez.Tokens tokens = null)
+        {
+            return (await GetUser(user.Id, tokens));
+        }
+
+        public static async Task<Pixeez.Objects.UserInfo> GetUserInfo(this long id, Pixeez.Tokens tokens = null)
+        {
+            var userinfo = id.FindUserInfo();
+            if (!(userinfo is Pixeez.Objects.UserInfo)) userinfo = await RefreshUserInfo(id, tokens);
+            if (UserInfoCache.ContainsKey(id)) return (userinfo);
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.UserInfo> GetUserInfo(this long? id, Pixeez.Tokens tokens = null)
+        {
+            var userinfo = id.FindUserInfo();
+            if (!(userinfo is Pixeez.Objects.UserInfo)) userinfo = await RefreshUserInfo(id, tokens);
+            if (id != null && UserInfoCache.ContainsKey(id)) return (userinfo);
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.UserInfo> GetUserInfo(this string id, Pixeez.Tokens tokens = null)
+        {
+            long idv = 0;
+            if (long.TryParse(id, out idv)) return (await GetUserInfo(idv, tokens));
+            else return (null);
+        }
+
+        public static async Task<Pixeez.Objects.UserInfo> GetUserInfo(this Pixeez.Objects.UserBase user, Pixeez.Tokens tokens = null)
+        {
+            return (await GetUserInfo(user.Id, tokens));
         }
         #endregion
 
@@ -6537,6 +6844,33 @@ namespace PixivWPF.Common
             try
             {
                 return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+            }
+            catch (Exception ex) { ex.ERROR("NaturalSort"); return (list); }
+        }
+
+        public static IList<FileInfo> NaturalSort(this IList<FileInfo> list, int padding = 16)
+        {
+            try
+            {
+                return (list is IList<FileInfo> ? list.OrderBy(x => Regex.Replace(x.FullName, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+            }
+            catch (Exception ex) { ex.ERROR("NaturalSort"); return (list); }
+        }
+
+        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16)
+        {
+            try
+            {
+                return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+            }
+            catch (Exception ex) { ex.ERROR("NaturalSort"); return (list); }
+        }
+
+        public static IEnumerable<FileInfo> NaturalSort(this IEnumerable<FileInfo> list, int padding = 16)
+        {
+            try
+            {
+                return (list is IEnumerable<FileInfo> ? list.OrderBy(x => Regex.Replace(x.FullName, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
             }
             catch (Exception ex) { ex.ERROR("NaturalSort"); return (list); }
         }

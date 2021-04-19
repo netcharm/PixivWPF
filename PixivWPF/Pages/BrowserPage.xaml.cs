@@ -25,7 +25,7 @@ namespace PixivWPF.Pages
     /// <summary>
     /// WebviewPage.xaml 的交互逻辑
     /// </summary>
-    public partial class BrowerPage : Page
+    public partial class BrowerPage : Page, IDisposable
     {
         public Window ParentWindow { get; private set; }
 
@@ -527,6 +527,11 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        public void Dispose()
+        {
+            DeleteHtmlRender();
+        }
+
         public BrowerPage()
         {
             InitializeComponent();
@@ -543,7 +548,7 @@ namespace PixivWPF.Pages
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            DeleteHtmlRender();
+            Dispose();
         }
 
         private void BrowserWait_ReloadClick(object sender, RoutedEventArgs e)

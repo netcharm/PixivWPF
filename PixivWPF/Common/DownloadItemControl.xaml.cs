@@ -20,12 +20,18 @@ namespace PixivWPF.Common
 {
     public enum DownloadState { Idle, Downloading, Paused, Finished, Failed, Writing, Deleted, NonExists, Remove, Unknown }
 
-    public class DownloadStateMark
+    public class DownloadStateMark: IDisposable
     {
         public string Mark { get; set; } = string.Empty;
         public Brush Foreground { get; set; } = Application.Current.GetForegroundBrush();
         public Brush Background { get; set; } = Application.Current.GetBackgroundBrush();
         public string Text { get; set; } = string.Empty;
+
+        public void Dispose()
+        {
+            if (Foreground is Brush) Foreground = null;
+            if (Background is Brush) Background = null;
+        }
     }
 
     public class ProgressInfo
@@ -633,7 +639,7 @@ namespace PixivWPF.Common
                         lastTick = EndTick;
                         LastElapsed = new TimeSpan();
                     }
-                    catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_InitProgress"); }
+                    catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_ReportProgress"); }
                 }
             });
         }
@@ -785,7 +791,7 @@ namespace PixivWPF.Common
         {
             var start = _DownloadBuffer is byte[] ? _DownloadBuffer.Length : 0;
             if (!continuation || start <= 0) start = 0;
-            var request = new HttpRequestMessage(HttpMethod.Get, Url);
+            var request = Application.Current.GetHttpRequest(Url);
             request.Headers.Add("Range", $"bytes={start}-");
 
             httpClient = Application.Current.GetHttpClient(continuation, is_download: true);
@@ -1444,7 +1450,7 @@ namespace PixivWPF.Common
             }
             else if(sender == miOpenImageProperties)
             {
-                FileName.OpenShellFileProperty();
+                FileName.OpenShellProperties();
             }
         }
     }

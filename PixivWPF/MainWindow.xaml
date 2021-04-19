@@ -21,8 +21,8 @@
                  AllowDrop="True"
                  WindowStartupLocation="CenterScreen" MinWidth="1484" MinHeight="720" Width="1484" Height="964"
                  PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
-                 StateChanged="MainWindow_StateChanged" 
-                 Closing="MainWindow_Closing" >
+                 StateChanged="MainWindow_StateChanged" Activated="MetroWindow_Activated" Deactivated="MetroWindow_Deactivated"
+                 Closing="MainWindow_Closing"  >
 
     <mah:MetroWindow.Resources>
         <Style x:Key="MetroSplitButton" TargetType="{x:Type mah:SplitButton}">
@@ -252,6 +252,9 @@
                 <Button.ContextMenu>
                     <ContextMenu>
                         <MenuItem x:Name="CommandUpgrade" x:Uid="CommandUpgrade" Header="Upgrade Application" Click="CommandRestart_Click" />
+                        <Separator/>
+                        <MenuItem x:Name="CommandTouchFolder" x:Uid="CommandTouchFolder" Header="Touch Folder Files" Click="CommandTouch_Click" />
+                        <MenuItem x:Name="CommandAttachMetaFolder" x:Uid="CommandAttachMetaFolder" Header="Attach Folder Files MetaInfo" Click="CommandAttachMeta_Click" />
                     </ContextMenu>
                 </Button.ContextMenu>
             </Button>

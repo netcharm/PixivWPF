@@ -23,7 +23,7 @@ namespace PixivWPF.Pages
     /// <summary>
     /// HistoryPage.xaml 的交互逻辑
     /// </summary>
-    public partial class HistoryPage : Page
+    public partial class HistoryPage : Page, IDisposable
     {
         public Window ParentWindow { get; private set; }
 
@@ -334,7 +334,7 @@ namespace PixivWPF.Pages
             Commands.CopyText.Execute(string.Join(Environment.NewLine, info));
         }
 
-        internal void Dispose()
+        public void Dispose()
         {
             try
             {

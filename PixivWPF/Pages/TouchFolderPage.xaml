@@ -1,0 +1,104 @@
+﻿<Page x:Class="PixivWPF.Pages.TouchFolderPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+      xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+      xmlns:local="clr-namespace:PixivWPF.Pages"
+      mc:Ignorable="d" 
+      d:DesignHeight="300" d:DesignWidth="300"
+      Title="TouchFolderPage"
+      Loaded="Page_Loaded" Unloaded="Page_Unloaded">
+
+    <Grid Margin="4">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Column="0" Grid.Row="0" x:Name="PART_FolderLabel" Text="Folder" Foreground="{DynamicResource MahApps.Brushes.Text}" Margin="8"/>
+        <TextBlock Grid.Column="1" Grid.Row="0" x:Name="PART_FolderSemicolon" Text=":" Foreground="{DynamicResource MahApps.Brushes.Text}" Margin="8"/>
+        <TextBlock Grid.Column="2" Grid.Row="0" x:Name="PART_FolderName" Text="" Foreground="{DynamicResource MahApps.Brushes.Text}" Margin="8"/>
+        <TextBlock Grid.Column="0" Grid.Row="1" x:Name="PART_FileLabel" Text="File" Foreground="{DynamicResource MahApps.Brushes.Text}" Margin="8"/>
+        <TextBlock Grid.Column="1" Grid.Row="1" x:Name="PART_FileSemicolon" Text=":" Foreground="{DynamicResource MahApps.Brushes.Text}" Margin="8"/>
+        <TextBlock Grid.Column="2" Grid.Row="1" x:Name="PART_FileName" Text="" Foreground="{DynamicResource MahApps.Brushes.Text}" Margin="8"/>
+        <mah:MetroProgressBar Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3" x:Name="PART_Progress" x:Uid="DownloadProgress"
+                              Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                              Height="18" IsIndeterminate="False" Minimum="0" Maximum="100" Margin="8"
+                              HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+        <TextBlock Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3" x:Name="PART_ProgressPercent" 
+                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" Margin="8"
+                   TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
+            <TextBlock.Foreground>
+                <LinearGradientBrush x:Name="PART_ProgressLinear" StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0"></GradientStop>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.IdealForeground}" Offset="0" x:Name="PART_ProgressLinearLeft"></GradientStop>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="0" x:Name="PART_ProgressLinearRight"></GradientStop>
+                    <GradientStop Color="{DynamicResource MahApps.Colors.Accent}" Offset="1"></GradientStop>
+                </LinearGradientBrush>
+            </TextBlock.Foreground>
+        </TextBlock>
+        <CheckBox Grid.Column="0" Grid.Row="3" x:Name="PART_Recursion" Content="Recursion" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8"/>
+        <StackPanel Grid.Column="2" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8">
+            <Button x:Name="PART_SelectFolder" x:Uid="SelectFolder" Margin="2,0,2,0" Click="PART_SelectFolder_Click"
+                    ToolTip="Select Folder"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}"  BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}"
+                    Background="Transparent">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
+                    <TextBlock Text="Selected Folder" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="PART_TouchStart" x:Uid="TouchStart" Margin="2,0,2,0" Click="PART_TouchStart_Click"
+                    ToolTip="Starting Touch"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}"  BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}"
+                    Background="Transparent">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="ControlPlay" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
+                    <TextBlock Text="Touching" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                </StackPanel>
+            </Button>            
+            <Button x:Name="PART_TouchCancel" x:Uid="TouchCancel" Margin="2,0,2,0" Click="PART_TouchCancel_Click"
+                    ToolTip="Cancel Touching"
+                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}"  BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}"
+                    Background="Transparent">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="Cancel" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
+                    <TextBlock Text="Cancel" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                </StackPanel>
+            </Button>
+            <Button x:Name="PART_TouchClose" x:Uid="TouchClose" Margin="2,0,2,0" Click="PART_TouchClose_Click"
+                    ToolTip="Close Touching Window"
+                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Style="{DynamicResource MahApps.Styles.Button.Square}"  BorderThickness="1"
+                    BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                    Foreground="{DynamicResource MahApps.Brushes.Text}"
+                    Background="Transparent">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="Close" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
+                    <TextBlock Text="Close" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                </StackPanel>
+            </Button>            
+        </StackPanel>
+    </Grid>
+</Page>

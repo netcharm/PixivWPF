@@ -106,7 +106,6 @@ namespace PixivWPF.Common
         public ContentWindow()
         {
             InitializeComponent();
-
             //this.GlowBrush = null;
 
             SearchBox.ItemsSource = AutoSuggestList;
@@ -121,6 +120,9 @@ namespace PixivWPF.Common
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            var wins = Application.Current.GetContentWindows();
+            wins.AddOrUpdate(Title, this, (k, v) => this);
+
             $"{Title} Loading...".INFO();
 
             CommandRefresh.Hide();
@@ -147,6 +149,15 @@ namespace PixivWPF.Common
                     PreftchingProgress.Show();
                     CommandFilter.Show();
                 }
+            }
+
+            if(Content is TouchFolderPage)
+            {
+                LeftWindowCommands.Hide();
+                RightWindowCommands.Hide();
+                ShowMinButton = true;
+                ShowMaxRestoreButton = false;
+                ResizeMode = ResizeMode.CanMinimize;
             }
 
             if (Application.Current.DropBoxExists() == null)
@@ -201,7 +212,31 @@ namespace PixivWPF.Common
                     Content = null;
                     Application.Current.GC(name: name, wait: true);
                 }
+                var wins = Application.Current.GetContentWindows();
+                if (wins.ContainsKey(Title))
+                {
+                    ContentWindow win; 
+                    wins.TryRemove(Title, out win);
+                }
             }
+        }
+
+        private void MetroWindow_StateChanged(object sender, EventArgs e)
+        {
+            LastWindowStates.Enqueue(WindowState);
+            if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
+        }
+
+        private void MetroWindow_Activated(object sender, EventArgs e)
+        {
+            Application.Current.ReleaseKeyboardModifiers(force: false, updown: true);
+            this.DoEvents();
+        }
+
+        private void MetroWindow_Deactivated(object sender, EventArgs e)
+        {
+            Application.Current.ReleaseKeyboardModifiers(updown: true);
+            this.DoEvents();
         }
 
         private void MetroWindow_DragOver(object sender, DragEventArgs e)
@@ -237,12 +272,6 @@ namespace PixivWPF.Common
                     Close();
                 }
             }
-        }
-
-        private void MetroWindow_StateChanged(object sender, EventArgs e)
-        {
-            LastWindowStates.Enqueue(WindowState);
-            if (LastWindowStates.Count > 2) LastWindowStates.Dequeue();
         }
 
         private void CommandRefresh_Click(object sender, RoutedEventArgs e)

@@ -16,6 +16,7 @@ using MahApps.Metro.Controls;
 using Newtonsoft.Json;
 using Prism.Commands;
 using PixivWPF.Pages;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace PixivWPF.Common
 {
@@ -614,6 +615,170 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand OpenTouch { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                if (obj is string && !string.IsNullOrEmpty(obj as string))
+                {
+                    var folder = obj as string;
+
+                    var title = $"Touching {folder}";
+                    if (Application.Current.ContentWindowExists(title))
+                    {
+                        await title.ActiveByTitle();
+                        return;
+                    }
+
+                    await new Action(async () =>
+                    {
+                        var page = new TouchFolderPage() { Name = $"TouchFolder", FontFamily = setting.FontFamily, Contents = folder, Mode = "touch" };
+                        var viewer = new ContentWindow()
+                        {
+                            Title = title,
+                            Width = WIDTH_MIN,
+                            MinWidth = WIDTH_SEARCH,
+                            MaxWidth = WIDTH_PEDIA,
+                            FontFamily = setting.FontFamily,
+                            SizeToContent = SizeToContent.Height,
+                            Content = page
+                        };
+                        var wins = Application.Current.GetContentWindows();
+                        wins.AddOrUpdate(title, viewer, (k, v) => viewer);
+                        viewer.Show();
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+                else if (obj is string && string.IsNullOrEmpty(obj as string))
+                {
+                    CommonOpenFileDialog dlg = new CommonOpenFileDialog()
+                    {
+                        Title = "Select Folder",
+                        IsFolderPicker = true,
+                        InitialDirectory = setting.LastFolder,
+
+                        AddToMostRecentlyUsedList = false,
+                        AllowNonFileSystemItems = false,
+                        DefaultDirectory = setting.LastFolder,
+                        EnsureFileExists = true,
+                        EnsurePathExists = true,
+                        EnsureReadOnly = false,
+                        EnsureValidNames = true,
+                        Multiselect = false,
+                        ShowPlacesList = true
+                    };
+
+                    if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+                    {
+                        var result = dlg.FileName;
+                        OpenTouch.Execute(result);
+                    }
+                }
+                else
+                {
+                    await new Action(async () =>
+                    {
+                        var title = $"Touching";
+                        var page = new TouchFolderPage() { Name = $"TouchFolder", FontFamily = setting.FontFamily, Contents = string.Empty };
+                        var viewer = new ContentWindow()
+                        {
+                            Title = title,
+                            Width = WIDTH_MIN,
+                            FontFamily = setting.FontFamily,
+                            SizeToContent = SizeToContent.Height,
+                            Content = page
+                        };
+                        viewer.Show();
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+            }
+            catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenTouch"); }
+        });
+
+        public static ICommand OpenAttachMetaInfo { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            try
+            {
+                if (obj is string && !string.IsNullOrEmpty(obj as string))
+                {
+                    var folder = obj as string;
+
+                    var title = $"AttachMetaInfo {Path.GetFileName(folder)}";
+                    if (Application.Current.ContentWindowExists(title))
+                    {
+                        await title.ActiveByTitle();
+                        return;
+                    }
+
+                    await new Action(async () =>
+                    {
+                        var page = new TouchFolderPage() { Name = $"AttachMetaInfoFolder", FontFamily = setting.FontFamily, Contents = folder, Mode = "attach" };
+                        var viewer = new ContentWindow()
+                        {
+                            Title = title,
+                            Width = WIDTH_MIN,
+                            FontFamily = setting.FontFamily,
+                            SizeToContent = SizeToContent.Height,
+                            Content = page
+                        };
+                        var wins = Application.Current.GetContentWindows();
+                        wins.AddOrUpdate(title, viewer, (k, v) => viewer);
+                        viewer.Show();
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+                else if (obj is string && string.IsNullOrEmpty(obj as string))
+                {
+                    CommonOpenFileDialog dlg = new CommonOpenFileDialog()
+                    {
+                        Title = "Select Folder",
+                        IsFolderPicker = true,
+                        InitialDirectory = setting.LastFolder,
+
+                        AddToMostRecentlyUsedList = false,
+                        AllowNonFileSystemItems = false,
+                        DefaultDirectory = setting.LastFolder,
+                        EnsureFileExists = true,
+                        EnsurePathExists = true,
+                        EnsureReadOnly = false,
+                        EnsureValidNames = true,
+                        Multiselect = false,
+                        ShowPlacesList = true
+                    };
+
+                    if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+                    {
+                        var result = dlg.FileName;
+                        OpenTouch.Execute(result);
+                    }
+                }
+                else
+                {
+                    await new Action(async () =>
+                    {
+                        var title = $"AttachMetaInfo";
+                        var page = new TouchFolderPage() { Name = $"AttachMetaInfoFolder", FontFamily = setting.FontFamily, Contents = string.Empty, Mode = "attach" };
+                        var viewer = new ContentWindow()
+                        {
+                            Title = title,
+                            Width = WIDTH_MIN,
+                            FontFamily = setting.FontFamily,
+                            SizeToContent = SizeToContent.Height,
+                            Content = page
+                        };
+                        viewer.Show();
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+            }
+            catch (Exception ex) { ex.ShowExceptionToast(tag: "OpenAttachMetaInfo"); }
+        });
+
         public static ICommand OpenItem { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try
@@ -661,7 +826,11 @@ namespace PixivWPF.Common
                     if (i is Pixeez.Objects.Work) illust = i;
 
                     var title = $"ID: {illust.Id}, {illust.Title}";
-                    if (await title.ActiveByTitle()) return;
+                    if (Application.Current.ContentWindowExists(title))
+                    {
+                        await title.ActiveByTitle();
+                        return;
+                    }
 
                     await new Action(async () =>
                     {
@@ -679,6 +848,8 @@ namespace PixivWPF.Common
                                 FontFamily = setting.FontFamily,
                                 Content = page
                             };
+                            var wins = Application.Current.GetContentWindows();
+                            wins.AddOrUpdate(title, viewer, (k, v) => viewer);
                             viewer.Show();
                             await Task.Delay(1);
                             Application.Current.DoEvents();
@@ -738,7 +909,11 @@ namespace PixivWPF.Common
                     //var suffix = item.Count > 1 ? $" - {item.Index}/{item.Count}" : string.Empty;
                     var suffix = item.Count > 1 ? $"_{item.Index}_{item.Count}".Replace("-1", "0") : string.Empty;
                     var title = $"Preview ID: {item.ID}, {item.Subject}";
-                    if (await title.ActiveByTitle()) return;
+                    if (Application.Current.ContentWindowExists(title))
+                    {
+                        await title.ActiveByTitle();
+                        return;
+                    }
 
                     await new Action(async () =>
                     {
@@ -753,6 +928,8 @@ namespace PixivWPF.Common
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
+                        var wins = Application.Current.GetContentWindows();
+                        wins.AddOrUpdate(title, viewer, (k, v) => viewer);
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -784,7 +961,11 @@ namespace PixivWPF.Common
                     if (u is Pixeez.Objects.UserBase) user = u;
 
                     var title = $"User: {user.Name} / {user.Id} / {user.Account}";
-                    if (await title.ActiveByTitle()) return;
+                    if (Application.Current.ContentWindowExists(title))
+                    {
+                        await title.ActiveByTitle();
+                        return;
+                    }
 
                     await new Action(async () =>
                     {
@@ -799,6 +980,8 @@ namespace PixivWPF.Common
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
+                        var wins = Application.Current.GetContentWindows();
+                        wins.AddOrUpdate(title, viewer, (k, v) => viewer);
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -1153,7 +1336,11 @@ namespace PixivWPF.Common
             try
             {
                 var title = $"History";
-                if (await title.ActiveByTitle()) return;
+                if (Application.Current.ContentWindowExists(title))
+                {
+                    await title.ActiveByTitle();
+                    return;
+                }
 
                 await new Action(async () =>
                 {
@@ -1169,6 +1356,8 @@ namespace PixivWPF.Common
                         FontFamily = setting.FontFamily,
                         Content = page
                     };
+                    var wins = Application.Current.GetContentWindows();
+                    wins.AddOrUpdate(title, viewer, (k, v) => viewer);
                     viewer.Show();
                     await Task.Delay(1);
                     Application.Current.DoEvents();
@@ -1345,7 +1534,11 @@ namespace PixivWPF.Common
                     }
 
                     var title = $"Searching {content} ...";
-                    if (await title.ActiveByTitle()) return;
+                    if (Application.Current.ContentWindowExists(title))
+                    {
+                        await title.ActiveByTitle();
+                        return;
+                    }
 
                     await new Action(async () =>
                     {
@@ -1362,6 +1555,8 @@ namespace PixivWPF.Common
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
+                        var wins = Application.Current.GetContentWindows();
+                        wins.AddOrUpdate(title, viewer, (k, v) => viewer);
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -1804,7 +1999,7 @@ namespace PixivWPF.Common
                 {
                     await new Action(() =>
                     {
-                        content.ShellOpenPixivPedia();
+                        content.OpenPixivPediaWithShell();
                     }).InvokeAsync();
                 }
             }
@@ -1874,7 +2069,7 @@ namespace PixivWPF.Common
                 {
                     await new Action(() =>
                     {
-                        content.OpenShellFileProperty();
+                        content.OpenShellProperties();
                     }).InvokeAsync(true);
                 }
             }
@@ -1887,7 +2082,7 @@ namespace PixivWPF.Common
                     else if (url.IsAbsoluteUri)
                     {
                         string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCachePath();
-                        if (File.Exists(fp_d)) fp_d.OpenShellFileProperty();
+                        if (File.Exists(fp_d)) fp_d.OpenShellProperties();
                     }
                 }
                 catch (Exception ex) { ex.ERROR("ShellOpenFile"); }
@@ -1900,7 +2095,7 @@ namespace PixivWPF.Common
                 {
                     await new Action(() =>
                     {
-                        fp.OpenShellFileProperty();
+                        fp.OpenShellProperties();
                     }).InvokeAsync(true);
                 }
             }

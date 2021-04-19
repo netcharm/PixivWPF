@@ -312,27 +312,28 @@ namespace PixivWPF.Common
                 //if (e.ChangeType == lastConfigEventType &&
                 //    e.FullPath == lastConfigEventFile &&
                 //    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
+                var setting = Application.Current.LoadSetting();
                 var fn = e.FullPath;
                 if (e.ChangeType == WatcherChangeTypes.Created)
                 {
                     if (File.Exists(e.FullPath))
                     {
-                        if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                        if (fn.Equals(setting.ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             //Setting.Load(true, false);
                             //lastConfigEventTick = DateTime.Now;
                         }
-                        else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        else if (fn.Equals(setting.CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Setting.LoadCustomTags(true);
                             //lastConfigEventTick = DateTime.Now;
                         }
-                        else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        else if (fn.Equals(setting.CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Setting.LoadCustomWidecardTags(true);
                             //lastConfigEventTick = DateTime.Now;
                         }
-                        else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                        else if (fn.Equals(setting.ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Setting.UpdateContentsTemplete();
                             //lastConfigEventTick = DateTime.Now;
@@ -343,23 +344,23 @@ namespace PixivWPF.Common
                 {
                     if (File.Exists(e.FullPath))
                     {
-                        if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                        if (fn.Equals(setting.ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Setting.Load(true, false);
                             //lastConfigEventTick = DateTime.Now;
                         }
-                        else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        else if (fn.Equals(setting.CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             //Setting.LoadTags(false, true);
                             Setting.LoadCustomTags(true);
                             //lastConfigEventTick = DateTime.Now;
                         }
-                        else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                        else if (fn.Equals(setting.CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Setting.LoadCustomWidecardTags(true);
                             //lastConfigEventTick = DateTime.Now;
                         }
-                        else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                        else if (fn.Equals(setting.ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                         {
                             Setting.UpdateContentsTemplete();
                             //lastConfigEventTick = DateTime.Now;
@@ -368,21 +369,21 @@ namespace PixivWPF.Common
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
-                    if (fn.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                    if (fn.Equals(setting.ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         //lastConfigEventTick = DateTime.Now;
                     }
-                    else if (fn.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    else if (fn.Equals(setting.CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Setting.LoadCustomTags(true);
                         //lastConfigEventTick = DateTime.Now;
                     }
-                    else if (fn.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    else if (fn.Equals(setting.CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Setting.LoadCustomWidecardTags(true);
                         //lastConfigEventTick = DateTime.Now;
                     }
-                    else if (fn.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                    else if (fn.Equals(setting.ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Setting.UpdateContentsTemplete();
                         //lastConfigEventTick = DateTime.Now;
@@ -409,30 +410,30 @@ namespace PixivWPF.Common
                 //if (e.ChangeType == lastConfigEventType &&
                 //    e.FullPath == lastConfigEventFile &&
                 //    lastConfigEventTick.Ticks.DeltaNowMillisecond() < 10) throw new Exception("Same config change event!");
-
+                var setting = Application.Current.LoadSetting();
                 var fn_o = e.OldFullPath;
                 var fn_n = e.FullPath;
                 if (e.ChangeType == WatcherChangeTypes.Renamed)
                 {
-                    if (fn_o.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase) ||
-                        fn_n.Equals(Application.Current.LoadSetting().ConfigFile, StringComparison.CurrentCultureIgnoreCase))
+                    if (fn_o.Equals(setting.ConfigFile, StringComparison.CurrentCultureIgnoreCase) ||
+                        fn_n.Equals(setting.ConfigFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         //lastConfigEventTick = DateTime.Now;
                     }
-                    else if (fn_o.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) ||
-                        fn_n.Equals(Application.Current.LoadSetting().CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    else if (fn_o.Equals(setting.CustomTagsFile, StringComparison.CurrentCultureIgnoreCase) ||
+                        fn_n.Equals(setting.CustomTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Setting.LoadCustomTags(true);
                         //lastConfigEventTick = DateTime.Now;
                     }
-                    else if (fn_o.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase) ||
-                        fn_n.Equals(Application.Current.LoadSetting().CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
+                    else if (fn_o.Equals(setting.CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase) ||
+                        fn_n.Equals(setting.CustomWildcardTagsFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Setting.LoadCustomWidecardTags(true);
                         //lastConfigEventTick = DateTime.Now;
                     }
-                    else if (fn_o.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) ||
-                        fn_n.Equals(Application.Current.LoadSetting().ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
+                    else if (fn_o.Equals(setting.ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase) ||
+                        fn_n.Equals(setting.ContentsTemplateFile, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Setting.UpdateContentsTemplete();
                         //lastConfigEventTick = DateTime.Now;
@@ -800,6 +801,50 @@ namespace PixivWPF.Common
         private static string[] r15 = new string[] { "xxx", "r18", "r17", "r15", "18+", "17+", "15+" };
         private static string[] r17 = new string[] { "xxx", "r18", "r17", "18+", "17+", };
         private static string[] r18 = new string[] { "xxx", "r18", "18+"};
+
+        private static ConcurrentDictionary<string, ContentWindow> _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
+        public static ConcurrentDictionary<string, ContentWindow> ContentWindows
+        {
+            get
+            {
+                if (!(_ContentWindows_ is ConcurrentDictionary<string, ContentWindow>))
+                    _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
+                return (_ContentWindows_);
+            }
+        }
+
+        public static ConcurrentDictionary<string, ContentWindow> GetContentWindows(this Application app)
+        {
+            if(!(_ContentWindows_ is ConcurrentDictionary<string, ContentWindow>))
+                _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
+            return (_ContentWindows_);
+        }
+
+        public static bool UpdateContentWindows(this Application app, ContentWindow window)
+        {
+            bool result = false;
+            try
+            {
+                if (!(_ContentWindows_ is ConcurrentDictionary<string, ContentWindow>))
+                    _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
+                var win_olds = _ContentWindows_.Where(cw => cw.Value == window);
+                foreach (var win in win_olds)
+                {
+                    ContentWindow w = null;
+                    result = _ContentWindows_.TryRemove(win.Key, out w);
+                }
+                _ContentWindows_.AddOrUpdate(window.Title, window, (k, v) => window);
+            }
+            catch(Exception ex) { ex.ERROR("UpdateContentWindows"); }
+            return (result);
+        }
+
+        public static bool ContentWindowExists(this Application app, string title)
+        {
+            if (!(_ContentWindows_ is ConcurrentDictionary<string, ContentWindow>))
+                _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
+            return (_ContentWindows_.ContainsKey(title) && _ContentWindows_[title] is ContentWindow ? true : false);
+        }
 
         public static MainWindow GetMainWindow(this Application app)
         {
@@ -2081,6 +2126,77 @@ namespace PixivWPF.Common
         [DllImport("user32.dll", SetLastError = true)]
         private static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetKeyboardState(byte[] lpKeyState);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetKeyboardState(byte[] lpKeyState);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
+        private static extern short GetKeyState(int keyCode);
+
+        [DllImport("user32.dll")]
+        private static extern short GetAsyncKeyState(int keyCode);
+
+        private static bool ClearKeyState(short vKey)
+        {
+            var result = false;
+            if (0 < vKey && vKey < 256)
+            {
+                try
+                {
+                    var keys = new byte[256];
+                    result = GetKeyboardState(keys);
+                    keys[vKey] = 0;
+                    result = SetKeyboardState(keys);
+                }
+                catch(Exception ex) { ex.ERROR("ClearKeyState"); }
+            }
+            return (result);
+        }
+
+        private static bool ClearKeyState(System.Windows.Forms.Keys vKey)
+        {
+            return (ClearKeyState((short)vKey));
+        }
+
+        private static bool ClearKeyState(IEnumerable<short> vKeys)
+        {
+            var result = false;
+            try
+            {
+                if (vKeys.Count() > 0)
+                {
+                    var keys = new byte[256];
+                    result = GetKeyboardState(keys);
+                    foreach (var vKey in vKeys)
+                    {
+                        if (0 < vKey && vKey < 256) keys[vKey] = 0;
+                    }
+                    result = SetKeyboardState(keys);
+                }
+            }
+            catch(Exception ex) { ex.ERROR("ClearKeyState"); }
+            return (result);
+        }
+
+        private static bool ClearKeyState(IEnumerable<System.Windows.Forms.Keys> vKeys)
+        {
+            return (ClearKeyState(vKeys.Select(k => (short)k)));
+        }
+
+        private static short GetKeyState(System.Windows.Forms.Keys vKey)
+        {
+            return (GetKeyState((short)vKey));
+        }
+
+        private static short GetAsyncKeyState(System.Windows.Forms.Keys vKey)
+        {
+            return (GetAsyncKeyState((short)vKey));
+        }
+
         private static string Key2String(System.Windows.Forms.Keys key)
         {
             var result = Dfust.Hotkeys.Util.Keys2String.KeyToString(key);
@@ -2097,54 +2213,194 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ReleaseKeyboardModifiers(this Application app, bool all = true, bool updown = false)
+        private static bool IsShiftToggled()
+        {
+            //return ((GetKeyState(0x10) & 0x0001) != 0 || (GetKeyState(0xA0) & 0x0001) != 0 || (GetKeyState(0xA1) & 0x0001) != 0);
+            return ((GetAsyncKeyState(0x10) & 0x0001) != 0 || (GetAsyncKeyState(0xA0) & 0x0001) != 0 || (GetAsyncKeyState(0xA1) & 0x0001) != 0);
+        }
+
+        private static bool IsCtrlToggled()
+        {
+            //return ((GetKeyState(0x11) & 0x0001) != 0 || (GetKeyState(0xA2) & 0x0001) != 0 || (GetKeyState(0xA3) & 0x0001) != 0);
+            return ((GetAsyncKeyState(0x11) & 0x0001) != 0 || (GetAsyncKeyState(0xA2) & 0x0001) != 0 || (GetAsyncKeyState(0xA3) & 0x0001) != 0);
+        }
+
+        private static bool IsAltToggled()
+        {
+            //return ((GetKeyState(0x12) & 0x0001) != 0 || (GetKeyState(0xA4) & 0x0001) != 0 || (GetKeyState(0xA5) & 0x0001) != 0);
+            return ((GetAsyncKeyState(0x12) & 0x0001) != 0 || (GetAsyncKeyState(0xA4) & 0x0001) != 0 || (GetAsyncKeyState(0xA5) & 0x0001) != 0);
+        }
+
+        private static bool IsWinToggled()
+        {
+            //return ((GetKeyState(0x5B) & 0x0001) != 0 || (GetKeyState(0x5C) & 0x0001) != 0);
+            return ((GetAsyncKeyState(0x5B) & 0x0001) != 0 || (GetAsyncKeyState(0x5C) & 0x0001) != 0);
+        }
+
+        private static bool IsShiftDown()
+        {
+            //return ((GetKeyState(0x10) & 0x8000) != 0 || (GetKeyState(0xA0) & 0x8000) != 0 || (GetKeyState(0xA1) & 0x8000) != 0);
+            return ((GetAsyncKeyState(0x10) & 0x8000) != 0 || (GetAsyncKeyState(0xA0) & 0x8000) != 0 || (GetAsyncKeyState(0xA1) & 0x8000) != 0);
+        }
+
+        private static bool IsCtrlDown()
+        {
+            //return ((GetKeyState(0x11) & 0x8000) != 0 || (GetKeyState(0xA2) & 0x8000) != 0 || (GetKeyState(0xA3) & 0x8000) != 0);
+            return ((GetAsyncKeyState(0x11) & 0x8000) != 0 || (GetAsyncKeyState(0xA2) & 0x8000) != 0 || (GetAsyncKeyState(0xA3) & 0x8000) != 0);
+        }
+
+        private static bool IsAltDown()
+        {
+            //return ((GetKeyState(0x12) & 0x8000) != 0 || (GetKeyState(0xA4) & 0x8000) != 0 || (GetKeyState(0xA5) & 0x8000) != 0);
+            return ((GetAsyncKeyState(0x12) & 0x8000) != 0 || (GetAsyncKeyState(0xA4) & 0x8000) != 0 || (GetAsyncKeyState(0xA5) & 0x8000) != 0);
+        }
+
+        private static bool IsWinDown()
+        {
+            //return ((GetKeyState(0x5B) & 0x8000) != 0 || (GetKeyState(0x5C) & 0x8000) != 0);
+            return ((GetAsyncKeyState(0x5B) & 0x8000) != 0 || (GetAsyncKeyState(0x5C) & 0x8000) != 0);
+        }
+
+        private static bool IsModifierToggled(ModifierKeys modifier)
+        {
+            bool result = false;
+            var state = Gma.System.MouseKeyHook.Implementation.KeyboardState.GetCurrent();
+            if (modifier == ModifierKeys.Alt)
+            {
+                result = state.IsToggled(System.Windows.Forms.Keys.Alt) ||
+                         state.IsToggled(System.Windows.Forms.Keys.Menu) ||
+                         state.IsToggled(System.Windows.Forms.Keys.LMenu) ||
+                         state.IsToggled(System.Windows.Forms.Keys.RMenu);
+            }
+            else if (modifier == ModifierKeys.Control)
+            {
+                result = state.IsToggled(System.Windows.Forms.Keys.Control) ||
+                         state.IsToggled(System.Windows.Forms.Keys.ControlKey) ||
+                         state.IsToggled(System.Windows.Forms.Keys.LControlKey) ||
+                         state.IsToggled(System.Windows.Forms.Keys.RControlKey);
+            }
+            else if (modifier == ModifierKeys.Shift)
+            {
+                result = state.IsToggled(System.Windows.Forms.Keys.Shift) ||
+                         state.IsToggled(System.Windows.Forms.Keys.ShiftKey) ||
+                         state.IsToggled(System.Windows.Forms.Keys.LShiftKey) ||
+                         state.IsToggled(System.Windows.Forms.Keys.RShiftKey);
+            }
+            else if (modifier == ModifierKeys.Windows)
+            {
+                result = state.IsToggled(System.Windows.Forms.Keys.LWin) ||
+                         state.IsToggled(System.Windows.Forms.Keys.RWin) ||
+                         state.IsToggled(System.Windows.Forms.Keys.LShiftKey) ||
+                         state.IsToggled(System.Windows.Forms.Keys.RShiftKey);
+            }
+            return (result);
+        }
+
+        private static bool IsModifierDown(ModifierKeys modifier)
+        {
+            bool result = false;
+            var state = Gma.System.MouseKeyHook.Implementation.KeyboardState.GetCurrent();
+            if (modifier == ModifierKeys.Alt)
+            {
+                result = state.IsDown(System.Windows.Forms.Keys.Alt) ||
+                         state.IsDown(System.Windows.Forms.Keys.Menu) ||
+                         state.IsDown(System.Windows.Forms.Keys.LMenu) ||
+                         state.IsDown(System.Windows.Forms.Keys.RMenu);
+            }
+            else if (modifier == ModifierKeys.Control)
+            {
+                result = state.IsDown(System.Windows.Forms.Keys.Control) ||
+                         state.IsDown(System.Windows.Forms.Keys.ControlKey) ||
+                         state.IsDown(System.Windows.Forms.Keys.LControlKey) ||
+                         state.IsDown(System.Windows.Forms.Keys.RControlKey);
+            }
+            else if (modifier == ModifierKeys.Shift)
+            {
+                result = state.IsDown(System.Windows.Forms.Keys.Shift) ||
+                         state.IsDown(System.Windows.Forms.Keys.ShiftKey) ||
+                         state.IsDown(System.Windows.Forms.Keys.LShiftKey) ||
+                         state.IsDown(System.Windows.Forms.Keys.RShiftKey);
+            }
+            else if (modifier == ModifierKeys.Windows)
+            {
+                result = state.IsDown(System.Windows.Forms.Keys.LWin) ||
+                         state.IsDown(System.Windows.Forms.Keys.RWin) ||
+                         state.IsDown(System.Windows.Forms.Keys.LShiftKey) ||
+                         state.IsDown(System.Windows.Forms.Keys.RShiftKey);
+            }
+            return (result);
+        }
+
+        public static void ReleaseKeyboardModifiers(this Application app, bool force = false, bool updown = false, bool use_keybd_event = false)
         {
             var k = Keyboard.Modifiers;
-            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+            List<string> keys = new List<string>();
+            if (force || IsModifierDown(ModifierKeys.Shift) || IsShiftDown())
             {
-                // SHIFT Key
-                if (updown) keybd_event(0x10, 0x00, 0x0001, 0);
-                keybd_event(0x10, 0x00, 0x0002, 0);
-                // Left SHIFT Key
-                if (updown) keybd_event(0xA0, 0x00, 0x0001, 0);
-                keybd_event(0xA0, 0x00, 0x0002, 0);
-                // Right SHIFT Key
-                if (updown) keybd_event(0xA1, 0x00, 0x0001, 0);
-                keybd_event(0xA1, 0x00, 0x0002, 0);
+                keys.Add("Shift");                
+                if (use_keybd_event)
+                {
+                    // SHIFT Key
+                    if (updown) keybd_event(0x10, 0x00, 0x0001, 0);
+                    keybd_event(0x10, 0x00, 0x0002, 0);
+                    // Left SHIFT Key
+                    if (updown) keybd_event(0xA0, 0x00, 0x0001, 0);
+                    keybd_event(0xA0, 0x00, 0x0002, 0);
+                    // Right SHIFT Key
+                    if (updown) keybd_event(0xA1, 0x00, 0x0001, 0);
+                    keybd_event(0xA1, 0x00, 0x0002, 0);
+                }
+                else ClearKeyState(new List<short>() { 0x10, 0xA0, 0xA1 });
             }
-            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+            if (force || IsModifierDown(ModifierKeys.Control) || IsCtrlDown())
             {
-                // CTRL Key
-                if (updown) keybd_event(0x11, 0x00, 0x0001, 0);
-                keybd_event(0x11, 0x00, 0x0002, 0);
-                // Left CONTROL Key
-                if (updown) keybd_event(0xA2, 0x00, 0x0001, 0);
-                keybd_event(0xA2, 0x00, 0x0002, 0);
-                // Right CONTROL Key
-                if (updown) keybd_event(0xA3, 0x00, 0x0001, 0);
-                keybd_event(0xA3, 0x00, 0x0002, 0);
+                keys.Add("Control");
+                if (use_keybd_event)
+                {
+                    // CTRL Key
+                    if (updown) keybd_event(0x11, 0x00, 0x0001, 0);
+                    keybd_event(0x11, 0x00, 0x0002, 0);
+                    // Left CONTROL Key
+                    if (updown) keybd_event(0xA2, 0x00, 0x0001, 0);
+                    keybd_event(0xA2, 0x00, 0x0002, 0);
+                    // Right CONTROL Key
+                    if (updown) keybd_event(0xA3, 0x00, 0x0001, 0);
+                    keybd_event(0xA3, 0x00, 0x0002, 0);
+                }
+                else ClearKeyState(new List<short>() { 0x11, 0xA2, 0xA3 });
             }
-            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+            if (force || IsModifierDown(ModifierKeys.Alt) || IsAltDown())
             {
-                // Alt Key
-                if (updown) keybd_event(0x12, 0x00, 0x0001, 0);
-                keybd_event(0x12, 0x00, 0x0002, 0);
-                // Left MENU Key
-                if (updown) keybd_event(0xA4, 0x00, 0x0001, 0);
-                keybd_event(0xA4, 0x00, 0x0002, 0);
-                // Right MENU Key
-                if (updown) keybd_event(0xA5, 0x00, 0x0001, 0);
-                keybd_event(0xA5, 0x00, 0x0002, 0);
+                keys.Add("Alt");
+                if (use_keybd_event)
+                {
+                    // Alt Key
+                    if (updown) keybd_event(0x12, 0x00, 0x0001, 0);
+                    keybd_event(0x12, 0x00, 0x0002, 0);
+                    // Left MENU Key
+                    if (updown) keybd_event(0xA4, 0x00, 0x0001, 0);
+                    keybd_event(0xA4, 0x00, 0x0002, 0);
+                    // Right MENU Key
+                    if (updown) keybd_event(0xA5, 0x00, 0x0001, 0);
+                    keybd_event(0xA5, 0x00, 0x0002, 0);
+                }
+                else ClearKeyState(new List<short>() { 0x12, 0xA4, 0xA5 });
             }
-            if (all || Keyboard.Modifiers.HasFlag(ModifierKeys.Windows))
+            if (force || IsModifierDown(ModifierKeys.Windows) || IsWinDown())
             {
-                // Left Windows Key
-                if (updown) keybd_event(0x5B, 0x00, 0x0001, 0);
-                keybd_event(0x5B, 0x00, 0x0002, 0);
-                // Right Windows Key
-                if (updown) keybd_event(0x5C, 0x00, 0x0001, 0);
-                keybd_event(0x5C, 0x00, 0x0002, 0);
+                keys.Add("Windows");
+                if (use_keybd_event)
+                {
+                    // Left Windows Key
+                    if (updown) keybd_event(0x5B, 0x00, 0x0001, 0);
+                    keybd_event(0x5B, 0x00, 0x0002, 0);
+                    // Right Windows Key
+                    if (updown) keybd_event(0x5C, 0x00, 0x0001, 0);
+                    keybd_event(0x5C, 0x00, 0x0002, 0);
+                }
+                else ClearKeyState(new List<short>() { 0x5B, 0x5C });
             }
+            if (keys.Count > 0 && !force) $"{string.Join(", ", keys)} ...".DEBUG("ClearModifierKeyState");
         }
 
         private static List<HotKeyConfig> HotkeyConfig = new List<HotKeyConfig>()
@@ -2333,6 +2589,7 @@ namespace PixivWPF.Common
 #endif
             }
         }
+
 #if DEBUG
         private static void ApplicationHotKeys_ChordStartRecognized(ChordStartRecognizedEventArgs e)
         {
@@ -2351,6 +2608,7 @@ namespace PixivWPF.Common
             $"Hotkey_Triggered: {e.Description}, Keys: {ApplicationCulture.TextInfo.ToTitleCase(key_name)}".DEBUG();
         }
 #endif
+
         public static void ReleaseHotkeys(this Application app)
         {
             try
@@ -2537,7 +2795,36 @@ namespace PixivWPF.Common
         #endregion
 
         #region Network Common Helper
+        private static string ClientID { get; } = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
+        private static string ClientSecret { get; } = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
+        private static string HashSecret { get; } = "28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c";
+
         private static ConcurrentDictionary<string, HttpClient> HttpClientList = new ConcurrentDictionary<string, HttpClient>();
+
+        private class PixivClientHash
+        {
+            private string time = DateTime.UtcNow.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:sszzz");
+            public string Time { get { return (time); } }
+            public string Hash { get { return ($"{time}{HashSecret}".MD5Hash()); } }
+        }
+
+        private static PixivClientHash CalcHttpClientHash(this Application app)
+        {
+            return (new PixivClientHash());
+        }
+
+        public static string MD5Hash(this string text)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+            using (var md5 = MD5.Create())
+            {
+                var bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(text.Trim()));
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                    builder.Append(bytes[i].ToString("x2"));
+                return builder.ToString();
+            }
+        }
 
         private static HttpClient CreateHttpClient(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)
         {
@@ -2581,6 +2868,10 @@ namespace PixivWPF.Common
                 httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
                 //httpClient.DefaultRequestHeaders.Add("Keep-Alive", "300");
                 //httpClient.DefaultRequestHeaders.ConnectionClose = true;
+
+                httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
+                httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");
+                httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("ja_JP");
 
                 var start = !continuation || range_start <= 0 ? "0" : $"{range_start}";
                 var end = range_count > 0 ? $"{range_count}" : string.Empty;
@@ -2635,6 +2926,23 @@ namespace PixivWPF.Common
                 }
             }
             return (httpClient);
+        }
+
+        public static HttpRequestMessage GetHttpRequest(this Application app, string url, HttpMethod method = null)
+        {
+            HttpRequestMessage request = null;
+            if (!string.IsNullOrEmpty(url))
+            {
+                try
+                {
+                    var clientHash = new PixivClientHash();
+                    request = new HttpRequestMessage(method == null ? HttpMethod.Get : method, url);
+                    request.Headers.Add("X-Client-Time", clientHash.Time);
+                    request.Headers.Add("X-Client-Hash", clientHash.Hash);
+                }
+                catch (Exception ex) { ex.ERROR("GetHttpRequest"); }
+            }
+            return (request);
         }
 
         public static WebRequest GetWebRequest(this Application app, bool continuation = false, long range_start = 0, long range_count = 0)

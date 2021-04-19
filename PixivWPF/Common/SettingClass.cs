@@ -186,6 +186,13 @@ namespace PixivWPF.Common
             get { return (CustomWildcardTagsReadWrite.CurrentCount <= 0 ? true : false); }
         }
 
+        private static SemaphoreSlim ContentsTemplateReadWrite = new SemaphoreSlim(1, 1);
+        [JsonIgnore]
+        public static bool IsContentsTemplateBusy
+        {
+            get { return (ContentsTemplateReadWrite.CurrentCount <= 0 ? true : false); }
+        }
+
         private static string config = "config.json";
         [JsonIgnore]
         public string ConfigFile
@@ -290,7 +297,7 @@ namespace PixivWPF.Common
                         Cache.ProxyBypass = Cache.ProxyBypass.Distinct().ToList();
 
                         Cache.LocalStorage = Cache.LocalStorage.Distinct(new StorageTypeComparer()).ToList();
-                        UpdateContentsTemplete();
+                        if(!IsContentsTemplateBusy) UpdateContentsTemplete();
 
                         var text = JsonConvert.SerializeObject(Cache, Formatting.Indented);
                         configfile.WaitFileUnlock();
@@ -336,9 +343,8 @@ namespace PixivWPF.Common
                     if (!(Cache is Setting) || (force && lastConfigUpdate.DeltaMilliseconds(filetime) > 250))
                     {
                         lastConfigUpdate = filetime;
-                        if (exists)
+                        if (exists && configfile.WaitFileUnlock())
                         {
-                            configfile.WaitFileUnlock();
                             var dso = new JsonSerializerSettings(){ Error = (se, ev) => ev.ErrorContext.Handled = true };
                             var text = File.ReadAllText(configfile);
                             if (Cache is Setting && text.Length > 20)
@@ -477,11 +483,10 @@ namespace PixivWPF.Common
                         lastTagsUpdate = filetime;
 
                         bool tags_changed = false;
-                        if (all && exists)
+                        if (all && exists && default_tags.WaitFileUnlock())
                         {
                             try
                             {
-                                default_tags.WaitFileUnlock();
                                 var tags = File.ReadAllText(default_tags);
                                 var t2s = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags);
                                 var keys = t2s.Keys.ToList();
@@ -527,11 +532,10 @@ namespace PixivWPF.Common
                     {
                         lastCustomTagsUpdate = filetime;
                         bool tags_changed = false;
-                        if (exists)
+                        if (exists && custom_tags.WaitFileUnlock())
                         {
                             try
                             {
-                                custom_tags.WaitFileUnlock();
                                 var tags_t2s = File.ReadAllText(custom_tags);
                                 var t2s = JsonConvert.DeserializeObject<ConcurrentDictionary<string, string>>(tags_t2s);
                                 var keys = t2s.Keys.ToList();
@@ -588,11 +592,10 @@ namespace PixivWPF.Common
                     {
                         lastCustomWildcardTagsUpdate = filetime;
                         bool tags_changed = false;
-                        if (exists)
+                        if (exists && custom_widecard_tags.WaitFileUnlock())
                         {
                             try
                             {
-                                custom_widecard_tags.WaitFileUnlock();
                                 var tags_t2s_widecard = File.ReadAllText(custom_widecard_tags);
                                 var t2s = JsonConvert.DeserializeObject<OrderedDictionary>(tags_t2s_widecard);
                                 var t2s_old = CommonHelper.TagsWildecardT2S.Cast<DictionaryEntry>().ToDictionary(k => (string)k.Key, v => (string)v.Value);
@@ -1698,31 +1701,40 @@ namespace PixivWPF.Common
 
         public static void UpdateContentsTemplete()
         {
-            if (Cache is Setting)
+            if (Cache is Setting && !IsConfigBusy && ContentsTemplateReadWrite.Wait(0))
             {
-                if (File.Exists(Cache.ContentsTemplateFile))
+                try
                 {
-                    Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentsTemplateFile);
-                    var ftc = File.GetCreationTime(Cache.ContentsTemplateFile);
-                    var ftw = File.GetLastWriteTime(Cache.ContentsTemplateFile);
-                    var fta = File.GetLastAccessTime(Cache.ContentsTemplateFile);
-                    if (ftw > Cache.ContentsTemplateTime || ftc > Cache.ContentsTemplateTime || fta > Cache.ContentsTemplateTime)
+                    if (File.Exists(Cache.ContentsTemplateFile))
                     {
-                        Cache.ContentsTemplete = Cache.CustomContentsTemplete;
+                        var ft = new FileInfo(Cache.ContentsTemplateFile);
+                        if (ft.LastWriteTime.DeltaSeconds(Cache.ContentsTemplateTime) > 10 || ft.CreationTime.DeltaSeconds(Cache.ContentsTemplateTime) > 10)
+                        {
+                            if (Cache.ContentsTemplateFile.WaitFileUnlock())
+                            {
+                                Cache.CustomContentsTemplete = File.ReadAllText(Cache.ContentsTemplateFile);
+                                Cache.ContentsTemplete = Cache.CustomContentsTemplete;
+                                Cache.ContentsTemplateTime = ft.LastWriteTime;
+                                Cache.Save();
+                                CommonHelper.UpdateWebContentAsync();
+                                "ContentsTemplete Reloaded".ShowToast("INFO");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(Cache.CustomContentsTemplete)) Cache.CustomContentsTemplete = string.Empty;
+                        Cache.ContentsTemplete = CommonHelper.GetDefaultTemplate();
                         Cache.ContentsTemplateTime = DateTime.Now;
                         Cache.Save();
                         CommonHelper.UpdateWebContentAsync();
+                        "ContentsTemplete Reset To Default".ShowToast("INFO");
                     }
                 }
-                else
+                catch (Exception ex) { ex.ERROR("UpdateContentsTemplete"); }
+                finally
                 {
-                    if (!string.IsNullOrEmpty(Cache.CustomContentsTemplete))
-                    {
-                        Cache.ContentsTemplete = CommonHelper.GetDefaultTemplate();
-                        Cache.CustomContentsTemplete = string.Empty;
-                        Cache.Save();
-                        CommonHelper.UpdateWebContentAsync();
-                    }
+                    if (ContentsTemplateReadWrite is SemaphoreSlim && ContentsTemplateReadWrite.CurrentCount <= 0) ContentsTemplateReadWrite.Release();
                 }
             }
         }

@@ -297,6 +297,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\TouchFolderPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Pages\DownloadManagerPage.xaml.cs">
@@ -322,6 +326,9 @@
     </Compile>
     <Compile Include="Pages\BrowserPage.xaml.cs">
       <DependentUpon>BrowserPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\TouchFolderPage.xaml.cs">
+      <DependentUpon>TouchFolderPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

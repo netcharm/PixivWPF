@@ -18,7 +18,7 @@
                  TextOptions.TextFormattingMode="Display" VisualTextRenderingMode="Auto"
                  PreviewDragOver="MetroWindow_DragOver" PreviewDrop="MetroWindow_Drop"
                  MouseDown="MetroWindow_MouseDown"
-                 StateChanged="MetroWindow_StateChanged"
+                 StateChanged="MetroWindow_StateChanged" Activated="MetroWindow_Activated" Deactivated="MetroWindow_Deactivated"
                  Loaded="MetroWindow_Loaded"
                  Closing="MetroWindow_Closing">
     <!--GlowBrush="{DynamicResource MahApps.Brushes.Accent}"-->
@@ -162,7 +162,7 @@
             </Button>
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
-    
+
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands ShowLastSeparator="False">
             <ComboBox x:Name="SearchBox" x:Uid="SearchBox" 
