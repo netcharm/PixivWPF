@@ -18,35 +18,43 @@ using System.Windows.Shapes;
 
 using Microsoft.WindowsAPICodePack.Dialogs;
 using PixivWPF.Common;
+using System.Text.RegularExpressions;
 
 namespace PixivWPF.Pages
 {
     /// <summary>
     /// TouchFolderPage.xaml 的交互逻辑
     /// </summary>
-    public partial class TouchFolderPage : Page, IDisposable
+    public partial class BatchProcessPage : Page, IDisposable
     {
         public Window ParentWindow { get; private set; } = null;
         public string Contents { get; set; } = string.Empty;
         public string Mode { get; set; } = "touch";
         public bool Recursion { get; set; } = false;
+        public Action<BatchProgressInfo> ProcessingAction = null;
 
-        private IProgress<TouchFolderInfo> progress = null;
-        private Action<TouchFolderInfo> reportAction = null;
+        private StringBuilder progressLog = new StringBuilder();
+        public string ProgressLog { get { return (progressLog.ToString()); } }
+        private IProgress<BatchProgressInfo> progress = null;
+        private Action<BatchProgressInfo> reportAction = null;
         private CancellationTokenSource cancelSource = null;
-        BackgroundWorker TouchTask = null;
+        BackgroundWorker BatchProcessTask = null;
 
-        private void TouchTask_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void BatchProcessTask_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            new Action(() =>
+            {
+                PART_TouchStart.IsEnabled = true;
+                PART_TouchCancel.IsEnabled = false;
+            }).Invoke();
+        }
+
+        private void BatchProcessTask_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
 
         }
 
-        private void TouchTask_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-
-        }
-
-        private void TouchTask_DoWork(object sender, DoWorkEventArgs e)
+        private void BatchProcessTask_DoWork(object sender, DoWorkEventArgs e)
         {
             if (Directory.Exists(Contents))
             {
@@ -56,56 +64,76 @@ namespace PixivWPF.Pages
                 var search_opt = Recursion ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                 var folderinfo = new DirectoryInfo(Contents);
                 var files = folderinfo.GetFiles("*.*", search_opt);
-                var flist = files.Where(f => ext_imgs.Contains(f.Extension)).Distinct();
+                var flist = files.Where(f => ext_imgs.Contains(f.Extension)).Distinct().NaturalSort().ToList();
                 var parallel = setting.PrefetchingDownloadParallel;
                 var rnd = new Random();
-                var touch_info = new TouchFolderInfo() { FolderName = folderinfo.FullName, Total = flist.Count(), State = TaskStatus.Running };
                 cancelSource = new CancellationTokenSource();
                 SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
-                foreach (var f in flist.NaturalSort())
+                for (int i = 0; i < flist.Count; i++)
                 {
-                    if (TouchTask.CancellationPending) { e.Cancel = true; break; }
-                    if (cancelSource.IsCancellationRequested) { e.Cancel = true; return; }
+                    if (BatchProcessTask.CancellationPending) { e.Cancel = true; break; }
+                    if (cancelSource.IsCancellationRequested) { e.Cancel = true; break; }
                     if (tasks.Wait(-1, cancelSource.Token))
                     {
-                        if (TouchTask.CancellationPending) { e.Cancel = true; break; }
+                        if (BatchProcessTask.CancellationPending) { e.Cancel = true; break; }
                         if (cancelSource.IsCancellationRequested) { e.Cancel = true; break; }
                         new Action(async () =>
                         {
+                            var f = flist[i];
                             try
                             {
-                                if (TouchTask.CancellationPending) { e.Cancel = true; return; }
+                                if (BatchProcessTask.CancellationPending) { e.Cancel = true; return; }
                                 if (cancelSource.IsCancellationRequested) { e.Cancel = true; return; }
-                                var illust = await f.FullName.GetIllustId().GetIllust();
+
+                                var current_info = new BatchProgressInfo()
+                                {
+                                    FolderName = folderinfo.FullName,
+                                    FileName = f.Name,
+                                    DisplayText = f.Name,
+                                    Current = i + 1,
+                                    Total = flist.Count(),
+                                    State = TaskStatus.Running
+                                };
+
+                                int idx = -1;
+                                var illust = await f.FullName.GetIllustId(out idx).GetIllust();
                                 if (illust is Pixeez.Objects.Work)
                                 {
-                                    var url = illust.GetOriginalUrl();
+                                    var url = idx >= 0 ? illust.GetOriginalUrl(idx) : illust.GetOriginalUrl();
                                     var dt = url.ParseDateTime();
-                                    if (dt.Ticks > 0 && f.WaitFileUnlock())
+                                    if (dt.Ticks > 0)
                                     {
                                         if (!test)
                                         {
                                             if (Mode.Equals("touch", StringComparison.CurrentCultureIgnoreCase)) f.Touch(url);
                                             else if (Mode.Equals("attach", StringComparison.CurrentCultureIgnoreCase)) f.AttachMetaInfo();
+                                            else if (ProcessingAction is Action<BatchProgressInfo>) ProcessingAction.Invoke(current_info);
+                                            await Task.Delay(rnd.Next(10, 200));
                                         }
-                                        touch_info.FileName = f.Name;
-                                        touch_info.Index = touch_info.Index + 1;
-                                        if (reportAction is Action<TouchFolderInfo>) reportAction.Invoke(touch_info);
-                                        await Task.Delay(rnd.Next(10, 200));
+                                        current_info.Result = $"{f.Name} processing successed";
+                                    }
+                                    else
+                                    {
+                                        current_info.Result = $"{f.Name} paesing date failed";
+                                        $"{f.Name} => {url}".DEBUG("ParseDateTime");
                                     }
                                 }
+                                else
+                                {
+                                    current_info.Result = $"{f.Name} get work failed";
+                                    f.Name.DEBUG("GetIllust");
+                                }
+                                current_info.LastestTime = current_info.CurrentTime;
+                                current_info.CurrentTime = DateTime.Now;
+                                if (i == flist.Count - 1) current_info.State = TaskStatus.RanToCompletion;
+                                if (reportAction is Action<BatchProgressInfo>) reportAction.Invoke(current_info);
+                                this.DoEvents();
                             }
-                            catch (Exception ex) { ex.ERROR($"Touch_{f.Name}"); }
+                            catch (Exception ex) { ex.ERROR($"BatchProcessing_{f.Name}"); }
                             finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
                         }).Invoke(async: false);
                     }
                 }
-                try
-                {
-                    touch_info.State = TaskStatus.RanToCompletion;
-                    if (reportAction is Action<TouchFolderInfo>) reportAction.Invoke(touch_info);
-                }
-                catch (Exception ex) { ex.ERROR("TouchingFinished"); }
             }
         }
 
@@ -119,11 +147,12 @@ namespace PixivWPF.Pages
                 if (disposing)
                 {
                     // TODO: 释放托管状态(托管对象)。
-                    if (TouchTask is BackgroundWorker)
+                    if (BatchProcessTask is BackgroundWorker)
                     {
                         if (cancelSource is CancellationTokenSource) cancelSource.Cancel();
-                        if (TouchTask.IsBusy) TouchTask.CancelAsync();
+                        if (BatchProcessTask.IsBusy) BatchProcessTask.CancelAsync();
                     }
+                    if (progressLog is StringBuilder) progressLog.Clear();
                 }
 
                 // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
@@ -149,7 +178,7 @@ namespace PixivWPF.Pages
         }
         #endregion
 
-        public TouchFolderPage()
+        public BatchProcessPage()
         {
             InitializeComponent();
         }
@@ -157,25 +186,29 @@ namespace PixivWPF.Pages
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             ParentWindow = Window.GetWindow(this);
-            TouchTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
-            TouchTask.ProgressChanged += TouchTask_ProgressChanged;
-            TouchTask.RunWorkerCompleted += TouchTask_RunWorkerCompleted;
-            TouchTask.DoWork += TouchTask_DoWork;
+            BatchProcessTask = new BackgroundWorker() { WorkerReportsProgress = true, WorkerSupportsCancellation = true };
+            BatchProcessTask.ProgressChanged += BatchProcessTask_ProgressChanged;
+            BatchProcessTask.RunWorkerCompleted += BatchProcessTask_RunWorkerCompleted;
+            BatchProcessTask.DoWork += BatchProcessTask_DoWork;
+            progressLog.Clear();
 
             PART_TouchStart.IsEnabled = false;
             PART_TouchCancel.IsEnabled = false;
 
-            progress = new Progress<TouchFolderInfo>(info => {
+            progress = new Progress<BatchProgressInfo>(info =>
+            {
                 try
                 {
-                    var index = info.Index >= 0 ? info.Index : 0;
+                    var index = info.Current >= 0 ? info.Current : 0;
                     var total = info.Total >= 0 ? info.Total : 0;
-                    var state = info.State == TaskStatus.Running ? "Touched" : info.State == TaskStatus.RanToCompletion ? "Finished" : "Idle";
-                    var file = info.FileName;
-                    PART_FileName.Text = file;
+                    var total_s = total.ToString();
+                    var index_s = index.ToString().PadLeft(total_s.Length, '0');
+
+                    PART_FileName.Text = info.FileName;
 
                     #region Update ProgressBar & Progress Info Text
                     var percent = total > 0 ? (double)index / total : 0;
+                    var state = info.State == TaskStatus.Running && percent < 1 ? "Processed" : info.State == TaskStatus.RanToCompletion || percent == 1 ? "Finished" : "Idle";
                     PART_Progress.Value = percent >= 1 ? 100 : percent * 100;
                     PART_ProgressPercent.Text = $"{state} [ {index} / {total} ]: {PART_Progress.Value:0.0}%";
                     #endregion
@@ -189,7 +222,13 @@ namespace PixivWPF.Pages
                     PART_ProgressLinearRight.Offset = percent;
                     #endregion
 
-                    if (info.State == TaskStatus.RanToCompletion)
+                    #region Update Logger
+                    progressLog.AppendLine($"[{index_s} / {total_s}] {info.Result}");
+                    PART_ProcessLog.Text = ProgressLog;
+                    PART_ProcessLog.ScrollToEnd();
+                    #endregion
+
+                    if (info.State == TaskStatus.RanToCompletion || percent == 1)
                     {
                         PART_TouchStart.IsEnabled = true;
                         PART_TouchCancel.IsEnabled = false;
@@ -198,8 +237,9 @@ namespace PixivWPF.Pages
                 catch (Exception ex) { ex.ERROR($"{this.Name ?? GetType().Name}_ReportProgress"); }
             });
 
-            reportAction = (info) => {
-                if (progress is IProgress<TouchFolderInfo>) progress.Report(info);
+            reportAction = (info) =>
+            {
+                if (progress is IProgress<BatchProgressInfo>) progress.Report(info);
             };
         }
 
@@ -249,16 +289,16 @@ namespace PixivWPF.Pages
                 PART_TouchStart.IsEnabled = false;
                 PART_TouchCancel.IsEnabled = true;
                 Recursion = PART_Recursion.IsChecked.Value;
-                TouchTask.RunWorkerAsync(Keyboard.Modifiers == ModifierKeys.Shift ? true : false);
+                BatchProcessTask.RunWorkerAsync(Keyboard.Modifiers == ModifierKeys.Shift ? true : false);
             }
         }
 
         private void PART_TouchCancel_Click(object sender, RoutedEventArgs e)
         {
-            if (TouchTask is BackgroundWorker)
+            if (BatchProcessTask is BackgroundWorker)
             {
                 if (cancelSource is CancellationTokenSource) cancelSource.Cancel();
-                if (TouchTask.IsBusy) TouchTask.CancelAsync();
+                if (BatchProcessTask.IsBusy) BatchProcessTask.CancelAsync();
             }
         }
 
@@ -268,5 +308,13 @@ namespace PixivWPF.Pages
             ParentWindow.Close();
         }
 
+        private void PART_ClearLog_Click(object sender, RoutedEventArgs e)
+        {
+            if (progressLog is StringBuilder)
+            {
+                PART_ProcessLog.Clear();
+                progressLog.Clear();
+            }
+        }
     }
 }

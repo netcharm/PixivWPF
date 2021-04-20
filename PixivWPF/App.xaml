@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"	
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:mahs="http://metro.mahapps.com/winfx/xaml/shared"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:PixivWPF"
              StartupUri="MainWindow.xaml"
              Startup="Application_Startup" Exit="Application_Exit">
@@ -30,9 +31,13 @@
             <DropShadowEffect x:Key="DropMark" Color="{DynamicResource MahApps.Colors.Accent}" ShadowDepth="0" Opacity="1" BlurRadius="5"/>
             <BlurEffect x:Key="BlurGlow" Radius="9" RenderingBias="Quality" KernelType="Gaussian"/>
             <BlurEffect x:Key="BlurMark" Radius="5" RenderingBias="Quality" KernelType="Gaussian"/>
+            <FontFamily x:Key="MonoSpaceFamily">
+                "等距更纱黑体 SC, Sarasa Mono J, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"
+            </FontFamily>
+            <sys:Double x:Key="MonoSpaceSize">14</sys:Double>
             <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
-                <Setter Property="FontFamily" Value="等距更纱黑体 SC, Sarasa Mono J, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"/>
-                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
+                <Setter Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

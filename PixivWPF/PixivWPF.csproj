@@ -297,7 +297,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\TouchFolderPage.xaml">
+    <Page Include="Pages\BatchProcessPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -327,8 +327,8 @@
     <Compile Include="Pages\BrowserPage.xaml.cs">
       <DependentUpon>BrowserPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\TouchFolderPage.xaml.cs">
-      <DependentUpon>TouchFolderPage.xaml</DependentUpon>
+    <Compile Include="Pages\BatchProcessPage.xaml.cs">
+      <DependentUpon>BatchProcessPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

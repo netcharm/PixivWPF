@@ -632,7 +632,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new TouchFolderPage() { Name = $"TouchFolder", FontFamily = setting.FontFamily, Contents = folder, Mode = "touch" };
+                        var page = new BatchProcessPage() { Name = $"TouchFolder", FontFamily = setting.FontFamily, Contents = folder, Mode = "touch" };
                         var viewer = new ContentWindow()
                         {
                             Title = title,
@@ -680,7 +680,7 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var title = $"Touching";
-                        var page = new TouchFolderPage() { Name = $"TouchFolder", FontFamily = setting.FontFamily, Contents = string.Empty };
+                        var page = new BatchProcessPage() { Name = $"TouchFolder", FontFamily = setting.FontFamily, Contents = string.Empty };
                         var viewer = new ContentWindow()
                         {
                             Title = title,
@@ -715,7 +715,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new TouchFolderPage() { Name = $"AttachMetaInfoFolder", FontFamily = setting.FontFamily, Contents = folder, Mode = "attach" };
+                        var page = new BatchProcessPage() { Name = $"AttachMetaInfoFolder", FontFamily = setting.FontFamily, Contents = folder, Mode = "attach" };
                         var viewer = new ContentWindow()
                         {
                             Title = title,
@@ -761,7 +761,7 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var title = $"AttachMetaInfo";
-                        var page = new TouchFolderPage() { Name = $"AttachMetaInfoFolder", FontFamily = setting.FontFamily, Contents = string.Empty, Mode = "attach" };
+                        var page = new BatchProcessPage() { Name = $"AttachMetaInfoFolder", FontFamily = setting.FontFamily, Contents = string.Empty, Mode = "attach" };
                         var viewer = new ContentWindow()
                         {
                             Title = title,

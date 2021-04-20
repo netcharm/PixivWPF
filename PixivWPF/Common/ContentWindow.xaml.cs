@@ -151,7 +151,7 @@ namespace PixivWPF.Common
                 }
             }
 
-            if(Content is TouchFolderPage)
+            if(Content is BatchProcessPage)
             {
                 LeftWindowCommands.Hide();
                 RightWindowCommands.Hide();

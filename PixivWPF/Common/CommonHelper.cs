@@ -335,13 +335,21 @@ namespace PixivWPF.Common
     }
     #endregion
 
-    public class TouchFolderInfo
+    public class BatchProgressInfo
     {
         public string FolderName { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
-        public long Index { get; set; } = 0;
+        public string DisplayText { get; set; } = string.Empty;
+        public string Result { get; set; } = string.Empty;
+        public long Current { get; set; } = 0;
         public long Total { get; set; } = 0;
+        public double Percentage { get { return (Total > 0 && Current >= 0 ? (double)Current / Total : 0); } }
         public TaskStatus State { get; set; } = TaskStatus.Created;
+        public DateTime StartTime { get; set; } = DateTime.Now;
+        public DateTime CurrentTime { get; set; } = DateTime.Now;
+        public DateTime LastestTime { get; set; } = DateTime.Now;
+        public TimeSpan ElapsedTime { get { return (CurrentTime - StartTime); } }
+        public TimeSpan EstimateTime { get { return (Total > 0 && Current >= 0 ? TimeSpan.FromTicks((CurrentTime - LastestTime).Ticks * (Total - Current)) : TimeSpan.FromTicks(0)); } }
     }
 
     public static class CommonHelper
@@ -1576,6 +1584,17 @@ namespace PixivWPF.Common
             return (result.ToArray());
         }
 
+        public static int GetIllustPageIndex(this string url)
+        {
+            int idx = -1;
+            if (!string.IsNullOrEmpty(url))
+            {
+                var idx_s = Regex.Replace(Path.GetFileName(url), @"\d+_.*?(\d+)\.\w+", "$1", RegexOptions.IgnoreCase);
+                int.TryParse(idx_s, out idx);
+            }
+            return (idx);
+        }
+
         public static string GetIllustId(this string url)
         {
             string result = string.Empty;
@@ -1597,6 +1616,12 @@ namespace PixivWPF.Common
                 }
             }
             return (result);
+        }
+
+        public static string GetIllustId(this string url, out int index)
+        {
+            index = GetIllustPageIndex(url);
+            return (GetIllustId(url));
         }
 
         public static string GetImageId(this string url)
@@ -2077,47 +2102,78 @@ namespace PixivWPF.Common
             }
         }
 
-        public static void AttachMetaInfo(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<TouchFolderInfo> progressAction = null, bool test = false)
+        public static void AttachMetaInfo(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false)
         {
             if (Directory.Exists(folderinfo.FullName))
             {
                 var setting = Application.Current.LoadSetting();
                 var search_opt =  recursion ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                 var files = folderinfo.GetFiles("*.*", search_opt);
-                var flist = files.Where(f => ext_imgs.Contains(f.Extension)).Distinct();
-                var parallel_opt = new ParallelOptions()
-                {
-                    MaxDegreeOfParallelism = setting.PrefetchingDownloadParallel,
-                    CancellationToken = cancelSource is CancellationTokenSource ? cancelSource.Token : CancellationToken.None
-                };
+                var flist = files.Where(f => ext_imgs.Contains(f.Extension)).Distinct().NaturalSort().ToList();
+                var parallel = setting.PrefetchingDownloadParallel;
                 var rnd = new Random();
-                var total = flist.Count();
-                var touch_info = new TouchFolderInfo() { FolderName = folderinfo.FullName, Total = total };
-                Parallel.ForEach(flist.NaturalSort(), parallel_opt, (f, loopstate, index) =>
+                cancelSource = new CancellationTokenSource();
+                SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
+                for (int i = 0; i < flist.Count; i++)
                 {
-                    try
+                    if (cancelSource.IsCancellationRequested) { break; }
+                    if (tasks.Wait(-1, cancelSource.Token))
                     {
-                        if (parallel_opt.CancellationToken.IsCancellationRequested) loopstate.Stop();
-                        var illust = f.FullName.GetIllustId().GetIllust().GetAwaiter().GetResult();
-                        if (illust is Pixeez.Objects.Work)
+                        if (cancelSource.IsCancellationRequested) { break; }
+                        new Action(async () =>
                         {
-                            var url = illust.GetOriginalUrl();
-                            var dt = url.ParseDateTime();
-                            if (dt.Ticks > 0 && f.WaitFileUnlock())
+                            var f = flist[i];
+                            try
                             {
-                                if (!test)
+                                if (cancelSource.IsCancellationRequested) { return; }
+
+                                var current_info = new BatchProgressInfo()
                                 {
-                                    AttachMetaInfo(f, dt);
-                                    Touch(f, url, meta: false);
+                                    FolderName = folderinfo.FullName,
+                                    FileName = f.Name,
+                                    DisplayText = f.Name,
+                                    Current = i + 1,
+                                    Total = flist.Count(),
+                                    State = TaskStatus.Running
+                                };
+
+                                int idx = -1;
+                                var illust = await f.FullName.GetIllustId(out idx).GetIllust();
+                                if (illust is Pixeez.Objects.Work)
+                                {
+                                    var url = idx >= 0 ? illust.GetOriginalUrl(idx) : illust.GetOriginalUrl();
+                                    var dt = url.ParseDateTime();
+                                    if (dt.Ticks > 0)
+                                    {
+                                        if (!test)
+                                        {
+                                            AttachMetaInfo(f, dt);
+                                            Touch(f, url, meta: false);
+                                        }
+                                        current_info.Result = $"{f.Name} processing successed";
+                                    }
+                                    else
+                                    {
+                                        current_info.Result = $"{f.Name} paesing date failed";
+                                        $"{f.Name} => {url}".DEBUG("ParseDateTime");
+                                    }
                                 }
-                                touch_info.FileName = f.Name;
-                                touch_info.Index = index;
-                                if (progressAction is Action<TouchFolderInfo>) progressAction.Invoke(touch_info);
+                                else
+                                {
+                                    current_info.Result = $"{f.Name} get work failed";
+                                    f.Name.DEBUG("GetIllust");
+                                }
+                                current_info.LastestTime = current_info.CurrentTime;
+                                current_info.CurrentTime = DateTime.Now;
+                                if (i == flist.Count - 1) current_info.State = TaskStatus.RanToCompletion;
+                                if (reportAction is Action<BatchProgressInfo>) reportAction.Invoke(current_info);
+                                Application.Current.DoEvents();
                             }
-                        }
+                            catch (Exception ex) { ex.ERROR($"BatchProcessing_{f.Name}"); }
+                            finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); Application.Current.DoEvents(); await Task.Delay(1); }
+                        }).Invoke(async: false);
                     }
-                    catch(Exception ex) { ex.ERROR($"AttachMetaInfo_{f.Name}"); }
-                });
+                }
             }
         }
 
@@ -2207,44 +2263,77 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR($"AttachMetaInfo_{fileinfo.Name}"); }
         }
 
-        public static async void Touch(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<TouchFolderInfo> progressAction = null, bool test = false)
+        public static void Touch(this DirectoryInfo folderinfo, bool recursion = false, CancellationTokenSource cancelSource = null, Action<BatchProgressInfo> reportAction = null, bool test = false)
         {
             if (Directory.Exists(folderinfo.FullName))
             {
                 var setting = Application.Current.LoadSetting();
                 var search_opt =  recursion ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
                 var files = folderinfo.GetFiles("*.*", search_opt);
-                var flist = files.Where(f => ext_imgs.Contains(f.Extension)).Distinct();
-                var parallel_opt = new ParallelOptions()
-                {
-                    MaxDegreeOfParallelism = setting.PrefetchingDownloadParallel,
-                    CancellationToken = cancelSource is CancellationTokenSource ? cancelSource.Token : CancellationToken.None
-                };
+                var flist = files.Where(f => ext_imgs.Contains(f.Extension)).Distinct().NaturalSort().ToList();
+                var parallel = setting.PrefetchingDownloadParallel;
                 var rnd = new Random();
-                var total = flist.Count();
-                var touch_info = new TouchFolderInfo() { FolderName = folderinfo.FullName, Total = total };
-                var tokens = await ShowLogin();
-                Parallel.ForEach(flist.NaturalSort(), parallel_opt, (f, loopstate, index) =>
+                cancelSource = new CancellationTokenSource();
+                SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
+                for (int i = 0; i < flist.Count; i++)
                 {
-                    try
+                    if (cancelSource.IsCancellationRequested) { break; }
+                    if (tasks.Wait(-1, cancelSource.Token))
                     {
-                        if (parallel_opt.CancellationToken.IsCancellationRequested) loopstate.Stop();
-                        var illust = f.FullName.GetIllustId().GetIllust(tokens: tokens).GetAwaiter().GetResult();
-                        if (illust is Pixeez.Objects.Work)
+                        if (cancelSource.IsCancellationRequested) { break; }
+                        new Action(async () =>
                         {
-                            var url = illust.GetOriginalUrl();
-                            var dt = url.ParseDateTime();
-                            if (dt.Ticks > 0 && f.WaitFileUnlock())
+                            var f = flist[i];
+                            try
                             {
-                                if (!test) Touch(f, url);
-                                touch_info.FileName = f.Name;
-                                touch_info.Index = index;
-                                if (progressAction is Action<TouchFolderInfo>) progressAction.Invoke(touch_info);
+                                if (cancelSource.IsCancellationRequested) { return; }
+
+                                var current_info = new BatchProgressInfo()
+                                {
+                                    FolderName = folderinfo.FullName,
+                                    FileName = f.Name,
+                                    DisplayText = f.Name,
+                                    Current = i + 1,
+                                    Total = flist.Count(),
+                                    State = TaskStatus.Running
+                                };
+
+                                int idx = -1;
+                                var illust = await f.FullName.GetIllustId(out idx).GetIllust();
+                                if (illust is Pixeez.Objects.Work)
+                                {
+                                    var url = idx >= 0 ? illust.GetOriginalUrl(idx) : illust.GetOriginalUrl();
+                                    var dt = url.ParseDateTime();
+                                    if (dt.Ticks > 0)
+                                    {
+                                        if (!test)
+                                        {
+                                            Touch(f, url);
+                                        }
+                                        current_info.Result = $"{f.Name} processing successed";
+                                    }
+                                    else
+                                    {
+                                        current_info.Result = $"{f.Name} paesing date failed";
+                                        $"{f.Name} => {url}".DEBUG("ParseDateTime");
+                                    }
+                                }
+                                else
+                                {
+                                    current_info.Result = $"{f.Name} get work failed";
+                                    f.Name.DEBUG("GetIllust");
+                                }
+                                current_info.LastestTime = current_info.CurrentTime;
+                                current_info.CurrentTime = DateTime.Now;
+                                if (i == flist.Count - 1) current_info.State = TaskStatus.RanToCompletion;
+                                if (reportAction is Action<BatchProgressInfo>) reportAction.Invoke(current_info);
+                                Application.Current.DoEvents();
                             }
-                        }
+                            catch (Exception ex) { ex.ERROR($"BatchProcessing_{f.Name}"); }
+                            finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); Application.Current.DoEvents(); await Task.Delay(1); }
+                        }).Invoke(async: false);
                     }
-                    catch (Exception ex) { ex.ERROR($"AttachMetaInfo_{f.Name}"); }
-                });
+                }
             }
         }
 
@@ -2265,7 +2354,7 @@ namespace PixivWPF.Common
                             {
                                 fileinfo.AttachMetaInfo(dt: fdt);
                             }
-                            else if (fileinfo.WaitFileUnlock())
+                            if (fileinfo.WaitFileUnlock())
                             {
                                 if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
                                 if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
