@@ -2140,6 +2140,26 @@ namespace PixivWPF.Common
         [DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int keyCode);
 
+        private static void SendKey(Key key)
+        {
+            if (Keyboard.PrimaryDevice != null)
+            {
+                if (Keyboard.PrimaryDevice.ActiveSource != null)
+                {
+                    var e = new KeyEventArgs(Keyboard.PrimaryDevice, Keyboard.PrimaryDevice.ActiveSource, 0, key)
+                    {
+                        RoutedEvent = Keyboard.KeyDownEvent
+                    };
+                    InputManager.Current.ProcessInput(e);
+
+                    // Note: Based on your requirements you may also need to fire events for:
+                    // RoutedEvent = Keyboard.PreviewKeyDownEvent
+                    // RoutedEvent = Keyboard.KeyUpEvent
+                    // RoutedEvent = Keyboard.PreviewKeyUpEvent
+                }
+            }
+        }
+
         private static bool ClearKeyState(short vKey)
         {
             var result = false;
@@ -2331,41 +2351,51 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void ReleaseKeyboardModifiers(this Application app, bool force = false, bool updown = false, bool use_keybd_event = false)
+        public static void ReleaseKeyboardModifiers(this Application app, bool force = false, bool updown = false, bool use_keybd_event = false, bool use_sendkey = false)
         {
             var k = Keyboard.Modifiers;
             List<string> keys = new List<string>();
             if (force || IsModifierDown(ModifierKeys.Shift) || IsShiftDown())
             {
-                keys.Add("Shift");                
+                keys.Add("Shift");
                 if (use_keybd_event)
                 {
-                    // SHIFT Key
-                    if (updown) keybd_event(0x10, 0x00, 0x0001, 0);
-                    keybd_event(0x10, 0x00, 0x0002, 0);
                     // Left SHIFT Key
                     if (updown) keybd_event(0xA0, 0x00, 0x0001, 0);
                     keybd_event(0xA0, 0x00, 0x0002, 0);
                     // Right SHIFT Key
                     if (updown) keybd_event(0xA1, 0x00, 0x0001, 0);
                     keybd_event(0xA1, 0x00, 0x0002, 0);
+                    // SHIFT Key
+                    if (updown) keybd_event(0x10, 0x00, 0x0001, 0);
+                    keybd_event(0x10, 0x00, 0x0002, 0);
+                }
+                else if (use_sendkey)
+                {
+                    //System.Windows.Forms.SendKeys.SendWait("+");
+                    SendKey(Key.LeftShift);
                 }
                 else ClearKeyState(new List<short>() { 0x10, 0xA0, 0xA1 });
             }
             if (force || IsModifierDown(ModifierKeys.Control) || IsCtrlDown())
             {
-                keys.Add("Control");
+                keys.Add("Control");                
                 if (use_keybd_event)
                 {
-                    // CTRL Key
-                    if (updown) keybd_event(0x11, 0x00, 0x0001, 0);
-                    keybd_event(0x11, 0x00, 0x0002, 0);
                     // Left CONTROL Key
                     if (updown) keybd_event(0xA2, 0x00, 0x0001, 0);
                     keybd_event(0xA2, 0x00, 0x0002, 0);
                     // Right CONTROL Key
                     if (updown) keybd_event(0xA3, 0x00, 0x0001, 0);
                     keybd_event(0xA3, 0x00, 0x0002, 0);
+                    // CTRL Key
+                    if (updown) keybd_event(0x11, 0x00, 0x0001, 0);
+                    keybd_event(0x11, 0x00, 0x0002, 0);
+                }
+                else if (use_sendkey)
+                {
+                    //System.Windows.Forms.SendKeys.SendWait("^");
+                    SendKey(Key.LeftCtrl);
                 }
                 else ClearKeyState(new List<short>() { 0x11, 0xA2, 0xA3 });
             }
@@ -2374,21 +2404,26 @@ namespace PixivWPF.Common
                 keys.Add("Alt");
                 if (use_keybd_event)
                 {
-                    // Alt Key
-                    if (updown) keybd_event(0x12, 0x00, 0x0001, 0);
-                    keybd_event(0x12, 0x00, 0x0002, 0);
                     // Left MENU Key
                     if (updown) keybd_event(0xA4, 0x00, 0x0001, 0);
                     keybd_event(0xA4, 0x00, 0x0002, 0);
                     // Right MENU Key
                     if (updown) keybd_event(0xA5, 0x00, 0x0001, 0);
                     keybd_event(0xA5, 0x00, 0x0002, 0);
+                    // Alt Key
+                    if (updown) keybd_event(0x12, 0x00, 0x0001, 0);
+                    keybd_event(0x12, 0x00, 0x0002, 0);
+                }
+                else if (use_sendkey)
+                {
+                    //System.Windows.Forms.SendKeys.SendWait("%");
+                    SendKey(Key.LeftAlt);
                 }
                 else ClearKeyState(new List<short>() { 0x12, 0xA4, 0xA5 });
             }
             if (force || IsModifierDown(ModifierKeys.Windows) || IsWinDown())
             {
-                keys.Add("Windows");
+                keys.Add("Windows");                
                 if (use_keybd_event)
                 {
                     // Left Windows Key
@@ -2397,6 +2432,11 @@ namespace PixivWPF.Common
                     // Right Windows Key
                     if (updown) keybd_event(0x5C, 0x00, 0x0001, 0);
                     keybd_event(0x5C, 0x00, 0x0002, 0);
+                }
+                else if (use_sendkey)
+                {
+                    //System.Windows.Forms.SendKeys.SendWait("^{ESC}");
+                    SendKey(Key.LWin);
                 }
                 else ClearKeyState(new List<short>() { 0x5B, 0x5C });
             }
@@ -2502,11 +2542,6 @@ namespace PixivWPF.Common
                 {
                     try
                     {
-                        if (e.Description.Equals("OpenCached"))
-                        {
-                            Application.Current.ReleaseKeyboardModifiers();
-                            Application.Current.DoEvents();
-                        }
                         var key_name = string.IsNullOrEmpty(e.ChordName) ? string.Join("+", e.Keys.Select(k => k.ToString())) : e.ChordName;
                         $"Description: {e.Description}, Keys: \"{ApplicationCulture.TextInfo.ToTitleCase(key_name)}\"".DEBUG("HotkeyPressed");
                         await new Action(() =>

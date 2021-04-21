@@ -1850,7 +1850,7 @@ namespace PixivWPF.Common
                 {
                     if (!string.IsNullOrEmpty(file))
                     {
-                        Application.Current.ReleaseKeyboardModifiers();
+                        Application.Current.ReleaseKeyboardModifiers(use_keybd_event: true);
                         Application.Current.DoEvents();
 
                         var shell = string.IsNullOrEmpty(WinDir) ? "explorer.exe" : Path.Combine(WinDir, "explorer.exe");
@@ -1889,7 +1889,7 @@ namespace PixivWPF.Common
                         var OpenWith = string.IsNullOrEmpty(WinDir) ? string.Empty : SysDir;
                         var openwith_exists = File.Exists(OpenWith) ?  true : false;
 
-                        Application.Current.ReleaseKeyboardModifiers();
+                        Application.Current.ReleaseKeyboardModifiers(use_keybd_event: true);
                         Application.Current.DoEvents();
 
                         if (ShowProperties)

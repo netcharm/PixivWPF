@@ -106,8 +106,9 @@ namespace PixivWPF.Common
 
             if (result.Source is ImageSource && !string.IsNullOrEmpty(id))
             {
-                loadedImageHashTable[result.GetHashCode()] = id;
-                loadedImageFileTable[result.GetHashCode()] = fn;
+                var hash = result.GetHashCode();
+                loadedImageHashTable[hash] = id;
+                loadedImageFileTable[hash] = fn;
             }
             return (result);
         }

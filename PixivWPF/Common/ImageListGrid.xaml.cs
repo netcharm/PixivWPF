@@ -1,7 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
-using MahApps.Metro.IconPacks;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,6 +18,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
+using MahApps.Metro.Controls;
 
 namespace PixivWPF.Common
 {
@@ -715,11 +714,11 @@ namespace PixivWPF.Common
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
 
                 var overwrite = e.Argument is bool ? (bool)e.Argument : false;
-                var needUpdate = ItemList.Where(item => item.Source == null || overwrite);
+                var cached = ItemList.Where(item => item.Source == null && item.Thumb.IsCached() && !overwrite);
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-                var cached = ItemList.Where(item => item.Thumb.IsCached() && !overwrite);
+                var needUpdate = ItemList.Where(item => (item.Source == null && !item.Thumb.IsCached()) || overwrite);
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-                var total = needUpdate.Count();
+                var total = needUpdate.Count() + cached.Count();
                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
 
                 if (total > 0)
@@ -733,6 +732,7 @@ namespace PixivWPF.Common
                     var opt = new ParallelOptions();
                     opt.MaxDegreeOfParallelism = parallel;
 
+                    #region Setting item state
                     Parallel.ForEach(cached, opt, (item, loopstate, itemIndex) =>
                     {
                         try
@@ -755,57 +755,57 @@ namespace PixivWPF.Common
                         catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
                         finally { this.DoEvents(); }
                     });
-                    Task.Delay(1).GetAwaiter().GetResult();
                     if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
-
-                    Parallel.ForEach(cached, opt, (item, loopstate, itemIndex) =>
-                    {
-                        try
-                        {
-                            if (UpdateTileTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
-                            item.State = TaskStatus.Running;
-                            using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultThumbSize()).GetAwaiter().GetResult())
-                            {
-                                this.DoEvents();
-                                if (UpdateTileTask.CancellationPending)
-                                {
-                                    e.Cancel = true;
-                                    loopstate.Stop();
-                                    $"{UpdateTileTask.CancellationPending}".DEBUG("LoadImageFromUrl_Cancel");
-                                }
-                                if (img.Source != null)
-                                {
-                                    if (item.Source == null) item.Source = img.Source;
-                                    if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
-                                }
-                                else item.State = TaskStatus.Faulted;
-                            }
-                        }
-                        catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
-                        finally { this.DoEvents(); }
-                    });
-                    Task.Delay(1).GetAwaiter().GetResult();
-                    if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                    #endregion
 
                     var thumb_size = Application.Current.GetDefaultThumbSize();
                     if (setting.ParallelPrefetching)
                     {
-                        Parallel.ForEach(needUpdate, opt, (item, loopstate, itemIndex) =>
+                        #region Loading cached thumbnails
+                        Parallel.ForEach(cached, opt, (item, loopstate, itemIndex) =>
                         {
+                            if (UpdateTileTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
                             try
                             {
-                                if (UpdateTileTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
+                                item.State = TaskStatus.Faulted;
+                                using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult())
+                                {
+                                    if (img.Source != null)
+                                    {
+                                        if (item.Source == null) item.Source = img.Source;
+                                        if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
+                                        this.DoEvents();
+                                    }
+                                    if (UpdateTileTask.CancellationPending)
+                                    {
+                                        $"{UpdateTileTask.CancellationPending}".DEBUG("LoadImageFromUrl_Cancel");
+                                        e.Cancel = true; loopstate.Stop();
+                                    }
+                                }
+                            }
+                            catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
+                            finally { this.DoEvents(); }
+                        });
+                        if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        #endregion
+
+                        #region Loading need downloading thumbnails
+                        Parallel.ForEach(needUpdate, opt, (item, loopstate, itemIndex) =>
+                        {
+                            if (UpdateTileTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
+                            try
+                            {
                                 if (!cached.Contains(item))
                                 {
                                     item.State = TaskStatus.Running;
                                     using (var img = item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size).GetAwaiter().GetResult())
                                     {
-                                        this.DoEvents();
                                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
                                         if (img.Source != null)
                                         {
                                             if (item.Source == null) item.Source = img.Source;
                                             if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
+                                            this.DoEvents();
                                         }
                                         else item.State = TaskStatus.Faulted;
                                     }
@@ -814,13 +814,64 @@ namespace PixivWPF.Common
                             catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
                             finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
                         });
+                        #endregion
                     }
                     else
                     {
                         SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
+#if DEBUG
+                        System.Diagnostics.Debug.WriteLine($"==> Load Cached Thumbnail Start : {DateTime.Now.ToString()}");
+#endif
+                        #region Loading cached thumbnails
+                        foreach (var item in cached)
+                        {
+                            if (UpdateTileTask.CancellationPending) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
+                            if (tasks.Wait(-1, UpdateTileTaskCancelTokenSource.Token))
+                            {
+                                if (UpdateTileTask.CancellationPending) { e.Cancel = true; break; }
+                                new Action(async () =>
+                                {
+                                    try
+                                    {
+                                        item.State = TaskStatus.Faulted;
+                                        using (var img = await item.Thumb.LoadImageFromUrl(overwrite, size: thumb_size))
+                                        {
+                                            if (img.Source != null)
+                                            {
+                                                if (item.Source == null) item.Source = img.Source;
+                                                if (item.Source is ImageSource) item.State = TaskStatus.RanToCompletion;
+                                                this.DoEvents();
+                                                await Task.Delay(1);
+                                            }
+                                            if (UpdateTileTask.CancellationPending)
+                                            {
+                                                $"{UpdateTileTask.CancellationPending}".DEBUG("LoadImageFromUrl_Cancel");
+                                                e.Cancel = true; return;
+                                            }
+                                        }
+#if DEBUG
+                                        System.Diagnostics.Debug.WriteLine($"==> Load Cached Thumbnail {DateTime.Now.ToString()}");
+#endif
+                                    }
+                                    catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
+                                    finally
+                                    {
+                                        this.DoEvents(); await Task.Delay(1);
+                                        if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
+                                    }
+                                }).Invoke(async: true);
+                                this.DoEvents();
+                            }
+                        }
+                        if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        #endregion
+#if DEBUG
+                        System.Diagnostics.Debug.WriteLine($"==> Load Cached Thumbnail Stop : {DateTime.Now.ToString()}");
+#endif
+                        #region Loading need downloading thumbnails
                         foreach (var item in needUpdate)
                         {
-                            if (UpdateTileTask.CancellationPending) { tasks.Release(); e.Cancel = true; break; }
+                            if (UpdateTileTask.CancellationPending) { tasks.Release(tasks.CurrentCount); e.Cancel = true; break; }
                             if (tasks.Wait(-1, UpdateTileTaskCancelTokenSource.Token))
                             {
                                 if (UpdateTileTask.CancellationPending) { e.Cancel = true; break; }
@@ -842,11 +893,17 @@ namespace PixivWPF.Common
                                         }
                                     }
                                     catch (Exception ex) { ex.ERROR("DOWNLOADTHUMB"); }
-                                    finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
-                                }).Invoke(async: false);
+                                    finally
+                                    {
+                                        if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release();
+                                        this.DoEvents(); await Task.Delay(1);
+                                    }
+                                }).Invoke(async: true);
+                                this.DoEvents();
                             }
                         }
                         if (UpdateTileTask.CancellationPending) { e.Cancel = true; return; }
+                        #endregion
                     }
                 }
             }

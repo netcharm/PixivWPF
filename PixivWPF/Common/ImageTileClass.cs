@@ -77,7 +77,7 @@ namespace PixivWPF.Common
                     //if (value.Width > TileWidth || value.Height > TileHeight)
                     //    source = Resize(value, TileWidth, TileHeight);
                     //else
-                        source = value;
+                    source = value;
                     value = null;
                 }
                 else source = null;
@@ -112,12 +112,12 @@ namespace PixivWPF.Common
             set
             {
                 if (value) FavMarkVisibility = Visibility.Visible;
-                else       FavMarkVisibility = Visibility.Collapsed;
+                else FavMarkVisibility = Visibility.Collapsed;
                 NotifyPropertyChanged("FavMarkVisibility");
             }
         }
 
-        public Visibility UserMarkVisibility { get { return (this.IsUser() ? Visibility.Visible : Visibility.Collapsed); } } 
+        public Visibility UserMarkVisibility { get { return (this.IsUser() ? Visibility.Visible : Visibility.Collapsed); } }
 
         public Visibility FollowMarkVisibility { get; set; } = Visibility.Collapsed;
         [Description("Get or Set User IsFollowed State")]
@@ -318,9 +318,10 @@ namespace PixivWPF.Common
                             if (obj is PixivItem)
                             {
                                 var item = (obj as PixivItem);
-                                if (item.IsWork()) {
+                                if (item.IsWork())
+                                {
                                     var illust = item.Illust;
-                                    if(illust is Pixeez.Objects.IllustWork)
+                                    if (illust is Pixeez.Objects.IllustWork)
                                     {
                                         var fav_count = (illust as Pixeez.Objects.IllustWork).total_bookmarks;
                                         result = fav_count > range ? true : false;
@@ -448,7 +449,7 @@ namespace PixivWPF.Common
                 result_filter = null;
             return (result_filter);
         }
-      
+
         public static Predicate<object> GetFilter(this FilterParam filter)
         {
             Predicate<object> result_filter = null;
@@ -692,7 +693,7 @@ namespace PixivWPF.Common
                                     result = result && (sanity_age_18.Contains(sanity) ? false : true);
                             }
                             else
-                            { 
+                            {
                                 if (sanity_age == 12)
                                     result = result && (sanity.Equals("12+") ? true : false);
                                 else if (not_sanity_age == 0)
@@ -723,7 +724,7 @@ namespace PixivWPF.Common
                     result_filter = new Predicate<object>(filter_action);
                 else
                     result_filter = null;
-            }                
+            }
 
             return (result_filter);
         }
@@ -856,7 +857,7 @@ namespace PixivWPF.Common
                         Tag = nu
                     };
                 }
-                else if(user is Pixeez.Objects.NewUser)
+                else if (user is Pixeez.Objects.NewUser)
                 {
                     var nu = user as Pixeez.Objects.NewUser;
                     dynamic contact = null;
@@ -1676,6 +1677,5 @@ namespace PixivWPF.Common
         }
         #endregion
     }
-
 
 }

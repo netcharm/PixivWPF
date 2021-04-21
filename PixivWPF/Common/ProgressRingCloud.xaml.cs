@@ -98,7 +98,7 @@ namespace PixivWPF.Common
         }
         public static readonly DependencyProperty StateProperty = DependencyProperty.Register(
             "State", typeof( TaskStatus ), typeof( ProgressRingCloud ),
-            new PropertyMetadata( TaskStatus.RanToCompletion, new PropertyChangedCallback(OnPropertyChanged))
+            new PropertyMetadata( TaskStatus.Created, new PropertyChangedCallback(OnPropertyChanged))
         );
 
         public Action ReloadAction { get; set; } = null;
@@ -190,6 +190,8 @@ namespace PixivWPF.Common
         public ProgressRingCloud()
         {
             InitializeComponent();
+
+            UpdateState();
 
             PART_Percentage.Text = string.Empty;
 

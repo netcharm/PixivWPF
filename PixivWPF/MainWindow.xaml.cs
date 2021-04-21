@@ -434,13 +434,14 @@ namespace PixivWPF
 
         private void MetroWindow_Activated(object sender, EventArgs e)
         {
-            Application.Current.ReleaseKeyboardModifiers(force: false, updown: true);
+            //Application.Current.ReleaseKeyboardModifiers(force: false, use_keybd_event: true);
+            Application.Current.ReleaseKeyboardModifiers(force: false, use_sendkey: true);
             this.DoEvents();
         }
 
         private void MetroWindow_Deactivated(object sender, EventArgs e)
         {
-            Application.Current.ReleaseKeyboardModifiers(updown: true);
+            //Application.Current.ReleaseKeyboardModifiers(updown: true);
             this.DoEvents();
         }
 
