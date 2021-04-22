@@ -151,7 +151,7 @@ namespace PixivWPF.Common
                 }
             }
 
-            if(Content is BatchProcessPage)
+            if (Content is BatchProcessPage)
             {
                 LeftWindowCommands.Hide();
                 RightWindowCommands.Hide();
@@ -215,7 +215,7 @@ namespace PixivWPF.Common
                 var wins = Application.Current.GetContentWindows();
                 if (wins.ContainsKey(Title))
                 {
-                    ContentWindow win; 
+                    ContentWindow win;
                     wins.TryRemove(Title, out win);
                 }
             }
@@ -332,6 +332,11 @@ namespace PixivWPF.Common
             else if (sender == CommandLog_Error) log_type = "ERROR";
             else if (sender == CommandLog_Folder) log_type = "FOLDER";
             Commands.OpenLogs.Execute(log_type);
+        }
+
+        private void CommandLog_DropDownOpened(object sender, EventArgs e)
+        {
+            CommandLog.ContextMenu.IsOpen = true;
         }
 
         private void CommandDownloadManager_Click(object sender, RoutedEventArgs e)

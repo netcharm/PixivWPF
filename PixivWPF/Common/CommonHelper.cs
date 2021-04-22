@@ -33,9 +33,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
-using Dfust.Hotkeys;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Dfust.Hotkeys;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Newtonsoft.Json;
@@ -661,15 +661,15 @@ namespace PixivWPF.Common
                 if (Regex.IsMatch(result, @"((UserID)|(IllustID)):( )*(\d+)", RegexOptions.IgnoreCase))
                     result = result.Trim();
 
-                else if (Regex.IsMatch(result, @"(.*?/artworks/)(\d+)(.*)", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"(.*?/artworks/)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"(.*?/artworks?/)(\d+)(.*)", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"(.*?/artworks?/)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"(.*?illust_id=)(\d+)(.*)", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"(.*?illust_id=)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"(.*?/pixiv\.navirank\.com/id/)(\d+)(.*)", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"(.*?/id/)(\d+)(.*)", "IllustID: $2", RegexOptions.IgnoreCase);
 
-                else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net/users/)(\d+)(.*)$", RegexOptions.IgnoreCase))
-                    result = Regex.Replace(result, @"^(.*?\.pixiv.net/users/)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net/users?/)(\d+)(.*)$", RegexOptions.IgnoreCase))
+                    result = Regex.Replace(result, @"^(.*?\.pixiv.net/users?/)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"^(.*?\.pixiv.net/fanbox/creator/)(\d+)(.*)$", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"^(.*?\.pixiv.net/fanbox/creator/)(\d+)(.*)$", "UserID: $2", RegexOptions.IgnoreCase);
                 else if (Regex.IsMatch(result, @"^(.*?\?id=)(\d+)(.*)$", RegexOptions.IgnoreCase))
@@ -706,23 +706,23 @@ namespace PixivWPF.Common
             List<string> links = new List<string>();
             var href_prefix_0 = is_src ? @"href=""" : string.Empty;
             var href_prefix_1 = is_src ? @"src=""" : string.Empty;
-            var href_suffix = is_src ? @"""" : @"";
+            var href_suffix = is_src ? @"""?" : @"";
             var cmd_sep = new char[] { ':', ' ', '=' };
 
             var opt = RegexOptions.IgnoreCase;// | RegexOptions.Multiline;
 
             var mr = new List<MatchCollection>();
-            foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />", "><", "</a>" }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />", "><", "</a>", ">", " " }, StringSplitOptions.RemoveEmptyEntries))
             {
                 //var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim(new char[] { '"', ' ' } ) : text.Trim();
-                var content = Regex.Replace(text, @"Loading|\.\.\.", "", RegexOptions.IgnoreCase).Trim(new char[] { ' ', '"', ',' } );
+                var content = Regex.Replace(text, @"Loading|(\.){2,}", "", RegexOptions.IgnoreCase).Trim(new char[] { ' ', '"', ',' } );
                 if (string.IsNullOrEmpty(content)) continue;
                 else if (content.Equals("<a", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals("<img", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals(">", StringComparison.CurrentCultureIgnoreCase)) continue;
 
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(en/)?artworks/\d+)" + href_suffix, opt));
-                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(en/)?users/\d+)" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(en/)?artworks?/\d+)" + href_suffix, opt));
+                mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/(en/)?users?/\d+)" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/member.*?\.php\?.*?illust_id=\d+).*?" + href_suffix, opt));
                 mr.Add(Regex.Matches(content, href_prefix_0 + @"(https?://www\.pixiv\.net/member.*?\.php\?id=\d+).*?" + href_suffix, opt));
 
@@ -788,12 +788,11 @@ namespace PixivWPF.Common
             }
 
             var download_links = new List<string>();
-            foreach (var mi in mr)
+            foreach (var mi in mr.Where(m => m.Count > 0))
             {
-                if (mi.Count <= 0) continue;
-                else if (mi.Count > 50)
+                if (mi.Count > 50)
                 {
-                    ShowMessageBox("There are too many links, which may cause the program to crash and cancel the operation.", "WARNING");
+                    "There are too many links, which may cause the program to crash and cancel the operation.".DEBUG("ParseLinks");
                     continue;
                 }
                 var linkexists = false;
@@ -1147,7 +1146,14 @@ namespace PixivWPF.Common
                         }
                         var result_o = Regex.Replace(result, regex_symbol, @"\$1", RegexOptions.IgnoreCase);
                         result = alpha && !Regex.IsMatch(text, result_o, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
-                        if (keys.Count > 0) _TagsWildecardT2SCache[text] = new TagsWildecardCacheItem() { Keys = keys, Translated = result };
+                        if (!result.Equals(src) && keys.Count > 0)
+                        {
+                            _TagsWildecardT2SCache[text] = new TagsWildecardCacheItem()
+                            {
+                                Keys = keys.Distinct().ToList(),
+                                Translated = result
+                            };
+                        }
                     }
                 }
             }
@@ -1168,7 +1174,23 @@ namespace PixivWPF.Common
             var ts = t.Split(new string[]{Environment.NewLine}, StringSplitOptions.None);
             for (var i = 0; i < ts.Length; i++)
             {
-                if (ts[i].Length > lineLength) ts[i] = Regex.Replace(ts[i], @"(.{" + lineLength + @"})", "$1" + Environment.NewLine, RegexOptions.IgnoreCase);
+                //if (ts[i].Length > lineLength) ts[i] = Regex.Replace(ts[i], @"(.{" + lineLength + @"})", "$1" + Environment.NewLine, RegexOptions.IgnoreCase);
+                var count = 0;
+                ts[i] = string.Join("", ts[i].Select(c =>
+                {
+                    count = (int)c > 255 ? count + 2 : count + 1;
+                    var can_break = !char.IsSurrogate(c) && // here have a bug when character in UNICODE CJK Extentions area
+                                    char.GetUnicodeCategory(c) != UnicodeCategory.Format &&
+                                    char.GetUnicodeCategory(c) != UnicodeCategory.OtherSymbol &&
+                                    char.GetUnicodeCategory(c) != UnicodeCategory.OtherNotAssigned &&
+                                    char.GetUnicodeCategory(c) != UnicodeCategory.ModifierSymbol;
+                    var crlf = count >= lineLength && can_break ? Environment.NewLine : string.Empty;
+                    if (!string.IsNullOrEmpty(crlf)) count = 0;
+#if DEBUG
+                    Debug.WriteLine($"{c}, {(int)c}[{char.GetUnicodeCategory(c).ToString()}] => {count}");
+#endif
+                    return ($"{c}{crlf}");
+                }));
             }
             return (string.Join(Environment.NewLine, ts));
         }
@@ -1259,6 +1281,7 @@ namespace PixivWPF.Common
 
         public static string HtmlToText(this string html, bool decode = false, bool br = false, bool limit = false, int limitcount = 512, bool breakline = false, int breakcount = 72)
         {
+            if (string.IsNullOrEmpty(html)) return (html);
             var result = html.TrimEnd().HtmlToText();
             if (decode) result = result.HtmlDecode(br);
             if (limit) result = string.Join("", result.Take(limitcount));

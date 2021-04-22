@@ -164,7 +164,7 @@ namespace Pixeez
             var Proxy = proxy;
             var UsingProxy = !string.IsNullOrEmpty(proxy) && useproxy;
             //ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            string time = DateTime.UtcNow.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:sszzz");
+            string time = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz");
 
             HttpClientHandler handler = new HttpClientHandler()
             {

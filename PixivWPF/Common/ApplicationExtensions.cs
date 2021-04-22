@@ -1274,6 +1274,7 @@ namespace PixivWPF.Common
                 box.AllowDrop = true;
                 box.Topmost = true;
                 box.ResizeMode = ResizeMode.NoResize;
+                box.ShowActivated = false;
                 box.ShowInTaskbar = false;
                 box.ShowIconOnTitleBar = false;
                 box.ShowCloseButton = false;
@@ -1300,9 +1301,7 @@ namespace PixivWPF.Common
                         box.Top = y;
                     }
                 }
-
-                box.Show();
-                box.Activate();
+                box.Show(true);
             }
 
             var result = box is ContentWindow ? box.IsVisible : false;
@@ -2838,7 +2837,7 @@ namespace PixivWPF.Common
 
         private class PixivClientHash
         {
-            private string time = DateTime.UtcNow.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:sszzz");
+            private string time = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz");
             public string Time { get { return (time); } }
             public string Hash { get { return ($"{time}{HashSecret}".MD5Hash()); } }
         }

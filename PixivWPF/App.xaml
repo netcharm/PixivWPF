@@ -38,6 +38,8 @@
             <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
                 <Setter Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
                 <Setter Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
+                <!--<Setter Property="TextBlock.MaxWidth" Value="720"/>
+                <Setter Property="TextBlock.TextWrapping" Value="WrapWithOverflow"/>-->
             </Style>
         </ResourceDictionary>
     </Application.Resources>
