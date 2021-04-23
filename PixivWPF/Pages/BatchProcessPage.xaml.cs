@@ -106,7 +106,11 @@ namespace PixivWPF.Pages
                                         if (!test)
                                         {
                                             if (Mode.Equals("touch", StringComparison.CurrentCultureIgnoreCase)) f.Touch(url);
-                                            else if (Mode.Equals("attach", StringComparison.CurrentCultureIgnoreCase)) f.AttachMetaInfo();
+                                            else if (Mode.Equals("attach", StringComparison.CurrentCultureIgnoreCase))
+                                            {
+                                                f.AttachMetaInfo();
+                                                f.Touch(url, meta: false);
+                                            }
                                             else if (ProcessingAction is Action<BatchProgressInfo>) ProcessingAction.Invoke(current_info);
                                             await Task.Delay(rnd.Next(10, 200));
                                         }

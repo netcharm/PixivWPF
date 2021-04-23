@@ -741,7 +741,7 @@ namespace PixivWPF.Common
 
                     if (!string.IsNullOrEmpty(url))
                     {
-                        var caption = illust.Caption.HtmlToText(decode: true, br: false, limit: true, limitcount: 512, breakline: true, breakcount: 72);
+                        var caption = illust.Caption.HtmlToText(decode: true, br: false, limit: true, limitcount: 512, breakline: false, breakcount: 72);
                         var tooltip = string.IsNullOrEmpty(caption) ? string.Empty : $"{Environment.NewLine}{caption}";
                         var tags_suffix = illust.Tags.Count > 5 ? $" etc. {illust.Tags.Count - 5} tags ..." : string.Empty;
                         var tags = illust.Tags.Count > 0 ? $"\r\n🔖[#{string.Join(", #", illust.Tags.Take(5))}{tags_suffix}]" : string.Empty;
@@ -793,7 +793,7 @@ namespace PixivWPF.Common
                             DisplayTitle = true,
                             Caption = illust.Caption,
                             ToolTip = $"📅[{illust.GetDateTime()}]{tooltip}",
-                            IsDownloaded = work_type != PixivItemType.Work || illust == null ? false : illust.IsPartDownloadedAsync(),
+                            IsDownloaded = work_type != PixivItemType.Work || illust == null ? false : illust.IsPartDownloadedAsync(touch: false),
                             Tag = illust
                         };
                     }
@@ -970,7 +970,7 @@ namespace PixivWPF.Common
                             i.IsDisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{i.Subject} - {index + 1}/{illust.PageCount}";
-                            i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloadedAsync(false);
+                            i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloadedAsync(false, touch: false);
                             i.Tag = pages;
                             Collection.Add(i);
                             await Task.Delay(1);
@@ -1005,7 +1005,7 @@ namespace PixivWPF.Common
                             i.IsDisplayFavMark = false;
                             i.BadgeValue = (index + 1).ToString();
                             i.Subject = $"{i.Subject} - {index + 1}/{illust.PageCount}";
-                            i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false);
+                            i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: false);
                             i.Tag = page;
                             Collection.Add(i);
                             await Task.Delay(1);

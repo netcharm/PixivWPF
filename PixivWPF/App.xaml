@@ -38,8 +38,18 @@
             <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
                 <Setter Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
                 <Setter Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
-                <!--<Setter Property="TextBlock.MaxWidth" Value="720"/>
-                <Setter Property="TextBlock.TextWrapping" Value="WrapWithOverflow"/>-->
+                <Setter Property="MaxWidth" Value="1024"/>
+                <Style.Resources>
+                    <Style TargetType="ContentPresenter">
+                        <Style.Resources>
+                            <Style TargetType="TextBlock">
+                                <!--<Setter Property="MaxLength" Value="500" />-->
+                                <Setter Property="TextWrapping" Value="Wrap" />
+                                <Setter Property="TextTrimming" Value="WordEllipsis" />
+                            </Style>
+                        </Style.Resources>
+                    </Style>
+                </Style.Resources>
             </Style>
         </ResourceDictionary>
     </Application.Resources>
