@@ -71,8 +71,6 @@ namespace PixivWPF.Common
     {
         private static Setting setting = Application.Current.LoadSetting();
 
-        private static DownloadManagerPage _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
-
         private const int WIDTH_MIN = 720;
         private const int HEIGHT_MIN = 524;
         private const int HEIGHT_DEF = 900;
@@ -1243,11 +1241,16 @@ namespace PixivWPF.Common
                     var img = obj as CustomImageSource;
                     if (!string.IsNullOrEmpty(img.SourcePath) && File.Exists(img.SourcePath)) OpenFileProperties.Execute(img.SourcePath);
                 }
+                else if (obj is IEnumerable<string>)
+                {
+                    var s = obj as IEnumerable<string>;
+                    if (s.Count() > 0) ShellOpenFileProperty.Execute(s);
+                }
                 else if (obj is string)
                 {
                     string s = obj as string;
                     Uri url = null;
-                    if (!string.IsNullOrEmpty(s) && Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out url)) OpenFileProperties.Execute(url);
+                    if (!string.IsNullOrEmpty(s) && Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out url)) ShellOpenFileProperty.Execute(url);
                 }
                 else if (obj is PixivItem)
                 {
@@ -1284,31 +1287,25 @@ namespace PixivWPF.Common
                 }
                 else if (obj is ImageListGrid)
                 {
-                    await new Action(async () =>
+                    var gallery = obj as ImageListGrid;
+                    foreach (var item in gallery.GetSelected())
                     {
-                        var gallery = obj as ImageListGrid;
-                        foreach (var item in gallery.GetSelected())
+                        await new Action(() =>
                         {
-                            await new Action(() =>
-                            {
-                                OpenFileProperties.Execute(item);
-                            }).InvokeAsync();
-                        }
-                    }).InvokeAsync();
+                            OpenFileProperties.Execute(item.GetDownloadedFiles());
+                        }).InvokeAsync();
+                    }
                 }
                 else if (obj is IList<PixivItem>)
                 {
-                    await new Action(async () =>
+                    var gallery = obj as IList<PixivItem>;
+                    foreach (var item in gallery)
                     {
-                        var gallery = obj as IList<PixivItem>;
-                        foreach (var item in gallery)
+                        await new Action(() =>
                         {
-                            await new Action(() =>
-                            {
-                                OpenFileProperties.Execute(item);
-                            }).InvokeAsync();
-                        }
-                    }).InvokeAsync();
+                            OpenFileProperties.Execute(item.GetDownloadedFiles());
+                        }).InvokeAsync();
+                    }
                 }
                 else if (obj is TilesPage)
                 {
@@ -1444,10 +1441,11 @@ namespace PixivWPF.Common
             await new Action(() =>
             {
                 OpenDownloadManager.Execute(false);
-                if (_downManager_page is DownloadManagerPage && obj is DownloadParams)
+                var _downManager = Application.Current.GetDownloadManager();
+                if (_downManager is DownloadManagerPage && obj is DownloadParams)
                 {
                     var dp = obj as DownloadParams;
-                    _downManager_page.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists);
+                    _downManager.Add(dp.Url, dp.ThumbUrl, dp.Timestamp, dp.IsSinglePage, dp.OverwriteExists);
                 }
             }).InvokeAsync();
         });
@@ -1457,13 +1455,10 @@ namespace PixivWPF.Common
         {
             if (Mouse.RightButton == MouseButtonState.Pressed)
             {
-                if (_downManager_page is DownloadManagerPage)
+                await new Action(() =>
                 {
-                    await new Action(() =>
-                    {
-                        CopyDownloadInfo.Execute(_downManager_page.GetDownloadInfo());
-                    }).InvokeAsync(true);
-                }
+                    CopyDownloadInfo.Execute(Application.Current.GetDownloadManager().GetDownloadInfo());
+                }).InvokeAsync(true);
             }
             else if (await CanOpenDownloadManager.WaitAsync(TimeSpan.FromSeconds(60)))
             {
@@ -1478,10 +1473,8 @@ namespace PixivWPF.Common
 
                         await new Action(() =>
                         {
-                            if (!(_downManager_page is DownloadManagerPage))
-                                _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
-
                             setting = Application.Current.LoadSetting();
+                            var _downManager = Application.Current.GetDownloadManager();
                             var viewer = new ContentWindow()
                             {
                                 Title = title,
@@ -1489,12 +1482,12 @@ namespace PixivWPF.Common
                                 MinHeight = HEIGHT_MIN,
                                 Width = setting.DownloadManagerPosition.Width <= WIDTH_MIN + 80 ? WIDTH_MIN + 80 : setting.DownloadManagerPosition.Width,
                                 Height = setting.DownloadManagerPosition.Height <= HEIGHT_MIN ? HEIGHT_MIN : setting.DownloadManagerPosition.Height,
-                                Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager_page.Pos.X,
-                                Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager_page.Pos.Y,
+                                Left = setting.DownloadManagerPosition.Left >=0 ? setting.DownloadManagerPosition.Left : _downManager.Pos.X,
+                                Top = setting.DownloadManagerPosition.Top >=0 ? setting.DownloadManagerPosition.Top : _downManager.Pos.Y,
                                 FontFamily = setting.FontFamily,
-                                Content = _downManager_page
+                                Content = _downManager
                             };
-                            _downManager_page.ParentWindow = viewer;
+                            _downManager.ParentWindow = viewer;
                             viewer.Show();
                         }).InvokeAsync(true);
                     }
@@ -2062,7 +2055,15 @@ namespace PixivWPF.Common
 
         public static ICommand ShellOpenFileProperty { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if (obj is string)
+            if (obj is IEnumerable<string>)
+            {
+                var content = obj as IEnumerable<string>;
+                await new Action(() =>
+                {
+                    content.OpenShellProperties();
+                }).InvokeAsync(true);
+            }
+            else if (obj is string)
             {
                 var content = obj as string;
                 if (!string.IsNullOrEmpty(content))

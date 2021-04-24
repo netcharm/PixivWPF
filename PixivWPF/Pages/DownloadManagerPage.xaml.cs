@@ -42,6 +42,42 @@ namespace PixivWPF.Pages
 
         [DefaultValue(25)]
         public int MaxSimultaneousJobs { get { return (setting.DownloadMaxSimultaneous); } }
+
+        public IEnumerable<DownloadInfo> CurrentJobs
+        {
+            get
+            {
+                if (!(items is ObservableCollection<DownloadInfo>)) items = new ObservableCollection<DownloadInfo>();
+                return (items.Where(
+                            item => item.State == DownloadState.Downloading ||
+                                    item.State == DownloadState.Writing
+                        ));
+            }
+        }
+
+        public int CurrentJobsCount
+        {
+            get { return CurrentIdles.Count(); }
+        }
+
+        public IEnumerable<DownloadInfo> CurrentIdles
+        {
+            get
+            {
+                if (!(items is ObservableCollection<DownloadInfo>)) items = new ObservableCollection<DownloadInfo>();
+                return (items.Where(
+                            item => item.State == DownloadState.Idle ||
+                                    item.State == DownloadState.Paused
+                        ));
+            }
+        }
+
+        public int CurrentIdlesCount
+        {
+            get { return CurrentIdles.Count(); }
+        }
+
+        public bool CanStartDownload { get { return (CurrentJobsCount < SimultaneousJobs); } }
         #endregion
 
         #region Time Checking
@@ -59,13 +95,12 @@ namespace PixivWPF.Pages
                         if (PART_MaxJobs.Value != SimultaneousJobs) PART_MaxJobs.Value = SimultaneousJobs;
                         if (PART_MaxJobs.Maximum != MaxSimultaneousJobs) PART_MaxJobs.Maximum = MaxSimultaneousJobs;
 
-                        var jobs_count = items.Where(i => i.State == DownloadState.Downloading || i.State == DownloadState.Writing).Count();
-                        var pre_jobs = items.Where(i => i.State == DownloadState.Idle || i.State == DownloadState.Paused);
-                        foreach (var item in pre_jobs)
+                        var jobs_count = CurrentJobsCount;
+                        foreach (var item in CurrentIdles)
                         {
                             if (jobs_count < SimultaneousJobs)
                             {
-                                if (item.AutoStart) item.IsStart = true;
+                                if (AutoStart || item.AutoStart) item.IsStart = true;
                                 jobs_count++;
                             }
                         }
@@ -410,7 +445,6 @@ namespace PixivWPF.Pages
                             opt.MaxDegreeOfParallelism = (int)SimultaneousJobs;
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
-                                item.IsStart = true;
                                 item.State = DownloadState.Idle;
                             });
                         }
@@ -424,7 +458,6 @@ namespace PixivWPF.Pages
                             opt.MaxDegreeOfParallelism = (int)SimultaneousJobs;
                             var ret = Parallel.ForEach(needUpdate, opt, (item, loopstate, elementIndex) =>
                             {
-                                item.IsStart = true;
                                 item.State = DownloadState.Idle;
                             });
                         }

@@ -14,15 +14,12 @@
 
     <Grid>
 
-        <interop:AirspaceDecorator 
-            AirspaceMode="Redirect" x:Name="BrowserHostP"
-            Background="Transparent"
-            IsInputRedirectionEnabled="True"
-            IsOutputRedirectionEnabled="True">
+        <!--<interop:AirspaceDecorator x:Name="BrowserHostP" AirspaceMode="Redirect"  Background="Transparent" 
+                                   IsInputRedirectionEnabled="True" IsOutputRedirectionEnabled="True">-->
             <!--your winforms control or webbrowser here here-->
             <Grid x:Name="BrowserHost" AllowDrop="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             </Grid>
-        </interop:AirspaceDecorator>
+        <!--</interop:AirspaceDecorator>-->
 
         <!-- Illust Open Progress Prompt -->
         <Common:ProgressRingCloud 

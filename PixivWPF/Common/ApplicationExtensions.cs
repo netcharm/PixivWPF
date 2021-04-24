@@ -815,7 +815,7 @@ namespace PixivWPF.Common
 
         public static ConcurrentDictionary<string, ContentWindow> GetContentWindows(this Application app)
         {
-            if(!(_ContentWindows_ is ConcurrentDictionary<string, ContentWindow>))
+            if (!(_ContentWindows_ is ConcurrentDictionary<string, ContentWindow>))
                 _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
             return (_ContentWindows_);
         }
@@ -835,7 +835,7 @@ namespace PixivWPF.Common
                 }
                 _ContentWindows_.AddOrUpdate(window.Title, window, (k, v) => window);
             }
-            catch(Exception ex) { ex.ERROR("UpdateContentWindows"); }
+            catch (Exception ex) { ex.ERROR("UpdateContentWindows"); }
             return (result);
         }
 
@@ -2171,7 +2171,7 @@ namespace PixivWPF.Common
                     keys[vKey] = 0;
                     result = SetKeyboardState(keys);
                 }
-                catch(Exception ex) { ex.ERROR("ClearKeyState"); }
+                catch (Exception ex) { ex.ERROR("ClearKeyState"); }
             }
             return (result);
         }
@@ -2197,7 +2197,7 @@ namespace PixivWPF.Common
                     result = SetKeyboardState(keys);
                 }
             }
-            catch(Exception ex) { ex.ERROR("ClearKeyState"); }
+            catch (Exception ex) { ex.ERROR("ClearKeyState"); }
             return (result);
         }
 
@@ -2378,7 +2378,7 @@ namespace PixivWPF.Common
             }
             if (force || IsModifierDown(ModifierKeys.Control) || IsCtrlDown())
             {
-                keys.Add("Control");                
+                keys.Add("Control");
                 if (use_keybd_event)
                 {
                     // Left CONTROL Key
@@ -2422,7 +2422,7 @@ namespace PixivWPF.Common
             }
             if (force || IsModifierDown(ModifierKeys.Windows) || IsWinDown())
             {
-                keys.Add("Windows");                
+                keys.Add("Windows");
                 if (use_keybd_event)
                 {
                     // Left Windows Key
@@ -2691,6 +2691,29 @@ namespace PixivWPF.Common
         public static void StopListening(this Application app)
         {
             ApplicationHotKeys.StopListening();
+        }
+        #endregion
+
+        #region Application Download Manager
+        private static DownloadManagerPage _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
+
+        public static DownloadManagerPage GetDownloadManager(this Application app)
+        {
+            if (!(_downManager_page is DownloadManagerPage))
+                _downManager_page = new DownloadManagerPage() { Name = "DownloadManager", AutoStart = true };
+            return (_downManager_page);
+        }
+
+        public static int GetDownloadJobsCount(this Application app)
+        {
+            var dm = app.GetDownloadManager();
+            return (dm.CurrentJobsCount);
+        }
+
+        public static int GetDownloadIdlesCount(this Application app)
+        {
+            var dm = app.GetDownloadManager();
+            return (dm.CurrentIdlesCount);
         }
         #endregion
 

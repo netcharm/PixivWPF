@@ -84,6 +84,7 @@ namespace PixivWPF.Common
                     if (PreftchingStateRing != null) PreftchingStateRing.Stop();
                     PreftchingProgressState.Hide();
                 }
+                if(progress < 0) PreftchingProgressInfo.Hide();
             }).Invoke(async: false);
         }
 

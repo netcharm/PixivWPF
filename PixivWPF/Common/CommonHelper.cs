@@ -1116,7 +1116,7 @@ namespace PixivWPF.Common
 
                 if (TagsWildecardT2S is OrderedDictionary)
                 {
-                    var alpha = Regex.IsMatch(result, @"^[\u0020-\u007E]*$", RegexOptions.IgnoreCase);
+                    var alpha = Regex.IsMatch(result, @"^[\u0020-\u007E]+$", RegexOptions.IgnoreCase);
                     var text = alpha ? src : result;
                     if (_TagsWildecardT2SCache.ContainsKey(text) &&
                         _TagsWildecardT2SCache[text].Keys.Count > 0 &&
@@ -1148,7 +1148,7 @@ namespace PixivWPF.Common
                         result = alpha && !Regex.IsMatch(text, result_o, RegexOptions.IgnoreCase) ? $"{text}/{result}" : text;
                         if (!result.Equals(src) && keys.Count > 0)
                         {
-                            _TagsWildecardT2SCache[text] = new TagsWildecardCacheItem()
+                            _TagsWildecardT2SCache[src] = new TagsWildecardCacheItem()
                             {
                                 Keys = keys.Distinct().ToList(),
                                 Translated = result
@@ -1978,6 +1978,18 @@ namespace PixivWPF.Common
         }
 
         public static bool OpenShellProperties(this string FileName)
+        {
+            bool result = false;
+            try
+            {
+                //result = ShowFileProperties(FileName);
+                result = ShellProperties.Show(FileName) == 0 ? true : false;
+            }
+            catch (Exception ex) { ex.ERROR("OpenShellProperties"); }
+            return (result);
+        }
+
+        public static bool OpenShellProperties(this IEnumerable<string> FileName)
         {
             bool result = false;
             try
@@ -3162,6 +3174,50 @@ namespace PixivWPF.Common
             return (result);
         }
         #endregion
+
+        public static IEnumerable<string> GetDownloadedFiles(this PixivItem item)
+        {
+            List<string> result = new List<string>();
+            try
+            {
+                if (item.IsWork())
+                {
+                    var id = item.ID;
+                    var is_page = item.IsPage();
+                    var has_page = item.HasPages();
+                    foreach (var local in setting.LocalStorage)
+                    {
+                        if (string.IsNullOrEmpty(local.Folder)) continue;
+
+                        var folder = local.Folder.FolderMacroReplace(id);
+                        if (Directory.Exists(folder))
+                        {
+                            if (is_page)
+                            {
+                                var file = item.Illust.GetOriginalUrl(item.Index).GetImageName(false);
+                                var f = Path.Combine(folder, file);
+                                if ((local.Cached && f.DownloadedCacheExistsAsync()) || File.Exists(f))
+                                {
+                                    result.Add(f);
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                var files = Directory.GetFiles(folder, $"{id}*.*").NaturalSort();
+                                if (files.Count() > 0)
+                                {
+                                    result.AddRange(files);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("GetDownloaded"); }
+            return (result.Distinct().ToList());
+        }
         #endregion
 
         #region Download/Convert/Resize Image routines
@@ -5544,6 +5600,11 @@ namespace PixivWPF.Common
             int id = -1;
             int.TryParse(illustid, out id);
             UpdateLikeStateAsync(id);
+        }
+
+        public static void UpdateLikeStateAsync(this bool is_user, int illustid = -1)
+        {
+            UpdateLikeStateAsync(illustid, is_user);
         }
 
         public static async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)

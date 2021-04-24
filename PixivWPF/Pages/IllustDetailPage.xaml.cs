@@ -7,14 +7,13 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 
 using MahApps.Metro.IconPacks;
 using PixivWPF.Common;
-using System.Windows.Interop;
-using System.Windows.Controls.Primitives;
-using System.Windows.Shapes;
 
 namespace PixivWPF.Pages
 {
@@ -760,10 +759,13 @@ namespace PixivWPF.Pages
         {
             try
             {
-                foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeItems, FavoriteItems })
+                foreach (var illusts in new List<ImageListGrid>() { RelativeItems, FavoriteItems })
                 {
-                    illusts.UpdateDownloadStateAsync(illustid, exists);
-                    this.DoEvents();
+                    if (illusts.Items.Count > 0)
+                    {                        
+                        illusts.UpdateTilesState();
+                        this.DoEvents();
+                    }
                 }
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADSTATE"); }
@@ -773,7 +775,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (Contents.HasUser())
+                if (Contents.IsWork())
                 {
                     UpdateDownloadedMark(Contents);
                     SubIllusts.UpdateTilesState();
@@ -810,7 +812,7 @@ namespace PixivWPF.Pages
                     var index = item.Index;
                     if (index < 0)
                     {
-                        var download = downloaded ?? item.Illust.IsPartDownloadedAsync(out fp);
+                        var download = downloaded ?? item.Illust.IsPartDownloadedAsync(out fp, touch: true);
                         if (item.IsDownloaded != download) item.IsDownloaded = download;
                         if (item.IsDownloaded)
                         {
@@ -829,7 +831,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        var download = downloaded ?? item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, item.Illust.PageCount <= 1);
+                        var download = downloaded ?? item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, item.Illust.PageCount <= 1, touch: true);
                         if (download)
                         {
                             IllustDownloaded.Show();
@@ -903,8 +905,15 @@ namespace PixivWPF.Pages
             {
                 if (Contents.HasUser())
                 {
+                    int user_id = -1;
+                    int.TryParse(Contents.UserID, out user_id);
                     UpdateFollowMark(Contents.User);
-                    if (Contents.IsWork()) UpdateFavMark(Contents.Illust);
+                    if (Contents.IsWork())
+                    {
+                        int work_id = -1;
+                        int.TryParse(Contents.ID, out work_id);
+                        if(illustid == -1 || illustid == work_id) UpdateFavMark(Contents.Illust);
+                    }
                 }
                 if (SubIllusts.Items.Count > 0)
                 {
@@ -3206,7 +3215,7 @@ namespace PixivWPF.Pages
             if (sender == BookmarkIllust)
             {
                 PopupOpen(BookmarkIllust.ContextMenu);
-                is_user = true;
+                is_user = false;
             }
             else if (sender == FollowAuthor)
             {
@@ -3221,7 +3230,10 @@ namespace PixivWPF.Pages
                     ActionIllustNewWindow.Visibility = Visibility.Visible;
                 PopupOpen(IllustActions.ContextMenu);
             }
-            UpdateLikeState(-1, is_user);
+            //UpdateLikeState(-1, is_user);
+            int id = -1;
+            int.TryParse(Contents.ID, out id);
+            if (Contents.HasUser()) is_user.UpdateLikeStateAsync(id);
         }
 
         private async void ActionBookmarkIllust_Click(object sender, RoutedEventArgs e)
@@ -3558,8 +3570,14 @@ namespace PixivWPF.Pages
         {
             e.Handled = false;
             RelativeItems.UpdateTilesState();
-            UpdateLikeState();
-            if (RelativeItems.SelectedItem.IsWork()) RelativeItems.SelectedItem.Focus();
+            //UpdateLikeState();
+            if (RelativeItems.SelectedItem.IsWork())
+            {
+                int id = -1;
+                int.TryParse(RelativeItems.SelectedItem.ID, out id);
+                false.UpdateLikeStateAsync(id);
+                RelativeItems.SelectedItem.Focus();
+            }
             e.Handled = true;
         }
 
@@ -3642,8 +3660,14 @@ namespace PixivWPF.Pages
         {
             e.Handled = false;
             FavoriteItems.UpdateTilesState();
-            UpdateLikeState();
-            if (FavoriteItems.SelectedItem.IsWork()) FavoriteItems.SelectedItem.Focus();
+            //UpdateLikeState();
+            if (FavoriteItems.SelectedItem.IsWork())
+            {
+                int id = -1;
+                int.TryParse(FavoriteItems.SelectedItem.ID, out id);
+                false.UpdateLikeStateAsync(id);
+                FavoriteItems.SelectedItem.Focus();
+            }
             e.Handled = true;
         }
 

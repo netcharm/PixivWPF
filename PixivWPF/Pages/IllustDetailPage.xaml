@@ -869,14 +869,8 @@
                           Margin="0,4,0,0"
                           IsExpanded="True" ExpandDirection="Down"
                           Header="Tags" Visibility="Collapsed" Expanded="IllustTagExpander_Expanded">
-                    <!--<interop:AirspaceDecorator 
-                        AirspaceMode="Redirect" x:Name="IllustTagsHostP"
-                        Background="Transparent"
-                        IsInputRedirectionEnabled="True"
-                        IsOutputRedirectionEnabled="True">-->
-                        <DockPanel x:Name="IllustTagsHost" DockPanel.Dock="Top" LastChildFill="True" VerticalAlignment="Stretch" AllowDrop="False">
-                        </DockPanel>
-                    <!--</interop:AirspaceDecorator>-->
+                    <!--<interop:AirspaceDecorator x:Name="IllustTagsHost" AirspaceMode="Redirect" Background="Transparent" IsInputRedirectionEnabled="True" IsOutputRedirectionEnabled="True"/>-->
+                    <DockPanel x:Name="IllustTagsHost" DockPanel.Dock="Top" LastChildFill="True" VerticalAlignment="Stretch" AllowDrop="False"/>
                 </Expander>
                 <StackPanel Grid.Row="2" x:Name="TagPanel" 
                             Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
@@ -939,14 +933,8 @@
                           Margin="0,4,0,0"
                           IsExpanded="True" ExpandDirection="Down"
                           Header="Description" Visibility="Collapsed" Expanded="IllustDescExpander_Expanded">
-                    <!--<interop:AirspaceDecorator 
-                        AirspaceMode="Redirect" x:Name="IllustDescHostP"
-                        Background="Transparent"
-                        IsInputRedirectionEnabled="True"
-                        IsOutputRedirectionEnabled="True">-->
-                        <DockPanel x:Name="IllustDescHost" DockPanel.Dock="Top" LastChildFill="True" VerticalAlignment="Stretch" AllowDrop="False">
-                        </DockPanel>
-                    <!--</interop:AirspaceDecorator>-->
+                    <!--<interop:AirspaceDecorator x:Name="IllustDescHost" AirspaceMode="Clip" Background="Transparent" IsInputRedirectionEnabled="True" IsOutputRedirectionEnabled="True" />-->
+                    <DockPanel x:Name="IllustDescHost" DockPanel.Dock="Top" LastChildFill="True" VerticalAlignment="Stretch" AllowDrop="False"/>
                 </Expander>
                 <StackPanel Grid.Row="3" x:Name="DescPanel" 
                             Visibility="{Binding ElementName=IllustDescExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"

@@ -1002,12 +1002,12 @@ namespace PixivWPF.Common
                         if (item.Illust == null) continue;
                         if (item.IsPage())
                         {
-                            bool download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
+                            bool download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(touch: true);
                             if (item.IsDownloaded != download) item.IsDownloaded = download;
                         }
-                        else
+                        else if(item.IsWork())
                         {
-                            bool part_down = item.Illust.IsPartDownloadedAsync();
+                            bool part_down = item.Illust.IsPartDownloadedAsync(touch: true);
                             if (item.IsPartDownloaded != part_down) item.IsPartDownloaded = part_down;
                             item.IsDownloaded = item.IsPartDownloaded;
                         }

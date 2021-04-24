@@ -193,7 +193,7 @@ namespace PixivWPF.Common
             set
             {
                 start = value;
-                Start();
+                if (value) Start();
                 NotifyPropertyChanged("IsStart");
             }
         }
@@ -278,7 +278,7 @@ namespace PixivWPF.Common
         {
             if (ProgressPercent == 100)
             {
-                if (FileName.IsDownloaded())
+                if (FileName.IsDownloaded(touch: false))
                     State = DownloadState.Finished;
                 else if (State == DownloadState.Finished)
                     State = DownloadState.NonExists;
@@ -729,7 +729,7 @@ namespace PixivWPF.Common
                         PART_DownloadStatusMark.Text = string.Empty;
                     }
 
-                    miOpenImage.IsEnabled = FileName.IsDownloaded();
+                    miOpenImage.IsEnabled = FileName.IsDownloaded(touch: false);
                     miOpenFolder.IsEnabled = true;
 
                     PART_DownloadProgressPercent.Text = $"{State.ToString()}: {PART_DownloadProgress.Value:0.0}%";
@@ -1188,6 +1188,9 @@ namespace PixivWPF.Common
 
         public async void Start(bool continuation = true, bool restart = false)
         {
+            var _downManager = Application.Current.GetDownloadManager();
+            if (!_downManager.CanStartDownload) return;
+
             setting = Application.Current.LoadSetting();
             HTTP_STREAM_READ_COUNT = setting.DownloadHttpStreamBlockSize;
             HTTP_TIMEOUT = setting.DownloadHttpTimeout > 5 ? setting.DownloadHttpTimeout : 5;
@@ -1198,14 +1201,14 @@ namespace PixivWPF.Common
             var basename = Path.GetFileName(FileName);
             var msg_title = $"Warnning ({basename})";
             var msg_content = "Overwrite exists?";
-            if (msg_title.IsMessagePopup(msg_content)) return;
+            if (msg_title.IsMessagePopup(msg_content)) { State = DownloadState.Finished; return; }
 
             bool delta = true;
             if (File.Exists(FileName))
             {
                 delta = new FileInfo(FileName).CreationTime.DeltaNowMillisecond() > setting.DownloadTimeSpan ? true : false;
                 if (!delta) return;
-                if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) return;
+                if (!(await msg_content.ShowMessageDialog(msg_title, MessageBoxImage.Warning))) { State = DownloadState.Finished; return; }
                 restart = true;
             }
 
@@ -1448,7 +1451,7 @@ namespace PixivWPF.Common
             {
                 FileName.OpenFileWithShell(true);
             }
-            else if(sender == miOpenImageProperties)
+            else if (sender == miOpenImageProperties)
             {
                 FileName.OpenShellProperties();
             }

@@ -184,7 +184,8 @@ namespace PixivWPF.Pages
             {
                 try
                 {
-                    BrowserWait.Show();
+                    if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(-1, state: TaskStatus.WaitingToRun);
+                    //BrowserWait.Show();
 
                     webHtml.Stop();
                     HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(currentUri);
@@ -202,12 +203,13 @@ namespace PixivWPF.Pages
                     {
                         if (webHtml.DocumentText.Length <= 1024)
                             webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
-                        BrowserWait.Hide();
+                        if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(-1, state: TaskStatus.RanToCompletion);
+                        //BrowserWait.Hide();
                     }
                     else
                     {
                         ex.Message.ShowToast("ERROR[BROWSER]!");
-                        BrowserWait.Fail();
+                        //BrowserWait.Fail();
                     }
                 }
             }).InvokeAsync();
@@ -459,7 +461,8 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex)
             {
-                BrowserWait.Fail();
+                if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(-1, state: TaskStatus.Faulted);
+                //BrowserWait.Fail();
                 ex.Message.DEBUG();
             }
 #else
@@ -467,7 +470,8 @@ namespace PixivWPF.Pages
 #endif
             finally
             {
-                BrowserWait.Hide();
+                if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(-1, state: TaskStatus.RanToCompletion);
+                //BrowserWait.Hide();
             }
         }
 
