@@ -280,7 +280,7 @@ namespace PixivWPF.Pages
                 //Title = $"Touching {System.IO.Path.GetFileName(Contents)} ..";
                 Title = $"Touching {Contents}";
                 ParentWindow.Title = Title;
-                Application.Current.UpdateContentWindows(ParentWindow as ContentWindow);
+                Application.Current.UpdateContentWindows(ParentWindow as ContentWindow, title: Title);
                 PART_TouchStart.IsEnabled = true;
                 PART_TouchCancel.IsEnabled = false;
             }

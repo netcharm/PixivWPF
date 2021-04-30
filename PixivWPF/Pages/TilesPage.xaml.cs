@@ -513,7 +513,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.DEBUG();
+                ex.ERROR("SetFilter");
             }
         }
 
@@ -531,7 +531,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.DEBUG();
+                ex.ERROR("SetFilter");
             }
         }
 

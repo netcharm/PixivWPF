@@ -56,7 +56,7 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (Contents.IsWork())
+                if (Contents.IsWork() && (Contents.Illust.Id == illustid || illustid == -1))
                 {
                     var tooltip = InfoBar.ToolTip is string ? (string)InfoBar.ToolTip : string.Empty;
                     if (!string.IsNullOrEmpty(tooltip))

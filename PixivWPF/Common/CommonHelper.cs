@@ -1062,16 +1062,18 @@ namespace PixivWPF.Common
             return result;
         }
 
-        public static void TagWildcardCacheUpdate(this DictionaryEntry entry)
+        public static void TagWildcardCacheUpdate(this string key, string value = "")
         {
             try
             {
-                var k = (entry.Key as string).Trim();
-                var v = (entry.Value as string).Trim();
+                if (!(_TagsWildecardT2SCache is ConcurrentDictionary<string, TagsWildecardCacheItem>))
+                    _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>();
 
+                var k = key.Trim();
+                var v = value.Trim();
                 foreach (var cache in _TagsWildecardT2SCache)
                 {
-                    if (cache.Value.Keys.Contains(k))
+                    if (cache.Value.Keys.Contains(k) || Regex.IsMatch(cache.Key, k, RegexOptions.IgnoreCase))
                     {
                         cache.Value.Translated = string.Empty;
                         cache.Value.Keys.Clear();
@@ -1081,14 +1083,30 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("TagWildcardChanged"); }
         }
 
-        public static string TranslatedText(this string src, string translated = default(string))
+        public static void TagWildcardCacheUpdate(this DictionaryEntry entry)
         {
-            var result = src;
             try
             {
-                src = string.IsNullOrEmpty(src) ? string.Empty : src.Trim();
-                translated = string.IsNullOrEmpty(translated) ? string.Empty : translated.Trim();
+                var k = (entry.Key as string).Trim();
+                var v = (entry.Value as string).Trim();
+                TagWildcardCacheUpdate(k, v);
+            }
+            catch (Exception ex) { ex.ERROR("TagWildcardChanged"); }
+        }
+
+        public static string TranslatedText(this string src, out string matched, string translated = default(string))
+        {
+            var result = src;
+            matched = string.Empty;
+            List<string> matches = new List<string>();
+            try
+            {
+                src = string.IsNullOrEmpty(src) ? string.Empty : src.KatakanaHalfToFull().Trim();
+                translated = string.IsNullOrEmpty(translated) ? string.Empty : translated.KatakanaHalfToFull().Trim();
                 if (string.IsNullOrEmpty(src)) return (string.Empty);
+
+                if (!(_TagsWildecardT2SCache is ConcurrentDictionary<string, TagsWildecardCacheItem>))
+                    _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>();
 
                 result = src;
                 if (TagsCache is ConcurrentDictionary<string, string>)
@@ -1098,32 +1116,51 @@ namespace PixivWPF.Common
                         if (TagsCache.ContainsKey(src))
                         {
                             var tag_t = TagsCache[src];
-                            if (!string.IsNullOrEmpty(tag_t)) result = tag_t;
+                            if (!string.IsNullOrEmpty(tag_t))
+                            {
+                                result = tag_t;
+                                matches.Add($"Tags => {src}");
+                            }
                         }
                     }
                     else
                     {
                         TagsCache[src] = translated;
                         result = translated;
+                        matches.Add($"Tags => {src}");
                     }
                 }
 
                 if (TagsT2S is ConcurrentDictionary<string, string>)
                 {
-                    if (TagsT2S.ContainsKey(src)) result = TagsT2S[src];
-                    else if (TagsT2S.ContainsKey(result)) result = TagsT2S[result];
+                    if (TagsT2S.ContainsKey(src))
+                    {
+                        src.TagWildcardCacheUpdate();
+                        result = TagsT2S[src];
+                        matches.Add($"CustomTags => {src}");
+                    }
+                    else if (TagsT2S.ContainsKey(result))
+                    {
+                        result.TagWildcardCacheUpdate();
+                        result = TagsT2S[result];
+                        matches.Add($"CustomTags => {result}");
+                    }
                 }
 
+                //if (src.Equals(result) && TagsWildecardT2S is OrderedDictionary)
                 if (TagsWildecardT2S is OrderedDictionary)
                 {
-                    var alpha = Regex.IsMatch(result, @"^[\u0020-\u007E]+$", RegexOptions.IgnoreCase);
-                    var text = alpha ? src : result;
-                    if (_TagsWildecardT2SCache.ContainsKey(text) &&
-                        _TagsWildecardT2SCache[text].Keys.Count > 0 &&
-                        !string.IsNullOrEmpty(_TagsWildecardT2SCache[text].Translated))
-                        result = _TagsWildecardT2SCache[text].Translated;
+                    if (_TagsWildecardT2SCache.ContainsKey(src) &&
+                        _TagsWildecardT2SCache[src].Keys.Count > 0 &&
+                        !string.IsNullOrEmpty(_TagsWildecardT2SCache[src].Translated))
+                    {
+                        result = _TagsWildecardT2SCache[src].Translated;
+                        matches.Add($"CustomWildcardTagsCache => {src}:{string.Join(";", _TagsWildecardT2SCache[src].Keys)}");
+                    }
                     else
                     {
+                        var alpha = Regex.IsMatch(result, @"^[\u0020-\u007E]+$", RegexOptions.IgnoreCase);
+                        var text = alpha ? src : result;
                         var keys = new List<string>();
                         foreach (DictionaryEntry entry in TagsWildecardT2S)
                         {
@@ -1153,11 +1190,13 @@ namespace PixivWPF.Common
                                 Keys = keys.Distinct().ToList(),
                                 Translated = result
                             };
+                            matches.Add($"CustomWildcardTags => '{string.Join(";", keys)}'");
                         }
                     }
                 }
             }
             catch (Exception ex) { ex.ERROR("TRANSLATE"); }
+            matched = string.Join(", ", matches);
             return (result);
         }
 
@@ -1403,68 +1442,121 @@ namespace PixivWPF.Common
             return (template.ToString());
         }
 
-        public static string CalcNextUrlPages(this string next_url, string totals = null)
+        #region ImageListGrid page calculating
+        private static int ImagesPerPage { get; } = 30;
+
+        private static int CalcPageOffset(this string next_url)
         {
-            string result = "Unknown";
-            try
-            {
-                var offset = Regex.IsMatch(next_url, @".*?offset=(\d+).*?", RegexOptions.IgnoreCase | RegexOptions.Singleline) ? Regex.Replace(next_url, @".*?offset=(\d+).*?", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline) : string.Empty;
-                if (!string.IsNullOrEmpty(offset))
-                {
-                    int count = 0;
-                    int total = 0;
-                    if (int.TryParse(offset, out count) && int.TryParse(totals, out total))
-                    {
-                        int page = count / 30;
-                        if (total <= 0) result = $"Page: {page}";
-                        else result = $"Page: {page} / {(int)Math.Floor(total / 30.0) + 1}";
-                    }
-                }
-                else
-                {
-                    int total = 0;
-                    if (int.TryParse(totals, out total))
-                    {
-                        int pages = (int)Math.Floor(total / 30.0) + 1;
-                        result = $"Page: {pages} / {pages}";
-                    }
-                }
-            }
-            catch (Exception ex) { ex.ERROR("CalcNextUrlPages"); }
+            int result = 0;
+            var offset = Regex.IsMatch(next_url, @".*?offset=(\d+).*?", RegexOptions.IgnoreCase | RegexOptions.Singleline) ? Regex.Replace(next_url, @".*?offset=(\d+).*?", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline) : string.Empty;
+            if (!string.IsNullOrEmpty(offset)) int.TryParse(offset, out result);
             return (result);
         }
 
-        public static string CalcNextUrlPages(this string next_url, int total = 0, string current = null)
+        private static int CalcPageNum(this int offset)
+        {
+            return (offset / ImagesPerPage);
+        }
+
+        public static int CalcTotalPages(this int totals)
+        {
+            return ((int)Math.Floor((double)totals / ImagesPerPage) + 1);
+        }
+
+        public static int CalcTotalPages(this string totals)
+        {
+            int total = 0;
+            int.TryParse(totals, out total);
+            var pages = total <= 0 ? 0 : CalcTotalPages(total);
+            return (pages);
+        }
+
+        public static string CalcUrlPage(this string url, string totals = null)
         {
             string result = "Unknown";
             try
             {
-                var offset = Regex.IsMatch(next_url, @".*?offset=(\d+).*?", RegexOptions.IgnoreCase | RegexOptions.Singleline) ? Regex.Replace(next_url, @".*?offset=(\d+).*?", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline) : string.Empty;
-                if (!string.IsNullOrEmpty(offset))
-                {
-                    int count = 0;
-                    if (int.TryParse(offset, out count))
-                    {
-                        int page = count / 30;
-                        if (total <= 0) result = $"Page: {page}";
-                        else result = $"Page: {page} / {(int)Math.Floor(total / 30.0) + 1}";
-                    }
-                    else result = $"Page: {1}";
-                }
-                else if (!string.IsNullOrEmpty(current))
-                {
-                    int count = 0;
-                    offset = Regex.Replace(current, @".*?Page\s?:\s?(\d+).*?", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-                    if (int.TryParse(offset, out count)) result = $"Page: {count + 1}";
-                }
-                else if (!string.IsNullOrEmpty(next_url))
-                {
-                    result = "Page: 1";
-                }
+                var offset = CalcPageOffset(url);
+                int pages = CalcTotalPages(totals);
+                int page = CalcPageNum(offset);
+                if (page == 0) page = pages;
+                if (pages <= 0) result = $"Page: {page}";
+                else result = $"Page: {page} / {pages}";
             }
-            catch (Exception ex) { ex.ERROR("CalcNextUrlPages"); }
+            catch (Exception ex) { ex.ERROR("CalcUrlPages"); }
             return (result);
         }
+
+        public static string CalcUrlPage(this string url, int totals = 0, string current = null)
+        {
+            string result = "Unknown";
+            try
+            {
+                int offset = CalcPageOffset(url);
+                int pages = CalcTotalPages(totals);
+                int page = CalcPageNum(offset);
+                if (page == 0) page = pages;
+                if (pages <= 0) result = $"Page: {page}";
+                else result = $"Page: {page} / {pages}";
+            }
+            catch (Exception ex) { ex.ERROR("CalcUrlPages"); }
+            return (result);
+        }
+
+        public static int CalcPrevPage(this string url, string totals = null)
+        {
+            int result = 0;
+            try
+            {
+                int offset = CalcPageOffset(url);
+                int pages = CalcTotalPages(totals);
+                int page = CalcPageNum(offset);
+                result = page <= 2 ? 1 : page - 1;
+            }
+            catch (Exception ex) { ex.ERROR("CalcPrevPage"); }
+            return (result);
+        }
+
+        public static int CalcNextPage(this string url, string totals = null, string current = null)
+        {
+            int result = 0;
+            try
+            {
+                int offset = CalcPageOffset(url);
+                int pages = CalcTotalPages(totals);
+                int page = CalcPageNum(offset);
+                result = page <= 2 ? 1 : page + 1;
+            }
+            catch (Exception ex) { ex.ERROR("CalcNextPage"); }
+            return (result);
+        }
+
+        public static string CalcPrevUrl(this string url)
+        {
+            string result = string.Empty;
+            try
+            {
+                var offset = CalcPageOffset(url);
+                var prev_offset = offset >= ImagesPerPage * 2 ? offset - (ImagesPerPage * 2) : 0;
+                if (prev_offset > 0) result = Regex.Replace(url, @"offset=(\d+)", m => { return ($"offset={prev_offset}"); }, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            }
+            catch (Exception ex) { ex.ERROR("CalcPrevUrl"); }
+            return (result);
+        }
+
+        public static string CalcNextUrl(this string url)
+        {
+            string result = string.Empty;
+            try
+            {
+                var offset = CalcPageOffset(url);
+                var next_offset = offset + ImagesPerPage;
+                if (next_offset > 0) result = Regex.Replace(url, @"offset=(\d+)", m => { return ($"offset={next_offset}"); }, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            }
+            catch (Exception ex) { ex.ERROR("CalcNextUrl"); }
+            return (result);
+        }
+        #endregion
 
         public static async void UpdateIllustTagsAsync()
         {
@@ -2440,31 +2532,17 @@ namespace PixivWPF.Common
         {
             if (item.IsPage())
             {
-                if (string.IsNullOrEmpty(item.DownloadedFilePath) || !File.Exists(item.DownloadedFilePath))
-                {
-                    string file = string.Empty;
-                    item.IsDownloaded = item.Illust.IsDownloaded(out file, item.Index, item.Count <= 1);
-                    item.DownloadedFilePath = file;
-                    item.DownloadedTooltip = file;
-                }
-                else
-                {
-                    item.DownloadedFilePath.Touch(item.Illust.GetOriginalUrl(), local, meta);
-                }
+                string file = string.Empty;
+                item.IsDownloaded = item.Illust.IsDownloaded(out file, item.Index, item.Count <= 1);
+                item.DownloadedFilePath = file;
+                item.DownloadedTooltip = file;
             }
             else if (item.IsWork())
             {
-                if (string.IsNullOrEmpty(item.DownloadedFilePath) || !File.Exists(item.DownloadedFilePath))
-                {
-                    string file = string.Empty;
-                    item.IsDownloaded = item.Illust.IsPartDownloaded(out file);
-                    item.DownloadedFilePath = file;
-                    item.DownloadedTooltip = file;
-                }
-                else
-                {
-                    item.DownloadedFilePath.Touch(item.Illust.GetOriginalUrl(), local, meta);
-                }
+                string file = string.Empty;
+                item.IsDownloaded = item.Illust.IsPartDownloaded(out file);
+                item.DownloadedFilePath = file;
+                item.DownloadedTooltip = file;
             }
         }
 
@@ -3158,7 +3236,7 @@ namespace PixivWPF.Common
                         }
 
                         var fn = Path.GetFileNameWithoutExtension(file_s);
-                        var files = Directory.GetFiles(folder, $"{fn}_*.*").NaturalSort();
+                        var files = Directory.EnumerateFiles(folder, $"{fn}_*.*").NaturalSort();
                         if (files.Count() > 0)
                         {
                             if (touch) { foreach (var fc in files.Skip(1)) fc.Touch(url, meta: true); }
@@ -3204,7 +3282,8 @@ namespace PixivWPF.Common
                             }
                             else
                             {
-                                var files = Directory.GetFiles(folder, $"{id}*.*").NaturalSort();
+                                var sep = item.HasPages() ? "_*" : "";
+                                var files = Directory.EnumerateFiles(folder, $"{id}{sep}.*").NaturalSort();
                                 if (files.Count() > 0)
                                 {
                                     result.AddRange(files);
@@ -4919,6 +4998,7 @@ namespace PixivWPF.Common
                         item.State = TaskStatus.RanToCompletion;
                     }
                 }
+                if (result && item.IsDownloaded) item.Touch();
             }
 
             return (result);
@@ -5026,6 +5106,7 @@ namespace PixivWPF.Common
                         item.State = TaskStatus.RanToCompletion;
                     }
                 }
+                if (result && item.IsDownloaded) item.Touch();
             }
             return (result);
         }
@@ -5085,6 +5166,7 @@ namespace PixivWPF.Common
                 item.Illust = ret.Item2;
                 item.IsFavorited = result;
                 if (item.Source == null) item.State = TaskStatus.RanToCompletion;
+                if (result && item.IsDownloaded) item.Touch();
             }
             return (result);
         }

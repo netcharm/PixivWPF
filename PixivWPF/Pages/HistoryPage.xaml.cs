@@ -48,14 +48,15 @@ namespace PixivWPF.Pages
 
         public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
         {
-            await new Action(() => {
+            await new Action(() =>
+            {
                 UpdateLikeState(illustid, is_user);
             }).InvokeAsync();
         }
 
         public void UpdateLikeState(int illustid = -1, bool is_user = false)
         {
-                HistoryItems.UpdateLikeState(illustid, is_user);
+            HistoryItems.UpdateLikeState(illustid, is_user);
         }
 
         public void AddToHistory(PixivItem item)
@@ -69,11 +70,11 @@ namespace PixivWPF.Pages
 
         public void AddToHistory(Pixeez.Objects.Work illust)
         {
-            if(HistoryItems.Items is ObservableCollection<PixivItem>)
+            if (HistoryItems.Items is ObservableCollection<PixivItem>)
             {
                 Application.Current.HistoryAdd(illust, HistoryItems.Items);
                 UpdateDetail();
-            }            
+            }
         }
 
         public void AddToHistory(Pixeez.Objects.User user)
@@ -144,7 +145,7 @@ namespace PixivWPF.Pages
                 HistoryItems.UpdateTilesImage(overwrite);
                 this.DoEvents();
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("UpdateThumb"); }
         }
 
         internal void UpdateDetail()
@@ -165,7 +166,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.DEBUG();
+                ex.ERROR("SetFilter");
             }
         }
 
@@ -184,7 +185,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex)
             {
-                ex.Message.DEBUG();
+                ex.ERROR("SetFilter");
             }
         }
 

@@ -510,6 +510,7 @@
                        Width="64" Height="64" Stretch="Uniform"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" x:Name="btnAuthorAvatar" x:Uid="btnAuthorAvatar"
+                            ToolTip="Click to Open User Infomation Window"
                             Width="64" Height="64" BorderThickness="0" BorderBrush="Transparent"
                             Background="Transparent" Foreground="Transparent"
                             Click="ActionIllustAuthourInfo_Click"/>

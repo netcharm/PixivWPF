@@ -631,7 +631,7 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var page = new BatchProcessPage() { Name = $"TouchFolder", FontFamily = setting.FontFamily, Contents = folder, Mode = "touch" };
-                        var viewer = new ContentWindow()
+                        var viewer = new ContentWindow(title)
                         {
                             Title = title,
                             Width = WIDTH_MIN,
@@ -641,8 +641,9 @@ namespace PixivWPF.Common
                             SizeToContent = SizeToContent.Height,
                             Content = page
                         };
-                        var wins = Application.Current.GetContentWindows();
-                        wins.AddOrUpdate(title, viewer, (k, v) => viewer);
+                        //Application.Current.UpdateContentWindows(viewer, title: title);
+                        //await Task.Delay(1);
+                        //Application.Current.DoEvents();
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -679,7 +680,7 @@ namespace PixivWPF.Common
                     {
                         var title = $"Touching";
                         var page = new BatchProcessPage() { Name = $"TouchFolder", FontFamily = setting.FontFamily, Contents = string.Empty };
-                        var viewer = new ContentWindow()
+                        var viewer = new ContentWindow(title)
                         {
                             Title = title,
                             Width = WIDTH_MIN,
@@ -714,7 +715,7 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var page = new BatchProcessPage() { Name = $"AttachMetaInfoFolder", FontFamily = setting.FontFamily, Contents = folder, Mode = "attach" };
-                        var viewer = new ContentWindow()
+                        var viewer = new ContentWindow(title)
                         {
                             Title = title,
                             Width = WIDTH_MIN,
@@ -722,8 +723,9 @@ namespace PixivWPF.Common
                             SizeToContent = SizeToContent.Height,
                             Content = page
                         };
-                        var wins = Application.Current.GetContentWindows();
-                        wins.AddOrUpdate(title, viewer, (k, v) => viewer);
+                        //Application.Current.UpdateContentWindows(viewer, title: title);
+                        //await Task.Delay(1);
+                        //Application.Current.DoEvents();
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -760,7 +762,7 @@ namespace PixivWPF.Common
                     {
                         var title = $"AttachMetaInfo";
                         var page = new BatchProcessPage() { Name = $"AttachMetaInfoFolder", FontFamily = setting.FontFamily, Contents = string.Empty, Mode = "attach" };
-                        var viewer = new ContentWindow()
+                        var viewer = new ContentWindow(title)
                         {
                             Title = title,
                             Width = WIDTH_MIN,
@@ -836,7 +838,7 @@ namespace PixivWPF.Common
                         if (item is PixivItem)
                         {
                             var page = new IllustDetailPage() { Name = $"IllustDetail_{item.ID}", FontFamily = setting.FontFamily, Contents = item };
-                            var viewer = new ContentWindow()
+                            var viewer = new ContentWindow(title)
                             {
                                 Title = title,
                                 Width = WIDTH_MIN,
@@ -846,8 +848,9 @@ namespace PixivWPF.Common
                                 FontFamily = setting.FontFamily,
                                 Content = page
                             };
-                            var wins = Application.Current.GetContentWindows();
-                            wins.AddOrUpdate(title, viewer, (k, v) => viewer);
+                            //Application.Current.UpdateContentWindows(viewer, title: title);
+                            //await Task.Delay(1);
+                            //Application.Current.DoEvents();
                             viewer.Show();
                             await Task.Delay(1);
                             Application.Current.DoEvents();
@@ -865,9 +868,11 @@ namespace PixivWPF.Common
                     var gallery = obj as ImageListGrid;
                     foreach (var item in gallery.GetSelected())
                     {
-                        await new Action(() =>
+                        await new Action(async () =>
                         {
                             OpenWork.Execute(item);
+                            await Task.Delay(1);
+                            Application.Current.DoEvents();
                         }).InvokeAsync();
                     }
                 }
@@ -916,9 +921,9 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var page = new IllustImageViewerPage() { Name = $"IllustPreview_{item.ID}{suffix}", FontFamily = setting.FontFamily, Contents = item };
-                        var viewer = new ContentWindow()
+                        var viewer = new ContentWindow(title)
                         {
-                            Title = $"{title}",
+                            Title = title,
                             Width = WIDTH_MIN,
                             Height = HEIGHT_DEF,
                             MinWidth = WIDTH_MIN,
@@ -926,8 +931,9 @@ namespace PixivWPF.Common
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
-                        var wins = Application.Current.GetContentWindows();
-                        wins.AddOrUpdate(title, viewer, (k, v) => viewer);
+                        //Application.Current.UpdateContentWindows(viewer, title: title);
+                        //await Task.Delay(1);
+                        //Application.Current.DoEvents();
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -968,7 +974,7 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var page = new IllustDetailPage() { Name = $"UserDetail_{user.Id}", FontFamily = setting.FontFamily, Contents = user.UserItem() };
-                        var viewer = new ContentWindow()
+                        var viewer = new ContentWindow(title)
                         {
                             Title = title,
                             Width = WIDTH_MIN,
@@ -978,8 +984,9 @@ namespace PixivWPF.Common
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
-                        var wins = Application.Current.GetContentWindows();
-                        wins.AddOrUpdate(title, viewer, (k, v) => viewer);
+                        //Application.Current.UpdateContentWindows(viewer, title: title);
+                        //await Task.Delay(1);
+                        //Application.Current.DoEvents();
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -1255,14 +1262,15 @@ namespace PixivWPF.Common
                 else if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
+                    //OpenFileProperties.Execute(item.GetDownloadedFiles());
                     if (item.IsWork())
                     {
                         var illust = item.Illust;
 
-                        if (item.Index >= 0)
+                        if (item.IsPage())
                         {
                             string fp = string.Empty;
-                            item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
+                            item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index >=0 ? item.Index : 0, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
                             string fp_p = illust.GetPreviewUrl(item.Index).GetImageCachePath();
@@ -1274,7 +1282,7 @@ namespace PixivWPF.Common
                         else
                         {
                             string fp = string.Empty;
-                            item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
+                            item.IsDownloaded = illust.IsPartDownloadedAsync(out fp, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl().GetImageCachePath();
                             string fp_p = illust.GetPreviewUrl().GetImageCachePath();
@@ -1342,7 +1350,7 @@ namespace PixivWPF.Common
                 await new Action(async () =>
                 {
                     var page = new HistoryPage() { Name = "HistoryList", FontFamily = setting.FontFamily };
-                    var viewer = new ContentWindow()
+                    var viewer = new ContentWindow(title)
                     {
                         Title = title,
                         Width = WIDTH_SEARCH,
@@ -1353,8 +1361,9 @@ namespace PixivWPF.Common
                         FontFamily = setting.FontFamily,
                         Content = page
                     };
-                    var wins = Application.Current.GetContentWindows();
-                    wins.AddOrUpdate(title, viewer, (k, v) => viewer);
+                    //Application.Current.UpdateContentWindows(viewer, title: title);
+                    //await Task.Delay(1);
+                    //Application.Current.DoEvents();
                     viewer.Show();
                     await Task.Delay(1);
                     Application.Current.DoEvents();
@@ -1475,7 +1484,7 @@ namespace PixivWPF.Common
                         {
                             setting = Application.Current.LoadSetting();
                             var _downManager = Application.Current.GetDownloadManager();
-                            var viewer = new ContentWindow()
+                            var viewer = new ContentWindow(title)
                             {
                                 Title = title,
                                 MinWidth = WIDTH_MIN + 80,
@@ -1536,7 +1545,7 @@ namespace PixivWPF.Common
                     await new Action(async () =>
                     {
                         var page = new SearchResultPage() { Name = "SearchResult", FontFamily = setting.FontFamily, Contents = content };
-                        var viewer = new ContentWindow()
+                        var viewer = new ContentWindow(title)
                         {
                             Title = title,
                             Width = WIDTH_SEARCH,
@@ -1548,8 +1557,9 @@ namespace PixivWPF.Common
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
-                        var wins = Application.Current.GetContentWindows();
-                        wins.AddOrUpdate(title, viewer, (k, v) => viewer);
+                        //Application.Current.UpdateContentWindows(viewer, title: title);
+                        //await Task.Delay(1);
+                        //Application.Current.DoEvents();
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -2670,7 +2680,6 @@ namespace PixivWPF.Common
                 {
                     var item = obj as PixivItem;
                     var ret = await item.LikeIllust(pub);
-                    if (ret) item.Touch();
                 }
                 else if (obj is ImageListGrid)
                 {
@@ -2694,7 +2703,6 @@ namespace PixivWPF.Common
                 {
                     var item = obj as PixivItem;
                     var ret = await item.UnLikeIllust();
-                    if (ret) item.Touch();
                 }
                 else if (obj is ImageListGrid)
                 {
@@ -2735,7 +2743,6 @@ namespace PixivWPF.Common
                         else if (Keyboard.Modifiers == ModifierKeys.Alt)
                             ret = await item.UnLikeIllust();
                     }
-                    if (ret) item.Touch();
                 }
                 else if (obj is ImageListGrid)
                 {
@@ -2949,7 +2956,7 @@ namespace PixivWPF.Common
                 if (await title.ActiveByTitle()) return;
 
                 var page = new BrowerPage () { Name = "PixivPedia", Contents = contents };
-                var viewer = new ContentWindow()
+                var viewer = new ContentWindow(title)
                 {
                     Title = title,
                     Width = WIDTH_PEDIA,

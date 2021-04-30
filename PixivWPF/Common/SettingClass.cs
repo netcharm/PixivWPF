@@ -597,14 +597,23 @@ namespace PixivWPF.Common
                             try
                             {
                                 var tags_t2s_widecard = File.ReadAllText(custom_widecard_tags);
-                                var t2s = JsonConvert.DeserializeObject<OrderedDictionary>(tags_t2s_widecard);
+
+                                var t2s_new = JsonConvert.DeserializeObject<OrderedDictionary>(tags_t2s_widecard);
+                                var t2s_new_keys = t2s_new.Keys.Cast<string>().ToList();
+
                                 var t2s_old = CommonHelper.TagsWildecardT2S.Cast<DictionaryEntry>().ToDictionary(k => (string)k.Key, v => (string)v.Value);
+                                var t2s_old_keys = CommonHelper.TagsWildecardT2S.Keys.Cast<string>().ToList();
+                                foreach (var entry in t2s_old)
+                                {
+                                    if(!t2s_new.Contains(entry.Key)) entry.Key.TagWildcardCacheUpdate();
+                                }
+
                                 CommonHelper.TagsWildecardT2S.Clear();
-                                foreach (DictionaryEntry entry in t2s)
+                                foreach (DictionaryEntry entry in t2s_new)
                                 {
                                     var k = entry.Key is string ? (entry.Key as string).Trim() : string.Empty;
-                                    var v = entry.Value is string ? (entry.Value as string).Trim() : string.Empty;
-                                    if (!t2s_old.ContainsKey(k) || !t2s_old[k].Equals(v)) entry.TagWildcardCacheUpdate();
+                                    var v = entry.Value is string ? (entry.Value as string).Trim() : string.Empty;                                    
+                                    if (!t2s_old.ContainsKey(k) || !t2s_old[k].Equals(v) || t2s_new_keys.IndexOf(k) != t2s_old_keys.IndexOf(k)) entry.TagWildcardCacheUpdate();
                                     if (CommonHelper.TagsWildecardT2S.Contains(k))
                                     {
                                         $"Custom Translation Wildcard Tags Loading Error: key {k} exists".DEBUG("LoadCustomWidecardTags");

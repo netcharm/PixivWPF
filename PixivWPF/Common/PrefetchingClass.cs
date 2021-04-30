@@ -238,7 +238,7 @@ namespace PixivWPF.Common
                 if (total <= 0) { e.Cancel = true; return; }
                 var count = total;
                 Percentage = count == 0 ? 100 : 0;
-                Comments = $"Calculating [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
+                Comments = $"Calculating [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                 State = TaskStatus.WaitingToRun;
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                 else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
@@ -257,12 +257,12 @@ namespace PixivWPF.Common
                 Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
                 if (count == 0)
                 {
-                    Comments = $"Done [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
+                    Comments = $"Done [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                     State = TaskStatus.RanToCompletion;
                 }
                 else
                 {
-                    Comments = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count}]";
+                    Comments = $"Prefetching [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                     State = TaskStatus.Running;
                 }
                 if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
@@ -301,7 +301,7 @@ namespace PixivWPF.Common
                             }
                             if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
                             Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
-                            Comments = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count}]";
+                            Comments = $"Prefetching [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                             State = TaskStatus.Running;
                             if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                             else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke((double)this.Percentage, Comments, State);
@@ -345,7 +345,7 @@ namespace PixivWPF.Common
                                     }
                                     if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; return; }
                                     Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
-                                    Comments = $"Prefetching [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
+                                    Comments = $"Prefetching [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                                     State = TaskStatus.Running;
                                     if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                                     else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
@@ -364,7 +364,7 @@ namespace PixivWPF.Common
                 if (count >= 0 && total > 0)
                 {
                     Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
-                    Comments = $"Done [ {count} / {total}, {illusts.Count} / {avatars.Count} / {page_thumbs.Count} / {page_previews.Count} ]";
+                    Comments = $"Done [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                     State = TaskStatus.RanToCompletion;
                     if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                     else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);

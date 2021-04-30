@@ -109,6 +109,27 @@ namespace PixivWPF.Common
             InitializeComponent();
             //this.GlowBrush = null;
 
+            Title = $"{GetType().Name}_{GetHashCode()}";
+            Application.Current.UpdateContentWindows(this);
+
+            SearchBox.ItemsSource = AutoSuggestList;
+
+            //Topmost = true;
+            ShowActivated = true;
+            //Activate();
+
+            LastWindowStates.Enqueue(WindowState.Normal);
+            UpdateTheme(this);
+        }
+
+        public ContentWindow(string title)
+        {
+            InitializeComponent();
+            //this.GlowBrush = null;
+
+            Title = string.IsNullOrEmpty(title) ? $"{GetType().Name}_{GetHashCode()}" : title;
+            Application.Current.UpdateContentWindows(this, Title);
+
             SearchBox.ItemsSource = AutoSuggestList;
 
             //Topmost = true;
@@ -121,9 +142,7 @@ namespace PixivWPF.Common
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            var wins = Application.Current.GetContentWindows();
-            wins.AddOrUpdate(Title, this, (k, v) => this);
-
+            //Application.Current.UpdateContentWindows(this);
             $"{Title} Loading...".INFO();
 
             CommandRefresh.Hide();
@@ -213,12 +232,7 @@ namespace PixivWPF.Common
                     Content = null;
                     Application.Current.GC(name: name, wait: true);
                 }
-                var wins = Application.Current.GetContentWindows();
-                if (wins.ContainsKey(Title))
-                {
-                    ContentWindow win;
-                    wins.TryRemove(Title, out win);
-                }
+                Application.Current.RemoveContentWindows(this);
             }
         }
 

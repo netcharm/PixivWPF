@@ -820,7 +820,7 @@ namespace PixivWPF.Common
             return (_ContentWindows_);
         }
 
-        public static bool UpdateContentWindows(this Application app, ContentWindow window)
+        public static bool UpdateContentWindows(this Application app, ContentWindow window, string title = "", bool update = true)
         {
             bool result = false;
             try
@@ -833,10 +833,15 @@ namespace PixivWPF.Common
                     ContentWindow w = null;
                     result = _ContentWindows_.TryRemove(win.Key, out w);
                 }
-                _ContentWindows_.AddOrUpdate(window.Title, window, (k, v) => window);
+                if (update) _ContentWindows_.AddOrUpdate(string.IsNullOrEmpty(title) ? window.Title : title, window, (k, v) => window);
             }
             catch (Exception ex) { ex.ERROR("UpdateContentWindows"); }
             return (result);
+        }
+
+        public static bool RemoveContentWindows(this Application app, ContentWindow window)
+        {
+            return (UpdateContentWindows(app, window, update: false));
         }
 
         public static bool ContentWindowExists(this Application app, string title)
@@ -1250,7 +1255,7 @@ namespace PixivWPF.Common
             else
             {
                 var setting = Application.Current.LoadSetting();
-                box = new ContentWindow();
+                box = new ContentWindow(_DropBoxTitle_);
                 box.MouseDown += DropBox_MouseDown;
                 box.MouseUp += DropBox_MouseUp;
                 ///box.MouseMove += DropBox_MouseMove;
