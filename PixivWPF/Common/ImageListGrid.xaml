@@ -55,7 +55,8 @@
                            Visibility="{Binding UserMarkVisibility, Mode=OneWay}" />
                 <!-- Follow Mark Glow -->
                 <iconPacks:PackIconModern 
-                    Grid.Row="0" Kind="Check" Width="22" Height="24" Margin="0,0,9,9" 
+                    Grid.Row="0" Kind="Star"
+                    Width="18" Height="18" Margin="0,0,11,11" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Foreground="{DynamicResource MahApps.Brushes.Accent}" Effect="{DynamicResource DropMark}"
                     Visibility="{Binding FollowMarkVisibility, Mode=OneWay}" />
@@ -79,8 +80,8 @@
                 <!-- Follow Mark -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0" x:Name="PART_Follow" 
-                    Kind="Check"
-                    Width="16" Height="16" Margin="0,0,12,12" 
+                    Kind="Star"
+                    Width="12" Height="12" Margin="0,0,14,14" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom"
                     Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" Effect="{DynamicResource DropMark}"
                     Visibility="{Binding FollowMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}"

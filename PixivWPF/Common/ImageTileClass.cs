@@ -913,6 +913,97 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static PixivItem PageItem(this Pixeez.Objects.Page page, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        {
+            PixivItem p = null;
+            var url = page.GetThumbnailUrl();
+            if (!string.IsNullOrEmpty(url))
+            {
+                p = illust.WorkItem(url, nexturl, work_type: PixivItemType.Page);
+                if (p is PixivItem)
+                {
+                    p.DisplayTitle = false;
+                    p.Index = index;
+                    p.Count = illust.PageCount ?? 0;
+                    p.IsFavorited = false;
+                    p.IsFollowed = false;
+                    p.IsDisplayFavMark = false;
+                    p.BadgeValue = (index + 1).ToString();
+                    p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount}";
+                    p.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: false);
+                    p.Tag = page;
+                    p.DoEvents();
+                }
+            }
+            return (p);
+        }
+
+        public static PixivItem PageItem(this Pixeez.Objects.MetaPages page, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        {
+            PixivItem p = null;
+            var url = page.GetThumbnailUrl();
+            if (!string.IsNullOrEmpty(url))
+            {
+                p = illust.WorkItem(url, nexturl, work_type: PixivItemType.Pages);
+                if (p is PixivItem)
+                {
+                    p.DisplayTitle = false;
+                    p.Index = index;
+                    p.Count = illust.PageCount ?? 0;
+                    p.IsFavorited = false;
+                    p.IsFollowed = false;
+                    p.IsDisplayFavMark = false;
+                    p.BadgeValue = (index + 1).ToString();
+                    p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount}";
+                    p.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: false);
+                    p.Tag = page;
+                    p.DoEvents();
+                }
+            }
+            return (p);
+        }
+
+        public static async Task<IEnumerable<PixivItem>> PageItems(this Pixeez.Objects.Work illust, string nexturl = "")
+        {
+            List<PixivItem> result = new List<PixivItem>();
+
+            if (illust is Pixeez.Objects.IllustWork)
+            {
+                var subset = illust as Pixeez.Objects.IllustWork;
+                var count = subset.meta_pages.Count();
+                if (count > 1)
+                {
+                    for(int i = 0; i< count; i++)
+                    {
+                        var page = subset.meta_pages[i];
+                        var p = PageItem(page, illust, i, nexturl);
+                        if (p is PixivItem) result.Add(p);
+                    }
+                }
+            }
+            else if (illust is Pixeez.Objects.NormalWork)
+            {
+                var subset = illust as Pixeez.Objects.NormalWork;
+                if (subset.PageCount >= 1 && subset.Metadata == null)
+                {
+                    var illust_n = await illust.RefreshIllust();
+                    if (illust_n is Pixeez.Objects.Work) illust = illust_n;
+                }
+                if (illust.Metadata is Pixeez.Objects.Metadata)
+                {
+                    if (illust.Metadata is Pixeez.Objects.Metadata)
+                    {
+                        var pages = illust.Metadata.Pages;
+                        for (var i = 0; i < pages.Count; i++)
+                        {
+                            var p = pages[i].PageItem(illust, i, nexturl);
+                            if (p is PixivItem) result.Add(p);
+                        }
+                    }
+                }
+            }
+            return (result);
+        }
         #region Image Tile Add Helper
         public static async void AddTo(this IList<Pixeez.Objects.Work> works, IList<PixivItem> Collection, string nexturl = "")
         {
@@ -956,26 +1047,12 @@ namespace PixivWPF.Common
             {
                 if (pages is Pixeez.Objects.MetaPages && Collection is IList<PixivItem>)
                 {
-                    var url = pages.GetThumbnailUrl();
-                    if (!string.IsNullOrEmpty(url))
+                    var p = PageItem(pages, illust, index, nexturl);
+                    if (p is PixivItem)
                     {
-                        var i = illust.WorkItem(url, nexturl, work_type: PixivItemType.Pages);
-                        if (i is PixivItem)
-                        {
-                            i.DisplayTitle = false;
-                            i.Index = index;
-                            i.Count = illust.PageCount ?? 0;
-                            i.IsFavorited = false;
-                            i.IsFollowed = false;
-                            i.IsDisplayFavMark = false;
-                            i.BadgeValue = (index + 1).ToString();
-                            i.Subject = $"{i.Subject} - {index + 1}/{illust.PageCount}";
-                            i.IsDownloaded = illust == null ? false : pages.GetOriginalUrl().IsDownloadedAsync(false, touch: false);
-                            i.Tag = pages;
-                            Collection.Add(i);
-                            await Task.Delay(1);
-                            i.DoEvents();
-                        }
+                        Collection.Add(p);
+                        await Task.Delay(1);
+                        p.DoEvents();
                     }
                 }
             }
@@ -991,26 +1068,12 @@ namespace PixivWPF.Common
             {
                 if (page is Pixeez.Objects.Page && Collection is IList<PixivItem>)
                 {
-                    var url = page.GetThumbnailUrl();
-                    if (!string.IsNullOrEmpty(url))
+                    var p = PageItem(page, illust, index, nexturl);
+                    if(p is PixivItem)
                     {
-                        var i = illust.WorkItem(url, nexturl, work_type: PixivItemType.Page);
-                        if (i is PixivItem)
-                        {
-                            i.DisplayTitle = false;
-                            i.Index = index;
-                            i.Count = illust.PageCount ?? 0;
-                            i.IsFavorited = false;
-                            i.IsFollowed = false;
-                            i.IsDisplayFavMark = false;
-                            i.BadgeValue = (index + 1).ToString();
-                            i.Subject = $"{i.Subject} - {index + 1}/{illust.PageCount}";
-                            i.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: false);
-                            i.Tag = page;
-                            Collection.Add(i);
-                            await Task.Delay(1);
-                            i.DoEvents();
-                        }
+                        Collection.Add(p);
+                        await Task.Delay(1);
+                        p.DoEvents();
                     }
                 }
             }

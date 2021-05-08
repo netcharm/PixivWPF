@@ -545,6 +545,9 @@ namespace PixivWPF
                 Commands.RestartApplication.Execute(null);
             else if (sender == CommandUpgrade)
                 Commands.UpgradeApplication.Execute(null);
+            else if (sender == CommandOpenConfig)
+                Commands.OpenConfig.Execute(null);
+
         }
 
         private void CommandRestart_DropDownOpened(object sender, EventArgs e)
@@ -666,7 +669,7 @@ namespace PixivWPF
                 var content = SearchBox.Text.ParseLink().ParseID();
                 if (!string.IsNullOrEmpty(content))
                 {
-                    content.GetSuggestList().ToList().ForEach(t => auto_suggest_list.Add(t));
+                    content.GetSuggestList(SearchBox.Text).ToList().ForEach(t => auto_suggest_list.Add(t));
                     SearchBox.Items.Refresh();
                     SearchBox.IsDropDownOpen = true;
                 }

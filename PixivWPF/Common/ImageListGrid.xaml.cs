@@ -824,6 +824,7 @@ namespace PixivWPF.Common
                         #endregion
 
                         #region Touch downloaded
+                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true);
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                         opt.CancellationToken = UpdateTileTaskCancelSrc.Token;
                         Parallel.ForEach(downloaded, opt, (item, loopstate, itemIndex) =>
@@ -928,6 +929,7 @@ namespace PixivWPF.Common
                         #endregion
 
                         #region Touch downloaded
+                        new Action(async () => { this.DoEvents(); await Task.Delay(1); }).Invoke(async: true);
                         UpdateTileTaskCancelSrc = new CancellationTokenSource(TimeSpan.FromSeconds(60));
                         foreach (var item in downloaded)
                         {
@@ -998,10 +1000,11 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    foreach (var item in SelectedItems.Count > 0 ? SelectedItems : Items)
+                    //foreach (var item in SelectedItems.Count > 0 ? SelectedItems : Items)
+                    foreach (var item in Items)
                     {
                         if (item.Illust == null) continue;
-                        if ((work.IsWork() && item.ID == work.ID) || item.Illust.Id == id || (id == -1 && work == null))
+                        if ((work.IsWork() && item.ID.Equals(work.ID)) || item.Illust.Id == id || (id == -1 && work == null))
                         {
                             if (item.IsPage())
                             {
@@ -1012,9 +1015,9 @@ namespace PixivWPF.Common
                             {
                                 bool part_down = item.Illust.IsPartDownloadedAsync(touch: true);
                                 if (item.IsPartDownloaded != part_down) item.IsPartDownloaded = part_down;
-                                item.IsDownloaded = item.IsPartDownloaded;
+                                if (item.IsDownloaded != part_down) item.IsDownloaded = part_down;
                             }
-                            item.IsFavorited = item.IsLiked() && item.IsDisplayFavMark;
+                            item.IsFavorited = item.IsDisplayFavMark && item.IsLiked();
                         }
                         this.DoEvents();
                     }

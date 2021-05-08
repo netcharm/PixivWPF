@@ -398,7 +398,7 @@ namespace PixivWPF.Common
                 var content = SearchBox.Text.ParseLink().ParseID();
                 if (!string.IsNullOrEmpty(content))
                 {
-                    content.GetSuggestList().ToList().ForEach(t => auto_suggest_list.Add(t));
+                    content.GetSuggestList(SearchBox.Text).ToList().ForEach(t => auto_suggest_list.Add(t));
                     SearchBox.Items.Refresh();
                     SearchBox.IsDropDownOpen = true;
                 }

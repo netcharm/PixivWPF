@@ -22,72 +22,71 @@
             <ContextMenu>
                 <MenuItem x:Name="miCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miCopyDonwnloadInfo" x:Uid="ActionCopyDownloadInfo" Header="Copy Download Info" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto"/>
-                            </Grid.RowDefinitions>
-                            <iconPacks:PackIconModern Kind="ClipboardPaper" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" Grid.Column="0" Grid.Row="0"/>
-                            <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="8" Height="8" Margin="4,6,0,0" Grid.Column="0" Grid.Row="0"/>
-                        </Grid>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miRefreshThumb" x:Uid="miRefreshThumb" Header="Refresh Thumbnail" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <TextBlock Margin="4,0,0,0"
-                        Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="miOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="PageImage" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE8A7;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="miStopDownload" x:Uid="ActionStop" Header="Stop Download" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Stop" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Text="&#xE10A;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miRemove" x:Uid="ActionRemove" Header="Remove Item" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Text="&#xE107;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miDownload" x:Uid="Download" Header="Download" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miDownloadRestart" x:Uid="DownloadRestart" Header="Restart Download" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="miOpenImage" x:Uid="OpenFile" Header="View Image" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEB9F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miOpenFolder" x:Uid="OpenFolder" Header="Open Image Folder" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xED25;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="miOpenImageProperties" x:Uid="OpenFileProperties" Header="View Image Properties" Click="miActions_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEA1F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
             </ContextMenu>
@@ -113,8 +112,8 @@
         <!-- Follow Mark Glow -->
         <iconPacks:PackIconModern 
             Grid.Row="0" Grid.Column="0" Grid.RowSpan="5"            
-            Kind="Check" SnapsToDevicePixels="True" UseLayoutRounding="True"
-            Width="22" Height="24" Margin="0,0,9,9" 
+            Kind="Star" SnapsToDevicePixels="True" UseLayoutRounding="True"
+            Width="18" Height="18" Margin="0,0,11,11" 
             HorizontalAlignment="Right" VerticalAlignment="Bottom" 
             Foreground="{DynamicResource MahApps.Brushes.Accent}" Effect="{DynamicResource DropMark}"
             Visibility="{Binding IsFollow, Mode=OneWay, Converter={StaticResource Bool2Vis}}" />
@@ -137,8 +136,8 @@
         <!-- Follow Mark -->
         <iconPacks:PackIconModern 
             Grid.Row="0" Grid.Column="0" Grid.RowSpan="5" x:Name="PART_Follow" 
-            Kind="Check" SnapsToDevicePixels="True" UseLayoutRounding="True"
-            Width="16" Height="16" Margin="0,0,12,12" 
+            Kind="Star" SnapsToDevicePixels="True" UseLayoutRounding="True"
+            Width="12" Height="12" Margin="0,0,14,14" 
             HorizontalAlignment="Right" VerticalAlignment="Bottom" 
             Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"  Effect="{DynamicResource DropMark}"
             Visibility="{Binding IsFollow, Mode=OneWay, Converter={StaticResource Bool2Vis}}" />
@@ -204,7 +203,8 @@
                         BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                         Foreground="{DynamicResource MahApps.Brushes.Text}" 
                         Background="Transparent">
-                    <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" />
+                    <TextBlock Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
                 <Button x:Name="PART_OpenIllust" x:Uid="ActionOpenIllust" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Open Illust" 
@@ -212,15 +212,8 @@
                         BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                         Foreground="{DynamicResource MahApps.Brushes.Text}" 
                         Background="Transparent">
-                    <iconPacks:PackIconModern Kind="PageImage" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" />
-                </Button>
-                <Button x:Name="PART_StopDownload" x:Uid="ActionStop" Margin="2,0,2,0" Click="miActions_Click"
-                        ToolTip="Stop Downloading" 
-                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
-                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
-                        Background="Transparent">
-                    <iconPacks:PackIconModern Kind="Stop" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" />
+                    <TextBlock Text="&#xE8A7;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
                 <Button x:Name="PART_Remove" x:Uid="ActionRemove" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Remove Item" 
@@ -228,7 +221,17 @@
                         BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                         Foreground="{DynamicResource MahApps.Brushes.Text}" 
                         Background="Transparent">
-                    <iconPacks:PackIconModern Kind="Delete" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16" />
+                    <TextBlock Text="&#xE107;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+                <Button x:Name="PART_StopDownload" x:Uid="ActionStop" Margin="2,0,2,0" Click="miActions_Click"
+                        ToolTip="Stop Downloading" 
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" BorderThickness="1"
+                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                        Foreground="{DynamicResource MahApps.Brushes.Text}" 
+                        Background="Transparent">
+                    <TextBlock Text="&#xE10A;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
                 <Button x:Name="PART_Download" x:Uid="Download" Margin="2,0,2,0" Click="miActions_Click"
                         ToolTip="Download File" Tag="{Binding IsStart, Mode=OneWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
@@ -239,7 +242,7 @@
                         BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                         Foreground="{DynamicResource MahApps.Brushes.Text}" 
                         Background="Transparent">
-                    <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
+                    <TextBlock Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                 </Button>
                 <Button x:Name="PART_OpenFolder" x:Uid="OpenFolder" Margin="2,0,2,0" Click="miActions_Click"
                     ToolTip="Open Image Folder" Tag="{Binding FileName, Mode=OneWay}"
@@ -250,8 +253,7 @@
                     Foreground="{DynamicResource MahApps.Brushes.Text}"
                     Background="Transparent" IsEnabled="False">
                     <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconModern Kind="FolderOpen" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
-                        <!--<TextBlock Text="Open Folder" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>-->
+                        <TextBlock Text="&#xED25;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="PART_OpenFile" x:Uid="OpenFile" Margin="2,0,2,0" Click="miActions_Click"
@@ -263,7 +265,7 @@
                     Foreground="{DynamicResource MahApps.Brushes.Text}" 
                     Background="Transparent" IsEnabled="False">
                     <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="16" Height="16"/>
+                        <TextBlock Text="&#xEB9F;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                         <TextBlock Text="View Image" Margin="2,0,0,0" FontSize="10" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                     </StackPanel>
                 </Button>

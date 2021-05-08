@@ -29,91 +29,97 @@
             <ContextMenu>
                 <MenuItem x:Name="ActionCopyIllustID" x:Uid="ActionCopyIllustID" Header="Copy Illust ID" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="ClipboardVariantText" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionCopyPreview" x:Uid="ActionCopyImage" Header="Copy Preview" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="ClipboardVariant" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE295;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionOpenIllust" x:Uid="ActionOpenIllust" Header="Open Illust" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="NewWindow" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE8A7;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionOpenAuthor" x:Uid="ActionOpenAuthor" Header="Open Author" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="PeopleProfile" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE136;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="ActionSendIllustToInstance" x:Uid="ActionSendIllustToInstance" Header="Send Illust To Other Instance" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <TextBlock Margin="4,0,0,0"
-                            Text="&#xE724;" FontSize="16" FontFamily="Segoe MDL2 Assets"                         
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE724;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionSendAuthorToInstance" x:Uid="ActionSendAuthorToInstance" Header="Send Author To Other Instance" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <TextBlock Margin="4,0,0,0"
-                            Text="&#xE725;" FontSize="16" FontFamily="Segoe MDL2 Assets"
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE725;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="ActionViewPrevPage" x:Uid="ActionViewPrevPage" Header="Previous Page" Click="ActionViewPrevPage_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="NavigatePrevious" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                        <TextBlock Margin="4,0,0,0" Text="&#xE76B;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionViewNextPage" x:Uid="ActionViewNextPage" Header="Next Page" Click="ActionViewNextPage_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="NavigateNext" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                        <TextBlock Margin="4,0,0,0" Text="&#xE76C;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator x:Name="ActionViewPageSep"/>
                 <MenuItem x:Name="ActionViewOriginal" x:Uid="ActionViewOriginaPage" Header="View Original" Click="ActionViewOriginal_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="ArrowExpand" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                        <TextBlock Margin="4,0,0,0" Text="&#xE1D9;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionViewFullSize" x:Uid="ActionViewFullSize" Header="View Full Size" Click="ActionViewFullSize_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Magnify" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                        <TextBlock Margin="4,0,0,0" Text="&#xE1A3;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="ActionRefreshPreview" x:Uid="ActionRefreshPreview" Header="Refresh Preview" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <TextBlock Margin="4,0,0,0"
-                            Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                            Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionOpenCachedWith" x:Uid="ActionOpenWith" Header="Open Preview With..." Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Image" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEB9F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionOpenDownloaded" x:Uid="OpenDownloaded" Header="Open Downloaded With..." Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Download" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem x:Name="ActionOpenDownloadedProperties" x:Uid="OpenDownloadedProperties" Header="View Downloaded Properties" Click="ActionIllustInfo_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Information" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0"/>
+                        <TextBlock Margin="4,0,0,0" Text="&#xEA1F;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="ActionSaveIllust" x:Uid="ActionSaveIllust" Header="Save Image" Click="ActionSaveIllust_Click">
                     <MenuItem.Icon>
-                        <iconPacks:PackIconModern Kind="Save" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="4,0,0,0" />
+                        <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
             </ContextMenu>
@@ -155,49 +161,58 @@
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                 Click="ActionViewPrevPage_Click" >
-                <iconPacks:PackIconModern Kind="NavigatePrevious" Width="32" Height="32" />
+                <TextBlock Margin="4,0,0,0" Text="&#xE76B;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!--<Path Data="F1 M 14.091797 19.970703 L 4.111328 10 L 14.091797 0.029297 L 14.970703 0.908203 L 5.888672 10 L 14.970703 19.091797 Z " Margin="4,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />-->
             </Button>
             <Button x:Name="btnViewNextPage" x:Uid="ViewNextPage"
                 Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                 Click="ActionViewNextPage_Click" >
-                <iconPacks:PackIconModern Kind="NavigateNext" Width="32" Height="32" />
+                <TextBlock Margin="4,0,0,0" Text="&#xE76C;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!--<Path Data="F1 M 5.029297 19.091797 L 14.111328 10 L 5.029297 0.908203 L 5.908203 0.029297 L 15.888672 10 L 5.908203 19.970703 Z " Margin="4,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />-->
             </Button>
             <ToggleButton x:Name="btnViewOriginalPage" x:Uid="ViewOriginalPage"
                 Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                 Click="ActionViewOriginal_Click" >
-                <iconPacks:PackIconModern Kind="ArrowExpand" Width="32" Height="32" />
+                <TextBlock Margin="4,0,0,0" Text="&#xE1D9;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </ToggleButton>
             <ToggleButton x:Name="btnViewFullSize" x:Uid="ViewFullSize"
                 Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                 Click="ActionViewFullSize_Click" >
-                <iconPacks:PackIconModern Kind="Magnify" Width="32" Height="32" />
+                <TextBlock Margin="4,0,0,0" Text="&#xE1A3;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </ToggleButton>
             <Button x:Name="btnOpenIllust" x:Uid="OpenIllust"
                 Width="64" Height="64" 
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                 Click="ActionIllustInfo_Click" >
-                <iconPacks:PackIconModern Kind="NewWindow" Width="32" Height="32" />
+                <TextBlock Margin="4,0,0,0" Text="&#xE8A7;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Button x:Name="btnOpenCache" x:Uid="OpenCache"
                 Width="64" Height="64" 
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                 Click="ActionIllustInfo_Click" >
-                <iconPacks:PackIconModern Kind="Image" Width="32" Height="32" />
+                <TextBlock Margin="4,0,0,0" Text="&#xEB9F;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>            
             </Button>
             <Button x:Name="btnSavePage" x:Uid="SavePage"
                 Width="64" Height="64" 
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                 Click="ActionSaveIllust_Click" >
-                <iconPacks:PackIconModern Kind="Save" Width="32" Height="32" />
+                <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
         </StackPanel>
 

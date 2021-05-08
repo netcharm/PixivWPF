@@ -184,6 +184,18 @@ namespace PixivWPF.Common
             finally { }
         });
 
+        public static ICommand OpenConfig { get; } = new DelegateCommand<string>(async obj =>
+        {
+            await new Action(() =>
+            {
+                var cfg = Path.Combine(Application.Current.GetRoot(), "config.json");
+                var viewer = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewer : setting.ShellTextViewer;
+                var param = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewerParams : setting.ShellTextViewerParams;
+                if (string.IsNullOrEmpty(viewer)) viewer = "notepad.exe";
+                cfg.OpenFileWithShell(command: viewer, custom_params: param);
+            }).InvokeAsync(true);
+        });
+
         public static ICommand Login { get; } = new DelegateCommand(() =>
         {
             var setting = Application.Current.LoadSetting();
@@ -837,7 +849,7 @@ namespace PixivWPF.Common
                         var item = illust.WorkItem();
                         if (item is PixivItem)
                         {
-                            var page = new IllustDetailPage() { Name = $"IllustDetail_{item.ID}", FontFamily = setting.FontFamily, Contents = item };
+                            var page = new IllustDetailPage() { Name = $"IllustDetail_{item.ID}", FontFamily = setting.FontFamily, Contents = item, Title = title };
                             var viewer = new ContentWindow(title)
                             {
                                 Title = title,
@@ -848,9 +860,6 @@ namespace PixivWPF.Common
                                 FontFamily = setting.FontFamily,
                                 Content = page
                             };
-                            //Application.Current.UpdateContentWindows(viewer, title: title);
-                            //await Task.Delay(1);
-                            //Application.Current.DoEvents();
                             viewer.Show();
                             await Task.Delay(1);
                             Application.Current.DoEvents();
@@ -920,7 +929,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new IllustImageViewerPage() { Name = $"IllustPreview_{item.ID}{suffix}", FontFamily = setting.FontFamily, Contents = item };
+                        var page = new IllustImageViewerPage() { Name = $"IllustPreview_{item.ID}{suffix}", FontFamily = setting.FontFamily, Contents = item, Title = title };
                         var viewer = new ContentWindow(title)
                         {
                             Title = title,
@@ -931,9 +940,6 @@ namespace PixivWPF.Common
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
-                        //Application.Current.UpdateContentWindows(viewer, title: title);
-                        //await Task.Delay(1);
-                        //Application.Current.DoEvents();
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -973,7 +979,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new IllustDetailPage() { Name = $"UserDetail_{user.Id}", FontFamily = setting.FontFamily, Contents = user.UserItem() };
+                        var page = new IllustDetailPage() { Name = $"UserDetail_{user.Id}", FontFamily = setting.FontFamily, Contents = user.UserItem(), Title = title };
                         var viewer = new ContentWindow(title)
                         {
                             Title = title,
@@ -984,9 +990,6 @@ namespace PixivWPF.Common
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
-                        //Application.Current.UpdateContentWindows(viewer, title: title);
-                        //await Task.Delay(1);
-                        //Application.Current.DoEvents();
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -1349,7 +1352,7 @@ namespace PixivWPF.Common
 
                 await new Action(async () =>
                 {
-                    var page = new HistoryPage() { Name = "HistoryList", FontFamily = setting.FontFamily };
+                    var page = new HistoryPage() { Name = "HistoryList", FontFamily = setting.FontFamily, Title = title };
                     var viewer = new ContentWindow(title)
                     {
                         Title = title,
@@ -1361,9 +1364,6 @@ namespace PixivWPF.Common
                         FontFamily = setting.FontFamily,
                         Content = page
                     };
-                    //Application.Current.UpdateContentWindows(viewer, title: title);
-                    //await Task.Delay(1);
-                    //Application.Current.DoEvents();
                     viewer.Show();
                     await Task.Delay(1);
                     Application.Current.DoEvents();
@@ -1544,7 +1544,7 @@ namespace PixivWPF.Common
 
                     await new Action(async () =>
                     {
-                        var page = new SearchResultPage() { Name = "SearchResult", FontFamily = setting.FontFamily, Contents = content };
+                        var page = new SearchResultPage() { Name = "SearchResult", FontFamily = setting.FontFamily, Contents = content, Title = title };
                         var viewer = new ContentWindow(title)
                         {
                             Title = title,
@@ -1557,9 +1557,6 @@ namespace PixivWPF.Common
                             FontFamily = setting.FontFamily,
                             Content = page
                         };
-                        //Application.Current.UpdateContentWindows(viewer, title: title);
-                        //await Task.Delay(1);
-                        //Application.Current.DoEvents();
                         viewer.Show();
                         await Task.Delay(1);
                         Application.Current.DoEvents();
@@ -2955,7 +2952,7 @@ namespace PixivWPF.Common
                 var title = $"PixivPedia: {contents} ...";
                 if (await title.ActiveByTitle()) return;
 
-                var page = new BrowerPage () { Name = "PixivPedia", Contents = contents };
+                var page = new BrowerPage () { Name = "PixivPedia", Contents = contents, Title = title };
                 var viewer = new ContentWindow(title)
                 {
                     Title = title,

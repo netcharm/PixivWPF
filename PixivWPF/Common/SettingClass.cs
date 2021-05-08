@@ -605,7 +605,8 @@ namespace PixivWPF.Common
                                 var t2s_old_keys = CommonHelper.TagsWildecardT2S.Keys.Cast<string>().ToList();
                                 foreach (var entry in t2s_old)
                                 {
-                                    if(!t2s_new.Contains(entry.Key)) entry.Key.TagWildcardCacheUpdate();
+                                    var k = entry.Key.Trim();
+                                    if (!t2s_new.Contains(k)) k.TagWildcardCacheUpdate();
                                 }
 
                                 CommonHelper.TagsWildecardT2S.Clear();

@@ -248,17 +248,31 @@
             <mah:SplitButton x:Name="CommandLog" x:Uid="CommandLog" ToolTip="Open Logs" 
                              Click="CommandLog_Click" DropDownOpened="CommandLog_DropDownOpened" BorderBrush="Transparent">
                 <mah:SplitButton.Icon>
-                    <TextBlock 
-                        Text="&#xE8BC;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
-                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock  Text="&#xE8BC;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </mah:SplitButton.Icon>
                 <mah:SplitButton.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="CommandLog_Info" x:Uid="CommandLog_Info" Header="Info Log" Click="CommandLog_Click"/>
-                        <MenuItem x:Name="CommandLog_Debug" x:Uid="CommandLog_Debug" Header="Debug Log" Click="CommandLog_Click" />
-                        <MenuItem x:Name="CommandLog_Error" x:Uid="CommandLog_Error" Header="Error Log" Click="CommandLog_Click" />
+                        <MenuItem x:Name="CommandLog_Info" x:Uid="CommandLog_Info" Header="Info Log" Click="CommandLog_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="CommandLog_Debug" x:Uid="CommandLog_Debug" Header="Debug Log" Click="CommandLog_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="CommandLog_Error" x:Uid="CommandLog_Error" Header="Error Log" Click="CommandLog_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <Separator/>
-                        <MenuItem x:Name="CommandLog_Folder" x:Uid="CommandLog_Folder" Header="Open Log Folder" Click="CommandLog_Click" />
+                        <MenuItem x:Name="CommandLog_Folder" x:Uid="CommandLog_Folder" Header="Open Log Folder" Click="CommandLog_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xED25;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </ContextMenu>
                 </mah:SplitButton.ContextMenu>
                 <mah:SplitButton.Items>
@@ -273,10 +287,28 @@
                 </mah:SplitButton.Icon>
                 <mah:SplitButton.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="CommandUpgrade" x:Uid="CommandUpgrade" Header="Upgrade Application" Click="CommandRestart_Click" />
+                        <MenuItem x:Name="CommandUpgrade" x:Uid="CommandUpgrade" Header="Upgrade Application" Click="CommandRestart_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE777;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <Separator/>
-                        <MenuItem x:Name="CommandTouchFolder" x:Uid="CommandTouchFolder" Header="Touch Folder Files" Click="CommandTouch_Click" />
-                        <MenuItem x:Name="CommandAttachMetaFolder" x:Uid="CommandAttachMetaFolder" Header="Attach Folder Files MetaInfo" Click="CommandAttachMeta_Click" />
+                        <MenuItem x:Name="CommandOpenConfig" x:Uid="CommandOpenConfig" Header="Open Config File" Click="CommandRestart_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem x:Name="CommandTouchFolder" x:Uid="CommandTouchFolder" Header="Touch Folder Files" Click="CommandTouch_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE1DF;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="CommandAttachMetaFolder" x:Uid="CommandAttachMetaFolder" Header="Attach Folder Files MetaInfo" Click="CommandAttachMeta_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE1DF;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </ContextMenu>
                 </mah:SplitButton.ContextMenu>
             </mah:SplitButton>

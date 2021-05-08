@@ -183,7 +183,9 @@ namespace PixivWPF.Pages
                                 h_max = (int)(host.MaxHeight);
                             }
                             this.DoEvents();
-                            if (browser is System.Windows.Forms.WebBrowser)
+                            if (browser is System.Windows.Forms.WebBrowser && 
+                                browser.Document is System.Windows.Forms.HtmlDocument &&
+                                browser.Document.Body is System.Windows.Forms.HtmlElement)
                             {
                                 var size = browser.Document.Body.ScrollRectangle.Size;
                                 var offset = browser.Document.Body.OffsetRectangle.Top;
@@ -208,7 +210,7 @@ namespace PixivWPF.Pages
                     if (item.Illust.Tags.Count > 0)
                     {
                         var html = new StringBuilder();
-                        html.AppendLine("<div class=\"tags\">");
+                        html.AppendLine($"<div class=\"tags\" data-illust=\"{item.Illust.GetType().Name}\">");
                         if (item.Illust is Pixeez.Objects.IllustWork)
                         {
                             foreach (var tag in (item.Illust as Pixeez.Objects.IllustWork).MoreTags)
@@ -727,13 +729,12 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Illust/User info relative methods
-        public void UpdateIllustTags()
+        public void UpdateIllustTitle()
         {
             try
             {
                 if (Contents.IsWork())
                 {
-                    RefreshHtmlRender(IllustTagsHtml);
                     string trans_match = string.Empty;
 #if DEBUG
                     IllustTitle.ToolTip = IllustTitle.Text.TranslatedText(out trans_match) + (string.IsNullOrEmpty(trans_match) ? string.Empty : $"{Environment.NewLine}Matched: {trans_match}");
@@ -741,6 +742,19 @@ namespace PixivWPF.Pages
                     IllustTitle.ToolTip = IllustTitle.Text.TranslatedText(out trans_match);
 #endif
                     if (!string.IsNullOrEmpty(trans_match)) $"{Contents.ID}, {trans_match}".DEBUG("IllustTitleTranslate");
+                }
+            }
+            catch (Exception ex) { ex.ERROR("UpdateIllustTags"); }
+        }
+
+        public void UpdateIllustTags()
+        {
+            try
+            {
+                if (Contents.IsWork())
+                {
+                    RefreshHtmlRender(IllustTagsHtml);
+                    UpdateIllustTitle();
                 }
             }
             catch (Exception ex) { ex.ERROR("UpdateIllustTags"); }
@@ -896,12 +910,12 @@ namespace PixivWPF.Pages
             {
                 if (user.IsLiked())
                 {
-                    FollowAuthor.Tag = PackIconModernKind.Check;// "Check";
+                    FollowAuthor.Tag = PackIconModernKind.Star;
                     ActionFollowAuthorRemove.IsEnabled = true;
                 }
                 else
                 {
-                    FollowAuthor.Tag = PackIconModernKind.Add;// "Add";
+                    FollowAuthor.Tag = PackIconModernKind.VectorStar;
                     ActionFollowAuthorRemove.IsEnabled = false;
                 }
                 this.DoEvents();
@@ -1258,7 +1272,7 @@ namespace PixivWPF.Pages
         public async void UpdateThumb(bool full = false, bool overwrite = false, bool prefetching = true)
         {
             overwrite = Keyboard.Modifiers == ModifierKeys.Alt ? true : overwrite;
-            await new Action(() =>
+            await new Action(async () =>
             {
                 try
                 {
@@ -1267,7 +1281,9 @@ namespace PixivWPF.Pages
                         if (prefetching && ParentWindow is ContentWindow && PrefetchingImagesTask is PrefetchingTask)
                         {
                             var items = new List<PixivItem>();
-                            items.Add(Contents);
+                            if (Contents.Count <= 1 || Contents.IsUser()) items.Add(Contents);
+                            else if(Contents.Count <= 30) items.AddRange(SubIllusts.Items.Where(p => p.Index != Contents.Index));
+                            else items.AddRange((await Contents.Illust.PageItems()).Where(p => p.Index != Contents.Index));
                             items.AddRange(RelativeItems.Items);
                             items.AddRange(FavoriteItems.Items);
                             items = items.Distinct().ToList();
@@ -1296,17 +1312,14 @@ namespace PixivWPF.Pages
                         }
                         else
                         {
-                            if (Contents.IsWork() || Contents.IsUser())
-                            {
-                                if (SubIllustsExpander.IsKeyboardFocusWithin || SubIllusts.IsKeyboardFocusWithin)
-                                    SubIllusts.UpdateTilesImage(overwrite);
-                                else if (RelativeItemsExpander.IsKeyboardFocusWithin || RelativeItems.IsKeyboardFocusWithin)
-                                    RelativeItems.UpdateTilesImage(overwrite);
-                                else if (FavoriteItemsExpander.IsKeyboardFocusWithin || FavoriteItems.IsKeyboardFocusWithin)
-                                    FavoriteItems.UpdateTilesImage(overwrite);
-                                else
-                                    UpdateThumb(true, prefetching: false);
-                            }
+                            if (SubIllustsExpander.IsKeyboardFocusWithin || SubIllusts.IsKeyboardFocusWithin)
+                                SubIllusts.UpdateTilesImage(overwrite);
+                            else if (RelativeItemsExpander.IsKeyboardFocusWithin || RelativeItems.IsKeyboardFocusWithin)
+                                RelativeItems.UpdateTilesImage(overwrite);
+                            else if (FavoriteItemsExpander.IsKeyboardFocusWithin || FavoriteItems.IsKeyboardFocusWithin)
+                                FavoriteItems.UpdateTilesImage(overwrite);
+                            else
+                                UpdateThumb(true, prefetching: false);
                         }
                         UpdateContentsThumbnail(overwrite: overwrite);
                     }
@@ -1832,9 +1845,7 @@ namespace PixivWPF.Pages
 
                 if (relatives.illusts is Array)
                 {
-                    if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
-                        RelativeNextPage.Visibility = Visibility.Collapsed;
-                    else RelativeNextPage.Visibility = Visibility.Visible;
+                    RelativeNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
                     if (!append)
                     {
@@ -1843,14 +1854,9 @@ namespace PixivWPF.Pages
                     }
                     NextRelativeURL = next_url;
                     RelativeNextPage.Tag = next_url;
-                    RelativeNextPage.ToolTip = next_url.CalcUrlPage(0, RelativeNextPage.ToolTip is string ? RelativeNextPage.ToolTip as string : null);
-                    RelativePrevPage.ToolTip = RelativeNextPage.ToolTip;
-                    if (!append)
-                    {
-                        string current_url = RelativePrevPage.Tag is string ? RelativePrevPage.Tag as string : string.Empty;
-                        string prev_url = string.IsNullOrEmpty(next_url) ? current_url.CalcNextUrl() : next_url.CalcPrevUrl();
-                        RelativePrevPage.Tag = prev_url;
-                    }
+                    RelativeNextPage.ToolTip = next_url.CalcUrlPageHint(0, RelativeNextPage.ToolTip is string ? RelativeNextPage.ToolTip as string : null);
+                    RelativeNextPage.Show(show: !string.IsNullOrEmpty(CurrentRelativeURL) || !string.IsNullOrEmpty(next_url));
+                    RelativeNextAppend.Show(show: !string.IsNullOrEmpty(CurrentRelativeURL) || !string.IsNullOrEmpty(next_url));
 
                     foreach (var illust in relatives.illusts)
                     {
@@ -1907,9 +1913,7 @@ namespace PixivWPF.Pages
 
                 if (relatives.illusts is Array)
                 {
-                    if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
-                        RelativeNextPage.Visibility = Visibility.Collapsed;
-                    else RelativeNextPage.Visibility = Visibility.Visible;
+                    RelativeNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
                     if (!append)
                     {
@@ -1918,14 +1922,15 @@ namespace PixivWPF.Pages
                     }
                     NextRelativeURL = next_url;
                     RelativeNextPage.Tag = next_url;
-                    RelativeNextPage.ToolTip = next_url.CalcUrlPage(IllustSize.Text);
+                    RelativeNextPage.ToolTip = CurrentRelativeURL.CalcUrlPageHint(IllustSize.Text);
                     RelativePrevPage.ToolTip = RelativeNextPage.ToolTip;
                     if (!append)
                     {
-                        string current_url = RelativePrevPage.Tag is string ? RelativePrevPage.Tag as string : string.Empty;
-                        string prev_url = string.IsNullOrEmpty(next_url) ? current_url.CalcNextUrl() : next_url.CalcPrevUrl();
-                        RelativePrevPage.Tag = prev_url;
+                        RelativePrevPage.Tag = string.IsNullOrEmpty(CurrentRelativeURL) ? Contents.MakeUserWorkNextUrl().CalcPrevUrl(totals: IllustSize.Text) : CurrentRelativeURL.CalcPrevUrl(totals: IllustSize.Text);
                     }
+                    RelativePrevPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+                    RelativeNextPage.Show(show: IllustSize.Text.CalcTotalPages() > 1);
+                    RelativeNextAppend.Show(show: IllustSize.Text.CalcTotalPages() > 1);
 
                     foreach (var illust in relatives.illusts)
                     {
@@ -1990,9 +1995,7 @@ namespace PixivWPF.Pages
 
                 if (favorites.illusts is Array)
                 {
-                    if (next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase))
-                        FavoriteNextPage.Hide();
-                    else FavoriteNextPage.Show();
+                    FavoriteNextPage.Show(!next_url.Equals(lastUrl, StringComparison.CurrentCultureIgnoreCase));
 
                     if (!append)
                     {
@@ -2001,14 +2004,9 @@ namespace PixivWPF.Pages
                     }
                     NextFavoriteURL = next_url;
                     FavoriteNextPage.Tag = next_url;
-                    FavoriteNextPage.ToolTip = next_url.CalcUrlPage(0, FavoriteNextPage.ToolTip is string ? FavoriteNextPage.ToolTip as string : null);
-                    FavoritePrevPage.ToolTip = FavoriteNextPage.ToolTip;
-                    if (!append)
-                    {
-                        string current_url = FavoritePrevPage.Tag is string ? FavoritePrevPage.Tag as string : string.Empty;
-                        string prev_url = string.IsNullOrEmpty(next_url) ? current_url.CalcNextUrl() : next_url.CalcPrevUrl();
-                        FavoritePrevPage.Tag = prev_url;
-                    }
+                    FavoriteNextPage.ToolTip = next_url.CalcUrlPageHint(0, FavoriteNextPage.ToolTip is string ? FavoriteNextPage.ToolTip as string : null);
+                    FavoriteNextPage.Show(show: !string.IsNullOrEmpty(CurrentFavoriteURL) || !string.IsNullOrEmpty(next_url));
+                    FavoriteNextAppend.Show(show: !string.IsNullOrEmpty(CurrentFavoriteURL) || !string.IsNullOrEmpty(next_url));
 
                     foreach (var illust in favorites.illusts)
                     {
@@ -2031,7 +2029,7 @@ namespace PixivWPF.Pages
             finally
             {
                 FavoriteItems.Ready();
-                if (FavoriteItems.Items.Count > 0) FavoriteItems.Show();
+                if (FavoriteItems.Items.Count > 0) FavoriteRefresh.Show();
                 else FavoriteItems.Hide();
             }
         }
@@ -2218,8 +2216,8 @@ namespace PixivWPF.Pages
         public dynamic GetTilesCount()
         {
             List<string> tips = new List<string>();
-            tips.Add($"Relative: {RelativeItems.ItemsCount} of {RelativeItems.Items.Count}");
-            tips.Add($"Favorite: {FavoriteItems.ItemsCount} of {FavoriteItems.Items.Count}");
+            tips.Add($"Relative: {RelativeItems.ItemsCount}({RelativeItems.SelectedItems.Count}) of {RelativeItems.Items.Count}");
+            tips.Add($"Favorite: {FavoriteItems.ItemsCount}({FavoriteItems.SelectedItems.Count}) of {FavoriteItems.Items.Count}");
             return (string.Join(Environment.NewLine, tips));
         }
 
@@ -3062,9 +3060,25 @@ namespace PixivWPF.Pages
                             else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                                 Application.Current.LoadSetting().ContentsTemplateFile.OpenFileWithShell();
                         }
+                        else if (host == IllustTitle)
+                        {
+                            if (Contents.IsWork())
+                            {
+                                Contents.Illust.Title.TagWildcardCacheClear();
+                                UpdateIllustTitle();
+                            }
+                        }
                         else if (mi == ActionRefresh)
                         {
                             if (Contents.HasUser()) UpdateDetail(Contents);
+                        }
+                        else if (mi == ActionClearTagsCache)
+                        {
+                            if (Contents.IsWork())
+                            {
+                                Contents.Illust.Title.TagWildcardCacheClear();
+                                Contents.Illust.Tags.TagWildcardCacheClear();
+                            }
                         }
                     }
                 }
@@ -3657,16 +3671,10 @@ namespace PixivWPF.Pages
 
         private void RelativePrevPage_Click(object sender, RoutedEventArgs e)
         {
-            var next_url = string.Empty;
-            if (RelativeNextPage.Tag is string) next_url = RelativeNextPage.Tag as string;
-            RelativeNextPage.Show();
-
-            var prev_url =  string.IsNullOrEmpty(next_url) ? RelativePrevPage.Tag as string : next_url.CalcPrevUrl();
-            RelativePrevPage.Tag = prev_url;
-            RelativePrevPage.Show();
-
             if (Contents.HasUser())
             {
+                var prev_url = RelativePrevPage.Tag is string ? RelativePrevPage.Tag as string : string.Empty;
+
                 if (Contents.IsWork())
                     ShowRelativeInlineAsync(Contents, prev_url);
                 else if (Contents.IsUser())
@@ -3676,21 +3684,11 @@ namespace PixivWPF.Pages
 
         private void RelativeNextPage_Click(object sender, RoutedEventArgs e)
         {
-            var append = sender == RelativeNextAppend ? true : false;
-
-            var next_url = string.Empty;
-            if (RelativeNextPage.Tag is string) next_url = RelativeNextPage.Tag as string;
-            RelativeNextPage.Show();
-
-            if (!append)
-            {
-                var prev_url = next_url.CalcPrevUrl();
-                RelativePrevPage.Tag = prev_url;
-                RelativePrevPage.Show();
-            }
-
             if (Contents.HasUser())
             {
+                var append = sender == RelativeNextAppend ? true : false;
+                var next_url = RelativeNextPage.Tag is string ? RelativeNextPage.Tag as string : string.Empty;
+
                 if (Contents.IsWork())
                     ShowRelativeInlineAsync(Contents, next_url, append);
                 else if (Contents.IsUser())
@@ -3763,37 +3761,19 @@ namespace PixivWPF.Pages
 
         private void FavoritePrevPage_Click(object sender, RoutedEventArgs e)
         {
-            var next_url = string.Empty;
-            if (FavoriteNextPage.Tag is string) next_url = FavoriteNextPage.Tag as string;
-            FavoriteNextPage.Show();
-
-            var prev_url = string.IsNullOrEmpty(next_url) ? FavoritePrevPage.Tag as string : next_url.CalcPrevUrl();
-            FavoritePrevPage.Tag = prev_url;
-            FavoritePrevPage.Show();
-
             if (Contents.HasUser())
             {
+                var prev_url = FavoritePrevPage.Tag is string ? FavoritePrevPage.Tag as string : string.Empty;
                 ShowFavoriteInlineAsync(Contents.User, prev_url);
             }
         }
 
         private void FavoriteNextPage_Click(object sender, RoutedEventArgs e)
         {
-            var append = sender == FavoriteNextAppend ? true : false;
-
-            var next_url = string.Empty;
-            if (FavoriteNextPage.Tag is string) next_url = FavoriteNextPage.Tag as string;
-            FavoriteNextPage.Show();
-
-            if (!append)
-            {
-                var prev_url = next_url.CalcPrevUrl();
-                FavoritePrevPage.Tag = prev_url;
-                FavoritePrevPage.Show();
-            }
-
             if (Contents.HasUser())
             {
+                var append = sender == FavoriteNextAppend ? true : false;
+                var next_url = FavoriteNextPage.Tag is string ? FavoriteNextPage.Tag as string : string.Empty;
                 ShowFavoriteInlineAsync(Contents.User, next_url, append);
             }
         }

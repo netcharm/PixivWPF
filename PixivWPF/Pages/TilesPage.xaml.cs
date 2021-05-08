@@ -111,7 +111,7 @@ namespace PixivWPF.Pages
         {
             if (ImageTiles.Items is ObservableCollection<PixivItem>)
             {
-                ImageTiles.Items.UpdateDownloadStateAsync();
+                ImageTiles.UpdateTilesState(id: illustid ?? -1);
             }
         }
 
@@ -123,13 +123,12 @@ namespace PixivWPF.Pages
             });
         }
 
-        public async void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
+        public void UpdateLikeStateAsync(int illustid = -1, bool is_user = false)
         {
-            await Task.Run(() =>
+            if (ImageTiles.Items is ObservableCollection<PixivItem>)
             {
-                ImageTiles.Items.UpdateLikeState(illustid, is_user);
-                //UpdateLikeState(illustid);
-            });
+                ImageTiles.UpdateTilesState(id: illustid);
+            }
         }
 
         private void OnlyActiveItems(object sender, FilterEventArgs e)

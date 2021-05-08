@@ -50,7 +50,10 @@ namespace PixivWPF.Common
             var setting = Application.Current.LoadSetting();
             foreach (var item in items)
             {
-                if (item.Count > 1) result += Options.IncludePagePreview ? item.Count * 2 : item.Count;
+                if(item.IsPage() || item.IsPages())
+                    result += Options.IncludePagePreview ? 2 : 1;
+                else if (item.IsWork() && item.Count > 1)
+                    result += Options.IncludePagePreview ? item.Count * 2 : item.Count;
             }
             return (result);
         }
@@ -62,37 +65,44 @@ namespace PixivWPF.Common
             {
                 if (Options.IncludePageThumb)
                 {
-                    var illust = item.Illust;
-                    if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
+                    if (item.IsPage() || item.IsPages())
                     {
-                        if (illust is Pixeez.Objects.IllustWork)
+                        pages.Add(item.Illust.GetThumbnailUrl(item.Index));
+                    }
+                    else if (item.IsWork())
+                    {
+                        var illust = item.Illust;
+                        if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
                         {
-                            var subset = illust as Pixeez.Objects.IllustWork;
-                            if (subset.meta_pages.Count() > 1)
+                            if (illust is Pixeez.Objects.IllustWork)
                             {
-                                foreach (var page in subset.meta_pages)
+                                var subset = illust as Pixeez.Objects.IllustWork;
+                                if (subset.meta_pages.Count() > 1)
                                 {
-                                    pages.Add(page.GetThumbnailUrl());
+                                    foreach (var page in subset.meta_pages)
+                                    {
+                                        pages.Add(page.GetThumbnailUrl());
+                                    }
                                 }
                             }
-                        }
-                        else if (illust is Pixeez.Objects.NormalWork)
-                        {
-                            var subset = illust as Pixeez.Objects.NormalWork;
-                            if (subset.PageCount >= 1 && subset.Metadata == null)
+                            else if (illust is Pixeez.Objects.NormalWork)
                             {
-                                illust = await illust.RefreshIllust();
-                            }
-                            if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
-                            {
-                                item.Illust = illust;
-                                foreach (var page in illust.Metadata.Pages)
+                                var subset = illust as Pixeez.Objects.NormalWork;
+                                if (subset.PageCount >= 1 && subset.Metadata == null)
                                 {
-                                    pages.Add(page.GetThumbnailUrl());
+                                    illust = await illust.RefreshIllust();
+                                }
+                                if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
+                                {
+                                    item.Illust = illust;
+                                    foreach (var page in illust.Metadata.Pages)
+                                    {
+                                        pages.Add(page.GetThumbnailUrl());
+                                    }
                                 }
                             }
+                            pages = pages.Distinct().ToList();
                         }
-                        pages = pages.Distinct().ToList();
                     }
                 }
             }
@@ -107,37 +117,44 @@ namespace PixivWPF.Common
             {
                 if (Options.IncludePagePreview)
                 {
-                    var illust = item.Illust;
-                    if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
+                    if (item.IsPage() || item.IsPages())
                     {
-                        if (illust is Pixeez.Objects.IllustWork)
+                        pages.Add(item.Illust.GetPreviewUrl(item.Index));
+                    }
+                    else if (item.IsWork())
+                    {
+                        var illust = item.Illust;
+                        if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
                         {
-                            var subset = illust as Pixeez.Objects.IllustWork;
-                            if (subset.meta_pages.Count() > 1)
+                            if (illust is Pixeez.Objects.IllustWork)
                             {
-                                foreach (var page in subset.meta_pages)
+                                var subset = illust as Pixeez.Objects.IllustWork;
+                                if (subset.meta_pages.Count() > 1)
                                 {
-                                    pages.Add(page.GetPreviewUrl());
+                                    foreach (var page in subset.meta_pages)
+                                    {
+                                        pages.Add(page.GetPreviewUrl());
+                                    }
                                 }
                             }
-                        }
-                        else if (illust is Pixeez.Objects.NormalWork)
-                        {
-                            var subset = illust as Pixeez.Objects.NormalWork;
-                            if (subset.PageCount >= 1 && subset.Metadata == null)
+                            else if (illust is Pixeez.Objects.NormalWork)
                             {
-                                illust = await illust.RefreshIllust();
-                            }
-                            if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
-                            {
-                                item.Illust = illust;
-                                foreach (var page in illust.Metadata.Pages)
+                                var subset = illust as Pixeez.Objects.NormalWork;
+                                if (subset.PageCount >= 1 && subset.Metadata == null)
                                 {
-                                    pages.Add(page.GetPreviewUrl());
+                                    illust = await illust.RefreshIllust();
+                                }
+                                if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
+                                {
+                                    item.Illust = illust;
+                                    foreach (var page in illust.Metadata.Pages)
+                                    {
+                                        pages.Add(page.GetPreviewUrl());
+                                    }
                                 }
                             }
+                            pages = pages.Distinct().ToList();
                         }
-                        pages = pages.Distinct().ToList();
                     }
                 }
             }
@@ -157,7 +174,12 @@ namespace PixivWPF.Common
                         var items = Items.ToList();
                         foreach (var item in items)
                         {
-                            if (item.IsWork())
+                            if (item.IsPage() || item.IsPages())
+                            {
+                                page_thumbs.Add(item.Illust.GetThumbnailUrl(item.Index));
+                                page_previews.Add(item.Illust.GetPreviewUrl(item.Index));
+                            }
+                            else if (item.IsWork())
                             {
                                 var preview = item.Illust.GetPreviewUrl();
                                 if (!illusts.Contains(preview)) illusts.Add(preview);

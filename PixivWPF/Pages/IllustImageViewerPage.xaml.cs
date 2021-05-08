@@ -346,7 +346,12 @@ namespace PixivWPF.Pages
                     PreviewImage = await GetPreviewImage(overwrite);
 
                     if (ParentWindow == null) ParentWindow = Window.GetWindow(this);
-                    else ParentWindow.Title = $"Preview ID: {Contents.ID}, {Contents.Subject}";
+                    if (ParentWindow is ContentWindow)
+                    {
+                        Title = $"Preview ID: {Contents.ID}, {Contents.Subject}";
+                        ParentWindow.Title = Title;
+                        Application.Current.UpdateContentWindows(ParentWindow as ContentWindow);
+                    }
                 }
             }
             catch (Exception ex) { ex.ERROR("UpdatePreview"); }

@@ -157,17 +157,18 @@
                     <mah:HamburgerMenuSeparatorItem />
                     <mah:HamburgerMenuIconItem Label="Following" x:Name="miPixivFollowing" x:Uid="miPixivFollowing" >
                         <mah:HamburgerMenuIconItem.Icon>
-                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Check" />
+                            <iconPacks:PackIconModern Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Kind="Star" />
                         </mah:HamburgerMenuIconItem.Icon>                        
                     </mah:HamburgerMenuIconItem>
                     <mah:HamburgerMenuIconItem Label="Following Private" x:Name="miPixivFollowingPrivate" x:Uid="miPixivFollowingPrivate" >
                         <mah:HamburgerMenuIconItem.Icon>
                             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                 <iconPacks:PackIconModern 
-                                    Kind="Check" Width="22" Height="22" 
+                                    Kind="Star" Width="22" Height="22" 
                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <iconPacks:PackIconModern 
-                                    Kind="Lock" Width="8" Height="8" Margin="14,12,0,0"
+                                    Kind="Lock" Width="8" Height="8" Margin="1,0,0,0"
+                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Grid>
                         </mah:HamburgerMenuIconItem.Icon>
@@ -186,7 +187,7 @@
                                     Kind="Heart" Width="22" Height="22" 
                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <iconPacks:PackIconModern 
-                                    Kind="Lock" Width="8" Height="8" 
+                                    Kind="Lock" Width="8" Height="8" Margin="1,0,0,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Accent}"
                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Grid>
