@@ -703,24 +703,58 @@ namespace PixivWPF.Common
             return (result.Trim().Trim(trim_char).HtmlDecode());
         }
 
+        private static string[] html_split = new string[] { Environment.NewLine, "\n", "\r", "\t", "url", "src", "href", "<p>", "</p>", "<br/>", "<br>", "<br />", "><", "</a>", ">", " " };
         public static IList<string> ParseLinks(this string html, bool is_src = false)
         {
             List<string> links = new List<string>();
             var href_prefix_0 = is_src ? @"(href="")?" : string.Empty;
             var href_prefix_1 = is_src ? @"(src="")?" : string.Empty;
             var href_suffix = is_src ? @"""?" : @"";
+            var group_index = is_src ? 2 : 1;
             var cmd_sep = new char[] { ':', ' ', '=' };
 
             var opt = RegexOptions.IgnoreCase;// | RegexOptions.Multiline;
 
+            Func<Match, string> mf = m =>
+            {
+                var result = string.Empty;
+                if(m.Success)
+                {
+                    var results = new List<string>();
+                    results.Add("");
+                    if (m.Groups.Count > 1)
+                        //foreach(Match g in m.Groups) results.AppendLine(g.Value);
+                        for(int i=1; i< m.Groups.Count;i++)
+                        {
+                            var mv = m.Groups[i].Value.Trim(new char[] { ' ', '"', '=' });
+                            if (!html_split.Contains(mv) && !results.Contains(mv))
+                                results.Add(mv);
+                            else results.Add(m.Groups[0].Value);
+                        }
+                    results.Add("");
+                    result = string.Join(Environment.NewLine, results);
+                }
+                return (result);
+            };
+
+            html = Regex.Replace(html, @"<div .*?>(.*?)</div>", m => mf(m), opt);
+            html = Regex.Replace(html, @"<h\d+ .*?>(.*?)</h\d+>", m => mf(m), opt);
+            html = Regex.Replace(html, @"<p .*?>(.*?)</p>", m => mf(m), opt);
+            html = Regex.Replace(html, @"<br *?/?>", "", opt);
+            html = Regex.Replace(html, @"<a .*?href=("".*?"").*?>(.*?)</a>", m => mf(m), opt);
+            html = Regex.Replace(html, @"<img .*?src=("".*?"").*?>(.*?)</img>", m => mf(m), opt);
+            html = Regex.Replace(html, @"<img .*?src=("".*?"").*?/?>", m => mf(m), opt);
+            //html = Regex.Replace(html, @"(?<=(url|href|src)=)""(.+?)""", m => mf(m), opt);
+            html = Regex.Replace(html, @"(?<=(href|src)=)""(.+?)""", m => mf(m), opt);
+            html = Regex.Replace(html, @"(<.+(.*?)/?>)", "", opt);
+
             var mr = new List<MatchCollection>();
-            html = Regex.Replace(html, @"(<.+ (.*?)>)(.*?)(</.+>)", "$2\n$3", RegexOptions.IgnoreCase);
-            html = Regex.Replace(html, @"(<.+ (.*?)/>)", "$2\n", RegexOptions.IgnoreCase);
-            foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />", "><", "</a>", ">", " " }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var text in html.Split(html_split, StringSplitOptions.RemoveEmptyEntries))
             {
                 //var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim(new char[] { '"', ' ' } ) : text.Trim();
                 var content = Regex.Replace(text, @"Loading|(\.){2,}", "", RegexOptions.IgnoreCase).Trim(new char[] { ' ', '"', ',' } );
                 if (string.IsNullOrEmpty(content)) continue;
+                else if (content.Equals("=")) continue;
                 else if (content.Equals("<a", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals("<img", StringComparison.CurrentCultureIgnoreCase)) continue;
                 else if (content.Equals(">", StringComparison.CurrentCultureIgnoreCase)) continue;
@@ -804,7 +838,9 @@ namespace PixivWPF.Common
                 foreach (Match m in mi)
                 {
                     if (m.Groups.Count < 1) continue;
-                    var link = m.Groups[m.Groups.Count - 1].Value.Trim().Trim(trim_char);
+                    var link = m.Groups[group_index].Value.Trim().Trim(trim_char);
+                    if (string.IsNullOrEmpty(link)) continue;
+
                     var downloads = Application.Current.OpenedWindowTitles();
                     downloads = downloads.Concat(download_links).ToList();
                     foreach (var di in downloads)
@@ -839,7 +875,7 @@ namespace PixivWPF.Common
                             var id = Regex.Replace(link, @"^.*?/\d{2}/(\d+)(_.*?)?"+regex_img_ext+"$", "$1", RegexOptions.IgnoreCase);
                             link = id.ArtworkLink();
                         }
-                        if (!links.Contains(link)) links.Add(link);
+                        if (!links.Contains(link)) links.Add(link.Contains(".pixiv.") ? link.Replace("http://", "https://") : link);
                     }
                     else if (link.StartsWith("id:", StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -2368,13 +2404,13 @@ namespace PixivWPF.Common
         public static async Task<bool> AttachMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
         {
             var result = false;
-            try
+            if (IsShellSupported && _Attaching_.TryAdd(fileinfo.FullName, true) && await _CanAttaching_.WaitAsync(TimeSpan.FromSeconds(60)))
             {
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Started ...");
-#endif
-                if (IsShellSupported && _Attaching_.TryAdd(fileinfo.FullName, true) && await _CanAttaching_.WaitAsync(TimeSpan.FromSeconds(60)))
+                try
                 {
+#if DEBUG
+                    System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Started ...");
+#endif
                     if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
                     var illust = id.FindIllust();
                     if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
@@ -2444,15 +2480,18 @@ namespace PixivWPF.Common
                     //if (fileinfo.CreationTime.Ticks != dt.Ticks) fileinfo.CreationTime = dt;
                     //if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
                     //if (fileinfo.LastAccessTime.Ticks != dt.Ticks) fileinfo.LastAccessTime = dt;
-                    _Attaching_.TryRemove(fileinfo.FullName, out result);
                     result = true;
 #if DEBUG
                     System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Finished!");
 #endif
                 }
+                catch (Exception ex) { ex.ERROR($"AttachMetaInfo_{fileinfo.Name}"); }
+                finally
+                {
+                    if (_CanAttaching_ is SemaphoreSlim && _CanAttaching_.CurrentCount < 5) _CanAttaching_.Release();
+                    _Attaching_.TryRemove(fileinfo.FullName, out result);
+                }
             }
-            catch (Exception ex) { ex.ERROR($"AttachMetaInfo_{fileinfo.Name}"); }
-            finally { if (_CanAttaching_ is SemaphoreSlim && _CanAttaching_.CurrentCount < 5) _CanAttaching_.Release(); }
             return (result);
         }
 
@@ -2652,6 +2691,7 @@ namespace PixivWPF.Common
                                 if (setting.DownloadAttachMetaInfo && meta && fileinfo.WaitFileUnlock())
                                 {
                                     meta_ret = await fileinfo.AttachMetaInfo(dt: fdt);
+                                    fileinfo = new FileInfo(fileinfo.FullName);
                                 }
                                 //if (await fileinfo.WaitFileUnlockAsync())
                                 if (meta_ret && fileinfo.WaitFileUnlock())
@@ -5256,7 +5296,8 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                //ret = await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private");
+                else if (works == null) ret = true;
+                //ret = await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private") != null;
             }
             catch (Exception ex) { ex.ERROR("DeleteMyFavoriteWorksAsync"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
             finally

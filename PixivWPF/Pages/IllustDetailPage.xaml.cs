@@ -3475,7 +3475,7 @@ namespace PixivWPF.Pages
                         SubIllusts.SelectedItem = lastSelectionItem;
                         return;
                     }
-                    SubIllusts.UpdateTilesState();
+                    SubIllusts.UpdateTilesState(touch: false);
 
                     var part_down = SubIllusts.Items.Where(i => i.IsDownloaded).Count() > 0;
                     if (Contents.IsDownloaded != part_down) Contents.IsDownloaded = part_down; // Contents.Illust.IsPartDownloadedAsync();

@@ -1739,7 +1739,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync();
+                        item.IsDownloaded = item.Illust.IsPartDownloadedAsync(touch: false);
                         item.IsFavorited = item.IsLiked();
                         item.IsFollowed = item.User.IsLiked();
                     }

@@ -1017,7 +1017,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public async void UpdateTilesState(PixivItem work = null, long? id = -1)
+        public async void UpdateTilesState(PixivItem work = null, long? id = -1, bool touch = true)
         {
             if (IsTileUpdating || IsBusy) return;
             if (Items is ObservableCollection<PixivItem> && Items.Count > 0)
@@ -1032,12 +1032,12 @@ namespace PixivWPF.Common
                         {
                             if (item.IsPage())
                             {
-                                bool download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(touch: true);
+                                bool download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(touch: touch);
                                 if (item.IsDownloaded != download) item.IsDownloaded = download;
                             }
                             else if (item.IsWork())
                             {
-                                bool part_down = item.Illust.IsPartDownloadedAsync(touch: true);
+                                bool part_down = item.Illust.IsPartDownloadedAsync(touch: touch);
                                 if (item.IsPartDownloaded != part_down) item.IsPartDownloaded = part_down;
                                 if (item.IsDownloaded != part_down) item.IsDownloaded = part_down;
                             }
