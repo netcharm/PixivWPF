@@ -317,6 +317,7 @@ namespace PixivWPF.Common
                 }
                 finally
                 {
+                    //CanConfigWrite.Release(max: 1, all: false);
                     if (CanConfigWrite is SemaphoreSlim && CanConfigWrite.CurrentCount <= 0) CanConfigWrite.Release();
                 }
             }

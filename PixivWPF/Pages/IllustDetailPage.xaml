@@ -97,13 +97,13 @@
                     <TextBlock Margin="4,0,0,0" Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
-            </MenuItem>            
+            </MenuItem>
             <Separator x:Name="ActionLikeIllustSeparator" x:Uid="ActionLikeIllustSeparator" />
             <MenuItem x:Uid="ActionLikeIllust" Header="Bookmark Selected" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xEB52;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </MenuItem.Icon>                
+                </MenuItem.Icon>
             </MenuItem>
             <MenuItem x:Uid="ActionLikeIllustPrivate" Header="Bookmark Selected Private" Click="ActionBookmarkIllust_Click">
                 <MenuItem.Icon>
@@ -267,71 +267,70 @@
                 <Button Grid.Column="0" Grid.Row="0" Margin="4" ToolTip="Copy Illust ID"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Margin="4,0,0,0" Text="&#xE16F;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
+                    <TextBlock Text="&#xE16F;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
                 </Button>
                 <Button Grid.Column="2" Grid.Row="0" Margin="4" ToolTip="Copy Preview"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Margin="4,0,0,0" Text="&#xE295;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
+                    <TextBlock Text="&#xE295;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
                 </Button>
                 <Button Grid.Column="0" Grid.Row="2" Margin="4" ToolTip="Send Illust To Other Instance"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Margin="4,0,0,0"
-                        Text="&#xE724;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
+                    <TextBlock Text="&#xE724;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
                 </Button>
                 <Button Grid.Column="2" Grid.Row="2" Margin="4" ToolTip="Send Author To Other Instance"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Margin="4,0,0,0" Text="&#xE725;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
+                    <TextBlock Text="&#xE725;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>                    
+                        HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
                 </Button>
                 <Button Grid.Column="0" Grid.Row="1" Margin="4" ToolTip="Refresh Preview"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Margin="4,0,0,0" Text="&#xE149;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
+                    <TextBlock Text="&#xE149;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
                 </Button>
                 <Button Grid.Column="1" Grid.Row="1" Margin="4" ToolTip="Open Preview Window"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Margin="4,0,0,0" Text="&#xE91B;" FontSize="24" FontFamily="Segoe MDL2 Assets"                            
+                    <TextBlock Text="&#xE91B;" FontSize="24" FontFamily="Segoe MDL2 Assets"                            
                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}" />
                 </Button>
                 <Button Grid.Column="2" Grid.Row="1" Margin="4" ToolTip="Open Preview With..."
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Margin="4,0,0,0" Text="&#xEB9F;" FontSize="24" FontFamily="Segoe MDL2 Assets"
+                    <TextBlock Text="&#xEB9F;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
                 </Button>
                 <Button Grid.Column="1" Grid.Row="2" Margin="4" ToolTip="Save Illust"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
+                    <TextBlock Text="&#xE105;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
                 </Button>
                 <Button Grid.Column="1" Grid.Row="0" Margin="4" ToolTip="Open Downloaded Illust"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
                         Background="Transparent" Click="PreviewPopup_Click">
-                    <TextBlock Margin="4,0,0,0" Text="&#xE118;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
+                    <TextBlock Text="&#xE118;" FontSize="24" FontFamily="Segoe MDL2 Assets"                         
                         Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{DynamicResource DropGlow}"/>
                 </Button>
             </Grid>
         </Popup>
     </Page.Resources>
-    
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition MinWidth="710"/>
@@ -366,7 +365,7 @@
                                     Text="{Binding Text, Mode=OneWay, ElementName=IllustSanity}" 
                                     LayoutTransform="{DynamicResource FontStretchSemiCondensed}"
                                     Foreground="{Binding Foreground, Mode=OneWay, ElementName=IllustSanity}"
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>                                
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="SanityMarkSign" Text="&#xF140;"
                                     FontSize="64pt" FontWeight="SemiBold" FontFamily="Segoe MDL2 Assets"
                                     Foreground="{DynamicResource MahApps.Brushes.SystemControlErrorTextForeground}"
@@ -615,7 +614,7 @@
                         </StackPanel>
                     </Grid>
 
-                    <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" 
+                    <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" x:Name="ActionBarInfo"
                                 Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button x:Name="BookmarkIllust" x:Uid="BookmarkIllust" Click="ActionIllust_Click"
                                 ToolTip="Bookmark Illust"
@@ -623,17 +622,20 @@
                                 Visibility="Collapsed" Width="64" Height="64"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                Tag="{x:Static iconPacks:PackIconModernKind.HeartOutline}"
                                 Style="{DynamicResource MahApps.Styles.Button.Circle}"
                                 BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                                Foreground="{DynamicResource MahApps.Brushes.Text}">
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}">
+                            <TextBlock FontSize="32" FontFamily="Segoe MDL2 Assets"
+                                Text="{Binding Tag, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
+                                Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             <Button.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem x:Name="ActionBookmarkIllustPublic" x:Uid="ActionPublic" 
                                           Header="Public" Click="ActionBookmarkIllust_Click" >
                                         <MenuItem.Icon>
                                             <iconPacks:PackIconModern Kind="Heart" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="22" Height="22" Margin="4,0,0,0"/>
-                                        </MenuItem.Icon>                                        
+                                        </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem x:Name="ActionBookmarkIllustPrivate" x:Uid="ActionPrivate" 
                                           Header="Private" Click="ActionBookmarkIllust_Click">
@@ -649,7 +651,7 @@
                                                     Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"/>
                                             </Grid>
                                         </MenuItem.Icon>
-                                    </MenuItem>                                        
+                                    </MenuItem>
                                     <Separator/>
                                     <MenuItem x:Name="ActionBookmarkIllustRemove" x:Uid="ActionRemove" 
                                           Header="Remove" Click="ActionBookmarkIllust_Click">
@@ -659,16 +661,6 @@
                                     </MenuItem>
                                 </ContextMenu>
                             </Button.ContextMenu>
-                            <Grid>
-                                <iconPacks:PackIconModern x:Name="IsBookmarked" Width="32" Height="32" 
-                                    Kind="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}"
-                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                                <iconPacks:PackIconModern x:Name="IsPrivateBookmarked" Width="16" Height="16"
-                                    Visibility="Collapsed"
-                                    Kind="Lock" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                    Foreground="{DynamicResource MahApps.Brushes.Accent}" 
-                                    Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" />
-                            </Grid>
                         </Button>
                         <Button x:Name="FollowAuthor" x:Uid="FollowAuthor" Margin="4,0,0,0" Click="ActionIllust_Click"
                                 ToolTip="Follow Author" 
@@ -676,10 +668,13 @@
                                 Visibility="Collapsed" Width="64" Height="64"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                Tag="{x:Static iconPacks:PackIconModernKind.Add}"
                                 Style="{DynamicResource MahApps.Styles.Button.Circle}"
                                 BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                                Foreground="{DynamicResource MahApps.Brushes.Text}">
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}">
+                            <TextBlock FontSize="32" FontFamily="Segoe MDL2 Assets"
+                                Text="{Binding Tag, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
+                                Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             <Button.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem x:Name="ActionFollowAuthorPublic" x:Uid="ActionPublic" 
@@ -704,16 +699,15 @@
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator/>
-                                    <MenuItem x:Name="ActionFollowAuthorRemove" x:Uid="ActionRemove" 
-                                          Header="Remove" Click="ActionFollowAuthor_Click">
+                                    <MenuItem x:Name="ActionFollowAuthorRemove" x:Uid="ActionRemove" Header="Remove" Click="ActionFollowAuthor_Click">
                                         <MenuItem.Icon>
-                                            <iconPacks:PackIconModern Kind="VectorStar" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="22" Height="22" Margin="4,0,0,0"/>
+                                            <TextBlock Text="&#xE1CE;" FontSize="22" FontFamily="Segoe MDL2 Assets"                                                
+                                                Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </MenuItem.Icon>
                                     </MenuItem>
                                 </ContextMenu>
                             </Button.ContextMenu>
-                            <iconPacks:PackIconModern Kind="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}" 
-                                                      Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="32" Height="32"/>
                         </Button>
                         <Button x:Name="IllustActions" x:Uid="IllustActions" Margin="4,0,0,0" Click="ActionIllust_Click"
                                 ToolTip="Illust Actions"
@@ -723,7 +717,15 @@
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Style="{DynamicResource MahApps.Styles.Button.Circle}"
                                 BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                                Foreground="{DynamicResource MahApps.Brushes.Text}">
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}">
+                            <!--<iconPacks:PackIconModern Kind="List" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="32" Height="32"/>-->
+                            <TextBlock Text="&#xE179;" FontSize="32" FontFamily="Segoe UI Symbol" FontWeight="Bold"
+                                Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                <TextBlock.RenderTransform>
+                                    <ScaleTransform ScaleY="1" ScaleX="-1"/>
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
                             <Button.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem x:Name="ActionIllustNewWindow" x:Uid="ActionIllustNewWindow" 
@@ -753,7 +755,7 @@
                                             <TextBlock Margin="4,0,0,0" Text="&#xE167;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                                 Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </MenuItem.Icon>
-                                    </MenuItem>                                    
+                                    </MenuItem>
                                     <Separator />
                                     <MenuItem x:Name="ActionSendIllustToInstance" x:Uid="ActionSendIllustToInstance" 
                                           Header="Send Illust To Other Instance" Visibility="Visible" Click="ActionIllustInfo_Click">
@@ -768,7 +770,7 @@
                                             <TextBlock Margin="4,0,0,0" Text="&#xE725;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                                 Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </MenuItem.Icon>
-                                    </MenuItem>                                    
+                                    </MenuItem>
                                     <Separator />
                                     <MenuItem x:Name="ActionCopyIllustTitle" x:Uid="ActionCopyIllustTitle"
                                           Header="Copy Illust Title" Visibility="Visible" Click="ActionIllustInfo_Click">
@@ -804,7 +806,7 @@
                                             <TextBlock Margin="4,0,0,0" Text="&#xEC92;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                                 Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </MenuItem.Icon>
-                                    </MenuItem>                                    
+                                    </MenuItem>
                                     <Separator />
                                     <MenuItem x:Name="ActionIllustAuthorInfo" x:Uid="ActionIllustAuthorInfo" 
                                           Header="Author Detail" Visibility="Visible" Click="ActionIllustAuthourInfo_Click">
@@ -878,7 +880,6 @@
                                     </MenuItem>
                                 </ContextMenu>
                             </Button.ContextMenu>
-                            <iconPacks:PackIconModern Kind="List" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="32" Height="32"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -1009,7 +1010,7 @@
                         </Button.Content>
                     </Button>
                 </StackPanel>
-                
+
                 <!-- Illust Subsets -->
                 <Expander Grid.Row="4" x:Name="SubIllustsExpander" x:Uid="SubIllustsExpander" 
                           Margin="0,4,0,0"
@@ -1131,7 +1132,7 @@
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>
-                    </Button>                    
+                    </Button>
                     <Button 
                         x:Name="RelativeRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
                         Visibility="Collapsed" FontWeight="Normal"
@@ -1234,8 +1235,8 @@
                         Background="Transparent"
                         IsInputRedirectionEnabled="True"
                         IsOutputRedirectionEnabled="True">-->
-                        <DockPanel x:Name="IllustCommentsHost" DockPanel.Dock="Top" LastChildFill="True" VerticalAlignment="Stretch" AllowDrop="False">
-                        </DockPanel>
+                    <DockPanel x:Name="IllustCommentsHost" DockPanel.Dock="Top" LastChildFill="True" VerticalAlignment="Stretch" AllowDrop="False">
+                    </DockPanel>
                     <!--</interop:AirspaceDecorator>-->
                 </Expander>
                 <StackPanel Grid.Row="7" x:Name="CommentsNavigator" x:Uid="CommentsNavigator"
@@ -1265,7 +1266,7 @@
                             <TextBlock Text="&#xE111;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button.Content>                        
+                        </Button.Content>
                     </Button>
                     <Button 
                         x:Name="btnCommentRefresh" x:Uid="ActionRefreshComment" ToolTip="Refresh Comment"
@@ -1279,12 +1280,12 @@
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>
-                    </Button>                    
+                    </Button>
                 </StackPanel>
 
             </Grid>
         </ScrollViewer>
-        
+
         <!-- Illust Open Progress Prompt -->
         <Common:ProgressRingCloud 
             Grid.Column="0" x:Name="IllustDetailWait" Size="128" Visibility="Collapsed"

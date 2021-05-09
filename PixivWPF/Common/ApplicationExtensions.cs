@@ -2809,6 +2809,7 @@ namespace PixivWPF.Common
                 }
                 finally
                 {
+                    //CanDoEvents.Release(max: 1);
                     if (CanDoEvents is SemaphoreSlim && CanDoEvents.CurrentCount <= 0) CanDoEvents.Release();
                 }
             }

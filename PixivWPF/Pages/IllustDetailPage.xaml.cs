@@ -891,12 +891,12 @@ namespace PixivWPF.Pages
             {
                 if (illust.IsLiked())
                 {
-                    BookmarkIllust.Tag = PackIconModernKind.Heart;// "Heart";
+                    BookmarkIllust.Tag = "\uEB52"; // &#xEB52;
                     ActionBookmarkIllustRemove.IsEnabled = true;
                 }
                 else
                 {
-                    BookmarkIllust.Tag = PackIconModernKind.HeartOutline;// "HeartOutline";
+                    BookmarkIllust.Tag = "\uEB51"; // &#xEB51;
                     ActionBookmarkIllustRemove.IsEnabled = false;
                 }
                 this.DoEvents();
@@ -910,12 +910,12 @@ namespace PixivWPF.Pages
             {
                 if (user.IsLiked())
                 {
-                    FollowAuthor.Tag = PackIconModernKind.Star;
+                    FollowAuthor.Tag = "\uE113"; // &#xE113;
                     ActionFollowAuthorRemove.IsEnabled = true;
                 }
                 else
                 {
-                    FollowAuthor.Tag = PackIconModernKind.VectorStar;
+                    FollowAuthor.Tag = "\uE734"; // &#xE734;
                     ActionFollowAuthorRemove.IsEnabled = false;
                 }
                 this.DoEvents();
@@ -1283,7 +1283,7 @@ namespace PixivWPF.Pages
                             var items = new List<PixivItem>();
                             if (Contents.Count <= 1 || Contents.IsUser()) items.Add(Contents);
                             else if(Contents.Count <= 30) items.AddRange(SubIllusts.Items.Where(p => p.Index != Contents.Index));
-                            else items.AddRange((await Contents.Illust.PageItems()).Where(p => p.Index != Contents.Index));
+                            else items.AddRange((await Contents.Illust.PageItems(touch: true)).Where(p => p.Index != Contents.Index));
                             items.AddRange(RelativeItems.Items);
                             items.AddRange(FavoriteItems.Items);
                             items = items.Distinct().ToList();
@@ -2323,6 +2323,10 @@ namespace PixivWPF.Pages
             CreateHtmlRender();
 
             #region ToolButton MouseOver action
+            BookmarkIllust.MouseOverAction();
+            FollowAuthor.MouseOverAction();
+            IllustActions.MouseOverAction();
+
             IllustTagPedia.MouseOverAction();
             IllustTagSpeech.MouseOverAction();
             IllustTagRefresh.MouseOverAction();
@@ -2342,7 +2346,7 @@ namespace PixivWPF.Pages
             FavoritePrevPage.MouseOverAction();
             FavoriteNextPage.MouseOverAction();
             FavoriteNextAppend.MouseOverAction();
-            FavoriteRefresh.MouseOverAction();
+            FavoriteRefresh.MouseOverAction();            
             #endregion
 
             #region Preview Popup
@@ -3460,7 +3464,10 @@ namespace PixivWPF.Pages
         {
             e.Handled = false;
             if (Contents.HasPages())
-            {
+            {                
+                //if (SubIllusts.IsBusy) return;
+                if (e.AddedItems.Count == 1 && e.RemovedItems.Count == 1 && (e.AddedItems[0] as PixivItem).Index == (e.RemovedItems[0] as PixivItem).Index) return;
+
                 if (SubIllusts.SelectedItem.IsPages() && SubIllusts.SelectedItems.Count == 1)
                 {
                     if (lastSelectionChanged.DeltaMilliseconds(DateTime.Now) < 50)

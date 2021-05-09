@@ -449,7 +449,8 @@ namespace PixivWPF.Common
         }
         #endregion
 
-        private SemaphoreSlim CanUpdateItems = new SemaphoreSlim(1,1);
+        private const int CanUpdateItemsMax = 1;
+        private SemaphoreSlim CanUpdateItems = new SemaphoreSlim(CanUpdateItemsMax, CanUpdateItemsMax);
 
         #region Calc GC Memory
         public bool AutoGC { get; set; } = false;
@@ -462,11 +463,34 @@ namespace PixivWPF.Common
         [Category("Common Properties")]
         public bool IsReady
         {
-            get { return (PART_ImageTilesWait.Visibility != Visibility.Visible); }
+            get { return (!IsBusy || PART_ImageTilesWait.Visibility != Visibility.Visible); }
             set
             {
                 if (value) Ready();
                 else Wait();
+            }
+        }
+
+        [Description("Get Gallery Busy or Not")]
+        [Category("Common Properties")]
+        public bool IsBusy
+        {
+            get { return ((CanUpdateItems is SemaphoreSlim && CanUpdateItems.CurrentCount < CanUpdateItemsMax)); }
+        }
+
+        [Description("Get Gallery Busy or Not")]
+        [Category("Common Properties")]
+        public bool IsTileUpdating
+        {
+            get { return (UpdateTileTask is BackgroundWorker && UpdateTileTask.IsBusy); }
+        }
+
+        private void ReleaseUpdateLock(bool all = false)
+        {
+            if (CanUpdateItems is SemaphoreSlim)
+            {
+                if (all) CanUpdateItems.Release(CanUpdateItemsMax - CanUpdateItems.CurrentCount);
+                else if (CanUpdateItems.CurrentCount < CanUpdateItemsMax) CanUpdateItems.Release();
             }
         }
 
@@ -492,7 +516,7 @@ namespace PixivWPF.Common
                 UpdateTileTask.CancelAsync();
                 if (UpdateTileTaskCancelSrc is CancellationTokenSource) UpdateTileTaskCancelSrc.Cancel();
             }
-            else if (CanUpdateItems is SemaphoreSlim && CanUpdateItems.CurrentCount <= 0) CanUpdateItems.Release();
+            else ReleaseUpdateLock();
         }
         #endregion
 
@@ -627,7 +651,7 @@ namespace PixivWPF.Common
             if (force || await CanUpdateItems.WaitAsync(TimeSpan.FromSeconds(1.0)))
             {
                 result = true;
-                if (CanUpdateItems is SemaphoreSlim && CanUpdateItems.CurrentCount < 1) CanUpdateItems.Release();
+                ReleaseUpdateLock();
             }
             return (result);
         }
@@ -687,7 +711,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR(this.Name ?? string.Empty); }
             finally
             {
-                if (CanUpdateItems is SemaphoreSlim && CanUpdateItems.CurrentCount <= 0) CanUpdateItems.Release();
+                ReleaseUpdateLock();
                 if (AutoGC && count > 0) Application.Current.GC(this.Name, WaitGC, CalcSystemMemoryUsage);
                 this.DoEvents();
                 await Task.Delay(1);
@@ -962,7 +986,7 @@ namespace PixivWPF.Common
             {
                 this.DoEvents();
                 Task.Delay(1).GetAwaiter().GetResult();
-                if (CanUpdateItems is SemaphoreSlim && CanUpdateItems.CurrentCount <= 0) CanUpdateItems.Release();
+                ReleaseUpdateLock();
             }
         }
 
@@ -988,14 +1012,14 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.ERROR(this.Name ?? "UpdateTilesTask"); }
                 finally
                 {
-                    if (!UpdateTileTask.IsBusy && !UpdateTileTask.CancellationPending && CanUpdateItems is SemaphoreSlim && CanUpdateItems.CurrentCount <= 0) CanUpdateItems.Release();
+                    if (!UpdateTileTask.IsBusy && !UpdateTileTask.CancellationPending) ReleaseUpdateLock();
                 }
             }
         }
 
         public async void UpdateTilesState(PixivItem work = null, long? id = -1)
         {
-            if (CanUpdateItems is SemaphoreSlim && CanUpdateItems.CurrentCount <= 0) return;
+            if (IsTileUpdating || IsBusy) return;
             if (Items is ObservableCollection<PixivItem> && Items.Count > 0)
             {
                 try

@@ -913,7 +913,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static PixivItem PageItem(this Pixeez.Objects.Page page, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        public static PixivItem PageItem(this Pixeez.Objects.Page page, Pixeez.Objects.Work illust, int index, string nexturl = "", bool touch = false)
         {
             PixivItem p = null;
             var url = page.GetThumbnailUrl();
@@ -930,7 +930,7 @@ namespace PixivWPF.Common
                     p.IsDisplayFavMark = false;
                     p.BadgeValue = (index + 1).ToString();
                     p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount}";
-                    p.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: false);
+                    p.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch);
                     p.Tag = page;
                     p.DoEvents();
                 }
@@ -938,7 +938,7 @@ namespace PixivWPF.Common
             return (p);
         }
 
-        public static PixivItem PageItem(this Pixeez.Objects.MetaPages page, Pixeez.Objects.Work illust, int index, string nexturl = "")
+        public static PixivItem PageItem(this Pixeez.Objects.MetaPages page, Pixeez.Objects.Work illust, int index, string nexturl = "", bool touch = false)
         {
             PixivItem p = null;
             var url = page.GetThumbnailUrl();
@@ -955,7 +955,7 @@ namespace PixivWPF.Common
                     p.IsDisplayFavMark = false;
                     p.BadgeValue = (index + 1).ToString();
                     p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount}";
-                    p.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: false);
+                    p.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch);
                     p.Tag = page;
                     p.DoEvents();
                 }
@@ -963,7 +963,7 @@ namespace PixivWPF.Common
             return (p);
         }
 
-        public static async Task<IEnumerable<PixivItem>> PageItems(this Pixeez.Objects.Work illust, string nexturl = "")
+        public static async Task<IEnumerable<PixivItem>> PageItems(this Pixeez.Objects.Work illust, string nexturl = "", bool touch = false)
         {
             List<PixivItem> result = new List<PixivItem>();
 
@@ -976,7 +976,7 @@ namespace PixivWPF.Common
                     for(int i = 0; i< count; i++)
                     {
                         var page = subset.meta_pages[i];
-                        var p = PageItem(page, illust, i, nexturl);
+                        var p = PageItem(page, illust, i, nexturl, touch);
                         if (p is PixivItem) result.Add(p);
                     }
                 }
@@ -996,7 +996,7 @@ namespace PixivWPF.Common
                         var pages = illust.Metadata.Pages;
                         for (var i = 0; i < pages.Count; i++)
                         {
-                            var p = pages[i].PageItem(illust, i, nexturl);
+                            var p = pages[i].PageItem(illust, i, nexturl, touch);
                             if (p is PixivItem) result.Add(p);
                         }
                     }

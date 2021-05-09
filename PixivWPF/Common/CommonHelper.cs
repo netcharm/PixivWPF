@@ -706,14 +706,16 @@ namespace PixivWPF.Common
         public static IList<string> ParseLinks(this string html, bool is_src = false)
         {
             List<string> links = new List<string>();
-            var href_prefix_0 = is_src ? @"href=""" : string.Empty;
-            var href_prefix_1 = is_src ? @"src=""" : string.Empty;
+            var href_prefix_0 = is_src ? @"(href="")?" : string.Empty;
+            var href_prefix_1 = is_src ? @"(src="")?" : string.Empty;
             var href_suffix = is_src ? @"""?" : @"";
             var cmd_sep = new char[] { ':', ' ', '=' };
 
             var opt = RegexOptions.IgnoreCase;// | RegexOptions.Multiline;
 
             var mr = new List<MatchCollection>();
+            html = Regex.Replace(html, @"(<.+ (.*?)>)(.*?)(</.+>)", "$2\n$3", RegexOptions.IgnoreCase);
+            html = Regex.Replace(html, @"(<.+ (.*?)/>)", "$2\n", RegexOptions.IgnoreCase);
             foreach (var text in html.Split(new string[] { Environment.NewLine, "\n", "\r", "\t", "<br/>", "<br>", "<br />", "><", "</a>", ">", " " }, StringSplitOptions.RemoveEmptyEntries))
             {
                 //var content = text.StartsWith("\"") && text.EndsWith("\"") ? text.Trim(new char[] { '"', ' ' } ) : text.Trim();
@@ -801,7 +803,8 @@ namespace PixivWPF.Common
 
                 foreach (Match m in mi)
                 {
-                    var link = m.Groups[1].Value.Trim().Trim(trim_char);
+                    if (m.Groups.Count < 1) continue;
+                    var link = m.Groups[m.Groups.Count - 1].Value.Trim().Trim(trim_char);
                     var downloads = Application.Current.OpenedWindowTitles();
                     downloads = downloads.Concat(download_links).ToList();
                     foreach (var di in downloads)
@@ -2340,6 +2343,7 @@ namespace PixivWPF.Common
         private static bool IsShellSupported = Microsoft.WindowsAPICodePack.Shell.ShellObject.IsPlatformSupported;
         private static ConcurrentDictionary<string, bool> _Touching_ = new ConcurrentDictionary<string, bool>();
         private static ConcurrentDictionary<string, bool> _Attaching_ = new ConcurrentDictionary<string, bool>();
+        private static SemaphoreSlim _CanAttaching_ = new SemaphoreSlim(5, 5);
 
         private static bool IsMetaAttaching(this string file)
         {
@@ -2361,15 +2365,15 @@ namespace PixivWPF.Common
             return (_Touching_ is ConcurrentDictionary<string, bool> && _Touching_.ContainsKey(fileinfo.FullName));
         }
 
-        public static bool AttachMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
+        public static async Task<bool> AttachMetaInfo(this FileInfo fileinfo, DateTime dt = default(DateTime), string id = "")
         {
             var result = false;
             try
             {
 #if DEBUG
-                System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name}");
+                System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Started ...");
 #endif
-                if (IsShellSupported && _Attaching_.TryAdd(fileinfo.FullName, true))
+                if (IsShellSupported && _Attaching_.TryAdd(fileinfo.FullName, true) && await _CanAttaching_.WaitAsync(TimeSpan.FromSeconds(60)))
                 {
                     if (string.IsNullOrEmpty(id)) id = GetIllustId(fileinfo.Name);
                     var illust = id.FindIllust();
@@ -2441,9 +2445,14 @@ namespace PixivWPF.Common
                     //if (fileinfo.LastWriteTime.Ticks != dt.Ticks) fileinfo.LastWriteTime = dt;
                     //if (fileinfo.LastAccessTime.Ticks != dt.Ticks) fileinfo.LastAccessTime = dt;
                     _Attaching_.TryRemove(fileinfo.FullName, out result);
+                    result = true;
+#if DEBUG
+                    System.Diagnostics.Debug.WriteLine($"=> Touching Meta : {fileinfo.Name} Finished!");
+#endif
                 }
             }
             catch (Exception ex) { ex.ERROR($"AttachMetaInfo_{fileinfo.Name}"); }
+            finally { if (_CanAttaching_ is SemaphoreSlim && _CanAttaching_.CurrentCount < 5) _CanAttaching_.Release(); }
             return (result);
         }
 
@@ -2467,8 +2476,8 @@ namespace PixivWPF.Common
                             if (dt.Ticks > 0)
                             {
                                 var fi = new FileInfo(folder);
-                                AttachMetaInfo(fi, dt);
-                                Touch(fi, url, meta: false);
+                                var meta = await AttachMetaInfo(fi, dt);
+                                if (meta) Touch(fi, url, meta: false);
                             }
                         }
                     }
@@ -2522,8 +2531,8 @@ namespace PixivWPF.Common
                                     {
                                         if (!test)
                                         {
-                                            AttachMetaInfo(f, dt);
-                                            Touch(f, url, meta: false);
+                                            var meta = await AttachMetaInfo(f, dt);
+                                            if (meta) Touch(f, url, meta: false);
                                         }
                                         current_info.Result = $"{f.Name} processing successed";
                                     }
@@ -2637,15 +2646,18 @@ namespace PixivWPF.Common
                             {
                                 var fdt = url.ParseDateTime();
                                 if (fdt.Year <= 1601) return;
+                                var meta_ret = true;
                                 setting = Application.Current.LoadSetting();
-                                if (setting.DownloadAttachMetaInfo && meta && await fileinfo.WaitFileUnlockAsync())
+                                //if (setting.DownloadAttachMetaInfo && meta && await fileinfo.WaitFileUnlockAsync())
+                                if (setting.DownloadAttachMetaInfo && meta && fileinfo.WaitFileUnlock())
                                 {
-                                    fileinfo.AttachMetaInfo(dt: fdt);
+                                    meta_ret = await fileinfo.AttachMetaInfo(dt: fdt);
                                 }
-                                if (await fileinfo.WaitFileUnlockAsync())
+                                //if (await fileinfo.WaitFileUnlockAsync())
+                                if (meta_ret && fileinfo.WaitFileUnlock())
                                 {
 #if DEBUG
-                                    Debug.WriteLine($"=> Touching time : {fileinfo.Name}");
+                                    Debug.WriteLine($"=> Touching Time : {fileinfo.Name}");
 #endif
                                     if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
                                     if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
@@ -2705,6 +2717,22 @@ namespace PixivWPF.Common
         public static async void TouchAsync(this PixivItem item, bool local = false, bool meta = true)
         {
             await new Action(() => { Touch(item, local, meta); }).InvokeAsync();
+        }
+
+        public static async void TouchAsync(this IEnumerable<string> files, string url, bool local = false, bool meta = true)
+        {
+            foreach (var file in files)
+            {
+                await new Action(() => { Touch(file, url, local, meta); }).InvokeAsync();
+            }
+        }
+
+        public static async void TouchAsync(this IEnumerable<PixivItem> items, bool local = false, bool meta = true)
+        {
+            foreach (var item in items)
+            {
+                await new Action(() => { Touch(item, local, meta); }).InvokeAsync();
+            }
         }
         #endregion
 
@@ -3390,7 +3418,7 @@ namespace PixivWPF.Common
                         var files = Directory.EnumerateFiles(folder, $"{fn}_*.*").NaturalSort();
                         if (files.Count() > 0)
                         {
-                            if (touch) { foreach (var fc in files.Skip(1)) fc.Touch(url, meta: true); }
+                            if (touch) { files.Skip(1).TouchAsync(url, meta: true); }
                             filepath = files.First();
                             result = true;
                         }
@@ -4290,6 +4318,8 @@ namespace PixivWPF.Common
         #endregion
 
         #region Load/Save Image routines
+        private static ConcurrentDictionary<string, bool> _Downloading_ = new ConcurrentDictionary<string, bool>();
+
         public static async Task<CustomImageSource> LoadImageFromFile(this string file, Size size = default(Size))
         {
             CustomImageSource result = new CustomImageSource();
@@ -4350,42 +4380,47 @@ namespace PixivWPF.Common
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
-                setting = Application.Current.LoadSetting();
-                HttpResponseMessage response = null;
-                try
+                if (_Downloading_.TryAdd(file, true))
                 {
-                    HttpClient client = Application.Current.GetHttpClient(is_download: true);
-                    using (var request = Application.Current.GetHttpRequest(url))
+                    setting = Application.Current.LoadSetting();
+                    HttpResponseMessage response = null;
+                    try
                     {
-                        using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                        HttpClient client = Application.Current.GetHttpClient(is_download: true);
+                        using (var request = Application.Current.GetHttpRequest(url))
                         {
-                            //response.EnsureSuccessStatusCode();
-                            if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
+                            using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
                             {
-                                var length = response.Content.Headers.ContentLength ?? 0;
-                                var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
-                                var pos = range.From ?? 0;
-                                var Length = range.Length ?? 0;
-                                if (progressAction is Action<double, double>) progressAction.Invoke(0, Length);
-
-                                string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
-                                using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                                //response.EnsureSuccessStatusCode();
+                                if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
                                 {
-                                    var ret = await sr.WriteToFile(file, progressAction, range);
-                                    if (ret) result = file;
-                                    sr.Close();
-                                    sr.Dispose();
+                                    var length = response.Content.Headers.ContentLength ?? 0;
+                                    var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
+                                    var pos = range.From ?? 0;
+                                    var Length = range.Length ?? 0;
+                                    if (progressAction is Action<double, double>) progressAction.Invoke(0, Length);
+
+                                    string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
+                                    using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
+                                    {
+                                        var ret = await sr.WriteToFile(file, progressAction, range);
+                                        if (ret) result = file;
+                                        sr.Close();
+                                        sr.Dispose();
+                                    }
                                 }
+                                response.Dispose();
                             }
-                            response.Dispose();
+                            request.Dispose();
                         }
-                        request.Dispose();
                     }
-                }
-                catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
-                finally
-                {
-                    if (response is HttpResponseMessage) response.Dispose();
+                    catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
+                    finally
+                    {
+                        bool f = false;
+                        _Downloading_.TryRemove(file, out f);
+                        if (response is HttpResponseMessage) response.Dispose();
+                    }
                 }
             }
             return (result);
@@ -4397,24 +4432,32 @@ namespace PixivWPF.Common
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
                 if (tokens == null) tokens = await ShowLogin();
-                try
+                if (_Downloading_.TryAdd(file, true))
                 {
-                    using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
+                    try
                     {
-                        //response.Source.EnsureSuccessStatusCode();
-                        if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
+                        using (var response = await tokens.SendRequestAsync(Pixeez.MethodType.GET, url))
                         {
-                            using (var sr = await response.GetResponseStreamAsync())
+                            //response.Source.EnsureSuccessStatusCode();
+                            if (response != null && response.Source.StatusCode == HttpStatusCode.OK)
                             {
-                                if (await sr.WriteToFile(file)) result = file;
-                                sr.Close();
-                                sr.Dispose();
+                                using (var sr = await response.GetResponseStreamAsync())
+                                {
+                                    if (await sr.WriteToFile(file)) result = file;
+                                    sr.Close();
+                                    sr.Dispose();
+                                }
                             }
+                            response.Dispose();
                         }
-                        response.Dispose();
+                    }
+                    catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
+                    finally
+                    {
+                        bool f = false;
+                        _Downloading_.TryRemove(file, out f);
                     }
                 }
-                catch (Exception ex) { ex.ERROR($"DownloadImage_{Path.GetFileName(file)}"); }
             }
             return (result);
         }
@@ -5053,6 +5096,7 @@ namespace PixivWPF.Common
             public bool IsBookmarked { get; set; } = false;
             public string Restrict { get; set; } = string.Empty;
         }
+
         public static async Task<BookmarkState> RefreshIllustBookmarkState(this Pixeez.Objects.Work illust)
         {
             BookmarkState result = new BookmarkState();
@@ -5096,10 +5140,11 @@ namespace PixivWPF.Common
             var tokens = await ShowLogin();
             if (tokens == null) return (result);
 
+            bool ret = false;
             try
             {
                 var mode = pub ? "public" : "private";
-                var ret = await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, mode);
+                ret = await tokens.AddMyFavoriteWorksAsync((long)illust.Id, illust.Tags, mode);
                 if (!ret) return (result);
             }
             catch (Exception ex) { ex.ERROR("AddMyFavoriteWorksAsync"); }
@@ -5107,13 +5152,13 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    illust = await illust.RefreshIllust();
+                    if (ret) illust = await illust.RefreshIllust();
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
                         var info = "Liked";
-                        var title = result.Item1 ? "Succeed" : "Failed";
-                        var fail = result.Item1 ? "is" : "isn't";
+                        var title = ret && result.Item1 ? "Succeed" : "Failed";
+                        var fail = ret && result.Item1 ? "is" : "isn't";
                         var pub_like = pub ? "Public" : "Private";
                         $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl(), title, pub_like);
                     }
@@ -5194,6 +5239,7 @@ namespace PixivWPF.Common
             var tokens = await ShowLogin();
             if (tokens == null) return (result);
 
+            bool ret = false;
             try
             {
                 var works = await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id);
@@ -5205,7 +5251,7 @@ namespace PixivWPF.Common
                         if (id.Value == illust.Id.Value)
                         {
                             var work = ufw.Work;
-
+                            ret = true;
                             break;
                         }
                     }
@@ -5217,13 +5263,13 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    illust = await illust.RefreshIllust();
+                    if (ret) illust = await illust.RefreshIllust();
                     if (illust != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.Work>(illust.IsLiked(), illust);
                         var info = "Unliked";
-                        var title = result.Item1 ? "Failed" : "Succeed";
-                        var fail = result.Item1 ?  "isn't" : "is";
+                        var title = ret && result.Item1 ? "Failed" : "Succeed";
+                        var fail = ret && result.Item1 ?  "isn't" : "is";
                         $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl(), title);
                     }
                 }
@@ -5364,9 +5410,10 @@ namespace PixivWPF.Common
             var tokens = await ShowLogin();
             if (tokens == null) return (result);
 
+            bool ret = false;
             try
             {
-                var ret = await tokens.AddFollowUser(user.Id ?? -1, pub ? "public" : "private");
+                ret = await tokens.AddFollowUser(user.Id ?? -1, pub ? "public" : "private");
                 if (!ret) return (result);
             }
             catch (Exception ex) { ex.ERROR("LikeUser"); }
@@ -5374,13 +5421,13 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    user = await user.RefreshUser();
+                    if (ret) user = await user.RefreshUser();
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
                         var info = "Liked";
-                        var title = result.Item1 ? "Succeed" : "Failed";
-                        var fail = result.Item1 ?  "is" : "isn't";
+                        var title = ret && result.Item1 ? "Succeed" : "Failed";
+                        var fail = ret && result.Item1 ?  "is" : "isn't";
                         var pub_like = pub ? "Public" : "Private";
                         $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".ShowToast(title, user.GetAvatarUrl(), title, pub_like);
                     }
@@ -5468,9 +5515,10 @@ namespace PixivWPF.Common
             var tokens = await ShowLogin();
             if (tokens == null) return (result);
 
+            bool ret = false;
             try
             {
-                var ret = await tokens.DeleteFollowUser(user.Id ?? -1);
+                ret = await tokens.DeleteFollowUser(user.Id ?? -1);
                 if (!ret) return (result);
             }
             catch (Exception ex) { ex.ERROR("UnLikeUser"); }
@@ -5478,13 +5526,13 @@ namespace PixivWPF.Common
             {
                 try
                 {
-                    user = await user.RefreshUser();
+                    if (ret) user = await user.RefreshUser();
                     if (user != null)
                     {
                         result = new Tuple<bool, Pixeez.Objects.UserBase>(user.IsLiked(), user);
                         var info = "Unliked";
-                        var title = result.Item1 ? "Failed" : "Succeed";
-                        var fail = result.Item1 ?  "isn't" : "is";
+                        var title = ret && result.Item1 ? "Failed" : "Succeed";
+                        var fail = ret && result.Item1 ?  "isn't" : "is";
                         $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl(), title);
                     }
                 }
@@ -6209,7 +6257,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.Equals("ActionBar") && button.ActualWidth >= 32)
+                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.StartsWith("ActionBar") && button.ActualWidth >= 32)
                     button.Foreground = Theme.IdealForegroundBrush;
 
                 if ((button.Parent is Grid) && (button.Parent as Grid).Name.Equals("PopupContainer") && button.ActualWidth >= 24)
@@ -6225,7 +6273,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.Equals("ActionBar") && button.ActualWidth >= 32 && button.IsEnabled)
+                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.StartsWith("ActionBar") && button.ActualWidth >= 32 && button.IsEnabled)
                     button.Foreground = Theme.AccentBrush;
 
                 if ((button.Parent is Grid) && (button.Parent as Grid).Name.Equals("PopupContainer") && button.ActualWidth >= 24)
@@ -7324,6 +7372,34 @@ namespace PixivWPF.Common
                 return (list is IEnumerable<FileInfo> ? list.OrderBy(x => Regex.Replace(x.FullName, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
             }
             catch (Exception ex) { ex.ERROR("NaturalSort"); return (list); }
+        }
+
+        public static bool CanRelease(this SemaphoreSlim ss, int? max = null)
+        {
+            max = max ?? -1;
+            if (max <= 0)
+                return (ss is SemaphoreSlim && ss.CurrentCount >= 0);
+            else
+                return (ss is SemaphoreSlim && ss.CurrentCount >= 0 && ss.CurrentCount < max);
+        }
+
+        public static void Release(this SemaphoreSlim ss, bool all = false, int? max = null)
+        {
+            try
+            {
+                max = max ?? -1;
+                if (CanRelease(ss, max))
+                {
+                    if (all)
+                    {
+                        if (max > 0) ss.Release(max.Value - ss.CurrentCount);
+                        else { while (ss.Release() == -1) ; }
+                    }
+                    else { ss.Release(); }
+                }
+            }
+            catch (SemaphoreFullException) { }
+            catch (Exception ex) { ex.ERROR("SemaphoreSlimRelease"); }
         }
 
         public static void Dispose(this Image image)
