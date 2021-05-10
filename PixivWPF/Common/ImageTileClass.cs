@@ -1684,6 +1684,25 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static bool NoPage(this PixivItem item)
+        {
+            bool result = false;
+            try
+            {
+                if (item is PixivItem)
+                {
+                    if (item.ItemType == PixivItemType.Manga ||
+                        item.ItemType == PixivItemType.Work ||
+                        item.ItemType == PixivItemType.Works ||
+                        item.ItemType == PixivItemType.Page ||
+                        item.ItemType == PixivItemType.Pages)
+                        result = item.Illust is Pixeez.Objects.Work && item.Count == 1 ? true : false;
+                }
+            }
+            catch (Exception ex) { ex.ERROR(); }
+            return (result);
+        }
+
         public static bool IsManga(this PixivItem item)
         {
             bool result = false;

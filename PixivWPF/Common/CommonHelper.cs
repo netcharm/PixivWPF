@@ -4415,6 +4415,32 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        public static bool IsDownloading(this string file)
+        {
+            return (_Downloading_.ContainsKey(file));
+        }
+
+        public static Func<string, int, int, Task<bool>> WaitDownloadingFunc = async(file, interval, times) =>
+        {
+            bool exists = false;
+            int wait_count = times;
+            while (!File.Exists(file) && file.IsDownloading()) { wait_count--; await Task.Delay(interval); }
+            exists = File.Exists(file);
+            return(exists);
+        };
+
+        public static async Task<bool> WaitDownloading(this string file, int interval = 50, int times = 100)
+        {
+            bool exists = false;
+            if (!string.IsNullOrEmpty(file))
+            {
+                int wait_count = times;
+                while (!File.Exists(file) && file.IsDownloading()) { wait_count--; await Task.Delay(interval); }
+                exists = File.Exists(file);
+            }
+            return(exists );
+        }
+
         public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null)
         {
             var result = string.Empty;

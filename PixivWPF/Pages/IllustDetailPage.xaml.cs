@@ -2695,32 +2695,16 @@ namespace PixivWPF.Pages
             if (sender == PreviewOpenDownloaded || (sender is MenuItem && (sender as MenuItem).Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase)))
             {
                 if (SubIllusts.SelectedItems.Count == 0)
-                {
-                    IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
                     Commands.OpenDownloaded.Execute(Contents);
-                }
                 else
-                {
                     Commands.OpenDownloaded.Execute(SubIllusts);
-                }
             }
             else if (sender == PreviewOpen)
             {
-                if (SubIllusts.Items.Count() <= 0)
-                {
-                    if (Contents.IsWork())
-                    {
-                        IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
-                        Commands.OpenWorkPreview.Execute(Contents);
-                    }
-                }
+                if (SubIllusts.SelectedItems.Count == 0)
+                    Commands.OpenWorkPreview.Execute(Contents);
                 else
-                {
-                    if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
-                        SubIllusts.SelectedIndex = 0;
-                    IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
                     Commands.OpenWorkPreview.Execute(SubIllusts);
-                }
             }
             else if (sender == PreviewCacheOpen && Preview.Source != null)
             {
@@ -2728,21 +2712,10 @@ namespace PixivWPF.Pages
             }
             else if(sender == PreviewOpenDownloadedProperties)
             {
-                if (SubIllusts.Items.Count() <= 0)
-                {
-                    if (Contents.IsWork())
-                    {
-                        IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
-                        Commands.OpenFileProperties.Execute(Contents);
-                    }
-                }
+                if (SubIllusts.SelectedItems.Count == 0)
+                    Commands.OpenFileProperties.Execute(Contents);
                 else
-                {
-                    if (SubIllusts.SelectedItems == null || SubIllusts.SelectedItems.Count <= 0)
-                        SubIllusts.SelectedIndex = 0;
-                    IllustDownloaded.Visibility = Contents.IsDownloadedVisibility;
                     Commands.OpenFileProperties.Execute(SubIllusts);
-                }
             }
         }
 
@@ -3244,11 +3217,29 @@ namespace PixivWPF.Pages
             {
                 if (IllustDownloaded.Tag is string)
                 {
+                    e.Handled = true;
                     var fp = IllustDownloaded.Tag as string;
                     fp.OpenFileWithShell();
                 }
             }
             catch (Exception ex) { ex.ERROR(); }
+        }
+
+        private void IllustDownloaded_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            //e.RightButton == MouseButtonState.Released
+            if (e.ChangedButton == MouseButton.Right)
+            {
+                e.Handled = true;
+                if (IllustDownloaded.ToolTip is string)
+                    Commands.OpenFileProperties.Execute(IllustDownloaded.ToolTip);
+            }
+            else if (e.ChangedButton == MouseButton.Middle)
+            {
+                e.Handled = true;
+                if (IllustDownloaded.ToolTip is string)
+                    Commands.CopyText.Execute(IllustDownloaded.ToolTip);
+            }
         }
 
         private void IllustTagExpander_Expanded(object sender, RoutedEventArgs e)

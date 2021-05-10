@@ -581,6 +581,7 @@
                             <iconPacks:PackIconModern 
                                 x:Name="IllustDownloaded" Kind="Download" 
                                 Visibility="Collapsed"
+                                MouseDown="IllustDownloaded_MouseDown"
                                 MouseDoubleClick="IllustDownloaded_MouseDoubleClick"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 Background="Transparent"

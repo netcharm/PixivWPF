@@ -2086,7 +2086,7 @@ namespace PixivWPF.Common
                 try
                 {
                     var url = obj as Uri;
-                    if ((url.IsFile || url.IsUnc) && File.Exists(url.LocalPath)) url.LocalPath.OpenFileWithShell();
+                    if ((url.IsFile || url.IsUnc) && File.Exists(url.LocalPath)) url.LocalPath.OpenShellProperties();
                     else if (url.IsAbsoluteUri)
                     {
                         string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCachePath();
