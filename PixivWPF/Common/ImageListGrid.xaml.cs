@@ -1017,7 +1017,7 @@ namespace PixivWPF.Common
             }
         }
 
-        public async void UpdateTilesState(PixivItem work = null, long? id = -1, bool touch = true)
+        public async void UpdateTilesState(PixivItem work = null, long? id = -1, bool is_user = false, bool touch = true)
         {
             if (IsTileUpdating || IsBusy) return;
             if (Items is ObservableCollection<PixivItem> && Items.Count > 0)
@@ -1028,20 +1028,35 @@ namespace PixivWPF.Common
                     foreach (var item in Items)
                     {
                         if (item.Illust == null) continue;
-                        if ((work.IsWork() && item.ID.Equals(work.ID)) || item.Illust.Id == id || (id == -1 && work == null))
+                        if (item.IsWork())
                         {
-                            if (item.IsPage())
+                            if ((work.IsWork() && item.ID.Equals(work.ID)) ||
+                                (work.IsUser() && item.UserID.Equals(work.UserID)) ||
+                                (!is_user && item.Illust.Id == id) ||
+                                (is_user && item.User.Id == id) ||
+                                (id == -1 && work == null))
                             {
-                                bool download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(touch: touch);
-                                if (item.IsDownloaded != download) item.IsDownloaded = download;
+                                item.IsFavorited = item.Illust.IsLiked();
+                                item.IsFollowed = item.User.IsLiked();
+
+                                if (item.IsPage())
+                                {
+                                    bool download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(touch: touch);
+                                    if (item.IsDownloaded != download) item.IsDownloaded = download;
+                                }
+                                else if (item.IsWork())
+                                {
+                                    bool part_down = item.Illust.IsPartDownloadedAsync(touch: touch);
+                                    if (item.IsPartDownloaded != part_down) item.IsPartDownloaded = part_down;
+                                    if (item.IsDownloaded != part_down) item.IsDownloaded = part_down;
+                                }
                             }
-                            else if (item.IsWork())
-                            {
-                                bool part_down = item.Illust.IsPartDownloadedAsync(touch: touch);
-                                if (item.IsPartDownloaded != part_down) item.IsPartDownloaded = part_down;
-                                if (item.IsDownloaded != part_down) item.IsDownloaded = part_down;
-                            }
-                            item.IsFavorited = item.IsDisplayFavMark && item.IsLiked();
+                        }
+                        else if (item.IsUser())
+                        {
+                            if ((work.HasUser() && item.UserID.Equals(work.UserID)) ||
+                                (is_user && item.User.Id == id) || (id == -1 && work == null))
+                                item.IsFollowed = item.User.IsLiked();
                         }
                         this.DoEvents();
                     }

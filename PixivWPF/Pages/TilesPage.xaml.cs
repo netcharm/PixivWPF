@@ -127,7 +127,7 @@ namespace PixivWPF.Pages
         {
             if (ImageTiles.Items is ObservableCollection<PixivItem>)
             {
-                ImageTiles.UpdateTilesState(id: illustid);
+                ImageTiles.UpdateTilesState(id: illustid, is_user: is_user);
             }
         }
 

@@ -3574,31 +3574,55 @@ namespace PixivWPF.Common
             while (!IsFileReady(filename)) { }
         }
 
-        public static bool WaitFileUnlock(this FileInfo file, int interval = 50, int times = 20)
+        public static bool WaitFileUnlock(this FileInfo file, int interval = 50, int times = 20, dynamic timeout = null)
         {
+            if (timeout is int && (int)timeout > 0) times = (int)Math.Ceiling(((int)timeout) * 1000.0 / interval);
+            else if (timeout is TimeSpan && ((TimeSpan)timeout).Ticks > 0) times = (int)Math.Ceiling(((TimeSpan)timeout).TotalMilliseconds / interval);
+
             int wait_count = times;
             while (file.IsLocked() && wait_count > 0) { wait_count--; Task.Delay(interval).GetAwaiter().GetResult(); }
             return (true);
         }
 
-        public static bool WaitFileUnlock(this string filename, int interval = 50, int times = 20)
+        public static bool WaitFileUnlock(this string filename, int interval = 50, int times = 20, dynamic timeout = null)
         {
+            if (timeout is int && (int)timeout > 0) times = (int)Math.Ceiling(((int)timeout) * 1000.0 / interval);
+            else if (timeout is TimeSpan && ((TimeSpan)timeout).Ticks > 0) times = (int)Math.Ceiling(((TimeSpan)timeout).TotalMilliseconds / interval);
+
             int wait_count = times;
             while (filename.IsLocked() && wait_count > 0) { wait_count--; Task.Delay(interval).GetAwaiter().GetResult(); }
             return (true);
         }
 
-        public static async Task<bool> WaitFileUnlockAsync(this FileInfo file, int interval = 50, int times = 20)
+        public static async Task<bool> WaitFileUnlockAsync(this FileInfo file, int interval = 50, int times = 20, dynamic timeout = null)
         {
+            if (timeout is int && (int)timeout > 0) times = (int)Math.Ceiling(((int)timeout) * 1000.0 / interval);
+            else if (timeout is TimeSpan && ((TimeSpan)timeout).Ticks > 0) times = (int)Math.Ceiling(((TimeSpan)timeout).TotalMilliseconds / interval);
+
             int wait_count = times;
-            while (file.IsLocked() && wait_count > 0) { wait_count--; await Task.Delay(interval); }
+            while (file.IsLocked() && wait_count > 0)
+            {
+                wait_count--;
+                var t = Task.Delay(interval);
+                await t.ConfigureAwait(false);
+                t.Dispose();
+            }
             return (true);
         }
 
-        public static async Task<bool> WaitFileUnlockAsync(this string filename, int interval = 50, int times = 20)
+        public static async Task<bool> WaitFileUnlockAsync(this string filename, int interval = 50, int times = 20, dynamic timeout = null)
         {
+            if (timeout is int && (int)timeout > 0) times = (int)Math.Ceiling(((int)timeout) * 1000.0 / interval);
+            else if (timeout is TimeSpan && ((TimeSpan)timeout).Ticks > 0) times = (int)Math.Ceiling(((TimeSpan)timeout).TotalMilliseconds / interval);
+
             int wait_count = times;
-            while (filename.IsLocked() && wait_count > 0) { wait_count--; await Task.Delay(interval); }
+            while (filename.IsLocked() && wait_count > 0)
+            {
+                wait_count--;
+                var t = Task.Delay(interval);
+                await t.ConfigureAwait(true);
+                t.Dispose();
+            }
             return (true);
         }
 
@@ -4417,25 +4441,57 @@ namespace PixivWPF.Common
 
         public static bool IsDownloading(this string file)
         {
-            return (_Downloading_.ContainsKey(file));
+            return (_Downloading_ is ConcurrentDictionary<string, bool> && _Downloading_.ContainsKey(file));
         }
 
-        public static Func<string, int, int, Task<bool>> WaitDownloadingFunc = async(file, interval, times) =>
+        public static void ClearDownloading(this string file)
+        {
+            if (_Downloading_ is ConcurrentDictionary<string, bool> && _Downloading_.ContainsKey(file))
+            {
+                bool f = false;
+                _Downloading_.TryRemove(file, out f);
+            }
+        }
+
+        public static Func<string, int, TimeSpan, Task<bool>> WaitDownloadingFunc = async(file, interval, timeout) =>
         {
             bool exists = false;
-            int wait_count = times;
-            while (!File.Exists(file) && file.IsDownloading()) { wait_count--; await Task.Delay(interval); }
+            int wait_count = timeout.Ticks > 0 ? (int)Math.Ceiling(timeout.TotalMilliseconds / interval) : 100;
+            while (file.IsDownloading() && wait_count > 0)
+            {
+                wait_count--;
+                var t = Task.Delay(interval);
+                await t.ConfigureAwait(false);
+                t.Dispose();
+            }
             exists = File.Exists(file);
             return(exists);
         };
 
-        public static async Task<bool> WaitDownloading(this string file, int interval = 50, int times = 100)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file">file to downloading</param>
+        /// <param name="interval">unit: miliseconds, default: 100ms</param>
+        /// <param name="times">unit: none, default: 100 times</param>
+        /// <param name="timeout">unit: miliseconds or TimeSpan, default: null</param>
+        /// <returns></returns>
+        public static async Task<bool> WaitDownloading(this string file, int interval = 100, int times = 100, dynamic timeout = null)
         {
             bool exists = false;
             if (!string.IsNullOrEmpty(file))
             {
+                if (timeout is int && (int)timeout > 0) times = (int)Math.Ceiling(((int)timeout) * 1000.0 / interval);
+                else if (timeout is TimeSpan && ((TimeSpan)timeout).Ticks > 0) times = (int)Math.Ceiling(((TimeSpan)timeout).TotalMilliseconds / interval);
+
                 int wait_count = times;
-                while (!File.Exists(file) && file.IsDownloading()) { wait_count--; await Task.Delay(interval); }
+                while (file.IsDownloading() && wait_count > 0)
+                {
+                    wait_count--;
+                    var t = Task.Delay(interval);
+                    await t.ConfigureAwait(true);
+                    t.Dispose();                    
+                }
                 exists = File.Exists(file);
             }
             return(exists );

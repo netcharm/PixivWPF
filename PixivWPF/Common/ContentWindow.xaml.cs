@@ -228,7 +228,7 @@ namespace PixivWPF.Common
             {
                 if (!e.Cancel)
                 {
-                    var name = Content is Page ? (Content as Page).Name ?? (Content as Page).GetType().Name : Content.GetType().Name;
+                    var name = Content is Page ? (Content as Page).Name ?? (Content as Page).GetType().Name : Title;
                     Content = null;
                     Application.Current.GC(name: name, wait: true);
                 }
