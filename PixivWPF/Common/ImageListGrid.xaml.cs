@@ -1025,9 +1025,24 @@ namespace PixivWPF.Common
                 try
                 {
                     //foreach (var item in SelectedItems.Count > 0 ? SelectedItems : Items)
+                    var thumb_size = Application.Current.GetDefaultThumbSize();
                     foreach (var item in Items)
                     {
                         if (item.Illust == null) continue;
+
+                        if (item.Source == null)
+                        {
+                            new Action(async () =>
+                            {
+                                var thumb = await item.Illust.GetThumbnailUrl(item.Index).LoadImageFromUrl(size: thumb_size);
+                                if (thumb is CustomImageSource && thumb.Source != null)
+                                {
+                                    item.Source = thumb.Source;
+                                    item.State = TaskStatus.RanToCompletion;
+                                }
+                            }).Invoke(async: true);
+                        }
+
                         if (item.IsWork())
                         {
                             if ((work.IsWork() && item.ID.Equals(work.ID)) ||

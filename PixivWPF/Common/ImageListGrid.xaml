@@ -75,8 +75,8 @@
                     Width="24" Height="24" Margin="0,0,8,8" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom" 
                     Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                    Visibility="{Binding FavMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}"
-                    TargetUpdated="TileImage_TargetUpdated"/>
+                    Visibility="{Binding FavMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}"/>
+                <!--TargetUpdated="TileImage_TargetUpdated"/>-->
                 <!-- Follow Mark -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0" x:Name="PART_Follow" 
@@ -84,8 +84,8 @@
                     Width="12" Height="12" Margin="0,0,14,14" 
                     HorizontalAlignment="Right" VerticalAlignment="Bottom"
                     Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" Effect="{DynamicResource DropMark}"
-                    Visibility="{Binding FollowMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}"
-                    TargetUpdated="TileImage_TargetUpdated" />
+                    Visibility="{Binding FollowMarkVisibility, Mode=OneWay, NotifyOnTargetUpdated=True}"/>
+                <!--TargetUpdated="TileImage_TargetUpdated" />-->
                 <!-- Download Mark Glow -->
                 <iconPacks:PackIconModern 
                     Grid.Row="0"

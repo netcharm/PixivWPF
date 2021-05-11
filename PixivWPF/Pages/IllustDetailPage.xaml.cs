@@ -2382,11 +2382,13 @@ namespace PixivWPF.Pages
                     var state = PrefetchingImagesTask.State;
                     if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
                     if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) UpdateThumb(prefetching: false);
                 },
                 ReportProgress = (percent, tooltip, state) =>
                 {
                     if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
                     if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) UpdateThumb(prefetching: false);
                 }
             };
             #endregion

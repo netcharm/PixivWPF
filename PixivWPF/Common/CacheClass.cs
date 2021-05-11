@@ -96,7 +96,7 @@ namespace PixivWPF.Common
             else
             {
                 file = GetImagePath(url);
-                if (file.IsDownloading() && await file.WaitDownloading(timeout: 30)) result = await file.LoadImageFromFile(size);
+                if (file.IsDownloading() && await file.WaitDownloading(timeout: TimeSpan.FromSeconds(30))) result = await file.LoadImageFromFile(size);
                 if (result.Source == null || string.IsNullOrEmpty(result.SourcePath))
                 {
                     var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite, progressAction);
@@ -126,7 +126,7 @@ namespace PixivWPF.Common
             if (string.IsNullOrEmpty(file))
             { 
                 file = GetImagePath(url);
-                if (file.IsDownloading() && await file.WaitDownloading(timeout: 30)) result = file;
+                if (file.IsDownloading() && await file.WaitDownloading(timeout: TimeSpan.FromSeconds(30))) result = file;
                 if (string.IsNullOrEmpty(result))
                 {
                     var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite);

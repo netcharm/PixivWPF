@@ -4360,7 +4360,7 @@ namespace PixivWPF.Common
                     var folder = Path.GetDirectoryName(file);
                     if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 
-                    if (await file.WaitFileUnlockAsync(1000, 10))
+                    if (!File.Exists(file) || await file.WaitFileUnlockAsync(1000, 10))
                     {
                         using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
                         {
@@ -4368,7 +4368,6 @@ namespace PixivWPF.Common
                             await fs.FlushAsync();
                             fs.Close();
                             fs.Dispose();
-                            result = true;
                         }
                     }
                     if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
@@ -4377,6 +4376,8 @@ namespace PixivWPF.Common
                 ms.Close();
                 ms.Dispose();
             }
+            try { result = File.Exists(file); }
+            catch(Exception ex) { ex.ERROR("WriteToFile"); }
             return (result);
         }
         #endregion

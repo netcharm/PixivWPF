@@ -579,10 +579,12 @@ namespace PixivWPF.Pages
                     var tooltip = PrefetchingImagesTask.Comments;
                     var state = PrefetchingImagesTask.State;
                     if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) ImageTiles.UpdateTilesImage();
                 },
                 ReportProgress = (percent, tooltip, state) =>
                 {
                     if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) ImageTiles.UpdateTilesImage();
                 }
             };
 

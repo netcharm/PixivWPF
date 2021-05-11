@@ -2604,12 +2604,12 @@ namespace PixivWPF.Common
                     var cmd_name = hotkey.Name ?? hotkey.DisplayName ?? hotkey.Description ?? hotkey.DisplayDescription ?? "UNKNOWN";
                     if (hotkey.Keys == System.Windows.Forms.Keys.None)
                     {
-                        $"Command \"{cmd_name}\" not binding to any hotkey.".INFO();
+                        $"Command \"{cmd_name}\" not binding to any hotkey.".DEBUG();
                     }
                     else
                     {
                         var key = Key2String(hotkey.Keys);
-                        $"Command \"{cmd_name}\" binding to hotkey \"{key}\"...".INFO();
+                        $"Command \"{cmd_name}\" binding to hotkey \"{key}\"...".DEBUG();
                         BindHotkey(app, cmd_name, hotkey.Keys, hotkey.Command);
                     }
                 }
