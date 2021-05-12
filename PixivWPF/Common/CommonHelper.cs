@@ -2104,8 +2104,8 @@ namespace PixivWPF.Common
             else if (v >= VALUE_MB) { v_str = $"{v / factor / VALUE_MB:F2}"; u_str = "MB/s"; }
             else if (v >= VALUE_KB) { v_str = $"{v / factor / VALUE_KB:F2}"; u_str = "KB/s"; }
             else { v_str = $"{v / factor:F2}"; u_str = "B/s"; }
-            var vs = (trimzero ? v_str.Trim('0').TrimEnd('.') : v_str).PadLeft(padleft);
-            return (unit ? $"{vs} {u_str}" : vs);
+            var vs = trimzero ? v_str.Trim('0').TrimEnd('.') : v_str;
+            return ((unit ? $"{vs} {u_str}" : vs).PadLeft(padleft));
         }
 
         public static Func<double, string> SmartFileSizeFunc = (v) => { return(SmartFileSize(v)); };
@@ -2121,8 +2121,8 @@ namespace PixivWPF.Common
             else if (v >= VALUE_MB) { v_str = $"{v / factor / VALUE_MB:F2}"; u_str = "MB"; }
             else if (v >= VALUE_KB) { v_str = $"{v / factor / VALUE_KB:F2}"; u_str = "KB"; }
             else { v_str = $"{v / factor:F0}"; u_str = "B"; }
-            var vs = (trimzero && !u_str.Equals("B") ? v_str.Trim('0').TrimEnd('.') : v_str).PadLeft(padleft);
-            return (unit ? $"{vs} {u_str}" : vs);
+            var vs = trimzero && !u_str.Equals("B") ? v_str.Trim('0').TrimEnd('.') : v_str;
+            return ((unit ? $"{vs} {u_str}" : vs).PadLeft(padleft));
         }
 
         public static string SmartElapsed(this TimeSpan delta, bool msec = true, bool unit = false, bool trimzero = true, int padleft = 0)
@@ -2133,8 +2133,8 @@ namespace PixivWPF.Common
             else if (delta.TotalMinutes >= 1) elapsed = $"{delta.Minutes:00}:{delta.Seconds:00}";
             else if (delta.TotalSeconds >= 1) elapsed = $"{delta.Seconds}";
             var ms_str = msec ? $".{delta.Milliseconds:000}" : string.Empty;
-            elapsed = (trimzero && msec ? $"{elapsed}{ms_str}".TrimEnd('0').TrimEnd('.') : $"{elapsed}{ms_str}").PadLeft(padleft);
-            return (unit ? $"{elapsed} s" : elapsed);
+            elapsed = trimzero && msec ? $"{elapsed}{ms_str}".TrimEnd('0').TrimEnd('.') : $"{elapsed}{ms_str}";
+            return ((unit ? $"{elapsed} s" : elapsed).PadLeft(padleft));
         }
         #endregion
 
