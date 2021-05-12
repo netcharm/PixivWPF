@@ -153,6 +153,54 @@ namespace PixivWPF.Pages
         private double down_last_received = 0;
         private Queue<double> down_rate = new Queue<double>(down_rate_mv);
         private Action<double, double> reportProgress = null;
+
+        private void InitProgressAction()
+        {
+            if (reportProgress == null)
+            {
+                // no progress ring display in below action
+                reportProgress = (received, length) =>
+                {
+                    var down_now = DateTime.Now;
+                    if (received == 0 && length > 0) { down_last_report = down_now; }
+                    down_lastelapsed = down_now - down_last_report;
+                    down_totalelapsed = down_now - down_start;
+                    var diff_t = down_lastelapsed.TotalSeconds;
+                    if (diff_t >= 0.1)
+                    {
+                        var diff_b = Math.Max(0, received - down_last_received);
+                        var rate_n = diff_b / diff_t ;
+                        if (diff_b > 0) down_rate.Enqueue(rate_n);
+                        if (down_rate.Count > down_rate_mv) down_rate.Dequeue();
+                        down_last_received = received;
+                        down_last_report = down_now;
+                        //System.Diagnostics.Debug.WriteLine($"{diff_b} b, {diff_t} s, {rate_n} b/s");
+                    }
+                    var rate_c = down_rate.Count > 0 ? down_rate.Average(o => double.IsNaN(o) || o < 0 ? 0 : o) : 0;
+                    var rate_a = received / down_totalelapsed.TotalSeconds;
+                    var rate_cs = rate_c.SmartSpeedRate();
+                    var rate_as = rate_a.SmartSpeedRate();
+                    if (rate_cs.Length > rate_as.Length) rate_as = rate_a.SmartSpeedRate(padleft: rate_cs.Length);
+                    else if (rate_cs.Length < rate_as.Length) rate_cs = rate_c.SmartSpeedRate(padleft: rate_as.Length);
+                    var speed = $"Speed (rts.): {rate_cs}{Environment.NewLine}Speed (avg.): {rate_as}";
+                    var elapsed = $"Elapsed Time: {down_totalelapsed.SmartElapsed()} s";
+
+                    var percent = length <= 0 ? 0 : received / length * 100;
+                    var state = received == length ? TaskStatus.RanToCompletion : received < length ? TaskStatus.Running : TaskStatus.Faulted;
+                    var state_info = "Idle";
+                    if (state == TaskStatus.Running) state_info = "Downloading";
+                    else if (state == TaskStatus.RanToCompletion || received >= length) state_info = "Finished";                   
+                    else state_info = "Failed";
+                    var info = $"{state_info.PadRight(12, ' ')}: {received} B / {length} B, {received.SmartFileSize(trimzero: false)} / {length.SmartFileSize(trimzero: false)}";
+                    var tooltip = string.Join(Environment.NewLine, new string[] { info, speed, elapsed });
+
+                    if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                    //if (PreviewWait.ReportPercentage is Action<double, double>) PreviewWait.ReportPercentage.Invoke(received, length);
+                    if (PreviewWait.ReportPercentageSlim is Action<double>) PreviewWait.ReportPercentageSlim.Invoke(percent);
+                };
+            }
+        }
+
         private async Task<CustomImageSource> GetPreviewImage(bool overwrite = false)
         {
             CustomImageSource img = new CustomImageSource();
@@ -168,46 +216,7 @@ namespace PixivWPF.Pages
                 down_last_report = DateTime.Now;
                 down_start = DateTime.Now;
 
-                if (reportProgress == null)
-                {
-                    // no progress ring display in below action
-                    reportProgress = (received, length) =>
-                    {
-                        var down_now = DateTime.Now;
-                        if (received == 0 && length > 0) { down_last_report = down_now; }
-                        down_lastelapsed = down_now - down_last_report;
-                        down_totalelapsed = down_now - down_start;
-                        var diff_t = down_lastelapsed.TotalSeconds;
-                        if (diff_t >= 0.1)
-                        {
-                            var diff_b = Math.Max(0, received - down_last_received);
-                            var rate_n = diff_b / diff_t ;
-                            if (diff_b > 0) down_rate.Enqueue(rate_n);
-                            if (down_rate.Count > down_rate_mv) down_rate.Dequeue();
-                            down_last_received = received;
-                            down_last_report = down_now;
-                            //System.Diagnostics.Debug.WriteLine($"{diff_b} b, {diff_t} s, {rate_n} b/s");
-                        }
-                        var rate_c = down_rate.Count > 0 ? down_rate.Average(o => double.IsNaN(o) || o < 0 ? 0 : o) : 0;
-                        var rate_a = received / down_totalelapsed.TotalSeconds;
-                        var speed = $"Speed (rts.): {rate_c.SmartSpeedRate()}{Environment.NewLine}Speed (avg.): {rate_a.SmartSpeedRate()}";
-                        var elapsed = $"Elapsed Time: {down_totalelapsed.SmartElapsed()} s";
-
-                        var percent = length <= 0 ? 0 : received / length * 100;
-                        var state = received == length ? TaskStatus.RanToCompletion : TaskStatus.Running;
-                        var state_info = "Idle";
-                        if (state == TaskStatus.Running) state_info = "Downloading";
-                        else if (state == TaskStatus.RanToCompletion) state_info = "Finished";
-                        else if (received > length) state_info = "Finished";
-                        else state_info = "Failed";
-                        var info = $"{state_info.PadRight(12, ' ')}: {received} B / {length} B, {received.SmartFileSize()} / {length.SmartFileSize()}";
-                        var tooltip = string.Join(Environment.NewLine, new string[] { info, speed, elapsed });
-
-                        if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
-                        //if (PreviewWait.ReportPercentage is Action<double, double>) PreviewWait.ReportPercentage.Invoke(received, length);
-                        if (PreviewWait.ReportPercentageSlim is Action<double>) PreviewWait.ReportPercentageSlim.Invoke(percent);
-                    };
-                }
+                InitProgressAction();
 
                 PreviewWait.Show();
 
@@ -572,6 +581,8 @@ namespace PixivWPF.Pages
                 //PreviewWait.ReloadAction = new Action(() => {
                 //    UpdateDetail(Contents, Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control);
                 //});
+
+                InitProgressAction();
 
                 var titleheight = ParentWindow is MetroWindow ? (ParentWindow as MetroWindow).TitleBarHeight : 0;
                 ParentWindow.Width += ParentWindow.BorderThickness.Left + ParentWindow.BorderThickness.Right;

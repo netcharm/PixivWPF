@@ -111,7 +111,7 @@ namespace PixivWPF.Common
             get { return (FavMarkVisibility == Visibility.Visible ? true : Illust.IsLiked()); }
             set
             {
-                if (value) FavMarkVisibility = Visibility.Visible;
+                if (IsDisplayFavMark && value) FavMarkVisibility = Visibility.Visible;
                 else FavMarkVisibility = Visibility.Collapsed;
                 NotifyPropertyChanged("FavMarkVisibility");
             }
@@ -128,7 +128,7 @@ namespace PixivWPF.Common
             get { return (FollowMarkVisibility == Visibility.Visible ? true : User.IsLiked()); }
             set
             {
-                if (value) FollowMarkVisibility = Visibility.Visible;
+                if (IsDisplayFavMark && value) FollowMarkVisibility = Visibility.Visible;
                 else FollowMarkVisibility = Visibility.Collapsed;
                 NotifyPropertyChanged("FollowMarkVisibility");
             }

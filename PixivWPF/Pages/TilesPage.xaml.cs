@@ -547,6 +547,28 @@ namespace PixivWPF.Pages
 
         #region Prefetching background task
         private PrefetchingTask PrefetchingImagesTask = null;
+
+        private void InitPrefetchingTask()
+        {
+            if (PrefetchingImagesTask == null) PrefetchingImagesTask = new PrefetchingTask()
+            {
+                Name = "TilesPrefetching",
+                Items = ImageTiles.Items,
+                ReportProgressSlim = () =>
+                {
+                    var percent = PrefetchingImagesTask.Percentage;
+                    var tooltip = PrefetchingImagesTask.Comments;
+                    var state = PrefetchingImagesTask.State;
+                    if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) ImageTiles.UpdateTilesImage();
+                },
+                ReportProgress = (percent, tooltip, state) =>
+                {
+                    if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) ImageTiles.UpdateTilesImage();
+                }
+            };
+        }
         #endregion
 
         public void Dispose()
@@ -569,24 +591,7 @@ namespace PixivWPF.Pages
             UpdateTheme();
             this.DoEvents();
 
-            if (PrefetchingImagesTask == null) PrefetchingImagesTask = new PrefetchingTask()
-            {
-                Name = "TilesPrefetching",
-                Items = ImageTiles.Items,
-                ReportProgressSlim = () =>
-                {
-                    var percent = PrefetchingImagesTask.Percentage;
-                    var tooltip = PrefetchingImagesTask.Comments;
-                    var state = PrefetchingImagesTask.State;
-                    if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) ImageTiles.UpdateTilesImage();
-                },
-                ReportProgress = (percent, tooltip, state) =>
-                {
-                    if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) ImageTiles.UpdateTilesImage();
-                }
-            };
+            InitPrefetchingTask();
 
             ids.Clear();
             ImageTiles.AutoGC = true;
@@ -618,6 +623,7 @@ namespace PixivWPF.Pages
             if (ParentWindow is MainWindow) ParentWindow.UpdateTitle(target.ToString());
             this.DoEvents();
 
+            InitPrefetchingTask();
             if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
 
             if (TargetPage != target)

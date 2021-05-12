@@ -2094,65 +2094,46 @@ namespace PixivWPF.Common
 
         public static Func<double, string> SmartSpeedRateFunc = (v) => { return(SmartSpeedRate(v)); };
 
-        public static string SmartSpeedRate(this long v, double factor = 1, bool unit = true) { return (SmartSpeedRate((double)v, factor, unit)); }
+        public static string SmartSpeedRate(this long v, double factor = 1, bool unit = true, int padleft = 0) { return (SmartSpeedRate((double)v, factor, unit, padleft: padleft)); }
 
-        public static string SmartSpeedRate(this double v, double factor = 1, bool unit = true, bool trimzero = false)
+        public static string SmartSpeedRate(this double v, double factor = 1, bool unit = true, bool trimzero = false, int padleft = 0)
         {
             string v_str = string.Empty;
-            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) v_str = $"0 B/s";
-            else if (v >= VALUE_MB) v_str = $"{v / factor / VALUE_MB:F2} MB/s";
-            else if (v >= VALUE_KB) v_str = $"{v / factor / VALUE_KB:F2} KB/s";
-            else v_str = $"{v / factor:F2} B/s";
-            if (trimzero)
-            {
-                var vs = v_str.Split().Select(s => s.Trim('0').TrimEnd('.'));
-                return (unit ? string.Join(" ", vs) : vs.First());
-            }
-            else
-            {
-                var vs = v_str.Split().Select(s => s.TrimEnd('.'));
-                return (unit ? string.Join(" ", vs) : vs.First());
-            }
+            string u_str = string.Empty;
+            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) { v_str = "0"; u_str = "B/s"; }
+            else if (v >= VALUE_MB) { v_str = $"{v / factor / VALUE_MB:F2}"; u_str = "MB/s"; }
+            else if (v >= VALUE_KB) { v_str = $"{v / factor / VALUE_KB:F2}"; u_str = "KB/s"; }
+            else { v_str = $"{v / factor:F2}"; u_str = "B/s"; }
+            var vs = (trimzero ? v_str.Trim('0').TrimEnd('.') : v_str).PadLeft(padleft);
+            return (unit ? $"{vs} {u_str}" : vs);
         }
 
         public static Func<double, string> SmartFileSizeFunc = (v) => { return(SmartFileSize(v)); };
 
-        public static string SmartFileSize(this long v, double factor = 1, bool unit = true) { return (SmartFileSize((double)v, factor, unit)); }
+        public static string SmartFileSize(this long v, double factor = 1, bool unit = true, int padleft = 0) { return (SmartFileSize((double)v, factor, unit, padleft: padleft)); }
 
-        public static string SmartFileSize(this double v, double factor = 1, bool unit = true, bool trimzero = true)
+        public static string SmartFileSize(this double v, double factor = 1, bool unit = true, bool trimzero = true, int padleft = 0)
         {
             string v_str = string.Empty;
-            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) v_str = $"0 B";
-            else if (v >= VALUE_GB) v_str = $"{v / factor / VALUE_GB:F2} GB";
-            else if (v >= VALUE_MB) v_str = $"{v / factor / VALUE_MB:F2} MB";
-            else if (v >= VALUE_KB) v_str = $"{v / factor / VALUE_KB:F2} KB";
-            else v_str = $"{v / factor:F0} B";
-            if (trimzero)
-            {
-                var vs = v_str.Split().Select(s => s.Trim('0').TrimEnd('.'));
-                return (unit ? string.Join(" ", vs) : vs.First());
-            }
-            else
-            {
-                var vs = v_str.Split().Select(s => s.TrimEnd('.'));
-                return (unit ? string.Join(" ", vs) : vs.First());
-            }
+            string u_str = string.Empty;
+            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) { v_str = "0"; u_str = "B"; }
+            else if (v >= VALUE_GB) { v_str = $"{v / factor / VALUE_GB:F2}"; u_str = "GB"; }
+            else if (v >= VALUE_MB) { v_str = $"{v / factor / VALUE_MB:F2}"; u_str = "MB"; }
+            else if (v >= VALUE_KB) { v_str = $"{v / factor / VALUE_KB:F2}"; u_str = "KB"; }
+            else { v_str = $"{v / factor:F0}"; u_str = "B"; }
+            var vs = (trimzero && !u_str.Equals("B") ? v_str.Trim('0').TrimEnd('.') : v_str).PadLeft(padleft);
+            return (unit ? $"{vs} {u_str}" : vs);
         }
 
-        public static string SmartElapsed(this TimeSpan delta, bool msec = true, bool unit = false, bool trimzero = true)
+        public static string SmartElapsed(this TimeSpan delta, bool msec = true, bool unit = false, bool trimzero = true, int padleft = 0)
         {
             var elapsed = "0";
             if (delta.TotalDays >= 1) elapsed = $"{delta.TotalHours:F0}:{delta.Minutes:00}:{delta.Seconds:00}";
             else if (delta.TotalHours >= 1) elapsed = $"{delta.Hours:00}:{delta.Minutes:00}:{delta.Seconds:00}";
             else if (delta.TotalMinutes >= 1) elapsed = $"{delta.Minutes:00}:{delta.Seconds:00}";
             else if (delta.TotalSeconds >= 1) elapsed = $"{delta.Seconds}";
-            if (msec)
-            {
-                if (trimzero)
-                    elapsed = $"{elapsed}.{delta.Milliseconds:000}".TrimEnd('0').TrimEnd('.');
-                else
-                    elapsed = $"{elapsed}.{delta.Milliseconds:000}".TrimEnd('.');
-            }
+            var ms_str = msec ? $".{delta.Milliseconds:000}" : string.Empty;
+            elapsed = (trimzero && msec ? $"{elapsed}{ms_str}".TrimEnd('0').TrimEnd('.') : $"{elapsed}{ms_str}").PadLeft(padleft);
             return (unit ? $"{elapsed} s" : elapsed);
         }
         #endregion
@@ -3291,7 +3272,7 @@ namespace PixivWPF.Common
                         }
                     }
                 }
-                if (touch && !string.IsNullOrEmpty(filepath)) filepath.Touch(url, meta: true);
+                if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: true);
             }
             catch (Exception ex) { ex.ERROR("IsDownloaded"); }
             return (result);
@@ -3411,7 +3392,6 @@ namespace PixivWPF.Common
             try
             {
                 var file_s = url.GetImageName(true);
-                var file_m = url.GetImageName(false);
                 foreach (var local in setting.LocalStorage)
                 {
                     if (string.IsNullOrEmpty(local.Folder)) continue;
@@ -3419,40 +3399,18 @@ namespace PixivWPF.Common
                     var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
                     if (Directory.Exists(folder))
                     {
-                        //folder.UpdateDownloadedListCacheAsync(local.Cached);
-
                         var f_s = Path.Combine(folder, file_s);
-                        var f_m = Path.Combine(folder, file_m);
-                        if (local.Cached)
+                        if (local.Cached && f_s.DownloadedCacheExistsAsync())
                         {
-                            if (f_s.DownloadedCacheExistsAsync())
-                            {
-                                filepath = f_s;
-                                result = true;
-                                break;
-                            }
-                            else if (f_m.DownloadedCacheExistsAsync())
-                            {
-                                filepath = f_m;
-                                result = true;
-                                break;
-                            }
+                            filepath = f_s;
+                            result = true;
                         }
-                        else
+                        else if (File.Exists(f_s))
                         {
-                            if (File.Exists(f_s))
-                            {
-                                filepath = f_s;
-                                result = true;
-                                break;
-                            }
-                            else if (File.Exists(f_m))
-                            {
-                                filepath = f_m;
-                                result = true;
-                                break;
-                            }
+                            filepath = f_s;
+                            result = true;
                         }
+                        if (result) break;
 
                         var fn = Path.GetFileNameWithoutExtension(file_s);
                         var files = Directory.EnumerateFiles(folder, $"{fn}_*.*").NaturalSort();
@@ -3465,7 +3423,7 @@ namespace PixivWPF.Common
                     }
                     if (result) break;
                 }
-                if (touch && !string.IsNullOrEmpty(filepath)) filepath.Touch(url, meta: true);
+                if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: true);
             }
             catch (Exception ex) { ex.ERROR("IsPartDownloaded"); }
             return (result);
@@ -6099,7 +6057,6 @@ namespace PixivWPF.Common
             }
         }
         #endregion
-
         #endregion
 
         #region UI Element Relative

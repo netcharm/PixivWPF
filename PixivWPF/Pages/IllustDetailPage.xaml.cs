@@ -28,19 +28,6 @@ namespace PixivWPF.Pages
         public PixivItem Contents { get; set; } = null;
         private PrefetchingTask PrefetchingImagesTask = null;
 
-        private Popup PreviewPopup = null;
-        private Rectangle PreviewPopupBackground = null;
-        private IList<Button> PreviewPopupToolButtons = new List<Button>();
-        private System.Timers.Timer PreviewPopupTimer = null;
-        private void InitPopupTimer(ref System.Timers.Timer timer)
-        {
-            if (timer == null)
-            {
-                timer = new System.Timers.Timer(5000) { AutoReset = true, Enabled = false };
-                timer.Elapsed += PreviewPopupTimer_Elapsed;
-            }
-        }
-
         private const int PAGE_ITEMS = 30;
         private int page_count = 0;
         private int page_number = 0;
@@ -57,6 +44,20 @@ namespace PixivWPF.Pages
         private string NextFavoriteURL { get; set; } = string.Empty;
 
         #region Popup Helper
+        private Popup PreviewPopup = null;
+        private Rectangle PreviewPopupBackground = null;
+        private IList<Button> PreviewPopupToolButtons = new List<Button>();
+        private System.Timers.Timer PreviewPopupTimer = null;
+
+        private void InitPopupTimer(ref System.Timers.Timer timer)
+        {
+            if (timer == null)
+            {
+                timer = new System.Timers.Timer(5000) { AutoReset = true, Enabled = false };
+                timer.Elapsed += PreviewPopupTimer_Elapsed;
+            }
+        }
+
         private void PopupOpen(Popup popup)
         {
             try
@@ -1222,6 +1223,29 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Theme/Thumb/Detail refresh methods
+        private void InitPrefetchingTask()
+        {
+            if (PrefetchingImagesTask == null) PrefetchingImagesTask = new PrefetchingTask()
+            {
+                Name = "DetailPagePrefetching",
+                ReportProgressSlim = () =>
+                {
+                    var percent = PrefetchingImagesTask.Percentage;
+                    var tooltip = PrefetchingImagesTask.Comments;
+                    var state = PrefetchingImagesTask.State;
+                    if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
+                    if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) UpdateThumb(prefetching: false);
+                },
+                ReportProgress = (percent, tooltip, state) =>
+                {
+                    if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
+                    if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) UpdateThumb(prefetching: false);
+                }
+            };
+        }
+
         public void UpdateTheme()
         {
             try
@@ -1278,6 +1302,7 @@ namespace PixivWPF.Pages
                 {
                     if (Contents.HasUser())
                     {
+                        InitPrefetchingTask();
                         if (prefetching && ParentWindow is ContentWindow && PrefetchingImagesTask is PrefetchingTask)
                         {
                             var items = new List<PixivItem>();
@@ -2372,25 +2397,7 @@ namespace PixivWPF.Pages
             #endregion
 
             #region Prefetching
-            if (PrefetchingImagesTask == null) PrefetchingImagesTask = new PrefetchingTask()
-            {
-                Name = "DetailPagePrefetching",
-                ReportProgressSlim = () =>
-                {
-                    var percent = PrefetchingImagesTask.Percentage;
-                    var tooltip = PrefetchingImagesTask.Comments;
-                    var state = PrefetchingImagesTask.State;
-                    if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) UpdateThumb(prefetching: false);
-                },
-                ReportProgress = (percent, tooltip, state) =>
-                {
-                    if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) UpdateThumb(prefetching: false);
-                }
-            };
+            InitPrefetchingTask();
             #endregion
 
             if (Contents.HasUser()) UpdateDetail(Contents);
