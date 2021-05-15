@@ -346,7 +346,7 @@ namespace PixivWPF.Pages
                 if (panel is Panel)
                 {
                     panel.Children.Add(host);
-                    AdjustBrowserSize(browser);
+                    //AdjustBrowserSize(browser);
                 }
             }
             catch (Exception ex) { ex.ERROR(); host = null; }
@@ -461,7 +461,7 @@ namespace PixivWPF.Pages
                         {
                             browser.DocumentText = contents;
                             browser.Document.Write(string.Empty);
-                            AdjustBrowserSize(browser);
+                            //AdjustBrowserSize(browser);
                         }
                         browser.WebBrowserShortcutsEnabled = false;
                     }).InvokeAsync();
@@ -677,6 +677,7 @@ namespace PixivWPF.Pages
                         }
                         catch (Exception ex) { ex.ERROR(); continue; }
                     }
+                    AdjustBrowserSize(browser);
                 }
             }
             catch (Exception ex) { ex.ERROR("WEBBROWSER"); }

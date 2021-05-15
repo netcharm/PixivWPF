@@ -539,7 +539,7 @@ namespace PixivWPF
             CommandLog.ContextMenu.IsOpen = true;
         }
 
-        private void CommandRestart_Click(object sender, RoutedEventArgs e)
+        private void CommandApplication_Click(object sender, RoutedEventArgs e)
         {
             if (sender == CommandRestart)
                 Commands.RestartApplication.Execute(null);
@@ -547,7 +547,8 @@ namespace PixivWPF
                 Commands.UpgradeApplication.Execute(null);
             else if (sender == CommandOpenConfig)
                 Commands.OpenConfig.Execute(null);
-
+            else if (sender == CommandMaintainCustomTag)
+                Commands.MaintainCustomTag.Execute(null);
         }
 
         private void CommandRestart_DropDownOpened(object sender, EventArgs e)

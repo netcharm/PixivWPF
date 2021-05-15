@@ -196,6 +196,18 @@ namespace PixivWPF.Common
             }).InvokeAsync(true);
         });
 
+        public static ICommand MaintainCustomTag { get; } = new DelegateCommand<string>(async obj =>
+        {
+            await new Action(() =>
+            {
+                var tag_file = Application.Current.MaintainCustomTagFile(save: true);
+                var viewer = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewer : setting.ShellTextViewer;
+                var param = string.IsNullOrEmpty(setting.ShellTextViewer) ? setting.ShellLogViewerParams : setting.ShellTextViewerParams;
+                if (string.IsNullOrEmpty(viewer)) viewer = "notepad.exe";
+                tag_file.OpenFileWithShell(command: viewer, custom_params: param);
+            }).InvokeAsync(true);
+        });
+
         public static ICommand Login { get; } = new DelegateCommand(() =>
         {
             var setting = Application.Current.LoadSetting();

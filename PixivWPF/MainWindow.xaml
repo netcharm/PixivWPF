@@ -279,7 +279,7 @@
                 </mah:SplitButton.Items>
             </mah:SplitButton>
             <mah:SplitButton x:Name="CommandRestart" x:Uid="CommandRestart" ToolTip="Restart Application" 
-                             Click="CommandRestart_Click" DropDownOpened="CommandRestart_DropDownOpened" BorderBrush="Transparent">
+                             Click="CommandApplication_Click" DropDownOpened="CommandRestart_DropDownOpened" BorderBrush="Transparent">
                 <mah:SplitButton.Icon>
                     <TextBlock 
                     Text="&#xE777;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
@@ -287,15 +287,20 @@
                 </mah:SplitButton.Icon>
                 <mah:SplitButton.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="CommandUpgrade" x:Uid="CommandUpgrade" Header="Upgrade Application" Click="CommandRestart_Click" >
+                        <MenuItem x:Name="CommandUpgrade" x:Uid="CommandUpgrade" Header="Upgrade Application" Click="CommandApplication_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE777;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem x:Name="CommandOpenConfig" x:Uid="CommandOpenConfig" Header="Open Config File" Click="CommandRestart_Click" >
+                        <MenuItem x:Name="CommandOpenConfig" x:Uid="CommandOpenConfig" Header="Open Config File" Click="CommandApplication_Click" >
                             <MenuItem.Icon>
                                 <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem x:Name="CommandMaintainCustomTag" x:Uid="CommandMaintainCustomTag" Header="Maintain CustomTag File" Click="CommandApplication_Click" >
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE1CB;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>

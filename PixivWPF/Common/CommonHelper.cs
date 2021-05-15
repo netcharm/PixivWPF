@@ -368,7 +368,7 @@ namespace PixivWPF.Common
         private static ConcurrentDictionary<string, string>  _TagsT2S = null;
         public static ConcurrentDictionary<string, string> TagsT2S
         {
-            get { if (_TagsT2S == null) _TagsT2S = new ConcurrentDictionary<string, string>(); return (_TagsT2S); }
+            get { if (_TagsT2S == null) _TagsT2S = new ConcurrentDictionary<string, string>(StringComparer.CurrentCultureIgnoreCase); return (_TagsT2S); }
         }
         private static OrderedDictionary _TagsWildecardT2S = null;
         public static OrderedDictionary TagsWildecardT2S
@@ -1106,6 +1106,29 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(result)) result = text;
             }
             return result;
+        }
+
+        public static string MaintainCustomTagFile(this Application app, bool save = true)
+        {
+            var setting = Application.Current.LoadSetting();
+            var tag_file = Path.Combine(Application.Current.GetRoot(), setting.CustomTagsFile);
+            if (!string.IsNullOrEmpty(tag_file))
+            {
+                try
+                {
+                    var keys = _TagsT2S.Keys.Distinct().ToList();
+                    foreach (var k in keys)
+                    {
+                        _TagsT2S[k.Trim()] = _TagsT2S[k].Trim();
+                    }
+                    var sd = new SortedDictionary<string, string>(_TagsT2S, StringComparer.CurrentCultureIgnoreCase);
+                    //Sort(tags);
+                    var tags_o = JsonConvert.SerializeObject(sd, Formatting.Indented);
+                    if (save) File.WriteAllText(tag_file, tags_o, new UTF8Encoding(true));
+                }
+                catch (Exception ex) { ex.ERROR($"MaintainCustomTagFile_{Path.GetFileName(tag_file)}"); }
+            }
+            return (tag_file);
         }
 
         public static void TagWildcardCacheClear(this IEnumerable<string> keys)
@@ -3904,7 +3927,7 @@ namespace PixivWPF.Common
             {
                 var bmp = new BitmapImage();
                 bmp.BeginInit();
-                bmp.CreateOptions = BitmapCreateOptions.None;
+                bmp.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
                 bmp.CacheOption = BitmapCacheOption.OnLoad;
                 if (!size.Equals(default(Size)) && size.Width >= 0 && size.Height >= 0)
                 {
@@ -3921,21 +3944,22 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
+                ex.ERROR("ToImageSource_BitmapImage");
                 // maybe loading webp.
                 var ret = ex.Message;
                 try
                 {
                     //result = stream.ToWriteableBitmap(size);
-                    var bmp0 = BitmapFrame.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.None);
-                    var bmp = bmp0.ResizeImage(size) as BitmapSource;
+                    var src = BitmapFrame.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                    var bmp = src.ResizeImage(size) as BitmapSource;
 
                     result = null;
-                    result = bmp == null ? bmp0 : bmp;
+                    result = bmp == null ? src : bmp;
                     result.Freeze();
                     bmp = null;
-                    bmp0 = null;
+                    src = null;
                 }
-                catch (Exception exx) { exx.ERROR("ToImageSource"); }
+                catch (Exception exx) { exx.ERROR("ToImageSource_BitmapFrame"); }
             }
             finally
             {
