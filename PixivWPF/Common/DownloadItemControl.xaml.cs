@@ -334,6 +334,11 @@ namespace PixivWPF.Common
             }).InvokeAsync();
         }
 
+        public void UpdateInfo()
+        {
+            if (Instance is DownloadItem) Instance.UpdateInfo();
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
@@ -648,6 +653,11 @@ namespace PixivWPF.Common
         {
             if (force) LastElapsed = TimeSpan.FromSeconds(1);
             if (progress is IProgress<Tuple<double, double>>) progress.Report(Progress);
+        }
+
+        public void UpdateInfo()
+        {
+            new Action(() => { UpdateProgress(); }).Invoke(async: true);
         }
         #endregion
 

@@ -48,16 +48,13 @@ namespace PixivWPF.Pages
             get
             {
                 if (!(items is ObservableCollection<DownloadInfo>)) items = new ObservableCollection<DownloadInfo>();
-                return (items.Where(
-                            item => item.State == DownloadState.Downloading ||
-                                    item.State == DownloadState.Writing
-                        ));
+                return (items.Where(item => item.State == DownloadState.Downloading || item.State == DownloadState.Writing));
             }
         }
 
         public int CurrentJobsCount
         {
-            get { return CurrentIdles.Count(); }
+            get { return CurrentJobs.Count(); }
         }
 
         public IEnumerable<DownloadInfo> CurrentIdles
@@ -65,10 +62,7 @@ namespace PixivWPF.Pages
             get
             {
                 if (!(items is ObservableCollection<DownloadInfo>)) items = new ObservableCollection<DownloadInfo>();
-                return (items.Where(
-                            item => item.State == DownloadState.Idle ||
-                                    item.State == DownloadState.Paused
-                        ));
+                return (items.Where(item => item.State == DownloadState.Idle || item.State == DownloadState.Paused));
             }
         }
 
@@ -173,7 +167,7 @@ namespace PixivWPF.Pages
                     }).InvokeAsync();
                 }
             }
-            catch(Exception ex) { ex.Message.DEBUG(); }
+            catch (Exception ex) { ex.DEBUG("UpdateLikeState"); }
         }
 
         public async void UpdateLikeStateAsync(long illustid = -1, bool is_user = false)
@@ -517,7 +511,7 @@ namespace PixivWPF.Pages
                 }
                 else if (sender == PART_RemoveAll_All)
                 {
-                    
+
                 }
                 await new Action(() =>
                 {
@@ -526,7 +520,7 @@ namespace PixivWPF.Pages
                         var targets = new List<DownloadInfo>();
                         foreach (var item in DownloadItems.SelectedItems)
                         {
-                            if (item is DownloadInfo)  targets.Add(item as DownloadInfo);
+                            if (item is DownloadInfo) targets.Add(item as DownloadInfo);
                         }
                         var remove = state == DownloadState.Unknown ? targets : targets.Where(o => o.State == state);
                         foreach (var i in remove) { i.State = DownloadState.Remove; }
@@ -562,6 +556,14 @@ namespace PixivWPF.Pages
             {
                 Commands.CopyDownloadInfo.Execute(GetDownloadInfo());
             }).InvokeAsync(true);
+        }
+
+        private void DownloadItems_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DownloadItems.SelectedItem is DownloadInfo)
+            {
+                (DownloadItems.SelectedItem as DownloadInfo).UpdateInfo();
+            }
         }
     }
 }

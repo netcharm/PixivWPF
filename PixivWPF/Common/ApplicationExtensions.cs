@@ -802,7 +802,7 @@ namespace PixivWPF.Common
         private static string[] r17 = new string[] { "xxx", "r18", "r17", "18+", "17+", };
         private static string[] r18 = new string[] { "xxx", "r18", "18+"};
 
-        private static ConcurrentDictionary<string, ContentWindow> _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>();
+        private static ConcurrentDictionary<string, ContentWindow> _ContentWindows_ = new ConcurrentDictionary<string, ContentWindow>(StringComparer.CurrentCultureIgnoreCase);
         public static ConcurrentDictionary<string, ContentWindow> ContentWindows
         {
             get

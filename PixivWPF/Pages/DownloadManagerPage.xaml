@@ -144,7 +144,8 @@
             VirtualizingPanel.IsContainerVirtualizable="True"
             VirtualizingPanel.IsVirtualizingWhenGrouping="True"
             VirtualizingPanel.VirtualizationMode="Recycling"
-            VirtualizingPanel.ScrollUnit="Item"                 
+            VirtualizingPanel.ScrollUnit="Item"
+            SelectionChanged="DownloadItems_SelectionChanged"
             TargetUpdated="DownloadItem_TargetUpdated">
             <ListView.CacheMode>
                 <BitmapCache EnableClearType="True" RenderAtScale="2.0" SnapsToDevicePixels="True" />
