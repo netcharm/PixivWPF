@@ -54,7 +54,7 @@
         <!-- Percentage Value -->
         <TextBlock 
             Grid.Row="0" Grid.Column="0" x:Name="PART_Percentage"
-            Text="0%" FontWeight="DemiBold" FontFamily="Iosevka, Consolas, Monospace"
+            Text="0%" FontWeight="DemiBold" FontFamily="{DynamicResource ResourceKey=MonoSpaceFamily}"
             FontSize="{Binding Path=Width, ElementName=PART_Ring, Mode=OneWay, IsAsync=True, Converter={mah:MathMultiplyConverter}, ConverterParameter='0.20'}" 
             Opacity="{Binding Path=Opacity, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"
             Foreground="{Binding Path=Foreground, ElementName=PART_Ring, Mode=OneWay, IsAsync=True}"

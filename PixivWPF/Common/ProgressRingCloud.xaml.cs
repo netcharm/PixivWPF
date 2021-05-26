@@ -184,8 +184,18 @@ namespace PixivWPF.Common
         public string PercentageTooltip
         {
             get { return (PART_Percentage.ToolTip is string ? PART_Percentage.ToolTip as string : string.Empty); }
-            set { PART_Percentage.ToolTip = value; }
+            set
+            {
+                this.Invoke(() =>
+                {
+                    //PART_Percentage.ToolTip = value;
+                    PART_Reload.ToolTip = value;
+                });
+            }
         }
+
+        public Action<double> ReportPercentageSlim { get; set; } = null;
+        public Action<double, double> ReportPercentage { get; set; } = null;
 
         public ProgressRingCloud()
         {
@@ -333,9 +343,6 @@ namespace PixivWPF.Common
                     break;
             }
         }
-
-        public Action<double> ReportPercentageSlim { get; } = null;
-        public Action<double, double> ReportPercentage { get; } = null;
 
         private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {

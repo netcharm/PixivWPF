@@ -1253,6 +1253,28 @@ namespace PixivWPF.Common
             }
         }
 
+        private bool show_large_preview = false;
+        public bool ShowLargePreview
+        {
+            get { return (Cache is Setting ? Cache.show_large_preview : show_large_preview); }
+            set
+            {
+                show_large_preview = value;
+                if (Cache is Setting) Cache.show_large_preview = show_large_preview;
+            }
+        }
+
+        private bool show_preview_progress_tooltip = true;
+        public bool ShowPreviewProgressTooltip
+        {
+            get { return (Cache is Setting ? Cache.show_preview_progress_tooltip : show_preview_progress_tooltip); }
+            set
+            {
+                show_preview_progress_tooltip = value;
+                if (Cache is Setting) Cache.show_preview_progress_tooltip = show_preview_progress_tooltip;
+            }
+        }
+
         private int preview_min_width = 360;
         public int PreviewUsingLargeMinWidth
         {

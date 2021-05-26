@@ -31,9 +31,11 @@ namespace PixivWPF.Pages
 
         private string PreviewImageUrl = string.Empty;
         private string OriginalImageUrl = string.Empty;
+        private Func<bool> IsOriginalChecked = null;
+        private Func<bool> IsFullSizeChecked = null;
         private bool IsOriginal
         {
-            get { return (btnViewOriginalPage.IsChecked ?? false); }
+            get { return(btnViewOriginalPage.IsChecked ?? false); }
         }
         private bool IsFullSize
         {
@@ -154,8 +156,19 @@ namespace PixivWPF.Pages
         private Queue<double> down_rate = new Queue<double>(down_rate_mv);
         private Action<double, double> reportProgress = null;
 
+        private string GetFileName()
+        {
+            var original = this.Invoke(IsOriginalChecked);
+            return (string.IsNullOrEmpty(original ? OriginalImageUrl : PreviewImageUrl) ? string.Empty : $"{"File Name".PadRight(12, ' ')}: {System.IO.Path.GetFileName(original ? OriginalImageUrl : PreviewImageUrl)}");
+        }
+
         private void InitProgressAction()
         {
+            var setting = Application.Current.LoadSetting();
+
+            if (IsOriginalChecked == null) IsOriginalChecked = new Func<bool>(() => { return (IsOriginal); });
+            if (IsFullSizeChecked == null) IsFullSizeChecked = new Func<bool>(() => { return (IsFullSize); });
+
             if (reportProgress == null)
             {
                 // no progress ring display in below action
@@ -192,7 +205,10 @@ namespace PixivWPF.Pages
                     else if (state == TaskStatus.RanToCompletion || received >= length) state_info = "Finished";                   
                     else state_info = "Failed";
                     var info = $"{state_info.PadRight(12, ' ')}: {received} B / {length} B, {received.SmartFileSize(trimzero: false)} / {length.SmartFileSize(trimzero: false)}";
-                    var tooltip = string.Join(Environment.NewLine, new string[] { info, speed, elapsed });
+                    var filename = GetFileName();
+                    var tooltip = string.Join(Environment.NewLine, new string[] { info, speed, elapsed, filename }).Trim();
+
+                    PreviewWait.PercentageTooltip = setting.ShowPreviewProgressTooltip ? tooltip : null;
 
                     if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
                     //if (PreviewWait.ReportPercentage is Action<double, double>) PreviewWait.ReportPercentage.Invoke(received, length);

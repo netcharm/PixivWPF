@@ -1108,7 +1108,7 @@ namespace PixivWPF.Pages
                         foreach (var item in SubIllusts.GetSelected())
                         {
                             if (alt)
-                                Commands.OpenFileProperties.Execute(Contents.Illust.GetPreviewUrl().GetImageCacheFile());
+                                Commands.OpenFileProperties.Execute(Contents.Illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCacheFile());
                             else
                                 Commands.OpenFileProperties.Execute(Contents);
                         }
@@ -2718,7 +2718,7 @@ namespace PixivWPF.Pages
             }
             else if (sender == PreviewCacheOpen && Preview.Source != null)
             {
-                Commands.OpenCachedImage.Execute(string.IsNullOrEmpty(PreviewImagePath) ? Contents.Illust.GetPreviewUrl().GetImageCachePath() : PreviewImagePath);
+                Commands.OpenCachedImage.Execute(string.IsNullOrEmpty(PreviewImagePath) ? Contents.Illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCachePath() : PreviewImagePath);
             }
             else if(sender == PreviewOpenDownloadedProperties)
             {
@@ -2753,10 +2753,10 @@ namespace PixivWPF.Pages
 
                         if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
-                        PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index);
+                        PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, large: setting.ShowLargePreview);
                         using (var img = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage))
                         {
-                            if (setting.SmartPreview &&
+                            if (!setting.ShowLargePreview && setting.SmartPreview &&
                                 (img.Source == null ||
                                  img.Source.Width < setting.PreviewUsingLargeMinWidth ||
                                  img.Source.Height < setting.PreviewUsingLargeMinHeight))

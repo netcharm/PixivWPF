@@ -119,7 +119,8 @@ namespace PixivWPF.Common
                 {
                     if (item.IsPage() || item.IsPages())
                     {
-                        pages.Add(item.Illust.GetPreviewUrl(item.Index));
+                        var setting = Application.Current.LoadSetting();
+                        pages.Add(item.Illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview));
                     }
                     else if (item.IsWork())
                     {
@@ -169,6 +170,7 @@ namespace PixivWPF.Common
             {
                 if (Options.PrefetchingPreview && Items.Count > 0)
                 {
+                    var setting = Application.Current.LoadSetting();
                     new Action(async () =>
                     {
                         var items = Items.ToList();
@@ -176,12 +178,12 @@ namespace PixivWPF.Common
                         {
                             if (item.IsPage() || item.IsPages())
                             {
-                                page_thumbs.Add(item.Illust.GetThumbnailUrl(item.Index));
-                                page_previews.Add(item.Illust.GetPreviewUrl(item.Index));
+                                page_thumbs.Add(item.Illust.GetThumbnailUrl(item.Index, large: setting.ShowLargePreview));
+                                page_previews.Add(item.Illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview));
                             }
                             else if (item.IsWork())
                             {
-                                var preview = item.Illust.GetPreviewUrl();
+                                var preview = item.Illust.GetPreviewUrl(large: setting.ShowLargePreview);
                                 if (!illusts.Contains(preview)) illusts.Add(preview);
                                 var avatar = item.Illust.GetAvatarUrl();
                                 if (!avatars.Contains(avatar)) avatars.Add(avatar);

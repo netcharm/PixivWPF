@@ -1171,7 +1171,7 @@ namespace PixivWPF.Common
                             item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
-                            string fp_p = illust.GetPreviewUrl(item.Index).GetImageCachePath();
+                            string fp_p = illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview).GetImageCachePath();
 
                             if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
                             else if (File.Exists(fp_o)) ShellOpenFile.Execute(fp_o);
@@ -1183,7 +1183,7 @@ namespace PixivWPF.Common
                             item.IsDownloaded = illust.IsPartDownloadedAsync(out fp);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl().GetImageCachePath();
-                            string fp_p = illust.GetPreviewUrl().GetImageCachePath();
+                            string fp_p = illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCachePath();
 
                             if (File.Exists(fp_d)) ShellOpenFile.Execute(fp_d);
                             else if (File.Exists(fp_o)) ShellOpenFile.Execute(fp_o);
@@ -1277,7 +1277,6 @@ namespace PixivWPF.Common
                 else if (obj is PixivItem)
                 {
                     var item = obj as PixivItem;
-                    //OpenFileProperties.Execute(item.GetDownloadedFiles());
                     if (item.IsWork())
                     {
                         var illust = item.Illust;
@@ -1288,7 +1287,7 @@ namespace PixivWPF.Common
                             item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index >=0 ? item.Index : 0, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
-                            string fp_p = illust.GetPreviewUrl(item.Index).GetImageCachePath();
+                            string fp_p = illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview).GetImageCachePath();
 
                             if (File.Exists(fp_d)) ShellOpenFileProperty.Execute(fp_d);
                             else if (File.Exists(fp_o)) ShellOpenFileProperty.Execute(fp_o);
@@ -1300,7 +1299,7 @@ namespace PixivWPF.Common
                             item.IsDownloaded = illust.IsPartDownloadedAsync(out fp, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl().GetImageCachePath();
-                            string fp_p = illust.GetPreviewUrl().GetImageCachePath();
+                            string fp_p = illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCachePath();
 
                             if (File.Exists(fp_d)) ShellOpenFileProperty.Execute(fp_d);
                             else if (File.Exists(fp_o)) ShellOpenFileProperty.Execute(fp_o);

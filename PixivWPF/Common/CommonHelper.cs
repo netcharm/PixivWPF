@@ -4760,7 +4760,7 @@ namespace PixivWPF.Common
 
             if (item.IsWork())
             {
-                result = item.Illust.GetPreviewUrl(item.Index).GetImageId().IsSameIllust(hash) || item.Illust.GetOriginalUrl(item.Index).GetImageId().IsSameIllust(hash);
+                result = item.Illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview).GetImageId().IsSameIllust(hash) || item.Illust.GetOriginalUrl(item.Index).GetImageId().IsSameIllust(hash);
             }
 
             return (result);
