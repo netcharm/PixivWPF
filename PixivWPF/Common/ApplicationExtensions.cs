@@ -82,6 +82,8 @@ namespace PixivWPF.Common
             {
                 Setting.LoadTags(all, force);
             }).InvokeAsync();
+            //Action lt = () => { Setting.LoadTags(all, force); };
+            //await lt.InvokeAsync();
         }
 
         public static void SaveTags(this Application app)
@@ -858,11 +860,14 @@ namespace PixivWPF.Common
             {
                 //if (app.MainWindow is MainWindow)
                 //    result = app.MainWindow as MainWindow;
-                app.Dispatcher.Invoke(() =>
+                if (app is Application && app.Dispatcher is Dispatcher)
                 {
-                    var win = app.MainWindow;
-                    if (win is MainWindow) result = win as MainWindow;
-                });
+                    app.Dispatcher.Invoke(() =>
+                    {
+                        var win = app.MainWindow;
+                        if (win is MainWindow) result = win as MainWindow;
+                    });
+                }
             }
             catch (Exception ex) { ex.ERROR(); }
             return (result);
@@ -3105,15 +3110,42 @@ namespace PixivWPF.Common
                 try
                 {
                     Dispatcher dispatcher = action.AppDispatcher();
-                    if (async)
+                    if (dispatcher is Dispatcher)
                     {
-                        if (realtime)
-                            await dispatcher.BeginInvoke(action, DispatcherPriority.Send);
+                        if (async)
+                        {
+                            if (realtime)
+                                await dispatcher.BeginInvoke(action, DispatcherPriority.Send);
+                            else
+                                await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
+                        }
                         else
-                            await dispatcher.BeginInvoke(action, DispatcherPriority.Background);
+                            dispatcher.Invoke(action);
                     }
-                    else
-                        dispatcher.Invoke(action);
+                }
+                catch (Exception ex) { ex.ERROR("Invoke"); }
+            }
+        }
+
+        public static async void Invoke<T1>(this Action<T1> action, bool async = false, bool realtime = false, params object[] paramlist)
+        {
+            if (action is Action<T1>)
+            {
+                try
+                {
+                    Dispatcher dispatcher = action.AppDispatcher();
+                    if (dispatcher is Dispatcher)
+                    {
+                        if (async)
+                        {
+                            if (realtime)
+                                await dispatcher.BeginInvoke(action, DispatcherPriority.Send, paramlist);
+                            else
+                                await dispatcher.BeginInvoke(action, DispatcherPriority.Background, paramlist);
+                        }
+                        else
+                            dispatcher.Invoke(action);
+                    }
                 }
                 catch (Exception ex) { ex.ERROR("Invoke"); }
             }
@@ -3124,10 +3156,13 @@ namespace PixivWPF.Common
             try
             {
                 Dispatcher dispatcher = action.AppDispatcher();
-                if (realtime)
-                    await dispatcher.InvokeAsync(action, DispatcherPriority.Send);
-                else
-                    await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+                if (dispatcher is Dispatcher)
+                {
+                    if (realtime)
+                        await dispatcher.InvokeAsync(action, DispatcherPriority.Send);
+                    else
+                        await dispatcher.InvokeAsync(action, DispatcherPriority.Background);
+                }
             }
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }
@@ -3137,10 +3172,13 @@ namespace PixivWPF.Common
             try
             {
                 Dispatcher dispatcher = action.AppDispatcher();
-                if (realtime)
-                    await dispatcher.InvokeAsync(action, DispatcherPriority.Send, cancelToken);
-                else
-                    await dispatcher.InvokeAsync(action, DispatcherPriority.Background, cancelToken);
+                if (dispatcher is Dispatcher)
+                {
+                    if (realtime)
+                        await dispatcher.InvokeAsync(action, DispatcherPriority.Send, cancelToken);
+                    else
+                        await dispatcher.InvokeAsync(action, DispatcherPriority.Background, cancelToken);
+                }
             }
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }
@@ -3150,7 +3188,7 @@ namespace PixivWPF.Common
             try
             {
                 Dispatcher dispatcher = action.AppDispatcher();
-                await dispatcher.InvokeAsync(action, priority);
+                if (dispatcher is Dispatcher) await dispatcher.InvokeAsync(action, priority);
             }
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }
@@ -3160,7 +3198,7 @@ namespace PixivWPF.Common
             try
             {
                 Dispatcher dispatcher = action.AppDispatcher();
-                await dispatcher.InvokeAsync(action, priority, cancelToken);
+                if (dispatcher is Dispatcher) await dispatcher.InvokeAsync(action, priority, cancelToken);
             }
             catch (Exception ex) { ex.ERROR("InvokeAsync"); }
         }

@@ -118,15 +118,15 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.7.9\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.7.10\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Prism, Version=8.0.0.1909, Culture=neutral, PublicKeyToken=40ee6c3a2184dc59, processorArchitecture=MSIL">
-      <HintPath>..\packages\Prism.Core.8.0.0.1909\lib\net47\Prism.dll</HintPath>
+    <Reference Include="Prism, Version=8.1.97.5141, Culture=neutral, PublicKeyToken=40ee6c3a2184dc59, processorArchitecture=MSIL">
+      <HintPath>..\packages\Prism.Core.8.1.97\lib\net47\Prism.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Prism.Wpf, Version=8.0.0.1909, Culture=neutral, PublicKeyToken=40ee6c3a2184dc59, processorArchitecture=MSIL">
-      <HintPath>..\packages\Prism.Wpf.8.0.0.1909\lib\net48\Prism.Wpf.dll</HintPath>
+    <Reference Include="Prism.Wpf, Version=8.1.97.5141, Culture=neutral, PublicKeyToken=40ee6c3a2184dc59, processorArchitecture=MSIL">
+      <HintPath>..\packages\Prism.Wpf.8.1.97\lib\net47\Prism.Wpf.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -380,16 +380,16 @@
     <Content Include="Assets\pixiv-logo.png" />
     <Content Include="Assets\pixiv-logo.svg" />
     <Content Include="Resources\ExcludeReplaceColorEffect.fx">
-      <Generator>D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe /T ps_2_0 /E main /FoExcludeReplaceColorEffect.fx.ps ExcludeReplaceColorEffect.fx</Generator>
+      <Generator>"D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe" /T ps_2_0 /E main /Fo:%24%28InputName%29.ps %24%28InputName%29</Generator>
     </Content>
     <Content Include="Resources\ReplaceColorEffect.fx">
-      <Generator>"D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe" /T ps_2_0 /E main /Fo%24%28InputName%29.ps %24%28InputName%29</Generator>
+      <Generator>"D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe" /T ps_2_0 /E main /Fo:%24%28InputName%29.ps %24%28InputName%29</Generator>
     </Content>
     <Content Include="Resources\TransparenceEffect.fx">
-      <Generator>"D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe" /T ps_2_0 /E main /Fo%24%28InputName%29.ps %24%28InputName%29</Generator>
+      <Generator>"D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe" /T ps_2_0 /E main /Fo:%24%28InputName%29.ps %24%28InputName%29</Generator>
     </Content>
     <Content Include="Resources\ThresholdEffect.fx">
-      <Generator>"D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe" /T ps_2_0 /E main /Fo%24%28InputName%29.ps %24%28InputName%29</Generator>
+      <Generator>"D:\Develop\MS\Kits\10\bin\10.0.17763.0\x86\fxc.exe" /T ps_2_0 /E main /Fo:%24%28InputName%29.ps %24%28InputName%29</Generator>
     </Content>
     <Resource Include="pixiv-logo.ico" />
     <Resource Include="Resources\CheckboardPattern_32.png" />
@@ -409,7 +409,7 @@
       <VersionMajor>4</VersionMajor>
       <VersionMinor>0</VersionMinor>
       <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
+      <WrapperTool>primary</WrapperTool>
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>

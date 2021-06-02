@@ -10,16 +10,12 @@ using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Management;
 using System.Media;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Security.Permissions;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -27,19 +23,15 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using Dfust.Hotkeys;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using WPFNotification.Core.Configuration;
 using WPFNotification.Model;
 using WPFNotification.Services;
@@ -542,14 +534,14 @@ namespace PixivWPF.Common
             {
                 if (browser is System.Windows.Forms.WebBrowser &&
                     browser.Document is System.Windows.Forms.HtmlDocument &&
-                    browser.Document.DomDocument is MSHTML.IHTMLDocument2)
+                    browser.Document.DomDocument is mshtml.IHTMLDocument2)
                 {
                     StringBuilder sb = new StringBuilder();
-                    MSHTML.IHTMLDocument2 document = browser.Document.DomDocument as MSHTML.IHTMLDocument2;
-                    MSHTML.IHTMLSelectionObject currentSelection = document.selection;
+                    mshtml.IHTMLDocument2 document = browser.Document.DomDocument as mshtml.IHTMLDocument2;
+                    mshtml.IHTMLSelectionObject currentSelection = document.selection;
                     if (currentSelection != null && currentSelection.type.Equals("Text", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        MSHTML.IHTMLTxtRange range = currentSelection.createRange() as MSHTML.IHTMLTxtRange;
+                        mshtml.IHTMLTxtRange range = currentSelection.createRange() as mshtml.IHTMLTxtRange;
                         if (range != null)
                             sb.AppendLine(html ? range.htmlText : range.text);
                     }

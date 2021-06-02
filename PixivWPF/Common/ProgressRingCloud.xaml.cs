@@ -181,16 +181,23 @@ namespace PixivWPF.Common
         public bool IsWait { get { return (Visibility == Visibility.Visible && IsActive == true); } }
         public bool IsFail { get { return (Visibility == Visibility.Visible && IsActive == false); } }
         public bool IsReady { get { return (Visibility == Visibility.Collapsed && IsActive == false); } }
+        private Func<string> GetPercentageTooltip = null;
+        private Action<string> SetPercentageTooltip = null;
         public string PercentageTooltip
         {
-            get { return (PART_Percentage.ToolTip is string ? PART_Percentage.ToolTip as string : string.Empty); }
+            get
+            {
+                if (GetPercentageTooltip == null)
+                {
+                    GetPercentageTooltip = () => { return (PART_Percentage.ToolTip is string ? PART_Percentage.ToolTip as string : string.Empty); };
+                }
+                return (this.Invoke(GetPercentageTooltip));
+            }
             set
             {
-                this.Invoke(() =>
-                {
-                    //PART_Percentage.ToolTip = value;
-                    PART_Reload.ToolTip = value;
-                });
+                if (SetPercentageTooltip == null) SetPercentageTooltip = (v) => { PART_Reload.ToolTip = v; };
+                //SetPercentageTooltip.Invoke(value);
+                this.Invoke(() => { PART_Reload.ToolTip = value; });
             }
         }
 

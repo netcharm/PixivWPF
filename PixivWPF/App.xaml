@@ -32,9 +32,19 @@
             <BlurEffect x:Key="BlurGlow" Radius="9" RenderingBias="Quality" KernelType="Gaussian"/>
             <BlurEffect x:Key="BlurMark" Radius="5" RenderingBias="Quality" KernelType="Gaussian"/>
             <FontFamily x:Key="MonoSpaceFamily">
-                "等距更纱黑体 SC, Sarasa Mono J, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"
+                "Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"
             </FontFamily>
+            <FontFamily x:Key="NormalFamily">
+                "Sarasa Gothic J, 更纱黑体 SC, FontAwesome, Segoe UI Emoji, Segoe MDL2 Assets, Segoe UI"
+            </FontFamily>
+            <FontFamily x:Key="SegoeIconFamily">
+                "Segoe MDL2 Assets, Segoe UI Emoji, Segoe UI"
+                <!--"Segoe MDL2 Assets"-->
+            </FontFamily>            
             <sys:Double x:Key="MonoSpaceSize">14</sys:Double>
+            <Style x:Key="SegoeIconStyle" TargetType="{x:Type Button}">
+                <Setter Property="FontFamily" Value="{StaticResource SegoeIconFamily}"/>
+            </Style>
             <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
                 <Setter Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
                 <Setter Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>

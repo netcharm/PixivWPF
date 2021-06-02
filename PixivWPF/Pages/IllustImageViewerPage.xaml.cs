@@ -31,15 +31,25 @@ namespace PixivWPF.Pages
 
         private string PreviewImageUrl = string.Empty;
         private string OriginalImageUrl = string.Empty;
-        private Func<bool> IsOriginalChecked = null;
-        private Func<bool> IsFullSizeChecked = null;
+        private Func<bool> GetOriginalCheckState = null;
+        private Func<bool> GetFullSizeCheckState = null;
         private bool IsOriginal
         {
-            get { return(btnViewOriginalPage.IsChecked ?? false); }
+            get
+            {
+                if (GetOriginalCheckState == null) GetOriginalCheckState = new Func<bool>(() => { return (btnViewOriginalPage.IsChecked ?? false); });
+                //return (GetOriginalCheckState.Invoke());
+                return (this.Invoke(GetOriginalCheckState));
+            }
         }
         private bool IsFullSize
         {
-            get { return (btnViewFullSize.IsChecked ?? false); }
+            get
+            {
+                if (GetFullSizeCheckState == null) GetFullSizeCheckState = new Func<bool>(() => { return (btnViewFullSize.IsChecked ?? false); });
+                //return (GetFullSizeCheckState.Invoke());
+                return (this.Invoke(GetFullSizeCheckState));
+            }
         }
         public CustomImageSource PreviewImage { get; private set; } = new CustomImageSource();
 
@@ -158,16 +168,13 @@ namespace PixivWPF.Pages
 
         private string GetFileName()
         {
-            var original = this.Invoke(IsOriginalChecked);
-            return (string.IsNullOrEmpty(original ? OriginalImageUrl : PreviewImageUrl) ? string.Empty : $"{"File Name".PadRight(12, ' ')}: {System.IO.Path.GetFileName(original ? OriginalImageUrl : PreviewImageUrl)}");
+            //var original = this.Invoke(GetOriginalCheckState);
+            return (string.IsNullOrEmpty(IsOriginal ? OriginalImageUrl : PreviewImageUrl) ? string.Empty : $"{"File Name".PadRight(12, ' ')}: {System.IO.Path.GetFileName(IsOriginal ? OriginalImageUrl : PreviewImageUrl)}");
         }
 
         private void InitProgressAction()
         {
             var setting = Application.Current.LoadSetting();
-
-            if (IsOriginalChecked == null) IsOriginalChecked = new Func<bool>(() => { return (IsOriginal); });
-            if (IsFullSizeChecked == null) IsFullSizeChecked = new Func<bool>(() => { return (IsFullSize); });
 
             if (reportProgress == null)
             {

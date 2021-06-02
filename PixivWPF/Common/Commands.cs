@@ -12,11 +12,11 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 
+using Microsoft.WindowsAPICodePack.Dialogs;
 using MahApps.Metro.Controls;
 using Newtonsoft.Json;
 using Prism.Commands;
 using PixivWPF.Pages;
-using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace PixivWPF.Common
 {
