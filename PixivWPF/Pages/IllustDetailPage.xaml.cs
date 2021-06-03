@@ -28,6 +28,11 @@ namespace PixivWPF.Pages
         public PixivItem Contents { get; set; } = null;
         private PrefetchingTask PrefetchingImagesTask = null;
 
+        private const string SymbolIcon_Followed = "\uE113";
+        private const string SymbolIcon_UnFollowed = "\uE734";
+        private const string SymbolIcon_Favorited = "\uEB52";
+        private const string SymbolIcon_UnFavorited = "\uEB51";
+
         private const int PAGE_ITEMS = 30;
         private int page_count = 0;
         private int page_number = 0;
@@ -74,10 +79,21 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        private void PopupOpen(ContextMenu menu)
+        private void PopupOpen(object sender, ContextMenu menu)
         {
             try
             {
+                if (sender is UIElement)
+                {
+                    menu.PlacementTarget = sender as UIElement;
+                    menu.Placement = PlacementMode.Bottom;
+                    menu.VerticalOffset = sender == IllustActions ? 0 : 4;
+                }
+                else
+                {
+                    menu.Placement = PlacementMode.Mouse;
+                    menu.VerticalOffset = 0;
+                }
                 menu.IsOpen = true;
             }
             catch (Exception ex) { ex.ERROR("PopupContextMenu"); }
@@ -885,13 +901,17 @@ namespace PixivWPF.Pages
             {
                 if (illust.IsLiked())
                 {
-                    BookmarkIllust.Tag = "\uEB52"; // &#xEB52;
-                    //ActionBookmarkIllustRemove.IsEnabled = true;
+                    //BookmarkIllustAlt.Tag = SymbolIcon_Favorited; // &#xEB52;
+                    BookmarkIllust.Tag = SymbolIcon_Favorited; // &#xEB52;
+                    if (ContextMenuActionItems.ContainsKey("ActionBookmarkIllustRemove"))
+                        ContextMenuActionItems["ActionBookmarkIllustRemove"].IsEnabled = true;
                 }
                 else
                 {
-                    BookmarkIllust.Tag = "\uEB51"; // &#xEB51;
-                    //ActionBookmarkIllustRemove.IsEnabled = false;
+                    //BookmarkIllustAlt.Tag = SymbolIcon_UnFavorited; // &#xEB51;
+                    BookmarkIllust.Tag = SymbolIcon_UnFavorited; // &#xEB51;
+                    if (ContextMenuActionItems.ContainsKey("ActionBookmarkIllustRemove"))
+                        ContextMenuActionItems["ActionBookmarkIllustRemove"].IsEnabled = false;
                 }
                 this.DoEvents();
             }
@@ -904,13 +924,15 @@ namespace PixivWPF.Pages
             {
                 if (user.IsLiked())
                 {
-                    FollowAuthor.Tag = "\uE113"; // &#xE113;
-                    //ActionFollowAuthorRemove.IsEnabled = true;
+                    FollowAuthor.Tag = SymbolIcon_Followed; // &#xE113;
+                    if (ContextMenuActionItems.ContainsKey("ActionFollowAuthorRemove"))
+                        ContextMenuActionItems["ActionFollowAuthorRemove"].IsEnabled = true;
                 }
                 else
                 {
-                    FollowAuthor.Tag = "\uE734"; // &#xE734;
-                    //ActionFollowAuthorRemove.IsEnabled = false;
+                    FollowAuthor.Tag = SymbolIcon_UnFollowed; // &#xE734;
+                    if (ContextMenuActionItems.ContainsKey("ActionFollowAuthorRemove"))
+                        ContextMenuActionItems["ActionFollowAuthorRemove"].IsEnabled = false;
                 }
                 this.DoEvents();
             }
@@ -1480,11 +1502,13 @@ namespace PixivWPF.Pages
                 IllustDateInfo.ToolTip = IllustDate.Text;
                 IllustDateInfo.Show();
 
-                if (ContextMenuActionItems.ContainsKey("ActionCopyIllustDate")) ContextMenuActionItems["ActionCopyIllustDate"].Header = IllustDate.Text;
+                if (ContextMenuActionItems.ContainsKey("ActionCopyIllustDate"))
+                    ContextMenuActionItems["ActionCopyIllustDate"].Header = item.Illust.GetDateTime().ToString("yyyy-MM-dd HH:mm:sszzz");
 
                 FollowAuthor.Show();
                 UpdateFollowMark(item.Illust.User);
 
+                //BookmarkIllustAlt.Show();
                 BookmarkIllust.Show();
                 UpdateFavMark(item.Illust);
 
@@ -2393,8 +2417,10 @@ namespace PixivWPF.Pages
             ContextMenuIllustActions = (ContextMenu)TryFindResource("ActionIllust");
             if (ContextMenuBookmarkActions is ContextMenu && ContextMenuBookmarkActions.HasItems)
             {
-                foreach(var item in ContextMenuBookmarkActions.Items)
+                foreach (var item in ContextMenuBookmarkActions.Items)
                 {
+                    //ContextMenuBookmarkActions.Items.Remove(item);
+                    //BookmarkIllustAlt.Items.Add(item);
                     if (item is MenuItem)
                     {
                         var menu = item as MenuItem;
@@ -3307,12 +3333,12 @@ namespace PixivWPF.Pages
 
             if (sender == BookmarkIllust)
             {
-                PopupOpen(BookmarkIllust.ContextMenu);
+                PopupOpen(sender, BookmarkIllust.ContextMenu);
                 is_user = false;
             }
             else if (sender == FollowAuthor)
             {
-                PopupOpen(FollowAuthor.ContextMenu);
+                PopupOpen(sender, FollowAuthor.ContextMenu);
                 is_user = true;
             }
             else if (sender == IllustActions)
@@ -3324,7 +3350,7 @@ namespace PixivWPF.Pages
                     else
                         ContextMenuActionItems["ActionIllustNewWindow"].Visibility = Visibility.Visible;
                 }
-                PopupOpen(IllustActions.ContextMenu);
+                PopupOpen(sender, IllustActions.ContextMenu);
             }
             //UpdateLikeState(-1, is_user);
             int id = -1;
@@ -3388,8 +3414,9 @@ namespace PixivWPF.Pages
 
                         if (item.IsSameIllust(Contents))
                         {
-                            BookmarkIllust.Tag = result ? PackIconModernKind.Heart : PackIconModernKind.HeartOutline;
-                            //ActionBookmarkIllustRemove.IsEnabled = result;
+                            BookmarkIllust.Tag = result ? SymbolIcon_Favorited : SymbolIcon_UnFavorited;
+                            if (ContextMenuActionItems.ContainsKey("ActionBookmarkIllustRemove"))
+                                ContextMenuActionItems["ActionBookmarkIllustRemove"].IsEnabled = result;
                             item.IsFavorited = result;
                         }
                     }
@@ -3457,8 +3484,9 @@ namespace PixivWPF.Pages
 
                         if (item.IsSameIllust(Contents))
                         {
-                            FollowAuthor.Tag = result ? PackIconModernKind.Check : PackIconModernKind.Add;
-                            //ActionFollowAuthorRemove.IsEnabled = result;
+                            FollowAuthor.Tag = result ? SymbolIcon_Followed : SymbolIcon_UnFollowed;
+                            if (ContextMenuActionItems.ContainsKey("ActionFollowAuthorRemove"))
+                                ContextMenuActionItems["ActionFollowAuthorRemove"].IsEnabled = result;
                             if (item.IsUser()) item.IsFavorited = result;
                         }
                     }

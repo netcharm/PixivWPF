@@ -793,10 +793,10 @@
                     <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" x:Name="ActionBarInfo"
                                 Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button x:Name="BookmarkIllust" x:Uid="BookmarkIllust" Click="ActionIllust_Click"
-                                ToolTip="Bookmark Illust"
+                                ToolTip="Bookmark Illust" Visibility="Collapsed"
                                 ContextMenu="{DynamicResource ActionBookmarkIllust}"
                                 ContextMenuOpening="IllustActions_ContextMenuOpening"
-                                Visibility="Collapsed" Width="64" Height="64"
+                                Width="64" Height="64" Focusable="False" BorderThickness="0"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Style="{DynamicResource MahApps.Styles.Button.Circle}"
@@ -807,11 +807,28 @@
                                 Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
-                        <Button x:Name="FollowAuthor" x:Uid="FollowAuthor" Margin="4,0,0,0" Click="ActionIllust_Click"
-                                ToolTip="Follow Author" 
+                        <!--<mah:DropDownButton x:Name="BookmarkIllustAlt"                                            
+                                ButtonStyle="{DynamicResource MahApps.Styles.Button.Circle}"
+                                Orientation="Vertical" Width="64" Height="64" Visibility="Collapsed" 
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                ArrowVisibility="Collapsed" BorderThickness="0"
+                                ArrowBrush="{DynamicResource MahApps.Brushes.Accent}"
+                                FocusVisualStyle="{DynamicResource MahApps.Styles.Button.FocusVisualStyle.Circle}"
+                                BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}">
+                            <mah:DropDownButton.Icon>
+                                <TextBlock FontSize="32" FontFamily="Segoe MDL2 Assets"
+                                    Text="{Binding Tag, RelativeSource={RelativeSource AncestorType={x:Type mah:DropDownButton}}}" 
+                                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type mah:DropDownButton}}}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </mah:DropDownButton.Icon>
+                        </mah:DropDownButton>-->
+                        <Button x:Name="FollowAuthor" x:Uid="FollowAuthor" Margin="-8,0,0,0" Click="ActionIllust_Click"
+                                ToolTip="Follow Author" Visibility="Collapsed" 
                                 ContextMenu="{DynamicResource ActionFollowAuthor}"
                                 ContextMenuOpening="IllustActions_ContextMenuOpening" 
-                                Visibility="Collapsed" Width="64" Height="64"
+                                Width="64" Height="64" Focusable="False" BorderThickness="0"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Style="{DynamicResource MahApps.Styles.Button.Circle}"
@@ -822,11 +839,11 @@
                                 Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
-                        <Button x:Name="IllustActions" x:Uid="IllustActions" Margin="4,0,0,0" Click="ActionIllust_Click"
-                                ToolTip="Illust Actions"
+                        <Button x:Name="IllustActions" x:Uid="IllustActions" Margin="-8,0,0,0" Click="ActionIllust_Click"
+                                ToolTip="Illust Actions" Visibility="Collapsed" 
                                 ContextMenu="{DynamicResource ActionIllust}"
-                                ContextMenuOpening="IllustActions_ContextMenuOpening"
-                                Visibility="Collapsed" Width="64" Height="64"
+                                ContextMenuOpening="IllustActions_ContextMenuOpening"                                
+                                Width="64" Height="64" Focusable="False" BorderThickness="0"
                                 HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Style="{DynamicResource MahApps.Styles.Button.Circle}"
