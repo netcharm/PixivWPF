@@ -1192,15 +1192,13 @@ namespace PixivWPF.Common
         {
             var result = src;
             matched = string.Empty;
-            List<string> matches = new List<string>();
             try
             {
+                List<string> matches = new List<string>();
+
                 src = string.IsNullOrEmpty(src) ? string.Empty : src.KatakanaHalfToFull().Trim();
                 translated = string.IsNullOrEmpty(translated) ? string.Empty : translated.KatakanaHalfToFull().Trim();
                 if (string.IsNullOrEmpty(src)) return (string.Empty);
-
-                if (!(_TagsWildecardT2SCache is ConcurrentDictionary<string, TagsWildecardCacheItem>))
-                    _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>();
 
                 result = src;
                 #region Pixiv Tag Translated
@@ -1246,30 +1244,30 @@ namespace PixivWPF.Common
                 #endregion
 
                 #region My Custom Wildcard Tag Translated
-                //if (src.Equals(result) && TagsWildecardT2S is OrderedDictionary)
-                if (TagsWildecardT2S is OrderedDictionary)
+                if (!(_TagsWildecardT2SCache is ConcurrentDictionary<string, TagsWildecardCacheItem>))
+                    _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>();
+
+                if (_TagsWildecardT2SCache.ContainsKey(src) &&
+                    _TagsWildecardT2SCache[src].Keys.Count > 0 &&
+                    !string.IsNullOrEmpty(_TagsWildecardT2SCache[src].Translated))
                 {
-                    if (_TagsWildecardT2SCache.ContainsKey(src) &&
-                        _TagsWildecardT2SCache[src].Keys.Count > 0 &&
-                        !string.IsNullOrEmpty(_TagsWildecardT2SCache[src].Translated))
+                    result = _TagsWildecardT2SCache[src].Translated;
+                    matches.Add($"CustomWildcardTagsCache => {src}:{string.Join(";", _TagsWildecardT2SCache[src].Keys)}");
+                }
+                else if (TagsWildecardT2S is OrderedDictionary)
+                {
+                    var alpha = result.IsAlpha();
+                    var text = alpha ? src : result;
+                    var keys = new List<string>();
+                    foreach (DictionaryEntry entry in TagsWildecardT2S)
                     {
-                        result = _TagsWildecardT2SCache[src].Translated;
-                        matches.Add($"CustomWildcardTagsCache => {src}:{string.Join(";", _TagsWildecardT2SCache[src].Keys)}");
-                    }
-                    else
-                    {
-                        var alpha = result.IsAlpha();
-                        var text = alpha ? src : result;
-                        var keys = new List<string>();
-                        foreach (DictionaryEntry entry in TagsWildecardT2S)
+                        var k = (entry.Key as string).Trim('/').Replace(" ", @"\s");
+                        var v = entry.Value as string;
+                        var vt = text;
+                        text = Regex.Replace(text, k, m =>
                         {
-                            var k = (entry.Key as string).Trim('/').Replace(" ", @"\s");
-                            var v = entry.Value as string;
-                            var vt = text;
-                            text = Regex.Replace(text, k, m =>
-                            {
-                                if (string.IsNullOrEmpty(v)) return (v);
-                                var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", idx =>
+                            if (string.IsNullOrEmpty(v)) return (v);
+                            var vs = Regex.Replace(v, @"\$(\d+)(%.*?%)", idx =>
                                 {
                                     var i = int.Parse(idx.Groups[1].Value);
                                     var t = idx.Groups[2].Value.Trim('%');
@@ -1278,37 +1276,39 @@ namespace PixivWPF.Common
                                     else
                                         return (m.Groups[i].Success ? $"{t}" : string.Empty);
                                 });
-                                for (int i = 0; i < m.Groups.Count; i++)
-                                {
-                                    vs = vs.Replace($"${i}", m.Groups[i].Value);
-                                }
-                                if (!keys.Contains(k)) { keys.Add(k); vt = vt.Replace(m.Value, vs); }
-                                else { if (vt.Contains(vs)) vs = string.Empty; }
-                                return (vs);
-                            }, RegexOptions.IgnoreCase);
-                        }
-                        if (keys.Count > 0 && !text.Equals(src))
-                        {
-                            var result_sym = Regex.Replace(result, regex_symbol, @"\$1", RegexOptions.IgnoreCase);
-                            result = alpha && !Regex.IsMatch(text, result_sym, RegexOptions.IgnoreCase) ? $"{text}{Environment.NewLine}💬{result}" : text;
-                            if (!string.IsNullOrEmpty(translated) && translated.IsAlpha() && !result.Contains(translated))
-                                result = $"{result}{Environment.NewLine}💭{translated}";
-                            if (!result.Equals(src))
+                            for (int i = 0; i < m.Groups.Count; i++)
                             {
-                                _TagsWildecardT2SCache[src] = new TagsWildecardCacheItem()
-                                {
-                                    Keys = keys.Distinct().ToList(),
-                                    Translated = result
-                                };
-                                matches.Add($"CustomWildcardTags => '{string.Join(";", keys)}'");
+                                vs = vs.Replace($"${i}", m.Groups[i].Value);
                             }
+                            if (!keys.Contains(k)) { keys.Add(k); vt = vt.Replace(m.Value, vs); }
+                            else { if (vt.Contains(vs)) vs = string.Empty; }
+                            return (vs);
+                        }, RegexOptions.IgnoreCase);
+                    }
+                    if (keys.Count > 0 && !text.Equals(src))
+                    {
+                        var result_sym = Regex.Replace(result, regex_symbol, @"\$1", RegexOptions.IgnoreCase);
+                        result = alpha && !Regex.IsMatch(text, result_sym, RegexOptions.IgnoreCase) ? $"{text}{Environment.NewLine}💬{result}" : text;
+                        if (!result.Equals(src))
+                        {
+                            _TagsWildecardT2SCache[src] = new TagsWildecardCacheItem()
+                            {
+                                Keys = keys.Distinct().ToList(),
+                                Translated = result
+                            };
+                            matches.Add($"CustomWildcardTags => '{string.Join(";", keys)}'");
                         }
                     }
                 }
                 #endregion
+
+                //var contains = CultureInfo.CurrentCulture.CompareInfo.IndexOf(result, translated, CompareOptions.IgnoreCase) >= 0;
+                var contains = result.IndexOf(translated, StringComparison.CurrentCultureIgnoreCase) >= 0;
+                if (!string.IsNullOrEmpty(translated) && translated.IsAlpha() && !contains) result = $"{result}{Environment.NewLine}💭{translated}";
+
+                matched = string.Join(", ", matches);
             }
             catch (Exception ex) { ex.ERROR("TRANSLATE"); }
-            matched = string.Join(", ", matches);
             return (result.Trim());
         }
 
@@ -4292,66 +4292,71 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("CopyImage"); }
         }
 
-        public static async Task<bool> WriteToFile(this Stream source, string file, Action<double, double> progressAction = null, ContentRangeHeaderValue range = null, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
+        public static async Task<bool> WriteToFile(this Stream source, string file, ContentRangeHeaderValue range = null, Action<double, double> progressAction = null, CancellationToken cancelToken = default(CancellationToken), int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
         {
             var result = false;
-            using (var ms = new MemoryStream())
+            try
             {
-                if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
-                var length = range is ContentRangeHeaderValue && range.HasLength ? range.Length ?? 0 : 0;
-                int received = 0;
-                if (length <= 0)
+                if (cancelToken.Equals(default(CancellationToken))) cancelToken = new CancellationToken();
+                using (var ms = new MemoryStream())
                 {
-                    await source.CopyToAsync(ms, bufferSize);
-                    length = received = (int)ms.Length;
-                    if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
-                }
-                else
-                {
-                    setting = Application.Current.LoadSetting();
-                    bufferSize = setting.DownloadHttpStreamBlockSize;
-                    byte[] bytes = new byte[bufferSize];
-                    int bytesread = 0;
-                    do
+                    if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
+                    var length = range is ContentRangeHeaderValue && range.HasLength ? range.Length ?? 0 : 0;
+                    int received = 0;
+                    if (length <= 0)
                     {
-                        var cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
-                        using (cancelReadStreamSource.Token.Register(() => source.Close()))
-                        {
-                            bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelReadStreamSource.Token).ConfigureAwait(false);
-                        }
-
-                        if (bytesread > 0 && bytesread <= bufferSize && received < length)
-                        {
-                            received += bytesread;
-                            await ms.WriteAsync(bytes, 0, bytesread);
-                            if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
-                        }
-                    } while (bytesread > 0 && received < length);
-                }
-
-                if (received == length && ms.Length > 0)
-                {
-                    var folder = Path.GetDirectoryName(file);
-                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-
-                    if (!File.Exists(file) || await file.WaitFileUnlockAsync(1000, 10))
-                    {
-                        using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
-                        {
-                            await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
-                            await fs.FlushAsync();
-                            fs.Close();
-                            fs.Dispose();
-                        }
+                        await source.CopyToAsync(ms, bufferSize);
+                        length = received = (int)ms.Length;
+                        if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
                     }
-                    if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
-                }
+                    else
+                    {
+                        setting = Application.Current.LoadSetting();
+                        bufferSize = setting.DownloadHttpStreamBlockSize;
+                        byte[] bytes = new byte[bufferSize];
+                        int bytesread = 0;
+                        do
+                        {
+                            var cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                            using (cancelReadStreamSource.Token.Register(() => source.Close()))
+                            {
+                                bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelReadStreamSource.Token).ConfigureAwait(false);
+                            }
 
-                ms.Close();
-                ms.Dispose();
+                            if (bytesread > 0 && bytesread <= bufferSize && received < length)
+                            {
+                                received += bytesread;
+                                await ms.WriteAsync(bytes, 0, bytesread);
+                                if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+                            }
+                            if (cancelToken.IsCancellationRequested) break;
+                        } while (bytesread > 0 && received < length);
+                    }
+
+                    if (!cancelToken.IsCancellationRequested && received == length && ms.Length > 0)
+                    {
+                        var folder = Path.GetDirectoryName(file);
+                        if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                        if (!File.Exists(file) || await file.WaitFileUnlockAsync(1000, 10))
+                        {
+                            using (var fs = new FileStream(file, mode, access, share, bufferSize, true))
+                            {
+                                await fs.WriteAsync(ms.ToArray(), 0, (int)ms.Length);
+                                await fs.FlushAsync();
+                                fs.Close();
+                                fs.Dispose();
+                            }
+                        }
+                        if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
+                    }
+
+                    ms.Close();
+                    ms.Dispose();
+                }
+                result = File.Exists(file);
             }
-            try { result = File.Exists(file); }
-            catch(Exception ex) { ex.ERROR("WriteToFile"); }
+            catch (Exception ex) { ex.ERROR("WriteToFile"); }
             return (result);
         }
         #endregion
@@ -4472,11 +4477,12 @@ namespace PixivWPF.Common
             return(exists );
         }
 
-        public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null)
+        public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationToken cancelToken = default(CancellationToken))
         {
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
+                if (cancelToken.Equals(default(CancellationToken))) cancelToken = new CancellationToken();
                 if (_Downloading_.TryAdd(file, true))
                 {
                     setting = Application.Current.LoadSetting();
@@ -4486,7 +4492,7 @@ namespace PixivWPF.Common
                         HttpClient client = Application.Current.GetHttpClient(is_download: true);
                         using (var request = Application.Current.GetHttpRequest(url))
                         {
-                            using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                            using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancelToken))
                             {
                                 //response.EnsureSuccessStatusCode();
                                 if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
@@ -4500,7 +4506,7 @@ namespace PixivWPF.Common
                                     string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                                     using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                                     {
-                                        var ret = await sr.WriteToFile(file, progressAction, range);
+                                        var ret = await sr.WriteToFile(file, range, progressAction, cancelToken);
                                         if (ret) result = file;
                                         sr.Close();
                                         sr.Dispose();
@@ -4523,7 +4529,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> DownloadImage(this string url, string file, Pixeez.Tokens tokens, bool overwrite = true)
+        public static async Task<string> DownloadImage(this string url, string file, Pixeez.Tokens tokens, bool overwrite = true, CancellationToken cancelToken = default(CancellationToken))
         {
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
@@ -4559,11 +4565,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> SaveImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null)
+        public static async Task<bool> SaveImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationToken cancelToken = default(CancellationToken))
         {
             bool result = false;
             if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
 
+            if (cancelToken.Equals(default(CancellationToken))) cancelToken = new CancellationToken();
             if (!string.IsNullOrEmpty(file))
             {
                 try
@@ -4572,18 +4579,12 @@ namespace PixivWPF.Common
                     if (unc > 0) file = file.Substring(0, unc - 1);
                     else if (unc == 0) file = file.Substring(8);
 
-                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, overwrite, progressAction));
+                    result = !string.IsNullOrEmpty(await url.DownloadImage(file, overwrite, progressAction, cancelToken));
                 }
                 catch (Exception ex)
                 {
-                    if (ex is IOException)
-                    {
-
-                    }
-                    else
-                    {
-                        ex.ERROR("SaveImage");
-                    }
+                    if (ex is IOException) { }
+                    else { ex.ERROR("SaveImage"); }
                 }
             }
             return (result);

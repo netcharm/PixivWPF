@@ -1555,7 +1555,7 @@ namespace PixivWPF.Pages
                     IllustDescExpander.Hide();
                 }
 
-                PreviewBadge.Badge = item.Illust.PageCount;
+                PreviewBadge.Badge = $"1 / {item.Count}";
                 if (item.IsWork() && item.Illust.PageCount > 1)
                 {
                     var total = item.Illust.PageCount;
@@ -3269,6 +3269,38 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        private void PreviewRect_MouseLeave(object sender, MouseEventArgs e)
+        {
+            btnSubPagePrev.MinWidth = 32;
+            btnSubPageNext.MinWidth = 32;
+            e.Handled = true;
+        }
+
+        private void PreviewRect_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (Contents.HasPages())
+            {
+                if (IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
+                {
+                    btnSubPagePrev.MinWidth = 48;
+                    btnSubPageNext.MinWidth = 32;
+                    e.Handled = true;
+                }
+                else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
+                {
+                    btnSubPagePrev.MinWidth = 32;
+                    btnSubPageNext.MinWidth = 48;
+                    e.Handled = true;
+                }
+                else
+                {
+                    btnSubPagePrev.MinWidth = 32;
+                    btnSubPageNext.MinWidth = 32;
+                    e.Handled = true;
+                }
+            }
+        }
+
         private void IllustDownloaded_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             try
@@ -3543,7 +3575,7 @@ namespace PixivWPF.Pages
                     if (idx - 1 != Contents.Index)
                     {
                         Contents.Index = idx - 1;
-                        PreviewBadge.ToolTip = $"{idx} / {Contents.Count}";
+                        PreviewBadge.Badge = $"{idx} / {Contents.Count}";
                         UpdateLikeState();
                         UpdateDownloadedMark(SubIllusts.SelectedItem);
                     }
@@ -4387,6 +4419,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
         #endregion
+
     }
 
 }

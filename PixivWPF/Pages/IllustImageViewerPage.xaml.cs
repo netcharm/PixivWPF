@@ -353,6 +353,9 @@ namespace PixivWPF.Pages
 
                     if (illust.PageCount > 1)
                     {
+                        PreviewBadge.Show();
+                        PreviewBadge.Badge = $"{Contents.Index + 1} / {Contents.Count}";
+
                         ActionViewPrevPage.Show();
                         ActionViewNextPage.Show();
                         ActionViewPageSep.Show();
@@ -362,8 +365,11 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
+                        PreviewBadge.Hide();
+
                         btnViewNextPage.Hide();
                         btnViewPrevPage.Hide();
+
                         ActionViewPrevPage.Hide();
                         ActionViewNextPage.Hide();
                         ActionViewPageSep.Hide();
