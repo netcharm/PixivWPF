@@ -1456,9 +1456,9 @@ namespace PixivWPF.Common
                                     var win = Application.Current.GetActiveWindow();
                                     if (win == null) Application.Current.GetLatestWindow();
                                     if (win == null) win = Application.Current.GetMainWindow();
-                                    if (win is Window && !win.InSearching())
+                                    if (win is Window)
                                     {
-                                        win.InSearching(focus: false);
+                                        if (win.InSearching()) win.InSearching(focus: false);
                                         hotkey.Command.Execute(win);
                                     }
                                 }).Invoke(true);
@@ -2586,9 +2586,9 @@ namespace PixivWPF.Common
                         await new Action(() =>
                         {
                             var win = Application.Current.GetActiveWindow();
-                            if (win is Window && !win.InSearching())
+                            if (win is Window)
                             {
-                                win.InSearching(focus: false);
+                                if (win.InSearching()) win.InSearching(focus: false);
                                 command.Execute(win);
                             }
                         }).InvokeAsync(true);

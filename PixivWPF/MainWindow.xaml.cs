@@ -372,7 +372,15 @@ namespace PixivWPF
         public bool InSearching
         {
             get { return (SearchBox.IsKeyboardFocusWithin); }
-            set { if (!value) SearchBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)); }
+            set
+            {
+                if (SearchBox.IsKeyboardFocusWithin && !value)
+                {
+                    SearchBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+                    Keyboard.ClearFocus();
+                    if (Content is Page) (Content as Page).Focus();
+                }
+            }
         }
 
         public MainWindow()
