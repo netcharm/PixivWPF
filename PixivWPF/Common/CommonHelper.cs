@@ -4292,12 +4292,11 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("CopyImage"); }
         }
 
-        public static async Task<bool> WriteToFile(this Stream source, string file, ContentRangeHeaderValue range = null, Action<double, double> progressAction = null, CancellationToken cancelToken = default(CancellationToken), int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
+        public static async Task<bool> WriteToFile(this Stream source, string file, ContentRangeHeaderValue range = null, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
         {
             var result = false;
             try
             {
-                if (cancelToken.Equals(default(CancellationToken))) cancelToken = new CancellationToken();
                 using (var ms = new MemoryStream())
                 {
                     if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
@@ -4315,12 +4314,12 @@ namespace PixivWPF.Common
                         bufferSize = setting.DownloadHttpStreamBlockSize;
                         byte[] bytes = new byte[bufferSize];
                         int bytesread = 0;
+                        if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                         do
                         {
-                            var cancelReadStreamSource = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
-                            using (cancelReadStreamSource.Token.Register(() => source.Close()))
+                            using (cancelToken.Token.Register(() => source.Close()))
                             {
-                                bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelReadStreamSource.Token).ConfigureAwait(false);
+                                bytesread = await source.ReadAsync(bytes, 0, bufferSize, cancelToken.Token).ConfigureAwait(false);
                             }
 
                             if (bytesread > 0 && bytesread <= bufferSize && received < length)
@@ -4389,12 +4388,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size = default(Size), Action<double, double> progressAction = null)
+        public static async Task<CustomImageSource> LoadImageFromUrl(this string url, bool overwrite = false, bool login = false, Size size = default(Size), Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
         {
             CustomImageSource result = new CustomImageSource();
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
-                result = await cache.GetImage(url, overwrite, login, size, progressAction);
+                result = await cache.GetImage(url, overwrite, login, size, progressAction, cancelToken);
             }
             return (result);
         }
@@ -4477,12 +4476,13 @@ namespace PixivWPF.Common
             return(exists );
         }
 
-        public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationToken cancelToken = default(CancellationToken))
+        public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
         {
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
-                if (cancelToken.Equals(default(CancellationToken))) cancelToken = new CancellationToken();
+                var cancelTokenSource = new CancellationTokenSource();
+                if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                 if (_Downloading_.TryAdd(file, true))
                 {
                     setting = Application.Current.LoadSetting();
@@ -4492,7 +4492,7 @@ namespace PixivWPF.Common
                         HttpClient client = Application.Current.GetHttpClient(is_download: true);
                         using (var request = Application.Current.GetHttpRequest(url))
                         {
-                            using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancelToken))
+                            using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancelToken.Token))
                             {
                                 //response.EnsureSuccessStatusCode();
                                 if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
@@ -4529,7 +4529,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> DownloadImage(this string url, string file, Pixeez.Tokens tokens, bool overwrite = true, CancellationToken cancelToken = default(CancellationToken))
+        public static async Task<string> DownloadImage(this string url, string file, Pixeez.Tokens tokens, bool overwrite = true, CancellationTokenSource cancelToken = null)
         {
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
@@ -4565,12 +4565,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<bool> SaveImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationToken cancelToken = default(CancellationToken))
+        public static async Task<bool> SaveImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
         {
             bool result = false;
             if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
 
-            if (cancelToken.Equals(default(CancellationToken))) cancelToken = new CancellationToken();
+            var cancelTokenSource = new CancellationTokenSource();
+            if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
             if (!string.IsNullOrEmpty(file))
             {
                 try

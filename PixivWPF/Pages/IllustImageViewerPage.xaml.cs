@@ -7,6 +7,7 @@ using System.Linq;
 using System.Media;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -165,6 +166,7 @@ namespace PixivWPF.Pages
         private double down_last_received = 0;
         private Queue<double> down_rate = new Queue<double>(down_rate_mv);
         private Action<double, double> reportProgress = null;
+        private CancellationTokenSource cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         private string GetFileName()
         {
@@ -231,6 +233,10 @@ namespace PixivWPF.Pages
             try
             {
                 var setting = Application.Current.LoadSetting();
+
+                if (!(cancelDownloading is CancellationTokenSource) || cancelDownloading.IsCancellationRequested)
+                    cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+
                 down_rate.Clear();
                 down_rate.Enqueue(0);
                 down_totalelapsed = TimeSpan.FromSeconds(0);
@@ -247,7 +253,7 @@ namespace PixivWPF.Pages
                 var c_item = Contents;
                 if (IsOriginal)
                 {
-                    using (var original = await OriginalImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress))
+                    using (var original = await OriginalImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress, cancelToken: cancelDownloading))
                     {
                         if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath))
                         {
@@ -260,14 +266,14 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
-                    using (var preview = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress))
+                    using (var preview = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: reportProgress, cancelToken: cancelDownloading))
                     {
                         if (setting.SmartPreview &&
                             (preview.Source == null ||
                              preview.Source.Width < setting.PreviewUsingLargeMinWidth ||
                              preview.Source.Height < setting.PreviewUsingLargeMinHeight))
                         {
-                            using (var original = await OriginalImageUrl.LoadImageFromUrl(progressAction: reportProgress))
+                            using (var original = await OriginalImageUrl.LoadImageFromUrl(progressAction: reportProgress, cancelToken: cancelDownloading))
                             {
                                 if (original.Source != null && !string.IsNullOrEmpty(original.SourcePath))
                                 {
@@ -573,10 +579,17 @@ namespace PixivWPF.Pages
             }
         }
 
+        public void StopPrefetching()
+        {
+            if (cancelDownloading is CancellationTokenSource) cancelDownloading.Cancel();
+        }
+
         public void Dispose()
         {
             try
             {
+                StopPrefetching();
+
                 Preview.Dispose();
                 if (PreviewImage is CustomImageSource) PreviewImage.Source = null;
                 Contents.Source = null;

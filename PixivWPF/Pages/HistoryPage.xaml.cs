@@ -335,6 +335,11 @@ namespace PixivWPF.Pages
             Commands.CopyText.Execute(string.Join(Environment.NewLine, info));
         }
 
+        public void StopPrefetching()
+        {
+            return;
+        }
+
         public void Dispose()
         {
             try
@@ -605,6 +610,7 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex) { ex.ERROR(); }
         }
+
         #endregion
 
     }

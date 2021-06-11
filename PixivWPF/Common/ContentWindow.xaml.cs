@@ -50,7 +50,11 @@ namespace PixivWPF.Common
             get { return (auto_suggest_list); }
         }
 
-        public bool InSearching { get { return (SearchBox.IsKeyboardFocusWithin); } }
+        public bool InSearching
+        {
+            get { return (SearchBox.IsKeyboardFocusWithin); }
+            set { if (!value) SearchBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)); }
+        }
 
         private Storyboard PreftchingStateRing = null;
         public void SetPrefetchingProgress(double progress, string tooltip = "", TaskStatus state = TaskStatus.Created)
@@ -685,6 +689,18 @@ namespace PixivWPF.Common
                 (Content as SearchResultPage).SetFilter(filter);
             else if (Content is HistoryPage)
                 (Content as HistoryPage).SetFilter(filter);
+        }
+
+        private void PreftchingProgress_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (Content is IllustDetailPage)
+                (Content as IllustDetailPage).StopPrefetching();
+            else if (Content is IllustImageViewerPage)
+                (Content as IllustImageViewerPage).StopPrefetching();
+            else if (Content is SearchResultPage)
+                (Content as SearchResultPage).StopPrefetching();
+            else if (Content is HistoryPage)
+                (Content as HistoryPage).StopPrefetching();
         }
     }
 }

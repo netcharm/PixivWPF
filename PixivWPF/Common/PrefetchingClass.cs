@@ -40,6 +40,7 @@ namespace PixivWPF.Common
         public double Percentage { get; private set; } = 0;
         public string Comments { get; private set; } = string.Empty;
         public TaskStatus State { get; private set; } = TaskStatus.Created;
+        public bool IsBusy { get { return (PrefetchingBgWorker is BackgroundWorker && (PrefetchingBgWorker.IsBusy || PrefetchingBgWorker.CancellationPending)); } }
 
         public Action<double, string, TaskStatus> ReportProgress { get; set; } = null;
         public Action ReportProgressSlim { get; set; } = null;
@@ -223,7 +224,6 @@ namespace PixivWPF.Common
             {
                 if (State == TaskStatus.Faulted)
                 {
-                    //State = TaskStatus.RanToCompletion;
                     if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                     else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
                 }
@@ -323,7 +323,7 @@ namespace PixivWPF.Common
                                     }
                                 }
                             }
-                            if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; loopstate.Stop(); }
+                            if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; loopstate.Stop(); }
                             Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
                             Comments = $"Prefetching [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                             State = TaskStatus.Running;
@@ -367,7 +367,7 @@ namespace PixivWPF.Common
                                             }
                                         }
                                     }
-                                    if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; return; }
+                                    if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; return; }
                                     Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
                                     Comments = $"Prefetching [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                                     State = TaskStatus.Running;
@@ -384,7 +384,7 @@ namespace PixivWPF.Common
                     this.DoEvents();
                 }
 
-                if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; return; }
+                if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; State = TaskStatus.Canceled; return; }
                 if (count >= 0 && total > 0)
                 {
                     Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
@@ -520,6 +520,8 @@ namespace PixivWPF.Common
         private bool disposed = false;
         public void Dispose()
         {
+            Stop();
+            if (PrefetchingBgWorker is BackgroundWorker) PrefetchingBgWorker.Dispose();
             Dispose(true);
             GC.SuppressFinalize(this);
         }

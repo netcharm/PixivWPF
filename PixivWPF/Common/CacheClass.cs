@@ -11,6 +11,7 @@ using System.Windows.Media;
 
 using Newtonsoft.Json;
 using PixivWPF.Common;
+using System.Threading;
 
 namespace PixivWPF.Common
 {
@@ -81,7 +82,7 @@ namespace PixivWPF.Common
             return (file);
         }
 
-        public async Task<CustomImageSource> GetImage(string url, bool overwrite = false, bool login = false, Size size = default(Size), Action<double, double> progressAction = null)
+        public async Task<CustomImageSource> GetImage(string url, bool overwrite = false, bool login = false, Size size = default(Size), Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
         {
             CustomImageSource result = new CustomImageSource();
             var file = GetCacheFile(url, overwrite);
@@ -99,7 +100,7 @@ namespace PixivWPF.Common
                 if (file.IsDownloading() && await file.WaitDownloading(timeout: TimeSpan.FromSeconds(30))) result = await file.LoadImageFromFile(size);
                 if (result.Source == null || string.IsNullOrEmpty(result.SourcePath))
                 {
-                    var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite, progressAction);
+                    var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite, progressAction, cancelToken: cancelToken);
                     if (success) result = await file.LoadImageFromFile(size);
                     file.ClearDownloading();
                 }

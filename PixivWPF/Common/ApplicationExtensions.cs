@@ -1074,9 +1074,18 @@ namespace PixivWPF.Common
             return (GetLoginWindow(app) != null ? true : false);
         }
 
-        public static bool InSearching(this Application app)
+        public static bool InSearching(this Application app, bool? focus = null)
         {
             var win = GetActiveWindow(app);
+
+            if (focus != null && !focus.Value)
+            {
+                if (win is MainWindow)
+                    (win as MainWindow).InSearching = false;
+                else if (win is ContentWindow)
+                    (win as ContentWindow).InSearching = false;
+            }
+
             if (win is MainWindow)
                 return ((win as MainWindow).InSearching);
             else if (win is ContentWindow)
@@ -1084,9 +1093,18 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool InSearching(this Page page)
+        public static bool InSearching(this Page page, bool? focus = null)
         {
             var win = GetActiveWindow(Application.Current);
+
+            if (focus != null && !focus.Value)
+            {
+                if (win is MainWindow)
+                    (win as MainWindow).InSearching = false;
+                else if (win is ContentWindow)
+                    (win as ContentWindow).InSearching = false;
+            }
+
             if (win is MainWindow)
                 return ((win as MainWindow).InSearching);
             else if (win is ContentWindow)
@@ -1094,8 +1112,16 @@ namespace PixivWPF.Common
             else return (false);
         }
 
-        public static bool InSearching(this Window win)
+        public static bool InSearching(this Window win, bool? focus = null)
         {
+            if (focus != null && !focus.Value)
+            {
+                if (win is MainWindow)
+                    (win as MainWindow).InSearching = false;
+                else if (win is ContentWindow)
+                    (win as ContentWindow).InSearching = false;
+            }
+
             if (win is MainWindow)
                 return ((win as MainWindow).InSearching);
             else if (win is ContentWindow)
@@ -1430,7 +1456,11 @@ namespace PixivWPF.Common
                                     var win = Application.Current.GetActiveWindow();
                                     if (win == null) Application.Current.GetLatestWindow();
                                     if (win == null) win = Application.Current.GetMainWindow();
-                                    if (win is Window && !win.InSearching()) hotkey.Command.Execute(win);
+                                    if (win is Window && !win.InSearching())
+                                    {
+                                        win.InSearching(focus: false);
+                                        hotkey.Command.Execute(win);
+                                    }
                                 }).Invoke(true);
                                 break;
                             }
@@ -2556,7 +2586,11 @@ namespace PixivWPF.Common
                         await new Action(() =>
                         {
                             var win = Application.Current.GetActiveWindow();
-                            if (win is Window && !win.InSearching()) command.Execute(win);
+                            if (win is Window && !win.InSearching())
+                            {
+                                win.InSearching(focus: false);
+                                command.Execute(win);
+                            }
                         }).InvokeAsync(true);
                     }
                     catch (Exception ex) { ex.Message.DEBUG("ERROR[HOTKEY]"); }

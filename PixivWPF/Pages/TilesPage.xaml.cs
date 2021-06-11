@@ -560,14 +560,19 @@ namespace PixivWPF.Pages
                     var tooltip = PrefetchingImagesTask.Comments;
                     var state = PrefetchingImagesTask.State;
                     if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) ImageTiles.UpdateTilesImage();
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted || state == TaskStatus.Canceled) ImageTiles.UpdateTilesImage();
                 },
                 ReportProgress = (percent, tooltip, state) =>
                 {
                     if (ParentWindow is MainWindow) ParentWindow.SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) ImageTiles.UpdateTilesImage();
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted || state == TaskStatus.Canceled) ImageTiles.UpdateTilesImage();
                 }
             };
+        }
+
+        public void StopPrefetching()
+        {
+            if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
         }
         #endregion
 
@@ -1724,6 +1729,8 @@ namespace PixivWPF.Pages
             {
                 var idx = ImageTiles.SelectedIndex;
                 if (idx < 0) return;
+
+                if (ParentWindow is MainWindow && ParentWindow.InSearching) ParentWindow.InSearching = false;
 
                 if (ImageTiles.SelectedItem is PixivItem)
                 {

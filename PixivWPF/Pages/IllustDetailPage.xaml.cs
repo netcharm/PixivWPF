@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 
 using MahApps.Metro.IconPacks;
 using PixivWPF.Common;
+using System.Threading;
 
 namespace PixivWPF.Pages
 {
@@ -27,6 +28,7 @@ namespace PixivWPF.Pages
         public Window ParentWindow { get; private set; } = null;
         public PixivItem Contents { get; set; } = null;
         private PrefetchingTask PrefetchingImagesTask = null;
+        private CancellationTokenSource cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         private const string SymbolIcon_Followed = "\uE113";
         private const string SymbolIcon_UnFollowed = "\uE734";
@@ -75,6 +77,10 @@ namespace PixivWPF.Pages
                 if (PreviewPopupBackground is Rectangle) PreviewPopupBackground.Fill = Theme.MenuBackgroundBrush;
                 foreach (var button in PreviewPopupToolButtons) button.Foreground = Theme.AccentBrush;
                 PreviewPopup.IsOpen = true;
+                PreviewPopup.HorizontalOffset -= 4;
+                PreviewPopup.VerticalOffset -= 4;
+                PreviewPopup.VerticalOffset += 4;
+                PreviewPopup.HorizontalOffset += 4;
             }
             catch (Exception ex) { ex.ERROR(); }
         }
@@ -1250,13 +1256,13 @@ namespace PixivWPF.Pages
                     var state = PrefetchingImagesTask.State;
                     if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
                     if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) UpdateThumb(prefetching: false);
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted || state == TaskStatus.Canceled) UpdateThumb(prefetching: false);
                 },
                 ReportProgress = (percent, tooltip, state) =>
                 {
                     if (ParentWindow is MainWindow) (ParentWindow as MainWindow).SetPrefetchingProgress(percent, tooltip, state);
                     if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(percent, tooltip, state);
-                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted) UpdateThumb(prefetching: false);
+                    if (state == TaskStatus.RanToCompletion || state == TaskStatus.Faulted || state == TaskStatus.Canceled) UpdateThumb(prefetching: false);
                 }
             };
         }
@@ -2272,6 +2278,12 @@ namespace PixivWPF.Pages
                 else return (false);
             }
         }
+
+        public void StopPrefetching()
+        {
+            if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
+            if (cancelDownloading is CancellationTokenSource) cancelDownloading.Cancel();
+        }
         #endregion
 
         #region IDisposable Support
@@ -2286,6 +2298,8 @@ namespace PixivWPF.Pages
                     // TODO: 释放托管状态(托管对象)。
                     try
                     {
+                        StopPrefetching();
+
                         if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Dispose();
 
                         SubIllusts.Clear(batch: false, force: true);
@@ -2789,6 +2803,9 @@ namespace PixivWPF.Pages
             {
                 setting = Application.Current.LoadSetting();
 
+                if (!(cancelDownloading is CancellationTokenSource) || cancelDownloading.IsCancellationRequested)
+                    cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
                 Preview.Show();
                 await new Action(async () =>
                 {
@@ -2802,7 +2819,7 @@ namespace PixivWPF.Pages
                         if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, large: setting.ShowLargePreview);
-                        using (var img = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage))
+                        using (var img = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage, cancelToken: cancelDownloading))
                         {
                             if (!setting.ShowLargePreview && setting.SmartPreview &&
                                 (img.Source == null ||
@@ -2810,7 +2827,7 @@ namespace PixivWPF.Pages
                                  img.Source.Height < setting.PreviewUsingLargeMinHeight))
                             {
                                 PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, true);
-                                using (var large = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage))
+                                using (var large = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage, cancelToken: cancelDownloading))
                                 {
                                     if (large.Source != null)
                                     {
@@ -2852,12 +2869,15 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
+                        if (!(cancelDownloading is CancellationTokenSource) || cancelDownloading.IsCancellationRequested)
+                            cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
                         AuthorAvatarWait.Show();
                         btnAuthorAvatar.Show(AuthorAvatarWait.IsFail);
 
                         var c_item = Contents;
                         AvatarImageUrl = Contents.User.GetAvatarUrl();
-                        using (var img = await AvatarImageUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultAvatarSize()))
+                        using (var img = await AvatarImageUrl.LoadImageFromUrl(overwrite, size: Application.Current.GetDefaultAvatarSize(), cancelToken: cancelDownloading))
                         {
                             if (c_item.IsSameIllust(Contents))
                             {

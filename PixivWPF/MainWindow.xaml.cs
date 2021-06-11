@@ -369,7 +369,11 @@ namespace PixivWPF
         }
         #endregion
 
-        public bool InSearching { get { return (SearchBox.IsKeyboardFocusWithin); } }
+        public bool InSearching
+        {
+            get { return (SearchBox.IsKeyboardFocusWithin); }
+            set { if (!value) SearchBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)); }
+        }
 
         public MainWindow()
         {
@@ -950,5 +954,10 @@ namespace PixivWPF
             if (Contents is Pages.TilesPage) Contents.SetFilter(filter);
         }
 
+        private void PreftchingProgress_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (Content is Pages.TilesPage)
+                (Content as Pages.TilesPage).StopPrefetching();
+        }
     }
 }

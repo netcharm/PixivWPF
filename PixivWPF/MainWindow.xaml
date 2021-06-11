@@ -57,7 +57,7 @@
                 <Button x:Name="CommandRefreshThumb" x:Uid="CommandRefreshThumb" Click="CommandRefresh_Click" ToolTip="Refresh Thumbnails">
                     <TextBlock Text="&#xE149;" FontSize="16" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
-                <StackPanel x:Name="PreftchingProgress" Orientation="Horizontal" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel x:Name="PreftchingProgress" Orientation="Horizontal" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" MouseRightButtonDown="PreftchingProgress_MouseRightButtonDown">
                     <TextBlock x:Name="PreftchingProgressInfo" x:Uid="PreftchingProgressInfo" VerticalAlignment="Center" Margin="0,0,2,0" Text="" />
                     <TextBlock x:Name="PreftchingProgressState" x:Uid="PreftchingProgressState" VerticalAlignment="Center"
                                Text="&#xF16A;" FontSize="16" FontFamily="Segoe MDL2 Assets" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">

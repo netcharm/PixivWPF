@@ -280,6 +280,11 @@ namespace PixivWPF.Pages
             return ($"Result: {ResultItems.ItemsCount}({ResultItems.SelectedItems.Count}) of {ResultItems.Items.Count}");
         }
 
+        public void StopPrefetching()
+        {
+            return;
+        }
+
         public void Dispose()
         {
             try
