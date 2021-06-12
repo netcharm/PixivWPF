@@ -404,10 +404,27 @@
             </MenuItem>
         </ContextMenu>
 
+        <CubicEase  x:Key="CubicEaseOut" EasingMode="EaseOut" />
         <Style x:Key="PreviewPopupTrigger" TargetType="{x:Type Popup}">
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="true">
                     <Setter Property="Cursor" Value="Hand"/>
+                </Trigger>
+                <Trigger Property="IsOpen" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                    From="1" To="1.5" Duration="0:0:1" 
+                                    EasingFunction="{StaticResource CubicEaseOut}"/>
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                    From="1" To="1.5" Duration="0:0:1" 
+                                    EasingFunction="{StaticResource CubicEaseOut}"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
                 </Trigger>
             </Style.Triggers>
         </Style>

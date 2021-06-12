@@ -74,15 +74,14 @@ namespace PixivWPF.Pages
         {
             try
             {
+                if (PreviewBox.ContextMenu is ContextMenu && PreviewBox.ContextMenu.IsOpen) PreviewBox.ContextMenu.IsOpen = false;
+
                 if (PreviewPopupBackground is Rectangle) PreviewPopupBackground.Fill = Theme.MenuBackgroundBrush;
                 foreach (var button in PreviewPopupToolButtons) button.Foreground = Theme.AccentBrush;
+
                 PreviewPopup.IsOpen = true;
-                PreviewPopup.HorizontalOffset -= 4;
-                PreviewPopup.VerticalOffset -= 4;
-                PreviewPopup.VerticalOffset += 4;
-                PreviewPopup.HorizontalOffset += 4;
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ShowPopup"); }
         }
 
         private void PopupOpen(object sender, ContextMenu menu)
@@ -102,7 +101,7 @@ namespace PixivWPF.Pages
                 }
                 menu.IsOpen = true;
             }
-            catch (Exception ex) { ex.ERROR("PopupContextMenu"); }
+            catch (Exception ex) { ex.ERROR("ShowContextMenu"); }
         }
         #endregion
 
@@ -2406,7 +2405,7 @@ namespace PixivWPF.Pages
             #region Preview Popup
             try
             {
-                PreviewPopup = (Popup)FindResource("PreviewPopup");
+                PreviewPopup = (Popup)TryFindResource("PreviewPopup");
                 if (PreviewPopup is Popup)
                 {
                     PreviewPopup.PlacementTarget = Preview;
