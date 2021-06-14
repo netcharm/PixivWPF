@@ -380,6 +380,11 @@ namespace PixivWPF
                     Keyboard.ClearFocus();
                     if (Content is Page) (Content as Page).Focus();
                 }
+                else if(!SearchBox.IsKeyboardFocusWithin && value)
+                {
+                    SearchBox.Focus();
+                    Keyboard.Focus(SearchBox);
+                }
             }
         }
 

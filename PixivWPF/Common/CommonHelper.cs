@@ -1304,7 +1304,8 @@ namespace PixivWPF.Common
 
                 //var contains = CultureInfo.CurrentCulture.CompareInfo.IndexOf(result, translated, CompareOptions.IgnoreCase) >= 0;
                 var contains = result.IndexOf(translated, StringComparison.CurrentCultureIgnoreCase) >= 0;
-                if (!string.IsNullOrEmpty(translated) && translated.IsAlpha() && !contains) result = $"{result}{Environment.NewLine}💭{translated}";
+                //if (!string.IsNullOrEmpty(translated) && translated.IsAlpha() && !contains) result = $"{result}{Environment.NewLine}💭{translated}";
+                if (!string.IsNullOrEmpty(translated) && !contains) result = $"{result}{Environment.NewLine}💭{translated}";
 
                 matched = string.Join(", ", matches);
             }
@@ -4355,7 +4356,7 @@ namespace PixivWPF.Common
                 }
                 result = File.Exists(file);
             }
-            catch (Exception ex) { ex.ERROR("WriteToFile"); }
+            catch (Exception ex) { ex.ERROR($"WriteToFile: {Path.GetFileName(file)}"); }
             return (result);
         }
         #endregion
@@ -6706,23 +6707,30 @@ namespace PixivWPF.Common
 
         public static void Active(this MetroWindow window)
         {
-            if (window.WindowState == WindowState.Minimized)
+            if (window is MetroWindow)
             {
-                try
+                if (window.WindowState == WindowState.Minimized)
                 {
-                    if (window is MainWindow)
-                        (window as MainWindow).RestoreWindowState();
-                    else if (window is ContentWindow)
-                        (window as ContentWindow).RestoreWindowState();
+                    try
+                    {
+                        if (window is MainWindow)
+                            (window as MainWindow).RestoreWindowState();
+                        else if (window is ContentWindow)
+                            (window as ContentWindow).RestoreWindowState();
+                    }
+                    catch (Exception ex)
+                    {
+                        ex.ERROR("ActiveWindow");
+                        window.WindowState = WindowState.Normal;
+                    }
                 }
-                catch (Exception ex)
+
+                if (window.WindowState != WindowState.Minimized)
                 {
-                    ex.ERROR();
-                    window.WindowState = WindowState.Normal;
+                    window.Show();
+                    window.Activate();
                 }
             }
-            window.Show();
-            window.Activate();
         }
 
         public static async Task<bool> ActiveByTitle(this string title)

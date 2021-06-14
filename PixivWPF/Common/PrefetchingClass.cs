@@ -222,7 +222,7 @@ namespace PixivWPF.Common
         {
             if (Items.Count > 0)
             {
-                if (State == TaskStatus.Faulted)
+                if (State == TaskStatus.Faulted || State == TaskStatus.Canceled)
                 {
                     if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                     else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);

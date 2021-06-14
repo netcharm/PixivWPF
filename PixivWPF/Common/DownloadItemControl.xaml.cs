@@ -1055,7 +1055,7 @@ namespace PixivWPF.Common
                 catch (Exception ex)
                 {
                     FailReason = ex.Message;
-                    ex.ERROR($"{Name ?? GetType().Name ?? Info.Name}_DownloadDirectAsync");
+                    ex.ERROR($"{Name ?? GetType().Name ?? Info.Name ?? Path.GetFileNameWithoutExtension(FileName)}_DownloadDirectAsync");
                 }
                 finally
                 {

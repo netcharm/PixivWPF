@@ -999,15 +999,18 @@ namespace PixivWPF.Common
                 {
                     if (r18.Contains(condition))
                     {
+                        win.ShowActivated = false;
                         if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
                     }
                     else if (r17.Contains(condition))
                     {
+                        win.ShowActivated = false;
                         if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
                         else if (item.Sanity.Equals("17+")) win.WindowState = WindowState.Minimized;
                     }
                     else if (r15.Contains(condition))
                     {
+                        win.ShowActivated = false;
                         if (item.Sanity.Equals("18+")) win.WindowState = WindowState.Minimized;
                         else if (item.Sanity.Equals("17+")) win.WindowState = WindowState.Minimized;
                         else if (item.Sanity.Equals("15+")) win.WindowState = WindowState.Minimized;

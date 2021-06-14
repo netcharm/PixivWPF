@@ -1544,6 +1544,9 @@ namespace PixivWPF.Pages
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             var change_detail_page = setting.SmartMouseResponse && e.Source == IllustDetail;
+
+            if (ParentWindow is MainWindow) (ParentWindow as MainWindow).InSearching = false;
+
             if (Keyboard.Modifiers == ModifierKeys.Shift) change_detail_page = !change_detail_page;
             if (change_detail_page)
             {

@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+using MahApps.Metro.Controls;
 using MahApps.Metro.IconPacks;
 using PixivWPF.Common;
 using System.Threading;
@@ -2483,6 +2484,9 @@ namespace PixivWPF.Pages
             var change_illust = Keyboard.Modifiers == ModifierKeys.Shift;
             try
             {
+                if (ParentWindow is MainWindow) (ParentWindow as MainWindow).InSearching = false;
+                else if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).InSearching = false;
+
                 if (PreviewPopup is Popup && PreviewPopup.IsOpen && e.LeftButton != MouseButtonState.Pressed)
                 {
                     PreviewPopup.IsOpen = false;
