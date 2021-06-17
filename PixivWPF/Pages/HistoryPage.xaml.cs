@@ -123,7 +123,7 @@ namespace PixivWPF.Pages
                 if (ex is NullReferenceException)
                 {
                     //"No Result".ShowMessageBox("WARNING");
-                    "No Result".ShowToast("WARNING[HISTORY]");
+                    "No Result".ShowToast("WARNING", tag: "ShowHistory");
                 }
                 else
                 {

@@ -208,7 +208,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        ex.Message.ShowToast("ERROR[BROWSER]!");
+                        ex.Message.ShowToast("ERROR", tag: "GetHtmlContents");
                         //BrowserWait.Fail();
                     }
                 }

@@ -549,7 +549,7 @@ namespace PixivWPF.Common
                             }
                             catch (Exception ex)
                             {
-                                $"Custom Translation Tags Loading Error:\n{ex.Message}".ShowToast("ERROR[Tags]");
+                                $"Custom Translation Tags Loading Error:\n{ex.Message}".ShowToast("ERROR", tag: "LoadCustomTags");
                             }
                         }
                         else
@@ -628,7 +628,7 @@ namespace PixivWPF.Common
                             }
                             catch (Exception ex)
                             {
-                                $"Custom Translation Wildcard Tags Loading Error:\n{ex.Message}".ShowToast("ERROR[Tags]");
+                                $"Custom Translation Wildcard Tags Loading Error:\n{ex.Message}".ShowToast("ERROR", tag: "LoadCustomTags");
                             }
                         }
                         else
@@ -922,6 +922,20 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.accent = accent;
             }
         }
+        #endregion
+
+        #region Mouse relative
+        private bool mouse_xbutton_reverse = false;
+        public bool ReverseMouseXButton
+        {
+            get { return (Cache is Setting ? Cache.mouse_xbutton_reverse : mouse_xbutton_reverse); }
+            set
+            {
+                mouse_xbutton_reverse = value;
+                if (Cache is Setting) Cache.mouse_xbutton_reverse = mouse_xbutton_reverse;
+            }
+        }
+
         #endregion
 
         #region network relative

@@ -2493,17 +2493,20 @@ namespace PixivWPF.Pages
                     PreviewPopupTimer.Stop();
                 }
 
+                setting = Application.Current.LoadSetting();
                 if (change_illust && ParentWindow is ContentWindow)
                 {
                     if (e.XButton1 == MouseButtonState.Pressed)
                     {
                         e.Handled = true;
-                        NextIllust();
+                        if (setting.ReverseMouseXButton) NextIllust();
+                        else PrevIllust();
                     }
                     else if (e.XButton2 == MouseButtonState.Pressed)
                     {
                         e.Handled = true;
-                        PrevIllust();
+                        if (setting.ReverseMouseXButton) PrevIllust();
+                        else NextIllust();
                     }
                 }
                 else
@@ -2511,12 +2514,14 @@ namespace PixivWPF.Pages
                     if (e.XButton1 == MouseButtonState.Pressed)
                     {
                         e.Handled = true;
-                        NextIllustPage();
+                        if (setting.ReverseMouseXButton) NextIllustPage();
+                        else PrevIllustPage();
                     }
                     else if (e.XButton2 == MouseButtonState.Pressed)
                     {
                         e.Handled = true;
-                        PrevIllustPage();
+                        if (setting.ReverseMouseXButton) PrevIllustPage();
+                        else NextIllustPage();
                     }
                 }
             }

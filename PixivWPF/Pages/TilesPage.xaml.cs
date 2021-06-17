@@ -621,926 +621,6 @@ namespace PixivWPF.Pages
             Dispose();
         }
 
-        internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
-        {
-            if (ParentWindow == null) ParentWindow = this.GetMainWindow();
-            if (target == PixivPage.My) { ShowUser(0, true); return; }
-            if (ParentWindow is MainWindow) ParentWindow.UpdateTitle(target.ToString());
-            this.DoEvents();
-
-            InitPrefetchingTask();
-            if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
-
-            if (TargetPage != target)
-            {
-                lastSelectedId = string.Empty;
-                TargetPage = target;
-                IsAppend = false;
-            }
-            if (!IsAppend)
-            {
-                $"Show illusts from category \"{target.ToString()}\" ...".INFO();
-                NextURL = null;
-                ids.Clear();
-                ImageTiles.ClearAsync(batch: setting.BatchClearThumbnails, force: true);
-                this.DoEvents();
-            }
-            else $"Append illusts from category \"{target.ToString()}\" ...".INFO();
-
-            ImageTiles.SelectedIndex = -1;
-            LastPage = target;
-            switch (target)
-            {
-                case PixivPage.None:
-                    break;
-                case PixivPage.Recommanded:
-                    ShowRecommanded(NextURL);
-                    break;
-                case PixivPage.Latest:
-                    ShowLatest(NextURL);
-                    break;
-                case PixivPage.TrendingTags:
-                    ShowTrendingTags(NextURL);
-                    break;
-                case PixivPage.Feeds:
-#if DEBUG
-                    ShowFeeds(NextURL);
-#endif
-                    break;
-                case PixivPage.Favorite:
-                    ShowFavorite(NextURL, false);
-                    break;
-                case PixivPage.FavoritePrivate:
-                    ShowFavorite(NextURL, true);
-                    break;
-                case PixivPage.Follow:
-                    ShowFollowing(NextURL);
-                    break;
-                case PixivPage.FollowPrivate:
-                    ShowFollowing(NextURL, true);
-                    break;
-                case PixivPage.My:
-                    ShowUser(0, true);
-                    break;
-
-                case PixivPage.MyFollowerUser:
-                    ShowMyFollower(0, NextURL);
-                    break;
-                case PixivPage.MyFollowingUser:
-                    ShowMyFollowing(0, NextURL, false);
-                    break;
-                case PixivPage.MyFollowingUserPrivate:
-                    ShowMyFollowing(0, NextURL, true);
-                    break;
-                case PixivPage.MyPixivUser:
-                    ShowMyPixiv(0, NextURL);
-                    break;
-                case PixivPage.MyBlacklistUser:
-                    ShowMyBlacklist(0, NextURL);
-                    break;
-
-                case PixivPage.MyWork:
-                    //ShowFavorite(NextURL, true);
-                    break;
-                case PixivPage.User:
-                    break;
-                case PixivPage.UserWork:
-                    break;
-                case PixivPage.MyBookmark:
-                    break;
-                case PixivPage.RankingDay:
-                    ShowRanking(NextURL, "day");
-                    break;
-                case PixivPage.RankingDayMale:
-                    ShowRanking(NextURL, "day_male");
-                    break;
-                case PixivPage.RankingDayFemale:
-                    ShowRanking(NextURL, "day_female");
-                    break;
-                case PixivPage.RankingDayR18:
-                    ShowRanking(NextURL, "day_r18");
-                    break;
-                case PixivPage.RankingDayMaleR18:
-                    ShowRanking(NextURL, "day_male_r18");
-                    break;
-                case PixivPage.RankingDayFemaleR18:
-                    ShowRanking(NextURL, "day_female_r18");
-                    break;
-                case PixivPage.RankingDayManga:
-                    ShowRanking(NextURL, "day_manga");
-                    break;
-                case PixivPage.RankingWeek:
-                    ShowRanking(NextURL, "week");
-                    break;
-                case PixivPage.RankingWeekOriginal:
-                    ShowRanking(NextURL, "week_original");
-                    break;
-                case PixivPage.RankingWeekRookie:
-                    ShowRanking(NextURL, "week_rookie");
-                    break;
-                case PixivPage.RankingWeekR18:
-                    ShowRanking(NextURL, "week_r18");
-                    break;
-                case PixivPage.RankingWeekR18G:
-                    ShowRanking(NextURL, "week_r18g");
-                    break;
-                case PixivPage.RankingMonth:
-                    ShowRanking(NextURL, "month");
-                    break;
-            }
-            this.DoEvents();
-            if (!string.IsNullOrEmpty(id)) lastSelectedId = id;
-        }
-
-        #region Show category
-        private async void ShowRecommanded(string nexturl = null)
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                Pixeez.Objects.RecommendedRootobject root = null;
-                if (Keyboard.Modifiers == ModifierKeys.Shift)
-                {
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "20", "1", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
-                else if (Keyboard.Modifiers == ModifierKeys.Alt)
-                {
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "200", "200", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
-                else if (Keyboard.Modifiers == ModifierKeys.Control)
-                {
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "2000", "1000", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
-                else if (Keyboard.Modifiers == ModifierKeys.Windows)
-                {
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "2000", "2000", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
-                else
-                {
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                }
-                nexturl = root.next_url ?? string.Empty;
-                NextURL = nexturl;
-
-                if (root.illusts != null)
-                {
-                    foreach (var illust in root.illusts)
-                    {
-                        illust.Cache();
-                        if (!ids.Contains(illust.Id.Value))
-                        {
-                            ids.Add(illust.Id.Value);
-                            illust.AddTo(ImageTiles.Items, nexturl);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    //var n = nameof(ShowRecommanded);
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowLatest(string nexturl = null)
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                var page_no = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
-                var root = await tokens.GetLatestWorksAsync(page_no);
-                nexturl = root.Pagination.Next.ToString() ?? string.Empty;
-                NextURL = nexturl;
-
-                if (root != null)
-                {
-                    foreach (var illust in root)
-                    {
-                        illust.Cache();
-                        if (!ids.Contains(illust.Id.Value))
-                        {
-                            ids.Add(illust.Id.Value);
-                            illust.AddTo(ImageTiles.Items, nexturl);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowTrendingTags(string nexturl = null)
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
-                var root = await tokens.GetTrendingTagsIllustAsync();
-                nexturl = string.Empty;
-                NextURL = nexturl;
-
-                if (root != null)
-                {
-                    foreach (var tag in root.tags)
-                    {
-                        tag.illust.Cache();
-                        if (!ids.Contains(tag.illust.Id.Value))
-                        {
-                            ids.Add(tag.illust.Id.Value);
-                            tag.illust.AddTo(ImageTiles.Items, nexturl);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowFeeds(long uid, string nexturl = null)
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
-                var root = await tokens.GetMyFeedsAsync(uid);
-                nexturl = string.Empty;
-                NextURL = nexturl;
-
-                if (root != null)
-                {
-                    foreach (var feed in root)
-                    {
-                        feed.User.Cache();
-                        if (!ids.Contains(feed.User.Id.Value))
-                        {
-                            ids.Add(feed.User.Id.Value);
-                            feed.User.AddTo(ImageTiles.Items);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowFeeds(string nexturl = null)
-        {
-            ImageTiles.Wait();
-            var force = setting.MyInfo is Pixeez.Objects.User ? false : true;
-            var tokens = await CommonHelper.ShowLogin(force);
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
-                var uid = setting.MyInfo is Pixeez.Objects.User ? setting.MyInfo.Id.Value : 0;
-
-                var root = await tokens.GetMyFeedsAsync(uid);
-                nexturl = string.Empty;
-                NextURL = nexturl;
-
-                if (root != null)
-                {
-                    foreach (var feed in root)
-                    {
-                        feed.User.Cache();
-                        if (!ids.Contains(feed.User.Id.Value))
-                        {
-                            ids.Add(feed.User.Id.Value);
-                            feed.User.AddTo(ImageTiles.Items);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowFavorite(string nexturl = null, bool IsPrivate = false)
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin(setting.MyInfo == null && IsPrivate);
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                long uid = setting.MyID;
-                var condition = IsPrivate ? "private" : "public";
-
-                if (uid > 0)
-                {
-                    var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetUserFavoriteWorksAsync(uid, condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                    nexturl = root.next_url ?? string.Empty;
-                    NextURL = nexturl;
-
-                    if (root.illusts != null)
-                    {
-                        foreach (var illust in root.illusts)
-                        {
-                            illust.Cache();
-                            if (!ids.Contains(illust.Id.Value))
-                            {
-                                ids.Add(illust.Id.Value);
-                                illust.AddTo(ImageTiles.Items, nexturl);
-                                this.DoEvents();
-                            }
-                        }
-                        if (!Application.Current.IsLogin()) await Task.Delay(250);
-                        this.DoEvents();
-                        ImageTiles.UpdateTilesImage();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowFollowing(string nexturl = null, bool IsPrivate = false)
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                var condition = IsPrivate ? "private" : "public";
-                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetMyFollowingWorksAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                nexturl = root.next_url ?? string.Empty;
-                NextURL = nexturl;
-
-                if (root.illusts != null)
-                {
-                    foreach (var illust in root.illusts)
-                    {
-                        illust.Cache();
-                        if (!ids.Contains(illust.Id.Value))
-                        {
-                            ids.Add(illust.Id.Value);
-                            illust.AddTo(ImageTiles.Items, nexturl);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowRankingAll(string nexturl = null, string condition = "daily")
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
-                var root = await tokens.GetRankingAllAsync(condition, page);
-                nexturl = root.Pagination.Next.ToString() ?? string.Empty;
-                NextURL = nexturl;
-
-                if (root != null)
-                {
-                    foreach (var works in root)
-                    {
-                        try
-                        {
-                            foreach (var work in works.Works)
-                            {
-                                var illust = work.Work;
-                                illust.Cache();
-                                if (!ids.Contains(illust.Id.Value))
-                                {
-                                    ids.Add(illust.Id.Value);
-                                    illust.AddTo(ImageTiles.Items, nexturl);
-                                    this.DoEvents();
-                                }
-                            }
-                            this.DoEvents();
-                        }
-                        catch (Exception ex)
-                        {
-                            ex.Message.ShowMessageBox("ERROR");
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowRanking(string nexturl = null, string condition = "day")
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                var date = SelectedDate.Date == DateTime.Now.Date ? string.Empty : (SelectedDate - TimeSpan.FromDays(1)).ToString("yyyy-MM-dd");
-                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                int count = 2;
-                while (count <= 7 && (root.illusts == null || root.illusts.Length <= 0))
-                {
-                    date = (SelectedDate - TimeSpan.FromDays(count)).ToString("yyyy-MM-dd");
-                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
-                    count++;
-                }
-                nexturl = root.next_url ?? string.Empty;
-                NextURL = nexturl;
-
-                if (root.illusts != null)
-                {
-                    foreach (var illust in root.illusts)
-                    {
-                        illust.Cache();
-                        if (!ids.Contains(illust.Id.Value))
-                        {
-                            ids.Add(illust.Id.Value);
-                            illust.AddTo(ImageTiles.Items, nexturl);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowUser(long uid, bool IsPrivate = false)
-        {
-            if ((IsPrivate || uid == 0) && setting.MyInfo is Pixeez.Objects.User)
-            {
-                Commands.Open.Execute(setting.MyInfo);
-            }
-            else
-            {
-                Pixeez.Objects.User user = null;
-                if (uid == 0)
-                {
-                    uid = setting.MyID;
-                    user = setting.MyInfo;
-                }
-                else
-                {
-                    user = (Pixeez.Objects.User)uid.FindUser();
-                }
-
-                if (Keyboard.Modifiers == ModifierKeys.Control || !(user is Pixeez.Objects.User))
-                    user = await uid.RefreshUser();
-                Commands.Open.Execute(user);
-            }
-        }
-
-        private async void ShowMyFollower(long uid, string nexturl = null)
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                if (uid == 0) uid = setting.MyID;
-                Pixeez.Objects.UsersSearchResult root = null;
-                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetFollowerUsers(uid.ToString()) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(nexturl);
-
-                nexturl = root.next_url ?? string.Empty;
-                NextURL = nexturl;
-
-                if (root.Users != null)
-                {
-                    foreach (var up in root.Users)
-                    {
-                        var user = up.User;
-                        user.Cache();
-                        if (!ids.Contains(user.Id.Value))
-                        {
-                            ids.Add(user.Id.Value);
-                            user.AddTo(ImageTiles.Items, nexturl);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowMyFollowing(long uid, string nexturl = null, bool IsPrivate = false)
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                if (uid == 0) uid = setting.MyID;
-                var condition = IsPrivate ? "private" : "public";
-                Pixeez.Objects.UsersSearchResult root = null;
-                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetFollowingUsers(uid.ToString(), condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(nexturl);
-
-                nexturl = root.next_url ?? string.Empty;
-                NextURL = nexturl;
-
-                if (root.Users != null)
-                {
-                    foreach (var up in root.Users)
-                    {
-                        var user = up.User;
-                        user.Cache();
-                        if (!ids.Contains(user.Id.Value))
-                        {
-                            ids.Add(user.Id.Value);
-                            user.AddTo(ImageTiles.Items, nexturl);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowMyPixiv(long uid, string nexturl = null)
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                if (uid == 0) uid = setting.MyID;
-                Pixeez.Objects.UsersSearchResult root = null;
-                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetMyPixiv(uid.ToString()) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(nexturl);
-
-                nexturl = root.next_url ?? string.Empty;
-                NextURL = nexturl;
-
-                if (root.Users != null)
-                {
-                    foreach (var up in root.Users)
-                    {
-                        var user = up.User;
-                        user.Cache();
-                        if (!ids.Contains(user.Id.Value))
-                        {
-                            ids.Add(user.Id.Value);
-                            user.AddTo(ImageTiles.Items, nexturl);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-
-        private async void ShowMyBlacklist(long uid, string nexturl = null)
-        {
-            ImageTiles.Wait();
-            var tokens = await CommonHelper.ShowLogin();
-            ImageTiles.Ready();
-            if (tokens == null) return;
-
-            try
-            {
-                ImageTiles.Wait();
-
-                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
-
-                if (uid == 0) uid = setting.MyID;
-                Pixeez.Objects.UsersSearchResultAlt root = null;
-                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetBlackListUsers(uid.ToString()) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResultAlt>(nexturl);
-
-                nexturl = root.next_url ?? string.Empty;
-                NextURL = nexturl;
-
-                if (root.Users != null)
-                {
-                    foreach (var up in root.Users)
-                    {
-                        var user = up.User;
-                        user.Cache();
-                        if (!ids.Contains(user.Id.Value))
-                        {
-                            ids.Add(user.Id.Value);
-                            user.AddTo(ImageTiles.Items, nexturl);
-                            this.DoEvents();
-                        }
-                    }
-                    if (!Application.Current.IsLogin()) await Task.Delay(250);
-                    this.DoEvents();
-                    ImageTiles.UpdateTilesImage();
-                }
-            }
-            catch (Exception ex)
-            {
-                ImageTiles.Fail();
-                if (ex is NullReferenceException)
-                {
-                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-                else
-                {
-                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
-                }
-            }
-            finally
-            {
-                ImageTiles.Ready();
-                KeepLastSelected(lastSelectedId);
-            }
-        }
-        #endregion
-
         private void Page_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             var change_detail_page = setting.SmartMouseResponse && e.Source == IllustDetail;
@@ -1548,30 +628,43 @@ namespace PixivWPF.Pages
             if (ParentWindow is MainWindow) (ParentWindow as MainWindow).InSearching = false;
 
             if (Keyboard.Modifiers == ModifierKeys.Shift) change_detail_page = !change_detail_page;
+
+            setting = Application.Current.LoadSetting();
+
             if (change_detail_page)
             {
                 if (e.XButton1 == MouseButtonState.Pressed)
                 {
-                    if (detail_page is IllustDetailPage) detail_page.NextIllustPage();
                     e.Handled = true;
+                    if (detail_page is IllustDetailPage)
+                    {
+                        if (setting.ReverseMouseXButton) detail_page.NextIllustPage();
+                        else detail_page.PrevIllustPage();
+                    }
                 }
                 else if (e.XButton2 == MouseButtonState.Pressed)
                 {
-                    if (detail_page is IllustDetailPage) detail_page.PrevIllustPage();
                     e.Handled = true;
+                    if (detail_page is IllustDetailPage)
+                    {
+                        if (setting.ReverseMouseXButton) detail_page.PrevIllustPage();
+                        else detail_page.NextIllustPage();
+                    }
                 }
             }
             else
             {
                 if (e.XButton1 == MouseButtonState.Pressed)
                 {
-                    NextIllust();
                     e.Handled = true;
+                    if (setting.ReverseMouseXButton) NextIllust();
+                    else PrevIllust();
                 }
                 else if (e.XButton2 == MouseButtonState.Pressed)
                 {
-                    PrevIllust();
                     e.Handled = true;
+                    if (setting.ReverseMouseXButton) PrevIllust();
+                    else NextIllust();
                 }
             }
         }
@@ -1588,6 +681,7 @@ namespace PixivWPF.Pages
             }
         }
 
+        #region Hamburger Category Menu
         private object lastInvokedItem = null;
         private void CategoryMenu_ItemInvoked(object sender, HamburgerMenuItemInvokedEventArgs args)
         {
@@ -1725,6 +819,7 @@ namespace PixivWPF.Pages
             setting.DefaultPage = GetPageTypeByCategory(CategoryMenu.SelectedItem);
             setting.Save();
         }
+        #endregion
 
         private async void ImageTiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -1788,5 +883,899 @@ namespace PixivWPF.Pages
                 //if (!bg_prefetch.IsBusy && !bg_prefetch.CancellationPending) bg_prefetch.RunWorkerAsync(); 
             }
         }
+
+        internal void ShowImages(PixivPage target = PixivPage.Recommanded, bool IsAppend = false, string id = "")
+        {
+            if (ParentWindow == null) ParentWindow = this.GetMainWindow();
+            if (target == PixivPage.My) { ShowUser(0, true); return; }
+            if (ParentWindow is MainWindow) ParentWindow.UpdateTitle(target.ToString());
+            this.DoEvents();
+
+            InitPrefetchingTask();
+            if (PrefetchingImagesTask is PrefetchingTask) PrefetchingImagesTask.Stop();
+
+            if (TargetPage != target)
+            {
+                lastSelectedId = string.Empty;
+                TargetPage = target;
+                IsAppend = false;
+            }
+            if (!IsAppend)
+            {
+                $"Show illusts from category \"{target.ToString()}\" ...".INFO();
+                NextURL = null;
+                ids.Clear();
+                ImageTiles.ClearAsync(batch: setting.BatchClearThumbnails, force: true);
+                this.DoEvents();
+            }
+            else $"Append illusts from category \"{target.ToString()}\" ...".INFO();
+
+            ImageTiles.SelectedIndex = -1;
+            LastPage = target;
+            switch (target)
+            {
+                case PixivPage.None:
+                    break;
+                case PixivPage.Recommanded:
+                    ShowRecommanded(NextURL);
+                    break;
+                case PixivPage.Latest:
+                    ShowLatest(NextURL);
+                    break;
+                case PixivPage.TrendingTags:
+                    ShowTrendingTags(NextURL);
+                    break;
+                case PixivPage.Feeds:
+#if DEBUG
+                    ShowFeeds(NextURL);
+#endif
+                    break;
+                case PixivPage.Favorite:
+                    ShowFavorite(NextURL, false);
+                    break;
+                case PixivPage.FavoritePrivate:
+                    ShowFavorite(NextURL, true);
+                    break;
+                case PixivPage.Follow:
+                    ShowFollowing(NextURL);
+                    break;
+                case PixivPage.FollowPrivate:
+                    ShowFollowing(NextURL, true);
+                    break;
+                case PixivPage.My:
+                    ShowUser(0, true);
+                    break;
+
+                case PixivPage.MyFollowerUser:
+                    ShowMyFollower(0, NextURL);
+                    break;
+                case PixivPage.MyFollowingUser:
+                    ShowMyFollowing(0, NextURL, false);
+                    break;
+                case PixivPage.MyFollowingUserPrivate:
+                    ShowMyFollowing(0, NextURL, true);
+                    break;
+                case PixivPage.MyPixivUser:
+                    ShowMyPixiv(0, NextURL);
+                    break;
+                case PixivPage.MyBlacklistUser:
+                    ShowMyBlacklist(0, NextURL);
+                    break;
+
+                case PixivPage.MyWork:
+                    //ShowFavorite(NextURL, true);
+                    break;
+                case PixivPage.User:
+                    break;
+                case PixivPage.UserWork:
+                    break;
+                case PixivPage.MyBookmark:
+                    break;
+                case PixivPage.RankingDay:
+                    ShowRanking(NextURL, "day");
+                    break;
+                case PixivPage.RankingDayMale:
+                    ShowRanking(NextURL, "day_male");
+                    break;
+                case PixivPage.RankingDayFemale:
+                    ShowRanking(NextURL, "day_female");
+                    break;
+                case PixivPage.RankingDayR18:
+                    ShowRanking(NextURL, "day_r18");
+                    break;
+                case PixivPage.RankingDayMaleR18:
+                    ShowRanking(NextURL, "day_male_r18");
+                    break;
+                case PixivPage.RankingDayFemaleR18:
+                    ShowRanking(NextURL, "day_female_r18");
+                    break;
+                case PixivPage.RankingDayManga:
+                    ShowRanking(NextURL, "day_manga");
+                    break;
+                case PixivPage.RankingWeek:
+                    ShowRanking(NextURL, "week");
+                    break;
+                case PixivPage.RankingWeekOriginal:
+                    ShowRanking(NextURL, "week_original");
+                    break;
+                case PixivPage.RankingWeekRookie:
+                    ShowRanking(NextURL, "week_rookie");
+                    break;
+                case PixivPage.RankingWeekR18:
+                    ShowRanking(NextURL, "week_r18");
+                    break;
+                case PixivPage.RankingWeekR18G:
+                    ShowRanking(NextURL, "week_r18g");
+                    break;
+                case PixivPage.RankingMonth:
+                    ShowRanking(NextURL, "month");
+                    break;
+            }
+            this.DoEvents();
+            if (!string.IsNullOrEmpty(id)) lastSelectedId = id;
+        }
+
+        #region Show category
+        private async void ShowRecommanded(string nexturl = null)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                Pixeez.Objects.RecommendedRootobject root = null;
+                if (Keyboard.Modifiers == ModifierKeys.Shift)
+                {
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "20", "1", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Alt)
+                {
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "200", "200", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "2000", "1000", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Windows)
+                {
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks("illust", true, "for_ios", "2000", "2000", "0", true) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
+                else
+                {
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRecommendedWorks() : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                }
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.illusts != null)
+                {
+                    foreach (var illust in root.illusts)
+                    {
+                        illust.Cache();
+                        if (!ids.Contains(illust.Id.Value))
+                        {
+                            ids.Add(illust.Id.Value);
+                            illust.AddTo(ImageTiles.Items, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    //var n = nameof(ShowRecommanded);
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowLatest(string nexturl = null)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                var page_no = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
+                var root = await tokens.GetLatestWorksAsync(page_no);
+                nexturl = root.Pagination.Next.ToString() ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root != null)
+                {
+                    foreach (var illust in root)
+                    {
+                        illust.Cache();
+                        if (!ids.Contains(illust.Id.Value))
+                        {
+                            ids.Add(illust.Id.Value);
+                            illust.AddTo(ImageTiles.Items, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowTrendingTags(string nexturl = null)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
+                var root = await tokens.GetTrendingTagsIllustAsync();
+                nexturl = string.Empty;
+                NextURL = nexturl;
+
+                if (root != null)
+                {
+                    foreach (var tag in root.tags)
+                    {
+                        tag.illust.Cache();
+                        if (!ids.Contains(tag.illust.Id.Value))
+                        {
+                            ids.Add(tag.illust.Id.Value);
+                            tag.illust.AddTo(ImageTiles.Items, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowFeeds(long uid, string nexturl = null)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
+                var root = await tokens.GetMyFeedsAsync(uid);
+                nexturl = string.Empty;
+                NextURL = nexturl;
+
+                if (root != null)
+                {
+                    foreach (var feed in root)
+                    {
+                        feed.User.Cache();
+                        if (!ids.Contains(feed.User.Id.Value))
+                        {
+                            ids.Add(feed.User.Id.Value);
+                            feed.User.AddTo(ImageTiles.Items);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowFeeds(string nexturl = null)
+        {
+            var force = setting.MyInfo is Pixeez.Objects.User ? false : true;
+            var tokens = await CommonHelper.ShowLogin(force);
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
+                var uid = setting.MyInfo is Pixeez.Objects.User ? setting.MyInfo.Id.Value : 0;
+
+                var root = await tokens.GetMyFeedsAsync(uid);
+                nexturl = string.Empty;
+                NextURL = nexturl;
+
+                if (root != null)
+                {
+                    foreach (var feed in root)
+                    {
+                        feed.User.Cache();
+                        if (!ids.Contains(feed.User.Id.Value))
+                        {
+                            ids.Add(feed.User.Id.Value);
+                            feed.User.AddTo(ImageTiles.Items);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowFavorite(string nexturl = null, bool IsPrivate = false)
+        {
+            var tokens = await CommonHelper.ShowLogin(setting.MyInfo == null && IsPrivate);
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                long uid = setting.MyID;
+                var condition = IsPrivate ? "private" : "public";
+
+                if (uid > 0)
+                {
+                    var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetUserFavoriteWorksAsync(uid, condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                    nexturl = root.next_url ?? string.Empty;
+                    NextURL = nexturl;
+
+                    if (root.illusts != null)
+                    {
+                        foreach (var illust in root.illusts)
+                        {
+                            illust.Cache();
+                            if (!ids.Contains(illust.Id.Value))
+                            {
+                                ids.Add(illust.Id.Value);
+                                illust.AddTo(ImageTiles.Items, nexturl);
+                                this.DoEvents();
+                            }
+                        }
+                        if (!Application.Current.IsLogin()) await Task.Delay(250);
+                        this.DoEvents();
+                        ImageTiles.UpdateTilesImage();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowFollowing(string nexturl = null, bool IsPrivate = false)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                var condition = IsPrivate ? "private" : "public";
+                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetMyFollowingWorksAsync(condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.illusts != null)
+                {
+                    foreach (var illust in root.illusts)
+                    {
+                        illust.Cache();
+                        if (!ids.Contains(illust.Id.Value))
+                        {
+                            ids.Add(illust.Id.Value);
+                            illust.AddTo(ImageTiles.Items, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowRankingAll(string nexturl = null, string condition = "daily")
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                var page = string.IsNullOrEmpty(nexturl) ? 1 : Convert.ToInt32(nexturl);
+                var root = await tokens.GetRankingAllAsync(condition, page);
+                nexturl = root.Pagination.Next.ToString() ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root != null)
+                {
+                    foreach (var works in root)
+                    {
+                        try
+                        {
+                            foreach (var work in works.Works)
+                            {
+                                var illust = work.Work;
+                                illust.Cache();
+                                if (!ids.Contains(illust.Id.Value))
+                                {
+                                    ids.Add(illust.Id.Value);
+                                    illust.AddTo(ImageTiles.Items, nexturl);
+                                    this.DoEvents();
+                                }
+                            }
+                            this.DoEvents();
+                        }
+                        catch (Exception ex)
+                        {
+                            ex.Message.ShowMessageBox("ERROR");
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowRanking(string nexturl = null, string condition = "day")
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                var date = SelectedDate.Date == DateTime.Now.Date ? string.Empty : (SelectedDate - TimeSpan.FromDays(1)).ToString("yyyy-MM-dd");
+                var root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                int count = 2;
+                while (count <= 7 && (root.illusts == null || root.illusts.Length <= 0))
+                {
+                    date = (SelectedDate - TimeSpan.FromDays(count)).ToString("yyyy-MM-dd");
+                    root = string.IsNullOrEmpty(nexturl) ? await tokens.GetRankingAsync(condition, 1, 30, date) : await tokens.AccessNewApiAsync<Pixeez.Objects.RecommendedRootobject>(nexturl);
+                    count++;
+                }
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.illusts != null)
+                {
+                    foreach (var illust in root.illusts)
+                    {
+                        illust.Cache();
+                        if (!ids.Contains(illust.Id.Value))
+                        {
+                            ids.Add(illust.Id.Value);
+                            illust.AddTo(ImageTiles.Items, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowUser(long uid, bool IsPrivate = false)
+        {
+            if ((IsPrivate || uid == 0) && setting.MyInfo is Pixeez.Objects.User)
+            {
+                Commands.Open.Execute(setting.MyInfo);
+            }
+            else
+            {
+                Pixeez.Objects.User user = null;
+                if (uid == 0)
+                {
+                    uid = setting.MyID;
+                    user = setting.MyInfo;
+                }
+                else
+                {
+                    user = (Pixeez.Objects.User)uid.FindUser();
+                }
+
+                if (Keyboard.Modifiers == ModifierKeys.Control || !(user is Pixeez.Objects.User))
+                    user = await uid.RefreshUser();
+                Commands.Open.Execute(user);
+            }
+        }
+
+        private async void ShowMyFollower(long uid, string nexturl = null)
+        {            
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                if (uid == 0) uid = setting.MyID;
+                Pixeez.Objects.UsersSearchResult root = null;
+                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetFollowerUsers(uid.ToString()) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(nexturl);
+
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.Users != null)
+                {
+                    foreach (var up in root.Users)
+                    {
+                        var user = up.User;
+                        user.Cache();
+                        if (!ids.Contains(user.Id.Value))
+                        {
+                            ids.Add(user.Id.Value);
+                            user.AddTo(ImageTiles.Items, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowMyFollowing(long uid, string nexturl = null, bool IsPrivate = false)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                if (uid == 0) uid = setting.MyID;
+                var condition = IsPrivate ? "private" : "public";
+                Pixeez.Objects.UsersSearchResult root = null;
+                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetFollowingUsers(uid.ToString(), condition) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(nexturl);
+
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.Users != null)
+                {
+                    foreach (var up in root.Users)
+                    {
+                        var user = up.User;
+                        user.Cache();
+                        if (!ids.Contains(user.Id.Value))
+                        {
+                            ids.Add(user.Id.Value);
+                            user.AddTo(ImageTiles.Items, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowMyPixiv(long uid, string nexturl = null)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                if (uid == 0) uid = setting.MyID;
+                Pixeez.Objects.UsersSearchResult root = null;
+                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetMyPixiv(uid.ToString()) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResult>(nexturl);
+
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.Users != null)
+                {
+                    foreach (var up in root.Users)
+                    {
+                        var user = up.User;
+                        user.Cache();
+                        if (!ids.Contains(user.Id.Value))
+                        {
+                            ids.Add(user.Id.Value);
+                            user.AddTo(ImageTiles.Items, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+
+        private async void ShowMyBlacklist(long uid, string nexturl = null)
+        {
+            var tokens = await CommonHelper.ShowLogin();
+            if (tokens == null) return;
+
+            try
+            {
+                ImageTiles.Wait();
+
+                if (string.IsNullOrEmpty(nexturl)) ids.Clear();
+
+                if (uid == 0) uid = setting.MyID;
+                Pixeez.Objects.UsersSearchResultAlt root = null;
+                root = string.IsNullOrEmpty(nexturl) ? await tokens.GetBlackListUsers(uid.ToString()) : await tokens.AccessNewApiAsync<Pixeez.Objects.UsersSearchResultAlt>(nexturl);
+
+                nexturl = root.next_url ?? string.Empty;
+                NextURL = nexturl;
+
+                if (root.Users != null)
+                {
+                    foreach (var up in root.Users)
+                    {
+                        var user = up.User;
+                        user.Cache();
+                        if (!ids.Contains(user.Id.Value))
+                        {
+                            ids.Add(user.Id.Value);
+                            user.AddTo(ImageTiles.Items, nexturl);
+                            this.DoEvents();
+                        }
+                    }
+                    if (!Application.Current.IsLogin()) await Task.Delay(250);
+                    this.DoEvents();
+                    ImageTiles.UpdateTilesImage();
+                }
+            }
+            catch (Exception ex)
+            {
+                ImageTiles.Fail();
+                if (ex is NullReferenceException)
+                {
+                    "No Result".ShowToast("INFO", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+                else
+                {
+                    ex.Message.ShowToast("ERROR", tag: System.Reflection.MethodBase.GetCurrentMethod().Name);
+                }
+            }
+            finally
+            {
+                ImageTiles.Ready();
+                KeepLastSelected(lastSelectedId);
+            }
+        }
+        #endregion
     }
 }

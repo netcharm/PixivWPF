@@ -807,7 +807,9 @@ namespace PixivWPF.Common
                                     }
                                     if (UpdateTileTask.CancellationPending)
                                     {
-                                        $"{UpdateTileTask.CancellationPending}".DEBUG("LoadImageFromUrl_Cancel");
+                                        this.Invoke(() => { 
+                                            $"Canceled".DEBUG($"{Name ?? string.Empty}_UpdateTileTask".Trim('_'));
+                                        });
                                         e.Cancel = true; loopstate.Stop();
                                     }
                                 }
@@ -891,7 +893,9 @@ namespace PixivWPF.Common
                                             }
                                             if (UpdateTileTask.CancellationPending)
                                             {
-                                                $"{UpdateTileTask.CancellationPending}".DEBUG("LoadImageFromUrl_Cancel");
+                                                this.Invoke(() => {
+                                                    $"Canceled".DEBUG($"{Name ?? string.Empty}_UpdateTileTask".Trim('_'));
+                                                });
                                                 e.Cancel = true; return;
                                             }
                                         }

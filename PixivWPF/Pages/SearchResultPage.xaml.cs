@@ -561,11 +561,11 @@ namespace PixivWPF.Pages
                 ResultItems.Fail();
                 if (ex is NullReferenceException)
                 {
-                    $"Searching \"{Contents}\" No Result".ShowToast("WARNING");
+                    $"Searching \"{Contents}\" No Result".ShowToast("WARNING", tag: "ShowResultInline");
                 }
                 else
                 {
-                    ex.Message.ShowToast("ERROR");
+                    ex.Message.ShowToast("ERROR", tag: "ShowResultInline");
                 }
             }
             finally

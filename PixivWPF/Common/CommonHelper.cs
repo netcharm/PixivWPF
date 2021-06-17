@@ -456,7 +456,13 @@ namespace PixivWPF.Common
                     setting = Application.Current.LoadSetting();
                     if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
                     {
-                        result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
+                        result = Pixeez.Auth.AuthorizeWithAccessToken(
+                            setting.AccessToken, 
+                            setting.RefreshToken, 
+                            setting.Proxy, 
+                            setting.ProxyBypass, 
+                            setting.UsingProxy
+                        );
                     }
                     else
                     {
@@ -469,14 +475,23 @@ namespace PixivWPF.Common
                             catch (Exception ex)
                             {
                                 ex.ERROR("SHOWLOGIN");
-                                result = Pixeez.Auth.AuthorizeWithAccessToken(setting.AccessToken, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
+                                result = Pixeez.Auth.AuthorizeWithAccessToken(
+                                    setting.AccessToken, 
+                                    setting.RefreshToken, 
+                                    setting.Proxy, 
+                                    setting.ProxyBypass, 
+                                    setting.UsingProxy
+                                );
                             }
                         }
                         else
                         {
                             "Show Login Dialog...".INFO();
                             Application.Current.DoEvents();
-                            var dlgLogin = new PixivLoginDialog() { AccessToken=setting.AccessToken, RefreshToken=setting.RefreshToken };
+                            var dlgLogin = new PixivLoginDialog() {
+                                AccessToken = setting.AccessToken,
+                                RefreshToken = setting.RefreshToken
+                            };
                             var ret = dlgLogin.ShowDialog();
                             result = dlgLogin.Tokens;
                         }
@@ -488,7 +503,7 @@ namespace PixivWPF.Common
                 }
                 finally
                 {
-                    if (result == null) "Request Token Error!".ShowToast("ERROR");
+                    if (result == null) "Request Token Error!".ShowToast("ERROR", tag: "ShowLogin");
                     if (CanShowLogin is SemaphoreSlim && CanShowLogin.CurrentCount <= 0) CanShowLogin.Release();
                 }
             }
@@ -4910,7 +4925,7 @@ namespace PixivWPF.Common
             var result = Illust.Id != null ? await RefreshIllust(Illust.Id.Value, tokens) : Illust;
             if (result == null)
             {
-                "404 (Not Found) or 503 (Service Unavailable)".ShowToast("INFO");
+                "404 (Not Found) or 503 (Service Unavailable)".ShowToast("INFO", tag: "RefreshIllust");
                 return (result);
             }
             try
@@ -4951,7 +4966,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("REFRESHILLUST"); }
+            catch (Exception ex) { ex.ERROR("RefreshIllust"); }
             return (result);
         }
 
@@ -4964,7 +4979,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(IllustID) && long.TryParse(IllustID, out id))
                     result = await RefreshIllust(id, tokens);
             }
-            catch (Exception ex) { ex.ERROR("REFRESHILLUST"); }
+            catch (Exception ex) { ex.ERROR("RefreshIllust"); }
             return (result);
         }
 
@@ -4987,7 +5002,11 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("REFRESHILLUST"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO", tag: "RefreshIllust");
+                else ex.ERROR("RefreshIllust");
+            }
             return (result);
         }
 
@@ -5003,7 +5022,7 @@ namespace PixivWPF.Common
                     result = user;
                 }
             }
-            catch (Exception ex) { ex.ERROR("REFRESHUSER"); }
+            catch (Exception ex) { ex.ERROR("RefreshUser"); }
             return (result);
         }
 
@@ -5026,7 +5045,7 @@ namespace PixivWPF.Common
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("REFRESHUSER"); }
+            catch (Exception ex) { ex.ERROR("RefreshUser"); }
             return (user);
         }
 
@@ -5039,7 +5058,7 @@ namespace PixivWPF.Common
                 {
                     result = await RefreshUser(Convert.ToInt32(UserID), tokens);
                 }
-                catch (Exception ex) { ex.ERROR("REFRESHUSER"); }
+                catch (Exception ex) { ex.ERROR("RefreshUser"); }
             }
             return (result);
         }
@@ -5061,7 +5080,11 @@ namespace PixivWPF.Common
                     if (user.Id.Value == UserID) result = user;
                 }
             }
-            catch (Exception ex) { ex.ERROR("REFRESHUSER"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO", tag: "RefreshUser");
+                else ex.ERROR("RefreshUser");
+            }
             return (result);
         }
 
@@ -5075,7 +5098,7 @@ namespace PixivWPF.Common
                     long id = -1;
                     if (long.TryParse(UserID, out id)) result = await RefreshUserInfo(id, tokens);
                 }
-                catch (Exception ex) { ex.ERROR("REFRESHUSERINFO"); }
+                catch (Exception ex) { ex.ERROR("RefreshUserInfo"); }
             }
             return (result);
         }
@@ -5097,7 +5120,11 @@ namespace PixivWPF.Common
                     if (userinfo.user.Id.Value == UserID) result = userinfo;
                 }
             }
-            catch (Exception ex) { ex.ERROR("REFRESHUSERINFO"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO", tag: "RefreshUserInfo");
+                else ex.ERROR("RefreshUserInfo");
+            }
             return (result);
         }
 
@@ -5263,9 +5290,12 @@ namespace PixivWPF.Common
                         $"Illust \"{illust.Title}\" {fail} {pub_like} {info}!".ShowToast($"{title}", illust.GetThumbnailUrl(), title, pub_like);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("RefreshIllust"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO", tag: "LikeIllust");
+                    else ex.ERROR("LikeIllust");
+                }
             }
-
             return (result);
         }
 
@@ -5359,7 +5389,11 @@ namespace PixivWPF.Common
                 else if (works == null) ret = true;
                 //ret = await tokens.DeleteMyFavoriteWorksAsync((long)illust.Id, "private") != null;
             }
-            catch (Exception ex) { ex.ERROR("DeleteMyFavoriteWorksAsync"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO", tag: "UnLikeIllust");
+                else ex.ERROR("DeleteMyFavoriteWorksAsync");
+            }
             finally
             {
                 try
@@ -5374,9 +5408,12 @@ namespace PixivWPF.Common
                         $"Illust \"{illust.Title}\" {fail} {info}!".ShowToast(title, illust.GetThumbnailUrl(), title);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("RefreshIllust"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO", tag: "UnLikeIllust");
+                    else ex.ERROR("RefreshIllust");
+                }
             }
-
             return (result);
         }
 
@@ -5533,7 +5570,11 @@ namespace PixivWPF.Common
                         $"User \"{user.Name ?? string.Empty}\" {fail} {pub_like} {info}!".ShowToast(title, user.GetAvatarUrl(), title, pub_like);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("RefreshUser"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO", tag: "LikeUser");
+                    else ex.ERROR("LikeUser");
+                }
             }
             return (result);
         }
@@ -5637,7 +5678,11 @@ namespace PixivWPF.Common
                         $"User \"{user.Name ?? string.Empty}\" {fail} {info}!".ShowToast(title, user.GetAvatarUrl(), title);
                     }
                 }
-                catch (Exception ex) { ex.ERROR("RefreshUser"); if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO"); }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("404")) ex.Message.ShowToast("INFO", tag: "UnLikeUser");
+                    else ex.ERROR("UnLikeUser");
+                }
             }
             return (result);
         }
