@@ -2774,14 +2774,14 @@ namespace PixivWPF.Pages
         {
             if (sender == PreviewOpenDownloaded || (sender is MenuItem && (sender as MenuItem).Uid.Equals("ActionOpenDownloaded", StringComparison.CurrentCultureIgnoreCase)))
             {
-                if (SubIllusts.SelectedItems.Count == 0)
+                if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
                     Commands.OpenDownloaded.Execute(Contents);
                 else
                     Commands.OpenDownloaded.Execute(SubIllusts);
             }
             else if (sender == PreviewOpen)
             {
-                if (SubIllusts.SelectedItems.Count == 0)
+                if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
                     Commands.OpenWorkPreview.Execute(Contents);
                 else
                     Commands.OpenWorkPreview.Execute(SubIllusts);
@@ -2792,7 +2792,7 @@ namespace PixivWPF.Pages
             }
             else if(sender == PreviewOpenDownloadedProperties)
             {
-                if (SubIllusts.SelectedItems.Count == 0)
+                if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
                     Commands.OpenFileProperties.Execute(Contents);
                 else
                     Commands.OpenFileProperties.Execute(SubIllusts);

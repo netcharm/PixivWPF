@@ -375,7 +375,7 @@ namespace PixivWPF.Common
             public List<string> LastKeys { get; set; } = new List<string>();
             public string LastTranslated { get; set; } = string.Empty;
         }
-        private static ConcurrentDictionary<string, TagsWildecardCacheItem> _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>();
+        private static ConcurrentDictionary<string, TagsWildecardCacheItem> _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
 
         private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
         private static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
@@ -1168,12 +1168,17 @@ namespace PixivWPF.Common
             try
             {
                 if (!(_TagsWildecardT2SCache is ConcurrentDictionary<string, TagsWildecardCacheItem>))
-                    _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>();
+                    _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
 
                 var k = key.Trim('/').Replace(" ", @"\s");
                 var v = value.Trim();
                 foreach (var cache in _TagsWildecardT2SCache)
                 {
+                    if (cache.Value.Translated.Equals(value, StringComparison.CurrentCultureIgnoreCase) &&
+                        cache.Key.Equals(key, StringComparison.CurrentCultureIgnoreCase)) continue;
+
+                    if (cache.Value.Keys.Contains(k) && Regex.IsMatch(cache.Value.Translated, value, RegexOptions.IgnoreCase)) continue;
+
                     if (cache.Value.LastKeys == null) { cache.Value.LastKeys = new List<string>(); cache.Value.LastKeys.AddRange(cache.Value.Keys); }
 
                     if (cache.Value.Keys.Contains(k) || cache.Value.LastKeys.Contains(k) || Regex.IsMatch(cache.Key, k, RegexOptions.IgnoreCase) ||
@@ -1217,6 +1222,7 @@ namespace PixivWPF.Common
 
                 result = src;
                 #region Pixiv Tag Translated
+                //bool TagsMatched = false;
                 if (TagsCache is ConcurrentDictionary<string, string>)
                 {
                     if (string.IsNullOrEmpty(translated) || src.Equals(translated, StringComparison.CurrentCultureIgnoreCase))
@@ -1228,6 +1234,7 @@ namespace PixivWPF.Common
                             {
                                 result = tag_t;
                                 matches.Add($"Tags => {src}");
+                                //TagsMatched = true;
                             }
                         }
                     }
@@ -1236,31 +1243,35 @@ namespace PixivWPF.Common
                         TagsCache[src] = translated;
                         result = translated;
                         matches.Add($"Tags => {src}");
+                        //TagsMatched = true;
                     }
                 }
                 #endregion
 
                 #region My Custom Tag Translated
+                bool CustomTagsMatched = false;
                 if (TagsT2S is ConcurrentDictionary<string, string>)
                 {
                     if (TagsT2S.ContainsKey(src))
                     {
-                        src.TagWildcardCacheUpdate();
                         result = TagsT2S[src];
                         matches.Add($"CustomTags => {src}");
+                        src.TagWildcardCacheUpdate(result);
+                        CustomTagsMatched = true;
                     }
                     else if (TagsT2S.ContainsKey(result))
                     {
-                        result.TagWildcardCacheUpdate();
                         result = TagsT2S[result];
                         matches.Add($"CustomTags => {result}");
+                        result.TagWildcardCacheUpdate(result);
+                        CustomTagsMatched = true;
                     }
                 }
                 #endregion
 
                 #region My Custom Wildcard Tag Translated
                 if (!(_TagsWildecardT2SCache is ConcurrentDictionary<string, TagsWildecardCacheItem>))
-                    _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>();
+                    _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
 
                 if (_TagsWildecardT2SCache.ContainsKey(src) &&
                     _TagsWildecardT2SCache[src].Keys.Count > 0 &&
@@ -1272,7 +1283,7 @@ namespace PixivWPF.Common
                 else if (TagsWildecardT2S is OrderedDictionary)
                 {
                     var alpha = result.IsAlpha();
-                    var text = alpha ? src : result;
+                    var text = alpha || !CustomTagsMatched ? src : result;
                     var keys = new List<string>();
                     foreach (DictionaryEntry entry in TagsWildecardT2S)
                     {
@@ -1295,7 +1306,7 @@ namespace PixivWPF.Common
                             {
                                 vs = vs.Replace($"${i}", m.Groups[i].Value);
                             }
-                            if (!keys.Contains(k)) { keys.Add(k); vt = vt.Replace(m.Value, vs); }
+                            if (!keys.Contains(k) && !string.IsNullOrEmpty(m.Value)) { keys.Add(k); vt = vt.Replace(m.Value, vs); }
                             else { if (vt.Contains(vs)) vs = string.Empty; }
                             return (vs);
                         }, RegexOptions.IgnoreCase);
@@ -2131,7 +2142,7 @@ namespace PixivWPF.Common
         {
             string v_str = string.Empty;
             string u_str = string.Empty;
-            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) { v_str = "0"; u_str = "B/s"; }
+            if (double.IsNaN(v) || double.IsInfinity(v) || double.IsNegativeInfinity(v) || double.IsPositiveInfinity(v)) { v_str = "0.00"; u_str = "B/s"; }
             else if (v >= VALUE_MB) { v_str = $"{v / factor / VALUE_MB:F2}"; u_str = "MB/s"; }
             else if (v >= VALUE_KB) { v_str = $"{v / factor / VALUE_KB:F2}"; u_str = "KB/s"; }
             else { v_str = $"{v / factor:F2}"; u_str = "B/s"; }
@@ -4424,12 +4435,12 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static async Task<string> DownloadCacheFile(this string url, bool overwrite = false)
+        public static async Task<string> DownloadCacheFile(this string url, bool overwrite = false, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
         {
             string result = string.Empty;
             if (!string.IsNullOrEmpty(url) && cache is CacheImage)
             {
-                result = await cache.DownloadImage(url, overwrite);
+                result = await cache.DownloadImage(url, overwrite, overwrite, progressAction, cancelToken);
             }
             return (result);
         }

@@ -120,7 +120,7 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public async Task<string> DownloadImage(string url, bool overwrite = false, bool login = false)
+        public async Task<string> DownloadImage(string url, bool overwrite = false, bool login = false, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)
         {
             string result = string.Empty;
             var file = GetCacheFile(url, overwrite);
@@ -130,7 +130,7 @@ namespace PixivWPF.Common
                 if (file.IsDownloading() && await file.WaitDownloading(timeout: TimeSpan.FromSeconds(30))) result = file;
                 if (string.IsNullOrEmpty(result))
                 {
-                    var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite);
+                    var success = login ? await url.SaveImage(await CommonHelper.ShowLogin(), file, overwrite) : await url.SaveImage(file, overwrite, progressAction, cancelToken);
                     if (success) result = file;
                     file.ClearDownloading();
                 }

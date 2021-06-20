@@ -34,13 +34,31 @@ namespace PixivWPF.Common
         public DateTime LastStartTime { get; private set; } = DateTime.Now;
         public DateTime LastDoneTime { get; private set; } = DateTime.Now;
         public ConcurrentDictionary<string, bool> PrefetchedList { get; private set; } = new ConcurrentDictionary<string, bool>();
-        public IList<PixivItem> Items { get; set; } = new List<PixivItem>();
+        
+        private IList<PixivItem> _Items_ = new List<PixivItem>();
+        public IList<PixivItem> Items
+        {
+            get { if (!(_Items_ is IList<PixivItem>)) _Items_ = new List<PixivItem>(); return (_Items_); }
+            set { DownloadProgressActions.Clear(); _Items_ = value; }
+        }
+
         public int Unfinished { get; private set; } = 0;
         public int Total { get { return (Items is IList<PixivItem> ? Items.Count : 0); } }
         public double Percentage { get; private set; } = 0;
         public string Comments { get; private set; } = string.Empty;
         public TaskStatus State { get; private set; } = TaskStatus.Created;
         public bool IsBusy { get { return (PrefetchingBgWorker is BackgroundWorker && (PrefetchingBgWorker.IsBusy || PrefetchingBgWorker.CancellationPending)); } }
+
+        private ConcurrentDictionary<string, Action<double, double>> _DownloadProgressActions_ = new ConcurrentDictionary<string, Action<double, double>>();
+        public ConcurrentDictionary<string, Action<double, double>> DownloadProgressActions
+        {
+            get
+            {
+                if (!(_DownloadProgressActions_ is ConcurrentDictionary<string, Action<double, double>>))
+                    _DownloadProgressActions_ = new ConcurrentDictionary<string, Action<double, double>>();
+                return (_DownloadProgressActions_);
+            }
+        }
 
         public Action<double, string, TaskStatus> ReportProgress { get; set; } = null;
         public Action ReportProgressSlim { get; set; } = null;
@@ -314,7 +332,8 @@ namespace PixivWPF.Common
                                 }
                                 else
                                 {
-                                    file = url.DownloadCacheFile(args.Overwrite).GetAwaiter().GetResult();
+                                    var _downReport = DownloadProgressActions.ContainsKey(url) ? DownloadProgressActions[url] : null;
+                                    file = url.DownloadCacheFile(args.Overwrite, progressAction: _downReport, cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
                                     if (!string.IsNullOrEmpty(file))
                                     {
                                         PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
@@ -358,7 +377,8 @@ namespace PixivWPF.Common
                                         }
                                         else
                                         {
-                                            file = await url.DownloadCacheFile(args.Overwrite);
+                                            var _downReport = DownloadProgressActions.ContainsKey(url) ? DownloadProgressActions[url] : null;
+                                            file = await url.DownloadCacheFile(args.Overwrite, progressAction: _downReport, cancelToken: PrefetchingTaskCancelTokenSource);
                                             if (!string.IsNullOrEmpty(file))
                                             {
                                                 PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
