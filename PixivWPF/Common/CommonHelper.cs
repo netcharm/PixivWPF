@@ -1047,6 +1047,45 @@ namespace PixivWPF.Common
             return (Regex.IsMatch(text, @"^[\u0020-\u007E]+$", RegexOptions.IgnoreCase));
         }
 
+        //
+        // https://stackoverflow.com/a/6944095/1842521
+        //
+        public static int LevenshteinDistance(string s, string t)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                if (string.IsNullOrEmpty(t))
+                    return 0;
+                return t.Length;
+            }
+
+            if (string.IsNullOrEmpty(t))
+            {
+                return s.Length;
+            }
+
+            int n = s.Length;
+            int m = t.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            // initialize the top and right of the table to 0, 1, 2, ...
+            for (int i = 0; i <= n; d[i, 0] = i++) ;
+            for (int j = 1; j <= m; d[0, j] = j++) ;
+
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    int min1 = d[i - 1, j] + 1;
+                    int min2 = d[i, j - 1] + 1;
+                    int min3 = d[i - 1, j - 1] + cost;
+                    d[i, j] = Math.Min(Math.Min(min1, min2), min3);
+                }
+            }
+            return d[n, m];
+        }
+
         #region Kana Half To Full Lookup Map
         private static Dictionary<string, string> KanaToFullMap = new Dictionary<string, string>()
         {
@@ -1222,7 +1261,7 @@ namespace PixivWPF.Common
 
                 result = src;
                 #region Pixiv Tag Translated
-                //bool TagsMatched = false;
+                bool TagsMatched = false;
                 if (TagsCache is ConcurrentDictionary<string, string>)
                 {
                     if (string.IsNullOrEmpty(translated) || src.Equals(translated, StringComparison.CurrentCultureIgnoreCase))
@@ -1234,7 +1273,7 @@ namespace PixivWPF.Common
                             {
                                 result = tag_t;
                                 matches.Add($"Tags => {src}");
-                                //TagsMatched = true;
+                                TagsMatched = true;
                             }
                         }
                     }
@@ -1243,7 +1282,7 @@ namespace PixivWPF.Common
                         TagsCache[src] = translated;
                         result = translated;
                         matches.Add($"Tags => {src}");
-                        //TagsMatched = true;
+                        TagsMatched = true;
                     }
                 }
                 #endregion
@@ -1283,7 +1322,7 @@ namespace PixivWPF.Common
                 else if (TagsWildecardT2S is OrderedDictionary)
                 {
                     var alpha = result.IsAlpha();
-                    var text = alpha || !CustomTagsMatched ? src : result;
+                    var text = alpha || !(TagsMatched || CustomTagsMatched) ? src : result;
                     var keys = new List<string>();
                     foreach (DictionaryEntry entry in TagsWildecardT2S)
                     {
@@ -1311,7 +1350,7 @@ namespace PixivWPF.Common
                             return (vs);
                         }, RegexOptions.IgnoreCase);
                     }
-                    if (keys.Count > 0 && !text.Equals(src))
+                    if (keys.Count > 0 && !text.Equals(src) && (!TagsMatched || LevenshteinDistance(text, src) > 1))
                     {
                         var result_sym = Regex.Replace(result, regex_symbol, @"\$1", RegexOptions.IgnoreCase);
                         result = alpha && !Regex.IsMatch(text, result_sym, RegexOptions.IgnoreCase) ? $"{text}{Environment.NewLine}💬{result}" : text;
