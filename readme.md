@@ -30,6 +30,7 @@ It support visit pixiv through custom http/https proxy.
 1. Download with break continuation
 1. Prefetching thumbnail/avatar/preview
 1. Proccessing cross-process commands
+1. Supported Ugoira download, and calling ffmpeg convert it to webm before view
 
 ## Known Bugs
 

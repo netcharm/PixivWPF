@@ -382,6 +382,9 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <None Include="UgoiraViewer.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Resource Include="Resources\ExcludeReplaceColorEffect.fx.ps" />
     <Resource Include="Resources\ReplaceColorEffect.fx.ps" />
     <Resource Include="Resources\TransparenceEffect.fx.ps" />
