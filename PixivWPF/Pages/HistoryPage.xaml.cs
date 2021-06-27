@@ -254,6 +254,11 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        internal void SaveUgoira()
+        {
+            //throw new NotImplementedException();
+        }
+
         public void FirstIllust()
         {
             HistoryItems.MoveCurrentToFirst();
@@ -610,7 +615,6 @@ namespace PixivWPF.Pages
             }
             catch (Exception ex) { ex.ERROR(); }
         }
-
         #endregion
 
     }

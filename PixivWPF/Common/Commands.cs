@@ -1799,6 +1799,129 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand SaveUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            if (obj is PixivItem)
+            {
+                await new Action(async () =>
+                {
+                    var item = obj as PixivItem;
+                    if (item.IsWork())
+                    {
+                        var dt = item.Illust.GetDateTime();
+                        var is_meta_single_page = item.Illust.PageCount == 1 ? true : false;
+                        var info = item.Ugoira != null ? item.Ugoira : await item.Illust.GetUgoiraMeta();
+                        if (info != null)
+                        {
+                            item.Ugoira = info;
+                            var url =  info.GetUgoiraUrl();
+                            if (!string.IsNullOrEmpty(url))
+                            {
+                                url.SaveImage(item.Illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                            }
+                        }
+                    }
+                }).InvokeAsync();
+            }
+            else if (obj is ImageListGrid)
+            {
+                setting = Application.Current.LoadSetting();
+                await new Action(async () =>
+                {
+                    var gallery = obj as ImageListGrid;
+                    foreach (var item in gallery.GetSelected())
+                    {
+                        await new Action(() =>
+                        {
+                            SaveUgoira.Execute(item);
+                        }).InvokeAsync();
+                    }
+                }).InvokeAsync();
+            }
+            else if (obj is string)
+            {
+                var link = obj as string;
+                var patten = @"(https?://.*?\.pximg\.net/img-zip-ugoira/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/)?(\d+)(_ugoira(\d+)x(\d+)).zip$";
+                var id = Regex.Replace(link, patten, "$2", RegexOptions.IgnoreCase);
+                if (!string.IsNullOrEmpty(id))
+                {
+                    var illust = id.FindIllust();
+                    if (!(illust is Pixeez.Objects.Work)) illust = await id.RefreshIllust();
+                    if (illust is Pixeez.Objects.Work)
+                    {
+                        var item = illust.WorkItem();
+                        SaveUgoira.Execute(item);
+                    }
+                }
+            }
+            else if (obj is TilesPage)
+            {
+                (obj as TilesPage).SaveUgoira();
+            }
+            else if (obj is IllustDetailPage)
+            {
+                (obj as IllustDetailPage).SaveUgoira();
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).SaveUgoira();
+            }
+            else if (obj is SearchResultPage)
+            {
+                (obj as SearchResultPage).SaveUgoira();
+            }
+            else if (obj is HistoryPage)
+            {
+                (obj as HistoryPage).SaveUgoira();
+            }
+            else if (obj is Window)
+            {
+                var win = obj as Window;
+                if (win.Content is Page) SaveUgoira.Execute(win.Content);
+            }
+        });
+
+        public static ICommand ShellOpenUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            if (obj is string)
+            {
+                var content = obj as string;
+                if (!string.IsNullOrEmpty(content))
+                {
+                    await new Action(() =>
+                    {
+                        content.OpenFileWithShell();
+                    }).InvokeAsync(true);
+                }
+            }
+            else if (obj is Uri)
+            {
+                try
+                {
+                    var url = obj as Uri;
+                    if ((url.IsFile || url.IsUnc) && File.Exists(url.LocalPath)) url.LocalPath.OpenFileWithShell();
+                    else if (url.IsAbsoluteUri)
+                    {
+                        string fp_d = Uri.UnescapeDataString(url.AbsoluteUri).GetImageCachePath();
+                        if (File.Exists(fp_d)) fp_d.OpenFileWithShell();
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("ShellOpenFile"); }
+            }
+            else if (obj is PixivItem)
+            {
+                var item = obj as PixivItem;
+                string fp = await item.GetUgoiraFile();
+                if (!string.IsNullOrEmpty(fp))
+                {
+                    await new Action(() =>
+                    {
+                        fp.OpenFileWithShell();
+                    }).InvokeAsync(true);
+                }
+            }
+        });
+
         public static ICommand OpenDropBox { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is System.Windows.Controls.Primitives.ToggleButton)

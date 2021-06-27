@@ -503,6 +503,11 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        internal void SaveUgoira()
+        {
+            //throw new NotImplementedException();
+        }
+
         public void CopyPreview(bool loadfromfile = false)
         {
             if (!string.IsNullOrEmpty(PreviewImageUrl))
@@ -835,6 +840,5 @@ namespace PixivWPF.Pages
                 catch (Exception ex) { ex.ERROR("ViewOriginal"); }
             }
         }
-
     }
 }

@@ -1175,6 +1175,11 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("SaveIllustAll"); }
         }
 
+        internal void SaveUgoira()
+        {
+            //throw new NotImplementedException();
+        }
+
         public void CopyPreview(bool loadfromfile = false)
         {
             if (!string.IsNullOrEmpty(PreviewImageUrl))
@@ -1451,6 +1456,33 @@ namespace PixivWPF.Pages
                 //Preview.Dispose();
                 Preview.Source = Application.Current.GetNullPreview();
                 PreviewImagePath = string.Empty;
+
+                var is_ugoira = item.IsUgoira();
+                new Action(async () =>
+                {
+                    if (ContextMenuActionItems.ContainsKey("ActionOpenUgoiraFile"))
+                    {
+                        var mi = ContextMenuActionItems["ActionOpenUgoiraFile"];
+                        var fp = await item.GetUgoiraFile();
+                        mi.Show(show: is_ugoira && !string.IsNullOrEmpty(fp));
+                        mi.ToolTip = string.IsNullOrEmpty(fp) ? null : fp;
+                        IllustUgoiraDownloaded.Visibility = mi.Visibility;
+                        IllustUgoiraDownloaded.ToolTip = mi.ToolTip;
+                    }
+                    if (ContextMenuActionItems.ContainsKey("ActionGetUgoiraInfo"))
+                    {
+                        var mi = ContextMenuActionItems["ActionGetUgoiraInfo"];
+                        mi.Show(show: is_ugoira);
+                        mi.ToolTip = null;
+                        ActionUgoiraGet_Click(mi, new RoutedEventArgs());
+                    }
+                    if (ContextMenuActionItems.ContainsKey("ActionSaveUgoiraFile"))
+                    {
+                        var mi = ContextMenuActionItems["ActionSaveUgoiraFile"];
+                        mi.Show(show: is_ugoira);
+                        mi.ToolTip = null;
+                    }
+                }).Invoke();
 
                 string stat_viewed = "????";
                 string stat_favorited = "????";
@@ -3360,6 +3392,28 @@ namespace PixivWPF.Pages
             }
         }
 
+        private void IllustUgoiraDownloaded_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                e.Handled = true;
+                if (IllustUgoiraDownloaded.ToolTip is string)
+                    Commands.ShellOpenUgoira.Execute(IllustUgoiraDownloaded.ToolTip);
+            }
+            else if (e.ChangedButton == MouseButton.Right)
+            {
+                e.Handled = true;
+                if (IllustUgoiraDownloaded.ToolTip is string)
+                    Commands.OpenFileProperties.Execute(IllustUgoiraDownloaded.ToolTip);
+            }
+            else if (e.ChangedButton == MouseButton.Middle)
+            {
+                e.Handled = true;
+                if (IllustUgoiraDownloaded.ToolTip is string)
+                    Commands.CopyText.Execute(IllustUgoiraDownloaded.ToolTip);
+            }
+        }
+
         private void IllustTagExpander_Expanded(object sender, RoutedEventArgs e)
         {
             AdjustBrowserSize(IllustTagsHtml);
@@ -4346,6 +4400,32 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        private async void ActionUgoiraGet_Click(object sender, RoutedEventArgs e)
+        {
+            if(Contents.IsWork() && sender is MenuItem)
+            {
+                var mi = sender as MenuItem;
+                if (mi.Uid.Equals("ActionGetUgoiraInfo"))
+                {
+                    var ugoira_info = Contents.Ugoira != null ? Contents.Ugoira : await Contents.Illust.GetUgoiraMeta();
+                    if (ugoira_info != null)
+                    {
+                        Contents.Ugoira = ugoira_info;
+                        mi.ToolTip = $"File  : {System.IO.Path.GetFileName(ugoira_info.GetUgoiraUrl())}{Environment.NewLine}Frames: {ugoira_info.Frames.Count}";
+                    }
+                    else { mi.ToolTip = null; }
+                }
+                else if (mi.Uid.Equals("ActionSaveUgoiraFile"))
+                {
+                    Commands.SaveUgoira.Execute(Contents);
+                }
+                else if (mi.Uid.Equals("ActionOpenUgoiraFile"))
+                {
+                    Commands.ShellOpenUgoira.Execute(Contents);
+                }
+            }
+        }
+
         private void ActionOpenDownloaded_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -4447,7 +4527,6 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
         #endregion
-
     }
 
 }

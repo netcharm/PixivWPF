@@ -1294,7 +1294,7 @@ namespace Pixeez
             var param = new Dictionary<string, string>
             {
                 { "user_id",user_id.ToString() },
-                { "type", type },
+                { "type", string.IsNullOrEmpty(type) ? "illust,manga,ugoira" : type },
                 { "filter", filter }
             };
             if (string.IsNullOrEmpty(type)) param.Remove("type");
@@ -1332,7 +1332,7 @@ namespace Pixeez
                 { "order", order } ,
                 { "sort", sort } ,
                 { "mode", mode } ,
-
+                { "types", "illustration,manga,ugoira" },
                 { "include_stats", "1" } ,
                 { "include_sanity_level", Convert.ToInt32(includeSanityLevel).ToString() } ,
                 //{ "image_sizes", "px_128x128,small,medium,large,px_480mw,square_medium,original" } ,
@@ -1605,6 +1605,31 @@ namespace Pixeez
             return await AccessNewApiAsync<IllustCommentObject>(url, true, dic);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="illust_id"></param>
+        /// <returns></returns>
+        public async Task<UgoiraMetadata> GetUgoiraMetadata(long illust_id)
+        {
+            return (await GetUgoiraMetadata(illust_id.ToString()));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="illust_id"></param>
+        /// <returns></returns>
+        public async Task<UgoiraMetadata> GetUgoiraMetadata(string illust_id)
+        {
+            var url = "https://app-api.pixiv.net/v1/ugoira/metadata";
+
+            var param = new Dictionary<string, string>
+            {
+                { "illust_id",illust_id.ToString() }
+            };
+            return await AccessNewApiAsync<UgoiraMetadata>(url, true, param);
+        }
         /// <summary>
         /// <para>Available parameters:</para>
         /// <para>- <c>long</c> illustId (required)</para>

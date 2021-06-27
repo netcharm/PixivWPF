@@ -163,6 +163,11 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        internal void SaveUgoira()
+        {
+            //throw new NotImplementedException();
+        }
+
         public void FirstIllust()
         {
             ResultItems.MoveCurrentToFirst();
@@ -866,7 +871,6 @@ namespace PixivWPF.Pages
             }
             ResultNextPage.Show();
         }
-
         #endregion
     }
 }

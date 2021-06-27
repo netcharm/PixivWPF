@@ -1674,6 +1674,28 @@ namespace PixivWPF.Common
             }
         }
 
+        private string shell_ugoira_viewer = string.Empty;
+        public string ShellUgoiraViewer
+        {
+            get { return (Cache is Setting ? Cache.shell_ugoira_viewer : shell_ugoira_viewer); }
+            set
+            {
+                shell_ugoira_viewer = value;
+                if (Cache is Setting) Cache.shell_ugoira_viewer = shell_ugoira_viewer;
+            }
+        }
+
+        private string shell_ugoira_viewer_params = string.Empty;
+        public string ShellUgoiraViewerParams
+        {
+            get { return (Cache is Setting ? Cache.shell_ugoira_viewer_params : shell_ugoira_viewer_params); }
+            set
+            {
+                shell_ugoira_viewer_params = value;
+                if (Cache is Setting) Cache.shell_ugoira_viewer_params = shell_ugoira_viewer_params;
+            }
+        }
+
         #endregion
 
         #region Window relative

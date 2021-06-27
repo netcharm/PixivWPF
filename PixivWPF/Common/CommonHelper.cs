@@ -1350,6 +1350,7 @@ namespace PixivWPF.Common
                             return (vs);
                         }, RegexOptions.IgnoreCase);
                     }
+
                     if (keys.Count > 0 && !text.Equals(src) && (!TagsMatched || LevenshteinDistance(text, src) > 1))
                     {
                         var result_sym = Regex.Replace(result, regex_symbol, @"\$1", RegexOptions.IgnoreCase);
@@ -2090,6 +2091,7 @@ namespace PixivWPF.Common
                         else
                         {
                             var IsImage = ext_imgs.Contains(Path.GetExtension(file).ToLower()) ? true : false;
+                            var IsUgoira = Regex.IsMatch(Path.GetFileName(file), @"\d+_ugoira\d+x\d+\.zip", RegexOptions.IgnoreCase);
                             if (AltViewer && IsImage)
                             {
                                 if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
@@ -2105,6 +2107,19 @@ namespace PixivWPF.Common
                                     Process.Start(file);
                                 else
                                     Process.Start(setting.ShellImageViewerCmd, args.Trim());
+                            }
+                            else if(IsUgoira && !string.IsNullOrEmpty(setting.ShellUgoiraViewer))
+                            {
+                                if (!File.Exists(setting.ShellUgoiraViewer))
+                                {
+                                    var cmd_found = setting.ShellUgoiraViewer.Where();
+                                    if (cmd_found.Length > 0) setting.ShellUgoiraViewer = cmd_found.First();
+                                }
+                                var args = $"\"{file}\"";
+                                if (string.IsNullOrEmpty(setting.ShellUgoiraViewer))
+                                    Process.Start(file);
+                                else
+                                    Process.Start(setting.ShellUgoiraViewer, args.Trim());
                             }
                             else
                             {
@@ -3507,6 +3522,47 @@ namespace PixivWPF.Common
                 if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: true);
             }
             catch (Exception ex) { ex.ERROR("IsPartDownloaded"); }
+            return (result);
+        }
+        #endregion
+
+        #region Ugoira file download checking
+        internal static bool IsUgoiraDownloaded(this string url, out string filepath, bool touch = true)
+        {
+            bool result = false;
+            filepath = string.Empty;
+            try
+            {
+                var file = Path.GetFileNameWithoutExtension(url);
+                var file_webm = $"{file}.webm";
+                var file_zip = $"{file}.zip";
+                foreach (var local in setting.LocalStorage)
+                {
+                    if (string.IsNullOrEmpty(local.Folder)) continue;
+
+                    var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
+                    if (Directory.Exists(folder))
+                    {
+                        var f_w = Path.Combine(folder, file_webm);
+                        var f_z = Path.Combine(folder, file_zip);
+
+                        if (File.Exists(f_w))
+                        {
+                            filepath = f_w;
+                            result = true;
+                            break;
+                        }
+                        else if (File.Exists(f_z))
+                        {
+                            filepath = f_z;
+                            result = true;
+                            break;
+                        }
+                    }
+                }
+                if (touch && !string.IsNullOrEmpty(filepath)) filepath.TouchAsync(url, meta: true);
+            }
+            catch (Exception ex) { ex.ERROR("IsUgoiraDownloaded"); }
             return (result);
         }
         #endregion

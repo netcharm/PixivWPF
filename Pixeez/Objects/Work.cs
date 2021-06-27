@@ -74,17 +74,38 @@ namespace Pixeez.Objects
 
     public class Page
     {
-
         [JsonProperty("image_urls")]
         public ImageUrls ImageUrls { get; set; }
     }
 
     public class Metadata
     {
-
         [JsonProperty("pages")]
         public IList<Page> Pages { get; set; }
     }
+
+    public class UgoiraFrame
+    {
+        [JsonProperty("file")]
+        public string File { get; set; }
+        [JsonProperty("delay")]
+        public string Delay { get; set; }
+    }
+
+    public class UgoiraInfo
+    {
+        [JsonProperty("zip_urls")]
+        public ImageUrls Urls { get; set; }
+        [JsonProperty("frames")]
+        public IList<UgoiraFrame> Frames { get; set; }
+    }
+
+    public class UgoiraMetadata
+    {
+        [JsonProperty("ugoira_metadata")]
+        public UgoiraInfo Metadata  { get; set; }
+    }
+
     public class NormalWork:Work
     {
         [JsonProperty("tags")]
