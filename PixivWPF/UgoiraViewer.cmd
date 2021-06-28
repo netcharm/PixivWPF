@@ -1,6 +1,8 @@
 @ECHO OFF
 
-set EXIF=exiftool.exe
+SETLOCAL 
+
+REM SET EXIF=exiftool.exe
 
 SET FFMPEG=ffmpeg.exe
 REM SET FFMPEG_OPT=-framerate 30 -f jpeg_pipe
@@ -19,7 +21,7 @@ IF EXIST "%FO%" GOTO RUN
 :CONVERT
 IF EXIST %FZ% (
   "%FFMPEG%" %FFMPEG_OPT% -i "%FZ%" %FFMPEG_OUT_OPT% %FFMPEG_META_OPT% "%FO%"
-  "%EXIF%" -time:all -s "%FZ%" "%FO%"
+  REM "%EXIF%" -time:all -s "%FZ%" "%FO%"
 )
 GOTO RUN
 
@@ -30,4 +32,6 @@ IF EXIST "%FO%" (
 GOTO END
 
 :END
+ENDLOCAL 
 REM PAUSE
+
