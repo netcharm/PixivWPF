@@ -1,25 +1,31 @@
 @ECHO OFF
 
+set EXIF=exiftool.exe
+
+SET FFMPEG=ffmpeg.exe
+REM SET FFMPEG_OPT=-framerate 30 -f jpeg_pipe
 SET FFMPEG_OPT=-f jpeg_pipe
-SET FFMPEG_META_OPT=-metadata title="%FN%"
+SET FFMPEG_META_OPT=-metadata title="%~n1%"
+SET FFMPEG_OUT_OPT=-crf 16 -r 60
+
 SET FN=%~dpn1%
+SET FM=%FN%.mp4
 SET FW=%FN%.webm
 SET FZ=%FN%.zip
+SET FO=%FM%
 
-echo %FW%
-echo %FZ%
-
-IF EXIST "%FW%" GOTO RUN
+IF EXIST "%FO%" GOTO RUN
 
 :CONVERT
 IF EXIST %FZ% (
-  ffmpeg %FFMPEG_OPT% -i "%FZ%" %FFMPEG_META_OPT% "%FW%"
+  "%FFMPEG%" %FFMPEG_OPT% -i "%FZ%" %FFMPEG_OUT_OPT% %FFMPEG_META_OPT% "%FO%"
+  "%EXIF%" -time:all -s "%FZ%" "%FO%"
 )
 GOTO RUN
 
 :RUN
-IF EXIST "%FW%" (
-  "%FW%"
+IF EXIST "%FO%" (
+  Start "Play Video file" "%FO%"
 )
 GOTO END
 

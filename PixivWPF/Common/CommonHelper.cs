@@ -378,7 +378,7 @@ namespace PixivWPF.Common
         private static ConcurrentDictionary<string, TagsWildecardCacheItem> _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
 
         private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
-        private static List<string> ext_movs = new List<string>() { ".zip", ".webm" };
+        private static List<string> ext_movs = new List<string>() { ".webm", ".mp4", ".gif", ".zip" };
         private static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         private static string[] trim_str = new string[] { Environment.NewLine };
         private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
@@ -388,6 +388,123 @@ namespace PixivWPF.Common
         private static double VALUE_GB = 1024 * 1024 * 1024;
         private static double VALUE_MB = 1024 * 1024;
         private static double VALUE_KB = 1024;
+
+        #region Shell Object Properties
+        //Get a List of the properties from a type
+        public static PropertyInfo[] ListOfPropertiesFromInstance(Type AType)
+        {
+            if (AType == null) return null;
+            return AType.GetProperties(BindingFlags.Public);
+        }
+
+        //Get a List of the properties from a instance of a class
+        public static PropertyInfo[] ListOfPropertiesFromInstance(object InstanceOfAType)
+        {
+            if (InstanceOfAType == null) return null;
+            Type TheType = InstanceOfAType.GetType();
+            return TheType.GetProperties(BindingFlags.Public);
+        }
+
+        //purrfect for usage example and Get a Map of the properties from a instance of a class
+        public static Dictionary<string, PropertyInfo> DictionaryOfPropertiesFromInstance(object InstanceOfAType, BindingFlags? flag = null)
+        {
+            if (InstanceOfAType == null) return null;
+            Type TheType = InstanceOfAType.GetType();
+            PropertyInfo[] Properties = flag == null ? TheType.GetProperties() : TheType.GetProperties(flag.Value);
+            Dictionary<string, PropertyInfo> PropertiesMap = new Dictionary<string, PropertyInfo>();
+            foreach (PropertyInfo Prop in Properties)
+            {
+                PropertiesMap.Add(Prop.Name, Prop);
+            }
+            return PropertiesMap;
+        }
+        #endregion
+
+        #region File type identification
+        public static bool IsImage(this string file)
+        {
+            if (file is string && !string.IsNullOrEmpty(file))
+            {
+
+                var ext = Path.GetExtension(file).ToLower();
+                return (ext_imgs.Contains(ext));
+            }
+            else return (false);
+        }
+
+        public static bool IsPng(this string file)
+        {
+            if (file is string && !string.IsNullOrEmpty(file))
+            {
+
+                var ext = Path.GetExtension(file).ToLower();
+                return (ext.Equals(".png"));
+            }
+            else return (false);
+        }
+
+        public static bool IsMovie(this string file)
+        {
+            if (file is string && !string.IsNullOrEmpty(file))
+            {
+                var ext = Path.GetExtension(file).ToLower();
+                return (ext_movs.Contains(ext));
+            }
+            else return (false);
+        }
+
+        public static bool IsZip(this string file)
+        {
+            if (file is string && !string.IsNullOrEmpty(file))
+            {
+
+                var ext = Path.GetExtension(file).ToLower();
+                return (ext.Equals(".zip"));
+            }
+            else return (false);
+        }
+
+        public static bool IsImage(this FileInfo file)
+        {
+            if (file is FileInfo)
+            {
+                var ext = file.Extension.ToLower();
+                return (ext_imgs.Contains(ext));
+            }
+            else return (false);
+        }
+
+        public static bool IsPng(this FileInfo file)
+        {
+            if (file is FileInfo)
+            {
+                var ext = file.Extension.ToLower();
+                return (ext.Equals(".png"));
+            }
+            else return (false);
+        }
+
+        public static bool IsMovie(this FileInfo file)
+        {
+            if (file is FileInfo)
+            {
+                var ext = file.Extension.ToLower();
+                return (ext_movs.Contains(ext));
+            }
+            else return (false);
+        }
+
+        public static bool IsZip(this FileInfo file)
+        {
+            if (file is FileInfo)
+            {
+
+                var ext = file.Extension.ToLower();
+                return (ext.Equals(".zip"));
+            }
+            else return (false);
+        }
+        #endregion
 
         #region Pixiv Token Helper
         private static SemaphoreSlim CanRefreshToken = new SemaphoreSlim(1, 1);
@@ -701,8 +818,8 @@ namespace PixivWPF.Common
 
                 else if (Regex.IsMatch(result, @"(User|Tag|Caption|Fuzzy|Fuzzy Tag):(\s?.+)", RegexOptions.IgnoreCase))
                     result = Regex.Replace(result, @"(User|Tag|Caption|Fuzzy|Fuzzy Tag):(\s?.+)", "$1:$2", RegexOptions.IgnoreCase);
-                else if (Regex.IsMatch(Path.GetFileNameWithoutExtension(result), @"^((\d+)(_((p)|(ugoira))*\d+)*)"))
-                    result = Regex.Replace(Path.GetFileNameWithoutExtension(result), @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
+                else if (Regex.IsMatch(Path.GetFileNameWithoutExtension(result), @"^((\d+)(_((p)|(ugoira))*\d+(x\d+)?)*)"))
+                    result = Regex.Replace(Path.GetFileNameWithoutExtension(result), @"(.*?(\d+)(_((p)|(ugoira))*\d+(x\d+)?)*.*)", "$2", RegexOptions.IgnoreCase);
 
                 else if (!Regex.IsMatch(result, @"((UserID)|(User)|(IllustID)|(Tag)|(Caption)|(Fuzzy)|(Fuzzy Tag)):", RegexOptions.IgnoreCase))
                     result = $"Fuzzy: {result}";
@@ -819,16 +936,16 @@ namespace PixivWPF.Common
                                 if (Regex.IsMatch(ap, @"[\\|/]((background)(workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}" + regex_img_ext + "))", opt))
                                     mr.Add(Regex.Matches(ap, @"[\\|/]((workspace)|(user-profile))[\\|/].*?[\\|/]((\d+)(_.{10,}" + regex_img_ext + "))", opt));
                                 else
-                                    mr.Add(Regex.Matches(Path.Combine(root, Path.GetFileName(content)), @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
+                                    mr.Add(Regex.Matches(Path.Combine(root, Path.GetFileName(content)), @"((\d+)((_((p)|(ugoira))*\d+(x\d+)?)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
                             }
                             else
-                                mr.Add(Regex.Matches(content, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
+                                mr.Add(Regex.Matches(content, @"((\d+)((_((p)|(ugoira\d+(x\d+)?))*\d+)*(_((master)|(square))+\d+)*)*(\..+)*)", opt));
                         }
                     }
                     catch (Exception ex)
                     {
                         ex.ERROR();
-                        mr.Add(Regex.Matches(content, @"((\d+)((_((p)|(ugoira))*\d+)*(_((master)|(square)))*\d+)*(" + regex_img_ext + "))", opt));
+                        mr.Add(Regex.Matches(content, @"((\d+)((_((p)|(ugoira))*\d+(x\d+)?)*(_((master)|(square)))*\d+)*(" + regex_img_ext + "))", opt));
                     }
                 }
             }
@@ -984,8 +1101,8 @@ namespace PixivWPF.Common
                         var fn = m.Value.Trim().Trim(trim_char);
                         try
                         {
-                            var sid = Regex.Replace(Path.GetFileNameWithoutExtension(fn), @"(.*?(\d+)(_((p)|(ugoira))*\d+)*.*)", "$2", RegexOptions.IgnoreCase);
-                            var IsFile = string.IsNullOrEmpty(Path.GetExtension(fn)) ? false : true;
+                            var sid = Regex.Replace(Path.GetFileNameWithoutExtension(fn), @"(.*?(\d+)(_((p)|(ugoira))(\d+(x\d+)?)).*)", "$2", RegexOptions.IgnoreCase);
+                            var IsFile = string.IsNullOrEmpty(Path.GetExtension(fn)) && !fn.Contains('_') ? false : true;
                             long id;
                             if (long.TryParse(sid, out id) && id > 100)
                             {
@@ -2092,7 +2209,8 @@ namespace PixivWPF.Common
                         else
                         {
                             var IsImage = ext_imgs.Contains(Path.GetExtension(file).ToLower()) ? true : false;
-                            var IsUgoira = Regex.IsMatch(Path.GetFileName(file), @"\d+_ugoira\d+x\d+\.(zip|webm)", RegexOptions.IgnoreCase);
+                            var ext = string.Join("|", ext_movs.Select(e => e.Substring(1)));
+                            var IsUgoira = Regex.IsMatch(Path.GetFileName(file), $@"\d+_ugoira\d+x\d+\.({ext})", RegexOptions.IgnoreCase);
                             if (AltViewer && IsImage)
                             {
                                 if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
@@ -2494,14 +2612,73 @@ namespace PixivWPF.Common
                     if (illust is Pixeez.Objects.Work && (dt != null || dt.Ticks > 0))
                     {
                         var uid = $"{illust.User.Id}";
-                        bool is_png = fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase);
+
+                        bool is_png = fileinfo.IsPng();
+                        bool is_img = fileinfo.IsImage();
+                        bool is_mov = fileinfo.IsMovie();
+                        bool is_zip = fileinfo.IsZip();
+
                         string name = Path.GetFileNameWithoutExtension(fileinfo.Name);
 
                         using (var sh = Microsoft.WindowsAPICodePack.Shell.ShellFile.FromFilePath(fileinfo.FullName))
                         {
-                            if (sh.Properties.System.Photo.DateTaken.Value == null || sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
-                                sh.Properties.System.Photo.DateTaken.Value = dt;
-                            if (!is_png)
+                            if (is_img)
+                            {
+                                if (sh.Properties.System.Photo.DateTaken.Value == null || sh.Properties.System.Photo.DateTaken.Value.Value.Ticks != dt.Ticks)
+                                    sh.Properties.System.Photo.DateTaken.Value = dt;
+                                if (!is_png)
+                                {
+                                    if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
+                                        sh.Properties.System.DateAcquired.Value = dt;
+
+                                    sh.Properties.System.Subject.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Subject.Value == null || !sh.Properties.System.Subject.Value.Equals(id.ArtworkLink()))
+                                        sh.Properties.System.Subject.Value = id.ArtworkLink();
+
+                                    var title = illust.Title.FilterInvalidChar().TrimEnd();
+                                    sh.Properties.System.Title.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Title.Value == null || !sh.Properties.System.Title.Value.Equals(title))
+                                        sh.Properties.System.Title.Value = title;
+
+                                    sh.Properties.System.Author.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Author.Value == null)
+                                        sh.Properties.System.Author.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+
+                                    var tags = illust.Tags.Select(t => t.Replace(";", "；⸵")).Distinct(StringComparer.CurrentCultureIgnoreCase).ToArray();
+                                    sh.Properties.System.Keywords.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != tags.Length)
+                                        sh.Properties.System.Keywords.Value = tags;
+
+                                    sh.Properties.System.Copyright.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Copyright.Value == null)
+                                        sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
+
+                                    var comment = illust.Caption.HtmlToText();
+                                    sh.Properties.System.Comment.AllowSetTruncatedValue = true;
+                                    if (sh.Properties.System.Comment.Value == null || !sh.Properties.System.Comment.Value.Equals(comment))
+                                    {
+                                        if (string.IsNullOrEmpty(comment)) sh.Properties.System.Comment.ClearValue();
+                                        else sh.Properties.System.Comment.Value = comment;
+                                    }
+
+                                    //if (sh.Properties.System.Contact.Webpage.Value == null) sh.Properties.System.Contact.Webpage.Value = id.ArtworkLink();
+
+                                    //if (sh.Properties.System.Media.AuthorUrl.Value == null) sh.Properties.System.Media.AuthorUrl.Value = uid.ArtistLink();
+                                    //if (sh.Properties.System.Media.PromotionUrl.Value == null) sh.Properties.System.Media.PromotionUrl.Value = id.ArtworkLink();
+
+                                    if (illust.IsLiked())
+                                    {
+                                        if (sh.Properties.System.SimpleRating.Value != 4)
+                                            sh.Properties.System.SimpleRating.Value = 4;
+                                    }
+                                    else
+                                    {
+                                        if (sh.Properties.System.SimpleRating.Value != null)
+                                            sh.Properties.System.SimpleRating.ClearValue();
+                                    }
+                                }
+                            }
+                            else if(is_mov && !is_zip)
                             {
                                 if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                     sh.Properties.System.DateAcquired.Value = dt;
@@ -2524,9 +2701,9 @@ namespace PixivWPF.Common
                                 if (sh.Properties.System.Keywords.Value == null || sh.Properties.System.Keywords.Value.Length != tags.Length)
                                     sh.Properties.System.Keywords.Value = tags;
 
-                                sh.Properties.System.Copyright.AllowSetTruncatedValue = true;
-                                if (sh.Properties.System.Copyright.Value == null)
-                                    sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
+                                //sh.Properties.System.Copyright.AllowSetTruncatedValue = true;
+                                //if (sh.Properties.System.Copyright.Value == null)
+                                //    sh.Properties.System.Copyright.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
 
                                 var comment = illust.Caption.HtmlToText();
                                 sh.Properties.System.Comment.AllowSetTruncatedValue = true;
@@ -2535,11 +2712,6 @@ namespace PixivWPF.Common
                                     if (string.IsNullOrEmpty(comment)) sh.Properties.System.Comment.ClearValue();
                                     else sh.Properties.System.Comment.Value = comment;
                                 }
-
-                                //if (sh.Properties.System.Contact.Webpage.Value == null) sh.Properties.System.Contact.Webpage.Value = id.ArtworkLink();
-
-                                //if (sh.Properties.System.Media.AuthorUrl.Value == null) sh.Properties.System.Media.AuthorUrl.Value = uid.ArtistLink();
-                                //if (sh.Properties.System.Media.PromotionUrl.Value == null) sh.Properties.System.Media.PromotionUrl.Value = id.ArtworkLink();
 
                                 if (illust.IsLiked())
                                 {
@@ -2551,6 +2723,74 @@ namespace PixivWPF.Common
                                     if (sh.Properties.System.SimpleRating.Value != null)
                                         sh.Properties.System.SimpleRating.ClearValue();
                                 }
+
+                                if (sh.Properties.System.Media.DateEncoded.Value == null || sh.Properties.System.Media.DateEncoded.Value.Value.Ticks != dt.Ticks)
+                                    sh.Properties.System.Media.DateEncoded.Value = dt;
+                                if (sh.Properties.System.Media.DateReleased.Value == null)
+                                    sh.Properties.System.Media.DateReleased.Value = dt.ToString("yyyy/MM/ddTHH:mm:sszzz");
+                                if (sh.Properties.System.Media.Year.Value == null)
+                                    sh.Properties.System.Media.Year.Value = (uint)dt.Year;
+
+                                sh.Properties.System.Media.Subtitle.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Media.Subtitle.Value == null || !sh.Properties.System.Media.Subtitle.Value.Equals(id.ArtworkLink()))
+                                    sh.Properties.System.Media.Subtitle.Value = id.ArtworkLink();
+
+                                sh.Properties.System.Media.ContentDistributor.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Media.ContentDistributor.Value == null)
+                                    sh.Properties.System.Media.ContentDistributor.Value = $"{illust.User.Name ?? string.Empty}; uid:{illust.User.Id ?? -1}".Trim(';');
+
+                                if (sh.Properties.System.Media.AuthorUrl.Value == null)
+                                    sh.Properties.System.Media.AuthorUrl.Value = uid.ArtistLink();
+                                if (sh.Properties.System.Media.UserWebUrl.Value == null)
+                                    sh.Properties.System.Media.UserWebUrl.Value = uid.ArtistLink();
+                                if (sh.Properties.System.Media.PromotionUrl.Value == null)
+                                    sh.Properties.System.Media.PromotionUrl.Value = id.ArtworkLink();
+
+                                sh.Properties.System.Media.Producer.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Media.Producer.Value == null)
+                                    sh.Properties.System.Media.Producer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                sh.Properties.System.Media.Writer.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Media.Writer.Value == null)
+                                    sh.Properties.System.Media.Writer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                sh.Properties.System.Media.EncodedBy.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Media.EncodedBy.Value == null)
+                                    sh.Properties.System.Media.EncodedBy.Value = illust.User.Name;
+                                sh.Properties.System.Media.Publisher.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Media.Publisher.Value == null)
+                                    sh.Properties.System.Media.Publisher.Value = illust.User.Name;
+
+                                sh.Properties.System.Media.MetadataContentProvider.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Media.MetadataContentProvider.Value == null)
+                                    sh.Properties.System.Media.MetadataContentProvider.Value = illust.User.Name;
+
+                                sh.Properties.System.Video.Director.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Video.Director.Value == null)
+                                    sh.Properties.System.Video.Director.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+
+                                sh.Properties.System.Music.Artist.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Music.Artist.Value == null)
+                                    sh.Properties.System.Music.Artist.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                sh.Properties.System.Music.AlbumArtist.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Music.AlbumArtist.Value == null)
+                                    sh.Properties.System.Music.AlbumArtist.Value = illust.User.Name;
+                                sh.Properties.System.Music.AlbumTitle.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Music.AlbumTitle.Value == null)
+                                    sh.Properties.System.Music.AlbumTitle.Value = title;
+                                sh.Properties.System.Music.Composer.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Music.Composer.Value == null)
+                                    sh.Properties.System.Music.Composer.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                sh.Properties.System.Music.Conductor.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Music.Conductor.Value == null)
+                                    sh.Properties.System.Music.Conductor.Value = new string[] { illust.User.Name, $"uid:{illust.User.Id ?? -1}" };
+                                sh.Properties.System.Music.Genre.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Music.Genre.Value == null)
+                                    sh.Properties.System.Music.Genre.Value = new string[] { "Pixiv", "Comic", "Anime", "Game", "CG", "Japan" };
+                                sh.Properties.System.Music.Mood.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Music.Mood.Value == null)
+                                    sh.Properties.System.Music.Mood.Value = "Happy";
+                                sh.Properties.System.Music.Period.AllowSetTruncatedValue = true;
+                                if (sh.Properties.System.Music.Period.Value == null)
+                                    sh.Properties.System.Music.Period.Value = dt.ToString("yyyy");
                             }
                             //sh.Update();
                         }
@@ -3538,8 +3778,6 @@ namespace PixivWPF.Common
             try
             {
                 var file = Path.GetFileNameWithoutExtension(url);
-                var file_webm = $"{file}.webm";
-                var file_zip = $"{file}.zip";
                 foreach (var local in setting.LocalStorage)
                 {
                     if (string.IsNullOrEmpty(local.Folder)) continue;
@@ -3547,20 +3785,14 @@ namespace PixivWPF.Common
                     var folder = local.Folder.FolderMacroReplace(url.GetIllustId());
                     if (Directory.Exists(folder))
                     {
-                        var f_w = Path.Combine(folder, file_webm);
-                        var f_z = Path.Combine(folder, file_zip);
-
-                        if (File.Exists(f_w))
+                        foreach (var f in ext_movs.OrderBy(e => e).Select(e => Path.Combine(folder, $"{file}{e}")))
                         {
-                            filepath = f_w;
-                            result = true;
-                            break;
-                        }
-                        else if (File.Exists(f_z))
-                        {
-                            filepath = f_z;
-                            result = true;
-                            break;
+                            if (File.Exists(f))
+                            {
+                                filepath = f;
+                                result = true;
+                                break;
+                            }
                         }
                     }
                 }
