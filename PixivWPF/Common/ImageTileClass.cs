@@ -746,11 +746,13 @@ namespace PixivWPF.Common
                         var caption = illust.Caption.HtmlToText(decode: true, br: false, limit: true, limitcount: 512, breakline: false, breakcount: 72);
                         var tooltip = string.IsNullOrEmpty(caption) ? string.Empty : $"{Environment.NewLine}{caption}";
                         var tags_suffix = illust.Tags.Count > 5 ? $" etc. {illust.Tags.Count - 5} tags ..." : string.Empty;
-                        var tags = illust.Tags.Count > 0 ? $"\r\n🔖[#{string.Join(", #", illust.Tags.Take(5))}{tags_suffix}]" : string.Empty;
+                        var tags = illust.Tags.Count > 0 ? $"{Environment.NewLine}🔖[#{string.Join(", #", illust.Tags.Take(5))}{tags_suffix}]" : string.Empty;
                         var sanity = string.Empty;
                         var age = string.Empty;
                         var userliked = illust.User.IsLiked() ? $"✔" : $"✘";
                         var illustliked = illust.IsLiked() ? $"🧡" : $"🤍";
+                        //🎦0x1F3A6, 🎬0x1F3AC 📽0x1F4FD 🎥0x1F3A5
+                        var ugoira = illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? ", 🎦" : string.Empty; 
                         var state = string.Empty;
                         if (illust is Pixeez.Objects.IllustWork)
                         {
@@ -769,8 +771,8 @@ namespace PixivWPF.Common
                             age = string.IsNullOrEmpty(sanity) ? string.Empty : $"R[{sanity}]";
                             state = $", 🔞{age}, {userliked}/{stats}{like}, 🖼[{work.Width}x{work.Height}]";
                         }
-                        var uname = illust.User is Pixeez.Objects.UserBase ? $"\r\n🎨[{illust.User.Name}]" : string.Empty;
-                        tooltip = string.IsNullOrEmpty(illust.Title) ? $"{uname}{state}{tags}{tooltip}" : $"{illust.Title}{uname}{state}{tags}{tooltip}";
+                        var uname = illust.User is Pixeez.Objects.UserBase ? $"{Environment.NewLine}🎨[{illust.User.Name}]" : string.Empty;
+                        tooltip = string.IsNullOrEmpty(illust.Title) ? $"{uname}{state}{ugoira}{tags}{tooltip}" : $"{illust.Title}{uname}{state}{ugoira}{tags}{tooltip}";
                         //var title = string.Join(" ", Regex.Split(illust.Title, @"(?:\r\n|\n|\r)"));
                         var title = Regex.Replace(illust.Title, @"[\n\r]", "", RegexOptions.IgnoreCase);
                         result = new PixivItem()

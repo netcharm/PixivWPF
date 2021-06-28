@@ -378,6 +378,7 @@ namespace PixivWPF.Common
         private static ConcurrentDictionary<string, TagsWildecardCacheItem> _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
 
         private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
+        private static List<string> ext_movs = new List<string>() { ".zip", ".webm" };
         private static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         private static string[] trim_str = new string[] { Environment.NewLine };
         private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
@@ -2091,7 +2092,7 @@ namespace PixivWPF.Common
                         else
                         {
                             var IsImage = ext_imgs.Contains(Path.GetExtension(file).ToLower()) ? true : false;
-                            var IsUgoira = Regex.IsMatch(Path.GetFileName(file), @"\d+_ugoira\d+x\d+\.zip", RegexOptions.IgnoreCase);
+                            var IsUgoira = Regex.IsMatch(Path.GetFileName(file), @"\d+_ugoira\d+x\d+\.(zip|webm)", RegexOptions.IgnoreCase);
                             if (AltViewer && IsImage)
                             {
                                 if (string.IsNullOrEmpty(setting.ShellImageViewerCmd) ||
@@ -2965,7 +2966,8 @@ namespace PixivWPF.Common
                 {
                     if (File.Exists(e.FullPath))
                     {
-                        if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
+                        var ext = Path.GetExtension(e.Name).ToLower();
+                        if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
                         {
                             e.FullPath.DownloadedCacheAdd();
                             UpdateDownloadStateAsync(GetIllustId(e.Name), true);
@@ -2984,7 +2986,8 @@ namespace PixivWPF.Common
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
-                    if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
+                    var ext = Path.GetExtension(e.Name).ToLower();
+                    if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
                     {
                         e.FullPath.DownloadedCacheRemove();
                         UpdateDownloadStateAsync(GetIllustId(e.Name), false);
@@ -3015,7 +3018,8 @@ namespace PixivWPF.Common
                 if (e.ChangeType == WatcherChangeTypes.Renamed)
                 {
                     e.OldFullPath.DownloadedCacheUpdate(e.FullPath);
-                    if (ext_imgs.Contains(Path.GetExtension(e.Name).ToLower()))
+                    var ext = Path.GetExtension(e.Name).ToLower();
+                    if (ext_imgs.Contains(ext) || ext_movs.Contains(ext))
                     {
                         UpdateDownloadStateAsync(GetIllustId(e.Name));
                         lastDownloadEventTick = DateTime.Now;

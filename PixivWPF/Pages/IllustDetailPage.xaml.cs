@@ -797,6 +797,39 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Illust/User state mark methods
+        private void UpdateUg(bool? ugoira = null)
+        {
+            var is_ugoira = ugoira ?? Contents.IsUgoira();
+            new Action(async () =>
+            {
+                IllustUgoiraDownloaded.Show(show: is_ugoira);
+                IllustUgoiraDownloaded.IsEnabled = false;
+                if (ContextMenuActionItems.ContainsKey("ActionOpenUgoiraFile"))
+                {
+                    var mi = ContextMenuActionItems["ActionOpenUgoiraFile"];
+                    var fp = await Contents.GetUgoiraFile();
+                    mi.Show(show: is_ugoira);
+                    mi.IsEnabled = is_ugoira && !string.IsNullOrEmpty(fp);
+                    mi.ToolTip = string.IsNullOrEmpty(fp) ? null : fp;
+                    IllustUgoiraDownloaded.ToolTip = mi.ToolTip;
+                    IllustUgoiraDownloaded.IsEnabled = mi.IsEnabled;
+                }
+                if (ContextMenuActionItems.ContainsKey("ActionGetUgoiraInfo"))
+                {
+                    var mi = ContextMenuActionItems["ActionGetUgoiraInfo"];
+                    mi.Show(show: is_ugoira);
+                    mi.ToolTip = null;
+                    ActionUgoiraGet_Click(mi, new RoutedEventArgs());
+                }
+                if (ContextMenuActionItems.ContainsKey("ActionSaveUgoiraFile"))
+                {
+                    var mi = ContextMenuActionItems["ActionSaveUgoiraFile"];
+                    mi.Show(show: is_ugoira);
+                    mi.ToolTip = null;
+                }
+            }).Invoke();
+        }
+
         private void UpdateDownloadState(int? illustid = null, bool? exists = null)
         {
             try
@@ -806,6 +839,7 @@ namespace PixivWPF.Pages
                     int work_id = -1;
                     int.TryParse(Contents.ID, out work_id);
                     if (illustid == -1 || illustid == work_id) UpdateDownloadedMark(Contents, exists);
+                    UpdateUg();
                 }
                 foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeItems, FavoriteItems })
                 {
@@ -1458,31 +1492,7 @@ namespace PixivWPF.Pages
                 PreviewImagePath = string.Empty;
 
                 var is_ugoira = item.IsUgoira();
-                new Action(async () =>
-                {
-                    if (ContextMenuActionItems.ContainsKey("ActionOpenUgoiraFile"))
-                    {
-                        var mi = ContextMenuActionItems["ActionOpenUgoiraFile"];
-                        var fp = await item.GetUgoiraFile();
-                        mi.Show(show: is_ugoira && !string.IsNullOrEmpty(fp));
-                        mi.ToolTip = string.IsNullOrEmpty(fp) ? null : fp;
-                        IllustUgoiraDownloaded.Visibility = mi.Visibility;
-                        IllustUgoiraDownloaded.ToolTip = mi.ToolTip;
-                    }
-                    if (ContextMenuActionItems.ContainsKey("ActionGetUgoiraInfo"))
-                    {
-                        var mi = ContextMenuActionItems["ActionGetUgoiraInfo"];
-                        mi.Show(show: is_ugoira);
-                        mi.ToolTip = null;
-                        ActionUgoiraGet_Click(mi, new RoutedEventArgs());
-                    }
-                    if (ContextMenuActionItems.ContainsKey("ActionSaveUgoiraFile"))
-                    {
-                        var mi = ContextMenuActionItems["ActionSaveUgoiraFile"];
-                        mi.Show(show: is_ugoira);
-                        mi.ToolTip = null;
-                    }
-                }).Invoke();
+                UpdateUg(is_ugoira);
 
                 string stat_viewed = "????";
                 string stat_favorited = "????";
