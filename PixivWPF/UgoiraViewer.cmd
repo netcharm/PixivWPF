@@ -1,16 +1,17 @@
 @ECHO OFF
-
 SETLOCAL 
 
-REM SET EXIF=exiftool.exe
-
 SET FFMPEG=ffmpeg.exe
+SET FFMPEG_METHOD="X"
 REM SET FFMPEG_OPT=-framerate 30 -f jpeg_pipe
-SET FFMPEG_OPT=-f jpeg_pipe
+SET FFMPEG_OPT_ZIP=-hide_banner -f jpeg_pipe
+SET FFMPEG_OPT_CAT=-hide_banner -f concat
 SET FFMPEG_META_OPT=-metadata title="%~n1%"
-SET FFMPEG_OUT_OPT=-crf 16 -r 60
+REM SET FFMPEG_OUT_OPT=-vsync vfr -crf 16 -r 120
+SET FFMPEG_OUT_OPT=-vsync vfr
 
 SET FN=%~dpn1%
+SET FT=%~dpn1%.txt
 SET FM=%FN%.mp4
 SET FW=%FN%.webm
 SET FZ=%FN%.zip
@@ -20,8 +21,17 @@ IF EXIST "%FO%" GOTO RUN
 
 :CONVERT
 IF EXIST %FZ% (
-  "%FFMPEG%" %FFMPEG_OPT% -i "%FZ%" %FFMPEG_OUT_OPT% %FFMPEG_META_OPT% "%FO%"
-  REM "%EXIF%" -time:all -s "%FZ%" "%FO%"
+  IF /I %FFMPEG_METHOD% EQU "X" (
+    IF NOT EXIST "%FN%" (MKDIR "%FN%")
+    PUSHD "%FN%"
+    TAR -xf "%FZ%"
+    "%FFMPEG%" %FFMPEG_OPT_CAT% -i "%FT%" %FFMPEG_OUT_OPT% %FFMPEG_META_OPT% "%FO%"
+    POPD
+    RMDIR /S /Q "%FN%"
+  ) ELSE (
+    "%FFMPEG%" %FFMPEG_OPT_ZIP% -i "%FZ%" %FFMPEG_OUT_OPT% %FFMPEG_META_OPT% "%FO%"
+  )
+  TIMEOUT /T 1
 )
 GOTO RUN
 

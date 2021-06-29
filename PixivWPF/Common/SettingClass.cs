@@ -147,6 +147,7 @@ namespace PixivWPF.Common
         #region Config load/save relative
         private static SemaphoreSlim CanConfigRead = new SemaphoreSlim(1, 1);
         private static SemaphoreSlim CanConfigWrite = new SemaphoreSlim(1, 1);
+
         [JsonIgnore]
         public static bool IsConfigBusy
         {
@@ -859,6 +860,9 @@ namespace PixivWPF.Common
             }
         }
 
+        /// <summary>
+        /// Unit : Seconds
+        /// </summary>
         private int expdurtime = 3600;
         public int ExpiresIn
         {
@@ -935,7 +939,6 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.mouse_xbutton_reverse = mouse_xbutton_reverse;
             }
         }
-
         #endregion
 
         #region network relative
@@ -1029,6 +1032,9 @@ namespace PixivWPF.Common
             }
         }
 
+        /// <summary>
+        /// Unit : Seconds
+        /// </summary>
         private int download_buffer_update_frequency = 30;
         public int DownloadBufferUpdateFrequency
         {
@@ -1040,6 +1046,9 @@ namespace PixivWPF.Common
             }
         }
 
+        /// <summary>
+        /// Unit : Seconds
+        /// </summary>
         private int download_http_timeout = 30;
         public int DownloadHttpTimeout
         {
@@ -1051,6 +1060,9 @@ namespace PixivWPF.Common
             }
         }
 
+        /// <summary>
+        /// Unit : Bytes
+        /// </summary>
         private int download_http_stream_block_size = 16384;
         public int DownloadHttpStreamBlockSize
         {
@@ -1062,6 +1074,9 @@ namespace PixivWPF.Common
             }
         }
 
+        /// <summary>
+        /// Unit : Milliseconds
+        /// </summary>
         private int download_waiting_time = 5000;
         public int DownloadWaitingTime
         {
@@ -1073,6 +1088,9 @@ namespace PixivWPF.Common
             }
         }
 
+        /// <summary>
+        /// Unit : Milliseconds
+        /// </summary>
         private int download_timespan = 750;
         public int DownloadTimeSpan
         {
@@ -1106,6 +1124,9 @@ namespace PixivWPF.Common
             }
         }
 
+        /// <summary>
+        /// Unit : Seconds
+        /// </summary>
         private int download_completed_sound_elapsed = 60;
         public int DownloadCompletedSoundForElapsedSeconds
         {
@@ -1721,14 +1742,17 @@ namespace PixivWPF.Common
             }
         }
 
-        private int toast_delay = 5;
-        public int ToastShowTimes
+        /// <summary>
+        /// Unit : Seconds
+        /// </summary>
+        private int toast_timeout = 5;
+        public int ToastTimeout
         {
-            get { return (Cache is Setting ? Cache.toast_delay : toast_delay); }
+            get { return (Cache is Setting ? Cache.toast_timeout : toast_timeout); }
             set
             {
-                toast_delay = Math.Max(1, Math.Min(value, 100));
-                if (Cache is Setting) Cache.toast_delay = toast_delay;
+                toast_timeout = Math.Max(1, Math.Min(value, 100));
+                if (Cache is Setting) Cache.toast_timeout = toast_timeout;
             }
         }
         #endregion

@@ -378,7 +378,7 @@ namespace PixivWPF.Common
         private static ConcurrentDictionary<string, TagsWildecardCacheItem> _TagsWildecardT2SCache = new ConcurrentDictionary<string, TagsWildecardCacheItem>(StringComparer.CurrentCultureIgnoreCase);
 
         private static List<string> ext_imgs = new List<string>() { ".png", ".jpg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".jpeg" };
-        private static List<string> ext_movs = new List<string>() { ".webm", ".mp4", ".gif", ".zip" };
+        private static List<string> ext_movs = new List<string>() { ".webm", ".mp4", ".mov", ".ogv", ".ogg",".gif", ".zip" };
         private static char[] trim_char = new char[] { ' ', ',', '.', '/', '\\', '\r', '\n', ':', ';' };
         private static string[] trim_str = new string[] { Environment.NewLine };
         private static string regex_img_ext = @"\.(png|jpg|jpeg|gif|bmp|zip|webp)";
@@ -7439,7 +7439,7 @@ namespace PixivWPF.Common
                     NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
                     NotificationConfiguration cfg = new NotificationConfiguration(
                     //new TimeSpan(0, 0, 30), 
-                    TimeSpan.FromSeconds(setting.ToastShowTimes),
+                    TimeSpan.FromSeconds(setting.ToastTimeout),
                     cfgDefault.Width+32, cfgDefault.Height,
                     "ToastTemplate",
                     //cfgDefault.TemplateName, 
@@ -7480,7 +7480,7 @@ namespace PixivWPF.Common
                         NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
                         NotificationConfiguration cfg = new NotificationConfiguration(
                             //new TimeSpan(0, 0, 30), 
-                            TimeSpan.FromSeconds(setting.ToastShowTimes),
+                            TimeSpan.FromSeconds(setting.ToastTimeout),
                             cfgDefault.Width + 32, cfgDefault.Height,
                             "ToastTemplate",
                             //cfgDefault.TemplateName, 
@@ -7524,7 +7524,7 @@ namespace PixivWPF.Common
                         INotificationDialogService _dialogService = new NotificationDialogService();
                         NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
                         NotificationConfiguration cfg = new NotificationConfiguration(
-                            TimeSpan.FromSeconds(setting.ToastShowTimes),
+                            TimeSpan.FromSeconds(setting.ToastTimeout),
                             cfgDefault.Width + 32, cfgDefault.Height,
                             "ToastTemplate",
                             //cfgDefault.TemplateName, 

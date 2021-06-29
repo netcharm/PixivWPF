@@ -89,13 +89,23 @@ namespace Pixeez.Objects
         [JsonProperty("file")]
         public string File { get; set; }
         [JsonProperty("delay")]
-        public string Delay { get; set; }
+        public int Delay { get; set; }
     }
 
     public class UgoiraInfo
     {
+        [JsonProperty("src")]
+        public string Src { get; set; }
+
+        [JsonProperty("originalSrc")]
+        public string OriginalSrc { get; set; }
+
+        [JsonProperty("mime_type")]
+        public string MimeType { get; set; }
+
         [JsonProperty("zip_urls")]
         public ImageUrls Urls { get; set; }
+
         [JsonProperty("frames")]
         public IList<UgoiraFrame> Frames { get; set; }
     }
@@ -104,6 +114,18 @@ namespace Pixeez.Objects
     {
         [JsonProperty("ugoira_metadata")]
         public UgoiraInfo Metadata  { get; set; }
+    }
+
+    public class UgoiraAjaxMetadata
+    {
+        [JsonProperty("error")]
+        public bool Error { get; set; }
+
+        [JsonProperty("message")]
+        public string Message { get; set; }
+
+        [JsonProperty("body")]
+        public UgoiraInfo Meta { get; set; }
     }
 
     public class NormalWork:Work

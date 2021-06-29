@@ -797,6 +797,29 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Illust/User state mark methods
+        private async void MakeUgoiraConcatFile(Pixeez.Objects.UgoiraInfo ugoira_info = null, string file = null)
+        {
+            if (Contents.IsUgoira())
+            {
+                var ugoira = ugoira_info ?? Contents.Ugoira;
+                var fp =  file ?? await Contents.GetUgoiraFile();
+                if (!string.IsNullOrEmpty(fp) && ugoira != null)
+                {
+                    var fn = System.IO.Path.ChangeExtension(fp, ".txt");
+                    if (!System.IO.File.Exists(fn))
+                    {
+                        List<string> lines = new List<string>();
+                        foreach (var frame in Contents.Ugoira.Frames)
+                        {
+                            lines.Add($"file '{frame.File}'");
+                            lines.Add($"duration {Math.Max(0.04, frame.Delay / 1000.0):F2}");
+                        }
+                        System.IO.File.WriteAllLines(fn, lines);
+                    }
+                }
+            }
+        }
+
         private void UpdateUg(bool? ugoira = null)
         {
             var is_ugoira = ugoira ?? Contents.IsUgoira();
@@ -804,28 +827,62 @@ namespace PixivWPF.Pages
             {
                 IllustUgoiraDownloaded.Show(show: is_ugoira);
                 IllustUgoiraDownloaded.IsEnabled = false;
+
+                string tooltip = string.Empty;
+                if (is_ugoira)
+                {
+                    var ugoira_info = Contents.Ugoira != null ? Contents.Ugoira : await Contents.GetUgoiraMeta(ajax: true);
+                    if (ugoira_info != null)
+                    {
+                        if (Contents.Ugoira == null) Contents.Ugoira = ugoira_info;
+
+                        var frame = ugoira_info.Frames.Count;
+                        var delay = frame > 0 ? ugoira_info.Frames.Sum(f => f.Delay) / frame : 0;
+                        var file_p = System.IO.Path.GetFileName(ugoira_info.GetUgoiraUrl(preview: true));
+                        var file_o = System.IO.Path.GetFileName(ugoira_info.GetUgoiraUrl(preview: false));
+                        List<string> tips = new List<string>();
+                        tips.Add($"Preview  : {file_p}");
+                        tips.Add($"Original : {file_o}");
+                        tips.Add($"Frames   : {frame}");
+                        tips.Add($"Times    : {delay * frame / 1000.0:F2} s");
+                        tooltip = string.Join(Environment.NewLine, tips);
+                    }
+                }
+
+                if (ContextMenuIllustActions is ContextMenu && ContextMenuIllustActions.HasItems)
+                {
+                    foreach (var item in ContextMenuIllustActions.Items)
+                    {
+                        if (item is UIElement && (item as UIElement).Uid.Equals("SepratorUgoira"))
+                        {
+                            (item as UIElement).Show(show: is_ugoira);
+                            break;
+                        }
+                    }
+                }
+
                 if (ContextMenuActionItems.ContainsKey("ActionOpenUgoiraFile"))
                 {
                     var mi = ContextMenuActionItems["ActionOpenUgoiraFile"];
                     var fp = await Contents.GetUgoiraFile();
                     mi.Show(show: is_ugoira);
                     mi.IsEnabled = is_ugoira && !string.IsNullOrEmpty(fp);
-                    mi.ToolTip = string.IsNullOrEmpty(fp) ? null : fp;
+                    mi.ToolTip = string.IsNullOrEmpty(fp) ? tooltip : fp;
                     IllustUgoiraDownloaded.ToolTip = mi.ToolTip;
                     IllustUgoiraDownloaded.IsEnabled = mi.IsEnabled;
+                    MakeUgoiraConcatFile(file: fp);
                 }
-                if (ContextMenuActionItems.ContainsKey("ActionGetUgoiraInfo"))
+                if (ContextMenuActionItems.ContainsKey("ActionSavePreviewUgoiraFile"))
                 {
-                    var mi = ContextMenuActionItems["ActionGetUgoiraInfo"];
+                    var mi = ContextMenuActionItems["ActionSavePreviewUgoiraFile"];
                     mi.Show(show: is_ugoira);
-                    mi.ToolTip = null;
-                    ActionUgoiraGet_Click(mi, new RoutedEventArgs());
+                    mi.ToolTip = is_ugoira ? tooltip : null;
                 }
-                if (ContextMenuActionItems.ContainsKey("ActionSaveUgoiraFile"))
+                if (ContextMenuActionItems.ContainsKey("ActionSaveOriginalUgoiraFile"))
                 {
-                    var mi = ContextMenuActionItems["ActionSaveUgoiraFile"];
+                    var mi = ContextMenuActionItems["ActionSaveOriginalUgoiraFile"];
                     mi.Show(show: is_ugoira);
-                    mi.ToolTip = null;
+                    mi.ToolTip = is_ugoira ? tooltip : null;
                 }
             }).Invoke();
         }
@@ -1491,8 +1548,7 @@ namespace PixivWPF.Pages
                 Preview.Source = Application.Current.GetNullPreview();
                 PreviewImagePath = string.Empty;
 
-                var is_ugoira = item.IsUgoira();
-                UpdateUg(is_ugoira);
+                UpdateUg(item.IsUgoira());
 
                 string stat_viewed = "????";
                 string stat_favorited = "????";
@@ -4410,24 +4466,18 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
-        private async void ActionUgoiraGet_Click(object sender, RoutedEventArgs e)
+        private void ActionUgoiraGet_Click(object sender, RoutedEventArgs e)
         {
-            if(Contents.IsWork() && sender is MenuItem)
+            if(Contents.IsUgoira() && sender is MenuItem)
             {
                 var mi = sender as MenuItem;
-                if (mi.Uid.Equals("ActionGetUgoiraInfo"))
+                if (mi.Uid.Equals("ActionSavePreviewUgoiraFile"))
                 {
-                    var ugoira_info = Contents.Ugoira != null ? Contents.Ugoira : await Contents.Illust.GetUgoiraMeta();
-                    if (ugoira_info != null)
-                    {
-                        Contents.Ugoira = ugoira_info;
-                        mi.ToolTip = $"File  : {System.IO.Path.GetFileName(ugoira_info.GetUgoiraUrl())}{Environment.NewLine}Frames: {ugoira_info.Frames.Count}";
-                    }
-                    else { mi.ToolTip = null; }
+                    Commands.SavePreviewUgoira.Execute(Contents);
                 }
-                else if (mi.Uid.Equals("ActionSaveUgoiraFile"))
+                else if (mi.Uid.Equals("ActionSaveOriginalUgoiraFile"))
                 {
-                    Commands.SaveUgoira.Execute(Contents);
+                    Commands.SaveOriginalUgoira.Execute(Contents);
                 }
                 else if (mi.Uid.Equals("ActionOpenUgoiraFile"))
                 {

@@ -1811,7 +1811,7 @@ namespace PixivWPF.Common
                 foreach (var kv in toast_list.ToList())
                 {
                     var delta = Math.Abs(TimeSpan.FromMilliseconds(now - kv.Value).TotalSeconds);
-                    if (delta >= setting.ToastShowTimes + 5)
+                    if (delta >= setting.ToastTimeout + 5)
                     {
                         try
                         {
@@ -1832,7 +1832,7 @@ namespace PixivWPF.Common
                 if (autoTaskTimer == null)
                 {
                     var setting = LoadSetting(Application.Current);
-                    autoTaskTimer = new System.Timers.Timer(TimeSpan.FromSeconds(setting.ToastShowTimes).TotalMilliseconds) { AutoReset = true, Enabled = false };
+                    autoTaskTimer = new System.Timers.Timer(TimeSpan.FromSeconds(setting.ToastTimeout).TotalMilliseconds) { AutoReset = true, Enabled = false };
                     autoTaskTimer.Elapsed += Timer_Elapsed;
                     autoTaskTimer.Enabled = true;
                 }
@@ -3082,6 +3082,13 @@ namespace PixivWPF.Common
         {
             var client = GetWebRequest(app, continuation, range_start, range_count);
             return (await client.GetResponseAsync());
+        }
+        
+        public static async Task<HttpResponseMessage> GetAsyncResponse(this Application app, string url, HttpMethod method = null)
+        {
+            var request = Application.Current.GetHttpRequest(url);
+            var httpClient = Application.Current.GetHttpClient();
+            return (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead));
         }
         #endregion
 

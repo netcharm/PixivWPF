@@ -112,7 +112,7 @@ namespace PixivWPF.Pages
                 if (autoTaskTimer == null)
                 {
                     var setting = Application.Current.LoadSetting();
-                    autoTaskTimer = new System.Timers.Timer(TimeSpan.FromSeconds(setting.ToastShowTimes).TotalMilliseconds) { AutoReset = true, Enabled = false };
+                    autoTaskTimer = new System.Timers.Timer(TimeSpan.FromSeconds(setting.ToastTimeout).TotalMilliseconds) { AutoReset = true, Enabled = false };
                     autoTaskTimer.Elapsed += Timer_Elapsed;
                     autoTaskTimer.Enabled = true;
                 }

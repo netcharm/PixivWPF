@@ -193,13 +193,14 @@
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionGetUgoiraInfo" Header="Get Ugoira Metadata" Click="ActionUgoiraGet_Click">
+            <Separator x:Uid="SepratorUgoira"/>
+            <MenuItem x:Uid="ActionSavePreviewUgoiraFile" Header="Save Preview Ugoira File" Click="ActionUgoiraGet_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE173;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem x:Uid="ActionSaveUgoiraFile" Header="Save Ugoira File" Click="ActionUgoiraGet_Click">
+            <MenuItem x:Uid="ActionSaveOriginalUgoiraFile" Header="Save Original Ugoira File" Click="ActionUgoiraGet_Click">
                 <MenuItem.Icon>
                     <TextBlock Margin="4,0,0,0" Text="&#xE173;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>

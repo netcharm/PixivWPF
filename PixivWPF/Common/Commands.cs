@@ -1799,22 +1799,22 @@ namespace PixivWPF.Common
             }
         });
 
-        public static ICommand SaveUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
+        public static ICommand SavePreviewUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             if (obj is PixivItem)
             {
                 await new Action(async () =>
                 {
                     var item = obj as PixivItem;
-                    if (item.IsWork())
+                    if (item.IsUgoira())
                     {
                         var dt = item.Illust.GetDateTime();
                         var is_meta_single_page = item.Illust.PageCount == 1 ? true : false;
-                        var info = item.Ugoira != null ? item.Ugoira : await item.Illust.GetUgoiraMeta();
+                        var info = item.Ugoira != null ? item.Ugoira : await item.Illust.GetUgoiraMeta(ajax: true);
                         if (info != null)
                         {
                             item.Ugoira = info;
-                            var url =  info.GetUgoiraUrl();
+                            var url =  info.GetUgoiraUrl(preview: true);
                             if (!string.IsNullOrEmpty(url))
                             {
                                 url.SaveImage(item.Illust.GetThumbnailUrl(), dt, is_meta_single_page);
@@ -1829,11 +1829,11 @@ namespace PixivWPF.Common
                 await new Action(async () =>
                 {
                     var gallery = obj as ImageListGrid;
-                    foreach (var item in gallery.GetSelected())
+                    foreach (var item in gallery.GetSelected().Where(i => i.IsUgoira()))
                     {
                         await new Action(() =>
                         {
-                            SaveUgoira.Execute(item);
+                            SavePreviewUgoira.Execute(item);
                         }).InvokeAsync();
                     }
                 }).InvokeAsync();
@@ -1850,7 +1850,7 @@ namespace PixivWPF.Common
                     if (illust is Pixeez.Objects.Work)
                     {
                         var item = illust.WorkItem();
-                        SaveUgoira.Execute(item);
+                        SavePreviewUgoira.Execute(item);
                     }
                 }
             }
@@ -1877,7 +1877,89 @@ namespace PixivWPF.Common
             else if (obj is Window)
             {
                 var win = obj as Window;
-                if (win.Content is Page) SaveUgoira.Execute(win.Content);
+                if (win.Content is Page) SavePreviewUgoira.Execute(win.Content);
+            }
+        });
+
+        public static ICommand SaveOriginalUgoira { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            if (obj is PixivItem)
+            {
+                await new Action(async () =>
+                {
+                    var item = obj as PixivItem;
+                    if (item.IsUgoira())
+                    {
+                        var dt = item.Illust.GetDateTime();
+                        var is_meta_single_page = item.Illust.PageCount == 1 ? true : false;
+                        var info = item.Ugoira != null ? item.Ugoira : await item.Illust.GetUgoiraMeta(ajax: true);
+                        if (info != null)
+                        {
+                            item.Ugoira = info;
+                            var url =  info.GetUgoiraUrl();
+                            if (!string.IsNullOrEmpty(url))
+                            {
+                                url.SaveImage(item.Illust.GetThumbnailUrl(), dt, is_meta_single_page);
+                            }
+                        }
+                    }
+                }).InvokeAsync();
+            }
+            else if (obj is ImageListGrid)
+            {
+                setting = Application.Current.LoadSetting();
+                await new Action(async () =>
+                {
+                    var gallery = obj as ImageListGrid;
+                    foreach (var item in gallery.GetSelected().Where(i => i.IsUgoira()))
+                    {
+                        await new Action(() =>
+                        {
+                            SavePreviewUgoira.Execute(item);
+                        }).InvokeAsync();
+                    }
+                }).InvokeAsync();
+            }
+            else if (obj is string)
+            {
+                var link = obj as string;
+                var patten = @"(https?://.*?\.pximg\.net/img-zip-ugoira/img/\d{4}/\d{2}/\d{2}/\d{2}/\d{2}/\d{2}/)?(\d+)(_ugoira(\d+)x(\d+)).zip$";
+                var id = Regex.Replace(link, patten, "$2", RegexOptions.IgnoreCase);
+                if (!string.IsNullOrEmpty(id))
+                {
+                    var illust = id.FindIllust();
+                    if (!(illust is Pixeez.Objects.Work)) illust = await id.RefreshIllust();
+                    if (illust is Pixeez.Objects.Work)
+                    {
+                        var item = illust.WorkItem();
+                        SavePreviewUgoira.Execute(item);
+                    }
+                }
+            }
+            else if (obj is TilesPage)
+            {
+                (obj as TilesPage).SaveUgoira();
+            }
+            else if (obj is IllustDetailPage)
+            {
+                (obj as IllustDetailPage).SaveUgoira();
+            }
+            else if (obj is IllustImageViewerPage)
+            {
+                (obj as IllustImageViewerPage).SaveUgoira();
+            }
+            else if (obj is SearchResultPage)
+            {
+                (obj as SearchResultPage).SaveUgoira();
+            }
+            else if (obj is HistoryPage)
+            {
+                (obj as HistoryPage).SaveUgoira();
+            }
+            else if (obj is Window)
+            {
+                var win = obj as Window;
+                if (win.Content is Page) SavePreviewUgoira.Execute(win.Content);
             }
         });
 
@@ -1911,7 +1993,8 @@ namespace PixivWPF.Common
             else if (obj is PixivItem)
             {
                 var item = obj as PixivItem;
-                string fp = await item.GetUgoiraFile();
+                string fp = await item.GetUgoiraFile(preview: false);
+                if (string.IsNullOrEmpty(fp)) fp = await item.GetUgoiraFile(preview: true);
                 if (!string.IsNullOrEmpty(fp))
                 {
                     await new Action(() =>
