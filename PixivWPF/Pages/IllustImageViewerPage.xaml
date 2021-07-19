@@ -86,7 +86,7 @@
                 </MenuItem>
                 <MenuItem x:Name="ActionViewFullSize" x:Uid="ActionViewFullSize" Header="View Full Size" Click="ActionViewFullSize_Click">
                     <MenuItem.Icon>
-                        <TextBlock Margin="4,0,0,0" Text="&#xE1A3;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                        <TextBlock Margin="4,0,0,0" Text="&#xE8A3;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </MenuItem.Icon>
                 </MenuItem>
@@ -192,7 +192,7 @@
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0" BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                 Click="ActionViewFullSize_Click" >
-                <TextBlock Margin="4,0,0,0" Text="&#xE1A3;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                <TextBlock Margin="4,0,0,0" Text="&#xE8A3;" FontSize="32" FontFamily="Segoe MDL2 Assets"
                            Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </ToggleButton>
             <Button x:Name="btnOpenIllust" x:Uid="OpenIllust"

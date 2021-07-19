@@ -3359,7 +3359,10 @@ namespace PixivWPF.Pages
             {
                 setting = Application.Current.LoadSetting();
 
-                if (e.ClickCount >= 2)
+                e.Handled = true;
+                if (ParentWindow is Window && !ParentWindow.IsActive)
+                    ParentWindow.Activate();
+                else if (e.ClickCount >= 2)
                 {
                     if (SubIllusts.Items.Count() <= 0)
                     {
@@ -3371,28 +3374,17 @@ namespace PixivWPF.Pages
                             SubIllusts.SelectedIndex = 0;
                         Commands.OpenWorkPreview.Execute(SubIllusts);
                     }
-                    e.Handled = true;
                 }
                 else if (IsElement(btnSubPagePrev, e) && btnSubPagePrev.IsVisible && btnSubPagePrev.IsEnabled)
-                {
                     PrevIllustPage();
-                    e.Handled = true;
-                }
                 else if (IsElement(btnSubPageNext, e) && btnSubPageNext.IsVisible && btnSubPageNext.IsEnabled)
-                {
                     NextIllustPage();
-                    e.Handled = true;
-                }
+                else if (setting.EnabledMiniToolbar && PreviewPopup is Popup)
+                    PopupOpen(PreviewPopup);
                 else
-                {
-                    if (setting.EnabledMiniToolbar && PreviewPopup is Popup)
-                    {
-                        PopupOpen(PreviewPopup);
-                    }
-                    e.Handled = true;
-                }
+                    e.Handled = false;
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("PreviewClick"); }
         }
 
         private void PreviewRect_MouseLeave(object sender, MouseEventArgs e)

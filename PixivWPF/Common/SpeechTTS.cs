@@ -340,10 +340,15 @@ namespace PixivWPF.Common
 
         public SynthesizerState State { get { return (synth is SpeechSynthesizer ? synth.State : SynthesizerState.Ready); } }
 
-        public Action<StateChangedEventArgs> StateChanged { get; set; } = null;
         public Action<SpeakStartedEventArgs> SpeakStarted { get; set; } = null;
         public Action<SpeakProgressEventArgs> SpeakProgress { get; set; } = null;
+        public Action<StateChangedEventArgs> StateChanged { get; set; } = null;
+        public Action<VoiceChangeEventArgs> VoiceChange { get; set; } = null;
+        public Action<BookmarkReachedEventArgs> BookmarkReached { get; set; } = null;
+        public Action<PhonemeReachedEventArgs> PhonemeReached { get; set; } = null;
+        public Action<VisemeReachedEventArgs> VisemeReached { get; set; } = null;
         public Action<SpeakCompletedEventArgs> SpeakCompleted { get; set; } = null;
+
         public int PlayNormalRate { get; internal set; } = 0;
         public int PlaySlowRate { get; internal set; } = -5;
         public int PlayVolume { get; internal set; } = 100;
@@ -380,6 +385,24 @@ namespace PixivWPF.Common
             nametable = SetNames(names);
         }
 
+        private void Synth_SpeakStarted(object sender, SpeakStartedEventArgs e)
+        {
+            if (synth == null) return;
+
+            if (CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
+
+            if (SpeakStarted is Action<SpeakProgressEventArgs>) SpeakStarted.Invoke(e);
+        }
+
+        private void Synth_SpeakProgress(object sender, SpeakProgressEventArgs e)
+        {
+            if (synth == null) return;
+
+            if (e.Cancelled || CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
+
+            if (SpeakProgress is Action<SpeakProgressEventArgs>) SpeakProgress.Invoke(e);
+        }
+
         private void Synth_StateChanged(object sender, StateChangedEventArgs e)
         {
             if (synth == null) return;
@@ -401,22 +424,40 @@ namespace PixivWPF.Common
             if (StateChanged is Action<SpeakProgressEventArgs>) StateChanged.Invoke(e);
         }
 
-        private void Synth_SpeakStarted(object sender, SpeakStartedEventArgs e)
-        {
-            if (synth == null) return;
-
-            if (CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
-
-            if (SpeakStarted is Action<SpeakProgressEventArgs>) SpeakStarted.Invoke(e);
-        }
-
-        private void Synth_SpeakProgress(object sender, SpeakProgressEventArgs e)
+        private void Synth_VoiceChange(object sender, VoiceChangeEventArgs e)
         {
             if (synth == null) return;
 
             if (e.Cancelled || CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
 
-            if (SpeakProgress is Action<SpeakProgressEventArgs>) SpeakProgress.Invoke(e);
+            if (VoiceChange is Action<VoiceChangeEventArgs>) VoiceChange.Invoke(e);
+        }
+
+        private void Synth_BookmarkReached(object sender, BookmarkReachedEventArgs e)
+        {
+            if (synth == null) return;
+
+            if (e.Cancelled || CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
+
+            if (BookmarkReached is Action<BookmarkReachedEventArgs>) BookmarkReached.Invoke(e);
+        }
+
+        private void Synth_PhonemeReached(object sender, PhonemeReachedEventArgs e)
+        {
+            if (synth == null) return;
+
+            if (e.Cancelled || CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
+
+            if (PhonemeReached is Action<PhonemeReachedEventArgs>) PhonemeReached.Invoke(e);
+        }
+
+        private void Synth_VisemeReached(object sender, VisemeReachedEventArgs e)
+        {
+            if (synth == null) return;
+
+            if (e.Cancelled || CancelRequested) { synth.SpeakAsyncCancel(e.Prompt); synth.SpeakAsyncCancelAll(); PlayQueue.Clear(); return; }
+
+            if (VisemeReached is Action<VisemeReachedEventArgs>) VisemeReached.Invoke(e);
         }
 
         private void Synth_SpeakCompleted(object sender, SpeakCompletedEventArgs e)
@@ -736,6 +777,10 @@ namespace PixivWPF.Common
                 synth.SpeakStarted += Synth_SpeakStarted;
                 synth.SpeakProgress += Synth_SpeakProgress;
                 synth.StateChanged += Synth_StateChanged;
+                synth.VoiceChange += Synth_VoiceChange;
+                synth.BookmarkReached += Synth_BookmarkReached;
+                synth.PhonemeReached += Synth_PhonemeReached;
+                synth.VisemeReached += Synth_VisemeReached;
                 synth.SpeakCompleted += Synth_SpeakCompleted;
                 #endregion
 
@@ -781,11 +826,6 @@ namespace PixivWPF.Common
     public static class Speech
     {
         #region Speech Synthesizer events actions
-        public static Action<StateChangedEventArgs> StateChanged
-        {
-            get { return (t2s is SpeechTTS ? t2s.StateChanged : null); }
-            set { if (t2s is SpeechTTS) t2s.StateChanged = value; }
-        }
         public static Action<SpeakStartedEventArgs> SpeakStarted
         {
             get { return (t2s is SpeechTTS ? t2s.SpeakStarted : null); }
@@ -795,6 +835,31 @@ namespace PixivWPF.Common
         {
             get { return (t2s is SpeechTTS ? t2s.SpeakProgress : null); }
             set { if (t2s is SpeechTTS) t2s.SpeakProgress = value; }
+        }
+        public static Action<StateChangedEventArgs> StateChanged
+        {
+            get { return (t2s is SpeechTTS ? t2s.StateChanged : null); }
+            set { if (t2s is SpeechTTS) t2s.StateChanged = value; }
+        }
+        public static Action<VoiceChangeEventArgs> VoiceChange
+        {
+            get { return (t2s is SpeechTTS ? t2s.VoiceChange : null); }
+            set { if (t2s is SpeechTTS) t2s.VoiceChange = value; }
+        }
+        public static Action<BookmarkReachedEventArgs> BookmarkReached
+        {
+            get { return (t2s is SpeechTTS ? t2s.BookmarkReached : null); }
+            set { if (t2s is SpeechTTS) t2s.BookmarkReached = value; }
+        }
+        public static Action<PhonemeReachedEventArgs> PhonemeReached
+        {
+            get { return (t2s is SpeechTTS ? t2s.PhonemeReached : null); }
+            set { if (t2s is SpeechTTS) t2s.PhonemeReached = value; }
+        }
+        public static Action<VisemeReachedEventArgs> VisemeReached
+        {
+            get { return (t2s is SpeechTTS ? t2s.VisemeReached : null); }
+            set { if (t2s is SpeechTTS) t2s.VisemeReached = value; }
         }
         public static Action<SpeakCompletedEventArgs> SpeakCompleted
         {

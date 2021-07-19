@@ -1,6 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using PixivWPF.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,14 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+
+using MahApps.Metro.Controls;
+using PixivWPF.Common;
 
 namespace PixivWPF.Pages
 {
@@ -818,7 +814,7 @@ namespace PixivWPF.Pages
                 InfoBar.Margin = new Thickness(16);
                 ActionBar.Margin = new Thickness(0);
             }
-            ActionViewFullSize.IsChecked = IsFullSize;
+            //ActionViewFullSize.IsChecked = IsFullSize;
             Page_SizeChanged(null, null);
         }
 
@@ -833,8 +829,7 @@ namespace PixivWPF.Pages
                         btnViewOriginalPage.IsChecked = !btnViewOriginalPage.IsChecked.Value;
                         CommonHelper.MouseLeave(btnViewOriginalPage);
                     }
-                    ActionViewOriginal.IsChecked = IsOriginal;
-
+                    //ActionViewOriginal.IsChecked = IsOriginal;
                     PreviewImage = await GetPreviewImage();
                 }
                 catch (Exception ex) { ex.ERROR("ViewOriginal"); }

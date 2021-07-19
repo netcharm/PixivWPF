@@ -3307,7 +3307,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR[AES]");
+                ex.ShowExceptionToast(tag: "ERROR[AES]");
             }
             return encrypt;
         }
@@ -3367,7 +3367,7 @@ namespace PixivWPF.Common
             }
             catch (Exception ex)
             {
-                ex.Message.ShowMessageBox("ERROR[AES]");
+                ex.ShowExceptionToast(tag: "ERROR[AES]");
             }
             return decrypt;
         }

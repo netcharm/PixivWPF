@@ -710,8 +710,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (SaveUserPass && IsConfigBusy) return Cache is Setting ? Cache.username : username;
-                else return (string.Empty);
+                return (Cache is Setting ? Cache.username : username);
             }
             set
             {
@@ -731,8 +730,7 @@ namespace PixivWPF.Common
         {
             get
             {
-                if (SaveUserPass && IsConfigBusy) return Cache is Setting ? Cache.password : password;
-                else return (string.Empty);
+                return (Cache is Setting ? Cache.password : password);
             }
             set
             {
@@ -757,7 +755,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(value))
                 {
                     username = value.AesEncrypt(accesstoken);
-                    if (Cache is Setting) Cache.username = username;
+                    if (!string.IsNullOrEmpty(username) && Cache is Setting) Cache.username = username;
                 }
             }
         }
@@ -772,7 +770,7 @@ namespace PixivWPF.Common
                 if (!string.IsNullOrEmpty(value))
                 {
                     password = value.AesEncrypt(accesstoken);
-                    if (Cache is Setting) Cache.password = password;
+                    if (!string.IsNullOrEmpty(password) && Cache is Setting) Cache.password = password;
                 }
             }
         }
