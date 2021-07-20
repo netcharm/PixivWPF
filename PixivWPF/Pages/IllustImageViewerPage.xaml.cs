@@ -26,6 +26,8 @@ namespace PixivWPF.Pages
         public Window ParentWindow { get; private set; }
         public PixivItem Contents { get; set; } = null;
 
+        private double LastZoomRatio = 1.0;
+
         private string PreviewImageUrl = string.Empty;
         private string OriginalImageUrl = string.Empty;
         private Func<bool> GetOriginalCheckState = null;
@@ -792,6 +794,8 @@ namespace PixivWPF.Pages
                 CommonHelper.MouseLeave(btnViewFullSize);
             }
 
+            ZoomRatio.Show(show: btnViewFullSize.IsChecked.Value);
+
             if (btnViewFullSize.IsChecked.Value)
             {
                 PreviewBox.HorizontalAlignment = HorizontalAlignment.Center;
@@ -802,6 +806,7 @@ namespace PixivWPF.Pages
                 PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
                 InfoBar.Margin = new Thickness(16, 16, 16, 32);
                 ActionBar.Margin = new Thickness(0, 0, 16, 16);
+                ZoomRatio.Value = LastZoomRatio;
             }
             else
             {
@@ -813,6 +818,8 @@ namespace PixivWPF.Pages
                 PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
                 InfoBar.Margin = new Thickness(16);
                 ActionBar.Margin = new Thickness(0);
+                LastZoomRatio = ZoomRatio.Value;
+                ZoomRatio.Value = 1.0;
             }
             //ActionViewFullSize.IsChecked = IsFullSize;
             Page_SizeChanged(null, null);

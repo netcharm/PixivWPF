@@ -140,6 +140,9 @@
                 MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" MouseMove="Preview_MouseMove">
                 <Image x:Name="Preview" x:Uid="Preview" Stretch="None"
                        HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"/>
+                <Viewbox.LayoutTransform>
+                    <ScaleTransform ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
+                </Viewbox.LayoutTransform>
             </Viewbox>
         </ScrollViewer>
         <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge"
@@ -147,6 +150,15 @@
                             BadgeFontFamily="{DynamicResource MonoSpaceFamily}" BadgeFontSize="16"
                             BadgePlacementMode="Bottom" BadgeMargin="8,2"
                             BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
+
+        <Slider Grid.Row="0" x:Name="ZoomRatio" Margin="0,0,84,32" Orientation="Vertical" Visibility="Collapsed"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="240" Width="16"
+                Maximum="10" Minimum="1.0" Value="1.0"
+                mah:SliderHelper.EnableMouseWheel="MouseHover" Grid.IsSharedSizeScope="True" UseLayoutRounding="True" >
+            <Slider.ToolTip>
+                <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat=" {0:P0} " />
+            </Slider.ToolTip>
+        </Slider>
         
         <StackPanel Grid.Row="0" x:Name="InfoBar"
                     Orientation="Horizontal" 
@@ -220,7 +232,7 @@
                            Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
         </StackPanel>
-
+       
         <!-- Illust Open Progress Prompt -->
         <Common:ProgressRingCloud 
             Grid.Row="0" Grid.RowSpan="3" x:Name="PreviewWait" Visibility="Collapsed"
