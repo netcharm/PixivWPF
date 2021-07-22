@@ -714,8 +714,7 @@
                     <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge"
                             Margin="0,0,0,20"  Visibility="Collapsed" Opacity="0.75"
                             BadgeFontFamily="{DynamicResource MonoSpaceFamily}" BadgeFontSize="16"
-                            BadgePlacementMode="Bottom" BadgeMargin="8,2"
-                            BadgeBackground="{DynamicResource MahApps.Brushes.Accent}" />
+                            BadgePlacementMode="Bottom" BadgeMargin="8,2" />
                 </Grid>
 
                 <!-- Illust Author Info -->
@@ -799,16 +798,11 @@
                                 Text="&#xE173;" FontSize="16" FontFamily="Segoe MDL2 Assets"
                                 MouseDown="IllustUgoiraDownloaded_MouseDown"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                            <iconPacks:PackIconModern 
-                                x:Name="IllustDownloaded" Kind="Download" 
-                                Visibility="Collapsed"
-                                MouseDown="IllustDownloaded_MouseDown"
-                                MouseDoubleClick="IllustDownloaded_MouseDoubleClick"
-                                HorizontalAlignment="Right" VerticalAlignment="Center"
-                                Background="Transparent"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}" 
-                                Margin="2,0,4,0" 
-                                Width="16" Height="16"/>
+                            <TextBlock x:Name="IllustDownloaded" Visibility="Collapsed"
+                                Margin="2,0,4,0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Text="&#xE118;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                                MouseDown="IllustUgoiraDownloaded_MouseDown"
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />                            
                             <iconPacks:PackIconModern 
                                 x:Name="IllustSizeIcon" Kind="ImageAnts" 
                                 HorizontalAlignment="Right" VerticalAlignment="Center"

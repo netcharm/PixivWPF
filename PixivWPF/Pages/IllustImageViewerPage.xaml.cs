@@ -612,6 +612,8 @@ namespace PixivWPF.Pages
             ParentWindow = Window.GetWindow(this);
             if (ParentWindow is Window)
             {
+                ZoomRatio.Hide();
+
                 #region ToolButton MouseOver action
                 btnViewPrevPage.MouseOverAction();
                 btnViewNextPage.MouseOverAction();
@@ -660,7 +662,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("PageSizeChanged"); }
         }
 
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -840,6 +842,42 @@ namespace PixivWPF.Pages
                     PreviewImage = await GetPreviewImage();
                 }
                 catch (Exception ex) { ex.ERROR("ViewOriginal"); }
+            }
+        }
+
+        /// <summary>
+        /// source from : https://stackoverflow.com/a/24526749/1842521
+        /// </summary>        
+        private Point rel = new Point(0, 0);
+        private double CalculateOffset(double extent, double viewPort, double scrollWidth, double relBefore)
+        {
+            //calculate the new offset
+            double offset = Math.Max(0, relBefore * extent - 0.5 * viewPort);
+            //see if it is negative because of initial values
+            if (offset < 0)
+            {
+                //center the content
+                //this can be set to 0 if center by default is not needed
+                offset = 0.5 * scrollWidth;
+            }
+            return offset;
+        }
+
+        private void PreviewScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            ScrollViewer scroll = PreviewScroll;
+            //see if the content size is changed
+            if (e.ExtentWidthChange != 0 || e.ExtentHeightChange != 0)
+            {
+                //calculate and set accordingly
+                scroll.ScrollToHorizontalOffset(CalculateOffset(e.ExtentWidth, e.ViewportWidth, scroll.ScrollableWidth, rel.X));
+                scroll.ScrollToVerticalOffset(CalculateOffset(e.ExtentHeight, e.ViewportHeight, scroll.ScrollableHeight, rel.Y));
+            }
+            else
+            {
+                //store the relative values if normal scroll
+                rel.X = (e.HorizontalOffset + 0.5 * e.ViewportWidth) / e.ExtentWidth;
+                rel.Y = (e.VerticalOffset + 0.5 * e.ViewportHeight) / e.ExtentHeight;
             }
         }
     }
