@@ -845,7 +845,7 @@ namespace PixivWPF.Pages
                         tips.Add($"Original : {file_o}");
                         tips.Add($"Frames   : {frame}");
                         tips.Add($"Times    : {delay * frame / 1000.0:F2} s");
-                        tooltip = string.Join(Environment.NewLine, tips);
+                        tooltip = string.Join(Environment.NewLine, tips);                        
                     }
                 }
 
@@ -864,13 +864,22 @@ namespace PixivWPF.Pages
                 if (ContextMenuActionItems.ContainsKey("ActionOpenUgoiraFile"))
                 {
                     var mi = ContextMenuActionItems["ActionOpenUgoiraFile"];
-                    var fp = await Contents.GetUgoiraFile();
+                    var fp = is_ugoira ? await Contents.GetUgoiraFile() : string.Empty;
                     mi.Show(show: is_ugoira);
                     mi.IsEnabled = is_ugoira && !string.IsNullOrEmpty(fp);
                     mi.ToolTip = string.IsNullOrEmpty(fp) ? tooltip : fp;
-                    IllustUgoiraDownloaded.ToolTip = mi.ToolTip;
-                    IllustUgoiraDownloaded.IsEnabled = mi.IsEnabled;
-                    MakeUgoiraConcatFile(file: fp);
+                    if (string.IsNullOrEmpty(fp))
+                    {
+                        IllustUgoiraDownloaded.Tag = null;
+                        IllustUgoiraDownloaded.ToolTip = tooltip;
+                    }
+                    else
+                    {
+                        IllustUgoiraDownloaded.Tag = fp;
+                        IllustUgoiraDownloaded.ToolTip = string.Join(Environment.NewLine, new string[] { tooltip, fp });
+                    }
+                    IllustUgoiraDownloaded.IsEnabled = is_ugoira;
+                    if(is_ugoira) MakeUgoiraConcatFile(file: fp);
                 }
                 if (ContextMenuActionItems.ContainsKey("ActionSavePreviewUgoiraFile"))
                 {
@@ -3419,34 +3428,25 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void IllustDownloaded_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            try
-            {
-                if (IllustDownloaded.Tag is string)
-                {
-                    e.Handled = true;
-                    var fp = IllustDownloaded.Tag as string;
-                    fp.OpenFileWithShell();
-                }
-            }
-            catch (Exception ex) { ex.ERROR(); }
-        }
-
         private void IllustDownloaded_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            //e.RightButton == MouseButtonState.Released
-            if (e.ChangedButton == MouseButton.Right)
+            if(e.ChangedButton == MouseButton.Left)
             {
                 e.Handled = true;
-                if (IllustDownloaded.ToolTip is string)
-                    Commands.OpenFileProperties.Execute(IllustDownloaded.ToolTip);
+                if (IllustDownloaded.Tag is string)
+                    Commands.ShellOpenFile.Execute(IllustDownloaded.Tag);
+            }
+            else if (e.ChangedButton == MouseButton.Right)
+            {
+                e.Handled = true;
+                if (IllustDownloaded.Tag is string)
+                    Commands.OpenFileProperties.Execute(IllustDownloaded.Tag);
             }
             else if (e.ChangedButton == MouseButton.Middle)
             {
                 e.Handled = true;
-                if (IllustDownloaded.ToolTip is string)
-                    Commands.CopyText.Execute(IllustDownloaded.ToolTip);
+                if (IllustDownloaded.Tag is string)
+                    Commands.CopyText.Execute(IllustDownloaded.Tag);
             }
         }
 
@@ -3455,20 +3455,20 @@ namespace PixivWPF.Pages
             if (e.ChangedButton == MouseButton.Left)
             {
                 e.Handled = true;
-                if (IllustUgoiraDownloaded.ToolTip is string)
-                    Commands.ShellOpenUgoira.Execute(IllustUgoiraDownloaded.ToolTip);
+                if (IllustUgoiraDownloaded.Tag is string)
+                    Commands.ShellOpenUgoira.Execute(IllustUgoiraDownloaded.Tag);
             }
             else if (e.ChangedButton == MouseButton.Right)
             {
                 e.Handled = true;
-                if (IllustUgoiraDownloaded.ToolTip is string)
-                    Commands.OpenFileProperties.Execute(IllustUgoiraDownloaded.ToolTip);
+                if (IllustUgoiraDownloaded.Tag is string)
+                    Commands.OpenFileProperties.Execute(IllustUgoiraDownloaded.Tag);
             }
             else if (e.ChangedButton == MouseButton.Middle)
             {
                 e.Handled = true;
-                if (IllustUgoiraDownloaded.ToolTip is string)
-                    Commands.CopyText.Execute(IllustUgoiraDownloaded.ToolTip);
+                if (IllustUgoiraDownloaded.Tag is string)
+                    Commands.CopyText.Execute(IllustUgoiraDownloaded.Tag);
             }
         }
 
