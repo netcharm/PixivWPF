@@ -31,6 +31,14 @@ namespace PixivWPF.Pages
         private PrefetchingTask PrefetchingImagesTask = null;
         private CancellationTokenSource cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
+        private const string SymbolIcon_Image = "\uEB9F"; //
+        private const string SymbolIcon_Star = "\uE113"; //, ⭐🌟
+        private const string SymbolIcon_Eye = "\u1F441"; //👁
+        private const string SymbolIcon_Heart = "\u1F497"; //💗
+        private const string SymbolIcon_HeartBreak = "\u1F494"; //💔
+        private const string SymbolIcon_HeartFill = "\u1F9E1"; //🧡
+        private const string SymbolIcon_HeartOutline = "\u1F90D"; //🤍
+
         private const string SymbolIcon_Followed = "\uE113";
         private const string SymbolIcon_UnFollowed = "\uE734";
         private const string SymbolIcon_Favorited = "\uEB52";
@@ -871,12 +879,13 @@ namespace PixivWPF.Pages
                     if (string.IsNullOrEmpty(fp))
                     {
                         IllustUgoiraDownloaded.Tag = null;
-                        IllustUgoiraDownloaded.ToolTip = tooltip;
+                        IllustUgoiraDownloaded.ToolTip = string.IsNullOrEmpty(tooltip) ? null : tooltip;
                     }
                     else
                     {
+                        var tp = string.Join(Environment.NewLine, new string[] { tooltip, fp }).Trim();
                         IllustUgoiraDownloaded.Tag = fp;
-                        IllustUgoiraDownloaded.ToolTip = string.Join(Environment.NewLine, new string[] { tooltip, fp });
+                        IllustUgoiraDownloaded.ToolTip = string.IsNullOrEmpty(tp) ? null : tp;
                     }
                     IllustUgoiraDownloaded.IsEnabled = is_ugoira;
                     if(is_ugoira) MakeUgoiraConcatFile(file: fp);
@@ -1785,9 +1794,9 @@ namespace PixivWPF.Pages
                     await user.RefreshUser();
                 }
 
-                IllustSizeIcon.Kind = PackIconModernKind.Image;
+                IllustSizeIcon.Text = SymbolIcon_Image;
                 IllustSize.Text = $"{nprof.total_illusts + nprof.total_manga}";
-                IllustViewedIcon.Kind = PackIconModernKind.Star;
+                IllustViewedIcon.Text = SymbolIcon_Star;
                 IllustViewed.Text = $"{nprof.total_follow_users}";
                 IllustFavorited.Text = $"{nprof.total_illust_bookmarks_public}";
                 IllustStatInfo.Show();

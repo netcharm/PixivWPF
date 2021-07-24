@@ -3086,7 +3086,7 @@ namespace PixivWPF.Common
         
         public static async Task<HttpResponseMessage> GetAsyncResponse(this Application app, string url, HttpMethod method = null)
         {
-            var request = Application.Current.GetHttpRequest(url);
+            var request = Application.Current.GetHttpRequest(url, method);
             var httpClient = Application.Current.GetHttpClient();
             return (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead));
         }

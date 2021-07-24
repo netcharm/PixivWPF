@@ -1542,7 +1542,24 @@ namespace PixivWPF.Common
             if (ajax)
                 return (await GetUgoiraMetaInfo(item));
             else
-                return (await GetUgoiraMeta(item.Illust));
+                return (await GetUgoiraMetaInfo(item.Illust.Id ?? 0, tokens: null));
+        }
+
+        public static async Task<Pixeez.Objects.UgoiraInfo> GetUgoiraMetaInfo(this long id, Pixeez.Tokens tokens = null)
+        {
+            Pixeez.Objects.UgoiraInfo result = null;
+            try
+            {
+                if (tokens == null) tokens = await CommonHelper.ShowLogin();
+                var meta = await tokens.GetUgoiraMetadata(id);
+                result = meta.Metadata;
+                if (string.IsNullOrEmpty(result.Src) && !string.IsNullOrEmpty(result.Urls.Medium))
+                    result.Src = result.Urls.Medium;
+                if (string.IsNullOrEmpty(result.OriginalSrc) && !string.IsNullOrEmpty(result.Src))
+                    result.OriginalSrc = result.Src.Replace("600x600", "1920x1080");
+            }
+            catch (Exception ex) { ex.ERROR("GetUgoiraMetaInfo"); }
+            return (result);
         }
 
         public static async Task<Pixeez.Objects.UgoiraInfo> GetUgoiraMetaInfo(this long id)
@@ -1581,6 +1598,9 @@ namespace PixivWPF.Common
                                 }
                             }
                         }
+                        else
+                            result = await GetUgoiraMetaInfo(id, tokens: null);
+
                         response.Dispose();
                     }
                 }
