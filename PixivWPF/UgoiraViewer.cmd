@@ -7,8 +7,8 @@ REM SET FFMPEG_OPT=-framerate 30 -f jpeg_pipe
 SET FFMPEG_OPT_ZIP=-hide_banner -f jpeg_pipe
 SET FFMPEG_OPT_CAT=-hide_banner -f concat
 SET FFMPEG_META_OPT=-metadata title="%~n1%"
-REM SET FFMPEG_OUT_OPT=-vsync vfr -crf 16 -r 120
-SET FFMPEG_OUT_OPT=-vsync vfr
+REM SET FFMPEG_OUT_OPT=-vsync vfr -vf "format=yuv444p" -crf 16 -r 120
+SET FFMPEG_OUT_OPT=-vsync vfr -vf "format=yuv444p,pad=ceil(iw/2)*2:ceil(ih/2)*2"
 
 SET FN=%~dpn1%
 SET FT=%~dpn1%.txt

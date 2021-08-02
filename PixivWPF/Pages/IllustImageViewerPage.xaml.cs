@@ -612,7 +612,7 @@ namespace PixivWPF.Pages
             ParentWindow = Window.GetWindow(this);
             if (ParentWindow is Window)
             {
-                ZoomRatio.Hide();
+                ZoomBar.Hide();
 
                 #region ToolButton MouseOver action
                 btnViewPrevPage.MouseOverAction();
@@ -622,6 +622,9 @@ namespace PixivWPF.Pages
                 btnOpenIllust.MouseOverAction();
                 btnOpenCache.MouseOverAction();
                 btnSavePage.MouseOverAction();
+
+                btnZoomFitHeight.MouseOverAction();
+                btnZoomFitWidth.MouseOverAction();
                 #endregion
 
                 //PreviewWait.ReloadEnabled = true;
@@ -796,7 +799,7 @@ namespace PixivWPF.Pages
                 CommonHelper.MouseLeave(btnViewFullSize);
             }
 
-            ZoomRatio.Show(show: btnViewFullSize.IsChecked.Value);
+            ZoomBar.Show(show: btnViewFullSize.IsChecked.Value);
 
             if (btnViewFullSize.IsChecked.Value)
             {
@@ -842,6 +845,32 @@ namespace PixivWPF.Pages
                     PreviewImage = await GetPreviewImage();
                 }
                 catch (Exception ex) { ex.ERROR("ViewOriginal"); }
+            }
+        }
+
+        private void ActionZoomFit_Click(object sender, RoutedEventArgs e)
+        {
+            if (Preview.Source != null)
+            {
+                new Action(() =>
+                {
+                    try
+                    {
+                        if (sender == btnZoomFitHeight)
+                        {
+                            var ratio = PreviewScroll.ActualHeight / Preview.Source.Height;
+                            var delta = Preview.Source.Width * ratio > PreviewScroll.ActualWidth ? 16 : 0;
+                            ZoomRatio.Value = (PreviewScroll.ActualHeight - delta) / Preview.Source.Height;
+                        }
+                        else if (sender == btnZoomFitWidth)
+                        {
+                            var ratio = PreviewScroll.ActualWidth / Preview.Source.Width;
+                            var delta = Preview.Source.Height * ratio > PreviewScroll.ActualHeight ? 16 : 0;
+                            ZoomRatio.Value = (PreviewScroll.ActualWidth - delta) / Preview.Source.Width;
+                        }
+                    }
+                    catch (Exception ex) { ex.ERROR("ZoomFit"); }
+                }).Invoke();
             }
         }
 

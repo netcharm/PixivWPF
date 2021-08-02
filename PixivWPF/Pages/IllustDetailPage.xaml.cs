@@ -1590,6 +1590,7 @@ namespace PixivWPF.Pages
                     stat_tip.Add($"Favorited : {item.Illust.Stats.FavoritedCount.Public} / {item.Illust.Stats.FavoritedCount.Private}");
                 }
                 stat_tip.Add($"Size      : {item.Illust.Width}x{item.Illust.Height}");
+                stat_tip.Add($"Original  : {item.Illust.GetOriginalUrl().GetImageName(item.Count <= 1)}");
 
                 if (item.Count <= 1) UpdateDownloadedMark();
 
