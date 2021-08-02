@@ -848,6 +848,7 @@ namespace PixivWPF.Pages
             }
         }
 
+        private bool ActionZoomFitOp = false;
         private void ActionZoomFit_Click(object sender, RoutedEventArgs e)
         {
             if (Preview.Source != null)
@@ -856,20 +857,41 @@ namespace PixivWPF.Pages
                 {
                     try
                     {
+                        ActionZoomFitOp = true;
                         if (sender == btnZoomFitHeight)
                         {
                             var ratio = PreviewScroll.ActualHeight / Preview.Source.Height;
-                            var delta = Preview.Source.Width * ratio > PreviewScroll.ActualWidth ? 16 : 0;
+                            var delta = PreviewScroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || Preview.Source.Width * ratio <= PreviewScroll.ActualWidth ? 0 : 14;
                             ZoomRatio.Value = (PreviewScroll.ActualHeight - delta) / Preview.Source.Height;
                         }
                         else if (sender == btnZoomFitWidth)
                         {
                             var ratio = PreviewScroll.ActualWidth / Preview.Source.Width;
-                            var delta = Preview.Source.Height * ratio > PreviewScroll.ActualHeight ? 16 : 0;
+                            var delta = PreviewScroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || Preview.Source.Height * ratio <= PreviewScroll.ActualHeight ? 0 : 14;
                             ZoomRatio.Value = (PreviewScroll.ActualWidth - delta) / Preview.Source.Width;
                         }
                     }
                     catch (Exception ex) { ex.ERROR("ZoomFit"); }
+                    finally { ActionZoomFitOp = false; }
+                }).Invoke();
+            }
+        }
+
+        private void ActionZoomRatio_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!ActionZoomFitOp && Math.Abs(e.NewValue - e.OldValue) >= ZoomRatio.LargeChange)
+            {
+                new Action(() =>
+                {
+                    try
+                    {
+                        var lt = Math.Floor(e.NewValue);
+                        var gt = Math.Ceiling(e.NewValue);
+                        var eq = Math.Round(e.NewValue);
+                        if (e.NewValue != eq) ZoomRatio.Value = eq;
+                    }
+                    catch (Exception ex) { ex.ERROR("ZoomRatioChanged"); }
+                    finally { e.Handled = true; }
                 }).Invoke();
             }
         }
