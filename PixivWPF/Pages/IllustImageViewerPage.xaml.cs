@@ -27,6 +27,7 @@ namespace PixivWPF.Pages
         public PixivItem Contents { get; set; } = null;
 
         private double LastZoomRatio = 1.0;
+        private bool ActionZoomFitOp { get; set; } = false;
 
         private string PreviewImageUrl = string.Empty;
         private string OriginalImageUrl = string.Empty;
@@ -609,37 +610,43 @@ namespace PixivWPF.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            ParentWindow = Window.GetWindow(this);
-            if (ParentWindow is Window)
+            try
             {
-                ZoomBar.Hide();
+                ActionZoomFitOp = true;
+                ParentWindow = Window.GetWindow(this);
+                if (ParentWindow is Window)
+                {
+                    ZoomBar.Hide();
 
-                #region ToolButton MouseOver action
-                btnViewPrevPage.MouseOverAction();
-                btnViewNextPage.MouseOverAction();
-                btnViewOriginalPage.MouseOverAction();
-                btnViewFullSize.MouseOverAction();
-                btnOpenIllust.MouseOverAction();
-                btnOpenCache.MouseOverAction();
-                btnSavePage.MouseOverAction();
+                    #region ToolButton MouseOver action
+                    btnViewPrevPage.MouseOverAction();
+                    btnViewNextPage.MouseOverAction();
+                    btnViewOriginalPage.MouseOverAction();
+                    btnViewFullSize.MouseOverAction();
+                    btnOpenIllust.MouseOverAction();
+                    btnOpenCache.MouseOverAction();
+                    btnSavePage.MouseOverAction();
 
-                btnZoomFitHeight.MouseOverAction();
-                btnZoomFitWidth.MouseOverAction();
-                #endregion
+                    btnZoomFitHeight.MouseOverAction();
+                    btnZoomFitWidth.MouseOverAction();
+                    #endregion
 
-                //PreviewWait.ReloadEnabled = true;
-                //PreviewWait.ReloadAction = new Action(() => {
-                //    UpdateDetail(Contents, Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control);
-                //});
+                    //PreviewWait.ReloadEnabled = true;
+                    //PreviewWait.ReloadAction = new Action(() => {
+                    //    UpdateDetail(Contents, Keyboard.Modifiers == ModifierKeys.Alt || Keyboard.Modifiers == ModifierKeys.Control);
+                    //});
 
-                InitProgressAction();
+                    InitProgressAction();
 
-                var titleheight = ParentWindow is MetroWindow ? (ParentWindow as MetroWindow).TitleBarHeight : 0;
-                ParentWindow.Width += ParentWindow.BorderThickness.Left + ParentWindow.BorderThickness.Right;
-                ParentWindow.Height -= ParentWindow.BorderThickness.Top + ParentWindow.BorderThickness.Bottom + (32 - titleheight % 32);
+                    var titleheight = ParentWindow is MetroWindow ? (ParentWindow as MetroWindow).TitleBarHeight : 0;
+                    ParentWindow.Width += ParentWindow.BorderThickness.Left + ParentWindow.BorderThickness.Right;
+                    ParentWindow.Height -= ParentWindow.BorderThickness.Top + ParentWindow.BorderThickness.Bottom + (32 - titleheight % 32);
 
-                if (Contents is PixivItem) UpdateDetail(Contents);
+                    if (Contents is PixivItem) UpdateDetail(Contents);
+                }
             }
+            catch(Exception ex) { ex.ERROR("ViewerLoaded"); }
+            finally { ActionZoomFitOp = false; }
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -848,7 +855,6 @@ namespace PixivWPF.Pages
             }
         }
 
-        private bool ActionZoomFitOp = false;
         private void ActionZoomFit_Click(object sender, RoutedEventArgs e)
         {
             if (Preview.Source != null)
@@ -879,19 +885,26 @@ namespace PixivWPF.Pages
 
         private void ActionZoomRatio_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (!ActionZoomFitOp && Math.Abs(e.NewValue - e.OldValue) >= ZoomRatio.LargeChange)
+            if (IsLoaded && !ActionZoomFitOp && Math.Abs(e.NewValue - e.OldValue) > ZoomRatio.SmallChange)
             {
                 new Action(() =>
                 {
                     try
                     {
-                        var lt = Math.Floor(e.NewValue);
-                        var gt = Math.Ceiling(e.NewValue);
+                        ActionZoomFitOp = true;
                         var eq = Math.Round(e.NewValue);
+                        if (Math.Abs(e.NewValue - e.OldValue) > ZoomRatio.SmallChange)
+                        {
+                            if (e.OldValue > 1.0 && e.NewValue < 1.0) eq = 1.0;
+                            else if (e.OldValue >= 0.5 && e.OldValue < 1.0) eq = 1.0;
+                            else if (e.OldValue >= 1.0 && e.NewValue < 1.0) eq = 0.5;
+                            else if (e.OldValue >= ZoomRatio.Minimum && e.OldValue < 0.5) eq = 0.5;
+                            else if (e.NewValue <= ZoomRatio.Minimum && e.OldValue <= 0.5) eq = 0.25;
+                        }
                         if (e.NewValue != eq) ZoomRatio.Value = eq;
                     }
                     catch (Exception ex) { ex.ERROR("ZoomRatioChanged"); }
-                    finally { e.Handled = true; }
+                    finally { e.Handled = true; ActionZoomFitOp = false; }
                 }).Invoke();
             }
         }
