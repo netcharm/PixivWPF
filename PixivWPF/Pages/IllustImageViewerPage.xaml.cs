@@ -800,41 +800,47 @@ namespace PixivWPF.Pages
 
         private void ActionViewFullSize_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == ActionViewFullSize)
+            try
             {
-                btnViewFullSize.IsChecked = !btnViewFullSize.IsChecked.Value;
-                CommonHelper.MouseLeave(btnViewFullSize);
-            }
+                ActionZoomFitOp = true;
+                if (sender == ActionViewFullSize)
+                {
+                    btnViewFullSize.IsChecked = !btnViewFullSize.IsChecked.Value;
+                    CommonHelper.MouseLeave(btnViewFullSize);
+                }
 
-            ZoomBar.Show(show: btnViewFullSize.IsChecked.Value);
+                ZoomBar.Show(show: btnViewFullSize.IsChecked.Value);
 
-            if (btnViewFullSize.IsChecked.Value)
-            {
-                PreviewBox.HorizontalAlignment = HorizontalAlignment.Center;
-                PreviewBox.VerticalAlignment = VerticalAlignment.Center;
-                PreviewBox.Stretch = Stretch.None;
-                PreviewScroll.PanningMode = PanningMode.Both;
-                PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
-                PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-                InfoBar.Margin = new Thickness(16, 16, 16, 32);
-                ActionBar.Margin = new Thickness(0, 0, 16, 16);
-                ZoomRatio.Value = LastZoomRatio;
+                if (btnViewFullSize.IsChecked.Value)
+                {
+                    PreviewBox.HorizontalAlignment = HorizontalAlignment.Center;
+                    PreviewBox.VerticalAlignment = VerticalAlignment.Center;
+                    PreviewBox.Stretch = Stretch.None;
+                    PreviewScroll.PanningMode = PanningMode.Both;
+                    PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+                    PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+                    InfoBar.Margin = new Thickness(16, 16, 16, 32);
+                    ActionBar.Margin = new Thickness(0, 0, 16, 16);
+                    ZoomRatio.Value = LastZoomRatio;
+                }
+                else
+                {
+                    PreviewBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    PreviewBox.VerticalAlignment = VerticalAlignment.Stretch;
+                    PreviewBox.Stretch = Stretch.Uniform;
+                    PreviewScroll.PanningMode = PanningMode.None;
+                    PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
+                    PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+                    InfoBar.Margin = new Thickness(16);
+                    ActionBar.Margin = new Thickness(0);
+                    LastZoomRatio = ZoomRatio.Value;
+                    ZoomRatio.Value = 1.0;
+                }
+                //ActionViewFullSize.IsChecked = IsFullSize;
+                Page_SizeChanged(null, null);
             }
-            else
-            {
-                PreviewBox.HorizontalAlignment = HorizontalAlignment.Stretch;
-                PreviewBox.VerticalAlignment = VerticalAlignment.Stretch;
-                PreviewBox.Stretch = Stretch.Uniform;
-                PreviewScroll.PanningMode = PanningMode.None;
-                PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
-                PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
-                InfoBar.Margin = new Thickness(16);
-                ActionBar.Margin = new Thickness(0);
-                LastZoomRatio = ZoomRatio.Value;
-                ZoomRatio.Value = 1.0;
-            }
-            //ActionViewFullSize.IsChecked = IsFullSize;
-            Page_SizeChanged(null, null);
+            catch (Exception ex) { ex.ERROR("ViewFullSize"); }
+            finally { ActionZoomFitOp = false; }
         }
 
         private async void ActionViewOriginal_Click(object sender, RoutedEventArgs e)
@@ -885,27 +891,33 @@ namespace PixivWPF.Pages
 
         private void ActionZoomRatio_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (IsLoaded && !ActionZoomFitOp && Math.Abs(e.NewValue - e.OldValue) > ZoomRatio.SmallChange)
+            if (IsLoaded && !ActionZoomFitOp)
             {
-                new Action(() =>
+                var delta = e.NewValue - e.OldValue;
+                if (Math.Abs(delta) >= 0.25) //ZoomRatio.LargeChange)
                 {
-                    try
+                    new Action(() =>
                     {
-                        ActionZoomFitOp = true;
-                        var eq = Math.Round(e.NewValue);
-                        if (Math.Abs(e.NewValue - e.OldValue) > ZoomRatio.SmallChange)
+                        try
                         {
-                            if (e.OldValue > 1.0 && e.NewValue < 1.0) eq = 1.0;
-                            else if (e.OldValue >= 0.5 && e.OldValue < 1.0) eq = 1.0;
-                            else if (e.OldValue >= 1.0 && e.NewValue < 1.0) eq = 0.5;
-                            else if (e.OldValue >= ZoomRatio.Minimum && e.OldValue < 0.5) eq = 0.5;
-                            else if (e.NewValue <= ZoomRatio.Minimum && e.OldValue <= 0.5) eq = 0.25;
+                            ActionZoomFitOp = true;
+                            var eq = Math.Round(e.NewValue);
+                            if (delta > 0)
+                            {
+                                if (e.OldValue >= 0.25 && e.NewValue < 1.5) eq = 0.5;
+                                else if (e.OldValue >= 0.5 && e.NewValue < 2.0) eq = 1;                                
+                            }
+                            else if (delta < 0)
+                            {
+                                if (e.OldValue >= 1.0 && e.NewValue < 1.0) eq = 0.5;
+                                else if (e.OldValue >= 0.5 && e.NewValue < 0.5) eq = 0.25;
+                            }
+                            if (e.NewValue != eq) ZoomRatio.Value = eq;
                         }
-                        if (e.NewValue != eq) ZoomRatio.Value = eq;
-                    }
-                    catch (Exception ex) { ex.ERROR("ZoomRatioChanged"); }
-                    finally { e.Handled = true; ActionZoomFitOp = false; }
-                }).Invoke();
+                        catch (Exception ex) { ex.ERROR("ZoomRatioChanged"); }
+                        finally { e.Handled = true; ActionZoomFitOp = false; }
+                    }).Invoke();
+                }
             }
         }
 

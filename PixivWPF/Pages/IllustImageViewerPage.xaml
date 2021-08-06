@@ -183,17 +183,19 @@
             <Slider x:Name="ZoomRatio" Orientation="Vertical" 
                     Height="200" Width="16"
                     Maximum="10" Minimum="0.25" Value="1.0" 
+                    Style="{DynamicResource MahApps.Styles.Slider}"
                     Ticks="0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False"
                     Grid.IsSharedSizeScope="True" UseLayoutRounding="True" SnapsToDevicePixels="True" 
                     mah:SliderHelper.EnableMouseWheel="MouseHover" mah:SliderHelper.ChangeValueBy="LargeChange"
                     ValueChanged="ActionZoomRatio_ValueChanged">
                 <Slider.ToolTip>
                     <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="{}{0:F2} X" />
-                </Slider.ToolTip>
+                </Slider.ToolTip>                
             </Slider>
             <TextBlock x:Name="ZoomRatioValue" HorizontalAlignment="Center" Margin="0,8,0,0" 
                        Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                       Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2}X}" />
+                       Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2} X}"
+                       ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
         </StackPanel>
         
         <StackPanel Grid.Row="0" x:Name="ActionBar"
