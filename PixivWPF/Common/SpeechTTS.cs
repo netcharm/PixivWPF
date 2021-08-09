@@ -29,17 +29,17 @@ namespace PixivWPF.Common
         // 韩文：[\uac00-\ud7ff]
         //
         //private string pattern_zh = @"[\u3000-\u303f\ufe00-\ufe4f\u3400-\u4db5\u4e00-\u9fcc\uf900-\ufad9\u20000-\u2cea1]+?";
-        private string pattern_zhs = @"([\u3000-\u303f\ufe00-\ufe4f\uff01-\uffee\u3400-\u4db5\u4e00-\u9fcc\uf900-\ufad9]|([\ud840-\ud873][\udc00-\udfff]))+";
+        private string pattern_zhs = @"([\u3000-\u303f\ufe00-\ufe4f\uff01-\uffee\u3400-\u4db5\u4e00-\u9fcc\uf900-\ufad9\uff61-\uff64]|([\ud840-\ud873][\udc00-\udfff]))+";
         private string pattern_zht = @"[\u3000-\u3003\u3008-\u300F\u3010-\u3011\u3014-\u3015\u301C-\u301E\u3105-\u31ba\ua140-\ua3bf\ua440-\uc67e\uc940-\uf9d5\ue000-\uf848]+";
         //private string pattern_ja = @"[\u0021-\u024f\u0250-\u02af\u0391-\u03d9\u1f00-\u1ffe\u1e00-\u1eff\u2010-\u205e\u2e00-\u2e3b\u2c60-\u2c7f\ua720-\ua7ff]+";
-        private string pattern_ja = @"([\u3041-\u309f\u30a0-\u31ff\u3220-\u325f\u3280-\u32ff\u3300-\u4077]|(\ud83c[\ude01-\ude51]))+";
-        private string pattern_ko = @"[\u1100-\u11ff\u3131-\u318e\u3200-\u321f\u3260-\u327f\ua960-\ua97c\uac00-\ud7a3]+";
+        private string pattern_ja = @"([\u3041-\u309f\u30a0-\u31ff\u3220-\u325f\u3280-\u32ff\u3300-\u4077\uff65-\uff9f]|(\ud83c[\ude01-\ude51]))+";
+        private string pattern_ko = @"[\u1100-\u11ff\u3131-\u318e\u3200-\u321f\u3260-\u327f\ua960-\ua97c\uac00-\ud7a3\uffa0-\uffdf]+";
         private string pattern_en = @"[\u0020-\u007e\u0080-\u02af\u0391-\u03d9\u1f00-\u1ffe\u1e00-\u1eff\u2010-\u205e\u2e00-\u2e3b\u2c60-\u2c7f\ua720-\ua7ff]+";
         private string pattern_dt = @"^[\d: tTzZ+\-\/\\]{4,}$";
         private string pattern_digit = @"^\d+$";
         //private string pattern_emoji = @"[\u2190-\u27bf\u3400-\u4dbf\u4dc0-\u4dff\uf900-\ufad9\u1d300-\u1d356\u1f000-\u1f02b\u1f030-\u1f093\u1f0a0-\u1f0f5\u1f300-\u1f5ff]+";
         private string pattern_emoji = @"([\u2190-\u27bf]|(\ud834[\udf00-\udf56])|(\ud83c[\udc00-\udfff]))+?";
-        private string pattern_symbol = @"[\u0021-\u0040\u005b-\u0060\u007b-\u00ff\u2010-\u2e3b]+";
+        private string pattern_symbol = @"[\u0021-\u0040\u005b-\u0060\u007b-\u00ff\u2010-\u2e3b\uff61-\uff64\uffeb-\uffef]+";
         #endregion
 
         #region Required Encoding types

@@ -3099,14 +3099,14 @@ namespace PixivWPF.Pages
 #if DEBUG
             catch (Exception ex) { ex.Message.ShowMessageBox("ERROR"); }
 #else
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("ActionSpeech"); }
 #endif
             if (is_tag)
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.TagBreak, StringSplitOptions.RemoveEmptyEntries));
             else
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
 
-            if (!string.IsNullOrEmpty(text)) text.Play(culture);
+            if (!string.IsNullOrEmpty(text)) text.KatakanaHalfToFull().Play(culture);
         }
 
         private void ActionCopySelectedText_Click(object sender, RoutedEventArgs e)
