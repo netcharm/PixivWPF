@@ -1993,12 +1993,12 @@ namespace PixivWPF.Common
             else if (obj is PixivItem)
             {
                 var item = obj as PixivItem;
-                string fp = await item.GetUgoiraFile(preview: false);
-                if (string.IsNullOrEmpty(fp)) fp = await item.GetUgoiraFile(preview: true);
+                string fp = await item.GetUgoiraFile(preview: false) ?? await item.GetUgoiraFile(preview: true) ?? string.Empty;
                 if (!string.IsNullOrEmpty(fp))
                 {
                     await new Action(() =>
                     {
+                        item.Ugoira.MakeUgoiraConcatFile(fp);
                         fp.OpenFileWithShell();
                     }).InvokeAsync(true);
                 }

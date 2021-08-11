@@ -5087,6 +5087,24 @@ namespace PixivWPF.Common
             }
             SystemSounds.Beep.Play();
         }
+
+        public static void MakeUgoiraConcatFile(this Pixeez.Objects.UgoiraInfo ugoira_info, string file)
+        {
+            if (!string.IsNullOrEmpty(file) && ugoira_info != null)
+            {
+                var fn = Path.ChangeExtension(file, ".txt");
+                if (!File.Exists(fn))
+                {
+                    List<string> lines = new List<string>();
+                    foreach (var frame in ugoira_info.Frames)
+                    {
+                        lines.Add($"file '{frame.File}'");
+                        lines.Add($"duration {Math.Max(0.04, frame.Delay / 1000.0):F2}");
+                    }
+                    File.WriteAllLines(fn, lines);
+                }
+            }
+        }
         #endregion
 
         #region Illust routines

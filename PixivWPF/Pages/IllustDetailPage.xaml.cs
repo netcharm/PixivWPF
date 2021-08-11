@@ -811,20 +811,7 @@ namespace PixivWPF.Pages
             {
                 var ugoira = ugoira_info ?? Contents.Ugoira;
                 var fp =  file ?? await Contents.GetUgoiraFile();
-                if (!string.IsNullOrEmpty(fp) && ugoira != null)
-                {
-                    var fn = System.IO.Path.ChangeExtension(fp, ".txt");
-                    if (!System.IO.File.Exists(fn))
-                    {
-                        List<string> lines = new List<string>();
-                        foreach (var frame in Contents.Ugoira.Frames)
-                        {
-                            lines.Add($"file '{frame.File}'");
-                            lines.Add($"duration {Math.Max(0.04, frame.Delay / 1000.0):F2}");
-                        }
-                        System.IO.File.WriteAllLines(fn, lines);
-                    }
-                }
+                ugoira.MakeUgoiraConcatFile(fp);
             }
         }
 
@@ -1403,7 +1390,7 @@ namespace PixivWPF.Pages
                 IllustActions.BorderBrush = Theme.AccentBrush;
                 IllustActions.Foreground = Theme.AccentBrush;
             }
-            catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
+            catch (Exception ex) { ex.ERROR("UpdateTheme"); }
         }
 
         private async void UpdateContentsThumbnail(PixivItem item = null, bool overwrite = false)
@@ -1423,7 +1410,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
+            catch (Exception ex) { ex.ERROR("UpdateContentsThumbnail"); }
         }
 
         public async void UpdateThumb(bool full = false, bool overwrite = false, bool prefetching = true)
