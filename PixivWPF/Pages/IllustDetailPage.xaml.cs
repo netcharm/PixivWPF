@@ -3252,7 +3252,10 @@ namespace PixivWPF.Pages
                 else if (sender == IllustTagRefresh)
                 {
                     if (Keyboard.Modifiers == ModifierKeys.None)
+                    {
                         RefreshHtmlRender(IllustTagsHtml);
+                        UpdateIllustTitle();
+                    }                        
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
                         Application.Current.LoadTags(false, true);
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))

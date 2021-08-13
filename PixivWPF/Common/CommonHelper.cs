@@ -1309,6 +1309,8 @@ namespace PixivWPF.Common
                 {
                     _TagsWildecardT2SCache[key].Keys.Clear();
                     _TagsWildecardT2SCache[key].Translated = string.Empty;
+                    TagsWildecardCacheItem v = null;
+                    _TagsWildecardT2SCache.TryRemove(key, out v);
                 }
             }
             catch (Exception ex) { ex.ERROR("TagWildcardCacheClear"); }
@@ -1445,7 +1447,7 @@ namespace PixivWPF.Common
                     foreach (DictionaryEntry entry in TagsWildecardT2S)
                     {
                         var k = (entry.Key as string).Trim('/').Replace(" ", @"\s");
-                        var v = entry.Value as string;
+                        var v = (entry.Value as string).Replace("\n", "\\n");
                         var vt = text;
                         text = Regex.Replace(text, k, m =>
                         {
@@ -1494,7 +1496,7 @@ namespace PixivWPF.Common
                 matched = string.Join(", ", matches);
             }
             catch (Exception ex) { ex.ERROR("TRANSLATE"); }
-            return (result.Trim());
+            return (result.Trim().Replace("\\n", "\n"));
         }
 
         public static string InsertLineBreak(this string text, int lineLength)
@@ -4843,10 +4845,10 @@ namespace PixivWPF.Common
                 if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                 if (_Downloading_.TryAdd(file, true))
                 {
-                    setting = Application.Current.LoadSetting();
                     HttpResponseMessage response = null;
                     try
                     {
+                        setting = Application.Current.LoadSetting();
                         HttpClient client = Application.Current.GetHttpClient(is_download: true);
                         using (var request = Application.Current.GetHttpRequest(url))
                         {
