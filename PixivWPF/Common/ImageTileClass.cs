@@ -1519,17 +1519,23 @@ namespace PixivWPF.Common
             Pixeez.Objects.UgoiraInfo info = null;
             try
             {
-                if (Illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase))
+                if (Illust.IsUgoira)
                 {
-                    if(ajax)
-                    {
-                        info = await GetUgoiraMetaInfo(Illust.Id.Value);
-                    }
+                    if (Illust.UgoiraMeta is Pixeez.Objects.UgoiraInfo)
+                        info = Illust.UgoiraMeta;
                     else
                     {
-                        var tokens = await CommonHelper.ShowLogin();
-                        var ugoira_meta = await tokens.GetUgoiraMetadata(Illust.Id.Value);
-                        info = ugoira_meta.Metadata;
+                        if (ajax)
+                        {
+                            info = await GetUgoiraMetaInfo(Illust.Id.Value);
+                        }
+                        else
+                        {
+                            var tokens = await CommonHelper.ShowLogin();
+                            var ugoira_meta = await tokens.GetUgoiraMetadata(Illust.Id.Value);
+                            info = ugoira_meta.Metadata;
+                        }
+                        if (info is Pixeez.Objects.UgoiraInfo) Illust.UgoiraMeta = info;
                     }
                 }
             }
@@ -1614,7 +1620,13 @@ namespace PixivWPF.Common
             Pixeez.Objects.UgoiraInfo result = null;
             if (work is Pixeez.Objects.Work)
             {
-                result = await GetUgoiraMetaInfo(work.Id ?? 0);
+                if (work.UgoiraMeta is Pixeez.Objects.UgoiraInfo)
+                    result = work.UgoiraMeta;
+                else
+                {
+                    result = await GetUgoiraMetaInfo(work.Id ?? 0);
+                    work.UgoiraMeta = result;
+                }
             }
             return (result);
         }
@@ -1625,7 +1637,19 @@ namespace PixivWPF.Common
             long id = 0;
             if (item.IsWork() && long.TryParse(item.ID, out id))
             {
-                result = await GetUgoiraMetaInfo(id);
+                if (item.Ugoira is Pixeez.Objects.UgoiraInfo)
+                    result = item.Ugoira;
+                else if(item.Illust.UgoiraMeta is Pixeez.Objects.UgoiraInfo)
+                {
+                    result = item.Illust.UgoiraMeta;
+                    item.Ugoira = result;
+                }
+                else
+                {
+                    result = await GetUgoiraMetaInfo(id);
+                    item.Illust.UgoiraMeta = result;
+                    item.Ugoira = result;
+                }
             }
             return (result);
         }

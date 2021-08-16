@@ -4714,6 +4714,8 @@ namespace PixivWPF.Common
                     ms.Dispose();
                 }
                 result = File.Exists(file);
+                var illust = file.GetIllustId().FindIllust();
+                if (result && illust.IsUgoira) MakeUgoiraConcatFile(await illust.GetUgoiraMeta(), file);
             }
             catch (Exception ex) { ex.ERROR($"WriteToFile: {Path.GetFileName(file)}"); }
             return (result);
@@ -5088,6 +5090,11 @@ namespace PixivWPF.Common
                 url.SaveImage(thumb, dt, is_meta_single_page, overwrite);
             }
             SystemSounds.Beep.Play();
+        }
+
+        public static bool IsUgoira(this Pixeez.Objects.Work illust)
+        {
+            return (illust is Pixeez.Objects.Work && illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? true : false);
         }
 
         public static void MakeUgoiraConcatFile(this Pixeez.Objects.UgoiraInfo ugoira_info, string file)

@@ -209,6 +209,12 @@ namespace Pixeez.Objects
         [JsonProperty("is_manga")]
         public bool? IsManga { get; set; }
 
+        [JsonIgnore]
+        public bool IsUgoira { get { return (!string.IsNullOrEmpty(Type) && Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? true : false); } }
+
+        [JsonIgnore]
+        public UgoiraInfo UgoiraMeta { get; set; } = null;
+
         [JsonProperty("is_liked")]
         public bool? IsLiked { get; set; }
 
