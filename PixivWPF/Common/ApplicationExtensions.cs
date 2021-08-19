@@ -57,13 +57,13 @@ namespace PixivWPF.Common
         public static string strDownloadTitle { get; } = "Download Manager";
         public static string DownloadTitle(this Application app) { return (strDownloadTitle); }
         public static string strDropBoxTitle { get; } = "DropBox";
-        public static string DropboxTitle(this Application app) { return (strDownloadTitle); }
+        public static string DropboxTitle(this Application app) { return (strDropBoxTitle); }
         public static string strHistoryTitle { get; } = "History";
-        public static string HistoryTitle(this Application app) { return (strDownloadTitle); }
+        public static string HistoryTitle(this Application app) { return (strHistoryTitle); }
         public static string strLoginTitle { get; } = "PIXIV Login";
-        public static string LoginTitle(this Application app) { return (strDownloadTitle); }
+        public static string LoginTitle(this Application app) { return (strLoginTitle); }
         public static string strPediaTitle { get; } = "PixivPedia";
-        public static string PediaTitle(this Application app) { return (strDownloadTitle); }
+        public static string PediaTitle(this Application app) { return (strPediaTitle); }
         #endregion
 
         #region Application Setting Helper
