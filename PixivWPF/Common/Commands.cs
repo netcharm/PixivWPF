@@ -1354,7 +1354,7 @@ namespace PixivWPF.Common
         {
             try
             {
-                var title = $"History";
+                var title = Application.Current.HistoryTitle();
                 if (Application.Current.ContentWindowExists(title))
                 {
                     await title.ActiveByTitle();
@@ -1391,7 +1391,7 @@ namespace PixivWPF.Common
                 {
                     await new Action(() =>
                     {
-                        var win = "History".GetWindowByTitle();
+                        var win = Application.Current.HistoryTitle().GetWindowByTitle();
                         if (win is ContentWindow && win.Content is HistoryPage)
                             (win.Content as HistoryPage).AddToHistory(obj);
                         else
@@ -1488,7 +1488,7 @@ namespace PixivWPF.Common
                     {
                         var active = (bool)obj;
 
-                        var title = $"Download Manager";
+                        var title = Application.Current.DownloadTitle();
                         if (active ? await title.ActiveByTitle() : await title.ShowByTitle()) return;
 
                         await new Action(() =>
@@ -3169,7 +3169,7 @@ namespace PixivWPF.Common
                 var title = $"PixivPedia: {contents} ...";
                 if (await title.ActiveByTitle()) return;
 
-                var page = new BrowerPage () { Name = "PixivPedia", Contents = contents, Title = title };
+                var page = new BrowerPage () { Name = Application.Current.PediaTitle(), Contents = contents, Title = title };
                 var viewer = new ContentWindow(title)
                 {
                     Title = title,

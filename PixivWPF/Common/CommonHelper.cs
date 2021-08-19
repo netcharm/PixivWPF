@@ -1496,7 +1496,7 @@ namespace PixivWPF.Common
                 matched = string.Join(", ", matches);
             }
             catch (Exception ex) { ex.ERROR("TRANSLATE"); }
-            return (result.Trim().Replace("\\n", "\n"));
+            return (result.Trim().Replace("\\n", "\n").TrimEnd(new char[] { ',', '，' }));
         }
 
         public static string InsertLineBreak(this string text, int lineLength)
@@ -1671,6 +1671,7 @@ namespace PixivWPF.Common
                         html.AppendLine("      img{width:auto !important; height:auto !important; max-width:100%! important; max-height:100% !important;}");
                         html.AppendLine("      .tag{color:{% accentcolor %} !important; background-color:rgba(var(--accent), 10%); line-height:1.6em; padding:0 2px 0 1px; text-decoration:none; border:1px solid {% accentcolor %}; border-left-width:5px; overflow-wrap:break-word; position:relative; display:inline-block; margin-bottom:0.5em;}");
                         html.AppendLine("      .tag.::before{content:'#';}");
+                        html.AppendLine("      .section{color:{% accentcolor %} !important; background-color:rgba(var(--accent), 10%); line-height:1.6em; padding:0 2px 0 1px; text-decoration:none; border:1px solid {% accentcolor %}; border-left-width:5px; overflow-wrap:break-word; position:relative; display:block; margin-bottom:0.5em;}");
                         html.AppendLine("      .desc{color:{% textcolor %} !important; text-decoration:none !important; width:99% !important; word-wrap:break-word !important; overflow-wrap:break-word !important; white-space:normal !important; padding-bottom:0.5em !important;}");
                         html.AppendLine("      .twitter::before{font-family:FontAwesome; content:''; margin-left:3px; padding-right:4px; color:#1da1f2;}");
                         html.AppendLine("      .web::before{content:'🌐'; padding-right:3px; margin-left:-0px;}");
@@ -1680,6 +1681,7 @@ namespace PixivWPF.Common
                         html.AppendLine();
                         html.AppendLine("      @media screen and(-ms-high-contrast:active), (-ms-high-contrast:none) {");
                         html.AppendLine("      .tag{color:{% accentcolor %} !important; background-color:rgba({% accentcolor_rgb %}, 0.1); line-height:1.6em; padding:0 2px 0 1px; text-decoration:none; border:1px solid {% accentcolor %}; border-left-width:5px; overflow-wrap:break-word; position:relative; display:inline-block; margin-bottom:0.5em;}");
+                        html.AppendLine("      .section{color:{% accentcolor %} !important; background-color:rgba({% accentcolor_rgb %}, 0.1); line-height:1.6em; padding:0 2px 0 1px; text-decoration:none; border:1px solid {% accentcolor %}; border-left-width:5px; overflow-wrap:break-word; position:relative; display:block; margin-bottom:0.5em;}");
                         html.AppendLine("      }");
                         html.AppendLine("    </STYLE>");
                         html.AppendLine("    <SCRIPT>");
@@ -5245,7 +5247,7 @@ namespace PixivWPF.Common
         public static void AddToHistory(this PixivItem item)
         {
             //Commands.AddToHistory.Execute(illust);
-            var win = "History".GetWindowByTitle();
+            var win = Application.Current.HistoryTitle().GetWindowByTitle();
             if (win is ContentWindow && win.Content is HistoryPage)
                 (win.Content as HistoryPage).AddToHistory(item);
             else
@@ -5255,7 +5257,7 @@ namespace PixivWPF.Common
         public static void AddToHistory(this Pixeez.Objects.Work illust)
         {
             //Commands.AddToHistory.Execute(illust);
-            var win = "History".GetWindowByTitle();
+            var win = Application.Current.HistoryTitle().GetWindowByTitle();
             if (win is ContentWindow && win.Content is HistoryPage)
                 (win.Content as HistoryPage).AddToHistory(illust);
             else
@@ -5265,7 +5267,7 @@ namespace PixivWPF.Common
         public static void AddToHistory(this Pixeez.Objects.User user)
         {
             //Commands.AddToHistory.Execute(user);
-            var win = "History".GetWindowByTitle();
+            var win = Application.Current.HistoryTitle().GetWindowByTitle();
             if (win is ContentWindow && win.Content is HistoryPage)
                 (win.Content as HistoryPage).AddToHistory(user);
             else
@@ -5275,7 +5277,7 @@ namespace PixivWPF.Common
         public static void AddToHistory(this Pixeez.Objects.UserBase user)
         {
             //Commands.AddToHistory.Execute(user);
-            var win = "History".GetWindowByTitle();
+            var win = Application.Current.HistoryTitle().GetWindowByTitle();
             if (win is ContentWindow && win.Content is HistoryPage)
                 (win.Content as HistoryPage).AddToHistory(user);
             else
@@ -6549,13 +6551,13 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static void UpdateTheme(this Window win, ImageSource icon = null)
+        public static void UpdateTheme(this Window win, Image icon = null)
         {
             try
             {
                 new Action(() =>
                 {
-                    win.Icon = icon == null ? Application.Current.GetIcon().Source : icon;
+                    win.Icon = icon == null ? Application.Current.GetIcon().Source : icon.Source;
 
                     if (win is MainWindow)
                     {
@@ -6578,10 +6580,11 @@ namespace PixivWPF.Common
                             var page = win.Content as DownloadManagerPage;
                             page.UpdateTheme();
                         }
-                        else if (win.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
+                        else if (win.Title.Equals(Application.Current.DropboxTitle(), StringComparison.CurrentCultureIgnoreCase))
                         {
                             win.Background = Theme.AccentBrush;
                             win.Content = icon;
+                            win.Icon = icon.Source;
                         }
                     }
                 }).Invoke(async: false);
@@ -6598,7 +6601,7 @@ namespace PixivWPF.Common
                     var img = Application.Current.GetIcon();
                     foreach (Window win in Application.Current.Windows)
                     {
-                        if (win is MetroWindow) win.UpdateTheme(img.Source);
+                        if (win is MetroWindow) win.UpdateTheme(img);
                     }
                 }).Invoke(async: false);
             }
@@ -6995,7 +6998,7 @@ namespace PixivWPF.Common
 
         public static MetroWindow GetWindow(this MetroWindow window, int index = 0, bool relative = true)
         {
-            var wins = Application.Current.Windows.OfType<MetroWindow>().Where(w => !w.Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase)).ToList();
+            var wins = Application.Current.Windows.OfType<MetroWindow>().Where(w => !w.Title.Equals(Application.Current.DropboxTitle(), StringComparison.CurrentCultureIgnoreCase)).ToList();
             var active = window is MetroWindow ? window : wins.SingleOrDefault(x => x.IsActive);
             if (active == null) active = Application.Current.MainWindow as MetroWindow;
 
@@ -7252,7 +7255,7 @@ namespace PixivWPF.Common
                     ShowPlacesList = true
                 };
 
-                Window dm = GetWindowByTitle("Download Manager");
+                Window dm = GetWindowByTitle(Application.Current.DownloadTitle());
                 if (!(dm is ContentWindow)) dm = Application.Current.MainWindow;
                 if (dlg.ShowDialog(dm) == CommonFileDialogResult.Ok)
                 {

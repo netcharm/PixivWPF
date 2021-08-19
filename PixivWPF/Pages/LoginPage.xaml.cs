@@ -53,6 +53,10 @@ namespace PixivWPF.Pages
             {
                 ParentWindow = Window.GetWindow(this) as PixivLoginDialog;
                 setting = Application.Current.LoadSetting();
+
+                Title = Application.Current.LoginTitle();
+                WindowTitle = Application.Current.LoginTitle();
+
 #if DEBUG
                 var logo = System.IO.Path.Combine(Application.Current.GetRoot(), "Assets", "pixiv-logo.png");
                 var uri = new Uri(logo);

@@ -229,7 +229,7 @@ namespace PixivWPF.Common
                     (Content as HistoryPage).Dispose();
                 else if (Content is SearchResultPage)
                     (Content as SearchResultPage).Dispose();
-                else if (Title.Equals("DropBox", StringComparison.CurrentCultureIgnoreCase))
+                else if (Title.Equals(Application.Current.DropboxTitle(), StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (Content is Image) (Content as Image).Dispose();
                     false.SetDropBoxState();
@@ -296,7 +296,7 @@ namespace PixivWPF.Common
             if (e.ChangedButton == MouseButton.Middle)
             {
                 e.Handled = true;
-                if (Title.Equals("Download Manager", StringComparison.CurrentCultureIgnoreCase))
+                if (Title.Equals(Application.Current.DownloadTitle(), StringComparison.CurrentCultureIgnoreCase))
                 {
                     Hide();
                 }

@@ -53,6 +53,19 @@ namespace PixivWPF.Common
 
     public static class ApplicationExtensions
     {
+        #region
+        public static string strDownloadTitle { get; } = "Download Manager";
+        public static string DownloadTitle(this Application app) { return (strDownloadTitle); }
+        public static string strDropBoxTitle { get; } = "DropBox";
+        public static string DropboxTitle(this Application app) { return (strDownloadTitle); }
+        public static string strHistoryTitle { get; } = "History";
+        public static string HistoryTitle(this Application app) { return (strDownloadTitle); }
+        public static string strLoginTitle { get; } = "PIXIV Login";
+        public static string LoginTitle(this Application app) { return (strDownloadTitle); }
+        public static string strPediaTitle { get; } = "PixivPedia";
+        public static string PediaTitle(this Application app) { return (strDownloadTitle); }
+        #endregion
+
         #region Application Setting Helper
         public static Setting CurrentSetting { get { return (Setting.Instance is Setting ? Setting.Instance : Setting.Load()); } }
         public static Setting LoadSetting(this Application app, bool force = false)
@@ -904,7 +917,7 @@ namespace PixivWPF.Common
                     var wins = new List<Window>();
                     foreach (Window win in app.Windows)
                     {
-                        if (win.Title.Equals("Dropbox", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        if (win.Title.Equals(strDropBoxTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
                         else if (win.Content is DownloadManagerPage) continue;
                         else if (win.Content is LoginPage) continue;
                         else if (win is ContentWindow) wins.Add(win);
@@ -951,7 +964,7 @@ namespace PixivWPF.Common
                         if (win is MainWindow) continue;
                         else if (win is ContentWindow)
                         {
-                            if (win.Title.StartsWith("Download", StringComparison.CurrentCultureIgnoreCase))
+                            if (win.Title.StartsWith(strDownloadTitle, StringComparison.CurrentCultureIgnoreCase))
                             {
                                 if (win.Content is DownloadManagerPage)
                                 {
@@ -961,10 +974,10 @@ namespace PixivWPF.Common
                             }
                             //else if (win.Title.StartsWith("Search", StringComparison.CurrentCultureIgnoreCase)) continue;
                             //else if (win.Title.StartsWith("Preview", StringComparison.CurrentCultureIgnoreCase)) continue;
-                            else if (win.Title.StartsWith("PIXIV Login", StringComparison.CurrentCultureIgnoreCase)) continue;
-                            else if (win.Title.StartsWith("DropBox", StringComparison.CurrentCultureIgnoreCase)) continue;
-                            else if (win.Title.StartsWith("PixivPedia", StringComparison.CurrentCultureIgnoreCase)) continue;
-                            else if (win.Title.StartsWith("History", StringComparison.CurrentCultureIgnoreCase)) continue;
+                            else if (win.Title.StartsWith(strLoginTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                            else if (win.Title.StartsWith(strDropBoxTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                            else if (win.Title.StartsWith(strPediaTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
+                            else if (win.Title.StartsWith(strHistoryTitle, StringComparison.CurrentCultureIgnoreCase)) continue;
                             else titles.Add(win.Title);
                         }
                         else continue;
@@ -1180,7 +1193,6 @@ namespace PixivWPF.Common
         #endregion
 
         #region Application DropBox
-        private static string _DropBoxTitle_ = "DropBox";
         private static void DropBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
@@ -1289,7 +1301,7 @@ namespace PixivWPF.Common
             else
             {
                 var setting = Application.Current.LoadSetting();
-                box = new ContentWindow(_DropBoxTitle_);
+                box = new ContentWindow(strDropBoxTitle);
                 box.MouseDown += DropBox_MouseDown;
                 box.MouseUp += DropBox_MouseUp;
                 ///box.MouseMove += DropBox_MouseMove;
@@ -1322,7 +1334,7 @@ namespace PixivWPF.Common
                 box.ShowSystemMenuOnRightClick = false;
                 box.ShowTitleBar = false;
                 //box.WindowStyle = WindowStyle.None;
-                box.Title = _DropBoxTitle_;
+                box.Title = strDropBoxTitle;
 
                 var icon = Application.Current.GetIcon();
                 box.Content = icon;
@@ -1350,14 +1362,14 @@ namespace PixivWPF.Common
 
         public static string DropBoxTitle(this Application app)
         {
-            return (_DropBoxTitle_);
+            return (strDropBoxTitle);
         }
 
         public static Window DropBoxExists(this Application app)
         {
             Window result = null;
 
-            var win  = _DropBoxTitle_.GetWindowByTitle();
+            var win  = strDropBoxTitle.GetWindowByTitle();
             if (win is ContentWindow) result = win as ContentWindow;
 
             return (result);
@@ -1367,7 +1379,7 @@ namespace PixivWPF.Common
         {
             new Action(() =>
             {
-                var win = _DropBoxTitle_.GetWindowByTitle();
+                var win = strDropBoxTitle.GetWindowByTitle();
                 if (win is ContentWindow)
                     (win as ContentWindow).SetDropBoxState(state);
                 else if (win is MainWindow)
@@ -2039,7 +2051,7 @@ namespace PixivWPF.Common
             }
             else
             {
-                var win = "History".GetWindowByTitle();
+                var win = Application.Current.HistoryTitle().GetWindowByTitle();
                 if (win is ContentWindow && win.Content is HistoryPage) (win.Content as HistoryPage).UpdateDetail();
             }
         }

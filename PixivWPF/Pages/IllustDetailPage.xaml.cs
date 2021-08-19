@@ -298,24 +298,36 @@ namespace PixivWPF.Pages
                         StringBuilder desc = new StringBuilder();
                         desc.AppendLine("<div class=\"desc\">");
                         desc.AppendLine($"<b>Account:</b><br/> ");
-                        desc.AppendLine($"{nuser.Account} / {nuser.Id} / {nuser.Name} / {nuser.Email} <br/>");
+                        desc.AppendLine($"<div class=\"section\">");
+                        desc.AppendLine($"{nuser.Account} / <a href=\"{nuser.Id.ToString().ArtistLink()}\">{nuser.Id}</a> / {nuser.Name} <br/>");
+                        desc.AppendLine($"</div>");
                         desc.AppendLine($"<b>Stat:</b><br/> ");
+                        desc.AppendLine($"<div class=\"section\">");
                         desc.AppendLine($"{nprof.total_illust_bookmarks_public} Bookmarked / {nprof.total_follower} Following / {nprof.total_follow_users} Follower /<br/>");
                         desc.AppendLine($"{nprof.total_illusts} Illust / {nprof.total_manga} Manga / {nprof.total_novels} Novels /<br/> {nprof.total_mypixiv_users} MyPixiv User <br/>");
+                        desc.AppendLine($"</div>");
 
                         desc.AppendLine($"<hr/>");
                         desc.AppendLine($"<b>Profile:</b><br/>");
+                        desc.AppendLine($"<div class=\"section\">");
                         desc.AppendLine($"{nprof.gender} / {nprof.birth} / {nprof.region} / {nprof.job} <br/>");
+                        desc.AppendLine($"</div>");
                         desc.AppendLine($"<b>Contacts:</b><br/>");
+                        desc.AppendLine($"<div class=\"section\">");
                         desc.AppendLine($"<span class=\"twitter\" title=\"Twitter\"></span><a href=\"{nprof.twitter_url}\">@{nprof.twitter_account}</a><br/>");
                         desc.AppendLine($"<span class=\"web\" title=\"Website\"></span><a href=\"{nprof.webpage}\">{nprof.webpage}</a><br/>");
                         desc.AppendLine($"<span class=\"mail\" title=\"Email\"></span><a href=\"mailto:{nuser.Email}\">{nuser.Email}</a><br/>");
+                        desc.AppendLine($"</div>");
 
                         desc.AppendLine($"<hr/>");
                         desc.AppendLine($"<b>Workspace Device:</b><br/> ");
+                        desc.AppendLine($"<div class=\"section\">");
                         desc.AppendLine($"{nworks.pc} / {nworks.monitor} / {nworks.tablet} / {nworks.mouse} / {nworks.printer} / {nworks.scanner} / {nworks.tool} <br/>");
+                        desc.AppendLine($"</div>");
                         desc.AppendLine($"<b>Workspace Environment:</b><br/>");
+                        desc.AppendLine($"<div class=\"section\">");
                         desc.AppendLine($"{nworks.desk} / {nworks.chair} / {nworks.desktop} / {nworks.music} / {nworks.comment} <br/>");
+                        desc.AppendLine($"</div>");
 
                         if (!string.IsNullOrEmpty(nworks.workspace_image_url))
                         {
@@ -1781,6 +1793,8 @@ namespace PixivWPF.Pages
                     user.is_followed = nuser.is_followed;
                     await user.RefreshUser();
                 }
+
+                IllustTagRefresh.ContextMenu = null;
 
                 IllustSizeIcon.Text = SymbolIcon_Image;
                 IllustSize.Text = $"{nprof.total_illusts + nprof.total_manga}";
