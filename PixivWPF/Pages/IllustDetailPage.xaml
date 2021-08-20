@@ -1095,6 +1095,7 @@
                           Visibility="Collapsed" Header="Relative Illust Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           ContextMenuOpening="IllustActions_ContextMenuOpening"
+                          MouseDown="RelativeItemsExpander_MouseDown"
                           Expanded="RelativeItemsExpander_Expanded" Collapsed="RelativeItemsExpander_Collapsed">
                     <Common:ImageListGrid x:Name="RelativeItems" x:Uid="RelativeItems"
                                           Columns="5" TileWidth="128" TileHeight="128"
@@ -1168,8 +1169,8 @@
                           Visibility="Collapsed" Header="Author Favorites Gallery"
                           ContextMenu="{StaticResource MenuGallaryAction}"
                           ContextMenuOpening="IllustActions_ContextMenuOpening"
-                          Collapsed="FavoriteItemsExpander_Collapsed"
-                          Expanded="FavoriteItemsExpander_Expanded">
+                          MouseDown="FavoriteItemsExpander_MouseDown"
+                          Collapsed="FavoriteItemsExpander_Collapsed" Expanded="FavoriteItemsExpander_Expanded">
                     <Common:ImageListGrid x:Name="FavoriteItems" x:Uid="RelativeItems"
                                           Columns="5" TileWidth="128" TileHeight="128"
                                           Focusable="True"

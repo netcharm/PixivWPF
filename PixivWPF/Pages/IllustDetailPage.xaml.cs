@@ -1141,9 +1141,13 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin)
+                if (RelativeItems.IsKeyboardFocusWithin || RelativeItemsExpander.IsKeyboardFocusWithin)
                     Commands.OpenDownloaded.Execute(RelativeItems);
-                else if (FavoriteItems.IsKeyboardFocusWithin)
+                else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
+                    Commands.OpenDownloaded.Execute(FavoriteItems);
+                else if (RelativeItems.SelectedItems.FirstOrDefault() != null && RelativeItems.SelectedItems.FirstOrDefault().IsFocused)
+                    Commands.OpenDownloaded.Execute(RelativeItems);
+                else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
                     Commands.OpenDownloaded.Execute(FavoriteItems);
                 else if (Contents.IsWork())
                 {
@@ -1180,9 +1184,13 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin)
+                if (RelativeItems.IsKeyboardFocusWithin || RelativeItemsExpander.IsKeyboardFocusWithin)
                     Commands.OpenCachedImage.Execute(RelativeItems);
-                else if (FavoriteItems.IsKeyboardFocusWithin)
+                else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
+                    Commands.OpenCachedImage.Execute(FavoriteItems);
+                else if (RelativeItems.SelectedItems.FirstOrDefault() != null && RelativeItems.SelectedItems.FirstOrDefault().IsFocused)
+                    Commands.OpenCachedImage.Execute(RelativeItems);
+                else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
                     Commands.OpenCachedImage.Execute(FavoriteItems);
                 else if (Contents.IsWork())
                 {
@@ -1216,9 +1224,13 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin)
+                if (RelativeItems.IsKeyboardFocusWithin || RelativeItemsExpander.IsKeyboardFocusWithin)
                     Commands.OpenFileProperties.Execute(RelativeItems);
-                else if (FavoriteItems.IsKeyboardFocusWithin)
+                else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
+                    Commands.OpenFileProperties.Execute(FavoriteItems);
+                else if (RelativeItems.SelectedItems.FirstOrDefault() != null && RelativeItems.SelectedItems.FirstOrDefault().IsFocused)
+                    Commands.OpenFileProperties.Execute(RelativeItems);
+                else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
                     Commands.OpenFileProperties.Execute(FavoriteItems);
                 else if (Contents.IsWork())
                 {
@@ -1257,9 +1269,13 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin)
+                if (RelativeItems.IsKeyboardFocusWithin || RelativeItemsExpander.IsKeyboardFocusWithin)
                     Commands.SaveIllust.Execute(RelativeItems);
-                else if (FavoriteItems.IsKeyboardFocusWithin)
+                else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
+                    Commands.SaveIllust.Execute(FavoriteItems);
+                else if (RelativeItems.SelectedItems.FirstOrDefault() != null && RelativeItems.SelectedItems.FirstOrDefault().IsFocused)
+                    Commands.SaveIllust.Execute(RelativeItems);
+                else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
                     Commands.SaveIllust.Execute(FavoriteItems);
                 else if (SubIllusts.Items.Count > 0)
                     Commands.SaveIllust.Execute(SubIllusts);
@@ -1273,9 +1289,13 @@ namespace PixivWPF.Pages
         {
             try
             {
-                if (RelativeItems.IsKeyboardFocusWithin)
+                if (RelativeItems.IsKeyboardFocusWithin || RelativeItemsExpander.IsKeyboardFocusWithin)
                     Commands.SaveIllustAll.Execute(RelativeItems);
-                else if (FavoriteItems.IsKeyboardFocusWithin)
+                else if (FavoriteItems.IsKeyboardFocusWithin || FavoriteItemsExpander.IsKeyboardFocusWithin)
+                    Commands.SaveIllustAll.Execute(FavoriteItems);
+                else if (RelativeItems.SelectedItems.FirstOrDefault() != null && RelativeItems.SelectedItems.FirstOrDefault().IsFocused)
+                    Commands.SaveIllustAll.Execute(RelativeItems);
+                else if (FavoriteItems.SelectedItems.FirstOrDefault() != null && FavoriteItems.SelectedItems.FirstOrDefault().IsFocused)
                     Commands.SaveIllustAll.Execute(FavoriteItems);
                 else if (Contents.IsWork())
                     Commands.SaveIllustAll.Execute(Contents);
@@ -3873,6 +3893,20 @@ namespace PixivWPF.Pages
             IllustDetailWait.Hide();
         }
 
+        private void RelativeItemsExpander_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            RelativeItems.Focusable = true;
+            RelativeItems.Focus();
+            Keyboard.Focus(RelativeItems);
+            var item = RelativeItems.SelectedItems.FirstOrDefault();
+            if (item != null)
+            {
+                item.Focusable = true;
+                item.Focus();
+                Keyboard.Focus(item);
+            }
+        }
+
         private void ActionOpenRelative_Click(object sender, RoutedEventArgs e)
         {
             Commands.Open.Execute(RelativeItems);
@@ -3961,6 +3995,20 @@ namespace PixivWPF.Pages
         {
             FavoriteItemsExpander.Header = "Favorite";
             IllustDetailWait.Hide();
+        }
+
+        private void FavoriteItemsExpander_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            FavoriteItems.Focusable = true;
+            FavoriteItems.Focus();
+            Keyboard.Focus(FavoriteItems);
+            var item = FavoriteItems.SelectedItems.FirstOrDefault();
+            if (item != null)
+            {
+                item.Focusable = true;
+                item.Focus();
+                Keyboard.Focus(item);
+            }
         }
 
         private void ActionOpenFavorite_Click(object sender, RoutedEventArgs e)

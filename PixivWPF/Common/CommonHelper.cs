@@ -4717,7 +4717,7 @@ namespace PixivWPF.Common
                 }
                 result = File.Exists(file);
                 var illust = file.GetIllustId().FindIllust();
-                if (result && illust.IsUgoira) MakeUgoiraConcatFile(await illust.GetUgoiraMeta(), file);
+                if (result && illust.IsWork() && illust.IsUgoira) MakeUgoiraConcatFile(await illust.GetUgoiraMeta(), file);
             }
             catch (Exception ex) { ex.ERROR($"WriteToFile: {Path.GetFileName(file)}"); }
             return (result);
@@ -5119,6 +5119,21 @@ namespace PixivWPF.Common
         #endregion
 
         #region Illust routines
+        public static bool IsWork(this Pixeez.Objects.Work work)
+        {
+            return (work is Pixeez.Objects.Work);
+        }
+
+        public static bool IsNormalWork(this Pixeez.Objects.Work work)
+        {
+            return (work is Pixeez.Objects.NormalWork);
+        }
+
+        public static bool IsIllustWork(this Pixeez.Objects.Work work)
+        {
+            return (work is Pixeez.Objects.IllustWork);
+        }
+
         #region SameIllust
         public static bool IsSameIllust(this string id, int hash)
         {
