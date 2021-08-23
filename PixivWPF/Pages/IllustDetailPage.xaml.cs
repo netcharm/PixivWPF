@@ -206,7 +206,7 @@ namespace PixivWPF.Pages
                                 h_max = (int)(host.MaxHeight);
                             }
                             this.DoEvents();
-                            if (browser is System.Windows.Forms.WebBrowser && 
+                            if (browser is System.Windows.Forms.WebBrowser &&
                                 browser.Document is System.Windows.Forms.HtmlDocument &&
                                 browser.Document.Body is System.Windows.Forms.HtmlElement)
                             {
@@ -852,7 +852,7 @@ namespace PixivWPF.Pages
                         tips.Add($"Original : {file_o}");
                         tips.Add($"Frames   : {frame}");
                         tips.Add($"Times    : {delay * frame / 1000.0:F2} s");
-                        tooltip = string.Join(Environment.NewLine, tips);                        
+                        tooltip = string.Join(Environment.NewLine, tips);
                     }
                 }
 
@@ -887,7 +887,7 @@ namespace PixivWPF.Pages
                         IllustUgoiraDownloaded.ToolTip = string.IsNullOrEmpty(tp) ? null : tp;
                     }
                     IllustUgoiraDownloaded.IsEnabled = is_ugoira;
-                    if(is_ugoira) MakeUgoiraConcatFile(file: fp);
+                    if (is_ugoira) MakeUgoiraConcatFile(file: fp);
                 }
                 if (ContextMenuActionItems.ContainsKey("ActionSavePreviewUgoiraFile"))
                 {
@@ -918,7 +918,7 @@ namespace PixivWPF.Pages
                 foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeItems, FavoriteItems })
                 {
                     if (illusts.Items.Count > 0)
-                    {                        
+                    {
                         illusts.UpdateTilesState(id: illustid);
                         this.DoEvents();
                     }
@@ -958,7 +958,7 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR("UpdateDownloadedMark"); }
         }
 
-        private void UpdateDownloadedMark(PixivItem item, bool? exists = null, bool? downloaded=null)
+        private void UpdateDownloadedMark(PixivItem item, bool? exists = null, bool? downloaded = null)
         {
             try
             {
@@ -1074,7 +1074,7 @@ namespace PixivWPF.Pages
                     {
                         int work_id = -1;
                         int.TryParse(Contents.ID, out work_id);
-                        if(illustid == -1 || illustid == work_id) UpdateFavMark(Contents.Illust);
+                        if (illustid == -1 || illustid == work_id) UpdateFavMark(Contents.Illust);
                     }
                 }
                 foreach (var illusts in new List<ImageListGrid>() { SubIllusts, RelativeItems, FavoriteItems })
@@ -1459,7 +1459,7 @@ namespace PixivWPF.Pages
                         {
                             var items = new List<PixivItem>();
                             if (Contents.Count <= 1 || Contents.IsUser()) items.Add(Contents);
-                            else if(Contents.Count <= 30) items.AddRange(SubIllusts.Items.Where(p => p.Index != Contents.Index));
+                            else if (Contents.Count <= 30) items.AddRange(SubIllusts.Items.Where(p => p.Index != Contents.Index));
                             else items.AddRange((await Contents.Illust.PageItems(touch: true)).Where(p => p.Index != Contents.Index));
                             items.AddRange(RelativeItems.Items);
                             items.AddRange(FavoriteItems.Items);
@@ -2339,7 +2339,7 @@ namespace PixivWPF.Pages
                     else PrevIllust();
                 }
             }
-            catch(Exception ex) { ex.ERROR("PrevIllustPage"); }
+            catch (Exception ex) { ex.ERROR("PrevIllustPage"); }
         }
 
         public void NextIllustPage()
@@ -2359,7 +2359,7 @@ namespace PixivWPF.Pages
                     }
                     else NextIllust();
                 }
-                catch(Exception ex) { ex.ERROR("NextIllustPage"); }
+                catch (Exception ex) { ex.ERROR("NextIllustPage"); }
             }
         }
 
@@ -2538,7 +2538,7 @@ namespace PixivWPF.Pages
             FavoritePrevPage.MouseOverAction();
             FavoriteNextPage.MouseOverAction();
             FavoriteNextAppend.MouseOverAction();
-            FavoriteRefresh.MouseOverAction();            
+            FavoriteRefresh.MouseOverAction();
             #endregion
 
             #region Preview Popup
@@ -2663,7 +2663,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch(Exception ex) { ex.ERROR("IllustDetailPreviewMouseDown"); }
+            catch (Exception ex) { ex.ERROR("IllustDetailPreviewMouseDown"); }
         }
 
         #region Preview Popup
@@ -2864,7 +2864,7 @@ namespace PixivWPF.Pages
                 }
                 e.Handled = true;
             }
-            catch(Exception ex) { ex.ERROR("IllustActions"); }
+            catch (Exception ex) { ex.ERROR("IllustActions"); }
         }
 
         private void ActionIllustAuthourInfo_Click(object sender, RoutedEventArgs e)
@@ -2928,7 +2928,7 @@ namespace PixivWPF.Pages
             {
                 Commands.OpenCachedImage.Execute(string.IsNullOrEmpty(PreviewImagePath) ? Contents.Illust.GetPreviewUrl(large: setting.ShowLargePreview).GetImageCachePath() : PreviewImagePath);
             }
-            else if(sender == PreviewOpenDownloadedProperties)
+            else if (sender == PreviewOpenDownloadedProperties)
             {
                 if (Contents.Count <= 1 || SubIllusts.SelectedItems.Count == 0)
                     Commands.OpenFileProperties.Execute(Contents);
@@ -3289,7 +3289,7 @@ namespace PixivWPF.Pages
                     {
                         RefreshHtmlRender(IllustTagsHtml);
                         UpdateIllustTitle();
-                    }                        
+                    }
                     else if (Keyboard.Modifiers == ModifierKeys.Shift)
                         Application.Current.LoadTags(false, true);
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
@@ -3464,7 +3464,7 @@ namespace PixivWPF.Pages
 
         private void IllustDownloaded_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if(e.ChangedButton == MouseButton.Left)
+            if (e.ChangedButton == MouseButton.Left)
             {
                 e.Handled = true;
                 if (IllustDownloaded.Tag is string)
@@ -3665,7 +3665,7 @@ namespace PixivWPF.Pages
                 }
                 catch (Exception ex) { ex.ERROR("FOLLOW"); }
             }
-            else if(uid.Equals("ActionFollowAuthorPublic", StringComparison.CurrentCultureIgnoreCase) ||
+            else if (uid.Equals("ActionFollowAuthorPublic", StringComparison.CurrentCultureIgnoreCase) ||
                     uid.Equals("ActionFollowAuthorPrivate", StringComparison.CurrentCultureIgnoreCase) ||
                     uid.Equals("ActionFollowAuthorRemove", StringComparison.CurrentCultureIgnoreCase))
             {
@@ -3728,7 +3728,7 @@ namespace PixivWPF.Pages
         {
             e.Handled = false;
             if (Contents.HasPages())
-            {                
+            {
                 //if (SubIllusts.IsBusy) return;
                 if (e.AddedItems.Count == 1 && e.RemovedItems.Count == 1 && (e.AddedItems[0] as PixivItem).Index == (e.RemovedItems[0] as PixivItem).Index) return;
 
@@ -4522,7 +4522,7 @@ namespace PixivWPF.Pages
 
         private void ActionUgoiraGet_Click(object sender, RoutedEventArgs e)
         {
-            if(Contents.IsUgoira() && sender is MenuItem)
+            if (Contents.IsUgoira() && sender is MenuItem)
             {
                 var mi = sender as MenuItem;
                 if (mi.Uid.Equals("ActionSavePreviewUgoiraFile"))

@@ -575,10 +575,10 @@ namespace PixivWPF.Common
                     if (!force && setting.ExpTime > DateTime.Now && !string.IsNullOrEmpty(setting.AccessToken))
                     {
                         result = Pixeez.Auth.AuthorizeWithAccessToken(
-                            setting.AccessToken, 
-                            setting.RefreshToken, 
-                            setting.Proxy, 
-                            setting.ProxyBypass, 
+                            setting.AccessToken,
+                            setting.RefreshToken,
+                            setting.Proxy,
+                            setting.ProxyBypass,
                             setting.UsingProxy
                         );
                     }
@@ -594,10 +594,10 @@ namespace PixivWPF.Common
                             {
                                 ex.ERROR("SHOWLOGIN");
                                 result = Pixeez.Auth.AuthorizeWithAccessToken(
-                                    setting.AccessToken, 
-                                    setting.RefreshToken, 
-                                    setting.Proxy, 
-                                    setting.ProxyBypass, 
+                                    setting.AccessToken,
+                                    setting.RefreshToken,
+                                    setting.Proxy,
+                                    setting.ProxyBypass,
                                     setting.UsingProxy
                                 );
                             }
@@ -606,7 +606,8 @@ namespace PixivWPF.Common
                         {
                             "Show Login Dialog...".INFO();
                             Application.Current.DoEvents();
-                            var dlgLogin = new PixivLoginDialog() {
+                            var dlgLogin = new PixivLoginDialog()
+                            {
                                 AccessToken = setting.AccessToken,
                                 RefreshToken = setting.RefreshToken
                             };
@@ -1298,7 +1299,7 @@ namespace PixivWPF.Common
         public static void TagWildcardCacheClear(this IEnumerable<string> keys)
         {
             try { foreach (var key in keys) TagWildcardCacheClear(key); }
-            catch(Exception ex) { ex.ERROR("TagWildcardCacheClear"); }
+            catch (Exception ex) { ex.ERROR("TagWildcardCacheClear"); }
         }
 
         public static void TagWildcardCacheClear(this string key)
@@ -2231,7 +2232,7 @@ namespace PixivWPF.Common
                                 else
                                     Process.Start(setting.ShellImageViewerCmd, args.Trim());
                             }
-                            else if(IsUgoira && !string.IsNullOrEmpty(setting.ShellUgoiraViewer))
+                            else if (IsUgoira && !string.IsNullOrEmpty(setting.ShellUgoiraViewer))
                             {
                                 if (!File.Exists(setting.ShellUgoiraViewer))
                                 {
@@ -2272,24 +2273,30 @@ namespace PixivWPF.Common
         public static bool OpenShellProperties(this string FileName)
         {
             bool result = false;
-            try
+            if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
             {
-                //result = ShowFileProperties(FileName);
-                result = ShellProperties.Show(FileName) == 0 ? true : false;
+                try
+                {
+                    //result = ShowFileProperties(FileName);
+                    result = ShellProperties.Show(FileName) == 0 ? true : false;
+                }
+                catch (Exception ex) { ex.ERROR("OpenShellProperties"); }
             }
-            catch (Exception ex) { ex.ERROR("OpenShellProperties"); }
             return (result);
         }
 
         public static bool OpenShellProperties(this IEnumerable<string> FileName)
         {
             bool result = false;
-            try
+            if (FileName is IEnumerable<string> && FileName.Count() > 0)
             {
-                //result = ShowFileProperties(FileName);
-                result = ShellProperties.Show(FileName) == 0 ? true : false;
+                try
+                {
+                    //result = ShowFileProperties(FileName);
+                    result = ShellProperties.Show(FileName) == 0 ? true : false;
+                }
+                catch (Exception ex) { ex.ERROR("OpenShellProperties"); }
             }
-            catch (Exception ex) { ex.ERROR("OpenShellProperties"); }
             return (result);
         }
 
@@ -2682,7 +2689,7 @@ namespace PixivWPF.Common
                                     }
                                 }
                             }
-                            else if(is_mov && !is_zip)
+                            else if (is_mov && !is_zip)
                             {
                                 if (sh.Properties.System.DateAcquired.Value == null || sh.Properties.System.DateAcquired.Value.Value.Ticks != dt.Ticks)
                                     sh.Properties.System.DateAcquired.Value = dt;
@@ -4717,7 +4724,7 @@ namespace PixivWPF.Common
                 }
                 result = File.Exists(file);
                 var illust = file.GetIllustId().FindIllust();
-                if (result && illust.IsWork() && illust.IsUgoira) MakeUgoiraConcatFile(await illust.GetUgoiraMeta(), file);
+                if (result && illust.IsWork() && illust.IsUgoira) MakeUgoiraConcatFile(await illust.GetUgoiraMeta(ajax: true), file);
             }
             catch (Exception ex) { ex.ERROR($"WriteToFile: {Path.GetFileName(file)}"); }
             return (result);
@@ -4833,11 +4840,11 @@ namespace PixivWPF.Common
                     wait_count--;
                     var t = Task.Delay(interval);
                     await t.ConfigureAwait(true);
-                    t.Dispose();                    
+                    t.Dispose();
                 }
                 exists = File.Exists(file);
             }
-            return(exists );
+            return (exists);
         }
 
         public static async Task<string> DownloadImage(this string url, string file, bool overwrite = true, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null)

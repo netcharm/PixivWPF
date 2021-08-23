@@ -126,6 +126,40 @@ namespace PixivWPF.Common
             }
         }
 
+        [Description("Get Illust Favorited Count")]
+        [Category("Common Properties")]
+        public int WorkFavorited
+        {
+            get
+            {
+                var count = 0;
+                if (this.IsWork())
+                {
+                    if (Illust is Pixeez.Objects.IllustWork)
+                        count = (Illust as Pixeez.Objects.IllustWork).total_bookmarks;
+                    else if (Illust.Stats != null)
+                        count = Illust.Stats.FavoritedCount.Public.Value + Illust.Stats.FavoritedCount.Private.Value;
+                }
+                return (count);
+            }
+        }
+
+        [Description("Get User Followed Count")]
+        [Category("Common Properties")]
+        public int UserFollowed
+        {
+            get
+            {
+                var count = 0;
+                if (this.HasUser())
+                {
+                    var ui = User.FindUserInfo();
+                    if (ui is Pixeez.Objects.UserInfo) count = ui.profile.total_follow_users;
+                }
+                return (count);
+            }
+        }
+
         public Visibility UserMarkVisibility { get { return (this.IsUser() ? Visibility.Visible : Visibility.Collapsed); } }
 
         public Visibility FollowMarkVisibility { get; set; } = Visibility.Collapsed;
@@ -759,7 +793,7 @@ namespace PixivWPF.Common
                         var userliked = illust.User.IsLiked() ? $"✔" : $"✘";
                         var illustliked = illust.IsLiked() ? $"🧡" : $"🤍";
                         //🎦0x1F3A6, 🎬0x1F3AC 📽0x1F4FD 🎥0x1F3A5
-                        var ugoira = illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? ", 🎦" : string.Empty; 
+                        var ugoira = illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? ", 🎦" : string.Empty;
                         var state = string.Empty;
                         if (illust is Pixeez.Objects.IllustWork)
                         {
@@ -984,7 +1018,7 @@ namespace PixivWPF.Common
                 var count = subset.meta_pages.Count();
                 if (count > 1)
                 {
-                    for(int i = 0; i< count; i++)
+                    for (int i = 0; i < count; i++)
                     {
                         var page = subset.meta_pages[i];
                         var p = PageItem(page, illust, i, nexturl, touch);
@@ -1080,7 +1114,7 @@ namespace PixivWPF.Common
                 if (page is Pixeez.Objects.Page && Collection is IList<PixivItem>)
                 {
                     var p = PageItem(page, illust, index, nexturl);
-                    if(p is PixivItem)
+                    if (p is PixivItem)
                     {
                         Collection.Add(p);
                         await Task.Delay(1);
@@ -1517,29 +1551,31 @@ namespace PixivWPF.Common
         public static async Task<Pixeez.Objects.UgoiraInfo> GetUgoiraMeta(this Pixeez.Objects.Work Illust, bool ajax = false)
         {
             Pixeez.Objects.UgoiraInfo info = null;
+            long id = 0;
             try
             {
                 if (Illust.IsUgoira)
                 {
+                    id = Illust.Id.Value;
                     if (Illust.UgoiraMeta is Pixeez.Objects.UgoiraInfo)
                         info = Illust.UgoiraMeta;
                     else
                     {
                         if (ajax)
                         {
-                            info = await GetUgoiraMetaInfo(Illust.Id.Value);
+                            info = await GetUgoiraMetaInfo(id);
                         }
                         else
                         {
                             var tokens = await CommonHelper.ShowLogin();
-                            var ugoira_meta = await tokens.GetUgoiraMetadata(Illust.Id.Value);
-                            info = ugoira_meta.Metadata;
+                            var ugoira_meta = await tokens.GetUgoiraMetadata(id);
+                            info = ugoira_meta is Pixeez.Objects.UgoiraMetadata ? ugoira_meta.Metadata : null;
                         }
                         if (info is Pixeez.Objects.UgoiraInfo) Illust.UgoiraMeta = info;
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR("GetUgoiraMeta"); }
+            catch (Exception ex) { ex.ERROR($"GetUgoiraMeta_{id}"); }
             return (info);
         }
 
@@ -1564,7 +1600,7 @@ namespace PixivWPF.Common
                 if (string.IsNullOrEmpty(result.OriginalSrc) && !string.IsNullOrEmpty(result.Src))
                     result.OriginalSrc = result.Src.Replace("600x600", "1920x1080");
             }
-            catch (Exception ex) { ex.ERROR("GetUgoiraMetaInfo"); }
+            catch (Exception ex) { ex.ERROR($"GetUgoiraMetaInfo_{id}"); }
             return (result);
         }
 
@@ -1610,7 +1646,7 @@ namespace PixivWPF.Common
                         response.Dispose();
                     }
                 }
-                catch (Exception ex) { ex.ERROR("GetUgoiraMetaInfo"); }
+                catch (Exception ex) { ex.ERROR($"GetUgoiraMetaInfo_{id}"); }
             }
             return (result);
         }
@@ -1639,7 +1675,7 @@ namespace PixivWPF.Common
             {
                 if (item.Ugoira is Pixeez.Objects.UgoiraInfo)
                     result = item.Ugoira;
-                else if(item.Illust.UgoiraMeta is Pixeez.Objects.UgoiraInfo)
+                else if (item.Illust.UgoiraMeta is Pixeez.Objects.UgoiraInfo)
                 {
                     result = item.Illust.UgoiraMeta;
                     item.Ugoira = result;
@@ -1668,7 +1704,7 @@ namespace PixivWPF.Common
                     else if (!string.IsNullOrEmpty(info.Src))
                         url = info.Src;
                     else if (urls is Pixeez.Objects.ImageUrls)
-                    { 
+                    {
                         if (!string.IsNullOrEmpty(urls.Original) && !preview)
                             url = urls.Original;
                         else if (!string.IsNullOrEmpty(urls.Large))
@@ -1696,7 +1732,7 @@ namespace PixivWPF.Common
             {
                 if (Illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var info = await GetUgoiraMeta(Illust);
+                    var info = await Illust.GetUgoiraMeta(ajax: true);
                     if (info is Pixeez.Objects.UgoiraInfo) url = GetUgoiraUrl(info, preview);
                 }
             }
@@ -1711,7 +1747,7 @@ namespace PixivWPF.Common
             {
                 if (item.IsUgoira())
                 {
-                    var info = item.Ugoira != null ? item.Ugoira : await GetUgoiraMeta(item.Illust);
+                    var info = item.Ugoira != null ? item.Ugoira : await item.Illust.GetUgoiraMeta(ajax: true);
                     if (info is Pixeez.Objects.UgoiraInfo) url = GetUgoiraUrl(info, preview);
                 }
             }
@@ -1735,7 +1771,7 @@ namespace PixivWPF.Common
                     item.UgoiraPreviewFile = fp;
                 }
                 else if (preview.Value) { url_p.IsUgoiraDownloaded(out fp); item.UgoiraPreviewFile = fp; }
-                else if (!preview.Value) { url_o.IsUgoiraDownloaded(out fp); item.UgoiraOriginalFile = fp; }                    
+                else if (!preview.Value) { url_o.IsUgoiraDownloaded(out fp); item.UgoiraOriginalFile = fp; }
             }
             catch (Exception ex) { ex.ERROR("GetUgoiraFile"); }
             return (fp);
@@ -1844,7 +1880,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == PixivItemType.Page || 
+                    if (item.ItemType == PixivItemType.Page ||
                         item.ItemType == PixivItemType.Pages)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
@@ -1860,7 +1896,7 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == PixivItemType.Pages || 
+                    if (item.ItemType == PixivItemType.Pages ||
                         item.ItemType == PixivItemType.Page)
                         result = item.Illust is Pixeez.Objects.Work ? true : false;
                 }
@@ -1876,9 +1912,9 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == PixivItemType.Work || 
-                        item.ItemType == PixivItemType.Page || 
-                        item.ItemType == PixivItemType.Pages || 
+                    if (item.ItemType == PixivItemType.Work ||
+                        item.ItemType == PixivItemType.Page ||
+                        item.ItemType == PixivItemType.Pages ||
                         item.ItemType == PixivItemType.Ugoira)
                         result = item.Illust is Pixeez.Objects.Work && item.Illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? true : false;
                 }
@@ -1894,9 +1930,9 @@ namespace PixivWPF.Common
             {
                 if (item is PixivItem)
                 {
-                    if (item.ItemType == PixivItemType.Work || 
-                        item.ItemType == PixivItemType.Page || 
-                        item.ItemType == PixivItemType.Pages || 
+                    if (item.ItemType == PixivItemType.Work ||
+                        item.ItemType == PixivItemType.Page ||
+                        item.ItemType == PixivItemType.Pages ||
                         item.ItemType == PixivItemType.Movie)
                         result = item.Illust is Pixeez.Objects.Work && item.Illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? true : false;
                 }

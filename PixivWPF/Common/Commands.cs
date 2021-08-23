@@ -1284,7 +1284,7 @@ namespace PixivWPF.Common
                         if (item.IsPage())
                         {
                             string fp = string.Empty;
-                            item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index >=0 ? item.Index : 0, touch: false);
+                            item.IsDownloaded = illust.IsDownloadedAsync(out fp, item.Index >= 0 ? item.Index : 0, touch: false);
                             string fp_d = item.IsDownloaded ? fp : string.Empty;
                             string fp_o = illust.GetOriginalUrl(item.Index).GetImageCachePath();
                             string fp_p = illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview).GetImageCachePath();
