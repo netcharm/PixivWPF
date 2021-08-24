@@ -685,6 +685,7 @@ namespace PixivWPF.Pages
         private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             e.Handled = true;
+            if (ViewerActionMore.IsOpen) return;
             ChangeIllustPage(-Math.Sign(e.Delta));
         }
 
@@ -820,9 +821,18 @@ namespace PixivWPF.Pages
 
                 if (btnViewFullSize.IsChecked.Value)
                 {
+                    ImageViewerRotate.Angle = ImageRotate.Angle;
+                    ImageViewerScale.ScaleX = ImageScale.ScaleX;
+                    ImageViewerScale.ScaleY = ImageScale.ScaleY;
+
+                    ImageScale.ScaleX = 1;
+                    ImageScale.ScaleY = 1;
+                    ImageRotate.Angle = 0;
+
                     PreviewBox.HorizontalAlignment = HorizontalAlignment.Center;
                     PreviewBox.VerticalAlignment = VerticalAlignment.Center;
                     PreviewBox.Stretch = Stretch.None;
+                    PreviewBox.StretchDirection = StretchDirection.Both;
                     PreviewScroll.PanningMode = PanningMode.Both;
                     PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
                     PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
@@ -832,15 +842,24 @@ namespace PixivWPF.Pages
                 }
                 else
                 {
+                    ImageRotate.Angle = ImageViewerRotate.Angle;
+                    ImageScale.ScaleX = ImageViewerScale.ScaleX;
+                    ImageScale.ScaleY = ImageViewerScale.ScaleY;
+
+                    ImageViewerScale.ScaleX = 1;
+                    ImageViewerScale.ScaleY = 1;
+                    ImageViewerRotate.Angle = 0;
+
+                    LastZoomRatio = ZoomRatio.Value;
                     PreviewBox.HorizontalAlignment = HorizontalAlignment.Stretch;
                     PreviewBox.VerticalAlignment = VerticalAlignment.Stretch;
                     PreviewBox.Stretch = Stretch.Uniform;
+                    PreviewBox.StretchDirection = StretchDirection.DownOnly;
                     PreviewScroll.PanningMode = PanningMode.None;
                     PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
                     PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
                     InfoBar.Margin = new Thickness(16);
                     ActionBar.Margin = new Thickness(0);
-                    LastZoomRatio = ZoomRatio.Value;
                     ZoomRatio.Value = 1.0;
                 }
                 //ActionViewFullSize.IsChecked = IsFullSize;
@@ -877,34 +896,29 @@ namespace PixivWPF.Pages
                     try
                     {
                         ActionZoomFitOp = true;
-                        bool IsRotated = false;
-                        if (_last_transform_matrix_ != null)
-                        {
-                            var scaleX = _last_transform_matrix_.M11;
-                            var scaleY = _last_transform_matrix_.M22;
-                            var v = new Vector(1, 0);
-                            var rotated = Vector.Multiply(v, _last_transform_matrix_);
-                            double angleBetween = Math.Ceiling(Vector.AngleBetween(v, rotated));
 
-                            //var radians = Math.Atan2(matrix.M21, matrix.M11);
-                            //var degrees = radians * 180 / Math.PI;
+                        var degrees = btnViewFullSize.IsChecked.Value ? ImageViewerRotate.Angle : ImageRotate.Angle;
+                        bool IsRotated = degrees % 180 != 0 ? true : false;
 
-                            IsRotated = angleBetween % 180 != 0 ? true : false;
-                        }
                         var targetX = IsRotated ?  Preview.Source.Height : Preview.Source.Width;
                         var targetY = IsRotated ?  Preview.Source.Width : Preview.Source.Height;
 
-                        if (sender == btnZoomFitHeight)
+                        if (sender == btnZoomFitWidth)
+                        {
+                            var ratio = PreviewScroll.ActualWidth / targetX;
+                            var delta = PreviewScroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= PreviewScroll.ActualHeight ? 0 : 14;
+                            ZoomRatio.Value = (PreviewScroll.ActualWidth - delta) / targetX;
+                        }
+                        else if (sender == btnZoomFitHeight)
                         {
                             var ratio = PreviewScroll.ActualHeight / targetY;
                             var delta = PreviewScroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= PreviewScroll.ActualWidth ? 0 : 14;
                             ZoomRatio.Value = (PreviewScroll.ActualHeight - delta) / targetY;
                         }
-                        else if (sender == btnZoomFitWidth)
+                        if (btnViewFullSize.IsChecked.Value)
                         {
-                            var ratio = PreviewScroll.ActualWidth / targetX;
-                            var delta = PreviewScroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= PreviewScroll.ActualHeight ? 0 : 14;
-                            ZoomRatio.Value = (PreviewScroll.ActualWidth - delta) / targetX;
+                            ImageViewerScale.ScaleX = ImageViewerScale.ScaleX >= 0 ? ZoomRatio.Value : -ZoomRatio.Value;
+                            ImageViewerScale.ScaleY = ImageViewerScale.ScaleY >= 0 ? ZoomRatio.Value : -ZoomRatio.Value;
                         }
                         var offsetX = (PreviewScroll.ExtentWidth - PreviewScroll.ViewportWidth) / 2;
                         var offsetY = (PreviewScroll.ExtentHeight - PreviewScroll.ViewportHeight) / 2;
@@ -946,6 +960,11 @@ namespace PixivWPF.Pages
                         finally { e.Handled = true; ActionZoomFitOp = false; }
                     }).Invoke();
                 }
+                if (btnViewFullSize.IsChecked.Value)
+                {
+                    ImageViewerScale.ScaleX = ImageViewerScale.ScaleX >= 0 ? ZoomRatio.Value : -ZoomRatio.Value;
+                    ImageViewerScale.ScaleY = ImageViewerScale.ScaleY >= 0 ? ZoomRatio.Value : -ZoomRatio.Value;
+                }
             }
         }
 
@@ -956,36 +975,44 @@ namespace PixivWPF.Pages
             ViewerActionMore.IsOpen = true;
         }
 
-        private Matrix _last_transform_matrix_ = new Matrix();
         private void ActionMoreOp_Click(object sender, RoutedEventArgs e)
         {
-            if (_last_transform_matrix_ == null) _last_transform_matrix_ = new Matrix();
-            //Preview.RenderTransformOrigin = new Point(0.5, 0.5);
+            double tsX = 1, tsY = 1, rs = 0;
 
-            if (sender == btnViewerActionFlipH)
+            if (sender == btnViewerActionReset)
             {
-                _last_transform_matrix_.Scale(-1, 1);
-                Preview.RenderTransform = new MatrixTransform(_last_transform_matrix_);
+                ImageScale.ScaleX = 1;
+                ImageScale.ScaleY = 1;
+                ImageRotate.Angle = 0;
+
+                ImageViewerScale.ScaleX = 1;
+                ImageViewerScale.ScaleY = 1;
+                ImageViewerRotate.Angle = 0;
             }
-            else if (sender == btnViewerActionFlipV)
+            else if (sender == btnViewerActionFlipH) { tsX = -1; }
+            else if (sender == btnViewerActionFlipV) { tsY = -1; }
+            else if (sender == btnViewerActionRotate90L) { rs = -90; }
+            else if (sender == btnViewerActionRotate90R) { rs = 90; }
+
+            if (btnViewFullSize.IsChecked.Value)
             {
-                _last_transform_matrix_.Scale(1, -1);
-                Preview.RenderTransform = new MatrixTransform(_last_transform_matrix_);
+                ImageScale.ScaleX = 1;
+                ImageScale.ScaleY = 1;
+                ImageRotate.Angle = 0;
+
+                ImageViewerScale.ScaleX *= tsX;
+                ImageViewerScale.ScaleY *= tsY;
+                ImageViewerRotate.Angle += rs;
             }
-            else if (sender == btnViewerActionRotate90L)
+            else
             {
-                _last_transform_matrix_.Rotate(-90);
-                Preview.RenderTransform = new MatrixTransform(_last_transform_matrix_);
-            }
-            else if (sender == btnViewerActionRotate90R)
-            {
-                _last_transform_matrix_.Rotate(90);
-                Preview.RenderTransform = new MatrixTransform(_last_transform_matrix_);
-            }
-            else if (sender == btnViewerActionReset)
-            {
-                _last_transform_matrix_ = new Matrix();
-                Preview.RenderTransform = null;
+                ImageScale.ScaleX *= tsX;
+                ImageScale.ScaleY *= tsY;
+                ImageRotate.Angle += rs;
+
+                ImageViewerScale.ScaleX = 1;
+                ImageViewerScale.ScaleY = 1;
+                ImageViewerRotate.Angle = 0;
             }
         }
 
