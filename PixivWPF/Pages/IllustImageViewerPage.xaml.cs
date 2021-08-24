@@ -210,7 +210,7 @@ namespace PixivWPF.Pages
                     var state = received == length ? TaskStatus.RanToCompletion : received < length ? TaskStatus.Running : TaskStatus.Faulted;
                     var state_info = "Idle";
                     if (state == TaskStatus.Running) state_info = "Downloading";
-                    else if (state == TaskStatus.RanToCompletion || received >= length) state_info = "Finished";                   
+                    else if (state == TaskStatus.RanToCompletion || received >= length) state_info = "Finished";
                     else state_info = "Failed";
                     var info = $"{state_info.PadRight(12, ' ')}: {received} B / {length} B, {received.SmartFileSize(trimzero: false)} / {length.SmartFileSize(trimzero: false)}";
                     var filename = GetFileName();
@@ -629,6 +629,13 @@ namespace PixivWPF.Pages
 
                     btnZoomFitHeight.MouseOverAction();
                     btnZoomFitWidth.MouseOverAction();
+
+                    btnViewActionMore.MouseOverAction();
+                    btnViewerActionFlipH.MouseOverAction();
+                    btnViewerActionFlipV.MouseOverAction();
+                    btnViewerActionRotate90L.MouseOverAction();
+                    btnViewerActionRotate90R.MouseOverAction();
+                    btnViewerActionReset.MouseOverAction();
                     #endregion
 
                     //PreviewWait.ReloadEnabled = true;
@@ -645,7 +652,7 @@ namespace PixivWPF.Pages
                     if (Contents is PixivItem) UpdateDetail(Contents);
                 }
             }
-            catch(Exception ex) { ex.ERROR("ViewerLoaded"); }
+            catch (Exception ex) { ex.ERROR("ViewerLoaded"); }
             finally { ActionZoomFitOp = false; }
         }
 
@@ -905,7 +912,7 @@ namespace PixivWPF.Pages
                             if (delta > 0)
                             {
                                 if (e.OldValue >= 0.25 && e.NewValue < 1.5) eq = 0.5;
-                                else if (e.OldValue >= 0.5 && e.NewValue < 2.0) eq = 1;                                
+                                else if (e.OldValue >= 0.5 && e.NewValue < 2.0) eq = 1;
                             }
                             else if (delta < 0)
                             {
@@ -918,6 +925,46 @@ namespace PixivWPF.Pages
                         finally { e.Handled = true; ActionZoomFitOp = false; }
                     }).Invoke();
                 }
+            }
+        }
+
+        private void ActionMore_Click(object sender, RoutedEventArgs e)
+        {
+            ViewerActionMore.PlacementTarget = btnViewActionMore;
+            ViewerActionMore.Placement = System.Windows.Controls.Primitives.PlacementMode.Right;
+            ViewerActionMore.IsOpen = true;
+        }
+
+        private Matrix _last_transform_matrix_ = new Matrix();
+        private void ActionMoreOp_Click(object sender, RoutedEventArgs e)
+        {
+            if (_last_transform_matrix_ == null) _last_transform_matrix_ = new Matrix();
+            //Preview.RenderTransformOrigin = new Point(0.5, 0.5);
+
+            if (sender == btnViewerActionFlipH)
+            {
+                _last_transform_matrix_.Scale(-1, 1);
+                Preview.RenderTransform = new MatrixTransform(_last_transform_matrix_);
+            }
+            else if (sender == btnViewerActionFlipV)
+            {
+                _last_transform_matrix_.Scale(1, -1);
+                Preview.RenderTransform = new MatrixTransform(_last_transform_matrix_);
+            }
+            else if (sender == btnViewerActionRotate90L)
+            {
+                _last_transform_matrix_.Rotate(-90);
+                Preview.RenderTransform = new MatrixTransform(_last_transform_matrix_);
+            }
+            else if (sender == btnViewerActionRotate90R)
+            {
+                _last_transform_matrix_.Rotate(90);
+                Preview.RenderTransform = new MatrixTransform(_last_transform_matrix_);
+            }
+            else if (sender == btnViewerActionReset)
+            {
+                _last_transform_matrix_ = new Matrix();
+                Preview.RenderTransform = null;
             }
         }
 

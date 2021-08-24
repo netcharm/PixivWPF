@@ -6802,6 +6802,9 @@ namespace PixivWPF.Common
                 if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.StartsWith("ZoomBar") && button.ActualWidth >= 32)
                     button.Foreground = Theme.IdealForegroundBrush;
 
+                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.StartsWith("TransformBar") && button.ActualWidth >= 32)
+                    button.Foreground = Theme.IdealForegroundBrush;
+
                 if ((button.Parent is Grid) && (button.Parent as Grid).Name.Equals("PopupContainer") && button.ActualWidth >= 24)
                     button.Foreground = Theme.IdealForegroundBrush;
 
@@ -6819,6 +6822,9 @@ namespace PixivWPF.Common
                     button.Foreground = Theme.AccentBrush;
 
                 if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.StartsWith("ZoomBar") && button.ActualWidth >= 32)
+                    button.Foreground = Theme.AccentBrush;
+
+                if ((button.Parent is StackPanel) && (button.Parent as StackPanel).Name.StartsWith("TransformBar") && button.ActualWidth >= 32)
                     button.Foreground = Theme.AccentBrush;
 
                 if ((button.Parent is Grid) && (button.Parent as Grid).Name.Equals("PopupContainer") && button.ActualWidth >= 24)
