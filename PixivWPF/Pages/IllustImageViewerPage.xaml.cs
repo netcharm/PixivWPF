@@ -877,18 +877,39 @@ namespace PixivWPF.Pages
                     try
                     {
                         ActionZoomFitOp = true;
+                        bool IsRotated = false;
+                        if (_last_transform_matrix_ != null)
+                        {
+                            var scaleX = _last_transform_matrix_.M11;
+                            var scaleY = _last_transform_matrix_.M22;
+                            var v = new Vector(1, 0);
+                            var rotated = Vector.Multiply(v, _last_transform_matrix_);
+                            double angleBetween = Math.Ceiling(Vector.AngleBetween(v, rotated));
+
+                            //var radians = Math.Atan2(matrix.M21, matrix.M11);
+                            //var degrees = radians * 180 / Math.PI;
+
+                            IsRotated = angleBetween % 180 != 0 ? true : false;
+                        }
+                        var targetX = IsRotated ?  Preview.Source.Height : Preview.Source.Width;
+                        var targetY = IsRotated ?  Preview.Source.Width : Preview.Source.Height;
+
                         if (sender == btnZoomFitHeight)
                         {
-                            var ratio = PreviewScroll.ActualHeight / Preview.Source.Height;
-                            var delta = PreviewScroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || Preview.Source.Width * ratio <= PreviewScroll.ActualWidth ? 0 : 14;
-                            ZoomRatio.Value = (PreviewScroll.ActualHeight - delta) / Preview.Source.Height;
+                            var ratio = PreviewScroll.ActualHeight / targetY;
+                            var delta = PreviewScroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= PreviewScroll.ActualWidth ? 0 : 14;
+                            ZoomRatio.Value = (PreviewScroll.ActualHeight - delta) / targetY;
                         }
                         else if (sender == btnZoomFitWidth)
                         {
-                            var ratio = PreviewScroll.ActualWidth / Preview.Source.Width;
-                            var delta = PreviewScroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || Preview.Source.Height * ratio <= PreviewScroll.ActualHeight ? 0 : 14;
-                            ZoomRatio.Value = (PreviewScroll.ActualWidth - delta) / Preview.Source.Width;
+                            var ratio = PreviewScroll.ActualWidth / targetX;
+                            var delta = PreviewScroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= PreviewScroll.ActualHeight ? 0 : 14;
+                            ZoomRatio.Value = (PreviewScroll.ActualWidth - delta) / targetX;
                         }
+                        var offsetX = (PreviewScroll.ExtentWidth - PreviewScroll.ViewportWidth) / 2;
+                        var offsetY = (PreviewScroll.ExtentHeight - PreviewScroll.ViewportHeight) / 2;
+                        PreviewScroll.ScrollToHorizontalOffset(offsetX >= 0 ? offsetX : 0);
+                        PreviewScroll.ScrollToVerticalOffset(offsetY >= 0 ? offsetY : 0);
                     }
                     catch (Exception ex) { ex.ERROR("ZoomFit"); }
                     finally { ActionZoomFitOp = false; }

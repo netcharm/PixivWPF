@@ -133,6 +133,7 @@
 
         <!-- Illust Preview -->
         <ScrollViewer Grid.Row="0" x:Name="PreviewScroll" ScrollChanged="PreviewScroll_ScrollChanged"
+                      RenderTransformOrigin="0.5,0.5"
                       HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="PreviewBox"
                 Width="Auto" Height="Auto" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
@@ -198,7 +199,7 @@
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
         </StackPanel>
 
-        <Popup x:Name="ViewerActionMore" x:Uid="ViewerActionMore" VerticalOffset="8"
+        <Popup x:Name="ViewerActionMore" x:Uid="ViewerActionMore" VerticalOffset="12"
             PlacementTarget="{Binding ElementName=btnViewerAction}" Placement="Left" StaysOpen="False" AllowsTransparency="True" >
             <Grid>
                 <Rectangle Grid.Column="0" Grid.Row="0"
@@ -207,7 +208,8 @@
                            Fill="{DynamicResource MahApps.Brushes.Menu.Background}"/>
                 <StackPanel Grid.Column="0" Grid.Row="0" 
                     x:Name="TransformBar" x:Uid="TransformBar" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Button x:Name="btnViewerActionFlipH" x:Uid="ViewerActionFlipH" Margin="4" Width="48" Height="48"
+                    <Button x:Name="btnViewerActionFlipH" x:Uid="ViewerActionFlipH" Margin="4" Width="36" Height="36"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
                         BorderThickness="0" BorderBrush="Transparent"
                         ToolTip="Flip Horizontal" Click="ActionMoreOp_Click">
@@ -215,7 +217,8 @@
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
                             HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
                     </Button>
-                    <Button x:Name="btnViewerActionFlipV" x:Uid="ViewerActionFlipV" Margin="4" Width="48" Height="48"
+                    <Button x:Name="btnViewerActionFlipV" x:Uid="ViewerActionFlipV" Margin="4" Width="36" Height="36"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
                         BorderThickness="0" BorderBrush="Transparent"
                         ToolTip="Flip Vertical" Click="ActionMoreOp_Click">
@@ -224,7 +227,8 @@
                             HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
                     </Button>
                     <Separator Margin="4,0"/>
-                    <Button x:Name="btnViewerActionRotate90L" x:Uid="ViewerActionRotate90L" Margin="4" Width="48" Height="48"
+                    <Button x:Name="btnViewerActionRotate90L" x:Uid="ViewerActionRotate90L" Margin="4" Width="36" Height="36"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
                         BorderThickness="0" BorderBrush="Transparent"
                         ToolTip="Rotate 90 Left" Click="ActionMoreOp_Click">
@@ -236,7 +240,8 @@
                             </TextBlock.LayoutTransform>
                         </TextBlock>
                     </Button>
-                    <Button x:Name="btnViewerActionRotate90R" x:Uid="ViewerActionRotate90R" Margin="4" Width="48" Height="48"
+                    <Button x:Name="btnViewerActionRotate90R" x:Uid="ViewerActionRotate90R" Margin="4" Width="36" Height="36"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
                         BorderThickness="0" BorderBrush="Transparent"
                         ToolTip="Rotate 90 Right" Click="ActionMoreOp_Click">
@@ -245,7 +250,8 @@
                             HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
                     </Button>
                     <Separator Margin="4,0" />
-                    <Button x:Name="btnViewerActionReset" x:Uid="ViewerActionReset" Margin="4" Width="48" Height="48"
+                    <Button x:Name="btnViewerActionReset" x:Uid="ViewerActionReset" Margin="4" Width="36" Height="36"
+                            Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
                         BorderThickness="0" BorderBrush="Transparent"
                         ToolTip="Restore Default" Click="ActionMoreOp_Click">
@@ -269,7 +275,7 @@
                 <!--<Path Data="F1 M 14.091797 19.970703 L 4.111328 10 L 14.091797 0.029297 L 14.970703 0.908203 L 5.888672 10 L 14.970703 19.091797 Z " Margin="4,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />-->
             </Button>
             <Button x:Name="btnViewNextPage" x:Uid="ViewNextPage" Width="64" Height="64"
-                Style="{DynamicResource MahApps.Styles.Button.}" Background="Transparent"
+                Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0"
                 ToolTip="Next Page" Click="ActionViewNextPage_Click" >
                 <TextBlock Margin="4,0,0,0" Text="&#xE76C;" FontSize="32" FontFamily="Segoe MDL2 Assets"
