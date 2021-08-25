@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,11 +12,10 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 using MahApps.Metro.Controls;
-using MahApps.Metro.IconPacks;
 using PixivWPF.Common;
-using System.Threading;
 
 namespace PixivWPF.Pages
 {
@@ -63,19 +63,19 @@ namespace PixivWPF.Pages
         private Popup PreviewPopup = null;
         private Rectangle PreviewPopupBackground = null;
         private IList<Button> PreviewPopupToolButtons = new List<Button>();
-        private System.Timers.Timer PreviewPopupTimer = null;
+        private DispatcherTimer PreviewPopupTimer = null;
 
         private ContextMenu ContextMenuBookmarkActions = null;
         private ContextMenu ContextMenuFollowActions = null;
         private ContextMenu ContextMenuIllustActions = null;
         private Dictionary<string, MenuItem> ContextMenuActionItems = new Dictionary<string, MenuItem>();
 
-        private void InitPopupTimer(ref System.Timers.Timer timer)
+        private void InitPopupTimer(ref DispatcherTimer timer)
         {
             if (timer == null)
             {
-                timer = new System.Timers.Timer(5000) { AutoReset = true, Enabled = false };
-                timer.Elapsed += PreviewPopupTimer_Elapsed;
+                timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(5), IsEnabled = false };
+                timer.Tick += PreviewPopupTimer_Tick;
             }
         }
 
@@ -2447,10 +2447,9 @@ namespace PixivWPF.Pages
                         FavoriteItems.Clear(batch: false, force: true);
                         this.DoEvents();
 
-                        if (PreviewPopupTimer is System.Timers.Timer)
+                        if (PreviewPopupTimer is DispatcherTimer)
                         {
                             PreviewPopupTimer.Stop();
-                            PreviewPopupTimer.Dispose();
                         }
                         PreviewPopup = null;
 
@@ -2667,7 +2666,7 @@ namespace PixivWPF.Pages
         }
 
         #region Preview Popup
-        private async void PreviewPopupTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private async void PreviewPopupTimer_Tick(object sender, EventArgs e)
         {
             try
             {
@@ -2687,7 +2686,7 @@ namespace PixivWPF.Pages
 
         private void PreviewPopup_Opened(object sender, EventArgs e)
         {
-            if (PreviewPopup is Popup && PreviewPopupTimer is System.Timers.Timer)
+            if (PreviewPopup is Popup && PreviewPopupTimer is DispatcherTimer)
             {
                 PreviewPopupTimer.Start();
             }
@@ -2695,7 +2694,7 @@ namespace PixivWPF.Pages
 
         private void PreviewPopup_Closed(object sender, EventArgs e)
         {
-            if (PreviewPopup is Popup && PreviewPopupTimer is System.Timers.Timer)
+            if (PreviewPopup is Popup && PreviewPopupTimer is DispatcherTimer)
             {
                 PreviewPopupTimer.Stop();
             }
@@ -2703,7 +2702,7 @@ namespace PixivWPF.Pages
 
         private void PreviewPopup_MouseEnter(object sender, MouseEventArgs e)
         {
-            if (PreviewPopup is Popup && PreviewPopup.IsOpen && PreviewPopupTimer is System.Timers.Timer)
+            if (PreviewPopup is Popup && PreviewPopup.IsOpen && PreviewPopupTimer is DispatcherTimer)
             {
                 PreviewPopupTimer.Stop();
             }
@@ -2711,7 +2710,7 @@ namespace PixivWPF.Pages
 
         private void PreviewPopup_MouseLeave(object sender, MouseEventArgs e)
         {
-            if (PreviewPopup is Popup && PreviewPopup.IsOpen && PreviewPopupTimer is System.Timers.Timer)
+            if (PreviewPopup is Popup && PreviewPopup.IsOpen && PreviewPopupTimer is DispatcherTimer)
             {
                 PreviewPopupTimer.Start();
             }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Threading;
 
 using PixivWPF.Common;
 
@@ -75,7 +76,7 @@ namespace PixivWPF.Pages
         #endregion
 
         #region Time Checking
-        private System.Timers.Timer autoTaskTimer = null;
+        private DispatcherTimer autoTaskTimer = null;
 
         private async void CheckJobStateAsync()
         {
@@ -112,15 +113,15 @@ namespace PixivWPF.Pages
                 if (autoTaskTimer == null)
                 {
                     var setting = Application.Current.LoadSetting();
-                    autoTaskTimer = new System.Timers.Timer(TimeSpan.FromSeconds(setting.ToastTimeout).TotalMilliseconds) { AutoReset = true, Enabled = false };
-                    autoTaskTimer.Elapsed += Timer_Elapsed;
-                    autoTaskTimer.Enabled = true;
+                    autoTaskTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(setting.ToastTimeout), IsEnabled = false };
+                    autoTaskTimer.Tick += Timer_Tick;
+                    autoTaskTimer.Start();
                 }
             }
             catch (Exception ex) { ex.ERROR("InitTaskTimer"); }
         }
 
-        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void Timer_Tick(object sender, EventArgs e)
         {
             CheckJobStateAsync();
         }

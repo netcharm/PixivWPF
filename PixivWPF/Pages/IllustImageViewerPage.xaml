@@ -223,7 +223,7 @@
                         ToolTip="Flip Horizontal" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE13C;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0"/>
                     </Button>
                     <Button x:Name="btnViewerActionFlipV" x:Uid="ViewerActionFlipV" Margin="4" Width="36" Height="36"
                             Style="{DynamicResource MahApps.Styles.Button.Square}"
@@ -232,9 +232,9 @@
                         ToolTip="Flip Vertical" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE174;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0"/>
                     </Button>
-                    <Separator Margin="4,0"/>
+                    <Separator Margin="2,0" Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"/>
                     <Button x:Name="btnViewerActionRotate90L" x:Uid="ViewerActionRotate90L" Margin="4" Width="36" Height="36"
                             Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
@@ -242,7 +242,7 @@
                         ToolTip="Rotate 90 Left" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE7AD;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0" >
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0" >
                             <TextBlock.LayoutTransform>
                                 <ScaleTransform ScaleX="-1"/>
                             </TextBlock.LayoutTransform>
@@ -255,9 +255,9 @@
                         ToolTip="Rotate 90 Right" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE7AD;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0"/>
                     </Button>
-                    <Separator Margin="4,0" />
+                    <Separator Margin="2,0" Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"/>
                     <Button x:Name="btnViewerActionReset" x:Uid="ViewerActionReset" Margin="4" Width="36" Height="36"
                             Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
@@ -265,7 +265,7 @@
                         ToolTip="Restore" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE777;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0"/>
                     </Button>
                 </StackPanel>
             </Grid>

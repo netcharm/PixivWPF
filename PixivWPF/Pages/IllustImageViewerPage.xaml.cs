@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Media;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 using MahApps.Metro.Controls;
 using PixivWPF.Common;
@@ -968,16 +967,34 @@ namespace PixivWPF.Pages
             }
         }
 
+        private DispatcherTimer _popupTimer = null;
         private void ActionMore_Click(object sender, RoutedEventArgs e)
         {
             ViewerActionMore.PlacementTarget = btnViewActionMore;
             ViewerActionMore.Placement = System.Windows.Controls.Primitives.PlacementMode.Right;
             ViewerActionMore.IsOpen = true;
+
+            if (_popupTimer == null)
+            {
+                _popupTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(5) };
+                _popupTimer.Tick += (obj, evt) =>
+                {
+                    (_popupTimer as DispatcherTimer).Stop();
+                    if (ViewerActionMore.IsOpen) ViewerActionMore.IsOpen = false;
+                };
+            }
+            _popupTimer.Start();
         }
 
         private void ActionMoreOp_Click(object sender, RoutedEventArgs e)
         {
             double tsX = 1, tsY = 1, rs = 0;
+
+            if (_popupTimer is DispatcherTimer)
+            {
+                _popupTimer.Stop();
+                _popupTimer.Start();
+            }
 
             if (sender == btnViewerActionReset)
             {
