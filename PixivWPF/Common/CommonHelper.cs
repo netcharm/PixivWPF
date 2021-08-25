@@ -4724,7 +4724,8 @@ namespace PixivWPF.Common
                 }
                 result = File.Exists(file);
                 var illust = file.GetIllustId().FindIllust();
-                if (result && illust.IsWork() && illust.IsUgoira) MakeUgoiraConcatFile(await illust.GetUgoiraMeta(ajax: true), file);
+                if (result && illust.IsWork() && illust.IsUgoira && (string.IsNullOrEmpty(setting.LastFolder) && file.StartsWith(setting.LastFolder)))
+                    MakeUgoiraConcatFile(await illust.GetUgoiraMeta(ajax: true), file);
             }
             catch (Exception ex) { ex.ERROR($"WriteToFile: {Path.GetFileName(file)}"); }
             return (result);
