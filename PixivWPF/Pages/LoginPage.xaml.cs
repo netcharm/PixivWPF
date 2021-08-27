@@ -72,18 +72,22 @@ namespace PixivWPF.Pages
                 }
 
 #endif
-                edUser.Text = setting.User;
-                edPass.Password = setting.Pass;
-                edProxy.Text = setting.Proxy;
-                chkUseProxy.IsChecked = setting.UsingProxy;
-                chkUseProxyDown.IsChecked = setting.DownloadUsingProxy;
+                new Action(() =>
+                {
+                    edUser.Text = setting.User;
+                    edPass.Password = setting.Pass;
+                    edProxy.Text = setting.Proxy;
+                    chkUseProxy.IsChecked = setting.UsingProxy;
+                    chkUseProxyDown.IsChecked = setting.DownloadUsingProxy;
+                }).Invoke(async: true);
                 this.DoEvents();
             }
             catch (Exception ex) { ex.ERROR("LoginLoaded"); }
             finally
             {
-                //if(Window is Window) Window.SizeToContent = SizeToContent.WidthAndHeight;
-                edUser.Focus();
+                if (string.IsNullOrEmpty(edUser.Text)) edUser.Focus();
+                else if(string.IsNullOrEmpty(edPass.Password)) edPass.Focus();
+                else btnLogin.Focus();
             }
         }
 
@@ -197,7 +201,7 @@ namespace PixivWPF.Pages
 
         public void Dispose()
         {
-            
+
         }
     }
 }

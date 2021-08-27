@@ -21,6 +21,7 @@
                  AllowDrop="True"
                  WindowStartupLocation="CenterScreen" MinWidth="1484" MinHeight="720" Width="1484" Height="964"
                  PreviewDragOver="MainWindow_DragOver" PreviewDrop="MainWindow_Drop"
+                 MouseDown="MainWindow_MouseDown"
                  StateChanged="MainWindow_StateChanged" Activated="MetroWindow_Activated" Deactivated="MetroWindow_Deactivated"
                  Closing="MainWindow_Closing"  >
 

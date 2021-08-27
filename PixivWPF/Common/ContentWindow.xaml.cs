@@ -101,7 +101,7 @@ namespace PixivWPF.Common
                     if (PreftchingStateRing != null) PreftchingStateRing.Stop();
                     PreftchingProgressState.Hide();
                 }
-                if(progress < 0) PreftchingProgressInfo.Hide();
+                if (progress < 0) PreftchingProgressInfo.Hide();
             }).Invoke(async: false);
         }
 
@@ -136,7 +136,7 @@ namespace PixivWPF.Common
             //Activate();
 
             LastWindowStates.Enqueue(WindowState.Normal);
-            UpdateTheme(this);
+            //UpdateTheme(this);
         }
 
         public ContentWindow(string title)

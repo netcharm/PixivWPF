@@ -480,6 +480,16 @@ namespace PixivWPF
             }
         }
 
+        private void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = false;
+            if (e.ChangedButton == MouseButton.Middle)
+            {
+                e.Handled = true;
+                WindowState = WindowState.Minimized;
+            }
+        }
+
         private void DatePicker_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
         {
             //if (Contents is Pages.TilesPage && DatePicker.SelectedDate.HasValue && DatePicker.SelectedDate.Value <= DateTime.Now)

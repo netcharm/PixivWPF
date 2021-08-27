@@ -41,7 +41,7 @@ namespace PixivWPF.Common
                 MinWidth = login.Width;
                 MaxWidth = login.Width;
                 Content = login;
-                this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
                 this.DoEvents();
             }).Invoke(async: false);
 
