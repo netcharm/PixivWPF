@@ -166,6 +166,20 @@ namespace PixivWPF.Pages
         private Action<double, double> reportProgress = null;
         private CancellationTokenSource cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
+        private bool Rotated
+        {
+            get
+            {
+                var degrees = btnViewFullSize.IsChecked.Value ? ImageViewerRotate.Angle : ImageRotate.Angle;
+                return (degrees % 180 != 0 ? true : false);
+            }
+        }
+
+        private bool IsRotated()
+        {
+            return (Rotated);
+        }
+
         private string GetFileName()
         {
             //var original = this.Invoke(GetOriginalCheckState);
@@ -896,8 +910,7 @@ namespace PixivWPF.Pages
                     {
                         ActionZoomFitOp = true;
 
-                        var degrees = btnViewFullSize.IsChecked.Value ? ImageViewerRotate.Angle : ImageRotate.Angle;
-                        bool IsRotated = degrees % 180 != 0 ? true : false;
+                        bool IsRotated = Rotated;
 
                         var targetX = IsRotated ?  Preview.Source.Height : Preview.Source.Width;
                         var targetY = IsRotated ?  Preview.Source.Width : Preview.Source.Height;
@@ -996,6 +1009,8 @@ namespace PixivWPF.Pages
                 _popupTimer.Start();
             }
 
+            bool IsRotated = Rotated;
+
             if (sender == btnViewerActionReset)
             {
                 ImageScale.ScaleX = 1;
@@ -1006,8 +1021,8 @@ namespace PixivWPF.Pages
                 ImageViewerScale.ScaleY = 1;
                 ImageViewerRotate.Angle = 0;
             }
-            else if (sender == btnViewerActionFlipH) { tsX = -1; }
-            else if (sender == btnViewerActionFlipV) { tsY = -1; }
+            else if (sender == btnViewerActionFlipH) { if (IsRotated) tsY = -1; else tsX = -1; }
+            else if (sender == btnViewerActionFlipV) { if (IsRotated) tsX = -1; else tsY = -1; }
             else if (sender == btnViewerActionRotate90L) { rs = -90; }
             else if (sender == btnViewerActionRotate90R) { rs = 90; }
 

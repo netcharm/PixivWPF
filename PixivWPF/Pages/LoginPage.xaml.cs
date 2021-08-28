@@ -73,7 +73,7 @@ namespace PixivWPF.Pages
 
 #endif
                 new Action(() =>
-                {
+                {                    
                     edUser.Text = setting.User;
                     edPass.Password = setting.Pass;
                     edProxy.Text = setting.Proxy;
@@ -108,6 +108,10 @@ namespace PixivWPF.Pages
                 try
                 {
                     LoginWait.Show();
+                    if (ParentWindow is PixivLoginDialog)
+                    {
+                        //ParentWindow.DialogResult = false;
+                    }
 
                     btnLogin.IsEnabled = false;
                     btnCancel.IsEnabled = false;
@@ -154,6 +158,7 @@ namespace PixivWPF.Pages
                             ParentWindow.AccessToken = tokens.AccessToken;
                             ParentWindow.RefreshToken = tokens.RefreshToken;
                             ParentWindow.Tokens = tokens;
+                            ParentWindow.DialogResult = true;
                             CloseWindow();
                         }
                     }

@@ -127,18 +127,17 @@
 
         <Grid.Background>
             <ImageBrush ImageSource="pack://application:,,,/PixivWPF;component/Resources/CheckboardPattern_32.png" 
-                        TileMode="Tile"  Opacity="0.10" 
-                        ViewportUnits="Absolute" Viewport="0,0,32,32"/>
+                TileMode="Tile"  Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
         </Grid.Background>
 
         <!-- Illust Preview -->
         <ScrollViewer Grid.Row="0" x:Name="PreviewScroll" ScrollChanged="PreviewScroll_ScrollChanged"
-                      HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+            HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="PreviewBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 MouseWheel="Preview_MouseWheel" MouseDown="Preview_MouseDown" MouseMove="Preview_MouseMove">
                 <Image x:Name="Preview" x:Uid="Preview" Stretch="None"
-                       HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                    HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                     <Image.LayoutTransform>
                         <TransformGroup>
                             <ScaleTransform x:Name="ImageScale" ScaleX="1" ScaleY="1"/>
@@ -155,39 +154,35 @@
             </Viewbox>
         </ScrollViewer>
         <mah:Badged Grid.Row="0" x:Name="PreviewBadge" x:Uid="PreviewBadge"
-                    Margin="0,0,0,20"  Visibility="Collapsed" Opacity="0.75"
-                    BadgeFontFamily="{DynamicResource MonoSpaceFamily}" BadgeFontSize="16"
-                    BadgePlacementMode="Bottom" BadgeMargin="8,2" />
+            Margin="0,0,0,20"  Visibility="Collapsed" Opacity="0.75"
+            BadgeFontFamily="{DynamicResource MonoSpaceFamily}" BadgeFontSize="16"
+            BadgePlacementMode="Bottom" BadgeMargin="8,2" />
 
-        <StackPanel Grid.Row="0" x:Name="InfoBar"
-                    Orientation="Horizontal" 
-                    HorizontalAlignment="Left" VerticalAlignment="Bottom" 
-                    Margin="16">
+        <StackPanel Grid.Row="0" x:Name="InfoBar" Orientation="Horizontal" Margin="16" HorizontalAlignment="Left" VerticalAlignment="Bottom">
             <iconPacks:PackIconModern Kind="ImageAnts" x:Name="IllustSizeIcon"
-                                      HorizontalAlignment="Right" VerticalAlignment="Center"
-                                      Foreground="{DynamicResource MahApps.Brushes.Accent}" 
-                                      Width="16" Height="16"/>
+                Foreground="{DynamicResource MahApps.Brushes.Accent}" 
+                Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center" />
             <TextBlock x:Name="PreviewSize" x:Uid="PreviewSize" Margin="2,0,4,0" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
         </StackPanel>
 
         <StackPanel Grid.Row="0" x:Name="ZoomBar" Orientation="Vertical" Width="48" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,84,28">
             <Button x:Name="btnZoomFitWidth" x:Uid="ZoomFitWidth" Margin="0,0,0,4" Width="32" Height="32"
-                    Style="{DynamicResource MahApps.Styles.Button.Circle}" 
-                    Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
-                    BorderThickness="0" BorderBrush="Transparent"
-                    ToolTip="Fit Width" Click="ActionZoomFit_Click">
+                Style="{DynamicResource MahApps.Styles.Button.Circle}" 
+                Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
+                BorderThickness="0" BorderBrush="Transparent"
+                ToolTip="Fit Width" Click="ActionZoomFit_Click">
                 <TextBlock Text="&#xF617;" FontSize="24" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
+                    Margin="2,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
             </Button>
             <Button x:Name="btnZoomFitHeight" x:Uid="ZoomFitHeight" Margin="0,0,0,4" Width="32" Height="32"
-                    Style="{DynamicResource MahApps.Styles.Button.Circle}" 
-                    Foreground="{DynamicResource MahApps.Brushes.Accent}"  Background="Transparent"
-                    BorderThickness="0" BorderBrush="Transparent"
-                    ToolTip="Fit Height" Click="ActionZoomFit_Click">
+                Style="{DynamicResource MahApps.Styles.Button.Circle}" 
+                Foreground="{DynamicResource MahApps.Brushes.Accent}"  Background="Transparent"
+                BorderThickness="0" BorderBrush="Transparent"
+                ToolTip="Fit Height" Click="ActionZoomFit_Click">
                 <TextBlock Text="&#xF616;" FontSize="24" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
+                    Margin="2,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Slider x:Name="ZoomRatio" Orientation="Vertical" 
                     Height="200" Width="16"
@@ -217,55 +212,55 @@
                 <StackPanel Grid.Column="0" Grid.Row="0" 
                     x:Name="TransformBar" x:Uid="TransformBar" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Button x:Name="btnViewerActionFlipH" x:Uid="ViewerActionFlipH" Margin="4" Width="36" Height="36"
-                            Style="{DynamicResource MahApps.Styles.Button.Square}"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
                         BorderThickness="0" BorderBrush="Transparent"
                         ToolTip="Flip Horizontal" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE13C;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0"/>
+                            Margin="1,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Button>
                     <Button x:Name="btnViewerActionFlipV" x:Uid="ViewerActionFlipV" Margin="4" Width="36" Height="36"
-                            Style="{DynamicResource MahApps.Styles.Button.Square}"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
                         BorderThickness="0" BorderBrush="Transparent"
                         ToolTip="Flip Vertical" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE174;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0"/>
+                            Margin="1,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
                     <Separator Margin="2,0" Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"/>
                     <Button x:Name="btnViewerActionRotate90L" x:Uid="ViewerActionRotate90L" Margin="4" Width="36" Height="36"
-                            Style="{DynamicResource MahApps.Styles.Button.Square}"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
                         BorderThickness="0" BorderBrush="Transparent"
                         ToolTip="Rotate 90 Left" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE7AD;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0" >
+                            Margin="1,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <TextBlock.LayoutTransform>
                                 <ScaleTransform ScaleX="-1"/>
                             </TextBlock.LayoutTransform>
                         </TextBlock>
                     </Button>
                     <Button x:Name="btnViewerActionRotate90R" x:Uid="ViewerActionRotate90R" Margin="4" Width="36" Height="36"
-                            Style="{DynamicResource MahApps.Styles.Button.Square}"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
                         BorderThickness="0" BorderBrush="Transparent"
                         ToolTip="Rotate 90 Right" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE7AD;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0"/>
+                            Margin="1,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
                     <Separator Margin="2,0" Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"/>
                     <Button x:Name="btnViewerActionReset" x:Uid="ViewerActionReset" Margin="4" Width="36" Height="36"
-                            Style="{DynamicResource MahApps.Styles.Button.Square}"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}"
                         Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="Transparent"
                         BorderThickness="0" BorderBrush="Transparent"
                         ToolTip="Restore" Click="ActionMoreOp_Click">
                         <TextBlock Text="&#xE777;" FontSize="24" FontFamily="Segoe MDL2 Assets"
                             Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0"/>
+                            Margin="1,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -277,67 +272,67 @@
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0"
                 ToolTip="Prev Page" Click="ActionViewPrevPage_Click" >
-                <TextBlock Margin="4,0,0,0" Text="&#xE76B;" FontSize="32" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE76B;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
+                    Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <!--<Path Data="F1 M 14.091797 19.970703 L 4.111328 10 L 14.091797 0.029297 L 14.970703 0.908203 L 5.888672 10 L 14.970703 19.091797 Z " Margin="4,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />-->
             </Button>
             <Button x:Name="btnViewNextPage" x:Uid="ViewNextPage" Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0"
                 ToolTip="Next Page" Click="ActionViewNextPage_Click" >
-                <TextBlock Margin="4,0,0,0" Text="&#xE76C;" FontSize="32" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE76C;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
+                    Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <!--<Path Data="F1 M 5.029297 19.091797 L 14.111328 10 L 5.029297 0.908203 L 5.908203 0.029297 L 15.888672 10 L 5.908203 19.970703 Z " Margin="4,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" />-->
             </Button>
             <Button x:Name="btnViewActionMore" x:Uid="ViewerAction" Width="64" Height="64" 
-                    Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
-                    Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0"
-                    ToolTip="More Actions" Click="ActionMore_Click">
-                <TextBlock Margin="4,0,0,0" Text="&#xE10C;" FontSize="32" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
+                Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0"
+                ToolTip="More Actions" Click="ActionMore_Click">
+                <TextBlock Text="&#xE10C;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
+                    Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <ToggleButton x:Name="btnViewOriginalPage" x:Uid="ViewOriginalPage" Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0"
                 ToolTip="Original Size" Click="ActionViewOriginal_Click" >
-                <TextBlock Margin="4,0,0,0" Text="&#xE1D9;" FontSize="32" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE1D9;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}" 
+                    Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </ToggleButton>
             <ToggleButton x:Name="btnViewFullSize" x:Uid="ViewFullSize" Width="64" Height="64"
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0"
                 ToolTip="Full Size" Click="ActionViewFullSize_Click" >
-                <TextBlock Margin="4,0,0,0" Text="&#xE8A3;" FontSize="32" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE8A3;" FontSize="32" FontFamily="Segoe MDL2 Assets" 
+                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}" 
+                    Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </ToggleButton>
             <Button x:Name="btnOpenIllust" x:Uid="OpenIllust" Width="64" Height="64" 
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0"
                 ToolTip="Open Illust" Click="ActionIllustInfo_Click" >
-                <TextBlock Margin="4,0,0,0" Text="&#xE8A7;" FontSize="32" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE8A7;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
+                    Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Button x:Name="btnOpenCache" x:Uid="OpenCache" Width="64" Height="64" 
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0"
                 ToolTip="Open Cached File" Click="ActionIllustInfo_Click" >
-                <TextBlock Margin="4,0,0,0" Text="&#xEB9F;" FontSize="32" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xEB9F;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
+                    Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Button x:Name="btnSavePage" x:Uid="SavePage" Width="64" Height="64" 
                 Style="{DynamicResource MahApps.Styles.Button.Circle}" Background="Transparent"
                 Foreground="{DynamicResource MahApps.Brushes.Accent}" BorderThickness="0"
                 ToolTip="Save Image" Click="ActionSaveIllust_Click" >
-                <TextBlock Margin="4,0,0,0" Text="&#xE105;" FontSize="32" FontFamily="Segoe MDL2 Assets"
-                           Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Text="&#xE105;" FontSize="32" FontFamily="Segoe MDL2 Assets"
+                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" 
+                    Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
         </StackPanel>
 

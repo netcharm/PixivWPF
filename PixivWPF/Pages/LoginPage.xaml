@@ -66,7 +66,7 @@
                     <ColumnDefinition Width=".5*"/>
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" x:Name="btnLogin" x:Uid="btnLogin" Content="Login" Margin="12, 12, 12, 12" Click="Login_Click" IsDefault="True" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                <Button Grid.Column="1" x:Name="btnCancel" x:Uid="btnCancel" Content="Cancel" Margin="12, 12, 12, 12" Click="Cancel_Click" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Button Grid.Column="1" x:Name="btnCancel" x:Uid="btnCancel" Content="Cancel" Margin="12, 12, 12, 12" Click="Cancel_Click" IsCancel="True" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
             </Grid>
         </DockPanel>
         <mah:ProgressRing x:Name="LoginWait" 

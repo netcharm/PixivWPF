@@ -1387,6 +1387,13 @@ namespace PixivWPF.Common
                     if (IsStart && !IsDownloading) Start(setting.DownloadWithFailResume);
                 }
             }
+            if (Info is DownloadInfo && Info.Illust.IsUgoira() && !string.IsNullOrEmpty(Info.FileName))
+            {
+                new Action(async () =>
+                {
+                    (await Info.Illust.GetUgoiraMeta(ajax: true)).MakeUgoiraConcatFile(Info.FileName);
+                }).Invoke(async: true);
+            }
         }
 
         private void Download_ToolTipOpening(object sender, ToolTipEventArgs e)

@@ -835,7 +835,7 @@ namespace PixivWPF.Common
             return (result.Trim().Trim(trim_char).HtmlDecode());
         }
 
-        private static string[] html_split = new string[] { Environment.NewLine, "\n", "\r", "\t", "url", "src", "href", "<p>", "</p>", "<br/>", "<br>", "<br />", "><", "</a>", ">", " " };
+        private static string[] html_split = new string[] { Environment.NewLine, "\n", "\r", "\t", "url", "src", "href", "<p>", "</p>", "<br/>", "<br>", "<br />", "><", "</a>", ">", "&nbsp;", " " };
         public static IList<string> ParseLinks(this string html, bool is_src = false)
         {
             List<string> links = new List<string>();
@@ -1132,7 +1132,13 @@ namespace PixivWPF.Common
             }
             if (links.Count <= 0)
             {
-                if (html.Split(Path.GetInvalidPathChars()).Length <= 1 && download_links.Count <= 0) links.Add($"Fuzzy:{html}");
+                if (html.IsFile())
+                {
+                    var fn = Path.GetFileNameWithoutExtension(html);
+                    if(Regex.IsMatch(fn, @"^\d+.*?\d+$", RegexOptions.IgnoreCase)) links.Add(fn.GetIllustId().ArtworkLink());
+                    else links.Add($"Fuzzy:{fn}");
+                }
+                else if (html.Split(Path.GetInvalidPathChars()).Length <= 1 && download_links.Count <= 0) links.Add($"Fuzzy:{html}");
                 foreach (var dl in download_links) links.Add(dl);
             }
             return (links);
@@ -4730,8 +4736,8 @@ namespace PixivWPF.Common
                 }
                 result = File.Exists(file);
                 var illust = file.GetIllustId().FindIllust();
-                if (result && illust.IsWork() && illust.IsUgoira && (string.IsNullOrEmpty(setting.LastFolder) && file.StartsWith(setting.LastFolder)))
-                    MakeUgoiraConcatFile(await illust.GetUgoiraMeta(ajax: true), file);
+                //if (result && illust.IsWork() && illust.IsUgoira && (!string.IsNullOrEmpty(setting.LastFolder) && file.StartsWith(setting.LastFolder)))
+                //    MakeUgoiraConcatFile(await illust.GetUgoiraMeta(ajax: true), file);
             }
             catch (Exception ex) { ex.ERROR($"WriteToFile: {Path.GetFileName(file)}"); }
             return (result);
@@ -5108,11 +5114,6 @@ namespace PixivWPF.Common
             SystemSounds.Beep.Play();
         }
 
-        public static bool IsUgoira(this Pixeez.Objects.Work illust)
-        {
-            return (illust is Pixeez.Objects.Work && illust.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase) ? true : false);
-        }
-
         public static void MakeUgoiraConcatFile(this Pixeez.Objects.UgoiraInfo ugoira_info, string file)
         {
             if (!string.IsNullOrEmpty(file) && ugoira_info != null)
@@ -5137,6 +5138,11 @@ namespace PixivWPF.Common
         public static bool IsWork(this Pixeez.Objects.Work work)
         {
             return (work is Pixeez.Objects.Work);
+        }
+
+        public static bool IsUgoira(this Pixeez.Objects.Work work)
+        {
+            return (work is Pixeez.Objects.Work && (work.IsUgoira || work.Type.Equals("ugoira", StringComparison.CurrentCultureIgnoreCase)));
         }
 
         public static bool IsNormalWork(this Pixeez.Objects.Work work)

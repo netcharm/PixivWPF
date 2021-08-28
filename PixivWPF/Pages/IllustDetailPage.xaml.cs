@@ -254,7 +254,7 @@ namespace PixivWPF.Pages
                                 var trans = tag.TranslatedText(out trans_match);
                                 html.AppendLine($"<a href=\"https://www.pixiv.net/tags/{Uri.EscapeDataString(tag)}/artworks?s_mode=s_tag\" class=\"tag\" title=\"{trans}\" data-tag=\"{tag}\" data-match=\"{trans_match}\" data-tooltip=\"{trans}\">#{tag}</a>");
                                 if (!string.IsNullOrEmpty(trans_match))
-                                    $"{Contents.ID}, {tag} : {trans_match.Replace("'", "\"")}".DEBUG("IllustTagTranslate");
+                                    $"{Contents.ID}, {tag} : {trans_match.Replace("'", "\"")}".DEBUG("TagTranslate");
                             }
                         }
                         html.AppendLine("</div>");
@@ -777,10 +777,10 @@ namespace PixivWPF.Pages
 #else
                     IllustTitle.ToolTip = IllustTitle.Text.TranslatedText(out trans_match);
 #endif
-                    if (!string.IsNullOrEmpty(trans_match)) $"{Contents.ID}, {trans_match}".DEBUG("IllustTitleTranslate");
+                    if (!string.IsNullOrEmpty(trans_match)) $"{Contents.ID}, {trans_match}".DEBUG("TitleTranslate");
                 }
             }
-            catch (Exception ex) { ex.ERROR("UpdateIllustTags"); }
+            catch (Exception ex) { ex.ERROR("UpdateTitle"); }
         }
 
         public void UpdateIllustTags()
@@ -793,7 +793,7 @@ namespace PixivWPF.Pages
                     UpdateIllustTitle();
                 }
             }
-            catch (Exception ex) { ex.ERROR("UpdateIllustTags"); }
+            catch (Exception ex) { ex.ERROR("UpdateTags"); }
         }
 
         public void UpdateIllustDesc()
@@ -802,7 +802,7 @@ namespace PixivWPF.Pages
             {
                 RefreshHtmlRender(IllustDescHtml);
             }
-            catch (Exception ex) { ex.ERROR("UpdateIllustDesc"); }
+            catch (Exception ex) { ex.ERROR("UpdateDesc"); }
         }
 
         public void UpdateWebContent()
