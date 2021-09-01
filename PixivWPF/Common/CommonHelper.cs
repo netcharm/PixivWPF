@@ -1109,7 +1109,7 @@ namespace PixivWPF.Common
                         var fn = m.Value.Trim().Trim(trim_char);
                         try
                         {
-                            var sid = Regex.Replace(Path.GetFileNameWithoutExtension(fn), @"(.*?(\d+)(_(p|ugoira)?(\d+(x\d+)?))?)", "$2", RegexOptions.IgnoreCase);
+                            var sid = Regex.Replace(Path.GetFileNameWithoutExtension(fn), @"^(\d+)((_(p|ugoira)d+)?.*?)$", "$1", RegexOptions.IgnoreCase);
                             var IsFile = string.IsNullOrEmpty(Path.GetExtension(fn)) && !fn.Contains('_') ? false : true;
                             long id;
                             if (long.TryParse(sid, out id) && id > 100)
