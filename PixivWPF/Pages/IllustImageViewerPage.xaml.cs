@@ -79,7 +79,9 @@ namespace PixivWPF.Pages
                             else continue;
                         }
                         InfoBar.ToolTip = string.Join(Environment.NewLine, tips);
+                        StatusBar.ToolTip = InfoBar.ToolTip;
                     }
+                    StatusDownloaded.Show(show: Contents.IsDownloaded);
                 }
             }
             catch (Exception ex) { ex.ERROR("DOWNLOADSTATE"); }
@@ -110,7 +112,10 @@ namespace PixivWPF.Pages
                             else continue;
                         }
                         InfoBar.ToolTip = string.Join(Environment.NewLine, tips);
+                        StatusBar.ToolTip = InfoBar.ToolTip;
                     }
+                    StatusFollowed.Show(show: Contents.IsFollowed);
+                    StatusFaorited.Show(show: Contents.IsFavorited);
                 }
             }
             catch (Exception ex) { ex.ERROR("LIKESTATE"); }
@@ -339,13 +344,18 @@ namespace PixivWPF.Pages
                         sb.AppendLine($"Resolution    = {dpiX:F0}DPI : {dpiY:F0}DPI");
                         sb.AppendLine($"Memory Usage  = {(width * height * img.ColorDepth / 8).SmartFileSize()}");
                         sb.AppendLine($"File Size     = {img.Size.SmartFileSize()}");
-                        sb.AppendLine($"File Name     = {System.IO.Path.GetFileName(img.SourcePath)}");
+                        sb.AppendLine($"File Name     = {Path.GetFileName(img.SourcePath)}");
                         InfoBar.ToolTip = sb.ToString().Trim();
+                        StatusBar.ToolTip = InfoBar.ToolTip;
+
                         Page_SizeChanged(null, null);
                         PreviewWait.Hide();
                     }
                     else PreviewWait.Fail();
                 }
+                StatusFollowed.Show(show: Contents.IsFollowed);
+                StatusFaorited.Show(show: Contents.IsFavorited);
+                StatusDownloaded.Show(show: Contents.IsDownloaded);
             }
             catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
             finally
@@ -398,6 +408,7 @@ namespace PixivWPF.Pages
                     sb.AppendLine($"Page Index = {Contents.Index + 1} / {Contents.Count}");
                     sb.AppendLine($"Downloaded = {Contents.Illust.IsDownloaded(Contents.Index)}");
                     InfoBar.ToolTip = sb.ToString().Trim();
+                    StatusBar.ToolTip = InfoBar.ToolTip;
 
                     PreviewImage = await GetPreviewImage(overwrite);
 
@@ -850,6 +861,7 @@ namespace PixivWPF.Pages
                     PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
                     PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
                     InfoBar.Margin = new Thickness(16, 16, 16, 32);
+                    StatusBar.Margin = new Thickness(16, 16, 16, 52);
                     ActionBar.Margin = new Thickness(0, 0, 16, 16);
                     ZoomRatio.Value = LastZoomRatio;
                 }
@@ -872,6 +884,7 @@ namespace PixivWPF.Pages
                     PreviewScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
                     PreviewScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
                     InfoBar.Margin = new Thickness(16);
+                    StatusBar.Margin = new Thickness(16, 16, 16, 36);
                     ActionBar.Margin = new Thickness(0);
                     ZoomRatio.Value = 1.0;
                 }

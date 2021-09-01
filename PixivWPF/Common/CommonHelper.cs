@@ -351,6 +351,7 @@ namespace PixivWPF.Common
         private static ConcurrentDictionary<long?, Pixeez.Objects.Work> IllustCache = new ConcurrentDictionary<long?, Pixeez.Objects.Work>();
         private static ConcurrentDictionary<long?, Pixeez.Objects.UserBase> UserCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserBase>();
         private static ConcurrentDictionary<long?, Pixeez.Objects.UserInfo> UserInfoCache = new ConcurrentDictionary<long?, Pixeez.Objects.UserInfo>();
+        private static ConcurrentDictionary<string, byte[]> DownloadTaskCache = new ConcurrentDictionary<string, byte[]>();
 
         private static ConcurrentDictionary<string, string> _TagsCache = null;
         public static ConcurrentDictionary<string, string> TagsCache
@@ -4676,9 +4677,9 @@ namespace PixivWPF.Common
         public static async Task<bool> WriteToFile(this Stream source, string file, ContentRangeHeaderValue range = null, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
         {
             var result = false;
-            try
+            using (var ms = new MemoryStream())
             {
-                using (var ms = new MemoryStream())
+                try
                 {
                     if (source.CanSeek) source.Seek(0, SeekOrigin.Begin);
                     var length = range is ContentRangeHeaderValue && range.HasLength ? range.Length ?? 0 : 0;
@@ -4733,13 +4734,12 @@ namespace PixivWPF.Common
 
                     ms.Close();
                     ms.Dispose();
+
+                    result = File.Exists(file);
+                    var illust = file.GetIllustId().FindIllust();
                 }
-                result = File.Exists(file);
-                var illust = file.GetIllustId().FindIllust();
-                //if (result && illust.IsWork() && illust.IsUgoira && (!string.IsNullOrEmpty(setting.LastFolder) && file.StartsWith(setting.LastFolder)))
-                //    MakeUgoiraConcatFile(await illust.GetUgoiraMeta(ajax: true), file);
+                catch (Exception ex) { ex.ERROR($"WriteToFile: {Path.GetFileName(file)}"); }
             }
-            catch (Exception ex) { ex.ERROR($"WriteToFile: {Path.GetFileName(file)}"); }
             return (result);
         }
         #endregion

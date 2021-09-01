@@ -3809,11 +3809,7 @@ namespace PixivWPF.Pages
 
         private void ActionSaveIllust_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == PreviewSave)
-            {
-                Commands.SaveIllust.Execute(Contents);
-            }
-            else if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
+            if (SubIllusts.SelectedItems != null && SubIllusts.SelectedItems.Count > 0)
             {
                 Commands.SaveIllust.Execute(SubIllusts);
             }
