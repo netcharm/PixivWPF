@@ -1503,8 +1503,11 @@ namespace PixivWPF.Common
                 #endregion
 
                 #region TTS Slicing result
-                if (setting.SliceByTTS && TagsT2S is ConcurrentDictionary<string, string>)
+                if (setting.TextSlicingUsingTTS)
                 {
+                    var ptags = TagsT2S is ConcurrentDictionary<string, string>;
+                    var ctags = TagsCache is ConcurrentDictionary<string, string>;
+
                     var ipos = result.IndexOf("💬");
                     var trans = ipos > 0 ? result.Substring(ipos) : string.Empty;
                     var text = ipos > 0 ? result.Replace(trans, string.Empty).Trim() : result;
@@ -1513,11 +1516,21 @@ namespace PixivWPF.Common
                     {
                         foreach (var word in slice_words)
                         {
-                            if (TagsT2S.ContainsKey(word))
+                            if (ctags && TagsT2S.ContainsKey(word))
                             {
                                 text = text.Replace(word, TagsT2S[word]);
-                                matches.Add($"Tags => {word}");
-                                TagsMatched = true;
+                                matches.Add($"CustomTags => {word}");
+                                CustomTagsMatched = true;
+                            }
+                            else if(ptags && TagsCache.ContainsKey(word))
+                            {
+                                var alpha = TagsCache[word].IsAlpha();
+                                if (!TagsCache[word].IsAlpha())
+                                {
+                                    text = text.Replace(word, TagsCache[word]);
+                                    matches.Add($"Tags => {word}");
+                                    TagsMatched = true;
+                                }
                             }
                         }
                         result = string.IsNullOrEmpty(trans) ? text : $"{text}{Environment.NewLine}{trans}";

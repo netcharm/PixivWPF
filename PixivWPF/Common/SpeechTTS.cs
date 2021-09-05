@@ -112,11 +112,10 @@ namespace PixivWPF.Common
                         culture = CultureInfo.GetCultureInfo("en-US");
                 }
 
-                if (culture.EnglishName.StartsWith("unk", StringComparison.CurrentCultureIgnoreCase))
+                if (culture is CultureInfo && culture.EnglishName.StartsWith("unk", StringComparison.CurrentCultureIgnoreCase))
                     culture = null;
             }
-            catch (Exception ex) { ex.ERROR(); culture = null; }
-            finally { }
+            catch (Exception ex) { ex.ERROR("SPEECH"); culture = null; }
 
             return (culture);
         }

@@ -434,7 +434,7 @@ namespace PixivWPF.Common
 
         #region Load/Save tag relative
         private bool using_tts_slice = true;
-        public bool SliceByTTS
+        public bool TextSlicingUsingTTS
         {
             get { return (Cache is Setting ? Cache.using_tts_slice : using_tts_slice); }
             set
