@@ -433,6 +433,17 @@ namespace PixivWPF.Common
         #endregion
 
         #region Load/Save tag relative
+        private bool using_tts_slice = true;
+        public bool SliceByTTS
+        {
+            get { return (Cache is Setting ? Cache.using_tts_slice : using_tts_slice); }
+            set
+            {
+                using_tts_slice = value;
+                if (Cache is Setting) Cache.using_tts_slice = using_tts_slice;
+            }
+        }
+
         public void SaveTags()
         {
             if (TagsReadWrite.Wait(1))

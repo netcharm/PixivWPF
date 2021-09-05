@@ -1502,11 +1502,33 @@ namespace PixivWPF.Common
                 }
                 #endregion
 
+                #region TTS Slicing result
+                if (setting.SliceByTTS && TagsT2S is ConcurrentDictionary<string, string>)
+                {
+                    var ipos = result.IndexOf("💬");
+                    var trans = ipos > 0 ? result.Substring(ipos) : string.Empty;
+                    var text = ipos > 0 ? result.Replace(trans, string.Empty).Trim() : result;
+                    var slice_words = Speech.Slice(text);
+                    if (slice_words is IList<string>)
+                    {
+                        foreach (var word in slice_words)
+                        {
+                            if (TagsT2S.ContainsKey(word))
+                            {
+                                text = text.Replace(word, TagsT2S[word]);
+                                matches.Add($"Tags => {word}");
+                                TagsMatched = true;
+                            }
+                        }
+                        result = string.IsNullOrEmpty(trans) ? text : $"{text}{Environment.NewLine}{trans}";
+                    }
+                }
+                #endregion
+
                 //var contains = CultureInfo.CurrentCulture.CompareInfo.IndexOf(result, translated, CompareOptions.IgnoreCase) >= 0;
                 var contains = result.IndexOf(translated, StringComparison.CurrentCultureIgnoreCase) >= 0;
                 //if (!string.IsNullOrEmpty(translated) && translated.IsAlpha() && !contains) result = $"{result}{Environment.NewLine}💭{translated}";
                 if (!string.IsNullOrEmpty(translated) && !contains) result = $"{result}{Environment.NewLine}💭{translated}";
-
                 matched = string.Join(", ", matches);
             }
             catch (Exception ex) { ex.ERROR("TRANSLATE"); }

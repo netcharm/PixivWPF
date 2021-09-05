@@ -1181,7 +1181,7 @@ namespace PixivWPF.Common
             catch (Exception ex) { ex.ERROR("SPEECH"); }
         }
 
-        public static IEnumerable<string> Slice(this string text, CultureInfo culture, bool async = true)
+        public static IList<string> Slice(this string text, CultureInfo culture, bool async = true)
         {
             var result = new List<string>();
 
@@ -1200,28 +1200,28 @@ namespace PixivWPF.Common
             return (result);
         }
 
-        public static IEnumerable<string> Slice(this string text, string lang, bool async = true)
+        public static IList<string> Slice(this string text, string lang, bool async = true)
         {
             return (Slice(text, FindCultureByName(lang), async));
         }
 
-        public static IEnumerable<string> Slice(this string text)
+        public static IList<string> Slice(this string text)
         {
             CultureInfo culture = null;
             return (Slice(text, culture, true));
         }
 
-        public static IEnumerable<string> Slice(this IEnumerable<string> texts, CultureInfo culture, bool async = true)
+        public static IList<string> Slice(this IEnumerable<string> texts, CultureInfo culture, bool async = true)
         {
             return (Slice(string.Join(Environment.NewLine, texts), culture, async));
         }
 
-        public static IEnumerable<string> Slice(this IEnumerable<string> texts, string lang, bool async = true)
+        public static IList<string> Slice(this IEnumerable<string> texts, string lang, bool async = true)
         {
             return (Slice(texts, FindCultureByName(lang), async));
         }
 
-        public static IEnumerable<string> Slice(this IEnumerable<string> texts)
+        public static IList<string> Slice(this IEnumerable<string> texts)
         {
             CultureInfo culture = null;
             return (Slice(texts, culture, true));

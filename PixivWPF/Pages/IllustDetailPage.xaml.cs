@@ -772,12 +772,13 @@ namespace PixivWPF.Pages
                 if (Contents.IsWork())
                 {
                     string trans_match = string.Empty;
+                    var trans = IllustTitle.Text.TranslatedText(out trans_match);
 #if DEBUG
-                    IllustTitle.ToolTip = IllustTitle.Text.TranslatedText(out trans_match) + (string.IsNullOrEmpty(trans_match) ? string.Empty : $"{Environment.NewLine}Matched: {trans_match}");
+                    IllustTitle.ToolTip = trans + (string.IsNullOrEmpty(trans_match) ? string.Empty : $"{Environment.NewLine}Matched: {trans_match}");
 #else
-                    IllustTitle.ToolTip = IllustTitle.Text.TranslatedText(out trans_match);
+                    IllustTitle.ToolTip = trans;
 #endif
-                    if (!string.IsNullOrEmpty(trans_match)) $"{Contents.ID}, {trans_match}".DEBUG("TitleTranslate");
+                    if (!string.IsNullOrEmpty(trans_match)) $"{Contents.ID}, Trans => {trans}, Match => {trans_match}".DEBUG("TitleTranslate");
                 }
             }
             catch (Exception ex) { ex.ERROR("UpdateTitle"); }
