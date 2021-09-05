@@ -1503,7 +1503,8 @@ namespace PixivWPF.Common
                 #endregion
 
                 #region TTS Slicing result
-                if (setting.TextSlicingUsingTTS)
+                if(result.StartsWith("`") || result.StartsWith("^")) result = result.Substring(1);
+                else if (setting.TextSlicingUsingTTS)
                 {
                     var ptags = TagsT2S is ConcurrentDictionary<string, string>;
                     var ctags = TagsCache is ConcurrentDictionary<string, string>;
