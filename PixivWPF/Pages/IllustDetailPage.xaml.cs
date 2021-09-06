@@ -849,8 +849,8 @@ namespace PixivWPF.Pages
                         var file_p = System.IO.Path.GetFileName(ugoira_info.GetUgoiraUrl(preview: true));
                         var file_o = System.IO.Path.GetFileName(ugoira_info.GetUgoiraUrl(preview: false));
                         List<string> tips = new List<string>();
-                        tips.Add($"Preview  : {file_p}");
-                        tips.Add($"Original : {file_o}");
+                        tips.Add($"Preview  : {file_p} [{(await ugoira_info.GetUgoiraUrl(preview: true).QueryImageFileSize() ?? -1).SmartFileSize()}]");
+                        tips.Add($"Original : {file_o} [{(await ugoira_info.GetUgoiraUrl(preview: false).QueryImageFileSize() ?? -1).SmartFileSize()}]");
                         tips.Add($"Frames   : {frame}");
                         tips.Add($"Times    : {delay * frame / 1000.0:F2} s");
                         tooltip = string.Join(Environment.NewLine, tips);
@@ -1570,7 +1570,7 @@ namespace PixivWPF.Pages
             }
         }
 
-        private void UpdateDetailIllust(PixivItem item)
+        private async void UpdateDetailIllust(PixivItem item)
         {
             try
             {
@@ -1610,7 +1610,7 @@ namespace PixivWPF.Pages
                     stat_tip.Add($"Favorited : {item.Illust.Stats.FavoritedCount.Public} / {item.Illust.Stats.FavoritedCount.Private}");
                 }
                 stat_tip.Add($"Size      : {item.Illust.Width}x{item.Illust.Height}");
-                stat_tip.Add($"Original  : {item.Illust.GetOriginalUrl().GetImageName(item.Count <= 1)}");
+                stat_tip.Add($"Original  : {item.Illust.GetOriginalUrl().GetImageName(item.Count <= 1)} [{(await item.Illust.GetOriginalUrl().QueryImageFileSize() ?? -1).SmartFileSize()}]");
 
                 if (item.Count <= 1) UpdateDownloadedMark();
 
@@ -3127,7 +3127,7 @@ namespace PixivWPF.Pages
             else
                 text = string.Join(Environment.NewLine, text.Trim().Split(Speech.LineBreak, StringSplitOptions.RemoveEmptyEntries));
 
-            if (!string.IsNullOrEmpty(text)) text.KatakanaHalfToFull().Play(culture);
+            if (!string.IsNullOrEmpty(text)) text.Normalizing().Play(culture);
         }
 
         private void ActionCopySelectedText_Click(object sender, RoutedEventArgs e)
@@ -3724,7 +3724,7 @@ namespace PixivWPF.Pages
 
         DateTime lastSelectionChanged = default(DateTime);
         PixivItem lastSelectionItem = null;
-        private void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void SubIllusts_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             e.Handled = false;
             if (Contents.HasPages())
@@ -3752,6 +3752,18 @@ namespace PixivWPF.Pages
                         PreviewBadge.Badge = $"{idx} / {Contents.Count}";
                         UpdateLikeState();
                         UpdateDownloadedMark(SubIllusts.SelectedItem);
+                        if (IllustStatInfo.ToolTip is string)
+                        {
+                            var tips = (IllustStatInfo.ToolTip as string).Split(new string[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                            for (int i = 0; i < tips.Count; i++)
+                            {
+                                if (tips[i].StartsWith("Original  :"))
+                                {
+                                    tips[i] = $"Original  : {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)} [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]";
+                                }
+                            }
+                            IllustStatInfo.ToolTip = string.Join(Environment.NewLine, tips);
+                        }
                     }
                     e.Handled = true;
 

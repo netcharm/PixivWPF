@@ -345,7 +345,7 @@ namespace PixivWPF.Pages
                         sb.AppendLine($"Memory Usage  = {(width * height * img.ColorDepth / 8).SmartFileSize()}");
                         sb.AppendLine($"File Size     = {img.Size.SmartFileSize()}");
                         sb.AppendLine($"File Name     = {Path.GetFileName(img.SourcePath)}");
-                        sb.AppendLine($"Original      = {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)}");
+                        sb.AppendLine($"Original      = {Contents.Illust.GetOriginalUrl(Contents.Index).GetImageName(Contents.Count <= 1)} [{(await Contents.Illust.GetOriginalUrl(Contents.Index).QueryImageFileSize() ?? -1).SmartFileSize()}]");
                         InfoBar.ToolTip = sb.ToString().Trim();
                         StatusBar.ToolTip = InfoBar.ToolTip;
 

@@ -182,7 +182,60 @@ namespace PixivWPF.Common
             return (pages);
         }
 
-        private bool GetPreviewItems(List<string> illusts, List<string> avatars, List<string> page_thumbs, List<string> page_previews)
+        private async Task<List<string>> GetPagesOriginalItems(PixivItem item)
+        {
+            List<string> pages = new List<string>();
+            try
+            {
+                if (Options.IncludePagePreview)
+                {
+                    if (item.IsPage() || item.IsPages())
+                    {
+                        var setting = Application.Current.LoadSetting();
+                        pages.Add(item.Illust.GetOriginalUrl(item.Index));
+                    }
+                    else if (item.IsWork())
+                    {
+                        var illust = item.Illust;
+                        if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
+                        {
+                            if (illust is Pixeez.Objects.IllustWork)
+                            {
+                                var subset = illust as Pixeez.Objects.IllustWork;
+                                if (subset.meta_pages.Count() > 1)
+                                {
+                                    foreach (var page in subset.meta_pages)
+                                    {
+                                        pages.Add(page.GetOriginalUrl());
+                                    }
+                                }
+                            }
+                            else if (illust is Pixeez.Objects.NormalWork)
+                            {
+                                var subset = illust as Pixeez.Objects.NormalWork;
+                                if (subset.PageCount >= 1 && subset.Metadata == null)
+                                {
+                                    illust = await illust.RefreshIllust();
+                                }
+                                if (illust != null && illust.Metadata is Pixeez.Objects.Metadata)
+                                {
+                                    item.Illust = illust;
+                                    foreach (var page in illust.Metadata.Pages)
+                                    {
+                                        pages.Add(page.GetOriginalUrl());
+                                    }
+                                }
+                            }
+                            pages = pages.Distinct().ToList();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("PAGESCOUNTING"); }
+            return (pages);
+        }
+
+        private bool GetPreviewItems(List<string> illusts, List<string> avatars, List<string> page_thumbs, List<string> page_previews, List<string> originals)
         {
             bool result = false;
             try
@@ -197,11 +250,15 @@ namespace PixivWPF.Common
                         {
                             if (item.IsPage() || item.IsPages())
                             {
+                                originals.Add(item.Illust.GetOriginalUrl(item.Index));
                                 page_thumbs.Add(item.Illust.GetThumbnailUrl(item.Index, large: setting.ShowLargePreview));
                                 page_previews.Add(item.Illust.GetPreviewUrl(item.Index, large: setting.ShowLargePreview));
                             }
                             else if (item.IsWork())
                             {
+                                originals.Add(item.Illust.GetOriginalUrl(item.Index));
+                                if (item.Count > 1) originals.AddRange(await GetPagesOriginalItems(item));
+
                                 var preview = item.Illust.GetPreviewUrl(large: setting.ShowLargePreview);
                                 if (!illusts.Contains(preview)) illusts.Add(preview);
                                 var avatar = item.Illust.GetAvatarUrl();
@@ -236,6 +293,52 @@ namespace PixivWPF.Common
             return (result);
         }
 
+        private bool GetOriginalImageSize(List<string> originals, DoWorkEventArgs e)
+        {
+            var result = false;
+
+            var args = e.Argument is PrefetchingOpts ? e.Argument as PrefetchingOpts : new PrefetchingOpts();
+            if (!args.PrefetchingPreview) return(result);
+
+            bool paralllel = args.ParallelPrefetching;
+            var parallels = args.PrefetchingDownloadParallel;
+            if (paralllel)
+            {
+                var opt = new ParallelOptions();
+                opt.MaxDegreeOfParallelism = parallels;
+                Parallel.ForEach(originals, opt, (url, loopstate, urlIndex) =>
+                {
+                    try
+                    {
+                        url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource).GetAwaiter().GetResult();
+                    }
+                    catch (Exception ex) { ex.ERROR("PREFETCHING"); }
+                    finally { this.DoEvents(); Task.Delay(1).GetAwaiter().GetResult(); }
+                });
+            }
+            else
+            {
+                SemaphoreSlim tasks = new SemaphoreSlim(parallels, parallels);
+                foreach (var url in originals)
+                {
+                    if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
+                    if (tasks.Wait(-1, PrefetchingTaskCancelTokenSource.Token))
+                    {
+                        new Action(async () =>
+                        {
+                            try
+                            {
+                                await url.QueryImageFileSize(cancelToken: PrefetchingTaskCancelTokenSource);
+                            }
+                            catch (Exception ex) { ex.ERROR("PREFETCHING"); }
+                            finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallels) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
+                        }).Invoke(async: false);
+                    }
+                }
+            }
+            return (result);
+        }
+
         private void PrefetchingTask_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (Items.Count > 0)
@@ -262,6 +365,7 @@ namespace PixivWPF.Common
         private void PrefetchingTask_DoWork(object sender, DoWorkEventArgs e)
         {
             List<string> illusts = new List<string>();
+            List<string> originals = new List<string>();
             List<string> avatars = new List<string>();
             List<string> page_thumbs = new List<string>();
             List<string> page_previews = new List<string>();
@@ -273,7 +377,7 @@ namespace PixivWPF.Common
 
                 LastStartTime = DateTime.Now;
                 var pagesCount = CalcPagesThumbItems(Items);
-                GetPreviewItems(illusts, avatars, page_thumbs, page_previews);
+                GetPreviewItems(illusts, avatars, page_thumbs, page_previews, originals);
                 if (pagesCount != page_thumbs.Count + page_previews.Count) { e.Cancel = true; return; }
 
                 var total = illusts.Count + avatars.Count + page_thumbs.Count + page_previews.Count;
@@ -312,11 +416,11 @@ namespace PixivWPF.Common
                 this.DoEvents();
                 if (count == 0) return;
 
-                var parallel = args.PrefetchingDownloadParallel;
+                var parallels = args.PrefetchingDownloadParallel;
                 if (args.ParallelPrefetching)
                 {
                     var opt = new ParallelOptions();
-                    opt.MaxDegreeOfParallelism = parallel;
+                    opt.MaxDegreeOfParallelism = parallels;
                     Parallel.ForEach(needUpdate, opt, (url, loopstate, urlIndex) =>
                     {
                         try
@@ -356,7 +460,7 @@ namespace PixivWPF.Common
                 }
                 else
                 {
-                    SemaphoreSlim tasks = new SemaphoreSlim(parallel, parallel);
+                    SemaphoreSlim tasks = new SemaphoreSlim(parallels, parallels);
                     foreach (var url in needUpdate)
                     {
                         if (PrefetchingBgWorker.CancellationPending) { e.Cancel = true; break; }
@@ -372,8 +476,8 @@ namespace PixivWPF.Common
                                         if (File.Exists(file))
                                         {
                                             PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
-                                                //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
-                                                count = count - 1;
+                                            //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
+                                            count = count - 1;
                                         }
                                         else
                                         {
@@ -382,8 +486,8 @@ namespace PixivWPF.Common
                                             if (!string.IsNullOrEmpty(file))
                                             {
                                                 PrefetchedList.AddOrUpdate(url, true, (k, v) => true);
-                                                    //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
-                                                    count = count - 1;
+                                                //if (!PrefetchedList.TryAdd(url, true)) PrefetchedList.TryUpdate(url, true, false);
+                                                count = count - 1;
                                             }
                                         }
                                     }
@@ -393,11 +497,11 @@ namespace PixivWPF.Common
                                     State = TaskStatus.Running;
                                     if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
                                     else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
-                                        //await Task.Delay(10);
-                                        this.DoEvents();
+                                    //await Task.Delay(10);
+                                    this.DoEvents();
                                 }
                                 catch (Exception ex) { ex.ERROR("PREFETCHING"); }
-                                finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallel) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
+                                finally { if (tasks is SemaphoreSlim && tasks.CurrentCount <= parallels) tasks.Release(); this.DoEvents(); await Task.Delay(1); }
                             }).Invoke(async: false);
                         }
                     }
@@ -428,10 +532,12 @@ namespace PixivWPF.Common
             {
                 try
                 {
+                    GetOriginalImageSize(originals, e);
                     illusts.Clear();
                     avatars.Clear();
                     page_thumbs.Clear();
                     page_previews.Clear();
+                    originals.Clear();
                     needUpdate.Clear();
                 }
                 catch (Exception ex) { ex.ERROR("PREFETCHED"); }

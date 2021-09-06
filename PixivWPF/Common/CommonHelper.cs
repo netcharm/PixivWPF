@@ -1286,6 +1286,49 @@ namespace PixivWPF.Common
             return result;
         }
 
+        private static ConcurrentDictionary<string, string> _symbol_letters_ = new ConcurrentDictionary<string, string>();
+        private static ConcurrentDictionary<string, string> SymbolLetterTable
+        {
+            get
+            {
+                if (_symbol_letters_.Count == 0)
+                {
+                    int au = 0x41, al = 0x61;
+                    int[] su = { 0x1D400, 0x1D434, 0x1D468, 0x1D49C, 0x1D4D0, 0x1D504, 0x1D538, 0x1D56C, 0x1D5A0, 0x1D5D4, 0x1D608, 0x1D63C, 0x1D670 };
+                    int[] sl = { 0x1D41A, 0x1D44E, 0x1D482, 0x1D4B6, 0x1D4EA, 0x1D51E, 0x1D552, 0x1D586, 0x1D5BA, 0x1D5EE, 0x1D622, 0x1D656, 0x1D68A };
+
+                    foreach (var i in Enumerable.Range(0, 26))
+                    {
+                        foreach (var u in su)
+                            _symbol_letters_.TryAdd(char.ConvertFromUtf32(u + i), char.ConvertFromUtf32(au + i));
+                        foreach (var l in sl)
+                            _symbol_letters_.TryAdd(char.ConvertFromUtf32(l + i), char.ConvertFromUtf32(al + i));
+                    }
+                }
+                return (_symbol_letters_);
+            }
+        }
+
+        public static string SymbolToLetter(this string text)
+        {
+            var result = new List<string>();
+            try
+            {
+                for (int i = 0; i < text.Length; i++)
+                {
+                    var t = char.IsHighSurrogate(text[i]) && char.IsLowSurrogate(text[i+1]) ? $"{char.ConvertFromUtf32(char.ConvertToUtf32(text[i], text[++i]))}" : $"{text[i]}";
+                    result.Add(SymbolLetterTable.ContainsKey(t) ? SymbolLetterTable[t] : t);
+                }
+            }
+            catch(Exception ex) { ex.ERROR("LetterNormalizing"); }
+            return (result.Count <= 0 ? text : string.Join(string.Empty, result));
+        }
+
+        public static string Normalizing(this string text)
+        {
+            return (SymbolToLetter(KatakanaHalfToFull(text)));
+        }
+
         public static string MaintainCustomTagFile(this Application app, bool save = true)
         {
             var setting = Application.Current.LoadSetting();
@@ -1389,8 +1432,8 @@ namespace PixivWPF.Common
             {
                 List<string> matches = new List<string>();
 
-                src = string.IsNullOrEmpty(src) ? string.Empty : src.KatakanaHalfToFull().Trim();
-                translated = string.IsNullOrEmpty(translated) ? string.Empty : translated.KatakanaHalfToFull().Trim();
+                src = string.IsNullOrEmpty(src) ? string.Empty : src.Normalizing().Trim();
+                translated = string.IsNullOrEmpty(translated) ? string.Empty : translated.Normalizing().Trim();
                 if (string.IsNullOrEmpty(src)) return (string.Empty);
 
                 result = src;
@@ -4855,6 +4898,43 @@ namespace PixivWPF.Common
             }
         }
 
+        private static ConcurrentDictionary<string, long?> _ImageFileSizeCache_ = new ConcurrentDictionary<string, long?>();
+
+        public static async Task<long?> QueryImageFileSize(this string url, CancellationTokenSource cancelToken = null)
+        {
+            long? result = null;
+
+            if (_ImageFileSizeCache_.ContainsKey(url)) _ImageFileSizeCache_.TryGetValue(url, out result);
+            if ((result ?? -1) == -1)
+            {
+                if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
+                HttpResponseMessage response = null;
+                try
+                {
+                    setting = Application.Current.LoadSetting();
+                    HttpClient client = Application.Current.GetHttpClient(is_download: true);
+                    using (var request = Application.Current.GetHttpRequest(url))
+                    {
+                        using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancelToken.Token))
+                        {
+                            //response.EnsureSuccessStatusCode();
+                            if (response != null && (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.PartialContent))
+                            {
+                                var length = response.Content.Headers.ContentLength ?? 0;
+                                var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
+                                result = range.Length ?? -1;
+                                _ImageFileSizeCache_.AddOrUpdate(url, result, (k, v) => result);
+                            }
+                            response.Dispose();
+                        }
+                        request.Dispose();
+                    }
+                }
+                catch (Exception ex) { ex.ERROR($"QueryImageFileSize_{Path.GetFileName(url)}"); }
+            }
+            return (result);
+        }
+
         public static Func<string, int, TimeSpan, Task<bool>> WaitDownloadingFunc = async(file, interval, timeout) =>
         {
             bool exists = false;
@@ -4904,7 +4984,6 @@ namespace PixivWPF.Common
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
-                var cancelTokenSource = new CancellationTokenSource();
                 if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                 if (_Downloading_.TryAdd(file, true))
                 {
