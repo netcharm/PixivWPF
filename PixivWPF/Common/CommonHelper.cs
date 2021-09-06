@@ -1512,7 +1512,10 @@ namespace PixivWPF.Common
                     var ipos = result.IndexOf("💬");
                     var trans = ipos > 0 ? result.Substring(ipos) : string.Empty;
                     var text = ipos > 0 ? result.Replace(trans, string.Empty).Trim() : result;
-                    var slice_words = Speech.Slice(text);
+                    var culture = src.DetectCulture();
+                    if (culture == null || (culture is CultureInfo && culture.IetfLanguageTag.Equals(CultureInfo.CurrentUICulture.IetfLanguageTag)))
+                        culture = CultureInfo.GetCultureInfo("ja-jp");
+                    var slice_words = Speech.Slice(src, culture);
                     if (slice_words is IList<string>)
                     {
                         foreach (var word in slice_words)
