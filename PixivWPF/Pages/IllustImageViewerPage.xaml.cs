@@ -153,7 +153,7 @@ namespace PixivWPF.Pages
                     i.Thumb = illust.GetThumbnailUrl(index_n);
                     i.Index = index_n;
                     i.BadgeValue = (index_n + 1).ToString();
-                    i.Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount}";
+                    i.Subject = $"{illust.Title} - {index_n + 1}/{illust.PageCount ?? 0}";
                     i.DisplayTitle = false;
                     i.Tag = Contents.Tag;
                 }
@@ -380,7 +380,7 @@ namespace PixivWPF.Pages
                     PreviewImageUrl = illust.GetPreviewUrl(Contents.Index, true);
                     OriginalImageUrl = illust.GetOriginalUrl(Contents.Index);
 
-                    if (illust.PageCount > 1)
+                    if ((illust.PageCount ?? 0) > 1)
                     {
                         PreviewBadge.Show();
                         PreviewBadge.Badge = $"{Contents.Index + 1} / {Contents.Count}";

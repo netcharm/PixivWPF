@@ -34,7 +34,7 @@ namespace PixivWPF.Common
         public DateTime LastStartTime { get; private set; } = DateTime.Now;
         public DateTime LastDoneTime { get; private set; } = DateTime.Now;
         public ConcurrentDictionary<string, bool> PrefetchedList { get; private set; } = new ConcurrentDictionary<string, bool>();
-        
+
         private IList<PixivItem> _Items_ = new List<PixivItem>();
         public IList<PixivItem> Items
         {
@@ -69,7 +69,7 @@ namespace PixivWPF.Common
             var setting = Application.Current.LoadSetting();
             foreach (var item in items)
             {
-                if(item.IsPage() || item.IsPages())
+                if (item.IsPage() || item.IsPages())
                     result += Options.IncludePagePreview ? 2 : 1;
                 else if (item.IsWork() && item.Count > 1)
                     result += Options.IncludePagePreview ? item.Count * 2 : item.Count;
@@ -91,7 +91,7 @@ namespace PixivWPF.Common
                     else if (item.IsWork())
                     {
                         var illust = item.Illust;
-                        if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
+                        if (illust is Pixeez.Objects.Work && (illust.PageCount ?? 0) > 1)
                         {
                             if (illust is Pixeez.Objects.IllustWork)
                             {
@@ -107,7 +107,7 @@ namespace PixivWPF.Common
                             else if (illust is Pixeez.Objects.NormalWork)
                             {
                                 var subset = illust as Pixeez.Objects.NormalWork;
-                                if (subset.PageCount >= 1 && subset.Metadata == null)
+                                if ((subset.PageCount ?? 0) >= 1 && subset.Metadata == null)
                                 {
                                     illust = await illust.RefreshIllust();
                                 }
@@ -144,7 +144,7 @@ namespace PixivWPF.Common
                     else if (item.IsWork())
                     {
                         var illust = item.Illust;
-                        if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
+                        if (illust is Pixeez.Objects.Work && (illust.PageCount ?? 0) > 1)
                         {
                             if (illust is Pixeez.Objects.IllustWork)
                             {
@@ -160,7 +160,7 @@ namespace PixivWPF.Common
                             else if (illust is Pixeez.Objects.NormalWork)
                             {
                                 var subset = illust as Pixeez.Objects.NormalWork;
-                                if (subset.PageCount >= 1 && subset.Metadata == null)
+                                if ((subset.PageCount ?? 0) >= 1 && subset.Metadata == null)
                                 {
                                     illust = await illust.RefreshIllust();
                                 }
@@ -197,7 +197,7 @@ namespace PixivWPF.Common
                     else if (item.IsWork())
                     {
                         var illust = item.Illust;
-                        if (illust is Pixeez.Objects.Work && illust.PageCount > 1)
+                        if (illust is Pixeez.Objects.Work && (illust.PageCount ?? 0) > 1)
                         {
                             if (illust is Pixeez.Objects.IllustWork)
                             {
@@ -213,7 +213,7 @@ namespace PixivWPF.Common
                             else if (illust is Pixeez.Objects.NormalWork)
                             {
                                 var subset = illust as Pixeez.Objects.NormalWork;
-                                if (subset.PageCount >= 1 && subset.Metadata == null)
+                                if ((subset.PageCount ?? 0) >= 1 && subset.Metadata == null)
                                 {
                                     illust = await illust.RefreshIllust();
                                 }
@@ -298,7 +298,7 @@ namespace PixivWPF.Common
             var result = false;
 
             var args = e.Argument is PrefetchingOpts ? e.Argument as PrefetchingOpts : new PrefetchingOpts();
-            if (!args.PrefetchingPreview) return(result);
+            if (!args.PrefetchingPreview) return (result);
 
             bool paralllel = args.ParallelPrefetching;
             var parallels = args.PrefetchingDownloadParallel;
@@ -335,6 +335,7 @@ namespace PixivWPF.Common
                         }).Invoke(async: false);
                     }
                 }
+                $"Query Original Imagee File Size : {Environment.NewLine}  Done [ {originals} ]".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
             }
             return (result);
         }
@@ -514,9 +515,9 @@ namespace PixivWPF.Common
                     Percentage = count == 0 ? 100 : (total - count) / (double)total * 100;
                     Comments = $"Done [ {count} / {total}, I:{illusts.Count} / A:{avatars.Count} / T:{page_thumbs.Count} / P:{page_previews.Count} ]";
                     State = TaskStatus.RanToCompletion;
-                    if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
-                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
-                    this.DoEvents();
+                    //if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
+                    //else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
+                    //this.DoEvents();
                     $"Prefetching Previews, Avatars, Thumbnails : {Environment.NewLine}  {Comments}".ShowToast("INFO", tag: args.Name ?? Name ?? GetType().Name);
                 }
             }
@@ -533,6 +534,9 @@ namespace PixivWPF.Common
                 try
                 {
                     GetOriginalImageSize(originals, e);
+                    if (ReportProgressSlim is Action) ReportProgressSlim.Invoke(async: false);
+                    else if (ReportProgress is Action<double, string, TaskStatus>) ReportProgress.Invoke(Percentage, Comments, State);
+                    this.DoEvents();
                     illusts.Clear();
                     avatars.Clear();
                     page_thumbs.Clear();

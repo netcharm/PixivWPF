@@ -988,7 +988,7 @@ namespace PixivWPF.Pages
                     }
                     else
                     {
-                        var download = downloaded ?? item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, item.Illust.PageCount <= 1, touch: true);
+                        var download = downloaded ?? item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(out fp, (item.Illust.PageCount ?? 0) <= 1, touch: true);
                         if (download)
                         {
                             IllustDownloaded.Show();
@@ -1685,7 +1685,7 @@ namespace PixivWPF.Pages
 
                     if (setting.AutoExpand == AutoExpandMode.AUTO ||
                         setting.AutoExpand == AutoExpandMode.ON ||
-                        (setting.AutoExpand == AutoExpandMode.SINGLEPAGE && item.Illust.PageCount <= 1))
+                        (setting.AutoExpand == AutoExpandMode.SINGLEPAGE && (item.Illust.PageCount ?? 0) <= 1))
                     {
                         if (!IllustDescExpander.IsExpanded) IllustDescExpander.IsExpanded = true;
                     }
@@ -1699,10 +1699,10 @@ namespace PixivWPF.Pages
                 }
 
                 PreviewBadge.Badge = $"1 / {item.Count}";
-                if (item.IsWork() && item.Illust.PageCount > 1)
+                if (item.IsWork() && (item.Illust.PageCount ?? 0) > 1)
                 {
-                    var total = item.Illust.PageCount;
-                    page_count = (total / PAGE_ITEMS + (total % PAGE_ITEMS > 0 ? 1 : 0)).Value;
+                    var total = item.Illust.PageCount ?? 0;
+                    page_count = total / PAGE_ITEMS + (total % PAGE_ITEMS > 0 ? 1 : 0);
 
                     item.Index = 0;
                     PreviewBadge.Show();
@@ -1959,7 +1959,7 @@ namespace PixivWPF.Pages
                     else if (item.Illust is Pixeez.Objects.NormalWork)
                     {
                         var subset = item.Illust as Pixeez.Objects.NormalWork;
-                        if (subset.PageCount >= 1 && subset.Metadata == null)
+                        if ((subset.PageCount ?? 0) >= 1 && subset.Metadata == null)
                         {
                             var illust = await item.Illust.RefreshIllust();
                             if (illust is Pixeez.Objects.Work) item.Illust = illust;

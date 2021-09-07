@@ -1136,7 +1136,7 @@ namespace PixivWPF.Common
                 if (html.IsFile())
                 {
                     var fn = Path.GetFileNameWithoutExtension(html);
-                    if(Regex.IsMatch(fn, @"^\d+.*?\d+$", RegexOptions.IgnoreCase)) links.Add(fn.GetIllustId().ArtworkLink());
+                    if (Regex.IsMatch(fn, @"^\d+.*?\d+$", RegexOptions.IgnoreCase)) links.Add(fn.GetIllustId().ArtworkLink());
                     else links.Add($"Fuzzy:{fn}");
                 }
                 else if (html.Split(Path.GetInvalidPathChars()).Length <= 1 && download_links.Count <= 0) links.Add($"Fuzzy:{html}");
@@ -1320,7 +1320,7 @@ namespace PixivWPF.Common
                     result.Add(SymbolLetterTable.ContainsKey(t) ? SymbolLetterTable[t] : t);
                 }
             }
-            catch(Exception ex) { ex.ERROR("LetterNormalizing"); }
+            catch (Exception ex) { ex.ERROR("LetterNormalizing"); }
             return (result.Count <= 0 ? text : string.Join(string.Empty, result));
         }
 
@@ -1546,7 +1546,7 @@ namespace PixivWPF.Common
                 #endregion
 
                 #region TTS Slicing result
-                if(result.StartsWith("`") || result.StartsWith("^")) result = result.Substring(1);
+                if (result.StartsWith("`") || result.StartsWith("^")) result = result.Substring(1);
                 else if (setting.TextSlicingUsingTTS)
                 {
                     var ptags = TagsT2S is ConcurrentDictionary<string, string>;
@@ -1569,7 +1569,7 @@ namespace PixivWPF.Common
                                 matches.Add($"CustomTags => {word}");
                                 CustomTagsMatched = true;
                             }
-                            else if(ptags && TagsCache.ContainsKey(word))
+                            else if (ptags && TagsCache.ContainsKey(word))
                             {
                                 var alpha = TagsCache[word].IsAlpha();
                                 if (!TagsCache[word].IsAlpha())
@@ -4905,7 +4905,7 @@ namespace PixivWPF.Common
             long? result = null;
 
             if (_ImageFileSizeCache_.ContainsKey(url)) _ImageFileSizeCache_.TryGetValue(url, out result);
-            if ((result ?? -1) == -1)
+            if ((result ?? -1) <= 0)
             {
                 if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                 HttpResponseMessage response = null;
@@ -7632,7 +7632,7 @@ namespace PixivWPF.Common
 
                 setting = Application.Current.LoadSetting();
 
-                await new Action(() =>
+                await new Action(async () =>
                 {
                     INotificationDialogService _dialogService = new NotificationDialogService();
                     NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
@@ -7658,6 +7658,8 @@ namespace PixivWPF.Common
 
                     _dialogService.ClearNotifications();
                     _dialogService.ShowNotificationWindow(newNotification, cfg);
+                    _dialogService.DoEvents();
+                    await Task.Delay(1);
                 }).InvokeAsync(true);
             }
             catch (Exception ex) { ex.ERROR("ShowDownloadToast"); }
@@ -7673,7 +7675,7 @@ namespace PixivWPF.Common
                 var main = Application.Current.GetMainWindow();
                 if (main is MainWindow && main.IsShown())
                 {
-                    await new Action(() =>
+                    await new Action(async () =>
                     {
                         INotificationDialogService _dialogService = new NotificationDialogService();
                         NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
@@ -7699,6 +7701,8 @@ namespace PixivWPF.Common
 
                         _dialogService.ClearNotifications();
                         _dialogService.ShowNotificationWindow(newNotification, cfg);
+                        _dialogService.DoEvents();
+                        await Task.Delay(1);
                     }).InvokeAsync(true);
                 }
             }
@@ -7718,7 +7722,7 @@ namespace PixivWPF.Common
                 {
                     setting = Application.Current.LoadSetting();
 
-                    await new Action(() =>
+                    await new Action(async () =>
                     {
                         INotificationDialogService _dialogService = new NotificationDialogService();
                         NotificationConfiguration cfgDefault = NotificationConfiguration.DefaultConfiguration;
@@ -7738,6 +7742,8 @@ namespace PixivWPF.Common
 
                         _dialogService.ClearNotifications();
                         _dialogService.ShowNotificationWindow(newNotification, cfg);
+                        _dialogService.DoEvents();
+                        await Task.Delay(1);
                     }).InvokeAsync(true);
                 }
             }

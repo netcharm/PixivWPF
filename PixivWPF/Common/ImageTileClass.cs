@@ -822,14 +822,14 @@ namespace PixivWPF.Common
                             NextURL = nexturl,
                             Thumb = url,
                             Index = -1,
-                            Count = (int)(illust.PageCount),
-                            BadgeValue = illust.PageCount.Value.ToString(),
-                            BadgeVisibility = illust.PageCount > 1 ? Visibility.Visible : Visibility.Collapsed,
+                            Count = illust.PageCount ?? 0,
+                            BadgeValue = (illust.PageCount ?? 0).ToString(),
+                            BadgeVisibility = (illust.PageCount ?? 0) > 1 ? Visibility.Visible : Visibility.Collapsed,
                             IsDisplayFavMark = true,
                             IsFavorited = illust.IsLiked(),
                             IsFollowed = illust.User.IsLiked(),
                             Sanity = sanity,
-                            DisplayBadge = illust.PageCount > 1 ? true : false,
+                            DisplayBadge = (illust.PageCount ?? 0) > 1 ? true : false,
                             Illust = illust,
                             ID = illust.Id.ToString(),
                             User = illust.User,
@@ -974,7 +974,7 @@ namespace PixivWPF.Common
                     p.IsFollowed = false;
                     p.IsDisplayFavMark = false;
                     p.BadgeValue = (index + 1).ToString();
-                    p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount}";
+                    p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount ?? 0}";
                     p.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch);
                     p.Tag = page;
                     p.DoEvents();
@@ -999,7 +999,7 @@ namespace PixivWPF.Common
                     p.IsFollowed = false;
                     p.IsDisplayFavMark = false;
                     p.BadgeValue = (index + 1).ToString();
-                    p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount}";
+                    p.Subject = $"{p.Subject} - {index + 1}/{illust.PageCount ?? 0}";
                     p.IsDownloaded = illust == null ? false : page.GetOriginalUrl().IsDownloadedAsync(false, touch: touch);
                     p.Tag = page;
                     p.DoEvents();
@@ -1029,7 +1029,7 @@ namespace PixivWPF.Common
             else if (illust is Pixeez.Objects.NormalWork)
             {
                 var subset = illust as Pixeez.Objects.NormalWork;
-                if (subset.PageCount >= 1 && subset.Metadata == null)
+                if ((subset.PageCount ?? 0) >= 1 && subset.Metadata == null)
                 {
                     var illust_n = await illust.RefreshIllust();
                     if (illust_n is Pixeez.Objects.Work) illust = illust_n;
@@ -1315,17 +1315,22 @@ namespace PixivWPF.Common
             var url = string.Empty;
             if (Illust is Pixeez.Objects.IllustWork)
             {
-                var illust = Illust as Pixeez.Objects.IllustWork;
-                if (illust.PageCount == 1 && illust.meta_single_page != null)
+                try
                 {
-                    url = string.Empty;
+                    var illust = Illust as Pixeez.Objects.IllustWork;
+                    var p_count = illust.PageCount ?? 0;
+                    if (p_count == 1 && illust.meta_single_page != null)
+                    {
+                        url = string.Empty;
+                    }
+                    else if (p_count > 1 && illust.meta_pages.Count() == p_count)
+                    {
+                        idx = Math.Max(0, Math.Min(idx, p_count - 1));
+                        var page = illust.meta_pages[idx];
+                        url = page.GetThumbnailUrl();
+                    }
                 }
-                else if (illust.PageCount.Value > 1 && illust.meta_pages.Count() == illust.PageCount.Value)
-                {
-                    idx = Math.Max(0, Math.Min(idx, illust.PageCount ?? 1 - 1));
-                    var pages = illust.meta_pages[idx];
-                    url = pages.GetThumbnailUrl();
-                }
+                catch (Exception ex) { ex.ERROR("GetThumbnailUrl"); }
             }
             return (url);
         }
@@ -1335,17 +1340,22 @@ namespace PixivWPF.Common
             var url = string.Empty;
             if (Illust is Pixeez.Objects.IllustWork)
             {
-                var illust = Illust as Pixeez.Objects.IllustWork;
-                if (illust.PageCount == 1 && illust.meta_single_page != null)
+                try
                 {
-                    url = string.Empty;
+                    var illust = Illust as Pixeez.Objects.IllustWork;
+                    var p_count = illust.PageCount ?? 0;
+                    if (p_count == 1 && illust.meta_single_page != null)
+                    {
+                        url = string.Empty;
+                    }
+                    else if (p_count > 1 && illust.meta_pages.Count() == p_count)
+                    {
+                        idx = Math.Max(0, Math.Min(idx, p_count - 1));
+                        var page = illust.meta_pages[idx];
+                        url = page.GetPreviewUrl(large);
+                    }
                 }
-                else if (illust.PageCount.Value > 1 && illust.meta_pages.Count() == illust.PageCount.Value)
-                {
-                    idx = Math.Max(0, Math.Min(idx, illust.PageCount ?? 1 - 1));
-                    var pages = illust.meta_pages[idx];
-                    url = pages.GetPreviewUrl(large);
-                }
+                catch (Exception ex) { ex.ERROR("GetPreviewUrl"); }
             }
             return (url);
         }
@@ -1355,17 +1365,22 @@ namespace PixivWPF.Common
             var url = string.Empty;
             if (Illust is Pixeez.Objects.IllustWork)
             {
-                var illust = Illust as Pixeez.Objects.IllustWork;
-                if (illust.PageCount == 1 && illust.meta_single_page != null)
+                try
                 {
-                    url = illust.meta_single_page.OriginalImageUrl;
+                    var illust = Illust as Pixeez.Objects.IllustWork;
+                    var p_count = illust.PageCount ?? 0;
+                    if (p_count == 1 && illust.meta_single_page != null)
+                    {
+                        url = illust.meta_single_page.OriginalImageUrl;
+                    }
+                    else if (p_count > 1 && illust.meta_pages.Count() == p_count)
+                    {
+                        idx = Math.Max(0, Math.Min(idx, p_count - 1));
+                        var page = illust.meta_pages[idx];
+                        url = page.GetOriginalUrl();
+                    }
                 }
-                else if (illust.PageCount.Value > 1 && illust.meta_pages.Count() == illust.PageCount.Value)
-                {
-                    idx = Math.Max(0, Math.Min(idx, illust.PageCount ?? 1 - 1));
-                    var pages = illust.meta_pages[idx];
-                    url = pages.GetOriginalUrl();
-                }
+                catch (Exception ex) { ex.ERROR("GetOriginalUrl"); }
             }
             return (url);
         }
@@ -1377,18 +1392,22 @@ namespace PixivWPF.Common
             var url = string.Empty;
             if (Illust is Pixeez.Objects.NormalWork)
             {
-                var illust = Illust as Pixeez.Objects.NormalWork;
-                if (illust.PageCount == 1)
+                try
                 {
-                    url = string.Empty;
+                    var illust = Illust as Pixeez.Objects.NormalWork;
+                    var p_count = illust.PageCount ?? 0;
+                    if (p_count == 1)
+                    {
+                        url = string.Empty;
+                    }
+                    else if (p_count > 1 && illust.Metadata != null && illust.Metadata.Pages != null && illust.Metadata.Pages.Count() == p_count)
+                    {
+                        idx = Math.Max(0, Math.Min(idx, p_count - 1));
+                        var page = illust.Metadata.Pages[idx];
+                        url = page.GetThumbnailUrl(large);
+                    }
                 }
-                else if (illust.PageCount.Value > 1 && illust.Metadata != null && illust.Metadata.Pages != null && illust.Metadata.Pages.Count() == illust.PageCount.Value)
-                {
-                    if (idx < 0) idx = 0;
-                    if (idx > illust.PageCount) idx = illust.PageCount.Value - 1;
-                    var pages = illust.Metadata.Pages[idx];
-                    url = pages.GetThumbnailUrl(large);
-                }
+                catch (Exception ex) { ex.ERROR("GetThumbnailUrl"); }
             }
             return (url);
         }
@@ -1398,18 +1417,22 @@ namespace PixivWPF.Common
             var url = string.Empty;
             if (Illust is Pixeez.Objects.NormalWork)
             {
-                var illust = Illust as Pixeez.Objects.NormalWork;
-                if (illust.PageCount == 1)
+                try
                 {
-                    url = string.Empty;
+                    var illust = Illust as Pixeez.Objects.NormalWork;
+                    var p_count = illust.PageCount ?? 0;
+                    if (p_count == 1)
+                    {
+                        url = string.Empty;
+                    }
+                    else if (p_count > 1 && illust.Metadata != null && illust.Metadata.Pages != null && illust.Metadata.Pages.Count() == p_count)
+                    {
+                        idx = Math.Max(0, Math.Min(idx, p_count - 1));
+                        var page = illust.Metadata.Pages[idx];
+                        url = page.GetPreviewUrl(large);
+                    }
                 }
-                else if (illust.PageCount.Value > 1 && illust.Metadata != null && illust.Metadata.Pages != null && illust.Metadata.Pages.Count() == illust.PageCount.Value)
-                {
-                    if (idx < 0) idx = 0;
-                    if (idx > illust.PageCount) idx = illust.PageCount.Value - 1;
-                    var page = illust.Metadata.Pages[idx];
-                    url = page.GetPreviewUrl(large);
-                }
+                catch (Exception ex) { ex.ERROR("GetThumbnailUrl"); }
             }
             return (url);
         }
@@ -1419,18 +1442,22 @@ namespace PixivWPF.Common
             var url = string.Empty;
             if (Illust is Pixeez.Objects.NormalWork)
             {
-                var illust = Illust as Pixeez.Objects.NormalWork;
-                if (illust.PageCount == 1)
+                try
                 {
-                    url = string.Empty;
+                    var illust = Illust as Pixeez.Objects.NormalWork;
+                    var p_count = illust.PageCount ?? 1;
+                    if (p_count == 1)
+                    {
+                        url = string.Empty;
+                    }
+                    else if (p_count > 1 && illust.Metadata != null && illust.Metadata.Pages != null && illust.Metadata.Pages.Count() == p_count)
+                    {
+                        idx = Math.Max(0, Math.Min(idx, p_count - 1));
+                        var page = illust.Metadata.Pages[idx];
+                        url = page.GetOriginalUrl();
+                    }
                 }
-                else if (illust.PageCount.Value > 1 && illust.Metadata != null && illust.Metadata.Pages != null && illust.Metadata.Pages.Count() == illust.PageCount.Value)
-                {
-                    if (idx < 0) idx = 0;
-                    if (idx > illust.PageCount) idx = illust.PageCount.Value - 1;
-                    var pages = illust.Metadata.Pages[idx];
-                    url = pages.GetOriginalUrl();
-                }
+                catch (Exception ex) { ex.ERROR("GetThumbnailUrl"); }
             }
             return (url);
         }

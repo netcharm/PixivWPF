@@ -1603,7 +1603,7 @@ namespace PixivWPF.Common
                     if (item.IsWork())
                     {
                         var dt = item.Illust.GetDateTime();
-                        var is_meta_single_page = item.Illust.PageCount == 1 ? true : false;
+                        var is_meta_single_page = (item.Illust.PageCount ?? 0) == 0 ? true : false;
                         if (item.IsPage() || item.IsPages())
                         {
                             var url = item.Illust.GetOriginalUrl(item.Index);
@@ -1696,7 +1696,7 @@ namespace PixivWPF.Common
                     {
                         var illust = item.Illust;
                         var dt = illust.GetDateTime();
-                        var is_meta_single_page = illust.PageCount==1 ? true : false;
+                        var is_meta_single_page = (illust.PageCount ?? 0) == 1 ? true : false;
 
                         if (illust is Pixeez.Objects.IllustWork)
                         {
@@ -1809,7 +1809,7 @@ namespace PixivWPF.Common
                     if (item.IsUgoira())
                     {
                         var dt = item.Illust.GetDateTime();
-                        var is_meta_single_page = item.Illust.PageCount == 1 ? true : false;
+                        var is_meta_single_page = (item.Illust.PageCount ?? 0) == 1 ? true : false;
                         var info = item.Ugoira != null ? item.Ugoira : await item.Illust.GetUgoiraMeta(ajax: true);
                         if (info != null)
                         {
@@ -1891,7 +1891,7 @@ namespace PixivWPF.Common
                     if (item.IsUgoira())
                     {
                         var dt = item.Illust.GetDateTime();
-                        var is_meta_single_page = item.Illust.PageCount == 1 ? true : false;
+                        var is_meta_single_page = (item.Illust.PageCount ?? 0) == 1 ? true : false;
                         var info = item.Ugoira != null ? item.Ugoira : await item.Illust.GetUgoiraMeta(ajax: true);
                         if (info != null)
                         {
