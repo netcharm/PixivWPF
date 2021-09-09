@@ -37,7 +37,7 @@ namespace ImageCompare
         private Point start;
         private Point origin;
 
-        private void CalcDisplay()
+        private void CalcDisplay(bool set_ratio = true)
         {
             var fit = ZoomFitAll.IsChecked ?? false;
             if (fit)
@@ -57,8 +57,11 @@ namespace ImageCompare
                     ImageResultBox.Width = ImageResultScroll.ActualWidth;
                     ImageResultBox.Height = ImageResultScroll.ActualHeight;
                 }
-                LastZoomRatio = ZoomRatio.Value;
-                ZoomRatio.Value = 1;
+                if (set_ratio)
+                {
+                    LastZoomRatio = ZoomRatio.Value;
+                    ZoomRatio.Value = 1;
+                }
             }
             else
             {
@@ -188,7 +191,7 @@ namespace ImageCompare
                     {
                         if (SourceImage is MagickImage) ImageSource.Source = SourceImage.ToBitmapSource();
                         if (TargetImage is MagickImage) ImageTarget.Source = TargetImage.ToBitmapSource();
-                        CalcDisplay();
+                        CalcDisplay(set_ratio: false);
                         ImageResult.Source = null;
                         ResultImage = await Compare(SourceImage, TargetImage);
                         if (ResultImage is MagickImage) ImageResult.Source = ResultImage.ToBitmapSource();
@@ -201,7 +204,7 @@ namespace ImageCompare
 
         private async void LoadImageFromFiles(string[] files, bool source = true)
         {
-            await Dispatcher.InvokeAsync(async () =>
+            await Dispatcher.InvokeAsync(() =>
             {
                 try
                 {
@@ -247,12 +250,7 @@ namespace ImageCompare
                                 }
                             }
                         }
-                        ResultImage = await Compare(SourceImage, TargetImage);
-                        if (ResultImage is MagickImage)
-                        {
-                            ImageResult.Source = ResultImage.ToBitmapSource();
-                        }
-                        CalcDisplay();
+                        UpdateImageViewer();
                     }
                 }
                 catch { }
@@ -419,7 +417,7 @@ namespace ImageCompare
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            CalcDisplay();
+            CalcDisplay(set_ratio: true);
         }
 
         private void Window_DragOver(object sender, DragEventArgs e)
@@ -538,37 +536,35 @@ namespace ImageCompare
 
         private void ZoomRatio_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (IsLoaded && (ZoomFitNone.IsChecked ?? false))// && !ActionZoomFitOp)
+            if (IsLoaded && (ZoomFitNone.IsChecked ?? false))
             {
-                var delta = e.NewValue - e.OldValue;
-                if (Math.Abs(delta) >= 0.25) //ZoomRatio.LargeChange)
-                {
-                    new Action(() =>
-                    {
-                        try
-                        {
-                            //ActionZoomFitOp = true;
-                            var eq = Math.Round(e.NewValue);
-                            if (delta > 0)
-                            {
-                                if (e.OldValue >= 0.25 && e.NewValue < 1.5) eq = 0.5;
-                                else if (e.OldValue >= 0.5 && e.NewValue < 2.0) eq = 1;
-                            }
-                            else if (delta < 0)
-                            {
-                                if (e.OldValue >= 1.0 && e.NewValue < 1.0) eq = 0.5;
-                                else if (e.OldValue >= 0.5 && e.NewValue < 0.5) eq = 0.25;
-                            }
-                            if (e.NewValue != eq) ZoomRatio.Value = eq;
-                        }
-                        catch { }
-                        finally { e.Handled = true; }
-                        //ActionZoomFitOp = false; }
-                    }).Invoke();
-                }
-
-                //ImageViewerScale.ScaleX = ImageViewerScale.ScaleX >= 0 ? ZoomRatio.Value : -ZoomRatio.Value;
-                //ImageViewerScale.ScaleY = ImageViewerScale.ScaleY >= 0 ? ZoomRatio.Value : -ZoomRatio.Value;
+                //var delta = e.NewValue - e.OldValue;
+                //if (Math.Abs(delta) >= 0.25)
+                //{
+                //    new Action(() =>
+                //    {
+                //        try
+                //        {
+                //            //ActionZoomFitOp = true;
+                //            var eq = Math.Round(e.NewValue);
+                //            if (delta > 0)
+                //            {
+                //                if (e.OldValue >= 0.25 && e.NewValue < 1.5) eq = 0.5;
+                //                else if (e.OldValue >= 0.5 && e.NewValue < 2.0) eq = 1;
+                //            }
+                //            else if (delta < 0)
+                //            {
+                //                if (e.OldValue >= 1.0 && e.NewValue < 1.0) eq = 0.5;
+                //                else if (e.OldValue >= 0.5 && e.NewValue < 0.5) eq = 0.25;
+                //            }
+                //            if (e.NewValue != eq) ZoomRatio.Value = eq;
+                //        }
+                //        catch { }
+                //        finally { e.Handled = true; }
+                //        //ActionZoomFitOp = false; }
+                //    }).Invoke();
+                //}
+                LastZoomRatio = ZoomRatio.Value;
             }
         }
 
@@ -615,12 +611,10 @@ namespace ImageCompare
             else if (sender == ImagePasteSource)
             {
                 LoadImageFromClipboard(source: true);
-                CalcDisplay();
             }
             else if (sender == ImagePasteTarget)
             {
                 LoadImageFromClipboard(source: false);
-                CalcDisplay();
             }
             else if (sender == ImageCompare)
             {
@@ -646,7 +640,7 @@ namespace ImageCompare
                     ZoomFitWidth.IsChecked = false;
                     ZoomFitHeight.IsChecked = false;
 
-                    CalcDisplay();
+                    CalcDisplay(set_ratio: true);
                 }
             }
             else if (sender == ZoomFitAll)
@@ -662,7 +656,7 @@ namespace ImageCompare
                     ZoomFitWidth.IsChecked = false;
                     ZoomFitHeight.IsChecked = false;
 
-                    CalcDisplay();
+                    CalcDisplay(set_ratio: true);
                 }
             }
             else if (sender == ZoomFitWidth)
@@ -677,7 +671,7 @@ namespace ImageCompare
                     ZoomFitAll.IsChecked = false;
                     ZoomFitHeight.IsChecked = false;
 
-                    CalcDisplay();
+                    CalcDisplay(set_ratio: true);
                 }
             }
             else if (sender == ZoomFitHeight)
@@ -692,7 +686,7 @@ namespace ImageCompare
                     ZoomFitAll.IsChecked = false;
                     ZoomFitWidth.IsChecked = false;
 
-                    CalcDisplay();
+                    CalcDisplay(set_ratio: true);
                 }
             }
         }
