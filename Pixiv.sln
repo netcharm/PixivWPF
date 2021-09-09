@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		SortTags.cs = SortTags.cs
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageCompare", "ImageCompare\ImageCompare.csproj", "{C22ED648-4A8A-4B4C-8CF3-321CE1D3004B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,14 @@ Global
 		{295AD3DE-52DF-44C5-8A01-C677D4C9593A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{295AD3DE-52DF-44C5-8A01-C677D4C9593A}.Release|x64.ActiveCfg = Release|x64
 		{295AD3DE-52DF-44C5-8A01-C677D4C9593A}.Release|x64.Build.0 = Release|x64
+		{C22ED648-4A8A-4B4C-8CF3-321CE1D3004B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C22ED648-4A8A-4B4C-8CF3-321CE1D3004B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C22ED648-4A8A-4B4C-8CF3-321CE1D3004B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C22ED648-4A8A-4B4C-8CF3-321CE1D3004B}.Debug|x64.Build.0 = Debug|Any CPU
+		{C22ED648-4A8A-4B4C-8CF3-321CE1D3004B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C22ED648-4A8A-4B4C-8CF3-321CE1D3004B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C22ED648-4A8A-4B4C-8CF3-321CE1D3004B}.Release|x64.ActiveCfg = Release|Any CPU
+		{C22ED648-4A8A-4B4C-8CF3-321CE1D3004B}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
