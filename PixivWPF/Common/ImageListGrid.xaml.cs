@@ -1058,16 +1058,20 @@ namespace PixivWPF.Common
                                 item.IsFavorited = item.Illust.IsLiked();
                                 item.IsFollowed = item.User.IsLiked();
 
-                                if (item.IsPage())
+                                if (item.IsPage() || item.IsPages())
                                 {
-                                    bool download = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync(touch: touch);
+                                    bool download = item.Illust.IsDownloadedAsync(index: item.Index, touch: touch);
                                     if (item.IsDownloaded != download) item.IsDownloaded = download;
                                 }
                                 else if (item.IsWork())
                                 {
                                     bool part_down = item.Illust.IsPartDownloadedAsync(touch: touch);
                                     if (item.IsPartDownloaded != part_down) item.IsPartDownloaded = part_down;
-                                    if (item.IsDownloaded != part_down) item.IsDownloaded = part_down;
+                                    item.IsDownloaded = item.IsPartDownloaded;
+                                    //if (item.IsDownloaded != part_down) item.IsDownloaded = part_down;
+#if DEBUG
+                                    this.Invoke(() => { ($"{Name ?? "Gallary"}_{item.ID}").DEBUG("UpdateTilesState"); });
+#endif
                                 }
                             }
                         }
@@ -1084,7 +1088,7 @@ namespace PixivWPF.Common
                 catch (Exception ex) { ex.ERROR("UpdateTilesState"); }
             }
         }
-        #endregion
+#endregion
 
         public ImageListGrid()
         {

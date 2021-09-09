@@ -382,7 +382,7 @@ namespace PixivWPF.Pages
             if (detail_page is IllustDetailPage) detail_page.SaveIllustAll();
         }
 
-        internal void SaveUgoira()
+        public void SaveUgoira()
         {
             //throw new NotImplementedException();
         }

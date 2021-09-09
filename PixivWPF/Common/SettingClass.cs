@@ -304,6 +304,11 @@ namespace PixivWPF.Common
                         configfile.WaitFileUnlock();
                         File.WriteAllText(configfile, text, new UTF8Encoding(true));
 
+                        if (Cache.SaveQueriedOriginalImageSizeInfo)
+                        {
+                            Path.Combine(AppPath, Cache.OriginalImageSizeInfoFile).SaveImageFileSizeData();
+                        }
+
                         SaveTags();
 
                         if (full)
@@ -412,6 +417,11 @@ namespace PixivWPF.Common
                             #endregion
                             result = Cache;
 
+                            if (Cache.SaveQueriedOriginalImageSizeInfo)
+                            {
+                                Path.Combine(AppPath, Cache.OriginalImageSizeInfoFile).LoadImageFileSizeData();
+                            }
+
                             if (StartUp) "Config Setting Reloaded".ShowToast("INFO");
                         }
                         if (loadtags) LoadTags(true, true);
@@ -458,17 +468,8 @@ namespace PixivWPF.Common
                             tagsfile.WaitFileUnlock();
                             File.WriteAllText(tagsfile, tags, new UTF8Encoding(true));
                         }
-                        catch (Exception ex) { ex.ERROR(); }
+                        catch (Exception ex) { ex.ERROR("SaveTags"); }
                     }
-                    //if (File.Exists(tagsfile_t2s))
-                    //{
-                    //    try
-                    //    {
-                    //        var tags_t2s = File.ReadAllText(tagsfile_t2s);
-                    //        CommonHelper.TagsT2S = JsonConvert.DeserializeObject<Dictionary<string, string>>(tags_t2s);
-                    //    }
-                    //    catch (Exception ex) { ex.ERROR(); }
-                    //}
                 }
                 catch (Exception ex) { ex.ERROR(); }
                 finally
@@ -1415,6 +1416,39 @@ namespace PixivWPF.Common
             {
                 parallel_prefetching = value;
                 if (Cache is Setting) Cache.parallel_prefetching = parallel_prefetching;
+            }
+        }
+
+        private bool query_image_size = true;
+        public bool QueryOriginalImageSize
+        {
+            get { return (Cache is Setting ? Cache.query_image_size : query_image_size); }
+            set
+            {
+                query_image_size = value;
+                if (Cache is Setting) Cache.query_image_size = query_image_size;
+            }
+        }
+
+        private bool save_query_image_size = true;
+        public bool SaveQueriedOriginalImageSizeInfo
+        {
+            get { return (Cache is Setting ? Cache.save_query_image_size : save_query_image_size); }
+            set
+            {
+                save_query_image_size = value;
+                if (Cache is Setting) Cache.save_query_image_size = save_query_image_size;
+            }
+        }
+
+        private string query_image_size_file = "OriginalImageSizeInfo.json";
+        public string OriginalImageSizeInfoFile
+        {
+            get { return (Cache is Setting ? Cache.query_image_size_file : query_image_size_file); }
+            set
+            {
+                query_image_size_file = value;
+                if (Cache is Setting) Cache.query_image_size_file = query_image_size_file;
             }
         }
         #endregion

@@ -3546,7 +3546,7 @@ namespace PixivWPF.Common
                 {
                     if (item.IsPage() || item.IsPages())
                     {
-                        item.IsDownloaded = item.Illust.GetOriginalUrl(item.Index).IsDownloadedAsync();
+                        item.IsDownloaded = item.Illust.IsDownloadedAsync(item.Index);
                     }
                     else if (item.IsWork())
                     {
@@ -4900,12 +4900,47 @@ namespace PixivWPF.Common
 
         private static ConcurrentDictionary<string, long?> _ImageFileSizeCache_ = new ConcurrentDictionary<string, long?>();
 
+        public static void SaveImageFileSizeData(this string file)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(_ImageFileSizeCache_, Formatting.Indented);
+                file.WaitFileUnlock();
+                File.WriteAllText(file, json, new UTF8Encoding(true));
+            }
+            catch(Exception ex) { ex.ERROR("SaveImageFileSizeData"); }
+        }
+
+        public static void LoadImageFileSizeData(this string file)
+        {
+            try
+            {
+                if (File.Exists(file) && file.WaitFileUnlock())
+                {
+                    try
+                    {
+                        var json = File.ReadAllText(file);
+                        var data = JsonConvert.DeserializeObject<ConcurrentDictionary<string, long?>>(json);
+                        var keys = data.Keys.ToList();
+                        _ImageFileSizeCache_.Clear();
+                        foreach (var k in keys)
+                        {
+                            _ImageFileSizeCache_.TryAdd(k.Trim(), data[k]);
+                        }
+                    }
+                    catch (Exception ex) { ex.ERROR("LoadImageFileSizeData"); }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("SaveImageFileSizeData"); }
+        }
+
         public static async Task<long?> QueryImageFileSize(this string url, CancellationTokenSource cancelToken = null)
         {
             long? result = null;
 
+            setting = Application.Current.LoadSetting();
             if (_ImageFileSizeCache_.ContainsKey(url)) _ImageFileSizeCache_.TryGetValue(url, out result);
-            if ((result ?? -1) <= 0)
+            if (setting.QueryOriginalImageSize && (result ?? -1) <= 0)
             {
                 if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                 HttpResponseMessage response = null;

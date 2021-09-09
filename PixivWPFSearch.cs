@@ -4,25 +4,33 @@
 //css_co /win32icon:./PixivWPF/pixiv-logo.ico
 
 //css_reference WindowsBase.dll
+//css_reference PresentationCore.dll
 //css_reference PresentationFramework.dll
 //css_reference Microsoft.WindowsAPICodePack.dll
 //css_reference Microsoft.WindowsAPICodePack.Shell.dll
 //css_reference System.Windows.Forms.dll
+//css_reference Newtonsoft.Json.dll
 
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
 using System.IO.Pipes;
-using System.Text;
-using System.Windows;
-
+using System.Linq;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
 
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 [assembly: AssemblyTitle("PixivWPF Search Bridge Utility")]
 //[assembly: AssemblyDescription("PixivWPF Search Bridge Utility")]
@@ -38,6 +46,139 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace netcharm
 {
+    public class ShellProperties
+    {
+        #region Import Methods
+        [DllImport("shell32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern int SHMultiFileProperties(IDataObject pdtobj, int flags);
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr ILCreateFromPath(string path);
+
+        [DllImport("shell32.dll", CharSet = CharSet.None)]
+        private static extern void ILFree(IntPtr pidl);
+
+        [DllImport("shell32.dll", CharSet = CharSet.None)]
+        private static extern int ILGetSize(IntPtr pidl);
+        #endregion
+
+        #region Static Methods
+
+        #region Private
+        private static MemoryStream CreateShellIDList(StringCollection filenames)
+        {
+            // first convert all files into pidls list
+            int pos = 0;
+            byte[][] pidls = new byte[filenames.Count][];
+            foreach (var filename in filenames)
+            {
+                // Get pidl based on name
+                IntPtr pidl = ILCreateFromPath(filename);
+                int pidlSize = ILGetSize(pidl);
+                // Copy over to our managed array
+                pidls[pos] = new byte[pidlSize];
+                Marshal.Copy(pidl, pidls[pos++], 0, pidlSize);
+                ILFree(pidl);
+            }
+
+            // Determine where in CIDL we will start pumping PIDLs
+            int pidlOffset = 4 * (filenames.Count + 2);
+            // Start the CIDL stream
+            var memStream = new MemoryStream();
+            var sw = new BinaryWriter(memStream);
+            // Initialize CIDL witha count of files
+            sw.Write(filenames.Count);
+            // Calcualte and write relative offsets of every pidl starting with root
+            sw.Write(pidlOffset);
+            pidlOffset += 4; // root is 4 bytes
+            foreach (var pidl in pidls)
+            {
+                sw.Write(pidlOffset);
+                pidlOffset += pidl.Length;
+            }
+
+            // Write the root pidl (0) followed by all pidls
+            sw.Write(0);
+            foreach (var pidl in pidls) sw.Write(pidl);
+            // stream now contains the CIDL
+            return memStream;
+        }
+        #endregion
+
+        #region Public 
+        public static int Show(IEnumerable<string> Filenames)
+        {
+            StringCollection Files = new StringCollection();
+            Files.AddRange(Filenames.ToArray());
+            var data = new DataObject();
+            data.SetData("Preferred DropEffect", new MemoryStream(new byte[] { 5, 0, 0, 0 }), true);
+            data.SetData("Shell IDList Array", CreateShellIDList(Files), true);
+            data.SetData("FileName", Files, true);
+            data.SetData("FileNameW", Files, true);
+            data.SetFileDropList(Files);
+            Console.WriteLine(Files[0]);
+            return (SHMultiFileProperties(data, 0));
+        }
+
+        public static int Show(params string[] Filenames)
+        {
+            return Show(Filenames as IEnumerable<string>);
+        }
+        #endregion
+        //private const int SW_SHOW = 5;
+        //private const uint SEE_MASK_INVOKEIDLIST = 12;
+
+        //[DllImport("shell32.dll")]
+        //static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
+
+        //[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        //public struct SHELLEXECUTEINFO
+        //{
+        //    public int cbSize;
+        //    public uint fMask;
+        //    public IntPtr hwnd;
+        //    public string lpVerb;
+        //    public string lpFile;
+        //    public string lpParameters;
+        //    public string lpDirectory;
+        //    public int nShow;
+        //    public int hInstApp;
+        //    public int lpIDList;
+        //    public string lpClass;
+        //    public int hkeyClass;
+        //    public uint dwHotKey;
+        //    public int hIcon;
+        //    public int hProcess;
+        //}
+
+        //public static void ShowFileProperties(string Filename)
+        //{
+        //    SHELLEXECUTEINFO info = new SHELLEXECUTEINFO();
+        //    info.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(info);
+        //    info.lpVerb = "properties";
+        //    info.lpFile = Filename;
+        //    info.nShow = SW_SHOW;
+        //    info.fMask = SEE_MASK_INVOKEIDLIST;
+        //    ShellExecuteEx(ref info);
+        //}
+
+        public static bool ShowFileProperties(params string[] FileNames)
+        {
+            bool result = false;
+            try
+            {
+                var pdtobj = new DataObject();
+                var flist = new StringCollection();
+                flist.AddRange(FileNames);
+                pdtobj.SetFileDropList(flist);
+                if (SHMultiFileProperties(pdtobj, 0) == 0 /*S_OK*/) result = true;
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"ShowFileProperties: {ex.Message}"); }
+            return (result);
+        }
+        #endregion
+    }
+
     class PixivWPFSearch
     {
         private static string AppPath = Path.GetDirectoryName(Application.ResourceAssembly.CodeBase.ToString()).Replace("file:\\", "");
@@ -51,8 +192,37 @@ namespace netcharm
                 //return;
                 if (args.Length < 1) return;
                 //args = Environment.GetCommandLineArgs();
+                //Console.WriteLine(string.Join(", ", Environment.GetCommandLineArgs()));
+                //var args_alt = Environment.CommandLine.Split();
+                var args_alt = Environment.GetCommandLineArgs();
                 if (args[0].Equals("upgrade", StringComparison.CurrentCultureIgnoreCase))
-                    UpgradeFiles(args.Skip(1).ToArray());
+                {
+                    var files = args.Skip(1).ToArray();
+                    if (files == null || files.Length <= 0)
+                    {
+                        var IsExe = args_alt.Length >= 2 && args_alt[1].Equals(args[0], StringComparison.CurrentCultureIgnoreCase);
+                        var cfgfile = Path.Combine(IsExe ? AppPath : "", "config.json");
+                        //Console.WriteLine(cfgfile);
+                        if (File.Exists(cfgfile))
+                        {
+                            var json = File.ReadAllText(cfgfile);
+                            JToken token = JToken.Parse(json);
+                            JToken upgradelist = token.SelectToken("$..UpgradeFiles", false);
+                            if (upgradelist != null)
+                            {
+                                try
+                                {
+                                    files = upgradelist.ToObject<List<string>>().ToArray();
+                                    //Console.WriteLine(string.Join(", ", files));
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                    UpgradeFiles(files);
+                }
+                else if (args[0].Equals("properties", StringComparison.CurrentCultureIgnoreCase))
+                    ShowFileProperties(args.Skip(1).ToArray());
                 else
                     SendBridgeCmd(args);
             }
@@ -240,6 +410,23 @@ namespace netcharm
                     System.Diagnostics.Process.Start(Path.Combine(AppPath, "PixivWPF.exe"));
                 }
             }
+        }
+
+        #region Public 
+        public static int ShowPropertiesDialog(IEnumerable<string> Filenames)
+        {
+            return (ShellProperties.Show(Filenames));
+        }
+
+        public static int ShowPropertiesDialog(params string[] Filenames)
+        {
+            return (ShowPropertiesDialog(Filenames as IEnumerable<string>));
+        }
+        #endregion
+
+        public static void ShowFileProperties(IEnumerable<string> Files)
+        {
+            Console.WriteLine(ShowPropertiesDialog(Files));
         }
     }
 }
