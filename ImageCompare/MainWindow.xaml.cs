@@ -205,6 +205,7 @@ namespace ImageCompare
             {
                 try
                 {
+                    files = files.Where(f => !string.IsNullOrEmpty(f)).ToArray();
                     var count = files.Length;
                     if (count > 0)
                     {
