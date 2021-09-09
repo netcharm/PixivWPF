@@ -32,7 +32,10 @@ namespace ImageCompare
         private MagickImage TargetImage { get; set; }
         private MagickImage ResultImage { get; set; }
 
+        private double ImageDistance { get; set; } = 0;
         private double LastZoomRatio { get; set; } = 1;
+
+        private SemaphoreSlim _CanUpdate_ = new SemaphoreSlim(1, 1);
 
         private Point start;
         private Point origin;
@@ -180,7 +183,6 @@ namespace ImageCompare
             return ((await ToMemoryStream(bitmap, fmt)).ToArray());
         }
 
-        SemaphoreSlim _CanUpdate_ = new SemaphoreSlim(1, 1);
         private async void UpdateImageViewer()
         {
             if (await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(10)))
@@ -191,10 +193,10 @@ namespace ImageCompare
                     {
                         if (SourceImage is MagickImage) ImageSource.Source = SourceImage.ToBitmapSource();
                         if (TargetImage is MagickImage) ImageTarget.Source = TargetImage.ToBitmapSource();
-                        CalcDisplay(set_ratio: false);
                         ImageResult.Source = null;
                         ResultImage = await Compare(SourceImage, TargetImage);
                         if (ResultImage is MagickImage) ImageResult.Source = ResultImage.ToBitmapSource();
+                        CalcDisplay(set_ratio: false);
                     }
                     catch { }
                     finally { if (_CanUpdate_ is SemaphoreSlim && _CanUpdate_.CurrentCount < 1) _CanUpdate_.Release(); }
@@ -377,7 +379,7 @@ namespace ImageCompare
             {
                 try
                 {
-                    var setting = new CompareSettings() { HighlightColor = MagickColors.Red };
+                    var setting = new CompareSettings() { Metric = ErrorMetric.Fuzz, HighlightColor = MagickColors.Red };
                     if (source is MagickImage && target is MagickImage)
                     {
                         MagickImage diff = new MagickImage();
