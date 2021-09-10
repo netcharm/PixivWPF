@@ -46,7 +46,9 @@
             <Button x:Name="ImagePasteSource" Margin="4 2" Content="Paste Source" Click="ImageActions_Click" />
             <Button x:Name="ImagePasteTarget" Margin="4 2" Content="Paste Target" Click="ImageActions_Click" />
             <Separator/>
+            <ToggleButton x:Name="ImageToggle" Margin="4 2" Content="Toggle" ToolTip="Toggle Source and Target" HorizontalAlignment="Right" Click="ImageActions_Click"/>
             <Button x:Name="ImageCompare" Margin="4 2" Content="Compare" Click="ImageActions_Click" />
+            <Button x:Name="ImageCompose" Margin="4 2" Content="Compose" HorizontalAlignment="Right" Click="ImageActions_Click"/>
             <Slider x:Name="ImageCompareFuzzy" Margin="4 2" Width="120" HorizontalAlignment="Right" 
                     Value="15" Minimum="0" Maximum="100" 
                     SmallChange="1" LargeChange="5"
