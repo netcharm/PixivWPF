@@ -30,6 +30,7 @@ namespace ImageCompare
 
         private double ImageDistance { get; set; } = 0;
         private double LastZoomRatio { get; set; } = 1;
+        private bool LastOpIsCompose { get; set; } = false;
 
         private ErrorMetric ErrorMetricMode { get; set; } = ErrorMetric.Fuzz;
         private CompositeOperator CompositeMode { get; set; } = CompositeOperator.Difference;
@@ -203,7 +204,7 @@ namespace ImageCompare
             return ((await ToMemoryStream(bitmap, fmt)).ToArray());
         }
 
-        private async void UpdateImageViewer(bool compose = false)
+        private async void UpdateImageViewer(bool compose = false, bool assign = false)
         {
             if (await _CanUpdate_.WaitAsync(TimeSpan.FromMilliseconds(200)))
             {
@@ -211,8 +212,24 @@ namespace ImageCompare
                 {
                     try
                     {
-                        //if (SourceImage is MagickImage) ImageSource.Source = SourceImage.ToBitmapSource();
-                        //if (TargetImage is MagickImage) ImageTarget.Source = TargetImage.ToBitmapSource();
+                        if (assign)
+                        {
+                            try
+                            {
+                                if (ToggleSourceTarget)
+                                {
+                                    ImageSource.Source = TargetImage is MagickImage ? TargetImage.ToBitmapSource() : null;
+                                    ImageTarget.Source = SourceImage is MagickImage ? SourceImage.ToBitmapSource() : null;
+                                }
+                                else
+                                {
+                                    ImageSource.Source = SourceImage is MagickImage ? SourceImage.ToBitmapSource() : null;
+                                    ImageTarget.Source = TargetImage is MagickImage ? TargetImage.ToBitmapSource() : null;
+                                }
+                            }
+                            catch { }
+                        }
+
                         ImageResult.Source = null;
                         ResultImage = await Compare(SourceImage, TargetImage, compose: compose);
                         if (ResultImage is MagickImage) ImageResult.Source = ResultImage.ToBitmapSource();
@@ -273,7 +290,7 @@ namespace ImageCompare
                                 }
                             }
                         }
-                        UpdateImageViewer();
+                        UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                     }
                 }
                 catch { }
@@ -312,7 +329,7 @@ namespace ImageCompare
                                     var img = new MagickImage((obj as MemoryStream));
                                     if (source) SourceImage = img;
                                     else TargetImage = img;
-                                    UpdateImageViewer();
+                                    UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                                     break;
                                 }
                             }
@@ -334,10 +351,10 @@ namespace ImageCompare
                     DataObject dataPackage = new DataObject();
                     MemoryStream ms = null;
 
-#region Copy Standard Bitmap date to Clipboard
+                    #region Copy Standard Bitmap date to Clipboard
                     dataPackage.SetImage(bs);
-#endregion
-#region Copy other MIME format data to Clipboard
+                    #endregion
+                    #region Copy other MIME format data to Clipboard
                     string[] fmts = new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg" };
                     //string[] fmts = new string[] { };
                     foreach (var fmt in fmts)
@@ -358,7 +375,7 @@ namespace ImageCompare
                             await ms.FlushAsync();
                         }
                     }
-#endregion
+                    #endregion
                     Clipboard.SetDataObject(dataPackage, true);
                 }
                 catch { }
@@ -443,21 +460,25 @@ namespace ImageCompare
             Icon = new BitmapImage(new Uri("pack://application:,,,/ImageCompare;component/Resources/Compare.ico"));
 
             if (!Directory.Exists(CachePath)) Directory.CreateDirectory(CachePath);
-            if(Directory.Exists(CachePath)) MagickAnyCPU.CacheDirectory = CachePath;
+            if (Directory.Exists(CachePath)) MagickAnyCPU.CacheDirectory = CachePath;
 
             #region Create ErrorMetric Mode Selector
             cm_compare_mode = new ContextMenu() { PlacementTarget = ImageCompareFuzzy };
             foreach (var v in Enum.GetValues(typeof(ErrorMetric)))
             {
-                var item = new MenuItem() {
-                    Header = v.ToString(), Tag = v,
+                var item = new MenuItem()
+                {
+                    Header = v.ToString(),
+                    Tag = v,
                     IsChecked = ((ErrorMetric)v == ErrorMetric.Fuzz ? true : false)
                 };
-                item.Click += (obj, evt) => {
+                item.Click += (obj, evt) =>
+                {
                     var menu = obj as MenuItem;
                     foreach (MenuItem m in cm_compare_mode.Items) m.IsChecked = false;
                     menu.IsChecked = true;
                     ErrorMetricMode = (ErrorMetric)menu.Tag;
+                    if (!LastOpIsCompose) UpdateImageViewer(compose: LastOpIsCompose);
                 };
                 cm_compare_mode.Items.Add(item);
             }
@@ -467,15 +488,19 @@ namespace ImageCompare
             cm_compose_mode = new ContextMenu() { PlacementTarget = ImageCompose };
             foreach (var v in Enum.GetValues(typeof(CompositeOperator)))
             {
-                var item = new MenuItem() {
-                    Header = v.ToString(), Tag = v,
+                var item = new MenuItem()
+                {
+                    Header = v.ToString(),
+                    Tag = v,
                     IsChecked = ((CompositeOperator)v == CompositeOperator.Difference ? true : false)
                 };
-                item.Click += (obj, evt) => {
+                item.Click += (obj, evt) =>
+                {
                     var menu = obj as MenuItem;
                     foreach (MenuItem m in cm_compose_mode.Items) m.IsChecked = false;
                     menu.IsChecked = true;
                     CompositeMode = (CompositeOperator)menu.Tag;
+                    if (LastOpIsCompose) UpdateImageViewer(compose: LastOpIsCompose);
                 };
                 cm_compose_mode.Items.Add(item);
             }
@@ -517,7 +542,7 @@ namespace ImageCompare
             if (new List<string>(fmts).Contains("FileDrop"))
             {
                 var files = e.Data.GetData("FileDrop");
-                if(files is IEnumerable<string>)
+                if (files is IEnumerable<string>)
                 {
                     LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource ? true : false);
                 }
@@ -674,7 +699,7 @@ namespace ImageCompare
             //    }).Invoke();
             //}
             e.Handled = true;
-            UpdateImageViewer();
+            UpdateImageViewer(compose: LastOpIsCompose);
         }
 
         private void ImageActions_Click(object sender, RoutedEventArgs e)
@@ -695,29 +720,18 @@ namespace ImageCompare
             {
                 LoadImageFromClipboard(source: false);
             }
-            else if(sender == ImageToggle)
+            else if (sender == ImageToggle)
             {
-                try
-                {
-                    if (ToggleSourceTarget)
-                    {
-                        ImageSource.Source = TargetImage is MagickImage ? TargetImage.ToBitmapSource() : null;
-                        ImageTarget.Source = SourceImage is MagickImage ? SourceImage.ToBitmapSource() : null;
-                    }
-                    else
-                    {
-                        ImageSource.Source = SourceImage is MagickImage ? SourceImage.ToBitmapSource() : null; 
-                        ImageTarget.Source = TargetImage is MagickImage ? TargetImage.ToBitmapSource() : null;
-                    }
-                }
-                catch { }
+                UpdateImageViewer(assign: true, compose: LastOpIsCompose);
             }
             else if (sender == ImageCompose)
             {
+                LastOpIsCompose = true;
                 UpdateImageViewer(compose: true);
-            }            
+            }
             else if (sender == ImageCompare)
             {
+                LastOpIsCompose = false;
                 UpdateImageViewer();
             }
             else if (sender == ImageCopyResult)
