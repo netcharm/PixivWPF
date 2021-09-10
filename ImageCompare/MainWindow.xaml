@@ -46,38 +46,40 @@
             <Button x:Name="ImagePasteSource" Margin="4 2" Content="Paste Source" Click="ImageActions_Click" />
             <Button x:Name="ImagePasteTarget" Margin="4 2" Content="Paste Target" Click="ImageActions_Click" />
             <Separator/>
+            <Button x:Name="ImageClean" Margin="4 2" Content="Clean" ToolTip="Clean Source and Target" HorizontalAlignment="Right" Click="ImageActions_Click"/>
             <ToggleButton x:Name="ImageToggle" Margin="4 2" Content="Toggle" ToolTip="Toggle Source and Target" HorizontalAlignment="Right" Click="ImageActions_Click"/>
             <Button x:Name="ImageCompare" Margin="4 2" Content="Compare" Click="ImageActions_Click" />
             <Button x:Name="ImageCompose" Margin="4 2" Content="Compose" HorizontalAlignment="Right" Click="ImageActions_Click"/>
-            <Slider x:Name="ImageCompareFuzzy" Margin="4 2" Width="120" HorizontalAlignment="Right" 
-                    Value="15" Minimum="0" Maximum="100" 
-                    SmallChange="1" LargeChange="5"
-                    Ticks="0.5, 1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100" 
+            <Slider x:Name="ImageCompareFuzzy" Margin="4 2" Width="120" HorizontalAlignment="Right" VerticalAlignment="Center"
+                    Value="15" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5"
+                    TickPlacement="None" Ticks="0.5, 1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100" 
                     IsSnapToTickEnabled="False" ValueChanged="ImageCompareFuzzy_ValueChanged">
                 <Slider.ToolTip>
                     <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Fuzzy: {0:F0}%" />
                 </Slider.ToolTip>
             </Slider>
-            <TextBlock x:Name="ImageCompareFuzzyValue" Margin="0,2" 
+            <TextBlock x:Name="ImageCompareFuzzyValue" Margin="0,2" Width="Auto"
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ImageCompareFuzzy, Path=Value, StringFormat={}{0:F0}%}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
+            <ProgressBar x:Name="ProcessStatus" Margin="4 2" HorizontalAlignment="Right" Width="100"/>
             <Button x:Name="ImageCopyResult" Margin="4 2" Content="Copy Result" Click="ImageActions_Click" />
             <Button x:Name="ImageSaveResult" Margin="4 2" Content="Save Result" Click="ImageActions_Click" />
             <Separator/>
             <ToggleButton x:Name="ZoomFitNone" Margin="4 2" Content="Fit None" HorizontalAlignment="Right" Click="ImageActions_Click"/>
             <ToggleButton x:Name="ZoomFitAll" Margin="4 2" Content="Fit All" HorizontalAlignment="Right" Click="ImageActions_Click"/>
             <ToggleButton x:Name="ZoomFitWidth" Margin="4 2" Content="Fit Width" HorizontalAlignment="Right" Click="ImageActions_Click"/>
-            <ToggleButton x:Name="ZoomFitHeight" Margin="4 2" Content="Fit Height" HorizontalAlignment="Right" Click="ImageActions_Click"/>
-            <Slider x:Name="ZoomRatio" Margin="4 2" Width="240" HorizontalAlignment="Right" Value="1" Minimum="0.25" Maximum="10" 
-                    Ticks="0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False" ValueChanged="ZoomRatio_ValueChanged">
+            <ToggleButton x:Name="ZoomFitHeight" Margin="4 4" Content="Fit Height" HorizontalAlignment="Right" Click="ImageActions_Click"/>
+            <Slider x:Name="ZoomRatio" Margin="4 2" Width="120" HorizontalAlignment="Right" VerticalAlignment="Center"
+                    Value="1" Minimum="0.25" Maximum="10" 
+                    TickPlacement="None" Ticks="0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False" ValueChanged="ZoomRatio_ValueChanged">
                 <Slider.ToolTip>
                     <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="{}{0:F2} X" />
                 </Slider.ToolTip>
             </Slider>
-            <TextBlock x:Name="ZoomRatioValue" Margin="0,2" 
+            <TextBlock x:Name="ZoomRatioValue" Margin="0,2" Width="Auto"
                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                       Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2} X}"
+                       Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2}X}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
         </ToolBar>
 
