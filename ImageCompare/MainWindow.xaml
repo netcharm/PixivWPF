@@ -13,12 +13,12 @@
         TextOptions.TextFormattingMode="Display"
         d:DesignHeight="520" d:DesignWidth="368"        
         Title="Image Compare" Height="720" Width="1280" MinWidth="720" MinHeight="480"
-        SizeChanged="Window_SizeChanged" Loaded="Window_Loaded" Unloaded="Window_Unloaded"
+        SizeChanged="Window_SizeChanged" Loaded="Window_Loaded" Unloaded="Window_Unloaded" Closed="Window_Closed"
         DragOver="Window_DragOver" Drop="Window_Drop">
 
     <Grid x:Name="Canvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AllowDrop="True">
         <Grid.RowDefinitions>
-            <RowDefinition Height="36"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -32,64 +32,64 @@
                 TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
         </Grid.Background>
 
-        <ToolBar Grid.Row="0" Grid.ColumnSpan="3" x:Name="ImageToolBar" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ToolBarTray.IsLocked="True"
-                 VerticalContentAlignment="Center">
+        <ToolBar Grid.Row="0" Grid.ColumnSpan="3" x:Name="ImageToolBar" ToolBarTray.IsLocked="True"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
             <ToolBar.Resources>
                 <Style TargetType="{x:Type DockPanel}">
                     <Setter Property="LastChildFill" Value="True" />
                 </Style>
             </ToolBar.Resources>
-            <Button x:Name="ImageOpenSource" Margin="4 2" ToolTip="Open Source" Click="ImageActions_Click" >
-                <StackPanel Orientation="Horizontal">
+            <Button x:Name="ImageOpenSource" ToolTip="Open Source" Click="ImageActions_Click" >
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock Text="Source" Margin="2 0"/>
                 </StackPanel>
             </Button>
-            <Button x:Name="ImageOpenTarget" Margin="4 2" ToolTip="Open Target" Click="ImageActions_Click" >
-                <StackPanel Orientation="Horizontal">
+            <Button x:Name="ImageOpenTarget" ToolTip="Open Target" Click="ImageActions_Click" >
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock Text="Target" Margin="2 0"/>
                 </StackPanel>
             </Button>
             <Separator/>
-            <Button x:Name="ImagePasteSource" Margin="4 2" ToolTip="Paste Source" Click="ImageActions_Click" >
-                <StackPanel Orientation="Horizontal">
+            <Button x:Name="ImagePasteSource" ToolTip="Paste Source" Click="ImageActions_Click" >
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE16D;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock Text="Source" Margin="2 0"/>
                 </StackPanel>
             </Button>
-            <Button x:Name="ImagePasteTarget" Margin="4 2" ToolTip="Paste Target" Click="ImageActions_Click" >
-                <StackPanel Orientation="Horizontal">
+            <Button x:Name="ImagePasteTarget" ToolTip="Paste Target" Click="ImageActions_Click" >
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE16D;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock Text="Target" Margin="2 0"/>
                 </StackPanel>
             </Button>
             <Separator/>
-            <Button x:Name="ImageClean" Margin="4 2" ToolTip="Clean Source and Target" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal">
+            <Button x:Name="ImageClean" ToolTip="Clean Source and Target" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE106;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <!--<TextBlock Text="Clean" Margin="2 0"/>-->
                 </StackPanel>
             </Button>
-            <ToggleButton x:Name="ImageToggle" Margin="4 2" ToolTip="Toggle Source and Target" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal">
+            <ToggleButton x:Name="ImageToggle" ToolTip="Exchange Source and Target" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE7FD;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <!--<TextBlock Text="Toggle" Margin="2 0"/>-->
                 </StackPanel>
             </ToggleButton>
-            <Button x:Name="ImageCompare" Margin="4 2" ToolTip="Compare Source and Target" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal">
+            <Button x:Name="ImageCompare" ToolTip="Compare Source and Target" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock Text="Compare" Margin="2 0"/>
                 </StackPanel>
             </Button>
-            <Button x:Name="ImageCompose" Margin="4 2" ToolTip="Compose Source and Target" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal">
+            <Button x:Name="ImageCompose" ToolTip="Compose Source and Target" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE81E;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock Text="Compose" Margin="2 0"/>
                 </StackPanel>
             </Button>
-            <Slider x:Name="ImageCompareFuzzy" Margin="4 2" Width="120" HorizontalAlignment="Right" VerticalAlignment="Center"
+            <Slider x:Name="ImageCompareFuzzy" Width="120" HorizontalAlignment="Right" VerticalAlignment="Center"
                     Value="15" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5"
                     TickPlacement="None" Ticks="0.5, 1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100" 
                     IsSnapToTickEnabled="False" ValueChanged="ImageCompareFuzzy_ValueChanged">
@@ -97,59 +97,67 @@
                     <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Fuzzy: {0:F0}%" />
                 </Slider.ToolTip>
             </Slider>
-            <TextBlock x:Name="ImageCompareFuzzyValue" Margin="0,2" Width="Auto"
+            <TextBlock x:Name="ImageCompareFuzzyValue" Width="Auto"
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ImageCompareFuzzy, Path=Value, StringFormat={}{0:F0}%}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
-            <ProgressBar x:Name="ProcessStatus" Margin="4 2" HorizontalAlignment="Right" Width="100" Height="20" />
-            <Button x:Name="ImageCopyResult" Margin="4 2" ToolTip="Copy Result" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal">
+            <ProgressBar x:Name="ProcessStatus" Margin="4,0,0,0" HorizontalAlignment="Right" Width="100" Height="20" />
+            <Button x:Name="ImageCopyResult" ToolTip="Copy Result" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <!--<TextBlock Text="Result" Margin="2 0"/>-->
                 </StackPanel>
             </Button>
-            <Button x:Name="ImageSaveResult" Margin="4 2" ToolTip="Save Result" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal">
+            <Button x:Name="ImageSaveResult" ToolTip="Save Result" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <!--<TextBlock Text="Result" Margin="2 0"/>-->
                 </StackPanel>
             </Button>
             <Separator/>
-            <ToggleButton x:Name="ZoomFitNone" Margin="4 2" ToolTip="Fit None" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal">
+            <ToggleButton x:Name="ZoomFitNone" ToolTip="Fit None" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE7C3;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <!--<TextBlock Text="Toggle" Margin="2 0"/>-->
                 </StackPanel>
             </ToggleButton>
-            <ToggleButton x:Name="ZoomFitAll" Margin="4 2" ToolTip="Fit All" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal">
+            <ToggleButton x:Name="ZoomFitAll" ToolTip="Fit All" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xE9A6;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <!--<TextBlock Text="Toggle" Margin="2 0"/>-->
                 </StackPanel>
             </ToggleButton>
-            <ToggleButton x:Name="ZoomFitWidth" Margin="4 2" ToolTip="Fit Width" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal">
+            <ToggleButton x:Name="ZoomFitWidth" ToolTip="Fit Width" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xF617;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <!--<TextBlock Text="Toggle" Margin="2 0"/>-->
                 </StackPanel>
             </ToggleButton>
-            <ToggleButton x:Name="ZoomFitHeight" Margin="4 4" ToolTip="Fit Height" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal">
+            <ToggleButton x:Name="ZoomFitHeight" ToolTip="Fit Height" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
                     <TextBlock Text="&#xF616;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <!--<TextBlock Text="Toggle" Margin="2 0"/>-->
                 </StackPanel>
             </ToggleButton>
-            <Slider x:Name="ZoomRatio" Margin="4 2" Width="120" HorizontalAlignment="Right" VerticalAlignment="Center"
+            <Slider x:Name="ZoomRatio" Width="120" HorizontalAlignment="Right" VerticalAlignment="Center"
                     Value="1" Minimum="0.25" Maximum="10" 
                     TickPlacement="None" Ticks="0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False" ValueChanged="ZoomRatio_ValueChanged">
                 <Slider.ToolTip>
                     <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="{}{0:F2} X" />
                 </Slider.ToolTip>
             </Slider>
-            <TextBlock x:Name="ZoomRatioValue" Margin="0,2" Width="Auto"
+            <TextBlock x:Name="ZoomRatioValue" Width="Auto"
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2}X}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
+            <Separator/>
+            <ToggleButton x:Name="UseSmallerImage" IsChecked="True"
+                          ToolTip="Using Smaller Image for Compare/Compose After Image Loaded" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel Orientation="Horizontal" Margin="2">
+                    <TextBlock Text="&#xE123;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                    <!--<TextBlock Text="Toggle" Margin="2 0"/>-->
+                </StackPanel>
+            </ToggleButton>
         </ToolBar>
 
         <!-- Image Source Preview -->
