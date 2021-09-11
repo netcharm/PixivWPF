@@ -749,12 +749,32 @@ namespace ImageCompare
         {
             bool source = target == ImageSource ? true : false;
 
-            var item_fh = new MenuItem() { Header = "Flip Horizon", Tag = source };
-            var item_fv = new MenuItem() { Header = "Flip Vertical", Tag = source };
-            var item_r090 = new MenuItem() { Header = "Rotate +90", Tag = source };
-            var item_r180 = new MenuItem() { Header = "Rotate 180", Tag = source };
-            var item_r270 = new MenuItem() { Header = "Rotate -90", Tag = source };
-            var item_reset = new MenuItem() { Header = "Reset", Tag = source };
+            var item_fh = new MenuItem() {
+                Header = "Flip Horizon", Tag = source,
+                Icon = new TextBlock() { Text = "\uE13C", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+            };
+            var item_fv = new MenuItem() {
+                Header = "Flip Vertical", Tag = source,
+                Icon = new TextBlock() { Text = "\uE174", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+            };
+            var item_r090 = new MenuItem() {
+                Header = "Rotate +90", Tag = source,
+                Icon = new TextBlock() { Text = "\uE14A", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+            };
+            var item_r180 = new MenuItem() {
+                Header = "Rotate 180", Tag = source,
+                Icon = new TextBlock() { Text = "\uE14A", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                LayoutTransform = new RotateTransform(180) }
+            };
+            var item_r270 = new MenuItem() {
+                Header = "Rotate -90", Tag = source,
+                Icon = new TextBlock() { Text = "\uE14A", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                    LayoutTransform = new ScaleTransform(-1, 1) }
+            };
+            var item_reset = new MenuItem() {
+                Header = "Reset", Tag = source,
+                Icon = new TextBlock() { Text = "\uE777", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+            };
             item_fh.Click += (obj, evt) =>
             {
                 FlopImage((bool)(obj as MenuItem).Tag);
