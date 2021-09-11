@@ -464,6 +464,11 @@ namespace PixivWPF.Pages
                 Commands.ShellSendToOtherInstance.Execute(HistoryItems);
         }
 
+        private void ActionCompare_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.Compare.Execute(HistoryItems);
+        }
+
         private void ActionRefresh_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem)

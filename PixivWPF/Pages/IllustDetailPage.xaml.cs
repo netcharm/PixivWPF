@@ -4414,6 +4414,38 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(); }
         }
 
+        private void ActionCompare_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is MenuItem)
+                {
+                    var m = sender as MenuItem;
+                    var host = (m.Parent as ContextMenu).PlacementTarget;
+                    if (m.Uid.Equals("ActionCompare", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (host == SubIllustsExpander || host == SubIllusts)
+                        {
+                            Commands.Compare.Execute(SubIllusts);
+                        }
+                        else if (host == RelativeItemsExpander || host == RelativeItems)
+                        {
+                            Commands.Compare.Execute(RelativeItems);
+                        }
+                        else if (host == FavoriteItemsExpander || host == FavoriteItems)
+                        {
+                            Commands.Compare.Execute(FavoriteItems);
+                        }
+                        else if(Contents.IsWork())
+                        {
+                            Commands.Compare.Execute(Contents);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ex.ERROR("Compare"); }
+        }
+
         private void ActionPrevPage_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -4497,7 +4529,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SaveIllusts"); }
         }
 
         private void ActionSaveIllustsAll_Click(object sender, RoutedEventArgs e)
@@ -4525,7 +4557,7 @@ namespace PixivWPF.Pages
                     }
                 }
             }
-            catch (Exception ex) { ex.ERROR(); }
+            catch (Exception ex) { ex.ERROR("SaveIllustsAll"); }
         }
 
         private void ActionUgoiraGet_Click(object sender, RoutedEventArgs e)

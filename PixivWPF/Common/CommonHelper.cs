@@ -2096,6 +2096,26 @@ namespace PixivWPF.Common
             return (Regex.Replace(text, macro, target, RegexOptions.IgnoreCase));
         }
 
+        public static void ShellImageCompare(this string file_s, string file_t = "")
+        {
+            if (string.IsNullOrEmpty(setting.ShellImageCompareCmd)) return;
+            var shell = Path.IsPathRooted(setting.ShellImageCompareCmd) ? setting.ShellImageCompareCmd : Path.Combine(Application.Current.GetRoot(), setting.ShellImageCompareCmd);
+            if (File.Exists(shell))
+            {
+                Process.Start(shell, $"\"{file_s}\" \"{file_t}\"");
+            }
+        }
+
+        public static void ShellImageCompare(this IEnumerable<string> files)
+        {
+            if (string.IsNullOrEmpty(setting.ShellImageCompareCmd)) return;
+            var shell = Path.IsPathRooted(setting.ShellImageCompareCmd) ? setting.ShellImageCompareCmd : Path.Combine(Application.Current.GetRoot(), setting.ShellImageCompareCmd);
+            if (File.Exists(shell) && files is IEnumerable<string> && files.Count() >= 1)
+            {
+                Process.Start(shell, string.Join(" ", files.TakeWhile(f => !string.IsNullOrEmpty(f.Trim())).Select(f => $"\"{f.Trim()}\"")));
+            }
+        }
+
         public static void SendToOtherInstance(this IEnumerable<string> contents)
         {
             if (contents is IEnumerable<string> && contents.Count() > 0)
@@ -2176,7 +2196,8 @@ namespace PixivWPF.Common
 
         public static void ShellSendToOtherInstance(this string contents)
         {
-            var shell = Path.Combine(Application.Current.GetRoot(), setting.ShellSearchBridgeApplication);
+            if (string.IsNullOrEmpty(setting.ShellSearchBridgeApplication)) return;
+            var shell = Path.IsPathRooted(setting.ShellSearchBridgeApplication) ? setting.ShellSearchBridgeApplication : Path.Combine(Application.Current.GetRoot(), setting.ShellSearchBridgeApplication);
             if (File.Exists(shell))
             {
                 Process.Start(shell, contents);
@@ -4666,52 +4687,11 @@ namespace PixivWPF.Common
 
         public static async void CopyImage(this ImageSource source)
         {
-            try
+            await new Action(async () =>
             {
-                var bs = source.ToBitmapSource();
-
-                DataObject dataPackage = new DataObject();
-                MemoryStream ms = null;
-
-                #region Copy Standard Bitmap date to Clipboard
-                dataPackage.SetImage(bs);
-                #endregion
-                #region Copy other MIME format data to Clipboard
-                string[] fmts = new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg" };
-                //string[] fmts = new string[] { };
-                foreach (var fmt in fmts)
+                try
                 {
-                    if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        byte[] arr = await bs.ToBytes(fmt);
-                        byte[] dib = arr.Skip(14).ToArray();
-                        ms = new MemoryStream(dib);
-                        dataPackage.SetData(fmt, ms);
-                        await ms.FlushAsync();
-                    }
-                    else
-                    {
-                        byte[] arr = await bs.ToBytes(fmt);
-                        ms = new MemoryStream(arr);
-                        dataPackage.SetData(fmt, ms);
-                        await ms.FlushAsync();
-                    }
-                }
-                #endregion
-                Clipboard.SetDataObject(dataPackage, true);
-            }
-            catch (Exception ex) { ex.ERROR("CopyImage"); }
-        }
-
-        public static async void CopyImage(this string file)
-        {
-            try
-            {
-                if (File.Exists(file))
-                {
-                    var ext = Path.GetExtension(file).ToLower();
-                    ClipboardBuffer = file.ToBytes();
-                    var bs = await ClipboardBuffer.ToBitmapSource();
+                    var bs = source.ToBitmapSource();
 
                     DataObject dataPackage = new DataObject();
                     MemoryStream ms = null;
@@ -4724,36 +4704,83 @@ namespace PixivWPF.Common
                     //string[] fmts = new string[] { };
                     foreach (var fmt in fmts)
                     {
-                        if (exts.ContainsKey(ext) && exts[ext].Contains(fmt))
+                        if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            ms = new MemoryStream(ClipboardBuffer);
+                            byte[] arr = await bs.ToBytes(fmt);
+                            byte[] dib = arr.Skip(14).ToArray();
+                            ms = new MemoryStream(dib);
                             dataPackage.SetData(fmt, ms);
                             await ms.FlushAsync();
                         }
                         else
                         {
-                            if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                byte[] arr = await bs.ToBytes(fmt);
-                                byte[] dib = arr.Skip(14).ToArray();
-                                ms = new MemoryStream(dib);
-                                dataPackage.SetData(fmt, ms);
-                                await ms.FlushAsync();
-                            }
-                            else
-                            {
-                                byte[] arr = await bs.ToBytes(fmt);
-                                ms = new MemoryStream(arr);
-                                dataPackage.SetData(fmt, ms);
-                                await ms.FlushAsync();
-                            }
+                            byte[] arr = await bs.ToBytes(fmt);
+                            ms = new MemoryStream(arr);
+                            dataPackage.SetData(fmt, ms);
+                            await ms.FlushAsync();
                         }
                     }
                     #endregion
                     Clipboard.SetDataObject(dataPackage, true);
                 }
-            }
-            catch (Exception ex) { ex.ERROR("CopyImage"); }
+                catch (Exception ex) { ex.ERROR("CopyImage"); }
+            }).InvokeAsync(realtime: false);
+        }
+
+        public static async void CopyImage(this string file)
+        {
+            await new Action(async () =>
+            {
+                try
+                {
+                    if (File.Exists(file))
+                    {
+                        var ext = Path.GetExtension(file).ToLower();
+                        ClipboardBuffer = file.ToBytes();
+                        var bs = await ClipboardBuffer.ToBitmapSource();
+
+                        DataObject dataPackage = new DataObject();
+                        MemoryStream ms = null;
+
+                        #region Copy Standard Bitmap date to Clipboard
+                        dataPackage.SetImage(bs);
+                        #endregion
+                        #region Copy other MIME format data to Clipboard
+                        string[] fmts = new string[] { "PNG", "image/png", "image/bmp", "image/jpg", "image/jpeg" };
+                        //string[] fmts = new string[] { };
+                        foreach (var fmt in fmts)
+                        {
+                            if (exts.ContainsKey(ext) && exts[ext].Contains(fmt))
+                            {
+                                ms = new MemoryStream(ClipboardBuffer);
+                                dataPackage.SetData(fmt, ms);
+                                await ms.FlushAsync();
+                            }
+                            else
+                            {
+                                if (fmt.Equals("CF_DIBV5", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    byte[] arr = await bs.ToBytes(fmt);
+                                    byte[] dib = arr.Skip(14).ToArray();
+                                    ms = new MemoryStream(dib);
+                                    dataPackage.SetData(fmt, ms);
+                                    await ms.FlushAsync();
+                                }
+                                else
+                                {
+                                    byte[] arr = await bs.ToBytes(fmt);
+                                    ms = new MemoryStream(arr);
+                                    dataPackage.SetData(fmt, ms);
+                                    await ms.FlushAsync();
+                                }
+                            }
+                        }
+                        #endregion
+                        Clipboard.SetDataObject(dataPackage, true);
+                    }
+                }
+                catch (Exception ex) { ex.ERROR("CopyImage"); }
+            }).InvokeAsync(realtime: false);
         }
 
         public static async Task<bool> WriteToFile(this Stream source, string file, ContentRangeHeaderValue range = null, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)

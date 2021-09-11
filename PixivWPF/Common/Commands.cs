@@ -637,6 +637,72 @@ namespace PixivWPF.Common
             }
         });
 
+        public static ICommand Compare { get; } = new DelegateCommand<dynamic>(async obj =>
+        {
+            if (obj is IEnumerable<string>)
+            {
+                var content = (obj as IEnumerable<string>).ToArray();
+                if (content.Count() > 0)
+                {
+                    await new Action(async () =>
+                    {
+                        CommonHelper.ShellImageCompare(content);
+                        await Task.Delay(1);
+                        Application.Current.DoEvents();
+                    }).InvokeAsync();
+                }
+            }
+            else if (obj is Pixeez.Objects.Work)
+            {
+                var item = obj as Pixeez.Objects.Work;
+                var id = $"{item.GetPreviewUrl().GetImageCacheFile()}";
+                Compare.Execute(new string[] { id });
+            }
+            else if (obj is PixivItem)
+            {
+                var item = obj as PixivItem;
+                if (item.IsWork())
+                {
+                    var id = $"{item.Illust.GetPreviewUrl().GetImageCacheFile()}";
+                    Compare.Execute(new string[] { id });
+                }
+            }
+            else if (obj is ImageListGrid)
+            {
+                var gallery = obj as ImageListGrid;
+                if (IsNormalGallary(gallery))
+                {
+                    var ids = new  List<string>();
+                    foreach (var item in gallery.GetSelected())
+                    {
+                        if (item.IsWork())
+                        {
+                            var id = $"{item.Illust.GetPreviewUrl().GetImageCacheFile()}";
+                            if (!ids.Contains(id)) ids.Add(id);
+                        }
+                    }
+                    Compare.Execute(ids);
+                }
+                else if (IsPagesGallary(gallery))
+                {
+                    var page = gallery.TryFindParent<IllustDetailPage>();
+                    if (page is IllustDetailPage)
+                    {
+                        var ids = new  List<string>();
+                        foreach (var item in gallery.GetSelected())
+                        {
+                            if (item.IsPage() || item.IsPages())
+                            {
+                                var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile()}";
+                                if (!ids.Contains(id)) ids.Add(id);
+                            }
+                        }
+                        Compare.Execute(ids);
+                    }
+                }
+            }
+        });
+
         public static ICommand OpenTouch { get; } = new DelegateCommand<dynamic>(async obj =>
         {
             try

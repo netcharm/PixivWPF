@@ -1451,6 +1451,28 @@ namespace PixivWPF.Common
                 if (Cache is Setting) Cache.query_image_size_file = query_image_size_file;
             }
         }
+
+        private string shell_compare_cmd = "ImageCompare.exe";
+        public string ShellImageCompareCmd
+        {
+            get { return (Cache is Setting ? Cache.shell_compare_cmd : shell_compare_cmd); }
+            set
+            {
+                shell_compare_cmd = value;
+                if (Cache is Setting) Cache.shell_compare_cmd = shell_compare_cmd;
+            }
+        }
+
+        private string shell_compare_params = "";
+        public string ShellImageCompareParams
+        {
+            get { return (Cache is Setting ? Cache.shell_compare_params : shell_compare_params); }
+            set
+            {
+                shell_compare_params = value;
+                if (Cache is Setting) Cache.shell_compare_params = shell_compare_params;
+            }
+        }
         #endregion
 
         #region Favorite/Follow relative
