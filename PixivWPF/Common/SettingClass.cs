@@ -1059,7 +1059,7 @@ namespace PixivWPF.Common
         /// <summary>
         /// Unit : Seconds
         /// </summary>
-        private int download_http_timeout = 30;
+        private int download_http_timeout = 60;
         public int DownloadHttpTimeout
         {
             get { return (Cache is Setting ? Cache.download_http_timeout : download_http_timeout); }

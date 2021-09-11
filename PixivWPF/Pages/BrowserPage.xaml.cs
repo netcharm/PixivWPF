@@ -190,7 +190,7 @@ namespace PixivWPF.Pages
                     webHtml.Stop();
                     HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(currentUri);
                     if (setting.UsingProxy) myRequest.Proxy = new WebProxy(setting.Proxy, true, setting.ProxyBypass.ToArray());
-                    myRequest.Timeout = setting.DownloadHttpTimeout;
+                    myRequest.Timeout = (int)TimeSpan.FromSeconds(setting.DownloadHttpTimeout).TotalMilliseconds;
                     myRequest.KeepAlive = true;
 
                     HttpWebResponse myResponse = (HttpWebResponse)await myRequest.GetResponseAsync();
@@ -198,19 +198,23 @@ namespace PixivWPF.Pages
                 }
                 catch (Exception ex)
                 {
-                    if (webHtml.DocumentStream is Stream) webHtml.DocumentStream.Close();
-                    if (ex.Message.Contains("404"))
+                    try
                     {
-                        if (webHtml.DocumentText.Length <= 1024)
-                            webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
-                        if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(-1, state: TaskStatus.RanToCompletion);
-                        //BrowserWait.Hide();
+                        if (webHtml.DocumentStream is Stream) webHtml.DocumentStream.Close();
+                        if (ex.Message.Contains("404"))
+                        {
+                            if (webHtml.DocumentText.Length <= 1024)
+                                webHtml.DocumentText = $"<p class='E404' alt='404 Not Found!'><span class='E404T'>{titleWord}</span></p>".GetHtmlFromTemplate(titleWord);
+                            if (ParentWindow is ContentWindow) (ParentWindow as ContentWindow).SetPrefetchingProgress(-1, state: TaskStatus.RanToCompletion);
+                            //BrowserWait.Hide();
+                        }
+                        else
+                        {
+                            ex.Message.ShowToast("ERROR", tag: "GetHtmlContents");
+                            //BrowserWait.Fail();
+                        }
                     }
-                    else
-                    {
-                        ex.Message.ShowToast("ERROR", tag: "GetHtmlContents");
-                        //BrowserWait.Fail();
-                    }
+                    catch(Exception exx) { exx.ERROR("GetHtmlContents"); }
                 }
             }).InvokeAsync();
         }

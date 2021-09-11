@@ -5046,6 +5046,7 @@ namespace PixivWPF.Common
             var result = string.Empty;
             if (!File.Exists(file) || overwrite || new FileInfo(file).Length <= 0)
             {
+                setting = Application.Current.LoadSetting();
                 if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
                 if (_Downloading_.TryAdd(file, true))
                 {
@@ -5134,6 +5135,7 @@ namespace PixivWPF.Common
             bool result = false;
             if (url.IndexOf("https://") > 1 || url.IndexOf("http://") > 1) return (result);
 
+            setting = Application.Current.LoadSetting();
             var cancelTokenSource = new CancellationTokenSource();
             if (!(cancelToken is CancellationTokenSource)) cancelToken = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
             if (!string.IsNullOrEmpty(file))

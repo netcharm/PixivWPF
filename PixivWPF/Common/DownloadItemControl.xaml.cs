@@ -820,6 +820,8 @@ namespace PixivWPF.Common
             {
                 try
                 {
+                    setting = Application.Current.LoadSetting();
+
                     var lastUpdateBuffer = DateTime.Now;
                     LastElapsed = TimeSpan.FromSeconds(0.1);
 
