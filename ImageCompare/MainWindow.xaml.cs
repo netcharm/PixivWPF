@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,7 +14,6 @@ using System.Windows.Media.Imaging;
 
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ImageMagick;
-using System.Text;
 
 namespace ImageCompare
 {
@@ -91,6 +92,45 @@ namespace ImageCompare
             return (result);
         }
 
+        private void SetImage(ImageType type, MagickImage image)
+        {
+            if (type != ImageType.Result)
+            {
+                bool source  = type == ImageType.Source ? true : false;
+                if (source ^ ToggleSourceTarget)
+                {
+                    if (SourceImage is MagickImage) SourceImage.Dispose();
+                    SourceImage = image;
+                    FlipX_Source = false;
+                    FlipY_Source = false;
+                    Rotate_Source = 0;
+                }
+                else
+                {
+                    if (TargetImage is MagickImage) TargetImage.Dispose();
+                    TargetImage = image;
+                    FlipX_Target = false;
+                    FlipY_Target = false;
+                    Rotate_Target = 0;
+                }
+            }
+            else
+            {
+                if (ResultImage is MagickImage) ResultImage.Dispose();
+                ResultImage = image;
+            }
+            UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+        }
+
+        private void SetImage(ImageType type, IMagickImage<float> image)
+        {
+            try
+            {
+                SetImage(type, new MagickImage(image));
+            }
+            catch { }
+        }
+
         private void GetExif(MagickImage image)
         {
             if (image is MagickImage)
@@ -114,9 +154,11 @@ namespace ImageCompare
                 var tip = new List<string>();
                 tip.Add($"Dimention      = {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
                 tip.Add($"Colors         = {image.TotalColors}");
-                //tip.Add($"Colors        = {image.BitDepth(}");
+                tip.Add($"Color Space    = {Path.GetFileName(image.ColorSpace.ToString())}");
                 tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth / 4)}");
                 tip.Add($"Display Memory = {SmartFileSize(image.Width * image.Height * 4)}");
+                if (!string.IsNullOrEmpty(image.FileName))
+                    tip.Add($"FileName       = {Path.GetFileName(image.FileName)}");
                 result = string.Join(Environment.NewLine, tip);
             }
             return (string.IsNullOrEmpty(result) ? null : result);
@@ -390,7 +432,7 @@ namespace ImageCompare
 #endif
                         ProcessStatus.IsIndeterminate = true;
                         await Task.Delay(1);
-                        if (assign)
+                        if (assign || ImageSource.Source == null || ImageTarget.Source == null)
                         {
                             try
                             {
@@ -406,6 +448,7 @@ namespace ImageCompare
                                 }
                                 GC.Collect();
                                 GC.WaitForPendingFinalizers();
+                                await Task.Delay(1);
                             }
                             catch { }
                         }
@@ -416,6 +459,7 @@ namespace ImageCompare
                         ImageResult.Source = null;
                         if (ResultImage is MagickImage) ResultImage.Dispose();
                         ResultImage = await Compare(SourceImage, TargetImage, compose: compose);
+                        await Task.Delay(1);
                         if (ResultImage is MagickImage) ImageResult.Source = ResultImage.ToBitmapSource();
                         ImageResult.ToolTip = GetImageInfo(ImageType.Result);
                         CalcDisplay(set_ratio: false);
@@ -424,9 +468,9 @@ namespace ImageCompare
                     catch { }
                     finally
                     {
-                        if (_CanUpdate_ is SemaphoreSlim && _CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
                         ProcessStatus.IsIndeterminate = false;
                         await Task.Delay(1);
+                        if (_CanUpdate_ is SemaphoreSlim && _CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
                     }
                 }, System.Windows.Threading.DispatcherPriority.Render);
             }
@@ -513,38 +557,55 @@ namespace ImageCompare
             {
                 try
                 {
-                    var supported_fmts = new string[] { "PNG", "image/png", "image/jpg", "image/jpeg", "image/tif", "image/tiff", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "image/webp" };
+                    var supported_fmts = new string[] { "PNG", "image/png", "image/jpg", "image/jpeg", "image/tif", "image/tiff", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "image/webp", "Text" };
                     IDataObject dataPackage = Clipboard.GetDataObject();
                     var fmts = dataPackage.GetFormats();
                     foreach (var fmt in supported_fmts)
                     {
                         if (fmts.Contains(fmt))
                         {
-                            var exists = dataPackage.GetDataPresent(fmt, true);
-                            if (exists)
+                            if (fmt.Equals("Text", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                var obj = dataPackage.GetData(fmt, true);
-                                if (obj is MemoryStream)
+                                var text = dataPackage.GetData(fmt, true) as string;
+                                var IsFile = !text.StartsWith("data:", StringComparison.CurrentCultureIgnoreCase) &&
+                                              (text.Contains('.') || text.Contains('\\') || text.Contains(':'));
+                                if (IsFile)
                                 {
-                                    var img = new MagickImage((obj as MemoryStream));
-                                    if (source)
+                                    try
                                     {
-                                        if (SourceImage is MagickImage) SourceImage.Dispose();
-                                        SourceImage = img;
-                                        FlipX_Target = false;
-                                        FlipY_Target = false;
-                                        Rotate_Target = 0;
+                                        var files = text.Split(new string[] { Environment.NewLine, "\r", "\n", " "}, StringSplitOptions.RemoveEmptyEntries);
+                                        if (files.Length > 0) LoadImageFromFiles(files.Select(f => f.Trim('"').Trim()).ToArray());
                                     }
-                                    else
+                                    catch { }
+                                }
+                                else
+                                {
+                                    try
                                     {
-                                        if (TargetImage is MagickImage) TargetImage.Dispose();
-                                        TargetImage = img;
-                                        FlipX_Target = false;
-                                        FlipY_Target = false;
-                                        Rotate_Target = 0;
+                                        SetImage(source ? ImageType.Source : ImageType.Target, MagickImage.FromBase64(Regex.Replace(text, @"^data:.*?;base64,", "", RegexOptions.IgnoreCase)));
                                     }
-                                    UpdateImageViewer(assign: true, compose: LastOpIsCompose);
-                                    break;
+#if DEBUG
+                                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex.Message); }
+#else
+                                    catch { }
+#endif
+                                }
+                            }
+                            else
+                            {
+                                var exists = dataPackage.GetDataPresent(fmt, true);
+                                if (exists)
+                                {
+                                    var obj = dataPackage.GetData(fmt, true);
+                                    if (obj is MemoryStream)
+                                    {
+                                        var img = new MagickImage((obj as MemoryStream));
+                                        if (source)
+                                            SetImage(ImageType.Source, img);
+                                        else
+                                            SetImage(ImageType.Target, img);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -572,19 +633,11 @@ namespace ImageCompare
                             file_t = files.Skip(1).First();
                             using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
-                                if (SourceImage is MagickImage) SourceImage.Dispose();
-                                SourceImage = new MagickImage(fs);
-                                FlipX_Source = false;
-                                FlipY_Source = false;
-                                Rotate_Source = 0;
+                                SetImage(ImageType.Source, new MagickImage(fs));
                             }
                             using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
-                                if (TargetImage is MagickImage) TargetImage.Dispose();
-                                TargetImage = new MagickImage(fs);
-                                FlipX_Target = false;
-                                FlipY_Target = false;
-                                Rotate_Target = 0;
+                                SetImage(ImageType.Target, new MagickImage(fs));
                             }
                         }
                         else
@@ -594,11 +647,7 @@ namespace ImageCompare
                                 file_s = files.First();
                                 using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
                                 {
-                                    if (SourceImage is MagickImage) SourceImage.Dispose();
-                                    SourceImage = new MagickImage(fs);
-                                    FlipX_Source = false;
-                                    FlipY_Source = false;
-                                    Rotate_Source = 0;
+                                    SetImage(ImageType.Source, new MagickImage(fs));
                                 }
                             }
                             else
@@ -606,15 +655,10 @@ namespace ImageCompare
                                 file_t = files.First();
                                 using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
                                 {
-                                    if (TargetImage is MagickImage) TargetImage.Dispose();
-                                    TargetImage = new MagickImage(fs);
-                                    FlipX_Target = false;
-                                    FlipY_Target = false;
-                                    Rotate_Target = 0;
+                                    SetImage(ImageType.Target, new MagickImage(fs));
                                 }
                             }
                         }
-                        UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                     }
                 }
                 catch { }
