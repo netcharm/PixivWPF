@@ -35,6 +35,7 @@ namespace ImageCompare
 
         private string DefaultCompareToolTip { get; set; } = string.Empty;
         private string DefaultComposeToolTip { get; set; } = string.Empty;
+        private string DefaultWindowTitle { get; set; } = string.Empty;
 
         private int MaxCompareSize { get; set; } = 1024;
         private MagickGeometry CompareResizeGeometry { get; set; } = null;
@@ -43,6 +44,9 @@ namespace ImageCompare
         private MagickImage TargetOriginal { get; set; } = null;
         private bool SourceLoaded { get; set; } = false;
         private bool TargetLoaded { get; set; } = false;
+
+        private string SourceFile { get; set; } = string.Empty;
+        private string TargetFile { get; set; } = string.Empty;
 
         private MagickImage SourceImage { get; set; } = null;
         private MagickImage TargetImage { get; set; } = null;
@@ -172,6 +176,31 @@ namespace ImageCompare
         #endregion
 
         #region Image Processing Routines
+        private void CleanImage()
+        {
+            if (SourceImage is MagickImage && !SourceImage.IsDisposed) SourceImage.Dispose(); SourceImage = null;
+            if (TargetImage is MagickImage && !TargetImage.IsDisposed) TargetImage.Dispose(); TargetImage = null;
+            if (ResultImage is MagickImage && !ResultImage.IsDisposed) ResultImage.Dispose(); ResultImage = null;
+
+            if (SourceOriginal is MagickImage && !SourceOriginal.IsDisposed) SourceOriginal.Dispose(); SourceOriginal = null;
+            if (TargetOriginal is MagickImage && !TargetOriginal.IsDisposed) TargetOriginal.Dispose(); TargetOriginal = null;
+
+            if (ImageSource.Source != null) { ImageSource.Source = null; }
+            if (ImageTarget.Source != null) { ImageTarget.Source = null; }
+            if (ImageResult.Source != null) { ImageResult.Source = null; }
+
+            ImageSource.ToolTip = null;
+            ImageTarget.ToolTip = null;
+            ImageResult.ToolTip = null;
+
+            SourceLoaded = false;
+            TargetLoaded = false;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.WaitForFullGCComplete();
+        }
+
         private MagickImage GetImage(ImageType type)
         {
             MagickImage result = null;
@@ -191,6 +220,7 @@ namespace ImageCompare
         {
             try
             {
+                if (image == null || image.IsDisposed) return;
                 if (type != ImageType.Result)
                 {
                     bool source  = type == ImageType.Source ? true : false;
@@ -268,61 +298,18 @@ namespace ImageCompare
             catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
         }
 
-        private void GetExif(MagickImage image)
+        private void CopyImageInfo(bool source)
         {
-            if (image is MagickImage)
+            if (source ^ ToggleSourceTarget)
             {
-                var exif = image.GetExifProfile() ?? new ExifProfile();
-                var tag = exif.GetValue(ExifTag.XPTitle);
-                if (tag != null) { var text = Encoding.Unicode.GetString(tag.Value).Trim('\0').Trim(); }
-#if DEBUG
-                //Debug.WriteLine(text);
-#endif
+                if (ImageSource.ToolTip is string && !string.IsNullOrEmpty(ImageSource.ToolTip as string))
+                    Clipboard.SetText(ImageSource.ToolTip as string);
             }
-        }
-
-        private string GetImageInfo(ImageType type)
-        {
-            string result = string.Empty;
-            var image = GetImage(type);
-            if (image != null)
+            else
             {
-                var st = Stopwatch.StartNew();
-                image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
-                var tip = new List<string>();
-                tip.Add($"Dimention      = {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
-                tip.Add($"Resolution     = {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
-                //tip.Add($"Colors         = {image.TotalColors}");
-                tip.Add($"Attributes");
-                foreach (var attr in image.AttributeNames)
-                {
-                    try
-                    {
-                        var value = image.GetAttribute(attr);
-                        if (string.IsNullOrEmpty(value)) continue;
-                        if(attr.Contains("WinXP")) value = DecodeHexUnicode(value);
-                        if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
-                        tip.Add($"  {attr.PadRight(32, ' ')}= { value }");
-                    }
-                    catch(Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"{attr} : {ex.Message}"); }
-                }
-                tip.Add($"Color Space    = {Path.GetFileName(image.ColorSpace.ToString())}");
-                tip.Add($"Format Info    = {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
-#if Q16HDRI
-                tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 4 / 8)}");
-#elif Q16
-                tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 2 / 8)}");
-#else
-                tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth / 8)}");
-#endif
-                tip.Add($"Display Memory = {SmartFileSize(image.Width * image.Height * 4)}");
-                if (!string.IsNullOrEmpty(image.FileName))
-                    tip.Add($"FileName       = {Path.GetFileName(image.FileName)}");
-                result = string.Join(Environment.NewLine, tip);
-                st.Stop();
-                Debug.WriteLine($"{TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4}s");
+                if (ImageTarget.ToolTip is string && !string.IsNullOrEmpty(ImageTarget.ToolTip as string))
+                    Clipboard.SetText(ImageTarget.ToolTip as string);
             }
-            return (string.IsNullOrEmpty(result) ? null : result);
         }
 
         private void RotateImage(bool source, int value)
@@ -603,27 +590,6 @@ namespace ImageCompare
             if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
         }
 
-        private void CleanImage()
-        {
-            if (SourceImage is MagickImage && !SourceImage.IsDisposed) SourceImage.Dispose(); SourceImage = null;
-            if (TargetImage is MagickImage && !TargetImage.IsDisposed) TargetImage.Dispose(); TargetImage = null;
-            if (ResultImage is MagickImage && !ResultImage.IsDisposed) ResultImage.Dispose(); ResultImage = null;
-
-            if (SourceOriginal is MagickImage && !SourceOriginal.IsDisposed) SourceOriginal.Dispose(); SourceOriginal = null;
-            if (TargetOriginal is MagickImage && !TargetOriginal.IsDisposed) TargetOriginal.Dispose(); TargetOriginal = null;
-
-            if (ImageSource.Source != null) { ImageSource.Source = null; }
-            if (ImageTarget.Source != null) { ImageTarget.Source = null; }
-            if (ImageResult.Source != null) { ImageResult.Source = null; }
-
-            SourceLoaded = false;
-            TargetLoaded = false;
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.WaitForFullGCComplete();
-        }
-
         private async Task<MagickImage> Compare(MagickImage source, MagickImage target, bool compose = false)
         {
             MagickImage result = null;
@@ -694,6 +660,66 @@ namespace ImageCompare
 
         #region Image Display Routines
         private SemaphoreSlim _CanUpdate_ = new SemaphoreSlim(1, 1);
+
+        private void GetExif(MagickImage image)
+        {
+            if (image is MagickImage)
+            {
+                var exif = image.GetExifProfile() ?? new ExifProfile();
+                var tag = exif.GetValue(ExifTag.XPTitle);
+                if (tag != null) { var text = Encoding.Unicode.GetString(tag.Value).Trim('\0').Trim(); }
+#if DEBUG
+                //Debug.WriteLine(text);
+#endif
+            }
+        }
+
+        private string GetImageInfo(ImageType type)
+        {
+            string result = string.Empty;
+            var image = GetImage(type);
+            if (image != null)
+            {
+                var file = type == ImageType.Source ? SourceFile : type == ImageType.Target ? TargetFile : string.Empty;
+                var st = Stopwatch.StartNew();
+                image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
+                var tip = new List<string>();
+                tip.Add($"Dimention      = {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
+                tip.Add($"Resolution     = {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
+                //tip.Add($"Colors         = {image.TotalColors}");
+                tip.Add($"Attributes");
+                foreach (var attr in image.AttributeNames)
+                {
+                    try
+                    {
+                        var value = image.GetAttribute(attr);
+                        if (string.IsNullOrEmpty(value)) continue;
+                        if (attr.Contains("WinXP")) value = DecodeHexUnicode(value);
+                        if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
+                        tip.Add($"  {attr.PadRight(32, ' ')}= { value }");
+                    }
+                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"{attr} : {ex.Message}"); }
+                }
+                tip.Add($"Color Space    = {Path.GetFileName(image.ColorSpace.ToString())}");
+                tip.Add($"Format Info    = {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
+#if Q16HDRI
+                tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 4 / 8)}");
+#elif Q16
+                tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 2 / 8)}");
+#else
+                tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth / 8)}");
+#endif
+                tip.Add($"Display Memory = {SmartFileSize(image.Width * image.Height * 4)}");
+                if (!string.IsNullOrEmpty(image.FileName))
+                    tip.Add($"FileName       = {image.FileName}");
+                else if (!string.IsNullOrEmpty(file))
+                    tip.Add($"FileName       = {file}");
+                result = string.Join(Environment.NewLine, tip);
+                st.Stop();
+                Debug.WriteLine($"{TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4}s");
+            }
+            return (string.IsNullOrEmpty(result) ? null : result);
+        }
 
         private void CalcDisplay(bool set_ratio = true)
         {
@@ -931,6 +957,7 @@ namespace ImageCompare
                                     {
                                         var files = text.Split(new string[] { Environment.NewLine, "\r", "\n", " "}, StringSplitOptions.RemoveEmptyEntries);
                                         if (files.Length > 0) LoadImageFromFiles(files.Select(f => f.Trim('"').Trim()).ToArray());
+                                        break;
                                     }
                                     catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
                                 }
@@ -939,7 +966,10 @@ namespace ImageCompare
                                     try
                                     {
                                         SetImage(source ? ImageType.Source : ImageType.Target, MagickImage.FromBase64(Regex.Replace(text, @"^data:.*?;base64,", "", RegexOptions.IgnoreCase)), update: false);
+                                        if (source) SourceFile = string.Empty;
+                                        else TargetFile = string.Empty;
                                         action = true;
+                                        break;
                                     }
 #if DEBUG
                                     catch (Exception ex) { Debug.WriteLine(ex.Message); }
@@ -958,9 +988,15 @@ namespace ImageCompare
                                     {
                                         var img = new MagickImage((obj as MemoryStream));
                                         if (source)
+                                        {
                                             SetImage(ImageType.Source, img, update: false);
+                                            SourceFile = string.Empty;
+                                        }
                                         else
+                                        {
                                             SetImage(ImageType.Target, img, update: false);
+                                            TargetFile = string.Empty;
+                                        }
                                         action = true;
                                         break;
                                     }
@@ -994,11 +1030,13 @@ namespace ImageCompare
                             using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
                                 SetImage(ImageType.Source, new MagickImage(fs), update: false);
+                                SourceFile = file_s;
                                 action = true;
                             }
                             using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
                                 SetImage(ImageType.Target, new MagickImage(fs), update: false);
+                                TargetFile = file_t;
                                 action = true;
                             }
                         }
@@ -1010,6 +1048,7 @@ namespace ImageCompare
                                 using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
                                 {
                                     SetImage(ImageType.Source, new MagickImage(fs), update: false);
+                                    SourceFile = file_s;
                                     action = true;
                                 }
                             }
@@ -1019,6 +1058,7 @@ namespace ImageCompare
                                 using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
                                 {
                                     SetImage(ImageType.Target, new MagickImage(fs), update: false);
+                                    TargetFile = file_t;
                                     action = true;
                                 }
                             }
@@ -1315,6 +1355,12 @@ namespace ImageCompare
                 Tag = source,
                 Icon = new TextBlock() { Text = "\uE117", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
             };
+            var item_copyinfo = new MenuItem()
+            {
+                Header = "Copy Image Info",
+                Tag = source,
+                Icon = new TextBlock() { Text = "\uE16F", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+            };
             #endregion
             #region Create MenuItem Click event handles
             item_fh.Click += (obj, evt) => { FlopImage((bool)(obj as MenuItem).Tag); };
@@ -1333,6 +1379,8 @@ namespace ImageCompare
             item_slice_v.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true); };
 
             item_reload.Click += (obj, evt) => { ReloadImage((bool)(obj as MenuItem).Tag); };
+
+            item_copyinfo.Click += (obj, evt) => { CopyImageInfo((bool)(obj as MenuItem).Tag); };
             #endregion
             #region Add MenuItems to ContextMenu
             var result = new ContextMenu() { PlacementTarget = target };
@@ -1354,6 +1402,8 @@ namespace ImageCompare
             result.Items.Add(item_slice_v);
             result.Items.Add(new Separator());
             result.Items.Add(item_reload);
+            result.Items.Add(new Separator());
+            result.Items.Add(item_copyinfo);
 
             target.ContextMenu = result;
             #endregion
@@ -1386,6 +1436,7 @@ namespace ImageCompare
 
             CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
 
+            DefaultWindowTitle = Title;
             DefaultCompareToolTip = ImageCompare.ToolTip as string;
             DefaultComposeToolTip = ImageCompose.ToolTip as string;
 
@@ -1636,6 +1687,35 @@ namespace ImageCompare
             UpdateImageViewer(compose: LastOpIsCompose);
         }
 
+        private void MaxCompareSizeValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                int value = MaxCompareSize;
+                if (int.TryParse(MaxCompareSizeValue.Text, out value)) MaxCompareSize = Math.Max(0, Math.Min(2048, value));
+            }
+            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+        }
+
+        private void ColorPick_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+        {
+            if (sender == HighlightColorPick)
+            {
+                var c = (sender as ColorPicker).SelectedColor ?? null;
+                HighlightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
+            }
+            else if (sender == LowlightColorPick)
+            {
+                var c = (sender as ColorPicker).SelectedColor ?? null;
+                LowlightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
+            }
+            else if (sender == MasklightColorPick)
+            {
+                var c = (sender as ColorPicker).SelectedColor ?? null;
+                MasklightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
+            }
+        }
+
         private void ImageActions_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
@@ -1749,33 +1829,5 @@ namespace ImageCompare
             }
         }
 
-        private void MaxCompareSizeValue_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                int value = MaxCompareSize;
-                if (int.TryParse(MaxCompareSizeValue.Text, out value)) MaxCompareSize = Math.Max(0, Math.Min(2048, value));
-            }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
-        }
-
-        private void ColorPick_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
-        {
-            if (sender == HighlightColorPick)
-            {
-                var c = (sender as ColorPicker).SelectedColor ?? null;
-                HighlightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
-            }
-            else if (sender == LowlightColorPick)
-            {
-                var c = (sender as ColorPicker).SelectedColor ?? null;
-                LowlightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
-            }
-            else if (sender == MasklightColorPick)
-            {
-                var c = (sender as ColorPicker).SelectedColor ?? null;
-                MasklightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
-            }
-        }
     }
 }
