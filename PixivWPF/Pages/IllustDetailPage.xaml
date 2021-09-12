@@ -637,6 +637,12 @@
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <MenuItem x:Name="PreviewCompare" x:Uid="ActionCompare" Header="Compare Selected"  Click="ActionCompare_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Margin="4,0,0,0" Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"
+                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <Separator/>
                                 <MenuItem x:Name="PreviewRefresh" x:Uid="ActionRefreshPreview" Header="Refresh Preview" Click="ActionRefreshPreview_Click">
                                     <MenuItem.Icon>

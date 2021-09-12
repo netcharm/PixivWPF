@@ -1065,7 +1065,8 @@ namespace PixivWPF.Pages
 
         private void ActionCompare_Click(object sender, RoutedEventArgs e)
         {
-            Commands.Compare.Execute(Contents);
+            //Commands.Compare.Execute(Contents);
+            Commands.Compare.Execute(IsOriginal ? OriginalImageUrl.GetImageCachePath() : PreviewImageUrl.GetImageCachePath());
         }
 
         /// <summary>

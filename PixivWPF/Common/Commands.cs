@@ -639,7 +639,11 @@ namespace PixivWPF.Common
 
         public static ICommand Compare { get; } = new DelegateCommand<dynamic>(async obj =>
         {
-            if (obj is IEnumerable<string>)
+            if(obj is string)
+            {
+                Compare.Execute(new string[] { obj });
+            }
+            else if (obj is IEnumerable<string>)
             {
                 var content = (obj as IEnumerable<string>).ToArray();
                 if (content.Count() > 0)
