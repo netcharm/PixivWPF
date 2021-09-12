@@ -152,6 +152,23 @@ namespace ImageCompare
             var vs = trimzero && !u_str.Equals("B") ? v_str.Trim('0').TrimEnd('.') : v_str;
             return ((unit ? $"{vs} {u_str}" : vs).PadLeft(padleft));
         }
+        
+        private string DecodeHexUnicode(string text)
+        {
+            var result = text;
+            foreach (Match m in Regex.Matches(text, @"((\d{1,3}, ?){2,}\d{1,3})"))
+            {
+                List<byte> bytes = new List<byte>();
+                var values = m.Groups[1].Value.Split(',').Select(s => s.Trim()).ToList();
+                foreach (var value in values)
+                {
+                    if (int.Parse(value) > 255) continue;
+                    bytes.Add(byte.Parse(value));
+                }
+                if (bytes.Count > 0) result = result.Replace(m.Groups[1].Value, Encoding.Unicode.GetString(bytes.ToArray()).TrimEnd('\0'));
+            }
+            return (result);
+        }
         #endregion
 
         #region Image Processing Routines
@@ -267,7 +284,6 @@ namespace ImageCompare
         private string GetImageInfo(ImageType type)
         {
             string result = string.Empty;
-            //var image = source ? ImageSource.Source : ImageTarget.Source;
             var image = GetImage(type);
             if (image != null)
             {
@@ -280,9 +296,15 @@ namespace ImageCompare
                 tip.Add($"Attributes");
                 foreach (var attr in image.AttributeNames)
                 {
-                    var value = image.GetAttribute(attr);
-                    if (string.IsNullOrEmpty(value)) continue;
-                    tip.Add($"  {attr.PadRight(20, ' ')}= { value }");                    
+                    try
+                    {
+                        var value = image.GetAttribute(attr);
+                        if (string.IsNullOrEmpty(value)) continue;
+                        if(attr.Contains("WinXP")) value = DecodeHexUnicode(value);
+                        if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
+                        tip.Add($"  {attr.PadRight(32, ' ')}= { value }");
+                    }
+                    catch(Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"{attr} : {ex.Message}"); }
                 }
                 tip.Add($"Color Space    = {Path.GetFileName(image.ColorSpace.ToString())}");
                 tip.Add($"Format Info    = {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
@@ -1488,9 +1510,9 @@ namespace ImageCompare
 
         private void ImageBox_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if(ZoomFitNone.IsChecked ?? false && (ImageSource.Source != null || ImageTarget.Source != null))
+            if (ZoomFitNone.IsChecked ?? false && (ImageSource.Source != null || ImageTarget.Source != null))
             {
-                ZoomRatio.Value += e.Delta<0 ? -1 * ZoomRatio.SmallChange : ZoomRatio.SmallChange;
+                ZoomRatio.Value += e.Delta < 0 ? -1 * ZoomRatio.SmallChange : ZoomRatio.SmallChange;
             }
         }
 
