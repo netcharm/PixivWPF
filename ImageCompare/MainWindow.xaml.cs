@@ -468,6 +468,67 @@ namespace ImageCompare
             if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
         }
 
+        private void BlurImage(bool source)
+        {
+            var action = false;
+            var radius = 5;
+            if (source ^ ToggleSourceTarget)
+            {
+                if (SourceImage is MagickImage && TargetImage is MagickImage)
+                {
+                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                    SourceImage.GaussianBlur(radius);
+                    //SourceImage.RePage();
+                    action = true;
+                }
+            }
+            else
+            {
+                if (TargetImage is MagickImage && SourceImage is MagickImage)
+                {
+                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                    TargetImage.GaussianBlur(radius);
+                    //TargetImage.RePage();
+                    action = true;
+                }
+            }
+            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+        }
+
+        private void SharpImage(bool source)
+        {
+            var action = false;
+            var radius = 5;
+            var sigma = 0.25;
+            var amount = 15;
+            var threshold = 0;
+            if (source ^ ToggleSourceTarget)
+            {
+                if (SourceImage is MagickImage && TargetImage is MagickImage)
+                {
+                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                    SourceImage.UnsharpMask(radius, sigma, amount, threshold);
+                    //SourceImage.RePage();
+                    action = true;
+                }
+            }
+            else
+            {
+                if (TargetImage is MagickImage && SourceImage is MagickImage)
+                {
+                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                    TargetImage.UnsharpMask(radius, sigma, amount, threshold);
+                    //TargetImage.RePage();
+                    action = true;
+                }
+            }
+            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+        }
+
         private void ResizeToImage(bool source)
         {
             var action = false;
@@ -1328,8 +1389,28 @@ namespace ImageCompare
             {
                 Header = "Grayscale",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uF354", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"), Foreground = new SolidColorBrush(Colors.Gray) }
+                Icon = new TextBlock() { Text = "\uF354", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                    Foreground = new SolidColorBrush(Colors.Gray)
+                }
             };
+            var item_blur = new MenuItem()
+            {
+                Header = "Blur",
+                Tag = source,
+                Icon = new TextBlock() { Text = "\uE878", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                    Foreground = new SolidColorBrush(Colors.Gray),
+                    Effect = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian }
+                }
+            };
+            var item_sharp = new MenuItem()
+            {
+                Header = "Sharp",
+                Tag = source,
+                Icon = new TextBlock() { Text = "\uE879", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                    Foreground = new SolidColorBrush(Colors.Gray)                    
+                }
+            };
+
             var item_size_to_target = new MenuItem()
             {
                 Header = "Match Target Size",
@@ -1370,10 +1451,12 @@ namespace ImageCompare
             item_r270.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 270); };
             item_reset.Click += (obj, evt) => { ResetImage((bool)(obj as MenuItem).Tag); };
 
+            item_gray.Click += (obj, evt) => { GrayscaleImage((bool)(obj as MenuItem).Tag); };
+            item_blur.Click += (obj, evt) => { BlurImage((bool)(obj as MenuItem).Tag); };
+            item_sharp.Click += (obj, evt) => { SharpImage((bool)(obj as MenuItem).Tag); };
+
             item_size_to_source.Click += (obj, evt) => { ResizeToImage(false); };
             item_size_to_target.Click += (obj, evt) => { ResizeToImage(true); };
-
-            item_gray.Click += (obj, evt) => { GrayscaleImage((bool)(obj as MenuItem).Tag); };
 
             item_slice_h.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false); };
             item_slice_v.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true); };
@@ -1394,6 +1477,8 @@ namespace ImageCompare
             result.Items.Add(item_reset);
             result.Items.Add(new Separator());
             result.Items.Add(item_gray);
+            result.Items.Add(item_blur);
+            result.Items.Add(item_sharp);
             result.Items.Add(new Separator());
             result.Items.Add(item_size_to_source);
             result.Items.Add(item_size_to_target);
