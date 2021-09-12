@@ -21,7 +21,7 @@ using Xceed.Wpf.Toolkit;
 
 namespace ImageCompare
 {
-    public enum ImageType { Source = 0, Target = 1, Result = 2 }
+    public enum ImageType { All = 0, Source = 1, Target = 2, Result = 3, None = 255 }
 
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
@@ -51,6 +51,7 @@ namespace ImageCompare
         private double ImageDistance { get; set; } = 0;
         private double LastZoomRatio { get; set; } = 1;
         private bool LastOpIsCompose { get; set; } = false;
+        private ImageType LastImageType { get; set; } = ImageType.Result;
 
         private ErrorMetric ErrorMetricMode { get; set; } = ErrorMetric.Fuzz;
         private CompositeOperator CompositeMode { get; set; } = CompositeOperator.Difference;
@@ -216,6 +217,7 @@ namespace ImageCompare
                         Rotate_Target = 0;
                         TargetLoaded = true;
                     }
+                    LastImageType = type;
                 }
                 else
                 {
@@ -269,10 +271,21 @@ namespace ImageCompare
             var image = GetImage(type);
             if (image != null)
             {
+                var st = Stopwatch.StartNew();
+                image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
                 var tip = new List<string>();
                 tip.Add($"Dimention      = {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
+                tip.Add($"Resolution     = {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
                 //tip.Add($"Colors         = {image.TotalColors}");
+                tip.Add($"Attributes");
+                foreach (var attr in image.AttributeNames)
+                {
+                    var value = image.GetAttribute(attr);
+                    if (string.IsNullOrEmpty(value)) continue;
+                    tip.Add($"  {attr.PadRight(20, ' ')}= { value }");                    
+                }
                 tip.Add($"Color Space    = {Path.GetFileName(image.ColorSpace.ToString())}");
+                tip.Add($"Format Info    = {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
 #if Q16HDRI
                 tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 4 / 8)}");
 #elif Q16
@@ -284,6 +297,8 @@ namespace ImageCompare
                 if (!string.IsNullOrEmpty(image.FileName))
                     tip.Add($"FileName       = {Path.GetFileName(image.FileName)}");
                 result = string.Join(Environment.NewLine, tip);
+                st.Stop();
+                Debug.WriteLine($"{TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4}s");
             }
             return (string.IsNullOrEmpty(result) ? null : result);
         }
@@ -411,6 +426,34 @@ namespace ImageCompare
                         Rotate_Target = 0;
                         action = true;
                     }
+                }
+            }
+            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+        }
+
+        private void GrayscaleImage(bool source)
+        {
+            var action = false;
+            if (source ^ ToggleSourceTarget)
+            {
+                if (SourceImage is MagickImage && TargetImage is MagickImage)
+                {
+                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                    SourceImage.Grayscale();
+                    //SourceImage.RePage();
+                    action = true;
+                }
+            }
+            else
+            {
+                if (TargetImage is MagickImage && SourceImage is MagickImage)
+                {
+                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                    TargetImage.Grayscale();
+                    //TargetImage.RePage();
+                    action = true;
                 }
             }
             if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
@@ -1162,7 +1205,7 @@ namespace ImageCompare
         private void CreateImageOpMenu(FrameworkElement target)
         {
             bool source = target == ImageSource ? true : false;
-
+            #region Create MenuItem
             var item_fh = new MenuItem()
             {
                 Header = "Flip Horizontal",
@@ -1212,37 +1255,46 @@ namespace ImageCompare
                 Icon = new TextBlock() { Text = "\uE777", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
             };
 
-            var item_same_size_source = new MenuItem()
+            var item_size_to_source = new MenuItem()
             {
-                Header = "Same To Source Size",
+                Header = "Match Source Size",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\xE158", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE158", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
             };
-            var item_same_size_target = new MenuItem()
+
+            var item_gray = new MenuItem()
             {
-                Header = "Same To Target Size",
+                Header = "Grayscale",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\xE158", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uF354", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"), Foreground = new SolidColorBrush(Colors.Gray) }
             };
+            var item_size_to_target = new MenuItem()
+            {
+                Header = "Match Target Size",
+                Tag = source,
+                Icon = new TextBlock() { Text = "\uE158", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+            };
+
             var item_slice_h = new MenuItem()
             {
-                Header = "Slice Horizontal",
+                Header = "Slicing Horizontal",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\xE745", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE745", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"), Foreground = new SolidColorBrush(Colors.Gray) }
             };
             var item_slice_v = new MenuItem()
             {
-                Header = "Slice Vertical",
+                Header = "Slicing Vertical",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\xE746", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE746", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"), Foreground = new SolidColorBrush(Colors.Gray) }
             };
             var item_reload = new MenuItem()
             {
                 Header = "Reload Image",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\xE117", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE117", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
             };
-
+            #endregion
+            #region Create MenuItem Click event handles
             item_fh.Click += (obj, evt) => { FlopImage((bool)(obj as MenuItem).Tag); };
             item_fv.Click += (obj, evt) => { FlipImage((bool)(obj as MenuItem).Tag); };
             item_r090.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 90); };
@@ -1250,13 +1302,17 @@ namespace ImageCompare
             item_r270.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 270); };
             item_reset.Click += (obj, evt) => { ResetImage((bool)(obj as MenuItem).Tag); };
 
-            item_same_size_source.Click += (obj, evt) => { ResizeToImage((bool)(obj as MenuItem).Tag); };
-            item_same_size_target.Click += (obj, evt) => { ResizeToImage((bool)(obj as MenuItem).Tag); };
+            item_size_to_source.Click += (obj, evt) => { ResizeToImage(false); };
+            item_size_to_target.Click += (obj, evt) => { ResizeToImage(true); };
+
+            item_gray.Click += (obj, evt) => { GrayscaleImage((bool)(obj as MenuItem).Tag); };
+
             item_slice_h.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false); };
             item_slice_v.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true); };
 
             item_reload.Click += (obj, evt) => { ReloadImage((bool)(obj as MenuItem).Tag); };
-
+            #endregion
+            #region Add MenuItems to ContextMenu
             var result = new ContextMenu() { PlacementTarget = target };
             result.Items.Add(item_fh);
             result.Items.Add(item_fv);
@@ -1267,14 +1323,18 @@ namespace ImageCompare
             result.Items.Add(new Separator());
             result.Items.Add(item_reset);
             result.Items.Add(new Separator());
-            result.Items.Add(item_same_size_source);
-            result.Items.Add(item_same_size_target);
+            result.Items.Add(item_gray);
+            result.Items.Add(new Separator());
+            result.Items.Add(item_size_to_source);
+            result.Items.Add(item_size_to_target);
+            result.Items.Add(new Separator());
             result.Items.Add(item_slice_h);
             result.Items.Add(item_slice_v);
             result.Items.Add(new Separator());
             result.Items.Add(item_reload);
 
             target.ContextMenu = result;
+            #endregion
         }
 
         public MainWindow()
@@ -1293,6 +1353,12 @@ namespace ImageCompare
                 var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
                 if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
                 if (Directory.Exists(magick_cache)) MagickAnyCPU.CacheDirectory = magick_cache;
+                //ImageMagick.ResourceLimits.Area = 4096 * 4096;
+                //ImageMagick.ResourceLimits.
+                ImageMagick.ResourceLimits.Memory = 256 * 1024 * 1024;
+                //ImageMagick.ResourceLimits.Throttle = 
+                ImageMagick.ResourceLimits.Thread = 2;
+                ImageMagick.ResourceLimits.LimitMemory(new Percentage(5));
             }
             catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
 
@@ -1347,119 +1413,7 @@ namespace ImageCompare
             #endregion
 
             #region Create Image Flip/Rotate Menu
-            #region actions
-            //Func<bool, MagickImage> GetImage = (source) => {
-            //    MagickImage result = null;
-            //    if (source)
-            //        result = ToggleSourceTarget ? TargetImage : SourceImage;
-            //    else
-            //        result = ToggleSourceTarget ? SourceImage : TargetImage;
-            //    return(result);
-            //};
-            //Action<bool, int> RotateImage = (source, value) =>
-            //{
-            //    if (source ^ ToggleSourceTarget)
-            //    {
-            //        SourceImage.Rotate(value);
-            //        Rotate_Source += value;
-            //    }
-            //    else
-            //    {
-            //        TargetImage.Rotate(value);
-            //        Rotate_Target += value;
-            //    }
-            //    UpdateImageViewer(compose: LastOpIsCompose, assign: true);
-            //};
-            //Action<bool> FlipImage = (source) =>
-            //{
-            //    if (source ^ ToggleSourceTarget)
-            //    {
-            //        SourceImage.Flip();
-            //        FlipY_Source = !FlipY_Source;
-            //    }
-            //    else
-            //    {
-            //        TargetImage.Flip();
-            //        FlipY_Target = !FlipY_Target;
-            //    }
-            //    UpdateImageViewer(compose: LastOpIsCompose, assign: true);
-            //};
-            //Action<bool> FlopImage = (source) =>
-            //{
-            //    if (source ^ ToggleSourceTarget)
-            //    {
-            //        SourceImage.Flop();
-            //        FlipX_Source = !FlipX_Source;
-            //    }
-            //    else
-            //    {
-            //        TargetImage.Flop();
-            //        FlipX_Target = !FlipX_Target;
-            //    }
-            //    UpdateImageViewer(compose: LastOpIsCompose, assign: true);
-            //};
-            //Action<bool> ResetImage = (source) =>
-            //{
-            //    if (source ^ ToggleSourceTarget)
-            //    {
-            //        if(FlipX_Source) SourceImage.Flop();
-            //        if(FlipY_Source) SourceImage.Flip();
-            //        SourceImage.Rotate(-Rotate_Source);
-            //        Rotate_Source = 0;
-            //        FlipX_Source = false;
-            //        FlipY_Source = false;
-            //    }
-            //    else
-            //    {
-            //        if(FlipX_Target) TargetImage.Flop();
-            //        if(FlipY_Target) TargetImage.Flip();
-            //        TargetImage.Rotate(-Rotate_Target);
-            //        Rotate_Target = 0;
-            //        FlipX_Target = false;
-            //        FlipY_Target = false;
-            //    }
-            //    UpdateImageViewer(compose: LastOpIsCompose, assign: true);
-            //};
-            //Action<FrameworkElement, bool> CreateImageOpMenu = (target, source) => {
-            //    var item_fh = new MenuItem() { Header = "Flip Horizon", Tag = source };
-            //    var item_fv = new MenuItem() { Header = "Flip Vertical", Tag = source };
-            //    var item_r090 = new MenuItem() { Header = "Rotate +90", Tag = source };
-            //    var item_r180 = new MenuItem() { Header = "Rotate 180", Tag = source };
-            //    var item_r270 = new MenuItem() { Header = "Rotate -90", Tag = source };
-            //    var item_reset = new MenuItem() { Header = "Reset", Tag = source };
-            //    item_fh.Click += (obj, evt) => {
-            //        FlopImage.Invoke((bool)(obj as MenuItem).Tag);
-            //    };
-            //    item_fv.Click += (obj, evt) => {
-            //        FlipImage.Invoke((bool)(obj as MenuItem).Tag);
-            //    };
-            //    item_r090.Click += (obj, evt) => {
-            //        RotateImage.Invoke((bool)(obj as MenuItem).Tag, 90);
-            //    };
-            //    item_r180.Click += (obj, evt) => {
-            //        RotateImage.Invoke((bool)(obj as MenuItem).Tag, 180);
-            //    };
-            //    item_r270.Click += (obj, evt) => {
-            //        RotateImage.Invoke((bool)(obj as MenuItem).Tag, 270);
-            //    };
-            //    item_reset.Click += (obj, evt) => {
-            //        ResetImage.Invoke((bool)(obj as MenuItem).Tag);
-            //    };
-            //    var result = new ContextMenu() { PlacementTarget = target };
-            //    result.Items.Add(item_fh);
-            //    result.Items.Add(item_fv);
-            //    result.Items.Add(new Separator());
-            //    result.Items.Add(item_r090);
-            //    result.Items.Add(item_r270);
-            //    result.Items.Add(item_r180);
-            //    result.Items.Add(new Separator());
-            //    result.Items.Add(item_reset);
-            //    target.ContextMenu = result;
-            //};
 
-            //CreateImageOpMenu.Invoke(ImageSource, true);
-            //CreateImageOpMenu.Invoke(ImageTarget, false);
-            #endregion actions
             CreateImageOpMenu(ImageSource);
             CreateImageOpMenu(ImageTarget);
             #endregion
@@ -1534,7 +1488,10 @@ namespace ImageCompare
 
         private void ImageBox_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-
+            if(ZoomFitNone.IsChecked ?? false && (ImageSource.Source != null || ImageTarget.Source != null))
+            {
+                ZoomRatio.Value += e.Delta<0 ? -1 * ZoomRatio.SmallChange : ZoomRatio.SmallChange;
+            }
         }
 
         private void ImageBox_MouseDown(object sender, MouseButtonEventArgs e)
@@ -1653,30 +1610,6 @@ namespace ImageCompare
 
         private void ImageCompareFuzzy_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            //var delta = e.NewValue - e.OldValue;
-            //if (Math.Abs(delta) >= 0.25)
-            //{
-            //    new Action(() =>
-            //    {
-            //        try
-            //        {
-            //            var eq = Math.Round(e.NewValue);
-            //            if (delta > 0)
-            //            {
-            //                if (e.OldValue >= 0.25 && e.NewValue < 1.5) eq = 0.5;
-            //                else if (e.OldValue >= 0.5 && e.NewValue < 2.0) eq = 1;
-            //            }
-            //            else if (delta < 0)
-            //            {
-            //                if (e.OldValue >= 1.0 && e.NewValue < 1.0) eq = 0.5;
-            //                else if (e.OldValue >= 0.5 && e.NewValue < 0.5) eq = 0.25;
-            //            }
-            //            if (e.NewValue != eq) ImageCompareFuzzy.Value = eq;
-            //        }
-            //        catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
-            //        finally { e.Handled = true; }
-            //    }).Invoke();
-            //}
             e.Handled = true;
             UpdateImageViewer(compose: LastOpIsCompose);
         }
@@ -1801,23 +1734,7 @@ namespace ImageCompare
                 int value = MaxCompareSize;
                 if (int.TryParse(MaxCompareSizeValue.Text, out value)) MaxCompareSize = Math.Max(0, Math.Min(2048, value));
             }
-            catch(Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
-        }
-
-        private void LightColorPick_MouseDown(object sender, MouseEventArgs e)
-        {
-            //if (sender == HighlightColorPick)
-            //{
-            //    PickupColor(sender as UIElement);
-            //}
-            //else if (sender == LowlightColorPick)
-            //{
-            //    PickupColor(sender as UIElement);
-            //}
-            //else if (sender == MasklightColorPick)
-            //{
-            //    PickupColor(sender as UIElement);
-            //}
+            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
         }
 
         private void ColorPick_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)

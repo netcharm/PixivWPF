@@ -162,12 +162,6 @@
             <TextBox x:Name="MaxCompareSizeValue" Text="1024" Margin="2 0" HorizontalAlignment="Right" 
                      ToolTip="Max Image Width/Height Size When Using Smaller Image"
                      FontFamily="{StaticResource MonoSpaceFamily}" TextChanged="MaxCompareSizeValue_TextChanged"/>
-            <!--<Rectangle x:Name="HighlightColorPick" Width="16" Height="16" Fill="Red" Stroke="DarkGray" ToolTip="Highlight Color"
-                       Margin="2 0" HorizontalAlignment="Right" MouseDown="LightColorPick_MouseDown"/>-->
-            <!--<Rectangle x:Name="LowlightColorPick" Width="16" Height="16" Fill="Transparent" Stroke="DarkGray" ToolTip="Lowlight Color"
-                       Margin="2 0" HorizontalAlignment="Right" MouseDown="LightColorPick_MouseDown"/>-->
-            <!--<Rectangle x:Name="MasklightColorPick" Width="16" Height="16" Fill="Transparent" Stroke="DarkGray" ToolTip="Masklight Color"
-                       Margin="2 0" HorizontalAlignment="Right" MouseDown="LightColorPick_MouseDown"/>-->
             <xctk:ColorPicker x:Name="HighlightColorPick" Height="24" Width="24" Margin="2 0" SelectedColor="Transparent" 
                               ToolTip="Highlight Color"
                               ShowDropDownButton="False" ShowAvailableColors="True" ShowRecentColors="True" 
@@ -186,7 +180,7 @@
         </ToolBar>
 
         <!-- Image Source Preview -->
-        <ScrollViewer Grid.Row="1" Grid.Column="0" x:Name="ImageSourceScroll" AllowDrop="True" ScrollChanged="ImageScroll_ScrollChanged"
+        <ScrollViewer Grid.Row="1" Grid.Column="0" x:Name="ImageSourceScroll" AllowDrop="True" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="ImageSourceBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
@@ -209,7 +203,7 @@
             </Viewbox>
         </ScrollViewer>
         <!-- Image Target Preview -->
-        <ScrollViewer Grid.Row="1" Grid.Column="2" x:Name="ImageTargetScroll" AllowDrop="True" ScrollChanged="ImageScroll_ScrollChanged"
+        <ScrollViewer Grid.Row="1" Grid.Column="2" x:Name="ImageTargetScroll" AllowDrop="True" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
             HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="ImageTargetBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
@@ -233,7 +227,7 @@
             </Viewbox>
         </ScrollViewer>
         <!-- Image Result Preview -->
-        <ScrollViewer Grid.Row="1" Grid.Column="1" x:Name="ImageResultScroll" ScrollChanged="ImageScroll_ScrollChanged"
+        <ScrollViewer Grid.Row="1" Grid.Column="1" x:Name="ImageResultScroll" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
             HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
             <Viewbox x:Name="ImageResultBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
