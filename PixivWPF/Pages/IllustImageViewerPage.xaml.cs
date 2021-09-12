@@ -661,6 +661,7 @@ namespace PixivWPF.Pages
                     btnViewerActionRotate90L.MouseOverAction();
                     btnViewerActionRotate90R.MouseOverAction();
                     btnViewerActionReset.MouseOverAction();
+                    btnViewerActionCompare.MouseOverAction();
                     #endregion
 
                     //PreviewWait.ReloadEnabled = true;
@@ -1060,6 +1061,11 @@ namespace PixivWPF.Pages
                 ImageViewerScale.ScaleY = 1;
                 ImageViewerRotate.Angle = 0;
             }
+        }
+
+        private void ActionCompare_Click(object sender, RoutedEventArgs e)
+        {
+            Commands.Compare.Execute(Contents);
         }
 
         /// <summary>

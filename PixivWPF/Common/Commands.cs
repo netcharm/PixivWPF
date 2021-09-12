@@ -663,7 +663,7 @@ namespace PixivWPF.Common
                 var item = obj as PixivItem;
                 if (item.IsWork())
                 {
-                    var id = $"{item.Illust.GetPreviewUrl().GetImageCacheFile()}";
+                    var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile()}";
                     Compare.Execute(new string[] { id });
                 }
             }

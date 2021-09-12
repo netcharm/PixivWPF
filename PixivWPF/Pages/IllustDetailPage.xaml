@@ -855,23 +855,6 @@
                                 Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
-                        <!--<mah:DropDownButton x:Name="BookmarkIllustAlt"                                            
-                                ButtonStyle="{DynamicResource MahApps.Styles.Button.Circle}"
-                                Orientation="Vertical" Width="64" Height="64" Visibility="Collapsed" 
-                                HorizontalAlignment="Right" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                ArrowVisibility="Collapsed" BorderThickness="0"
-                                ArrowBrush="{DynamicResource MahApps.Brushes.Accent}"
-                                FocusVisualStyle="{DynamicResource MahApps.Styles.Button.FocusVisualStyle.Circle}"
-                                BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                                Foreground="{DynamicResource MahApps.Brushes.Accent}">
-                            <mah:DropDownButton.Icon>
-                                <TextBlock FontSize="32" FontFamily="Segoe MDL2 Assets"
-                                    Text="{Binding Tag, RelativeSource={RelativeSource AncestorType={x:Type mah:DropDownButton}}}" 
-                                    Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type mah:DropDownButton}}}"
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </mah:DropDownButton.Icon>
-                        </mah:DropDownButton>-->
                         <Button x:Name="FollowAuthor" x:Uid="FollowAuthor" Margin="-8,0,0,0" Click="ActionIllust_Click"
                                 ToolTip="Follow Author" Visibility="Collapsed" 
                                 ContextMenu="{DynamicResource ActionFollowAuthor}"
@@ -897,7 +880,6 @@
                                 Style="{DynamicResource MahApps.Styles.Button.Circle}"
                                 BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}">
-                            <!--<iconPacks:PackIconModern Kind="List" Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="32" Height="32"/>-->
                             <TextBlock Text="&#xE179;" FontSize="32" FontFamily="Segoe UI Symbol" FontWeight="Bold"
                                 Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                                 HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
@@ -921,8 +903,7 @@
                             Visibility="{Binding ElementName=IllustTagExpander, Path=Visibility, Mode=OneWay, IsAsync=True}"
                             Orientation="Horizontal" Margin="0,4,0,0"
                             HorizontalAlignment="Right" VerticalAlignment="Top">
-                    <Button
-                        x:Name="IllustTagPedia" x:Uid="PixivPedia" ToolTip="Query Tag in Pixiv Pedia"
+                    <Button x:Name="IllustTagPedia" x:Uid="PixivPedia" ToolTip="Query Tag in Pixiv Pedia"
                         Visibility="Visible" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
@@ -934,8 +915,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>
                     </Button>
-                    <Button
-                        x:Name="IllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
+                    <Button x:Name="IllustTagSpeech" x:Uid="Speech" ToolTip="Read Selected/All Contents"
                         Visibility="Visible" FontWeight="Normal"
                         ContextMenu="{DynamicResource MenuSpeech}"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
@@ -948,8 +928,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>
                     </Button>
-                    <Button 
-                        x:Name="IllustTagRefresh" x:Uid="TagsRefresh" ToolTip="Refresh Tags"
+                    <Button x:Name="IllustTagRefresh" x:Uid="TagsRefresh" ToolTip="Refresh Tags"
                         Visibility="Visible" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
@@ -1086,6 +1065,19 @@
                         </Button.Content>
                     </Button>
                     <Button 
+                        x:Name="SubIllustCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
+                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility}" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
+                        Click="ActionCompare_Click">
+                        <Button.Content>
+                            <TextBlock Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
+                    </Button>
+                    <Button 
                         x:Name="SubIllustRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
                         Visibility="Visible" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
@@ -1160,6 +1152,19 @@
                         </Button.Content>
                     </Button>
                     <Button 
+                        x:Name="RelativeCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
+                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility}" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
+                        Click="ActionCompare_Click">
+                        <Button.Content>
+                            <TextBlock Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
+                    </Button>
+                    <Button 
                         x:Name="RelativeRefresh" x:Uid="ActionRefreshThumb" ToolTip="Refresh Thumbnails"
                         Visibility="Collapsed" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
@@ -1229,6 +1234,19 @@
                         Click="FavoriteNextPage_Click">
                         <Button.Content>
                             <TextBlock Text="&#xEB91;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button.Content>
+                    </Button>
+                    <Button 
+                        x:Name="FavoriteCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
+                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility}" FontWeight="Normal"
+                        Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
+                        Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
+                        Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
+                        Click="ActionCompare_Click">
+                        <Button.Content>
+                            <TextBlock Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets" 
                                Foreground="{DynamicResource MahApps.Brushes.IdealForeground}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button.Content>

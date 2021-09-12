@@ -4436,12 +4436,15 @@ namespace PixivWPF.Pages
                         {
                             Commands.Compare.Execute(FavoriteItems);
                         }
-                        else if(Contents.IsWork())
+                        else if (Contents.IsWork())
                         {
                             Commands.Compare.Execute(Contents);
                         }
                     }
                 }
+                else if (sender == SubIllustCompare) { Commands.Compare.Execute(SubIllusts); }
+                else if (sender == RelativeCompare) { Commands.Compare.Execute(RelativeItems); }
+                else if (sender == FavoriteCompare) { Commands.Compare.Execute(FavoriteItems); }
             }
             catch (Exception ex) { ex.ERROR("Compare"); }
         }
