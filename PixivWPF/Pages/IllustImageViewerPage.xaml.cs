@@ -266,7 +266,15 @@ namespace PixivWPF.Pages
 
                 PreviewWait.Show();
 
-                if (reportProgress is Action<double, double>) reportProgress.Invoke(0, 0);
+                if (Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    (IsOriginal ? OriginalImageUrl : PreviewImageUrl).GetImageCacheFile().ClearDownloading();
+                    if (reportProgress is Action<double, double>) reportProgress.Invoke(0, 0);
+                }
+                var pos = (IsOriginal ? OriginalImageUrl : PreviewImageUrl).GetImageCacheFile().QueryDownloadingState();
+                var length = (await (IsOriginal ? OriginalImageUrl : PreviewImageUrl).QueryImageFileSize()) ?? 0;
+                if (reportProgress is Action<double, double>) reportProgress.Invoke(pos, length);
+
                 var c_item = Contents;
                 if (IsOriginal)
                 {

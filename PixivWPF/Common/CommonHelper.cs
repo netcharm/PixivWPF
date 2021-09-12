@@ -517,6 +517,7 @@ namespace PixivWPF.Common
                 try
                 {
                     setting = Application.Current.LoadSetting();
+                    Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
                     var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.RefreshToken, setting.Proxy, setting.ProxyBypass, setting.UsingProxy);
                     setting.AccessToken = authResult.Authorize.AccessToken;
                     setting.RefreshToken = authResult.Authorize.RefreshToken;
@@ -534,6 +535,7 @@ namespace PixivWPF.Common
                         try
                         {
                             setting = Application.Current.LoadSetting();
+                            Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
                             var authResult = await Pixeez.Auth.AuthorizeAsync(setting.User, setting.Pass, setting.Proxy, setting.ProxyBypass.ToArray(), setting.UsingProxy);
                             setting.AccessToken = authResult.Authorize.AccessToken;
                             setting.RefreshToken = authResult.Authorize.RefreshToken;
@@ -3147,6 +3149,11 @@ namespace PixivWPF.Common
                                     if (fileinfo.CreationTime.Ticks != fdt.Ticks) fileinfo.CreationTime = fdt;
                                     if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
                                     if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
+
+                                    int idx = -1;
+                                    var illust = await fileinfo.FullName.GetIllustId(out idx).GetIllust();
+                                    var fname = url.GetImageName((illust.PageCount ?? 0) <= 1);
+                                    if (!fileinfo.Name.Equals(fname)) fileinfo.MoveTo(Path.Combine(fileinfo.DirectoryName, fname));
                                 }
                             }
                             catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
@@ -4783,7 +4790,16 @@ namespace PixivWPF.Common
             }).InvokeAsync(realtime: false);
         }
 
-        public static async Task<bool> WriteToFile(this Stream source, string file, ContentRangeHeaderValue range = null, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite)
+        public static void CleenLastDownloaded(this string file)
+        {
+            byte[] lastdown = null;
+            if (DownloadTaskCache.TryRemove(file, out lastdown))
+            {
+                if (lastdown is byte[] && lastdown.Length >= 0) lastdown.Dispose();
+            }
+        }
+
+        public static async Task<bool> WriteToFile(this Stream source, string file, ContentRangeHeaderValue range = null, Action<double, double> progressAction = null, CancellationTokenSource cancelToken = null, int bufferSize = 4096, FileMode mode = FileMode.OpenOrCreate, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.ReadWrite, byte[] lastdownloaded = null)
         {
             var result = false;
             using (var ms = new MemoryStream())
@@ -4802,6 +4818,12 @@ namespace PixivWPF.Common
                     else
                     {
                         setting = Application.Current.LoadSetting();
+                        if (lastdownloaded is byte[] && (range.From ?? 0) <= lastdownloaded.Length)
+                        {
+                            await ms.WriteAsync(lastdownloaded, 0, Math.Min((int)(range.From ?? 0), lastdownloaded.Length));
+                            received = (int)ms.Position;
+                        }
+
                         bufferSize = setting.DownloadHttpStreamBlockSize;
                         byte[] bytes = new byte[bufferSize];
                         int bytesread = 0;
@@ -4846,8 +4868,18 @@ namespace PixivWPF.Common
 
                     result = File.Exists(file);
                     var illust = file.GetIllustId().FindIllust();
+                    DownloadTaskCache.TryRemove(file, out lastdownloaded);
+                    if (lastdownloaded is byte[] && lastdownloaded.Length >= 0) lastdownloaded.Dispose();
                 }
-                catch (Exception ex) { ex.ERROR($"WriteToFile: {Path.GetFileName(file)}"); }
+                catch (Exception ex)
+                {
+                    ex.ERROR($"WriteToFile: {Path.GetFileName(file)}");
+                    if (ms is MemoryStream && ms.Length < (range.Length ?? 0))
+                    {
+                        lastdownloaded = ms.ToArray();
+                        DownloadTaskCache.TryAdd(file, lastdownloaded);
+                    }
+                }
             }
             return (result);
         }
@@ -4914,6 +4946,20 @@ namespace PixivWPF.Common
         public static bool IsDownloading(this string file)
         {
             return (_Downloading_ is ConcurrentDictionary<string, bool> && _Downloading_.ContainsKey(file));
+        }
+
+        public static long QueryDownloadingState(this string file)
+        {
+            long result = 0;
+            if (DownloadTaskCache is ConcurrentDictionary<string, byte[]> && DownloadTaskCache.ContainsKey(file))
+            {
+                byte[] d = null;
+                if(DownloadTaskCache.TryGetValue(file, out d))
+                {
+                    if (d is byte[]) result = d.Length;
+                }
+            }
+            return (result);
         }
 
         public static void ClearDownloading(this string file)
@@ -5054,8 +5100,11 @@ namespace PixivWPF.Common
                     try
                     {
                         setting = Application.Current.LoadSetting();
+                        byte[] lastdownloaded = null;
+                        int start = 0;
+                        if (DownloadTaskCache.TryGetValue(file, out lastdownloaded)) start = lastdownloaded.Length;
                         HttpClient client = Application.Current.GetHttpClient(is_download: true);
-                        using (var request = Application.Current.GetHttpRequest(url))
+                        using (var request = Application.Current.GetHttpRequest(url, range_start: start))
                         {
                             using (response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancelToken.Token))
                             {
@@ -5066,12 +5115,13 @@ namespace PixivWPF.Common
                                     var range = response.Content.Headers.ContentRange ?? new ContentRangeHeaderValue(0, 0, length);
                                     var pos = range.From ?? 0;
                                     var Length = range.Length ?? 0;
-                                    if (progressAction is Action<double, double>) progressAction.Invoke(0, Length);
+                                    if (progressAction is Action<double, double>) progressAction.Invoke(pos, Length);
+                                    _ImageFileSizeCache_.AddOrUpdate(url, Length, (k, v) => Length);
 
                                     string vl = response.Content.Headers.ContentEncoding.FirstOrDefault();
                                     using (var sr = vl != null && vl == "gzip" ? new System.IO.Compression.GZipStream(await response.Content.ReadAsStreamAsync(), System.IO.Compression.CompressionMode.Decompress) : await response.Content.ReadAsStreamAsync())
                                     {
-                                        var ret = await sr.WriteToFile(file, range, progressAction, cancelToken);
+                                        var ret = await sr.WriteToFile(file, range, progressAction, cancelToken, lastdownloaded: lastdownloaded);
                                         if (ret) result = file;
                                         sr.Close();
                                         sr.Dispose();

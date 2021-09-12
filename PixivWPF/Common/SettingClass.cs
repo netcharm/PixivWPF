@@ -417,6 +417,8 @@ namespace PixivWPF.Common
                             #endregion
                             result = Cache;
 
+                            Pixeez.Auth.TimeOut = Cache.DownloadHttpTimeout;
+
                             if (Cache.SaveQueriedOriginalImageSizeInfo)
                             {
                                 Path.Combine(AppPath, Cache.OriginalImageSizeInfoFile).LoadImageFileSizeData();

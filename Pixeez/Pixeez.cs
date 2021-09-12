@@ -119,6 +119,7 @@ namespace Pixeez
         public static string ClientID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
         public static string ClientSecret = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
         public static string HashSecret = "28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c";
+        public static int? TimeOut = null;
 
         public static Dictionary<string, string> TargetIPs { get; set; } = new Dictionary<string, string>()
         {
@@ -199,6 +200,7 @@ namespace Pixeez
         protected internal static string[] ProxyBypass = new string[] { };
 
         protected internal static bool UsingProxy = false;
+        public static int TimeOut = 30;
 
         /// <summary>
         /// support proxy, modified by netcharm
@@ -211,7 +213,7 @@ namespace Pixeez
         {
             //return await (AuthorizeAsync(username, password, refreshtoken, proxy, useproxy));
 
-            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy);
+            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut);
 
             FormUrlEncodedContent param;
             if (string.IsNullOrEmpty(refreshtoken))
@@ -272,7 +274,7 @@ namespace Pixeez
         /// <returns></returns>
         public static async Task<AuthResult> AuthorizeAsync(string username, string password, string refreshtoken, string proxy, string[] proxybypass, bool useproxy = false)
         {
-            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy);
+            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut);
 
             FormUrlEncodedContent param;
             if (string.IsNullOrEmpty(refreshtoken))
@@ -335,7 +337,7 @@ namespace Pixeez
         /// <returns></returns>
         public static async Task<AuthResult> AuthorizeAsync(string username, string password, string proxy, string[] proxybypass, bool useproxy = false)
         {
-            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy);
+            var httpClient = PIXIV.Client(proxy, proxybypass, useproxy, TimeOut);
 
             FormUrlEncodedContent param;
             param = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -449,7 +451,7 @@ namespace Pixeez
         public async Task<AsyncResponse> SendRequestWithAuthAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
             AsyncResponse result = null;
-            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy))
+            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut))
             {
                 httpClient.DefaultRequestHeaders.Add("Referer", "https://spapi.pixiv.net/");
                 httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.AccessToken);
@@ -469,7 +471,7 @@ namespace Pixeez
         public async Task<AsyncResponse> SendRequestToGetImageAsync(MethodType type, string url, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
             AsyncResponse result = null;
-            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy))
+            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut))
             {
                 httpClient.DefaultRequestHeaders.Add("Referer", "https://app-api.pixiv.net/");
                 result = await SendRequestWithoutHeaderAsync(type, url, param, headers, httpClient);
@@ -489,7 +491,7 @@ namespace Pixeez
         public async Task<AsyncResponse> SendRequestWithoutAuthAsync(MethodType type, string url, bool needauth = false, IDictionary<string, string> param = null, IDictionary<string, string> headers = null)
         {
             AsyncResponse result = null;
-            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy))
+            using (var httpClient = PIXIV.Client(Auth.Proxy, Auth.ProxyBypass, Auth.UsingProxy, Auth.TimeOut))
             {
                 httpClient.DefaultRequestHeaders.AcceptEncoding.TryParseAdd("gzip");
                 httpClient.DefaultRequestHeaders.AcceptLanguage.TryParseAdd("zh_CN");

@@ -96,6 +96,7 @@ namespace PixivWPF.Pages
             if (ParentWindow == null) ParentWindow = Window.GetWindow(this) as PixivLoginDialog;
 
             setting = Application.Current.LoadSetting();
+            Pixeez.Auth.TimeOut = setting.DownloadHttpTimeout;
 
             var user = edUser.Text.Trim();
             var pass = edPass.Password.Trim();

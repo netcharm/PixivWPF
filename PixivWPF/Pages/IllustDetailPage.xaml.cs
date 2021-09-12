@@ -2950,7 +2950,7 @@ namespace PixivWPF.Pages
                 setting = Application.Current.LoadSetting();
 
                 if (!(cancelDownloading is CancellationTokenSource) || cancelDownloading.IsCancellationRequested)
-                    cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                    cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
 
                 Preview.Show();
                 await new Action(async () =>
@@ -2965,6 +2965,8 @@ namespace PixivWPF.Pages
                         if (c_item.IsSameIllust(Contents)) PreviewWait.Show();
 
                         PreviewImageUrl = c_item.Illust.GetPreviewUrl(c_item.Index, large: setting.ShowLargePreview);
+                        if (Keyboard.Modifiers == ModifierKeys.Control) { PreviewImageUrl.GetImageCacheFile().ClearDownloading(); }
+
                         using (var img = await PreviewImageUrl.LoadImageFromUrl(overwrite, progressAction: PreviewWait.ReportPercentage, cancelToken: cancelDownloading))
                         {
                             if (!setting.ShowLargePreview && setting.SmartPreview &&
@@ -3016,7 +3018,7 @@ namespace PixivWPF.Pages
                     try
                     {
                         if (!(cancelDownloading is CancellationTokenSource) || cancelDownloading.IsCancellationRequested)
-                            cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                            cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(setting.DownloadHttpTimeout));
 
                         AuthorAvatarWait.Show();
                         btnAuthorAvatar.Show(AuthorAvatarWait.IsFail);

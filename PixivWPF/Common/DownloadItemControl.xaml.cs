@@ -801,8 +801,8 @@ namespace PixivWPF.Common
         {
             var start = _DownloadBuffer is byte[] ? _DownloadBuffer.Length : 0;
             if (!continuation || start <= 0) start = 0;
-            var request = Application.Current.GetHttpRequest(Url);
-            request.Headers.Add("Range", $"bytes={start}-");
+            var request = Application.Current.GetHttpRequest(Url, range_start: start);
+            //request.Headers.Add("Range", $"bytes={start}-");
 
             httpClient = Application.Current.GetHttpClient(continuation, is_download: true);
             return (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead));

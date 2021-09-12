@@ -3042,20 +3042,27 @@ namespace PixivWPF.Common
                     HttpClientList.AddOrUpdate("noproxy", httpClient, (k, v) => httpClient);
                 }
             }
+            //httpClient.Timeout = TimeSpan.FromSeconds(setting.DownloadHttpTimeout);
             return (httpClient);
         }
 
-        public static HttpRequestMessage GetHttpRequest(this Application app, string url, HttpMethod method = null)
+        public static HttpRequestMessage GetHttpRequest(this Application app, string url, HttpMethod method = null, long? range_start = null, long? range_count = null)
         {
             HttpRequestMessage request = null;
             if (!string.IsNullOrEmpty(url))
             {
                 try
                 {
+                    var setting = LoadSetting(app);
                     var clientHash = new PixivClientHash();
                     request = new HttpRequestMessage(method == null ? HttpMethod.Get : method, url);
                     request.Headers.Add("X-Client-Time", clientHash.Time);
                     request.Headers.Add("X-Client-Hash", clientHash.Hash);
+                    request.Properties["RequestTimeout"] = TimeSpan.FromSeconds(setting.DownloadHttpTimeout);
+
+                    var start = (range_start ?? 0) <= 0 ? "0" : $"{range_start}";
+                    var end = (range_count ?? 0) > 0 ? $"{range_count}" : string.Empty;
+                    request.Headers.Add("Range", $"bytes={start}-{end}");
                 }
                 catch (Exception ex) { ex.ERROR("GetHttpRequest"); }
             }
