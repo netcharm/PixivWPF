@@ -176,6 +176,21 @@ namespace ImageCompare
         #endregion
 
         #region Image Processing Routines
+        private Dictionary<string, string> GetSupportedImageFormats()
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            try
+            {
+                var fmts = Enum.GetNames(typeof(MagickFormat));
+                foreach (var fmt in fmts)
+                {
+                    //result.Add(fmt.ToString(), ))
+                }
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            return (result);
+        }
+
         private void CleanImage()
         {
             if (SourceImage is MagickImage && !SourceImage.IsDisposed) SourceImage.Dispose(); SourceImage = null;
@@ -726,12 +741,49 @@ namespace ImageCompare
         {
             if (image is MagickImage)
             {
-                var exif = image.GetExifProfile() ?? new ExifProfile();
-                var tag = exif.GetValue(ExifTag.XPTitle);
-                if (tag != null) { var text = Encoding.Unicode.GetString(tag.Value).Trim('\0').Trim(); }
+                //var exif = image.GetExifProfile() ?? new ExifProfile();
+                //var tag = exif.GetValue(ExifTag.XPTitle);
+                //if (tag != null) { var text = Encoding.Unicode.GetString(tag.Value).Trim('\0').Trim(); }
 #if DEBUG
                 //Debug.WriteLine(text);
 #endif
+                var profiles = new Dictionary<string, IImageProfile>();
+                foreach (var pn in image.ProfileNames)
+                {
+                    if (image.HasProfile(pn)) profiles[pn] = image.GetProfile(pn);
+                    if (pn.Equals("exif", StringComparison.CurrentCultureIgnoreCase))
+                        profiles[pn] = image.GetExifProfile();
+                    else if (pn.Equals("iptc", StringComparison.CurrentCultureIgnoreCase))
+                        profiles[pn] = image.GetIptcProfile();
+                    else if (pn.Equals("xmp", StringComparison.CurrentCultureIgnoreCase))
+                        profiles[pn] = image.GetXmpProfile();
+
+                    var profile = profiles[pn];
+                    if (profile is ExifProfile)
+                    {
+                        var exif = profile as ExifProfile;
+                        Debug.WriteLine(exif.GetValue(ExifTag.XPTitle));
+                        Debug.WriteLine(exif.GetValue(ExifTag.XPAuthor));
+                        Debug.WriteLine(exif.GetValue(ExifTag.XPKeywords));
+                        Debug.WriteLine(exif.GetValue(ExifTag.XPComment));
+                    }
+                    else if (profile is IptcProfile)
+                    {
+                        var iptc = profile as IptcProfile;
+                        Debug.WriteLine(iptc.GetValue(IptcTag.Title));
+                        Debug.WriteLine(iptc.GetValue(IptcTag.Byline));
+                        Debug.WriteLine(iptc.GetValue(IptcTag.BylineTitle));
+                        Debug.WriteLine(iptc.GetValue(IptcTag.CopyrightNotice));
+                        Debug.WriteLine(iptc.GetValue(IptcTag.Caption));
+                        Debug.WriteLine(iptc.GetValue(IptcTag.CaptionWriter));
+                    }
+                    else if (profile is XmpProfile)
+                    {
+                        var xmp = profile as XmpProfile;
+                        var xml = Encoding.UTF8.GetString(xmp.GetData());
+                        //image.SetAttribute()
+                    }
+                }
             }
         }
 
@@ -748,7 +800,7 @@ namespace ImageCompare
                 tip.Add($"Dimention      = {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
                 tip.Add($"Resolution     = {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
                 //tip.Add($"Colors         = {image.TotalColors}");
-                tip.Add($"Attributes");
+                tip.Add($"Attributes");                
                 foreach (var attr in image.AttributeNames)
                 {
                     try
@@ -778,6 +830,7 @@ namespace ImageCompare
                 result = string.Join(Environment.NewLine, tip);
                 st.Stop();
                 Debug.WriteLine($"{TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4}s");
+                GetExif(image);
             }
             return (string.IsNullOrEmpty(result) ? null : result);
         }
@@ -867,7 +920,7 @@ namespace ImageCompare
                     try
                     {
 #if DEBUG
-                        Debug.WriteLine("UpdateImageViewer");
+                        Debug.WriteLine("---> UpdateImageViewer <---");
 #endif
                         ProcessStatus.IsIndeterminate = true;
                         await Task.Delay(1);
@@ -917,7 +970,6 @@ namespace ImageCompare
                         }
                         ImageResult.ToolTip = GetImageInfo(ImageType.Result);
                         CalcDisplay(set_ratio: false);
-                        GetExif(SourceImage);
                     }
                     catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
                     finally
@@ -1133,10 +1185,16 @@ namespace ImageCompare
 
         private void LoadImageFromFile(bool source = true)
         {
-            var dlgOpen = new CommonOpenFileDialog() { Multiselect = true, EnsureFileExists = true, EnsurePathExists = true, EnsureValidNames = true };
-            if (dlgOpen.ShowDialog() == CommonFileDialogResult.Ok)
+            //var dlgOpen = new CommonOpenFileDialog() { Multiselect = true, EnsureFileExists = true, EnsurePathExists = true, EnsureValidNames = true };
+            //if (dlgOpen.ShowDialog() == CommonFileDialogResult.Ok)
+            //{
+            //    var files = dlgOpen.FileNames.ToArray();
+            //    LoadImageFromFiles(files, source);
+            //}
+            var dlgOpen = new Microsoft.Win32.OpenFileDialog() { Multiselect = true, CheckFileExists = true, CheckPathExists = true, ValidateNames = true };
+            if (dlgOpen.ShowDialog() ?? false)
             {
-                var files = dlgOpen.FileNames.ToArray();
+                var files = dlgOpen.SafeFileNames.ToArray();
                 LoadImageFromFiles(files, source);
             }
         }
@@ -1189,18 +1247,36 @@ namespace ImageCompare
             {
                 try
                 {
-                    var dlgSave = new CommonSaveFileDialog() { EnsurePathExists = true, EnsureValidNames = true };
-                    dlgSave.Filters.Add(new CommonFileDialogFilter("PNG File", "*.png"));
-                    dlgSave.Filters.Add(new CommonFileDialogFilter("JPEG File", "*.jpg"));
-                    dlgSave.Filters.Add(new CommonFileDialogFilter("JPEG File", "*.jpeg"));
-                    dlgSave.Filters.Add(new CommonFileDialogFilter("TIF File", "*.tif"));
-                    dlgSave.Filters.Add(new CommonFileDialogFilter("TIFF File", "*.tiff"));
-                    dlgSave.Filters.Add(new CommonFileDialogFilter("BITMAP File", "*.bmp"));
-                    if (dlgSave.ShowDialog() == CommonFileDialogResult.Ok)
+                    //var dlgSave = new CommonSaveFileDialog() { EnsurePathExists = true, EnsureValidNames = true };
+                    //dlgSave.Filters.Add(new CommonFileDialogFilter("PNG File", "*.png"));
+                    //dlgSave.Filters.Add(new CommonFileDialogFilter("JPEG File", "*.jpg"));
+                    //dlgSave.Filters.Add(new CommonFileDialogFilter("JPEG File", "*.jpeg"));
+                    //dlgSave.Filters.Add(new CommonFileDialogFilter("TIF File", "*.tif"));
+                    //dlgSave.Filters.Add(new CommonFileDialogFilter("TIFF File", "*.tiff"));
+                    //dlgSave.Filters.Add(new CommonFileDialogFilter("BITMAP File", "*.bmp"));
+                    //if (dlgSave.ShowDialog() == CommonFileDialogResult.Ok)
+                    //{
+                    //    var file = dlgSave.FileName;
+                    //    var ext = Path.GetExtension(file);
+                    //    if (string.IsNullOrEmpty(ext)) file = $"{file}.{dlgSave.Filters[dlgSave.SelectedFileTypeIndex].Extensions.FirstOrDefault()}";
+                    //    using (var fs = new FileStream(dlgSave.FileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+                    //    {
+                    //        ResultImage.Write(fs);
+                    //    }
+                    //}
+                    var dlgSave = new Microsoft.Win32.SaveFileDialog() {  CheckPathExists = true, ValidateNames = true, DefaultExt = ".png" };
+                    dlgSave.Filter = "PNG File|*.png|JPEG File|*.jpg;*.jpeg|TIFF File|*.tif;*.tiff|BITMAP File|*.bmp";
+                    dlgSave.FilterIndex = 1;
+                    if (dlgSave.ShowDialog() ?? false)
                     {
-                        var file = dlgSave.FileName;
+                        var file = dlgSave.SafeFileName;
                         var ext = Path.GetExtension(file);
-                        if (string.IsNullOrEmpty(ext)) file = $"{file}.{dlgSave.Filters[dlgSave.SelectedFileTypeIndex].Extensions.FirstOrDefault()}";
+                        var filters = dlgSave.Filter.Split('|');
+                        if (string.IsNullOrEmpty(ext))
+                        {
+                            ext = filters[(dlgSave.FilterIndex - 1) * 2];
+                            file = $"{file}{ext}";
+                        }
                         using (var fs = new FileStream(dlgSave.FileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
                         {
                             ResultImage.Write(fs);
@@ -1395,7 +1471,7 @@ namespace ImageCompare
             };
             var item_blur = new MenuItem()
             {
-                Header = "Blur",
+                Header = "Gaussian Blur",
                 Tag = source,
                 Icon = new TextBlock() { Text = "\uE878", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"),
                     Foreground = new SolidColorBrush(Colors.Gray),
@@ -1404,7 +1480,7 @@ namespace ImageCompare
             };
             var item_sharp = new MenuItem()
             {
-                Header = "Sharp",
+                Header = "Unsharp Mask",
                 Tag = source,
                 Icon = new TextBlock() { Text = "\uE879", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"),
                     Foreground = new SolidColorBrush(Colors.Gray)                    
@@ -1510,14 +1586,17 @@ namespace ImageCompare
                 var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
                 if (!Directory.Exists(magick_cache)) Directory.CreateDirectory(magick_cache);
                 if (Directory.Exists(magick_cache)) MagickAnyCPU.CacheDirectory = magick_cache;
-                //ImageMagick.ResourceLimits.Area = 4096 * 4096;
-                //ImageMagick.ResourceLimits.
+                ImageMagick.OpenCL.IsEnabled = true;
+                ImageMagick.OpenCL.SetCacheDirectory(magick_cache);
                 ImageMagick.ResourceLimits.Memory = 256 * 1024 * 1024;
-                //ImageMagick.ResourceLimits.Throttle = 
-                ImageMagick.ResourceLimits.Thread = 2;
                 ImageMagick.ResourceLimits.LimitMemory(new Percentage(5));
+                ImageMagick.ResourceLimits.Thread = 2;
+                //ImageMagick.ResourceLimits.Area = 4096 * 4096;
+                //ImageMagick.ResourceLimits.Throttle = 
             }
             catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+
+            //GetSupportedImageFormats();
 
             CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
 
