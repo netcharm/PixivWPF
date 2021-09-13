@@ -369,7 +369,11 @@ namespace PixivWPF.Pages
             catch (Exception ex) { ex.ERROR(System.Reflection.MethodBase.GetCurrentMethod().Name); }
             finally
             {
+                await Task.Delay(100);
+                this.DoEvents();
                 if (reportProgress is Action<double, double> && img.Source != null) reportProgress.Invoke(img.Size, img.Size);
+                await Task.Delay(100);
+                this.DoEvents();
                 img.Source = null;
                 if (Preview.Source == null) PreviewWait.Fail();
             }

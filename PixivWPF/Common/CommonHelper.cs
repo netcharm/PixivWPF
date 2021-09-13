@@ -3152,7 +3152,7 @@ namespace PixivWPF.Common
 
                                     int idx = -1;
                                     var illust = await fileinfo.FullName.GetIllustId(out idx).GetIllust();
-                                    var fname = url.GetImageName((illust.PageCount ?? 0) <= 1);
+                                    var fname = illust.GetOriginalUrl(idx).GetImageName((illust.PageCount ?? 0) <= 1);
                                     if (!fileinfo.Name.Equals(fname)) fileinfo.MoveTo(Path.Combine(fileinfo.DirectoryName, fname));
                                 }
                             }
@@ -4858,6 +4858,9 @@ namespace PixivWPF.Common
                                 await fs.FlushAsync();
                                 fs.Close();
                                 fs.Dispose();
+
+                                DownloadTaskCache.TryRemove(file, out lastdownloaded);
+                                if (lastdownloaded is byte[] && lastdownloaded.Length >= 0) lastdownloaded.Dispose();
                             }
                         }
                         if (progressAction is Action<double, double>) progressAction.Invoke(received, length);
@@ -4868,16 +4871,17 @@ namespace PixivWPF.Common
 
                     result = File.Exists(file);
                     var illust = file.GetIllustId().FindIllust();
-                    DownloadTaskCache.TryRemove(file, out lastdownloaded);
-                    if (lastdownloaded is byte[] && lastdownloaded.Length >= 0) lastdownloaded.Dispose();
                 }
                 catch (Exception ex)
                 {
                     ex.ERROR($"WriteToFile: {Path.GetFileName(file)}");
                     if (ms is MemoryStream && ms.Length < (range.Length ?? 0))
                     {
+                        if (lastdownloaded is byte[]) lastdownloaded.Dispose();
                         lastdownloaded = ms.ToArray();
-                        DownloadTaskCache.TryAdd(file, lastdownloaded);
+                        if (DownloadTaskCache.ContainsKey(file)) DownloadTaskCache.TryUpdate(file, lastdownloaded, DownloadTaskCache[file]);
+                        else DownloadTaskCache.TryAdd(file, lastdownloaded);
+                        //DownloadTaskCache.AddOrUpdate(file, lastdownloaded, (k, v) => lastdownloaded);
                     }
                 }
             }
@@ -4950,7 +4954,7 @@ namespace PixivWPF.Common
 
         public static long QueryDownloadingState(this string file)
         {
-            long result = 0;
+            long result = 0;// File.Exists(file) ? new FileInfo(file).Length : 0;
             if (DownloadTaskCache is ConcurrentDictionary<string, byte[]> && DownloadTaskCache.ContainsKey(file))
             {
                 byte[] d = null;
