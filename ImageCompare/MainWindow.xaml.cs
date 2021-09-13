@@ -15,7 +15,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ImageMagick;
 using Xceed.Wpf.Toolkit;
 
@@ -36,6 +35,8 @@ namespace ImageCompare
         private string DefaultCompareToolTip { get; set; } = string.Empty;
         private string DefaultComposeToolTip { get; set; } = string.Empty;
         private string DefaultWindowTitle { get; set; } = string.Empty;
+
+        private string SupportedFiles { get; set; } = string.Empty;
 
         private int MaxCompareSize { get; set; } = 1024;
         private MagickGeometry CompareResizeGeometry { get; set; } = null;
@@ -184,7 +185,7 @@ namespace ImageCompare
                 var fmts = Enum.GetNames(typeof(MagickFormat));
                 foreach (var fmt in fmts)
                 {
-                    //result.Add(fmt.ToString(), ))
+                    result.Add(fmt, "");
                 }
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
@@ -1185,16 +1186,11 @@ namespace ImageCompare
 
         private void LoadImageFromFile(bool source = true)
         {
-            //var dlgOpen = new CommonOpenFileDialog() { Multiselect = true, EnsureFileExists = true, EnsurePathExists = true, EnsureValidNames = true };
-            //if (dlgOpen.ShowDialog() == CommonFileDialogResult.Ok)
-            //{
-            //    var files = dlgOpen.FileNames.ToArray();
-            //    LoadImageFromFiles(files, source);
-            //}
             var dlgOpen = new Microsoft.Win32.OpenFileDialog() { Multiselect = true, CheckFileExists = true, CheckPathExists = true, ValidateNames = true };
+            dlgOpen.Filter = $"All Supported Image Files|{SupportedFiles}";
             if (dlgOpen.ShowDialog() ?? false)
             {
-                var files = dlgOpen.SafeFileNames.ToArray();
+                var files = dlgOpen.FileNames.ToArray();
                 LoadImageFromFiles(files, source);
             }
         }
@@ -1247,40 +1243,20 @@ namespace ImageCompare
             {
                 try
                 {
-                    //var dlgSave = new CommonSaveFileDialog() { EnsurePathExists = true, EnsureValidNames = true };
-                    //dlgSave.Filters.Add(new CommonFileDialogFilter("PNG File", "*.png"));
-                    //dlgSave.Filters.Add(new CommonFileDialogFilter("JPEG File", "*.jpg"));
-                    //dlgSave.Filters.Add(new CommonFileDialogFilter("JPEG File", "*.jpeg"));
-                    //dlgSave.Filters.Add(new CommonFileDialogFilter("TIF File", "*.tif"));
-                    //dlgSave.Filters.Add(new CommonFileDialogFilter("TIFF File", "*.tiff"));
-                    //dlgSave.Filters.Add(new CommonFileDialogFilter("BITMAP File", "*.bmp"));
-                    //if (dlgSave.ShowDialog() == CommonFileDialogResult.Ok)
-                    //{
-                    //    var file = dlgSave.FileName;
-                    //    var ext = Path.GetExtension(file);
-                    //    if (string.IsNullOrEmpty(ext)) file = $"{file}.{dlgSave.Filters[dlgSave.SelectedFileTypeIndex].Extensions.FirstOrDefault()}";
-                    //    using (var fs = new FileStream(dlgSave.FileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
-                    //    {
-                    //        ResultImage.Write(fs);
-                    //    }
-                    //}
                     var dlgSave = new Microsoft.Win32.SaveFileDialog() {  CheckPathExists = true, ValidateNames = true, DefaultExt = ".png" };
                     dlgSave.Filter = "PNG File|*.png|JPEG File|*.jpg;*.jpeg|TIFF File|*.tif;*.tiff|BITMAP File|*.bmp";
                     dlgSave.FilterIndex = 1;
                     if (dlgSave.ShowDialog() ?? false)
                     {
-                        var file = dlgSave.SafeFileName;
+                        var file = dlgSave.FileName;
                         var ext = Path.GetExtension(file);
                         var filters = dlgSave.Filter.Split('|');
                         if (string.IsNullOrEmpty(ext))
                         {
-                            ext = filters[(dlgSave.FilterIndex - 1) * 2];
+                            ext = filters[(dlgSave.FilterIndex - 1) * 2].Replace("*", "");
                             file = $"{file}{ext}";
                         }
-                        using (var fs = new FileStream(dlgSave.FileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
-                        {
-                            ResultImage.Write(fs);
-                        }
+                        ResultImage.Write(dlgSave.FileName);
                     }
                 }
                 catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
@@ -1596,7 +1572,8 @@ namespace ImageCompare
             }
             catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
 
-            //GetSupportedImageFormats();
+            var fmts = GetSupportedImageFormats().Keys.ToList().Skip(4).Select(f => $"*.{f}");
+            SupportedFiles = string.Join(";", fmts);
 
             CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
 
