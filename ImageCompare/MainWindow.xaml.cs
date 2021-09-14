@@ -32,6 +32,10 @@ namespace ImageCompare
         private static string AppName = Path.GetFileNameWithoutExtension(AppPath);
         private static string CachePath =  "cache";
 
+        private string DefaultFontFamilyName { get; set; } = "Segoe MDL2 Assets";
+        private FontFamily DefaultFontFamily { get; set; } = null;
+        private int DefaultFontSize { get; set; } = 16;
+
         private string DefaultCompareToolTip { get; set; } = string.Empty;
         private string DefaultComposeToolTip { get; set; } = string.Empty;
         private string DefaultWindowTitle { get; set; } = string.Empty;
@@ -58,6 +62,7 @@ namespace ImageCompare
         private bool LastOpIsCompose { get; set; } = false;
         private ImageType LastImageType { get; set; } = ImageType.Result;
 
+        private bool CompareImageForceColor { get { return (UseColorImage.IsChecked ?? false); } }
         private ErrorMetric ErrorMetricMode { get; set; } = ErrorMetric.Fuzz;
         private CompositeOperator CompositeMode { get; set; } = CompositeOperator.Difference;
 #if Q16HDRI
@@ -157,7 +162,7 @@ namespace ImageCompare
             var vs = trimzero && !u_str.Equals("B") ? v_str.Trim('0').TrimEnd('.') : v_str;
             return ((unit ? $"{vs} {u_str}" : vs).PadLeft(padleft));
         }
-        
+
         private string DecodeHexUnicode(string text)
         {
             var result = text;
@@ -288,7 +293,7 @@ namespace ImageCompare
                     ResultImage = image;
                 }
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
             if (update) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
         }
 
@@ -300,7 +305,7 @@ namespace ImageCompare
                 SetImage(type, new MagickImage(image), update: update);
 #endif
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void SetImage(ImageType type, IMagickImage<byte> image, bool update = true)
@@ -311,7 +316,7 @@ namespace ImageCompare
                 SetImage(type, new MagickImage(image), update: update);
 #endif
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void CopyImageInfo(bool source)
@@ -328,256 +333,332 @@ namespace ImageCompare
             }
         }
 
+        private void ChangeColorSpace(bool? source = null)
+        {
+            try
+            {
+                if (source == null)
+                {
+                    if (SourceImage is MagickImage && !SourceImage.IsDisposed &&
+                        SourceOriginal is MagickImage && !SourceOriginal.IsDisposed)
+                    {
+                        var color = CompareImageForceColor ? ColorSpace.sRGB : SourceOriginal.ColorSpace;
+                        if (color != SourceImage.ColorSpace) SourceImage.ColorSpace = color;
+                    }
+                    if (TargetImage is MagickImage && !TargetImage.IsDisposed &&
+                        TargetOriginal is MagickImage && !TargetOriginal.IsDisposed)
+                    {
+                        var color = CompareImageForceColor ? ColorSpace.sRGB : TargetOriginal.ColorSpace;
+                        if (color != TargetImage.ColorSpace) TargetImage.ColorSpace = color;
+                    }
+                }
+                else
+                {
+                    if ((source ?? false) ^ ToggleSourceTarget)
+                    {
+                        if (SourceImage is MagickImage && !SourceImage.IsDisposed &&
+                            SourceOriginal is MagickImage && !SourceOriginal.IsDisposed)
+                        {
+                            var color = CompareImageForceColor ? ColorSpace.sRGB : SourceOriginal.ColorSpace;
+                            if (color != SourceImage.ColorSpace) SourceImage.ColorSpace = color;
+                        }
+                    }
+                    else
+                    {
+                        if (TargetImage is MagickImage && !TargetImage.IsDisposed &&
+                            TargetOriginal is MagickImage && !TargetOriginal.IsDisposed)
+                        {
+                            var color = CompareImageForceColor ? ColorSpace.sRGB : TargetOriginal.ColorSpace;
+                            if (color != TargetImage.ColorSpace) TargetImage.ColorSpace = color;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+        }
+
         private void RotateImage(bool source, int value)
         {
-            var action = false;
-            if (source ^ ToggleSourceTarget)
+            try
             {
-                if (SourceImage is MagickImage && !SourceImage.IsDisposed)
+                var action = false;
+                if (source ^ ToggleSourceTarget)
                 {
-                    SourceImage.Rotate(value);
-                    Rotate_Source += value;
-                    Rotate_Source %= 360;
-                    action = true;
+                    if (SourceImage is MagickImage && !SourceImage.IsDisposed)
+                    {
+                        SourceImage.Rotate(value);
+                        Rotate_Source += value;
+                        Rotate_Source %= 360;
+                        action = true;
+                    }
                 }
-            }
-            else
-            {
-                if (TargetImage is MagickImage && !TargetImage.IsDisposed)
+                else
                 {
-                    TargetImage.Rotate(value);
-                    Rotate_Target += value;
-                    Rotate_Target %= 360;
-                    action = true;
+                    if (TargetImage is MagickImage && !TargetImage.IsDisposed)
+                    {
+                        TargetImage.Rotate(value);
+                        Rotate_Target += value;
+                        Rotate_Target %= 360;
+                        action = true;
+                    }
                 }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void FlipImage(bool source)
         {
-            var action = false;
-            if (source ^ ToggleSourceTarget)
+            try
             {
-                if (SourceImage is MagickImage && !SourceImage.IsDisposed)
+                var action = false;
+                if (source ^ ToggleSourceTarget)
                 {
-                    SourceImage.Flip();
-                    FlipY_Source = !FlipY_Source;
-                    action = true;
+                    if (SourceImage is MagickImage && !SourceImage.IsDisposed)
+                    {
+                        SourceImage.Flip();
+                        FlipY_Source = !FlipY_Source;
+                        action = true;
+                    }
                 }
-            }
-            else
-            {
-                if (TargetImage is MagickImage && !TargetImage.IsDisposed)
+                else
                 {
-                    TargetImage.Flip();
-                    FlipY_Target = !FlipY_Target;
-                    action = true;
+                    if (TargetImage is MagickImage && !TargetImage.IsDisposed)
+                    {
+                        TargetImage.Flip();
+                        FlipY_Target = !FlipY_Target;
+                        action = true;
+                    }
                 }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void FlopImage(bool source)
         {
-            var action = false;
-            if (source ^ ToggleSourceTarget)
+            try
             {
-                if (SourceImage is MagickImage && !SourceImage.IsDisposed)
+                var action = false;
+                if (source ^ ToggleSourceTarget)
                 {
-                    SourceImage.Flop();
-                    FlipX_Source = !FlipX_Source;
-                    action = true;
+                    if (SourceImage is MagickImage && !SourceImage.IsDisposed)
+                    {
+                        SourceImage.Flop();
+                        FlipX_Source = !FlipX_Source;
+                        action = true;
+                    }
                 }
-            }
-            else
-            {
-                if (TargetImage is MagickImage && !TargetImage.IsDisposed)
+                else
                 {
-                    TargetImage.Flop();
-                    FlipX_Target = !FlipX_Target;
-                    action = true;
+                    if (TargetImage is MagickImage && !TargetImage.IsDisposed)
+                    {
+                        TargetImage.Flop();
+                        FlipX_Target = !FlipX_Target;
+                        action = true;
+                    }
                 }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void ResetImage(bool source)
         {
-            var action = false;
-            if (source ^ ToggleSourceTarget)
+            try
             {
-                if (SourceImage is MagickImage && !SourceImage.IsDisposed)
+                var action = false;
+                if (source ^ ToggleSourceTarget)
                 {
-                    if (FlipX_Source)
+                    if (SourceImage is MagickImage && !SourceImage.IsDisposed)
                     {
-                        SourceImage.Flop();
-                        FlipX_Source = false;
-                        action = true;
-                    }
-                    if (FlipY_Source)
-                    {
-                        SourceImage.Flip();
-                        FlipY_Source = false;
-                        action = true;
-                    }
-                    if (Rotate_Source % 360 != 0)
-                    {
-                        SourceImage.Rotate(-Rotate_Source);
-                        Rotate_Source = 0;
-                        action = true;
+                        if (FlipX_Source)
+                        {
+                            SourceImage.Flop();
+                            FlipX_Source = false;
+                            action = true;
+                        }
+                        if (FlipY_Source)
+                        {
+                            SourceImage.Flip();
+                            FlipY_Source = false;
+                            action = true;
+                        }
+                        if (Rotate_Source % 360 != 0)
+                        {
+                            SourceImage.Rotate(-Rotate_Source);
+                            Rotate_Source = 0;
+                            action = true;
+                        }
                     }
                 }
-            }
-            else
-            {
-                if (TargetImage is MagickImage && !TargetImage.IsDisposed)
+                else
                 {
-                    if (FlipX_Target)
+                    if (TargetImage is MagickImage && !TargetImage.IsDisposed)
                     {
-                        TargetImage.Flop();
-                        FlipX_Target = false;
-                        action = true;
-                    }
-                    if (FlipY_Target)
-                    {
-                        TargetImage.Flip();
-                        FlipY_Target = false;
-                        action = true;
-                    }
-                    if (Rotate_Target % 360 != 0)
-                    {
-                        TargetImage.Rotate(-Rotate_Target);
-                        Rotate_Target = 0;
-                        action = true;
+                        if (FlipX_Target)
+                        {
+                            TargetImage.Flop();
+                            FlipX_Target = false;
+                            action = true;
+                        }
+                        if (FlipY_Target)
+                        {
+                            TargetImage.Flip();
+                            FlipY_Target = false;
+                            action = true;
+                        }
+                        if (Rotate_Target % 360 != 0)
+                        {
+                            TargetImage.Rotate(-Rotate_Target);
+                            Rotate_Target = 0;
+                            action = true;
+                        }
                     }
                 }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void GrayscaleImage(bool source)
         {
-            var action = false;
-            if (source ^ ToggleSourceTarget)
+            try
             {
-                if (SourceImage is MagickImage && TargetImage is MagickImage)
+                var action = false;
+                if (source ^ ToggleSourceTarget)
                 {
-                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                    SourceImage.Grayscale();
-                    //SourceImage.RePage();
-                    action = true;
+                    if (SourceImage is MagickImage && TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.Grayscale();
+                        //SourceImage.RePage();
+                        action = true;
+                    }
                 }
-            }
-            else
-            {
-                if (TargetImage is MagickImage && SourceImage is MagickImage)
+                else
                 {
-                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                    TargetImage.Grayscale();
-                    //TargetImage.RePage();
-                    action = true;
+                    if (TargetImage is MagickImage && SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.Grayscale();
+                        //TargetImage.RePage();
+                        action = true;
+                    }
                 }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void BlurImage(bool source)
         {
-            var action = false;
-            var radius = 5;
-            if (source ^ ToggleSourceTarget)
+            try
             {
-                if (SourceImage is MagickImage && TargetImage is MagickImage)
+                var action = false;
+                var radius = 5;
+                if (source ^ ToggleSourceTarget)
                 {
-                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                    SourceImage.GaussianBlur(radius);
-                    //SourceImage.RePage();
-                    action = true;
+                    if (SourceImage is MagickImage && TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.GaussianBlur(radius);
+                        //SourceImage.RePage();
+                        action = true;
+                    }
                 }
-            }
-            else
-            {
-                if (TargetImage is MagickImage && SourceImage is MagickImage)
+                else
                 {
-                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                    TargetImage.GaussianBlur(radius);
-                    //TargetImage.RePage();
-                    action = true;
+                    if (TargetImage is MagickImage && SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.GaussianBlur(radius);
+                        //TargetImage.RePage();
+                        action = true;
+                    }
                 }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void SharpImage(bool source)
         {
-            var action = false;
-            var radius = 5;
-            var sigma = 0.25;
-            var amount = 15;
-            var threshold = 0;
-            if (source ^ ToggleSourceTarget)
+            try
             {
-                if (SourceImage is MagickImage && TargetImage is MagickImage)
+                var action = false;
+                var radius = 5;
+                var sigma = 0.25;
+                var amount = 15;
+                var threshold = 0;
+                if (source ^ ToggleSourceTarget)
                 {
-                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                    SourceImage.UnsharpMask(radius, sigma, amount, threshold);
-                    //SourceImage.RePage();
-                    action = true;
+                    if (SourceImage is MagickImage && TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.UnsharpMask(radius, sigma, amount, threshold);
+                        //SourceImage.RePage();
+                        action = true;
+                    }
                 }
-            }
-            else
-            {
-                if (TargetImage is MagickImage && SourceImage is MagickImage)
+                else
                 {
-                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                    TargetImage.UnsharpMask(radius, sigma, amount, threshold);
-                    //TargetImage.RePage();
-                    action = true;
+                    if (TargetImage is MagickImage && SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.UnsharpMask(radius, sigma, amount, threshold);
+                        //TargetImage.RePage();
+                        action = true;
+                    }
                 }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void ResizeToImage(bool source)
         {
-            var action = false;
-            if (source ^ ToggleSourceTarget)
+            try
             {
-                if (SourceImage is MagickImage && TargetImage is MagickImage)
+                var action = false;
+                if (source ^ ToggleSourceTarget)
                 {
-                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                    SourceImage.Resize(TargetImage.Width, TargetImage.Height);
-                    SourceImage.RePage();
-                    action = true;
+                    if (SourceImage is MagickImage && TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.Resize(TargetImage.Width, TargetImage.Height);
+                        SourceImage.RePage();
+                        action = true;
+                    }
                 }
-            }
-            else
-            {
-                if (TargetImage is MagickImage && SourceImage is MagickImage)
+                else
                 {
-                    if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                    if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                    TargetImage.Resize(SourceImage.Width, SourceImage.Height);
-                    TargetImage.RePage();
-                    action = true;
+                    if (TargetImage is MagickImage && SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.Resize(SourceImage.Width, SourceImage.Height);
+                        TargetImage.RePage();
+                        action = true;
+                    }
                 }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void SlicingImage(bool source, bool vertical)
         {
-            var action = false;
             try
             {
+                var action = false;
                 if (source ^ ToggleSourceTarget)
                 {
                     if (SourceImage is MagickImage)
@@ -624,16 +705,16 @@ namespace ImageCompare
                         }
                     }
                 }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
-            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void ReloadImage(bool source)
         {
-            var action = false;
             try
             {
+                var action = false;
                 if (source ^ ToggleSourceTarget)
                 {
                     if (SourceOriginal is MagickImage && !SourceOriginal.IsDisposed)
@@ -662,9 +743,9 @@ namespace ImageCompare
                         action = true;
                     }
                 }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
-            if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private async Task<MagickImage> Compare(MagickImage source, MagickImage target, bool compose = false)
@@ -714,7 +795,7 @@ namespace ImageCompare
                         }
                     }
                 }
-                catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
                 finally
                 {
                     st.Stop();
@@ -740,176 +821,192 @@ namespace ImageCompare
 
         private void GetExif(MagickImage image)
         {
-            if (image is MagickImage)
+            try
             {
-                //var exif = image.GetExifProfile() ?? new ExifProfile();
-                //var tag = exif.GetValue(ExifTag.XPTitle);
-                //if (tag != null) { var text = Encoding.Unicode.GetString(tag.Value).Trim('\0').Trim(); }
+                if (image is MagickImage)
+                {
+                    //var exif = image.GetExifProfile() ?? new ExifProfile();
+                    //var tag = exif.GetValue(ExifTag.XPTitle);
+                    //if (tag != null) { var text = Encoding.Unicode.GetString(tag.Value).Trim('\0').Trim(); }
 #if DEBUG
                 //Debug.WriteLine(text);
 #endif
-                var profiles = new Dictionary<string, IImageProfile>();
-                foreach (var pn in image.ProfileNames)
-                {
-                    if (image.HasProfile(pn)) profiles[pn] = image.GetProfile(pn);
-                    if (pn.Equals("exif", StringComparison.CurrentCultureIgnoreCase))
-                        profiles[pn] = image.GetExifProfile();
-                    else if (pn.Equals("iptc", StringComparison.CurrentCultureIgnoreCase))
-                        profiles[pn] = image.GetIptcProfile();
-                    else if (pn.Equals("xmp", StringComparison.CurrentCultureIgnoreCase))
-                        profiles[pn] = image.GetXmpProfile();
+                    var profiles = new Dictionary<string, IImageProfile>();
+                    foreach (var pn in image.ProfileNames)
+                    {
+                        if (image.HasProfile(pn)) profiles[pn] = image.GetProfile(pn);
+                        if (pn.Equals("exif", StringComparison.CurrentCultureIgnoreCase))
+                            profiles[pn] = image.GetExifProfile();
+                        else if (pn.Equals("iptc", StringComparison.CurrentCultureIgnoreCase))
+                            profiles[pn] = image.GetIptcProfile();
+                        else if (pn.Equals("xmp", StringComparison.CurrentCultureIgnoreCase))
+                            profiles[pn] = image.GetXmpProfile();
 
-                    var profile = profiles[pn];
-                    if (profile is ExifProfile)
-                    {
-                        var exif = profile as ExifProfile;
-                        Debug.WriteLine(exif.GetValue(ExifTag.XPTitle));
-                        Debug.WriteLine(exif.GetValue(ExifTag.XPAuthor));
-                        Debug.WriteLine(exif.GetValue(ExifTag.XPKeywords));
-                        Debug.WriteLine(exif.GetValue(ExifTag.XPComment));
-                    }
-                    else if (profile is IptcProfile)
-                    {
-                        var iptc = profile as IptcProfile;
-                        Debug.WriteLine(iptc.GetValue(IptcTag.Title));
-                        Debug.WriteLine(iptc.GetValue(IptcTag.Byline));
-                        Debug.WriteLine(iptc.GetValue(IptcTag.BylineTitle));
-                        Debug.WriteLine(iptc.GetValue(IptcTag.CopyrightNotice));
-                        Debug.WriteLine(iptc.GetValue(IptcTag.Caption));
-                        Debug.WriteLine(iptc.GetValue(IptcTag.CaptionWriter));
-                    }
-                    else if (profile is XmpProfile)
-                    {
-                        var xmp = profile as XmpProfile;
-                        var xml = Encoding.UTF8.GetString(xmp.GetData());
-                        //image.SetAttribute()
+                        var profile = profiles[pn];
+                        if (profile is ExifProfile)
+                        {
+                            var exif = profile as ExifProfile;
+                            Debug.WriteLine(exif.GetValue(ExifTag.XPTitle));
+                            Debug.WriteLine(exif.GetValue(ExifTag.XPAuthor));
+                            Debug.WriteLine(exif.GetValue(ExifTag.XPKeywords));
+                            Debug.WriteLine(exif.GetValue(ExifTag.XPComment));
+                        }
+                        else if (profile is IptcProfile)
+                        {
+                            var iptc = profile as IptcProfile;
+                            Debug.WriteLine(iptc.GetValue(IptcTag.Title));
+                            Debug.WriteLine(iptc.GetValue(IptcTag.Byline));
+                            Debug.WriteLine(iptc.GetValue(IptcTag.BylineTitle));
+                            Debug.WriteLine(iptc.GetValue(IptcTag.CopyrightNotice));
+                            Debug.WriteLine(iptc.GetValue(IptcTag.Caption));
+                            Debug.WriteLine(iptc.GetValue(IptcTag.CaptionWriter));
+                        }
+                        else if (profile is XmpProfile)
+                        {
+                            var xmp = profile as XmpProfile;
+                            var xml = Encoding.UTF8.GetString(xmp.GetData());
+                            //image.SetAttribute()
+                        }
                     }
                 }
             }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private string GetImageInfo(ImageType type)
         {
             string result = string.Empty;
-            var image = GetImage(type);
-            if (image != null)
+            try
             {
-                var file = type == ImageType.Source ? SourceFile : type == ImageType.Target ? TargetFile : string.Empty;
-                var st = Stopwatch.StartNew();
-                image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
-                var tip = new List<string>();
-                tip.Add($"Dimention      = {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
-                tip.Add($"Resolution     = {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
-                //tip.Add($"Colors         = {image.TotalColors}");
-                tip.Add($"Attributes");                
-                foreach (var attr in image.AttributeNames)
+                var image = GetImage(type);
+                if (image != null)
                 {
-                    try
+                    var file = type == ImageType.Source ? SourceFile : type == ImageType.Target ? TargetFile : string.Empty;
+                    var st = Stopwatch.StartNew();
+                    image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
+                    var tip = new List<string>();
+                    tip.Add($"Dimention      = {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
+                    tip.Add($"Resolution     = {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
+                    //tip.Add($"Colors         = {image.TotalColors}");
+                    tip.Add($"Attributes");
+                    foreach (var attr in image.AttributeNames)
                     {
-                        var value = image.GetAttribute(attr);
-                        if (string.IsNullOrEmpty(value)) continue;
-                        if (attr.Contains("WinXP")) value = DecodeHexUnicode(value);
-                        if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
-                        tip.Add($"  {attr.PadRight(32, ' ')}= { value }");
+                        try
+                        {
+                            var value = image.GetAttribute(attr);
+                            if (string.IsNullOrEmpty(value)) continue;
+                            if (attr.Contains("WinXP")) value = DecodeHexUnicode(value);
+                            if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
+                            tip.Add($"  {attr.PadRight(32, ' ')}= { value }");
+                        }
+                        catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"{attr} : {ex.Message}"); }
                     }
-                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"{attr} : {ex.Message}"); }
-                }
-                tip.Add($"Color Space    = {Path.GetFileName(image.ColorSpace.ToString())}");
-                tip.Add($"Format Info    = {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
+                    tip.Add($"Color Space    = {Path.GetFileName(image.ColorSpace.ToString())}");
+                    tip.Add($"Format Info    = {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
 #if Q16HDRI
-                tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 4 / 8)}");
+                    tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 4 / 8)}");
 #elif Q16
                 tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 2 / 8)}");
 #else
                 tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth / 8)}");
 #endif
-                tip.Add($"Display Memory = {SmartFileSize(image.Width * image.Height * 4)}");
-                if (!string.IsNullOrEmpty(image.FileName))
-                    tip.Add($"FileName       = {image.FileName}");
-                else if (!string.IsNullOrEmpty(file))
-                    tip.Add($"FileName       = {file}");
-                result = string.Join(Environment.NewLine, tip);
-                st.Stop();
-                Debug.WriteLine($"{TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4}s");
-                GetExif(image);
+                    tip.Add($"Display Memory = {SmartFileSize(image.Width * image.Height * 4)}");
+                    if (!string.IsNullOrEmpty(image.FileName))
+                        tip.Add($"FileName       = {image.FileName}");
+                    else if (!string.IsNullOrEmpty(file))
+                        tip.Add($"FileName       = {file}");
+                    result = string.Join(Environment.NewLine, tip);
+                    st.Stop();
+                    Debug.WriteLine($"{TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4}s");
+                    GetExif(image);
+                }
             }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
             return (string.IsNullOrEmpty(result) ? null : result);
         }
 
         private void CalcDisplay(bool set_ratio = true)
         {
-            if (ZoomFitAll.IsChecked ?? false)
+            try
             {
-                ImageSourceBox.Width = ImageSourceScroll.ActualWidth;
-                ImageSourceBox.Height = ImageSourceScroll.ActualHeight;
-
-                ImageTargetBox.Width = ImageTargetScroll.ActualWidth;
-                ImageTargetBox.Height = ImageTargetScroll.ActualHeight;
-
-                ImageResultBox.Width = ImageResultScroll.ActualWidth;
-                ImageResultBox.Height = ImageResultScroll.ActualHeight;
-
-                if (set_ratio)
+                if (ZoomFitAll.IsChecked ?? false)
                 {
-                    LastZoomRatio = ZoomRatio.Value;
-                    ZoomRatio.Value = 1;
+                    ImageSourceBox.Width = ImageSourceScroll.ActualWidth;
+                    ImageSourceBox.Height = ImageSourceScroll.ActualHeight;
+
+                    ImageTargetBox.Width = ImageTargetScroll.ActualWidth;
+                    ImageTargetBox.Height = ImageTargetScroll.ActualHeight;
+
+                    ImageResultBox.Width = ImageResultScroll.ActualWidth;
+                    ImageResultBox.Height = ImageResultScroll.ActualHeight;
+
+                    if (set_ratio)
+                    {
+                        LastZoomRatio = ZoomRatio.Value;
+                        ZoomRatio.Value = 1;
+                    }
                 }
+                else
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        ImageSourceBox.Width = SourceImage.Width;
+                        ImageSourceBox.Height = SourceImage.Height;
+                    }
+                    if (TargetImage is MagickImage)
+                    {
+                        ImageTargetBox.Width = TargetImage.Width;
+                        ImageTargetBox.Height = TargetImage.Height;
+                    }
+                    if (ResultImage is MagickImage)
+                    {
+                        ImageResultBox.Width = ResultImage.Width;
+                        ImageResultBox.Height = ResultImage.Height;
+                    }
+                    ZoomRatio.Value = LastZoomRatio;
+                }
+
+                if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
+                else ZoomRatio.IsEnabled = false;
+
+                CalcZoomRatio();
             }
-            else
-            {
-                if (SourceImage is MagickImage)
-                {
-                    ImageSourceBox.Width = SourceImage.Width;
-                    ImageSourceBox.Height = SourceImage.Height;
-                }
-                if (TargetImage is MagickImage)
-                {
-                    ImageTargetBox.Width = TargetImage.Width;
-                    ImageTargetBox.Height = TargetImage.Height;
-                }
-                if (ResultImage is MagickImage)
-                {
-                    ImageResultBox.Width = ResultImage.Width;
-                    ImageResultBox.Height = ResultImage.Height;
-                }
-                ZoomRatio.Value = LastZoomRatio;
-            }
-
-            if (ZoomFitNone.IsChecked ?? false) ZoomRatio.IsEnabled = true;
-            else ZoomRatio.IsEnabled = false;
-
-            CalcZoomRatio();
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void CalcZoomRatio()
         {
-            if (SourceImage is MagickImage && TargetImage is MagickImage)
+            try
             {
-                if (ZoomFitAll.IsChecked ?? false)
+                if (SourceImage is MagickImage && TargetImage is MagickImage)
                 {
-                    //ZoomRatio.Value = 1;
-                }
-                else if (ZoomFitNone.IsChecked ?? false)
-                {
-                    //ZoomRatio.Value = 1;
-                }
-                else if (ZoomFitWidth.IsChecked ?? false)
-                {
-                    var targetX = SourceImage.Width;
-                    var targetY = SourceImage.Height;
-                    var ratio = ImageSourceScroll.ActualWidth / targetX;
-                    var delta = ImageSourceScroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= ImageSourceScroll.ActualHeight ? 0 : 14;
-                    ZoomRatio.Value = (ImageSourceScroll.ActualWidth - delta) / targetX;
-                }
-                else if (ZoomFitHeight.IsChecked ?? false)
-                {
-                    var targetX = SourceImage.Width;
-                    var targetY = SourceImage.Height;
-                    var ratio = ImageSourceScroll.ActualHeight / targetY;
-                    var delta = ImageSourceScroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= ImageSourceScroll.ActualWidth ? 0 : 14;
-                    ZoomRatio.Value = (ImageSourceScroll.ActualHeight - delta) / targetY;
+                    if (ZoomFitAll.IsChecked ?? false)
+                    {
+                        //ZoomRatio.Value = 1;
+                    }
+                    else if (ZoomFitNone.IsChecked ?? false)
+                    {
+                        //ZoomRatio.Value = 1;
+                    }
+                    else if (ZoomFitWidth.IsChecked ?? false)
+                    {
+                        var targetX = SourceImage.Width;
+                        var targetY = SourceImage.Height;
+                        var ratio = ImageSourceScroll.ActualWidth / targetX;
+                        var delta = ImageSourceScroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= ImageSourceScroll.ActualHeight ? 0 : 14;
+                        ZoomRatio.Value = (ImageSourceScroll.ActualWidth - delta) / targetX;
+                    }
+                    else if (ZoomFitHeight.IsChecked ?? false)
+                    {
+                        var targetX = SourceImage.Width;
+                        var targetY = SourceImage.Height;
+                        var ratio = ImageSourceScroll.ActualHeight / targetY;
+                        var delta = ImageSourceScroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= ImageSourceScroll.ActualWidth ? 0 : 14;
+                        ZoomRatio.Value = (ImageSourceScroll.ActualHeight - delta) / targetY;
+                    }
                 }
             }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private async void UpdateImageViewer(bool compose = false, bool assign = false)
@@ -947,7 +1044,7 @@ namespace ImageCompare
                                 await Task.Delay(1);
                                 DoEvents();
                             }
-                            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+                            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
                         }
 
                         ImageSource.ToolTip = GetImageInfo(ImageType.Source);
@@ -960,6 +1057,7 @@ namespace ImageCompare
                             await Task.Delay(1);
                             DoEvents();
                         }
+                        ChangeColorSpace();
                         ResultImage = await Compare(SourceImage, TargetImage, compose: compose);
                         await Task.Delay(1);
                         DoEvents();
@@ -972,7 +1070,7 @@ namespace ImageCompare
                         ImageResult.ToolTip = GetImageInfo(ImageType.Result);
                         CalcDisplay(set_ratio: false);
                     }
-                    catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
                     finally
                     {
                         ProcessStatus.IsIndeterminate = false;
@@ -1036,7 +1134,7 @@ namespace ImageCompare
                 encoder.Save(result);
                 await result.FlushAsync();
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
             return (result);
         }
 
@@ -1073,7 +1171,7 @@ namespace ImageCompare
                                         if (files.Length > 0) LoadImageFromFiles(files.Select(f => f.Trim('"').Trim()).ToArray());
                                         break;
                                     }
-                                    catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+                                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
                                 }
                                 else
                                 {
@@ -1088,7 +1186,7 @@ namespace ImageCompare
 #if DEBUG
                                     catch (Exception ex) { Debug.WriteLine(ex.Message); }
 #else
-                                    catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+                                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
 #endif
                                 }
                             }
@@ -1120,7 +1218,7 @@ namespace ImageCompare
                     }
                     if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                 }
-                catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
             }, DispatcherPriority.Render);
         }
 
@@ -1180,7 +1278,7 @@ namespace ImageCompare
                         if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                     }
                 }
-                catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
             }, DispatcherPriority.Render);
         }
 
@@ -1233,13 +1331,34 @@ namespace ImageCompare
                     #endregion
                     Clipboard.SetDataObject(dataPackage, true);
                 }
-                catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
             }
         }
 
         private void SaveResultToFile()
         {
-            if (ResultImage is MagickImage)
+            try
+            {
+                if (ResultImage is MagickImage && !ResultImage.IsDisposed) SaveImageToFile(ResultImage);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+        }
+
+        private void SaveImageAs(bool source)
+        {
+            if (source ^ ToggleSourceTarget)
+            {
+                SaveImageToFile(SourceImage);
+            }
+            else
+            {
+                SaveImageToFile(TargetImage);
+            }
+        }
+
+        private void SaveImageToFile(MagickImage image)
+        {
+            if (image is MagickImage && !image.IsDisposed)
             {
                 try
                 {
@@ -1256,10 +1375,10 @@ namespace ImageCompare
                             ext = filters[(dlgSave.FilterIndex - 1) * 2].Replace("*", "");
                             file = $"{file}{ext}";
                         }
-                        ResultImage.Write(dlgSave.FileName);
+                        image.Write(file);
                     }
                 }
-                catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
             }
         }
         #endregion
@@ -1311,13 +1430,18 @@ namespace ImageCompare
                     var value = UseSmallerImage.IsChecked ?? true;
                     if (bool.TryParse(appSection.Settings["UseSmallerImage"].Value, out value)) UseSmallerImage.IsChecked = value;
                 }
+                if (appSection.Settings.AllKeys.Contains("UseColorImage"))
+                {
+                    var value = UseColorImage.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["UseColorImage"].Value, out value)) UseColorImage.IsChecked = value;
+                }
                 if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
                 {
                     var value = MaxCompareSize;
                     if (int.TryParse(appSection.Settings["MaxCompareSize"].Value, out value)) MaxCompareSize = value;
                 }
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void SaveConfig()
@@ -1366,6 +1490,11 @@ namespace ImageCompare
                 else
                     appSection.Settings.Add("UseSmallerImage", UseSmallerImage.IsChecked.Value.ToString());
 
+                if (appSection.Settings.AllKeys.Contains("UseColorImage"))
+                    appSection.Settings["UseColorImage"].Value = UseColorImage.IsChecked.Value.ToString();
+                else
+                    appSection.Settings.Add("UseColorImage", UseColorImage.IsChecked.Value.ToString());
+
                 if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
                     appSection.Settings["MaxCompareSize"].Value = MaxCompareSize.ToString();
                 else
@@ -1373,7 +1502,7 @@ namespace ImageCompare
 
                 appCfg.Save();
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
         #endregion
 
@@ -1384,72 +1513,81 @@ namespace ImageCompare
             var item_fh = new MenuItem()
             {
                 Header = "Flip Horizontal",
+                Uid = "FlipX",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE13C", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE13C", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
             };
             var item_fv = new MenuItem()
             {
                 Header = "Flip Vertical",
+                Uid = "FlipY",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE174", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE174", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
             };
             var item_r090 = new MenuItem()
             {
                 Header = "Rotate +90",
+                Uid = "Rotate090",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE14A", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
             };
             var item_r180 = new MenuItem()
             {
                 Header = "Rotate 180",
+                Uid = "Rotate180",
                 Tag = source,
                 Icon = new TextBlock()
                 {
                     Text = "\uE14A",
-                    FontSize = 16,
-                    FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                    FontSize = DefaultFontSize,
+                    FontFamily = DefaultFontFamily,
                     LayoutTransform = new RotateTransform(180)
                 }
             };
             var item_r270 = new MenuItem()
             {
                 Header = "Rotate -90",
+                Uid = "Rotate270",
                 Tag = source,
                 Icon = new TextBlock()
                 {
                     Text = "\uE14A",
-                    FontSize = 16,
-                    FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                    FontSize = DefaultFontSize,
+                    FontFamily = DefaultFontFamily,
                     LayoutTransform = new ScaleTransform(-1, 1)
                 }
             };
             var item_reset = new MenuItem()
             {
                 Header = "Reset Transforms",
+                Uid = "ResetTransforms",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE777", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
-            };
-
-            var item_size_to_source = new MenuItem()
-            {
-                Header = "Match Source Size",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE158", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE777", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
             };
 
             var item_gray = new MenuItem()
             {
                 Header = "Grayscale",
+                Uid = "Grayscale",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uF354", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                Icon = new TextBlock()
+                {
+                    Text = "\uF570",
+                    FontSize = DefaultFontSize,
+                    FontFamily = DefaultFontFamily,
                     Foreground = new SolidColorBrush(Colors.Gray)
                 }
             };
             var item_blur = new MenuItem()
             {
                 Header = "Gaussian Blur",
+                Uid = "GaussianBlur",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE878", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                Icon = new TextBlock()
+                {
+                    Text = "\uE878",
+                    FontSize = DefaultFontSize,
+                    FontFamily = DefaultFontFamily,
                     Foreground = new SolidColorBrush(Colors.Gray),
                     Effect = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian }
                 }
@@ -1457,42 +1595,67 @@ namespace ImageCompare
             var item_sharp = new MenuItem()
             {
                 Header = "Unsharp Mask",
+                Uid = "UsmSharp",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE879", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"),
-                    Foreground = new SolidColorBrush(Colors.Gray)                    
+                Icon = new TextBlock()
+                {
+                    Text = "\uE879",
+                    FontSize = DefaultFontSize,
+                    FontFamily = DefaultFontFamily,
+                    Foreground = new SolidColorBrush(Colors.Gray)
                 }
             };
 
+            var item_size_to_source = new MenuItem()
+            {
+                Header = "Match Source Size",
+                Uid = "MathcSourceSize",
+                Tag = source,
+                Icon = new TextBlock() { Text = "\uE158", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+            };
             var item_size_to_target = new MenuItem()
             {
                 Header = "Match Target Size",
+                Uid = "MathcTargetSize",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE158", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE158", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
             };
 
             var item_slice_h = new MenuItem()
             {
                 Header = "Slicing Horizontal",
+                Uid = "SlicingX",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE745", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"), Foreground = new SolidColorBrush(Colors.Gray) }
+                Icon = new TextBlock() { Text = "\uE745", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = new SolidColorBrush(Colors.Gray) }
             };
             var item_slice_v = new MenuItem()
             {
                 Header = "Slicing Vertical",
+                Uid = "SlicingY",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE746", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets"), Foreground = new SolidColorBrush(Colors.Gray) }
+                Icon = new TextBlock() { Text = "\uE746", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = new SolidColorBrush(Colors.Gray) }
             };
             var item_reload = new MenuItem()
             {
                 Header = "Reload Image",
+                Uid = "ReloadImage",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE117", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE117", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
             };
             var item_copyinfo = new MenuItem()
             {
                 Header = "Copy Image Info",
+                Uid = "CopyImageInfo",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE16F", FontSize = 16, FontFamily = new FontFamily("Segoe MDL2 Assets") }
+                Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+            };
+            var item_saveas = new MenuItem()
+            {
+                Header = "Save As ...",
+                Uid = "SaveAs",
+                Tag = source,
+                Visibility = Visibility.Collapsed,
+                Icon = new TextBlock() { Text = "\uE105", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
             };
             #endregion
             #region Create MenuItem Click event handles
@@ -1516,6 +1679,7 @@ namespace ImageCompare
             item_reload.Click += (obj, evt) => { ReloadImage((bool)(obj as MenuItem).Tag); };
 
             item_copyinfo.Click += (obj, evt) => { CopyImageInfo((bool)(obj as MenuItem).Tag); };
+            item_saveas.Click += (obj, evt) => { SaveImageAs((bool)(obj as MenuItem).Tag); };
             #endregion
             #region Add MenuItems to ContextMenu
             var result = new ContextMenu() { PlacementTarget = target };
@@ -1541,8 +1705,13 @@ namespace ImageCompare
             result.Items.Add(item_reload);
             result.Items.Add(new Separator());
             result.Items.Add(item_copyinfo);
+            result.Items.Add(item_saveas);
 
             target.ContextMenu = result;
+            target.ContextMenuOpening += (obj, evt) =>
+            {
+                item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
+            };
             #endregion
         }
 
@@ -1557,6 +1726,8 @@ namespace ImageCompare
 
             LoadConfig();
 
+            if (DefaultFontFamily == null) DefaultFontFamily = new FontFamily(DefaultFontFamilyName);
+
             try
             {
                 var magick_cache = Path.IsPathRooted(CachePath) ? CachePath : Path.Combine(AppPath, CachePath);
@@ -1570,7 +1741,7 @@ namespace ImageCompare
                 //ImageMagick.ResourceLimits.Area = 4096 * 4096;
                 //ImageMagick.ResourceLimits.Throttle = 
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
 
             var fmts = GetSupportedImageFormats().Keys.ToList().Skip(4).Select(f => $"*.{f}");
             SupportedFiles = string.Join(";", fmts);
@@ -1769,9 +1940,10 @@ namespace ImageCompare
                         offset_y = origin.Y + v.Y * factor.Y;
                     }
                 }
-
+#if DEBUG
                 Debug.WriteLine($"Original : [{origin.X:F0}, {origin.Y:F0}], Start : [{start.X:F0}, {start.Y:F0}] => Move : [{offset_x:F0}, {offset_y:F0}]");
                 //Debug.WriteLine($"Move Y: {offset_y}");
+#endif
                 if (offset_x >= 0)
                 {
                     ImageSourceScroll.ScrollToHorizontalOffset(offset_x);
@@ -1791,32 +1963,6 @@ namespace ImageCompare
         {
             if (IsLoaded && (ZoomFitNone.IsChecked ?? false))
             {
-                //var delta = e.NewValue - e.OldValue;
-                //if (Math.Abs(delta) >= 0.25)
-                //{
-                //    new Action(() =>
-                //    {
-                //        try
-                //        {
-                //            //ActionZoomFitOp = true;
-                //            var eq = Math.Round(e.NewValue);
-                //            if (delta > 0)
-                //            {
-                //                if (e.OldValue >= 0.25 && e.NewValue < 1.5) eq = 0.5;
-                //                else if (e.OldValue >= 0.5 && e.NewValue < 2.0) eq = 1;
-                //            }
-                //            else if (delta < 0)
-                //            {
-                //                if (e.OldValue >= 1.0 && e.NewValue < 1.0) eq = 0.5;
-                //                else if (e.OldValue >= 0.5 && e.NewValue < 0.5) eq = 0.25;
-                //            }
-                //            if (e.NewValue != eq) ZoomRatio.Value = eq;
-                //        }
-                //        catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
-                //        finally { e.Handled = true; }
-                //        //ActionZoomFitOp = false; }
-                //    }).Invoke();
-                //}
                 e.Handled = true;
                 LastZoomRatio = ZoomRatio.Value;
             }
@@ -1835,7 +1981,7 @@ namespace ImageCompare
                 int value = MaxCompareSize;
                 if (int.TryParse(MaxCompareSizeValue.Text, out value)) MaxCompareSize = Math.Max(0, Math.Min(2048, value));
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
 
         private void ColorPick_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
@@ -1966,6 +2112,11 @@ namespace ImageCompare
             {
                 SetImage(ImageType.Source, SourceOriginal, update: false);
                 SetImage(ImageType.Target, TargetOriginal, update: false);
+                UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            else if (sender == UseColorImage)
+            {
+                ChangeColorSpace();
                 UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
         }
