@@ -833,9 +833,9 @@ namespace ImageCompare
         private IList<Color> GetRecentColors(ColorPicker picker)
         {
             var result = new List<Color>();
-            if(picker is ColorPicker)
+            if (picker is ColorPicker)
             {
-                result.AddRange(picker.RecentColors.Select(c => c.Color ?? Colors.Transparent).ToList());
+                result.AddRange(picker.RecentColors.Select(c => c.Color ?? Colors.Transparent).ToList().Distinct());
             }
             return (result);
         }
@@ -845,7 +845,7 @@ namespace ImageCompare
             var result = new List<string>();
             if (picker is ColorPicker)
             {
-                result.AddRange(picker.RecentColors.Select(c => ColorToHex(c.Color ?? Colors.Transparent)));
+                result.AddRange(picker.RecentColors.Select(c => ColorToHex(c.Color ?? Colors.Transparent)).Distinct());
             }
             return (result);
         }
@@ -861,9 +861,10 @@ namespace ImageCompare
                     try
                     {
                         var ci = picker.AvailableColors.Where(c => c.Color.Equals(color)).FirstOrDefault();
-                        if (ci != null) picker.RecentColors.Add(ci);
+                        if (ci != null && !picker.RecentColors.Contains(ci)) picker.RecentColors.Add(ci);
                         else if (color.A == ct.A && color.R == ct.R && color.G == ct.G && color.B == ct.B) continue;
-                        else picker.RecentColors.Add(new ColorItem(color, string.Empty));
+                        else if (picker.RecentColors.Where(c => c.Color.Equals(color)).Count() <= 0)
+                            picker.RecentColors.Add(new ColorItem(color, ColorToHex(color)));
                     }
                     catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); continue; }
                 }
