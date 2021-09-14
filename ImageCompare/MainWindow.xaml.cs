@@ -62,6 +62,7 @@ namespace ImageCompare
         private bool LastOpIsCompose { get; set; } = false;
         private ImageType LastImageType { get; set; } = ImageType.Result;
 
+        private bool CompareImageForceScale { get { return (UseSmallerImage.IsChecked ?? false); } }
         private bool CompareImageForceColor { get { return (UseColorImage.IsChecked ?? false); } }
         private ErrorMetric ErrorMetricMode { get; set; } = ErrorMetric.Fuzz;
         private CompositeOperator CompositeMode { get; set; } = CompositeOperator.Difference;
@@ -80,6 +81,9 @@ namespace ImageCompare
         private bool FlipX_Target { get; set; } = false;
         private bool FlipY_Target { get; set; } = false;
         private int Rotate_Target { get; set; } = 0;
+
+        private bool WeakBlur { get { return (UseWeakBlur.IsChecked ?? false); } }
+        private bool WeakSharp { get { return (UseWeakSharp.IsChecked ?? false); } }
 
         private bool ToggleSourceTarget { get { return (ImageToggle.IsChecked ?? false); } }
 
@@ -255,7 +259,7 @@ namespace ImageCompare
 
                         if (SourceImage is MagickImage && !SourceImage.IsDisposed) SourceImage.Dispose();
                         SourceImage = new MagickImage(image);
-                        if (UseSmallerImage.IsChecked ?? false)
+                        if (CompareImageForceScale)
                         {
                             SourceImage.Resize(CompareResizeGeometry);
                             SourceImage.RePage();
@@ -275,7 +279,7 @@ namespace ImageCompare
 
                         if (TargetImage is MagickImage && !TargetImage.IsDisposed) TargetImage.Dispose();
                         TargetImage = new MagickImage(image);
-                        if (UseSmallerImage.IsChecked ?? false)
+                        if (CompareImageForceScale)
                         {
                             TargetImage.Resize(CompareResizeGeometry);
                             TargetImage.RePage();
@@ -528,10 +532,10 @@ namespace ImageCompare
                 var action = false;
                 if (source ^ ToggleSourceTarget)
                 {
-                    if (SourceImage is MagickImage && TargetImage is MagickImage)
+                    if (SourceImage is MagickImage)
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
                         SourceImage.Grayscale();
                         //SourceImage.RePage();
                         action = true;
@@ -539,9 +543,9 @@ namespace ImageCompare
                 }
                 else
                 {
-                    if (TargetImage is MagickImage && SourceImage is MagickImage)
+                    if (TargetImage is MagickImage)
                     {
-                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
                         TargetImage.Grayscale();
                         //TargetImage.RePage();
@@ -558,25 +562,26 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                var radius = 5;
+                var radius = WeakBlur ? 5 : 10;
+                var sigma = WeakBlur ? 0.75 : 1.5;
                 if (source ^ ToggleSourceTarget)
                 {
-                    if (SourceImage is MagickImage && TargetImage is MagickImage)
+                    if (SourceImage is MagickImage)
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        SourceImage.GaussianBlur(radius);
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.GaussianBlur(radius, sigma);
                         //SourceImage.RePage();
                         action = true;
                     }
                 }
                 else
                 {
-                    if (TargetImage is MagickImage && SourceImage is MagickImage)
+                    if (TargetImage is MagickImage)
                     {
-                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        TargetImage.GaussianBlur(radius);
+                        TargetImage.GaussianBlur(radius, sigma);
                         //TargetImage.RePage();
                         action = true;
                     }
@@ -592,15 +597,15 @@ namespace ImageCompare
             {
                 var action = false;
                 var radius = 5;
-                var sigma = 0.25;
+                var sigma = WeakSharp ? 0.25 : 0.35;
                 var amount = 15;
                 var threshold = 0;
                 if (source ^ ToggleSourceTarget)
                 {
-                    if (SourceImage is MagickImage && TargetImage is MagickImage)
+                    if (SourceImage is MagickImage)
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
                         SourceImage.UnsharpMask(radius, sigma, amount, threshold);
                         //SourceImage.RePage();
                         action = true;
@@ -608,9 +613,9 @@ namespace ImageCompare
                 }
                 else
                 {
-                    if (TargetImage is MagickImage && SourceImage is MagickImage)
+                    if (TargetImage is MagickImage)
                     {
-                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
                         TargetImage.UnsharpMask(radius, sigma, amount, threshold);
                         //TargetImage.RePage();
@@ -890,7 +895,7 @@ namespace ImageCompare
                     //var tag = exif.GetValue(ExifTag.XPTitle);
                     //if (tag != null) { var text = Encoding.Unicode.GetString(tag.Value).Trim('\0').Trim(); }
 #if DEBUG
-                //Debug.WriteLine(text);
+                    //Debug.WriteLine(text);
 #endif
                     var profiles = new Dictionary<string, IImageProfile>();
                     foreach (var pn in image.ProfileNames)
@@ -1039,8 +1044,10 @@ namespace ImageCompare
         {
             try
             {
-                if (SourceImage is MagickImage && TargetImage is MagickImage)
+                if (SourceImage is MagickImage || TargetImage is MagickImage)
                 {
+                    var scroll  = SourceImage is MagickImage ? ImageSourceScroll : ImageTargetScroll;
+                    var image  = SourceImage is MagickImage ? SourceImage : TargetImage;
                     if (ZoomFitAll.IsChecked ?? false)
                     {
                         //ZoomRatio.Value = 1;
@@ -1051,19 +1058,19 @@ namespace ImageCompare
                     }
                     else if (ZoomFitWidth.IsChecked ?? false)
                     {
-                        var targetX = SourceImage.Width;
-                        var targetY = SourceImage.Height;
-                        var ratio = ImageSourceScroll.ActualWidth / targetX;
-                        var delta = ImageSourceScroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= ImageSourceScroll.ActualHeight ? 0 : 14;
-                        ZoomRatio.Value = (ImageSourceScroll.ActualWidth - delta) / targetX;
+                        var targetX = image.Width;
+                        var targetY = image.Height;
+                        var ratio = scroll.ActualWidth / targetX;
+                        var delta = scroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= scroll.ActualHeight ? 0 : 14;
+                        ZoomRatio.Value = (scroll.ActualWidth - delta) / targetX;
                     }
                     else if (ZoomFitHeight.IsChecked ?? false)
                     {
-                        var targetX = SourceImage.Width;
-                        var targetY = SourceImage.Height;
-                        var ratio = ImageSourceScroll.ActualHeight / targetY;
-                        var delta = ImageSourceScroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= ImageSourceScroll.ActualWidth ? 0 : 14;
-                        ZoomRatio.Value = (ImageSourceScroll.ActualHeight - delta) / targetY;
+                        var targetX = image.Width;
+                        var targetY = image.Height;
+                        var ratio = scroll.ActualHeight / targetY;
+                        var delta = scroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= scroll.ActualWidth ? 0 : 14;
+                        ZoomRatio.Value = (scroll.ActualHeight - delta) / targetY;
                     }
                 }
             }
@@ -1513,6 +1520,16 @@ namespace ImageCompare
                     var value = UseColorImage.IsChecked ?? true;
                     if (bool.TryParse(appSection.Settings["UseColorImage"].Value, out value)) UseColorImage.IsChecked = value;
                 }
+                if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
+                {
+                    var value = UseWeakBlur.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["UseWeakBlur"].Value, out value)) UseWeakBlur.IsChecked = value;
+                }
+                if (appSection.Settings.AllKeys.Contains("UseWeakSharp"))
+                {
+                    var value = UseWeakSharp.IsChecked ?? true;
+                    if (bool.TryParse(appSection.Settings["UseWeakSharp"].Value, out value)) UseWeakSharp.IsChecked = value;
+                }
                 if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
                 {
                     var value = MaxCompareSize;
@@ -1587,6 +1604,16 @@ namespace ImageCompare
                     appSection.Settings["UseColorImage"].Value = UseColorImage.IsChecked.Value.ToString();
                 else
                     appSection.Settings.Add("UseColorImage", UseColorImage.IsChecked.Value.ToString());
+
+                if (appSection.Settings.AllKeys.Contains("UseWeakBlur"))
+                    appSection.Settings["UseWeakBlur"].Value = UseWeakBlur.IsChecked.Value.ToString();
+                else
+                    appSection.Settings.Add("UseWeakBlur", UseWeakBlur.IsChecked.Value.ToString());
+
+                if (appSection.Settings.AllKeys.Contains("UseWeakSharp"))
+                    appSection.Settings["UseWeakSharp"].Value = UseWeakSharp.IsChecked.Value.ToString();
+                else
+                    appSection.Settings.Add("UseWeakSharp", UseWeakSharp.IsChecked.Value.ToString());
 
                 if (appSection.Settings.AllKeys.Contains("MaxCompareSize"))
                     appSection.Settings["MaxCompareSize"].Value = MaxCompareSize.ToString();
