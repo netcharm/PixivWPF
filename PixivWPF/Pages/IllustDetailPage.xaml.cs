@@ -2064,8 +2064,8 @@ namespace PixivWPF.Pages
             finally
             {
                 RelativeItems.Ready();
-                if (RelativeItems.Items.Count > 0) RelativeRefresh.Show();
-                else RelativeRefresh.Hide();
+                if (RelativeItems.Items.Count > 0) { RelativeRefresh.Show(); RelativeCompare.Show(); }
+                else { RelativeRefresh.Hide(); RelativeCompare.Hide(); }
             }
         }
 
@@ -2214,8 +2214,8 @@ namespace PixivWPF.Pages
             finally
             {
                 FavoriteItems.Ready();
-                if (FavoriteItems.Items.Count > 0) FavoriteRefresh.Show();
-                else FavoriteItems.Hide();
+                if (FavoriteItems.Items.Count > 0) { FavoriteRefresh.Show(); FavoriteCompare.Show(); }
+                else { FavoriteItems.Hide(); FavoriteCompare.Hide(); }
             }
         }
 
@@ -2529,16 +2529,21 @@ namespace PixivWPF.Pages
             SubIllustPrevPages.MouseOverAction();
             SubIllustNextPages.MouseOverAction();
             SubIllustRefresh.MouseOverAction();
+            SubIllustCompare.MouseOverAction();
 
             RelativePrevPage.MouseOverAction();
             RelativeNextPage.MouseOverAction();
             RelativeNextAppend.MouseOverAction();
             RelativeRefresh.MouseOverAction();
+            RelativeCompare.MouseOverAction();
+            RelativeCompare.Hide();
 
             FavoritePrevPage.MouseOverAction();
             FavoriteNextPage.MouseOverAction();
             FavoriteNextAppend.MouseOverAction();
             FavoriteRefresh.MouseOverAction();
+            FavoriteCompare.MouseOverAction();
+            FavoriteCompare.Hide();
             #endregion
 
             #region Preview Popup

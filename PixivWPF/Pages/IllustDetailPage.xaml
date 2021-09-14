@@ -1159,7 +1159,7 @@
                     </Button>
                     <Button 
                         x:Name="RelativeCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
-                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility}" FontWeight="Normal"
+                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility, Mode=OneWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
@@ -1246,7 +1246,7 @@
                     </Button>
                     <Button 
                         x:Name="FavoriteCompare" x:Uid="ActionCompare" ToolTip="Compare Selecteor"
-                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility}" FontWeight="Normal"
+                        Visibility="{Binding ElementName=SubIllustRefresh, Path=Visibility, Mode=OneWay}" FontWeight="Normal"
                         Style="{DynamicResource MahApps.Styles.Button.Square}" Background="Transparent"
                         Foreground="{DynamicResource MahApps.Brushes.IdealForeground}" BorderThickness="0"
                         Width="28" Height="20" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0"
