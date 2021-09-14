@@ -818,6 +818,66 @@ namespace ImageCompare
 
         #region Image Display Routines
         private SemaphoreSlim _CanUpdate_ = new SemaphoreSlim(1, 1);
+        private Dictionary<Color, string> ColorNames = new Dictionary<Color, string>();
+
+        private void GetColorNames()
+        {
+            var cpl = (typeof(Colors) as Type).GetProperties();
+        }
+
+        private string ColorToHex(Color color)
+        {
+            return ($"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}");
+        }
+
+        private IList<Color> GetRecentColors(ColorPicker picker)
+        {
+            var result = new List<Color>();
+            if(picker is ColorPicker)
+            {
+                result.AddRange(picker.RecentColors.Select(c => c.Color ?? Colors.Transparent).ToList());
+            }
+            return (result);
+        }
+
+        private IList<string> GetRecentHexColors(ColorPicker picker)
+        {
+            var result = new List<string>();
+            if (picker is ColorPicker)
+            {
+                result.AddRange(picker.RecentColors.Select(c => ColorToHex(c.Color ?? Colors.Transparent)));
+            }
+            return (result);
+        }
+
+        private void SetRecentColors(ColorPicker picker, IEnumerable<Color> colors)
+        {
+            if (colors is IEnumerable<Color> && colors.Count() > 0)
+            {
+                picker.RecentColors.Clear();
+                var ct = Colors.Transparent;
+                foreach (var color in colors)
+                {
+                    try
+                    {
+                        var ci = picker.AvailableColors.Where(c => c.Color.Equals(color)).FirstOrDefault();
+                        if (ci != null) picker.RecentColors.Add(ci);
+                        else if (color.A == ct.A && color.R == ct.R && color.G == ct.G && color.B == ct.B) continue;
+                        else picker.RecentColors.Add(new ColorItem(color, string.Empty));
+                    }
+                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); continue; }
+                }
+            }
+        }
+
+        private void SetRecentColors(ColorPicker picker, IEnumerable<string> colors)
+        {
+            if (colors is IEnumerable<string> && colors.Count() > 0)
+            {
+                picker.RecentColors.Clear();
+                SetRecentColors(picker, colors.Select(c => (Color)ColorConverter.ConvertFromString(c)));
+            }
+        }
 
         private void GetExif(MagickImage image)
         {
@@ -1395,26 +1455,43 @@ namespace ImageCompare
                     var value = appSection.Settings["CachePath"].Value;
                     if (!string.IsNullOrEmpty(value)) CachePath = value;
                 }
+
                 if (appSection.Settings.AllKeys.Contains("HighlightColor"))
                 {
                     var value = appSection.Settings["HighlightColor"].Value;
                     if (!string.IsNullOrEmpty(value)) HighlightColor = new MagickColor(value);
+                }
+                if (appSection.Settings.AllKeys.Contains("HighlightColorRecents"))
+                {
+                    var value = appSection.Settings["HighlightColorRecents"].Value;
+                    if (!string.IsNullOrEmpty(value)) SetRecentColors(HighlightColorPick, value.Split(',').Select(v => v.Trim()));
                 }
                 if (appSection.Settings.AllKeys.Contains("LowlightColor"))
                 {
                     var value = appSection.Settings["LowlightColor"].Value;
                     if (!string.IsNullOrEmpty(value)) LowlightColor = new MagickColor(value);
                 }
+                if (appSection.Settings.AllKeys.Contains("LowlightColorRecents"))
+                {
+                    var value = appSection.Settings["LowlightColorRecents"].Value;
+                    if (!string.IsNullOrEmpty(value)) SetRecentColors(LowlightColorPick, value.Split(',').Select(v => v.Trim()));
+                }
                 if (appSection.Settings.AllKeys.Contains("MasklightColor"))
                 {
                     var value = appSection.Settings["MasklightColor"].Value;
                     if (!string.IsNullOrEmpty(value)) MasklightColor = new MagickColor(value);
+                }
+                if (appSection.Settings.AllKeys.Contains("MasklightColorRecents"))
+                {
+                    var value = appSection.Settings["MasklightColorRecents"].Value;
+                    if (!string.IsNullOrEmpty(value)) SetRecentColors(MasklightColorPick, value.Split(',').Select(v => v.Trim()));
                 }
                 if (appSection.Settings.AllKeys.Contains("ImageCompareFuzzy"))
                 {
                     var value = ImageCompareFuzzy.Value;
                     if (double.TryParse(appSection.Settings["ImageCompareFuzzy"].Value, out value)) ImageCompareFuzzy.Value = Math.Max(0, Math.Min(100, value));
                 }
+
                 if (appSection.Settings.AllKeys.Contains("ErrorMetricMode"))
                 {
                     var value = ErrorMetricMode;
@@ -1460,15 +1537,30 @@ namespace ImageCompare
                 else
                     appSection.Settings.Add("HighlightColor", HighlightColor == null ? string.Empty : HighlightColor.ToHexString());
 
+                if (appSection.Settings.AllKeys.Contains("HighlightColorRecents"))
+                    appSection.Settings["HighlightColorRecents"].Value = string.Join(", ", GetRecentHexColors(HighlightColorPick));
+                else
+                    appSection.Settings.Add("HighlightColorRecents", string.Join(", ", GetRecentHexColors(HighlightColorPick)));
+
                 if (appSection.Settings.AllKeys.Contains("LowlightColor"))
                     appSection.Settings["LowlightColor"].Value = LowlightColor == null ? string.Empty : LowlightColor.ToHexString();
                 else
                     appSection.Settings.Add("LowlightColor", LowlightColor == null ? string.Empty : LowlightColor.ToHexString());
 
+                if (appSection.Settings.AllKeys.Contains("LowlightColorRecents"))
+                    appSection.Settings["LowlightColorRecents"].Value = string.Join(", ", GetRecentHexColors(LowlightColorPick));
+                else
+                    appSection.Settings.Add("LowlightColorRecents", string.Join(", ", GetRecentHexColors(LowlightColorPick)));
+
                 if (appSection.Settings.AllKeys.Contains("MasklightColor"))
                     appSection.Settings["MasklightColor"].Value = MasklightColor == null ? string.Empty : MasklightColor.ToHexString();
                 else
                     appSection.Settings.Add("MasklightColor", MasklightColor == null ? string.Empty : MasklightColor.ToHexString());
+
+                if (appSection.Settings.AllKeys.Contains("MasklightColorRecents"))
+                    appSection.Settings["MasklightColorRecents"].Value = string.Join(", ", GetRecentHexColors(MasklightColorPick));
+                else
+                    appSection.Settings.Add("MasklightColorRecents", string.Join(", ", GetRecentHexColors(MasklightColorPick)));
 
                 if (appSection.Settings.AllKeys.Contains("ImageCompareFuzzy"))
                     appSection.Settings["ImageCompareFuzzy"].Value = ImageCompareFuzzy.Value.ToString();
