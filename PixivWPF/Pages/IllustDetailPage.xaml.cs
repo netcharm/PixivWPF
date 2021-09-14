@@ -30,6 +30,7 @@ namespace PixivWPF.Pages
         public PixivItem Contents { get; set; } = null;
         private PrefetchingTask PrefetchingImagesTask = null;
         private CancellationTokenSource cancelDownloading = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        private DispatcherTimer SubIllustUpdateTimer = null;
 
         private const string SymbolIcon_Image = "\uEB9F"; //
         private const string SymbolIcon_Star = "\uE113"; //, ⭐🌟
@@ -1401,6 +1402,30 @@ namespace PixivWPF.Pages
             };
         }
 
+        private void InitSubIllustUpdateTimer()
+        {
+            if (SubIllustUpdateTimer == null)
+            {
+                SubIllustUpdateTimer = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(150), IsEnabled = false };
+                SubIllustUpdateTimer.Tick += (o, e) =>
+                {
+                    try
+                    {
+                        if (Contents.HasPages())
+                        {
+                            SubIllustsExpander.Show();
+                            if (SubIllustsExpander.IsExpanded)
+                                ShowIllustPagesAsync(Contents);
+                            else
+                                SubIllustsExpander.IsExpanded = true;
+                        }
+                        SubIllustUpdateTimer.Stop();
+                    }
+                    catch(Exception ex) { ex.ERROR("SubIllustUpdateTimer"); }
+                };
+            }
+        }
+
         public void UpdateTheme()
         {
             try
@@ -1698,6 +1723,7 @@ namespace PixivWPF.Pages
                     IllustDescExpander.Hide();
                 }
 
+                SubIllustUpdateTimer.Stop();
                 PreviewBadge.Badge = $"1 / {item.Count}";
                 if (item.IsWork() && (item.Illust.PageCount ?? 0) > 1)
                 {
@@ -1706,11 +1732,12 @@ namespace PixivWPF.Pages
 
                     item.Index = 0;
                     PreviewBadge.Show();
-                    SubIllustsExpander.Show();
-                    if (SubIllustsExpander.IsExpanded)
-                        ShowIllustPagesAsync(item);
-                    else
-                        SubIllustsExpander.IsExpanded = true;
+                    SubIllustUpdateTimer.Start();
+                    //SubIllustsExpander.Show();
+                    //if (SubIllustsExpander.IsExpanded)
+                    //    ShowIllustPagesAsync(item);
+                    //else
+                    //    SubIllustsExpander.IsExpanded = true;
                 }
                 else
                 {
@@ -2608,6 +2635,8 @@ namespace PixivWPF.Pages
                 }
             }
             #endregion
+
+            InitSubIllustUpdateTimer();
 
             #region Prefetching
             InitPrefetchingTask();
