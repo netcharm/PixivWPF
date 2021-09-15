@@ -508,8 +508,8 @@ namespace ImageCompare
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        //SourceImage.GaussianBlur(radius, sigma);
-                        SourceImage.AdaptiveBlur(radius, sigma);
+                        SourceImage.GaussianBlur(radius, sigma);
+                        //SourceImage.AdaptiveBlur(radius, sigma);
                         //SourceImage.RePage();
                         action = true;
                     }
@@ -685,8 +685,9 @@ namespace ImageCompare
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        SourceImage.Crop(SourceImage.BoundingBox);
-                        SourceImage.RePage();
+                        //SourceImage.Crop(SourceImage.BoundingBox);
+                        SourceImage.Trim();
+                        //SourceImage.RePage();
                         action = true;
                     }
                 }
@@ -696,8 +697,9 @@ namespace ImageCompare
                     {
                         if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        TargetImage.Crop(TargetImage.BoundingBox);
-                        TargetImage.RePage();
+                        //TargetImage.Crop(TargetImage.BoundingBox);
+                        TargetImage.Trim();
+                        //TargetImage.RePage();
                         action = true;
                     }
                 }
