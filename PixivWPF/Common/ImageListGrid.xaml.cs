@@ -662,7 +662,7 @@ namespace PixivWPF.Common
             var count = ItemList is ObservableCollection<PixivItem> ? ItemList.Count : 0;
             try
             {
-                if (force || await CanUpdateItems.WaitAsync(TimeSpan.FromSeconds(1.1)))
+                if (force || await CanUpdateItems.WaitAsync(TimeSpan.FromMilliseconds(100)))
                 {
                     if (count > 0)
                     {
@@ -1000,7 +1000,7 @@ namespace PixivWPF.Common
             if (ItemList.Count <= 0) return;
             Cancel();
             var setting = Application.Current.LoadSetting();
-            if (await CanUpdateItems.WaitAsync(TimeSpan.FromSeconds(1.5)))
+            if (await CanUpdateItems.WaitAsync(TimeSpan.FromMilliseconds(250)))
             {
                 try
                 {
