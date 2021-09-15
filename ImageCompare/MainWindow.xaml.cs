@@ -1082,6 +1082,8 @@ namespace ImageCompare
         private void CreateImageOpMenu(FrameworkElement target)
         {
             bool source = target == ImageSource ? true : false;
+            var color_gray = new SolidColorBrush(Colors.Gray);
+            var effect_blur = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
             #region Create MenuItem
             var item_fh = new MenuItem()
             {
@@ -1109,26 +1111,14 @@ namespace ImageCompare
                 Header = "Rotate 180",
                 Uid = "Rotate180",
                 Tag = source,
-                Icon = new TextBlock()
-                {
-                    Text = "\uE14A",
-                    FontSize = DefaultFontSize,
-                    FontFamily = DefaultFontFamily,
-                    LayoutTransform = new RotateTransform(180)
-                }
+                Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, LayoutTransform = new RotateTransform(180) }
             };
             var item_r270 = new MenuItem()
             {
                 Header = "Rotate -90",
                 Uid = "Rotate270",
                 Tag = source,
-                Icon = new TextBlock()
-                {
-                    Text = "\uE14A",
-                    FontSize = DefaultFontSize,
-                    FontFamily = DefaultFontFamily,
-                    LayoutTransform = new ScaleTransform(-1, 1)
-                }
+                Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, LayoutTransform = new ScaleTransform(-1, 1) }
             };
             var item_reset = new MenuItem()
             {
@@ -1143,55 +1133,37 @@ namespace ImageCompare
                 Header = "Grayscale",
                 Uid = "Grayscale",
                 Tag = source,
-                Icon = new TextBlock()
-                {
-                    Text = "\uF570",
-                    FontSize = DefaultFontSize,
-                    FontFamily = DefaultFontFamily,
-                    Foreground = new SolidColorBrush(Colors.Gray)
-                }
+                Icon = new TextBlock() { Text = "\uF570", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
             };
             var item_blur = new MenuItem()
             {
                 Header = "Gaussian Blur",
                 Uid = "GaussianBlur",
                 Tag = source,
-                Icon = new TextBlock()
-                {
-                    Text = "\uE878",
-                    FontSize = DefaultFontSize,
-                    FontFamily = DefaultFontFamily,
-                    Foreground = new SolidColorBrush(Colors.Gray),
-                    Effect = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian }
-                }
+                Icon = new TextBlock() { Text = "\uE878", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray, Effect = effect_blur }
             };
             var item_sharp = new MenuItem()
             {
                 Header = "Unsharp Mask",
                 Uid = "UsmSharp",
                 Tag = source,
-                Icon = new TextBlock()
-                {
-                    Text = "\uE879",
-                    FontSize = DefaultFontSize,
-                    FontFamily = DefaultFontFamily,
-                    Foreground = new SolidColorBrush(Colors.Gray)
-                }
+                Icon = new TextBlock() { Text = "\uE879", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
             };
             var item_more = new MenuItem()
             {
                 Header = "More Effects",
                 Uid = "MoreEffects",
-                Tag = source,                
-                Icon = new TextBlock()
-                {
-                    Text = "\uE712",
-                    FontSize = DefaultFontSize,
-                    FontFamily = DefaultFontFamily,
-                    Foreground = new SolidColorBrush(Colors.Gray)
-                }
+                Tag = source,
+                Icon = new TextBlock() { Text = "\uE712", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
             };
 
+            var item_size_crop = new MenuItem()
+            {
+                Header = "Crop BoundingBox",
+                Uid = "CropBoundingBox",
+                Tag = source,
+                Icon = new TextBlock() { Text = "\xE123", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+            };
             var item_size_to_source = new MenuItem()
             {
                 Header = "Match Source Size",
@@ -1212,14 +1184,14 @@ namespace ImageCompare
                 Header = "Slicing Horizontal",
                 Uid = "SlicingX",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE745", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = new SolidColorBrush(Colors.Gray) }
+                Icon = new TextBlock() { Text = "\uE745", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
             };
             var item_slice_v = new MenuItem()
             {
                 Header = "Slicing Vertical",
                 Uid = "SlicingY",
                 Tag = source,
-                Icon = new TextBlock() { Text = "\uE746", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = new SolidColorBrush(Colors.Gray) }
+                Icon = new TextBlock() { Text = "\uE746", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
             };
             var item_reload = new MenuItem()
             {
@@ -1257,6 +1229,7 @@ namespace ImageCompare
             item_sharp.Click += (obj, evt) => { SharpImage((bool)(obj as MenuItem).Tag); };
             item_more.Click += (obj, evt) => { };
 
+            item_size_crop.Click += (obj, evt) => { CropImage((bool)(obj as MenuItem).Tag); };
             item_size_to_source.Click += (obj, evt) => { ResizeToImage(false); };
             item_size_to_target.Click += (obj, evt) => { ResizeToImage(true); };
 
@@ -1284,6 +1257,7 @@ namespace ImageCompare
             result.Items.Add(item_sharp);
             result.Items.Add(item_more);
             result.Items.Add(new Separator());
+            result.Items.Add(item_size_crop);
             result.Items.Add(item_size_to_source);
             result.Items.Add(item_size_to_target);
             result.Items.Add(new Separator());
@@ -1440,7 +1414,7 @@ namespace ImageCompare
                     {
                         foreach (var m in cm_channels_mode.Items) { if (m is MenuItem) (m as MenuItem).IsChecked = false; }
                         if (obj is MenuItem)
-                        {                           
+                        {
                             var menu = obj as MenuItem;
                             menu.IsChecked = true;
                             CompareImageChannels = (Channels)menu.Tag;
@@ -1749,7 +1723,7 @@ namespace ImageCompare
                 ChangeColorSpace();
                 UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            else if(sender == UsedChannels)
+            else if (sender == UsedChannels)
             {
                 UsedChannels.ContextMenu.IsOpen = true;
             }

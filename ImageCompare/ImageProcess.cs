@@ -256,6 +256,68 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void ResetImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                if (source ^ ToggleSourceTarget)
+                {
+                    if (SourceImage is MagickImage && !SourceImage.IsDisposed)
+                    {
+                        if (FlipX_Source)
+                        {
+                            SourceImage.Flop();
+                            FlipX_Source = false;
+                            action = true;
+                        }
+                        if (FlipY_Source)
+                        {
+                            SourceImage.Flip();
+                            FlipY_Source = false;
+                            action = true;
+                        }
+                        if (Rotate_Source % 360 != 0)
+                        {
+                            SourceImage.Rotate(-Rotate_Source);
+                            Rotate_Source = 0;
+                            action = true;
+                        }
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage && !TargetImage.IsDisposed)
+                    {
+                        if (FlipX_Target)
+                        {
+                            TargetImage.Flop();
+                            FlipX_Target = false;
+                            action = true;
+                        }
+                        if (FlipY_Target)
+                        {
+                            TargetImage.Flip();
+                            FlipY_Target = false;
+                            action = true;
+                        }
+                        if (Rotate_Target % 360 != 0)
+                        {
+                            TargetImage.Rotate(-Rotate_Target);
+                            Rotate_Target = 0;
+                            action = true;
+                        }
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         /// <param name="value"></param>
         private void RotateImage(bool source, int value)
         {
@@ -355,57 +417,37 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private void ResetImage(bool source)
+        private void ReloadImage(bool source)
         {
             try
             {
                 var action = false;
                 if (source ^ ToggleSourceTarget)
                 {
-                    if (SourceImage is MagickImage && !SourceImage.IsDisposed)
+                    if (SourceOriginal is MagickImage && !SourceOriginal.IsDisposed)
                     {
-                        if (FlipX_Source)
-                        {
-                            SourceImage.Flop();
-                            FlipX_Source = false;
-                            action = true;
-                        }
-                        if (FlipY_Source)
-                        {
-                            SourceImage.Flip();
-                            FlipY_Source = false;
-                            action = true;
-                        }
-                        if (Rotate_Source % 360 != 0)
-                        {
-                            SourceImage.Rotate(-Rotate_Source);
-                            Rotate_Source = 0;
-                            action = true;
-                        }
+                        SetImage(ImageType.Source, SourceOriginal, update: false);
+                        action = true;
+                    }
+                    else
+                    {
+                        if (SourceImage is MagickImage && !SourceImage.IsDisposed) SourceImage.Dispose(); SourceImage = null;
+                        SourceOriginal = null;
+                        action = true;
                     }
                 }
                 else
                 {
-                    if (TargetImage is MagickImage && !TargetImage.IsDisposed)
+                    if (TargetOriginal is MagickImage && !TargetOriginal.IsDisposed)
                     {
-                        if (FlipX_Target)
-                        {
-                            TargetImage.Flop();
-                            FlipX_Target = false;
-                            action = true;
-                        }
-                        if (FlipY_Target)
-                        {
-                            TargetImage.Flip();
-                            FlipY_Target = false;
-                            action = true;
-                        }
-                        if (Rotate_Target % 360 != 0)
-                        {
-                            TargetImage.Rotate(-Rotate_Target);
-                            Rotate_Target = 0;
-                            action = true;
-                        }
+                        SetImage(ImageType.Target, TargetOriginal, update: false);
+                        action = true;
+                    }
+                    else
+                    {
+                        if (TargetImage is MagickImage && !TargetImage.IsDisposed) TargetImage.Dispose(); TargetImage = null;
+                        TargetOriginal = null;
+                        action = true;
                     }
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
@@ -466,7 +508,8 @@ namespace ImageCompare
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        SourceImage.GaussianBlur(radius, sigma);
+                        //SourceImage.GaussianBlur(radius, sigma);
+                        SourceImage.AdaptiveBlur(radius, sigma);
                         //SourceImage.RePage();
                         action = true;
                     }
@@ -478,6 +521,7 @@ namespace ImageCompare
                         if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
                         TargetImage.GaussianBlur(radius, sigma);
+                        //TargetImage.AdaptiveBlur(radius, sigma);
                         //TargetImage.RePage();
                         action = true;
                     }
@@ -507,6 +551,7 @@ namespace ImageCompare
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
                         SourceImage.UnsharpMask(radius, sigma, amount, threshold);
+                        //SourceImage.AdaptiveSharpen(radius, 1, CompareImageChannels);
                         //SourceImage.RePage();
                         action = true;
                     }
@@ -518,6 +563,7 @@ namespace ImageCompare
                         if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
                         TargetImage.UnsharpMask(radius, sigma, amount, threshold);
+                        //TargetImage.AdaptiveSharpen(radius, 1, CompareImageChannels);
                         //TargetImage.RePage();
                         action = true;
                     }
@@ -628,36 +674,30 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private void ReloadImage(bool source)
+        private void CropImage(bool source)
         {
             try
             {
                 var action = false;
                 if (source ^ ToggleSourceTarget)
                 {
-                    if (SourceOriginal is MagickImage && !SourceOriginal.IsDisposed)
+                    if (SourceImage is MagickImage && TargetImage is MagickImage)
                     {
-                        SetImage(ImageType.Source, SourceOriginal, update: false);
-                        action = true;
-                    }
-                    else
-                    {
-                        if (SourceImage is MagickImage && !SourceImage.IsDisposed) SourceImage.Dispose(); SourceImage = null;
-                        SourceOriginal = null;
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.Crop(SourceImage.BoundingBox);
+                        SourceImage.RePage();
                         action = true;
                     }
                 }
                 else
                 {
-                    if (TargetOriginal is MagickImage && !TargetOriginal.IsDisposed)
+                    if (TargetImage is MagickImage && SourceImage is MagickImage)
                     {
-                        SetImage(ImageType.Target, TargetOriginal, update: false);
-                        action = true;
-                    }
-                    else
-                    {
-                        if (TargetImage is MagickImage && !TargetImage.IsDisposed) TargetImage.Dispose(); TargetImage = null;
-                        TargetOriginal = null;
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.Crop(TargetImage.BoundingBox);
+                        TargetImage.RePage();
                         action = true;
                     }
                 }
@@ -779,6 +819,7 @@ namespace ImageCompare
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
+       
         /// <summary>
         /// 
         /// </summary>
