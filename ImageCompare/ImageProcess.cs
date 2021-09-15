@@ -77,7 +77,7 @@ namespace ImageCompare
             if (type != ImageType.Result)
             {
                 bool source  = type == ImageType.Source ? true : false;
-                result = source ^ ToggleSourceTarget ? SourceImage : TargetImage;
+                result = source ^ ExchangeSourceTarget ? SourceImage : TargetImage;
             }
             else
             {
@@ -100,7 +100,7 @@ namespace ImageCompare
                 if (type != ImageType.Result)
                 {
                     bool source  = type == ImageType.Source ? true : false;
-                    if (source ^ ToggleSourceTarget)
+                    if (source ^ ExchangeSourceTarget)
                     {
                         if (image != SourceOriginal)
                         {
@@ -192,7 +192,7 @@ namespace ImageCompare
         /// <param name="source"></param>
         private void CopyImageInfo(bool source)
         {
-            if (source ^ ToggleSourceTarget)
+            if (source ^ ExchangeSourceTarget)
             {
                 if (ImageSource.ToolTip is string && !string.IsNullOrEmpty(ImageSource.ToolTip as string))
                     Clipboard.SetText(ImageSource.ToolTip as string);
@@ -229,7 +229,7 @@ namespace ImageCompare
                 }
                 else
                 {
-                    if ((source ?? false) ^ ToggleSourceTarget)
+                    if ((source ?? false) ^ ExchangeSourceTarget)
                     {
                         if (SourceImage is MagickImage && !SourceImage.IsDisposed &&
                             SourceOriginal is MagickImage && !SourceOriginal.IsDisposed)
@@ -261,7 +261,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage && !SourceImage.IsDisposed)
                     {
@@ -324,7 +324,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage && !SourceImage.IsDisposed)
                     {
@@ -358,7 +358,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage && !SourceImage.IsDisposed)
                     {
@@ -390,7 +390,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage && !SourceImage.IsDisposed)
                     {
@@ -422,7 +422,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceOriginal is MagickImage && !SourceOriginal.IsDisposed)
                     {
@@ -464,7 +464,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage)
                     {
@@ -502,7 +502,7 @@ namespace ImageCompare
                 var action = false;
                 var radius = WeakBlur ? 5 : 10;
                 var sigma = WeakBlur ? 0.75 : 1.5;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {                    
                     if (SourceImage is MagickImage)
                     {
@@ -544,7 +544,7 @@ namespace ImageCompare
                 var sigma = WeakSharp ? 0.25 : 0.35;
                 var amount = 15;
                 var threshold = 0;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage)
                     {
@@ -582,13 +582,16 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage && TargetImage is MagickImage)
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        SourceImage.Resize(TargetImage.Width, TargetImage.Height);
+                        if (SourceImage.Width == TargetImage.Width || SourceImage.Height == TargetImage.Height)
+                            SourceImage.Extent(TargetImage.Width, TargetImage.Height, Gravity.Center, MagickColors.Transparent);
+                        else
+                            SourceImage.Resize(TargetImage.Width, TargetImage.Height);
                         SourceImage.RePage();
                         action = true;
                     }
@@ -599,7 +602,10 @@ namespace ImageCompare
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        TargetImage.Resize(SourceImage.Width, SourceImage.Height);
+                        if (SourceImage.Width == TargetImage.Width || SourceImage.Height == TargetImage.Height)
+                            TargetImage.Extent(SourceImage.Width, SourceImage.Height, Gravity.Center, MagickColors.Transparent);
+                        else
+                            TargetImage.Resize(SourceImage.Width, SourceImage.Height);
                         TargetImage.RePage();
                         action = true;
                     }
@@ -619,7 +625,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage)
                     {
@@ -679,7 +685,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage)
                     {
@@ -719,7 +725,7 @@ namespace ImageCompare
                 var action = false;
                 var radius = WeakEffects ? 3 : 7;
                 var sigma = WeakEffects ? 0.33 : 0.66;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage)
                     {
@@ -757,7 +763,7 @@ namespace ImageCompare
                 var action = false;
                 var radius = WeakEffects ? 5 : 10;
                 var sigma = WeakEffects ? 0.25 : 0.5;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage)
                     {
@@ -795,7 +801,7 @@ namespace ImageCompare
                 var action = false;
                 var radius = WeakEffects ? 5 : 10;
                 var sigma = WeakEffects ? 5 : 10;
-                if (source ^ ToggleSourceTarget)
+                if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage)
                     {
@@ -841,15 +847,15 @@ namespace ImageCompare
                     if (source is MagickImage && target is MagickImage)
                     {
                         source.ColorFuzz = new Percentage(Math.Min(Math.Max(ImageCompareFuzzy.Minimum, ImageCompareFuzzy.Value), ImageCompareFuzzy.Maximum));
-                        var i_src = ToggleSourceTarget ? target : source;
-                        var i_dst = ToggleSourceTarget ? source : target;
+                        var i_src = ExchangeSourceTarget ? target : source;
+                        var i_dst = ExchangeSourceTarget ? source : target;
 
                         if (compose)
                         {
                             using (MagickImage diff = new MagickImage(i_dst.Clone()))
                             {
                                 diff.Composite(i_src, CompositeMode, CompareImageChannels);
-                                tip.Add($"Mode       : {CompositeMode.ToString()}");
+                                tip.Add($"{"ResultTipMode".T()} {CompositeMode.ToString()}");
                                 result = new MagickImage(diff.Clone());
                                 await Task.Delay(1);
                                 DoEvents();
@@ -867,8 +873,8 @@ namespace ImageCompare
                                     MasklightColor = MasklightColor
                                 };
                                 var distance = i_src.Compare(i_dst, setting, diff, CompareImageChannels);
-                                tip.Add($"Mode       : {ErrorMetricMode.ToString()}");
-                                tip.Add($"Difference : {distance:F4}");
+                                tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
+                                tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
                                 result = new MagickImage(diff.Clone());
                                 await Task.Delay(1);
                                 DoEvents();
@@ -880,17 +886,11 @@ namespace ImageCompare
                 finally
                 {
                     st.Stop();
-                    tip.Add($"Elapsed    : {TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4} s");
+                    tip.Add($"{"ResultTipElapsed".T()} {TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4} s");
                     if (compose)
-                    {
-                        ImageCompare.ToolTip = DefaultCompareToolTip;
-                        ImageCompose.ToolTip = tip.Count > 1 ? string.Join(Environment.NewLine, tip) : null;
-                    }
+                        ImageCompose.ToolTip = tip.Count > 1 ? string.Join(Environment.NewLine, tip) : DefaultComposeToolTip;
                     else
-                    {
-                        ImageCompare.ToolTip = tip.Count > 1 ? string.Join(Environment.NewLine, tip) : null;
-                        ImageCompose.ToolTip = DefaultCompareToolTip;
-                    }
+                        ImageCompare.ToolTip = tip.Count > 1 ? string.Join(Environment.NewLine, tip) : DefaultCompareToolTip;
                 }
             }, DispatcherPriority.Render);
             return (result);

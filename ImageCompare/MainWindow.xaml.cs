@@ -25,7 +25,7 @@ namespace ImageCompare
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IDisposable
     {
         #region Application Infomations
         private static string AppExec = Application.ResourceAssembly.CodeBase.ToString().Replace("file:///", "").Replace("/", "\\");
@@ -91,7 +91,7 @@ namespace ImageCompare
         private bool WeakEffects { get { return (UseWeakEffects.IsChecked ?? false); } }
         #endregion
 
-        private bool ToggleSourceTarget { get { return (ImageToggle.IsChecked ?? false); } }
+        private bool ExchangeSourceTarget { get { return (ImageExchange.IsChecked ?? false); } }
 
         private ContextMenu cm_compare_mode = null;
         private ContextMenu cm_compose_mode = null;
@@ -197,6 +197,22 @@ namespace ImageCompare
         private void GetColorNames()
         {
             var cpl = (typeof(Colors) as Type).GetProperties();
+        }
+
+        private Point GetSystemDPI()
+        {
+            var result = new Point(96, 96);
+            try
+            {
+                System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
+                var dpiXProperty = typeof(SystemParameters).GetProperty("DpiX", flags);
+                //var dpiYProperty = typeof(SystemParameters).GetProperty("DpiY", flags);
+                var dpiYProperty = typeof(SystemParameters).GetProperty("Dpi", flags);
+                if (dpiXProperty != null) { result.X = (int)dpiXProperty.GetValue(null, null); }
+                if (dpiYProperty != null) { result.Y = (int)dpiYProperty.GetValue(null, null); }
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            return (result);
         }
 
         private string ColorToHex(Color color)
@@ -319,11 +335,16 @@ namespace ImageCompare
                     var file = type == ImageType.Source ? SourceFile : type == ImageType.Target ? TargetFile : string.Empty;
                     var st = Stopwatch.StartNew();
                     image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
+                    if (image.Density.X <= 0 || image.Density.Y <= 0)
+                    {
+                        var dpi = GetSystemDPI();
+                        image.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
+                    }
                     var tip = new List<string>();
-                    tip.Add($"Dimention      = {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
-                    tip.Add($"Resolution     = {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
+                    tip.Add($"{"InfoTipDimention".T()} {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
+                    tip.Add($"{"InfoTipResolution".T()} {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
                     //tip.Add($"Colors         = {image.TotalColors}");
-                    tip.Add($"Attributes");
+                    tip.Add($"{"InfoTipAttributes".T()}");
                     foreach (var attr in image.AttributeNames)
                     {
                         try
@@ -336,23 +357,25 @@ namespace ImageCompare
                         }
                         catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"{attr} : {ex.Message}"); }
                     }
-                    tip.Add($"Color Space    = {Path.GetFileName(image.ColorSpace.ToString())}");
-                    tip.Add($"Format Info    = {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
+                    tip.Add($"{"InfoTipColorSpace".T()} {Path.GetFileName(image.ColorSpace.ToString())}");
+                    tip.Add($"{"InfoTipFormatInfo".T()} {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
 #if Q16HDRI
-                    tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 4 / 8)}");
+                    tip.Add($"{"InfoTipMemoryUsage".T()} {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 4 / 8)}");
 #elif Q16
-                tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 2 / 8)}");
+                tip.Add($"{"InfoTipMemoryUsage".T()} {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 2 / 8)}");
 #else
-                tip.Add($"Memory Usage   = {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth / 8)}");
+                tip.Add($"{"InfoTipMemoryUsage".T()} {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth / 8)}");
 #endif
-                    tip.Add($"Display Memory = {SmartFileSize(image.Width * image.Height * 4)}");
+                    tip.Add($"{"InfoTipDisplayMemory".T()} {SmartFileSize(image.Width * image.Height * 4)}");
                     if (!string.IsNullOrEmpty(image.FileName))
-                        tip.Add($"FileName       = {image.FileName}");
+                        tip.Add($"{"InfoTipFileName".T()} {image.FileName}");
                     else if (!string.IsNullOrEmpty(file))
-                        tip.Add($"FileName       = {file}");
+                        tip.Add($"{"InfoTipFileName".T()} {file}");
                     result = string.Join(Environment.NewLine, tip);
                     st.Stop();
+#if DEBUG
                     Debug.WriteLine($"{TimeSpan.FromTicks(st.ElapsedTicks).TotalSeconds:F4}s");
+#endif
                     GetExif(image);
                 }
             }
@@ -548,7 +571,7 @@ namespace ImageCompare
                         {
                             try
                             {
-                                if (ToggleSourceTarget)
+                                if (ExchangeSourceTarget)
                                 {
                                     ImageSource.Source = TargetImage is MagickImage && !TargetImage.IsDisposed ? TargetImage.ToBitmapSource() : null;
                                     ImageTarget.Source = SourceImage is MagickImage && !SourceImage.IsDisposed ? SourceImage.ToBitmapSource() : null;
@@ -805,8 +828,9 @@ namespace ImageCompare
 
         private void LoadImageFromFile(bool source = true)
         {
+            var file_str = "AllSupportedImageFiles".T();
             var dlgOpen = new Microsoft.Win32.OpenFileDialog() { Multiselect = true, CheckFileExists = true, CheckPathExists = true, ValidateNames = true };
-            dlgOpen.Filter = $"All Supported Image Files|{SupportedFiles}";
+            dlgOpen.Filter = $"{file_str}|{SupportedFiles}";
             if (dlgOpen.ShowDialog() ?? false)
             {
                 var files = dlgOpen.FileNames.ToArray();
@@ -867,7 +891,7 @@ namespace ImageCompare
 
         private void SaveImageAs(bool source)
         {
-            if (source ^ ToggleSourceTarget)
+            if (source ^ ExchangeSourceTarget)
             {
                 SaveImageToFile(SourceImage);
             }
@@ -883,8 +907,9 @@ namespace ImageCompare
             {
                 try
                 {
+                    var file_str = "File".T();
                     var dlgSave = new Microsoft.Win32.SaveFileDialog() {  CheckPathExists = true, ValidateNames = true, DefaultExt = ".png" };
-                    dlgSave.Filter = "PNG File|*.png|JPEG File|*.jpg;*.jpeg|TIFF File|*.tif;*.tiff|BITMAP File|*.bmp";
+                    dlgSave.Filter = $"PNG {file_str}| *.png|JPEG {file_str}|*.jpg;*.jpeg|TIFF {file_str}|*.tif;*.tiff|BITMAP {file_str}|*.bmp";
                     dlgSave.FilterIndex = 1;
                     if (dlgSave.ShowDialog() ?? false)
                     {
@@ -1084,6 +1109,7 @@ namespace ImageCompare
             bool source = target == ImageSource ? true : false;
             var color_gray = new SolidColorBrush(Colors.Gray);
             var effect_blur = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
+
             #region Create MenuItem
             var item_fh = new MenuItem()
             {
@@ -1300,11 +1326,44 @@ namespace ImageCompare
             item_more.Items.Add(new Separator());
             item_more.Items.Add(item_more_meanshift);
             #endregion
+            result.Locale();
             target.ContextMenu = result;
             target.ContextMenuOpening += (obj, evt) =>
             {
                 item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
             };
+        }
+
+        private void LocaleUI()
+        {
+            Title = $"{Uid}.Title".T() ?? Title;
+            ImageToolBar.Locale();
+            //foreach (UIElement item in ImageToolBar.Items.Cast<UIElement>().Where(i => !(i is Separator)))
+            //{
+            //    if (item is Button)
+            //    {
+            //        var ui = item as Button;
+            //        ui.Content = $"{ui.Uid}.Content".T() ?? $"{ui.Uid}".T() ?? ui.Content;
+            //        ui.ToolTip = $"{ui.Uid}.Tooltip".T() ?? ui.ToolTip;
+            //    }
+            //    else if(item is TextBlock)
+            //    {
+            //        var ui = item as TextBlock;
+            //        ui.Text = $"{ui.Uid}.Text".T() ?? $"{ui.Uid}".T() ?? ui.Text;
+            //        ui.ToolTip = $"{ui.Uid}.Tooltip".T() ?? ui.ToolTip;
+            //    }
+            //    else if (item is ColorPicker)
+            //    {
+            //        var ui = item as ColorPicker;
+            //        ui.AdvancedTabHeader = $"{ui.Uid}.AdvancedTabHeader".T() ?? ui.AdvancedTabHeader;
+            //        ui.StandardTabHeader = $"{ui.Uid}.StandardTabHeader".T() ?? ui.StandardTabHeader;
+            //        ui.AvailableColorsHeader = $"{ui.Uid}.AvailableColorsHeader".T() ?? ui.AvailableColorsHeader;
+            //        ui.StandardColorsHeader = $"{ui.Uid}.StandardColorsHeader".T() ?? ui.StandardColorsHeader;
+            //        ui.RecentColorsHeader = $"{ui.Uid}.RecentColorsHeader".T() ?? ui.RecentColorsHeader;
+
+            //        ui.ToolTip = $"{ui.Uid}.Tooltip".T() ?? ui.ToolTip;
+            //    }
+            //}
         }
 
         public MainWindow()
@@ -1315,6 +1374,8 @@ namespace ImageCompare
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             LoadConfig();
+
+            LocaleUI();
 
             #region Some Default UI Settings
             Icon = new BitmapImage(new Uri("pack://application:,,,/ImageCompare;component/Resources/Compare.ico"));
@@ -1626,11 +1687,11 @@ namespace ImageCompare
             {
                 LoadImageFromClipboard(source: false);
             }
-            else if (sender == ImageClean)
+            else if (sender == ImageClear)
             {
                 CleanImage();
             }
-            else if (sender == ImageToggle)
+            else if (sender == ImageExchange)
             {
                 UpdateImageViewer(assign: true, compose: LastOpIsCompose);
             }
@@ -1728,6 +1789,46 @@ namespace ImageCompare
                 UsedChannels.ContextMenu.IsOpen = true;
             }
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // 要检测冗余调用
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: 释放托管状态(托管对象)。
+                    if (_CanUpdate_ is SemaphoreSlim)
+                    {
+                        if (_CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
+                        _CanUpdate_.Dispose();
+                    }
+                }
+
+                // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
+                // TODO: 将大型字段设置为 null。
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: 仅当以上 Dispose(bool disposing) 拥有用于释放未托管资源的代码时才替代终结器。
+        // ~MainWindow() {
+        //   // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
+        //   Dispose(false);
+        // }
+
+        // 添加此代码以正确实现可处置模式。
+        public void Dispose()
+        {
+            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
+            Dispose(true);
+            // TODO: 如果在以上内容中替代了终结器，则取消注释以下行。
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
 
     }
 }

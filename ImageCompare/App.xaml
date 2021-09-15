@@ -1,33 +1,33 @@
-﻿<Application x:Class="ImageCompare.App"
+﻿<Application x:Uid="Application_1" x:Class="ImageCompare.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:ImageCompare"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <FontFamily x:Key="MonoSpaceFamily">
+        <FontFamily x:Uid="MonoSpaceFamily" x:Key="MonoSpaceFamily">
             "Sarasa Mono J, 等距更纱黑体 SC, FontAwesome, Iosevka, Consolas, Segoe UI Emoji, Segoe MDL2 Assets, 更纱黑体 SC, Segoe UI, Monospace"
         </FontFamily>
-        <sys:Double x:Key="MonoSpaceSize">14</sys:Double>
-        <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
-            <Setter Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
-            <Setter Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
-            <Setter Property="MaxWidth" Value="1024"/>
+        <sys:Double x:Uid="MonoSpaceSize" x:Key="MonoSpaceSize">14</sys:Double>
+        <Style x:Uid="ToolTipStyle" x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
+            <Setter x:Uid="ToolTipStyleFontFamily" Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
+            <Setter x:Uid="ToolTipStyleFontSize" Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
+            <Setter x:Uid="ToolTipStyleMaxWidth" Property="MaxWidth" Value="1024"/>
             <Style.Resources>
-                <Style TargetType="ContentPresenter">
+                <Style x:Uid="ToolTipContentStyle" TargetType="ContentPresenter">
                     <Style.Resources>
-                        <Style TargetType="TextBlock">
+                        <Style x:Uid="ToolTipContentStyleTextBlock" TargetType="TextBlock">
                             <!--<Setter Property="MaxLength" Value="500" />-->
-                            <Setter Property="TextWrapping" Value="Wrap" />
-                            <Setter Property="TextTrimming" Value="WordEllipsis" />
+                            <Setter x:Uid="ToolTipContentStyleTextWrapping" Property="TextWrapping" Value="Wrap" />
+                            <Setter x:Uid="ToolTipContentStyleTextTrimming" Property="TextTrimming" Value="WordEllipsis" />
                         </Style>
                     </Style.Resources>
                 </Style>
             </Style.Resources>
         </Style>
-        <Style x:Key="{x:Type TextBlock}" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
-            <Setter Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
+        <Style x:Uid="TextBoxStyle" x:Key="{x:Type TextBlock}" TargetType="{x:Type TextBlock}">
+            <Setter x:Uid="TextBoxStyleFontFamily" Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
+            <Setter x:Uid="TextBoxStyleFontSize" Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
         </Style>
     </Application.Resources>
 </Application>

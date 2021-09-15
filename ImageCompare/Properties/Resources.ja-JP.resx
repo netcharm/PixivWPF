@@ -118,201 +118,201 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="GaussianBlur" xml:space="preserve">
-    <value>Gaussian Blur</value>
-  </data>
-  <data name="MainWindow.Title" xml:space="preserve">
-    <value>Image Compare</value>
+    <value>ガウスぼかし</value>
   </data>
   <data name="Source.Text" xml:space="preserve">
-    <value>Source</value>
+    <value>ソース</value>
   </data>
   <data name="Target.Text" xml:space="preserve">
-    <value>Target</value>
+    <value>ターゲット</value>
+  </data>
+  <data name="MainWindow.Title" xml:space="preserve">
+    <value>画像の差異比較</value>
   </data>
   <data name="CopyImageInfo" xml:space="preserve">
-    <value>Copy Image Info</value>
+    <value>画像情報のコピー</value>
   </data>
   <data name="ImageOpenSource.ToolTip" xml:space="preserve">
-    <value>Open The Source Picture</value>
+    <value>ソース画像を開く</value>
   </data>
   <data name="ImageOpenTarget.ToolTip" xml:space="preserve">
-    <value>Open The Target Picture</value>
-  </data>
-  <data name="ImagePasteSource.ToolTip" xml:space="preserve">
-    <value>Paste The Source Picture</value>
+    <value>対象画像を開く</value>
   </data>
   <data name="ImagePasteTarget.ToolTip" xml:space="preserve">
-    <value>Paste The Target Picture</value>
+    <value>ターゲット画像をペーストする</value>
+  </data>
+  <data name="ImagePasteSource.ToolTip" xml:space="preserve">
+    <value>ソース画像をペーストする</value>
   </data>
   <data name="ImageClear.ToolTip" xml:space="preserve">
-    <value>Clear Source and Target Pictures</value>
+    <value>クリアソースと宛先画像</value>
   </data>
   <data name="UsedChannels.ToolTip" xml:space="preserve">
-    <value>Picture Channels Selector</value>
+    <value>画像チャンネルセレクタ</value>
   </data>
   <data name="ImageToggle.ToolTip" xml:space="preserve">
-    <value>Exchange Source and Target</value>
+    <value>ソースとターゲット画像を交換する</value>
   </data>
   <data name="ImageCompare.ToolTip" xml:space="preserve">
-    <value>Compare Source and Target Picture</value>
+    <value>ソースとターゲット画像を比較する</value>
   </data>
   <data name="Compare.Text" xml:space="preserve">
-    <value>Compare</value>
+    <value>比較する</value>
   </data>
   <data name="ImageCompose.ToolTip" xml:space="preserve">
-    <value>Compose Source and Target Picture</value>
+    <value>ソースとターゲット画像の作成</value>
   </data>
   <data name="Compose.Text" xml:space="preserve">
-    <value>Compose</value>
+    <value>合成</value>
   </data>
   <data name="ProcessStatus.ToolTip" xml:space="preserve">
-    <value>Picture Processing Progress</value>
+    <value>画像処理の進歩</value>
   </data>
   <data name="ImageCopyResult.ToolTip" xml:space="preserve">
-    <value>Copy Result Picture</value>
+    <value>コピー結果画像</value>
   </data>
   <data name="ImageSaveResult.ToolTip" xml:space="preserve">
-    <value>Save Result Picture</value>
+    <value>保存結果画像</value>
   </data>
   <data name="ZoomFitNone.ToolTip" xml:space="preserve">
-    <value>Picture Fit None</value>
+    <value>画像を自由に表示</value>
   </data>
   <data name="ZoomFitAll.ToolTip" xml:space="preserve">
-    <value>Picture Fit All</value>
+    <value>全画像表示</value>
   </data>
   <data name="ZoomFitWidth.ToolTip" xml:space="preserve">
-    <value>Picture Fit Width</value>
+    <value>画像表示の幅</value>
   </data>
   <data name="ZoomFitHeight.ToolTip" xml:space="preserve">
-    <value>Picture Fit Height</value>
+    <value>画像表示の高さ</value>
   </data>
   <data name="UseSmallerImage.ToolTip" xml:space="preserve">
-    <value>Using Smaller Image for Compare and Compose After Image Loaded</value>
+    <value>比較のためのより小さいイメージを使用して、ロードされたイメージの後、作曲する</value>
   </data>
   <data name="MaxCompareSizeValue.ToolTip" xml:space="preserve">
-    <value>Max Image Width and Height Size When Using Smaller Image</value>
+    <value>小さな画像を使用するときの最大画像幅と高さのサイズ</value>
   </data>
   <data name="UseColorImage.ToolTip" xml:space="preserve">
-    <value>Force Using Color Image for Compare and Compose After Image Loaded</value>
+    <value>カラー画像を使用して強制的に比較し、画像をロード後に作成する</value>
   </data>
   <data name="HighlightColorPick.ToolTip" xml:space="preserve">
-    <value>Highlight Color</value>
+    <value>差分領域の表示色</value>
   </data>
   <data name="LowlightColorPick.ToolTip" xml:space="preserve">
-    <value>Lowlight Color</value>
+    <value>同一エリアの表示色</value>
   </data>
   <data name="MasklightColorPick.ToolTip" xml:space="preserve">
-    <value>Masklight Color</value>
+    <value>マスク領域の表示色</value>
   </data>
   <data name="UseWeakBlur.ToolTip" xml:space="preserve">
-    <value>Low or High Intensity Blur</value>
+    <value>低強度または高強度ぼかし</value>
   </data>
   <data name="UseWeakSharp.ToolTip" xml:space="preserve">
-    <value>Low or High Intensity Sharp</value>
+    <value>低強度または高強度のシャープ化</value>
   </data>
   <data name="UseWeakEffects.ToolTip" xml:space="preserve">
-    <value>Low or High Intensity Effects</value>
+    <value>低強度または高強度フィルタ効果</value>
   </data>
   <data name="FlipX.Header" xml:space="preserve">
-    <value>Flip Horizontal</value>
+    <value>フリップ水平</value>
   </data>
   <data name="FlipY.Header" xml:space="preserve">
-    <value>Flip Vertical</value>
+    <value>フリップ垂直</value>
   </data>
   <data name="Rotate090.Header" xml:space="preserve">
-    <value>Rotate +90</value>
-  </data>
-  <data name="Rotate180.Header" xml:space="preserve">
-    <value>Rotate 180</value>
+    <value>右に90度回転します</value>
   </data>
   <data name="Rotate270.Header" xml:space="preserve">
-    <value>Rotate -90</value>
+    <value>左に90度回転します</value>
+  </data>
+  <data name="Rotate180.Header" xml:space="preserve">
+    <value>180度回転</value>
   </data>
   <data name="ResetTransforms.Header" xml:space="preserve">
-    <value>Reset Transforms</value>
+    <value>変換のリセット</value>
   </data>
   <data name="Grayscale.Header" xml:space="preserve">
-    <value>Grayscale</value>
+    <value>グレースケール画像</value>
   </data>
   <data name="GaussianBlur.Header" xml:space="preserve">
-    <value>Gaussian Blur</value>
+    <value>ガウスぼかし</value>
   </data>
   <data name="UsmSharp.Header" xml:space="preserve">
-    <value>Unsharp Mask</value>
+    <value>USMシャープ化</value>
   </data>
   <data name="MoreEffects.Header" xml:space="preserve">
-    <value>More Effects</value>
+    <value>より多くのフィルタ効果</value>
   </data>
   <data name="CropBoundingBox.Header" xml:space="preserve">
-    <value>Crop BoundingBox</value>
+    <value>画像境界なしを切り取ります</value>
   </data>
   <data name="MathcSourceSize.Header" xml:space="preserve">
-    <value>Match Source Size</value>
+    <value>マッチ元の画像サイズ</value>
   </data>
   <data name="MathcTargetSize.Header" xml:space="preserve">
-    <value>Match Target Size</value>
+    <value>適合先画像サイズ</value>
   </data>
   <data name="SlicingX.Header" xml:space="preserve">
-    <value>Slicing Horizontal</value>
+    <value>水平分割</value>
   </data>
   <data name="SlicingY.Header" xml:space="preserve">
-    <value>Slicing Vertical</value>
+    <value>垂直分割</value>
   </data>
   <data name="ReloadImage.Header" xml:space="preserve">
-    <value>Reload Image</value>
+    <value>リロード画像</value>
   </data>
   <data name="CopyImageInfo.Header" xml:space="preserve">
-    <value>Copy Image Info</value>
+    <value>画像情報のコピー</value>
   </data>
   <data name="SaveAs.Header" xml:space="preserve">
-    <value>Save Image As ...</value>
+    <value>名前を付けて画像を保存 ...</value>
   </data>
   <data name="OilPaint.Header" xml:space="preserve">
-    <value>Oil Paint</value>
+    <value>油絵の効果</value>
   </data>
   <data name="Charcoal.Header" xml:space="preserve">
-    <value>Charcoal</value>
+    <value>木炭画効果</value>
   </data>
   <data name="MeanShift.Header" xml:space="preserve">
-    <value>Mean Shift Cluster</value>
+    <value>平均値ドリフトクラスター</value>
   </data>
   <data name="File" xml:space="preserve">
-    <value>File</value>
+    <value>ファイル</value>
   </data>
   <data name="AllSupportedImageFiles" xml:space="preserve">
-    <value>All Supported Image Files</value>
+    <value>サポートされている画像ファイルのすべてのフォーマット</value>
   </data>
   <data name="ResultTipMode" xml:space="preserve">
-    <value>Mode       :</value>
+    <value>モード :</value>
   </data>
   <data name="ResultTipDifference" xml:space="preserve">
-    <value>Difference :</value>
+    <value>違い   :</value>
   </data>
   <data name="ResultTipElapsed" xml:space="preserve">
-    <value>Elapsed    :</value>
+    <value>使用時 :</value>
   </data>
   <data name="InfoTipDimention" xml:space="preserve">
-    <value>Dimention      =</value>
+    <value>サイズ           =</value>
   </data>
   <data name="InfoTipResolution" xml:space="preserve">
-    <value>Resolution     =</value>
+    <value>解像度           =</value>
   </data>
   <data name="InfoTipAttributes" xml:space="preserve">
-    <value>Attributes</value>
+    <value>属性             =</value>
   </data>
   <data name="InfoTipColorSpace" xml:space="preserve">
-    <value>Color Space    =</value>
+    <value>カラースペース   =</value>
   </data>
   <data name="InfoTipFormatInfo" xml:space="preserve">
-    <value>Format Info    =</value>
+    <value>フォーマット情報 =</value>
   </data>
   <data name="InfoTipMemoryUsage" xml:space="preserve">
-    <value>Memory Usage   =</value>
+    <value>メモリ使用       =</value>
   </data>
   <data name="InfoTipDisplayMemory" xml:space="preserve">
-    <value>Display Memory =</value>
+    <value>占有メモリを表示 =</value>
   </data>
   <data name="InfoTipFileName" xml:space="preserve">
-    <value>FileName       =</value>
+    <value>ファイル名       =</value>
   </data>
 </root>

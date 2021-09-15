@@ -17,145 +17,143 @@
         SizeChanged="Window_SizeChanged" Loaded="Window_Loaded" Unloaded="Window_Unloaded" Closed="Window_Closed"
         DragOver="Window_DragOver" Drop="Window_Drop">
 
-    <Grid x:Name="Canvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AllowDrop="True">
+    <Grid x:Uid="Canvas" x:Name="Canvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AllowDrop="True">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition x:Uid="CanvasRowDefinition_1" Height="Auto"/>
+            <RowDefinition x:Uid="CanvasRowDefinition_2" Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.33333333*"/>
-            <ColumnDefinition Width="0.33333333*"/>
-            <ColumnDefinition Width="0.33333333*"/>
+            <ColumnDefinition x:Uid="CanvasColumnDefinition_1" Width="0.33333333*"/>
+            <ColumnDefinition x:Uid="CanvasColumnDefinition_2" Width="0.33333333*"/>
+            <ColumnDefinition x:Uid="CanvasColumnDefinition_3" Width="0.33333333*"/>
         </Grid.ColumnDefinitions>
 
         <Grid.Background>
-            <ImageBrush ImageSource="pack://application:,,,/ImageCompare;component/Resources/CheckboardPattern_32.png" 
+            <ImageBrush x:Uid="CanvasBackImageBrush" ImageSource="pack://application:,,,/ImageCompare;component/Resources/CheckboardPattern_32.png" 
                 TileMode="Tile" Opacity="0.10" ViewportUnits="Absolute" Viewport="0,0,32,32"/>
         </Grid.Background>
 
         <ToolBar Grid.Row="0" Grid.ColumnSpan="3" x:Name="ImageToolBar" x:Uid="MainToolBar" ToolBarTray.IsLocked="True"
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Center">
             <ToolBar.Resources>
-                <Style TargetType="{x:Type DockPanel}">
-                    <Setter Property="LastChildFill" Value="True" />
+                <Style x:Uid="ToolBarStyle" TargetType="{x:Type DockPanel}">
+                    <Setter x:Uid="ToolBarStyleSetter_1" Property="LastChildFill" Value="True" />
                 </Style>
             </ToolBar.Resources>
-            <Button x:Name="ImageOpenSource" x:Uid="ImageOpenSource" ToolTip="Open Source" Click="ImageActions_Click" >
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+            <Button x:Name="ImageOpenSource" x:Uid="ImageOpenSource" ToolTip="Open Source Picture" Click="ImageActions_Click" >
+                <StackPanel x:Uid="ImageOpenSourcePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageOpenSourceIcon" Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock x:Uid="Source" Text="Source" Margin="2 0"/>
                 </StackPanel>
             </Button>
             <Button x:Name="ImageOpenTarget" x:Uid="ImageOpenTarget" ToolTip="Open Target" Click="ImageActions_Click" >
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="ImageOpenTargetPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageOpenTargetIcon" Text="&#xE1A5;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock x:Uid="Target" Text="Target" Margin="2 0"/>
                 </StackPanel>
             </Button>
-            <Separator/>
+            <Separator x:Uid="Separator_1"/>
             <Button x:Name="ImagePasteSource" x:Uid="ImagePasteSource" ToolTip="Paste Source" Click="ImageActions_Click" >
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE16D;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="ImagePasteSourcePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImagePasteSourceIcon" Text="&#xE16D;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock x:Uid="Source" Text="Source" Margin="2 0"/>
                 </StackPanel>
             </Button>
             <Button x:Name="ImagePasteTarget" x:Uid="ImagePasteTarget" ToolTip="Paste Target" Click="ImageActions_Click" >
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE16D;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="ImagePasteTargetPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImagePasteTargetIcon" Text="&#xE16D;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock x:Uid="Target" Text="Target" Margin="2 0"/>
                 </StackPanel>
             </Button>
-            <Separator/>
-            <Button x:Name="ImageClean" x:Uid="ImageClean" ToolTip="Clean Source and Target" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE106;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
-                    <!--<TextBlock Text="Clean" Margin="2 0"/>-->
+            <Separator x:Uid="Separator_2"/>
+            <Button x:Name="ImageClear" x:Uid="ImageClear" ToolTip="Clear Source and Target Pictures" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ImageCleanPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageCleanIcon" Text="&#xE106;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                 </StackPanel>
             </Button>
             <Button x:Name="UsedChannels" x:Uid="UsedChannels" ToolTip="Channels Selector" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE81E;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray" />
+                <StackPanel x:Uid="UsedChannelsPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="UsedChannelsIcon" Text="&#xE81E;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray" />
                 </StackPanel>
             </Button>
-            <ToggleButton x:Name="ImageToggle" x:Uid="ImageToggle" ToolTip="Exchange Source and Target" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE7FD;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+            <ToggleButton x:Name="ImageExchange" x:Uid="ImageToggle" ToolTip="Exchange Source and Target" HorizontalAlignment="Right" Click="ImageActions_Click">
+                <StackPanel x:Uid="ImageTogglePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageToggleIcon" Text="&#xE7FD;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <!--<TextBlock Text="Toggle" Margin="2 0"/>-->
                 </StackPanel>
             </ToggleButton>
             <Button x:Name="ImageCompare" x:Uid="ImageCompare" ToolTip="Compare Source and Target" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="ImageComparePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageCompareIcon" Text="&#xE11E;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock x:Uid="Compare" Text="Compare" Margin="2 0"/>
                 </StackPanel>
             </Button>
             <Button x:Name="ImageCompose" x:Uid="ImageCompose" ToolTip="Compose Source and Target" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE81E;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="ImageCompose0anel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageComposeIcon" Text="&#xE81E;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <TextBlock x:Uid="Compose" Text="Compose" Margin="2 0"/>
                 </StackPanel>
             </Button>
-            <Slider x:Name="ImageCompareFuzzy" x:Uid="ImageCompareFuzzy" Width="120" HorizontalAlignment="Right" VerticalAlignment="Center"
+            <Slider x:Name="ImageCompareFuzzy" x:Uid="ImageCompareFuzzy" Width="112" HorizontalAlignment="Right" VerticalAlignment="Center"
                     Value="15" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5"
                     TickPlacement="None" Ticks="0.5, 1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100" 
                     IsSnapToTickEnabled="False" ValueChanged="ImageCompareFuzzy_ValueChanged">
                 <Slider.ToolTip>
-                    <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Fuzzy: {0:F0}%" />
+                    <ToolTip x:Uid="ImageCompareFuzzyToolTip" Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Fuzzy: {0:F0}%" />
                 </Slider.ToolTip>
             </Slider>
             <TextBlock x:Name="ImageCompareFuzzyValue" x:Uid="ImageCompareFuzzyValue" Width="Auto"
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ImageCompareFuzzy, Path=Value, StringFormat={}{0:F0}%}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
-            <ProgressBar x:Name="ProcessStatus" Margin="4,0,0,0" HorizontalAlignment="Right" Width="36" Height="20" />
-            <Button x:Name="ImageCopyResult" x:Uid="ImageCopyResult" ToolTip="Copy Result" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
-                    <!--<TextBlock x:Uid="Result" Text="Result" Margin="2 0"/>-->
+            <ProgressBar x:Uid="ProcessStatus" x:Name="ProcessStatus" ToolTip="Picture Processing Progress" Margin="4,0,0,0" HorizontalAlignment="Right" Width="36" Height="20" />
+            <Button x:Name="ImageCopyResult" x:Uid="ImageCopyResult" ToolTip="Copy Result Picture" Click="ImageActions_Click">
+                <StackPanel x:Uid="ImageCopyResultPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageCopyResultIcon" Text="&#xE16F;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                 </StackPanel>
             </Button>
-            <Button x:Name="ImageSaveResult" x:Uid="ImageSaveResult" ToolTip="Save Result" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+            <Button x:Name="ImageSaveResult" x:Uid="ImageSaveResult" ToolTip="Save Result Picture" Click="ImageActions_Click">
+                <StackPanel x:Uid="ImageSaveResultPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ImageSaveResultOIcon" Text="&#xE105;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                 </StackPanel>
             </Button>
-            <Separator/>
+            <Separator x:Uid="Separator_3"/>
             <ToggleButton x:Name="ZoomFitNone" x:Uid="ZoomFitNone" ToolTip="Fit None" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE7C3;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="ZoomFitNonePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ZoomFitNoneIcon" Text="&#xE7C3;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="ZoomFitAll" x:Uid="ZoomFitAll" ToolTip="Fit All" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE9A6;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="ZoomFitAllPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ZoomFitAllIcon" Text="&#xE9A6;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="ZoomFitWidth" x:Uid="ZoomFitWidth" ToolTip="Fit Width" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xF617;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="ZoomFitWidthPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ZoomFitWidthIcon" Text="&#xF617;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="ZoomFitHeight" x:Uid="ZoomFitHeight" ToolTip="Fit Height" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xF616;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="ZoomFitHeightPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="ZoomFitHeightIcon" Text="&#xF616;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                 </StackPanel>
             </ToggleButton>
             <Slider x:Name="ZoomRatio" Width="80" x:Uid="ZoomRatio" HorizontalAlignment="Right" VerticalAlignment="Center"
                     Value="1" Minimum="0.25" Maximum="10" 
                     TickPlacement="None" Ticks="0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False" ValueChanged="ZoomRatio_ValueChanged">
                 <Slider.ToolTip>
-                    <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="{}{0:F2} X" />
+                    <ToolTip x:Uid="ZoomRatioToolTip" Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="{}{0:F2} X" />
                 </Slider.ToolTip>
             </Slider>
             <TextBlock x:Name="ZoomRatioValue" x:Uid="ZoomRatioValue" Width="Auto"
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2}X}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
-            <Separator/>
+            <Separator x:Uid="Separator_4"/>
             <ToggleButton x:Name="UseSmallerImage" x:Uid="UseSmallerImage" IsChecked="True"
                           ToolTip="Using Smaller Image for Compare/Compose After Image Loaded" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE123;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="UseSmallerImagePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="UseSmallerImageIcon" Text="&#xE123;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                 </StackPanel>
             </ToggleButton>
             <TextBox x:Name="MaxCompareSizeValue" x:Uid="MaxCompareSizeValue" Text="1024" Margin="2 0" HorizontalAlignment="Right" 
@@ -163,8 +161,8 @@
                      FontFamily="{StaticResource MonoSpaceFamily}" TextChanged="MaxCompareSizeValue_TextChanged"/>
             <ToggleButton x:Name="UseColorImage" x:Uid="UseColorImage" IsChecked="True"
                           ToolTip="Force Using Color Image for Compare/Compose After Image Loaded" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE790;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
+                <StackPanel x:Uid="UseColorImagePanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="UseColorImageIcon" Text="&#xE790;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                 </StackPanel>
             </ToggleButton>
             <xctk:ColorPicker x:Name="HighlightColorPick"  x:Uid="HighlightColorPick" Height="24" Width="24" Margin="2 0" SelectedColor="Transparent" 
@@ -184,24 +182,24 @@
                               SelectedColorChanged="ColorPick_SelectedColorChanged" />
             <ToggleButton x:Name="UseWeakBlur" x:Uid="UseWeakBlur" IsChecked="True"
                           ToolTip="Low/High Intensity Blur" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE878;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray">
+                <StackPanel x:Uid="UseWeakBlurPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="UseWeakBlurIcon" Text="&#xE878;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray">
                         <TextBlock.Effect>
-                            <BlurEffect Radius="2" KernelType="Gaussian"/>
+                            <BlurEffect x:Uid="UseWeakBlurEffect" Radius="2" KernelType="Gaussian"/>
                         </TextBlock.Effect>
                     </TextBlock>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="UseWeakSharp" x:Uid="UseWeakSharp" IsChecked="True"
                           ToolTip="Low/High Intensity Sharp" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE879;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray"/>
+                <StackPanel x:Uid="UseWeakSharpPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="UseWeakSharpIcon" Text="&#xE879;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray"/>
                 </StackPanel>
             </ToggleButton>
             <ToggleButton x:Name="UseWeakEffects" x:Uid="UseWeakEffects" IsChecked="True"
                           ToolTip="Low/High Intensity Effects" HorizontalAlignment="Right" Click="ImageActions_Click">
-                <StackPanel Orientation="Horizontal" Margin="2">
-                    <TextBlock Text="&#xE10C;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray"/>
+                <StackPanel x:Uid="UseWeakEffectsPanel" Orientation="Horizontal" Margin="2">
+                    <TextBlock x:Uid="UseWeakEffectsIcon" Text="&#xE10C;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray"/>
                 </StackPanel>
             </ToggleButton>
         </ToolBar>
@@ -209,22 +207,22 @@
         <!-- Image Source Preview -->
         <ScrollViewer Grid.Row="1" Grid.Column="0" x:Name="ImageSourceScroll" x:Uid="ImageSourceScroll" AllowDrop="True" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
-            <Viewbox x:Name="ImageSourceBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
+            <Viewbox x:Name="ImageSourceBox" x:Uid="ImageSourceBox" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                 MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove">
                 <Image x:Name="ImageSource" x:Uid="ImageSource" Stretch="None"
                     HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                     <Image.LayoutTransform>
-                        <TransformGroup>
-                            <ScaleTransform x:Name="ImageSourceScale" ScaleX="1" ScaleY="1"/>
-                            <RotateTransform x:Name="ImageSourceRotate" Angle="0" />
+                        <TransformGroup x:Uid="ImageSourceTransformGroup">
+                            <ScaleTransform x:Uid="ImageSourceScale" x:Name="ImageSourceScale" ScaleX="1" ScaleY="1"/>
+                            <RotateTransform x:Uid="ImageSourceRotate" x:Name="ImageSourceRotate" Angle="0" />
                         </TransformGroup>
                     </Image.LayoutTransform>
                 </Image>
                 <Viewbox.LayoutTransform>
-                    <TransformGroup>
-                        <ScaleTransform x:Name="ImageSourceBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
-                        <RotateTransform x:Name="ImageSourceBoxRotate" Angle="0" />
+                    <TransformGroup x:Uid="ImageSourceBoxTransformGroup">
+                        <ScaleTransform x:Name="ImageSourceBoxScale" x:Uid="ImageSourceBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
+                        <RotateTransform x:Name="ImageSourceBoxRotate" x:Uid="ImageSourceBoxRotate" Angle="0" />
                     </TransformGroup>
                 </Viewbox.LayoutTransform>
             </Viewbox>
@@ -233,22 +231,22 @@
         <ScrollViewer Grid.Row="1" Grid.Column="2" x:Name="ImageTargetScroll" x:Uid="ImageTargetScroll" AllowDrop="True" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
             HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
-            <Viewbox x:Name="ImageTargetBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
+            <Viewbox x:Name="ImageTargetBox" x:Uid="ImageTargetBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove">
                 <Image x:Name="ImageTarget" x:Uid="ImageTarget" Stretch="None"
                     HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                     <Image.LayoutTransform>
-                        <TransformGroup>
-                            <ScaleTransform x:Name="ImageTargetScale" ScaleX="1" ScaleY="1"/>
-                            <RotateTransform x:Name="ImageTargetRotate" Angle="0" />
+                        <TransformGroup x:Uid="ImageTargetTransformGroup">
+                            <ScaleTransform x:Name="ImageTargetScale" x:Uid="ImageTargetScale" ScaleX="1" ScaleY="1"/>
+                            <RotateTransform x:Name="ImageTargetRotate" x:Uid="ImageTargetRotate" Angle="0" />
                         </TransformGroup>
                     </Image.LayoutTransform>
                 </Image>
                 <Viewbox.LayoutTransform>
-                    <TransformGroup>
-                        <ScaleTransform x:Name="ImageTargetBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
-                        <RotateTransform x:Name="ImageTargetBoxRotate" Angle="0" />
+                    <TransformGroup x:Uid="ImageTargetBoxTransformGroup">
+                        <ScaleTransform x:Name="ImageTargetBoxScale" x:Uid="ImageTargetBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
+                        <RotateTransform x:Name="ImageTargetBoxRotate" x:Uid="ImageTargetBoxRotate" Angle="0" />
                     </TransformGroup>
                 </Viewbox.LayoutTransform>
             </Viewbox>
@@ -257,22 +255,22 @@
         <ScrollViewer Grid.Row="1" Grid.Column="1" x:Name="ImageResultScroll" x:Uid="ImageResultScroll" Focusable="False" ScrollChanged="ImageScroll_ScrollChanged"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
             HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
-            <Viewbox x:Name="ImageResultBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
+            <Viewbox x:Uid="ImageResultBox" x:Name="ImageResultBox" Stretch="Uniform" StretchDirection="DownOnly" RenderTransformOrigin="0.5,0.5"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 MouseWheel="ImageBox_MouseWheel" MouseDown="ImageBox_MouseDown" MouseMove="ImageBox_MouseMove">
                 <Image x:Name="ImageResult" x:Uid="ImageResult" Stretch="None"
                     HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                     <Image.LayoutTransform>
-                        <TransformGroup>
-                            <ScaleTransform x:Name="ImageResultScale" ScaleX="1" ScaleY="1"/>
-                            <RotateTransform x:Name="ImageResultRotate" Angle="0" />
+                        <TransformGroup x:Uid="TransformGroup_5">
+                            <ScaleTransform x:Name="ImageResultScale" x:Uid="ImageResultScale" ScaleX="1" ScaleY="1"/>
+                            <RotateTransform x:Name="ImageResultRotate" x:Uid="ImageResultRotate" Angle="0" />
                         </TransformGroup>
                     </Image.LayoutTransform>
                 </Image>
                 <Viewbox.LayoutTransform>
-                    <TransformGroup>
-                        <ScaleTransform x:Name="ImageResultBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
-                        <RotateTransform x:Name="ImageResultBoxRotate" Angle="0" />
+                    <TransformGroup x:Uid="ImageResultBoxTransformGroup">
+                        <ScaleTransform x:Name="ImageResultBoxScale" x:Uid="ImageResultBoxScale" ScaleX="{Binding ElementName=ZoomRatio, Path=Value}" ScaleY="{Binding ElementName=ZoomRatio, Path=Value}"/>
+                        <RotateTransform x:Name="ImageResultBoxRotate" x:Uid="ImageResultBoxRotate" Angle="0" />
                     </TransformGroup>
                 </Viewbox.LayoutTransform>
             </Viewbox>

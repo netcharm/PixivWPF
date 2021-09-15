@@ -22,7 +22,7 @@ namespace ImageCompare.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace ImageCompare.Properties {
         ///   返回此类使用的缓存的 ResourceManager 实例。
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ImageCompare.Properties.Resources", typeof(Resources).Assembly);
@@ -51,12 +51,57 @@ namespace ImageCompare.Properties {
         ///   重写当前线程的 CurrentUICulture 属性。
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Copy Image Info 的本地化字符串。
+        /// </summary>
+        public static string CopyImageInfo {
+            get {
+                return ResourceManager.GetString("CopyImageInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Gaussian Blur 的本地化字符串。
+        /// </summary>
+        public static string GaussianBlur_Header {
+            get {
+                return ResourceManager.GetString("GaussianBlur.Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Image Compare 的本地化字符串。
+        /// </summary>
+        public static string MainWindow_Title {
+            get {
+                return ResourceManager.GetString("MainWindow.Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Source 的本地化字符串。
+        /// </summary>
+        public static string Source_Text {
+            get {
+                return ResourceManager.GetString("Source.Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Target 的本地化字符串。
+        /// </summary>
+        public static string Target_Text {
+            get {
+                return ResourceManager.GetString("Target.Text", resourceCulture);
             }
         }
     }
