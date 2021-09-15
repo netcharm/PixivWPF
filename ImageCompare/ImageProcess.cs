@@ -503,7 +503,7 @@ namespace ImageCompare
                 var radius = WeakBlur ? 5 : 10;
                 var sigma = WeakBlur ? 0.75 : 1.5;
                 if (source ^ ToggleSourceTarget)
-                {
+                {                    
                     if (SourceImage is MagickImage)
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
@@ -681,10 +681,10 @@ namespace ImageCompare
                 var action = false;
                 if (source ^ ToggleSourceTarget)
                 {
-                    if (SourceImage is MagickImage && TargetImage is MagickImage)
+                    if (SourceImage is MagickImage)
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
-                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
                         SourceImage.Crop(SourceImage.BoundingBox);
                         SourceImage.RePage();
                         action = true;
@@ -692,9 +692,9 @@ namespace ImageCompare
                 }
                 else
                 {
-                    if (TargetImage is MagickImage && SourceImage is MagickImage)
+                    if (TargetImage is MagickImage)
                     {
-                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
                         TargetImage.Crop(TargetImage.BoundingBox);
                         TargetImage.RePage();
