@@ -1383,6 +1383,31 @@ namespace ImageCompare
                     Uid = "Charcoal",
                     Tag = source
                 };
+                var item_more_autolevel = new MenuItem()
+                {
+                    Header = "Auto Level",
+                    Uid = "AutoLevel",
+                    Tag = source
+                };
+                var item_more_autogamma = new MenuItem()
+                {
+                    Header = "Auto Gamma",
+                    Uid = "AutoGamma",
+                    Tag = source
+                };
+                var item_more_autothreshold= new MenuItem()
+                {
+                    Header = "Auto Threshold",
+                    Uid = "AutoThreshold",
+                    Tag = source
+                };
+                var item_more_blueshift= new MenuItem()
+                {
+                    Header = "Blue Shift",
+                    Uid = "BlueShift",
+                    Tag = source
+                };
+
                 var item_more_meanshift = new MenuItem()
                 {
                     Header = "Mean Shift",
@@ -1399,12 +1424,20 @@ namespace ImageCompare
                 #region MoreEffects MenuItem Click event handles
                 item_more_oil.Click += (obj, evt) => { OilImage((bool)(obj as MenuItem).Tag); };
                 item_more_charcoal.Click += (obj, evt) => { CharcoalImage((bool)(obj as MenuItem).Tag); };
+                item_more_autolevel.Click += (obj, evt) => { AutoLevelImage((bool)(obj as MenuItem).Tag); };
+                item_more_autogamma.Click += (obj, evt) => { AutoGammaImage((bool)(obj as MenuItem).Tag); };
+                item_more_autothreshold.Click += (obj, evt) => { AutoThresholdImage((bool)(obj as MenuItem).Tag); };
+                item_more_blueshift.Click += (obj, evt) => { BlueShiftImage((bool)(obj as MenuItem).Tag); };
                 item_more_meanshift.Click += (obj, evt) => { MeanShiftImage((bool)(obj as MenuItem).Tag); };
                 item_more_fillflood.Click += (obj, evt) => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_oil);
                 item_more.Items.Add(item_more_charcoal);
+                item_more.Items.Add(item_more_autolevel);
+                item_more.Items.Add(item_more_autogamma);
+                item_more.Items.Add(item_more_autothreshold);
+                item_more.Items.Add(item_more_blueshift);
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_meanshift);
                 item_more.Items.Add(new Separator());

@@ -381,4 +381,16 @@
   <data name="InfoTipBounding" xml:space="preserve">
     <value>Bounding Box   =</value>
   </data>
+  <data name="AutoLevel.Header" xml:space="preserve">
+    <value>Auto Levels</value>
+  </data>
+  <data name="AutoGamma.Header" xml:space="preserve">
+    <value>Auto Gamma</value>
+  </data>
+  <data name="AutoThreshold.Header" xml:space="preserve">
+    <value>Auto Threshold</value>
+  </data>
+  <data name="BlueShift.Header" xml:space="preserve">
+    <value>Blue Shift (Moonlight Night)</value>
+  </data>
 </root>

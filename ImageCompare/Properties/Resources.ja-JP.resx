@@ -381,4 +381,16 @@
   <data name="InfoTipBounding" xml:space="preserve">
     <value>境界サイズ       =</value>
   </data>
+  <data name="AutoGamma.Header" xml:space="preserve">
+    <value>ガンマの自動調整</value>
+  </data>
+  <data name="AutoLevel.Header" xml:space="preserve">
+    <value>色の自動調整</value>
+  </data>
+  <data name="AutoThreshold.Header" xml:space="preserve">
+    <value>自動二値化画像</value>
+  </data>
+  <data name="BlueShift.Header" xml:space="preserve">
+    <value>夜の月光の効果をまねます。</value>
+  </data>
 </root>

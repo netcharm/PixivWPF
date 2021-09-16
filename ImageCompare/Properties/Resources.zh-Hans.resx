@@ -381,4 +381,16 @@
   <data name="InfoTipBounding" xml:space="preserve">
     <value>边界尺寸     =</value>
   </data>
+  <data name="AutoLevel.Header" xml:space="preserve">
+    <value>自动调节色阶值</value>
+  </data>
+  <data name="AutoThreshold.Header" xml:space="preserve">
+    <value>自动二值化图像</value>
+  </data>
+  <data name="AutoGamma.Header" xml:space="preserve">
+    <value>自动调节伽玛值</value>
+  </data>
+  <data name="BlueShift.Header" xml:space="preserve">
+    <value>模仿夜间月光效果</value>
+  </data>
 </root>
