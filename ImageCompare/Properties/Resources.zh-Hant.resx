@@ -178,7 +178,7 @@
     <value>影像自由顯示</value>
   </data>
   <data name="ZoomFitAll.ToolTip" xml:space="preserve">
-    <value>影像全顯示</value>
+    <value>影像全部顯示</value>
   </data>
   <data name="ZoomFitWidth.ToolTip" xml:space="preserve">
     <value>影像顯示適合寬度</value>

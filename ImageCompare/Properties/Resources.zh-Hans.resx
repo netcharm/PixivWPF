@@ -178,7 +178,7 @@
     <value>图像自由显示</value>
   </data>
   <data name="ZoomFitAll.ToolTip" xml:space="preserve">
-    <value>图像全显示</value>
+    <value>图像全部显示</value>
   </data>
   <data name="ZoomFitWidth.ToolTip" xml:space="preserve">
     <value>图像显示适合宽度</value>
