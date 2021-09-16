@@ -349,7 +349,8 @@ namespace ImageCompare
                     }
                     var tip = new List<string>();
                     tip.Add($"{"InfoTipDimention".T()} {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
-                    tip.Add($"{"InfoTipBounding".T()} {image.BoundingBox.Width:F0}x{image.BoundingBox.Height:F0}");
+                    if (image.BoundingBox != null)
+                        tip.Add($"{"InfoTipBounding".T()} {image.BoundingBox.Width:F0}x{image.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
                     //tip.Add($"Colors         = {image.TotalColors}");
                     tip.Add($"{"InfoTipAttributes".T()}");
@@ -1038,6 +1039,13 @@ namespace ImageCompare
                     var value = MaxCompareSize;
                     if (int.TryParse(appSection.Settings["MaxCompareSize"].Value, out value)) MaxCompareSize = value;
                 }
+
+                if (appSection.Settings.AllKeys.Contains("SimpleTrimCropBoundingBox"))
+                {
+                    var value = SimpleTrimCropBoundingBox;
+                    if (bool.TryParse(appSection.Settings["SimpleTrimCropBoundingBox"].Value, out value)) SimpleTrimCropBoundingBox = value;
+                }
+
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
@@ -1128,6 +1136,12 @@ namespace ImageCompare
                 else
                     appSection.Settings.Add("MaxCompareSize", MaxCompareSize.ToString());
 
+                if (appSection.Settings.AllKeys.Contains("SimpleTrimCropBoundingBox"))
+                    appSection.Settings["SimpleTrimCropBoundingBox"].Value = SimpleTrimCropBoundingBox.ToString();
+                else
+                    appSection.Settings.Add("SimpleTrimCropBoundingBox", SimpleTrimCropBoundingBox.ToString());
+
+
                 appCfg.Save();
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
@@ -1141,7 +1155,7 @@ namespace ImageCompare
             var effect_blur = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
 
             var items = source ? cm_image_source : cm_image_target;
-            if (items != null) items.Clear(); 
+            if (items != null) items.Clear();
             else items = new List<FrameworkElement>();
 
             if (items.Count <= 0)
@@ -1732,8 +1746,12 @@ namespace ImageCompare
         {
             if (IsLoaded && (ZoomFitNone.IsChecked ?? false))
             {
-                e.Handled = true;
-                LastZoomRatio = ZoomRatio.Value;
+                try
+                {
+                    e.Handled = true;
+                    LastZoomRatio = ZoomRatio.Value;
+                }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
             }
         }
 
@@ -1775,7 +1793,7 @@ namespace ImageCompare
         private void ImageActions_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            if(sender == UILanguage)
+            if (sender == UILanguage)
             {
                 if (UILanguage.ContextMenu is ContextMenu) UILanguage.ContextMenu.IsOpen = true;
             }

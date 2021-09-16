@@ -22,7 +22,15 @@ namespace ImageCompare
 {
     public partial class MainWindow : Window
     {
+        #region Image Processing Switch/Params
+        private bool SimpleTrimCropBoundingBox { get; set; } = false;
+        #endregion
+
         #region Image Processing Routines
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private Dictionary<string, string> GetSupportedImageFormats()
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
@@ -35,6 +43,23 @@ namespace ImageCompare
                 }
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            return (result);
+        }
+
+        private IMagickGeometry CalcBoundingBox(MagickImage image)
+        {
+            var result = image.BoundingBox;
+            try
+            {
+                if (image is MagickImage && !image.IsDisposed)
+                {
+                    var diff = new MagickImage(image);
+                    diff.ColorType = ColorType.Bilevel;
+                    result = diff.BoundingBox;
+                    diff.Dispose();
+                }
+            }
+            catch(Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
             return (result);
         }
 
@@ -503,7 +528,7 @@ namespace ImageCompare
                 var radius = WeakBlur ? 5 : 10;
                 var sigma = WeakBlur ? 0.75 : 1.5;
                 if (source ^ ExchangeSourceTarget)
-                {                    
+                {
                     if (SourceImage is MagickImage)
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
@@ -661,12 +686,12 @@ namespace ImageCompare
                         var result = TargetImage.CropToTiles(geometry);
                         if (result.Count() >= 2)
                         {
-                            if (TargetImage != null) TargetImage.Dispose();
-                            TargetImage = new MagickImage(result.FirstOrDefault());
-                            TargetImage.RePage();
                             if (SourceImage != null) SourceImage.Dispose();
-                            SourceImage = new MagickImage(result.Skip(1).Take(1).FirstOrDefault());
+                            SourceImage = new MagickImage(result.FirstOrDefault());
                             SourceImage.RePage();
+                            if (TargetImage != null) TargetImage.Dispose();
+                            TargetImage = new MagickImage(result.Skip(1).Take(1).FirstOrDefault());
+                            TargetImage.RePage();
                             action = true;
                         }
                     }
@@ -692,7 +717,16 @@ namespace ImageCompare
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
                         //SourceImage.Crop(SourceImage.BoundingBox);
-                        SourceImage.Trim();
+                        if (SimpleTrimCropBoundingBox)
+                            SourceImage.Trim();
+                        else
+                        {
+                            var box = CalcBoundingBox(SourceImage);
+                            if (box == null)
+                                SourceImage.Trim();
+                            else
+                                SourceImage.Crop(box);
+                        }
                         //SourceImage.RePage();
                         action = true;
                     }
@@ -704,7 +738,16 @@ namespace ImageCompare
                         if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
                         //TargetImage.Crop(TargetImage.BoundingBox);
-                        TargetImage.Trim();
+                        if (SimpleTrimCropBoundingBox)
+                            TargetImage.Trim();
+                        else
+                        {
+                            var box = CalcBoundingBox(TargetImage);
+                            if (box == null)
+                                TargetImage.Trim();
+                            else
+                                TargetImage.Crop(box);
+                        }
                         //TargetImage.RePage();
                         action = true;
                     }
@@ -873,7 +916,7 @@ namespace ImageCompare
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
         }
-       
+
         /// <summary>
         /// 
         /// </summary>
