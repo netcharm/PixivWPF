@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
@@ -98,6 +99,9 @@ namespace ImageCompare
 
         private ContextMenu cm_compare_mode = null;
         private ContextMenu cm_compose_mode = null;
+
+        private List<FrameworkElement> cm_image_source = new List<FrameworkElement>();
+        private List<FrameworkElement> cm_image_target = new List<FrameworkElement>();
 
         #region DoEvent Helper
         private static object ExitFrame(object state)
@@ -1124,222 +1128,259 @@ namespace ImageCompare
             var color_gray = new SolidColorBrush(Colors.Gray);
             var effect_blur = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
 
-            #region Create MenuItem
-            var item_fh = new MenuItem()
-            {
-                Header = "Flip Horizontal",
-                Uid = "FlipX",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE13C", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
-            };
-            var item_fv = new MenuItem()
-            {
-                Header = "Flip Vertical",
-                Uid = "FlipY",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE174", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
-            };
-            var item_r090 = new MenuItem()
-            {
-                Header = "Rotate +90",
-                Uid = "Rotate090",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
-            };
-            var item_r180 = new MenuItem()
-            {
-                Header = "Rotate 180",
-                Uid = "Rotate180",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, LayoutTransform = new RotateTransform(180) }
-            };
-            var item_r270 = new MenuItem()
-            {
-                Header = "Rotate -90",
-                Uid = "Rotate270",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, LayoutTransform = new ScaleTransform(-1, 1) }
-            };
-            var item_reset = new MenuItem()
-            {
-                Header = "Reset Transforms",
-                Uid = "ResetTransforms",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE777", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
-            };
+            var items = source ? cm_image_source : cm_image_target;
+            if (items != null) items.Clear(); 
+            else items = new List<FrameworkElement>();
 
-            var item_gray = new MenuItem()
+            if (items.Count <= 0)
             {
-                Header = "Grayscale",
-                Uid = "Grayscale",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uF570", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
-            };
-            var item_blur = new MenuItem()
-            {
-                Header = "Gaussian Blur",
-                Uid = "GaussianBlur",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE878", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray, Effect = effect_blur }
-            };
-            var item_sharp = new MenuItem()
-            {
-                Header = "Unsharp Mask",
-                Uid = "UsmSharp",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE879", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
-            };
-            var item_more = new MenuItem()
-            {
-                Header = "More Effects",
-                Uid = "MoreEffects",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE712", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
-            };
+                #region Create MenuItem
+                var item_fh = new MenuItem()
+                {
+                    Header = "Flip Horizontal",
+                    Uid = "FlipX",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE13C", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
+                var item_fv = new MenuItem()
+                {
+                    Header = "Flip Vertical",
+                    Uid = "FlipY",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE174", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
+                var item_r090 = new MenuItem()
+                {
+                    Header = "Rotate +90",
+                    Uid = "Rotate090",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
+                var item_r180 = new MenuItem()
+                {
+                    Header = "Rotate 180",
+                    Uid = "Rotate180",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, LayoutTransform = new RotateTransform(180) }
+                };
+                var item_r270 = new MenuItem()
+                {
+                    Header = "Rotate -90",
+                    Uid = "Rotate270",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE14A", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, LayoutTransform = new ScaleTransform(-1, 1) }
+                };
+                var item_reset = new MenuItem()
+                {
+                    Header = "Reset Transforms",
+                    Uid = "ResetTransforms",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE777", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
 
-            var item_size_crop = new MenuItem()
-            {
-                Header = "Crop BoundingBox",
-                Uid = "CropBoundingBox",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\xE123", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
-            };
-            var item_size_to_source = new MenuItem()
-            {
-                Header = "Match Source Size",
-                Uid = "MathcSourceSize",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE158", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
-            };
-            var item_size_to_target = new MenuItem()
-            {
-                Header = "Match Target Size",
-                Uid = "MathcTargetSize",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE158", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
-            };
+                var item_gray = new MenuItem()
+                {
+                    Header = "Grayscale",
+                    Uid = "Grayscale",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uF570", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
+                var item_blur = new MenuItem()
+                {
+                    Header = "Gaussian Blur",
+                    Uid = "GaussianBlur",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE878", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray, Effect = effect_blur }
+                };
+                var item_sharp = new MenuItem()
+                {
+                    Header = "Unsharp Mask",
+                    Uid = "UsmSharp",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE879", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
+                var item_more = new MenuItem()
+                {
+                    Header = "More Effects",
+                    Uid = "MoreEffects",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE712", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
 
-            var item_slice_h = new MenuItem()
-            {
-                Header = "Slicing Horizontal",
-                Uid = "SlicingX",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE745", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
-            };
-            var item_slice_v = new MenuItem()
-            {
-                Header = "Slicing Vertical",
-                Uid = "SlicingY",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE746", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
-            };
-            var item_reload = new MenuItem()
-            {
-                Header = "Reload Image",
-                Uid = "ReloadImage",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE117", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
-            };
-            var item_copyinfo = new MenuItem()
-            {
-                Header = "Copy Image Info",
-                Uid = "CopyImageInfo",
-                Tag = source,
-                Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
-            };
-            var item_saveas = new MenuItem()
-            {
-                Header = "Save As ...",
-                Uid = "SaveAs",
-                Tag = source,
-                Visibility = Visibility.Collapsed,
-                Icon = new TextBlock() { Text = "\uE105", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
-            };
-            #endregion
-            #region Create MenuItem Click event handles
-            item_fh.Click += (obj, evt) => { FlopImage((bool)(obj as MenuItem).Tag); };
-            item_fv.Click += (obj, evt) => { FlipImage((bool)(obj as MenuItem).Tag); };
-            item_r090.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 90); };
-            item_r180.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 180); };
-            item_r270.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 270); };
-            item_reset.Click += (obj, evt) => { ResetImage((bool)(obj as MenuItem).Tag); };
+                var item_size_crop = new MenuItem()
+                {
+                    Header = "Crop BoundingBox",
+                    Uid = "CropBoundingBox",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\xE123", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
+                var item_size_to_source = new MenuItem()
+                {
+                    Header = "Match Source Size",
+                    Uid = "MathcSourceSize",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE158", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
+                var item_size_to_target = new MenuItem()
+                {
+                    Header = "Match Target Size",
+                    Uid = "MathcTargetSize",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE158", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
 
-            item_gray.Click += (obj, evt) => { GrayscaleImage((bool)(obj as MenuItem).Tag); };
-            item_blur.Click += (obj, evt) => { BlurImage((bool)(obj as MenuItem).Tag); };
-            item_sharp.Click += (obj, evt) => { SharpImage((bool)(obj as MenuItem).Tag); };
-            item_more.Click += (obj, evt) => { };
+                var item_slice_h = new MenuItem()
+                {
+                    Header = "Slicing Horizontal",
+                    Uid = "SlicingX",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE745", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
+                var item_slice_v = new MenuItem()
+                {
+                    Header = "Slicing Vertical",
+                    Uid = "SlicingY",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE746", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
+                var item_reload = new MenuItem()
+                {
+                    Header = "Reload Image",
+                    Uid = "ReloadImage",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE117", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
+                var item_copyinfo = new MenuItem()
+                {
+                    Header = "Copy Image Info",
+                    Uid = "CopyImageInfo",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
+                var item_saveas = new MenuItem()
+                {
+                    Header = "Save As ...",
+                    Uid = "SaveAs",
+                    Tag = source,
+                    Visibility = Visibility.Collapsed,
+                    Icon = new TextBlock() { Text = "\uE105", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily }
+                };
+                #endregion
+                #region Create MenuItem Click event handles
+                item_fh.Click += (obj, evt) => { FlopImage((bool)(obj as MenuItem).Tag); };
+                item_fv.Click += (obj, evt) => { FlipImage((bool)(obj as MenuItem).Tag); };
+                item_r090.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 90); };
+                item_r180.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 180); };
+                item_r270.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 270); };
+                item_reset.Click += (obj, evt) => { ResetImage((bool)(obj as MenuItem).Tag); };
 
-            item_size_crop.Click += (obj, evt) => { CropImage((bool)(obj as MenuItem).Tag); };
-            item_size_to_source.Click += (obj, evt) => { ResizeToImage(false); };
-            item_size_to_target.Click += (obj, evt) => { ResizeToImage(true); };
+                item_gray.Click += (obj, evt) => { GrayscaleImage((bool)(obj as MenuItem).Tag); };
+                item_blur.Click += (obj, evt) => { BlurImage((bool)(obj as MenuItem).Tag); };
+                item_sharp.Click += (obj, evt) => { SharpImage((bool)(obj as MenuItem).Tag); };
+                item_more.Click += (obj, evt) => { };
 
-            item_slice_h.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false); };
-            item_slice_v.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true); };
+                item_size_crop.Click += (obj, evt) => { CropImage((bool)(obj as MenuItem).Tag); };
+                item_size_to_source.Click += (obj, evt) => { ResizeToImage(false); };
+                item_size_to_target.Click += (obj, evt) => { ResizeToImage(true); };
 
-            item_reload.Click += (obj, evt) => { ReloadImage((bool)(obj as MenuItem).Tag); };
+                item_slice_h.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false); };
+                item_slice_v.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true); };
 
-            item_copyinfo.Click += (obj, evt) => { CopyImageInfo((bool)(obj as MenuItem).Tag); };
-            item_saveas.Click += (obj, evt) => { SaveImageAs((bool)(obj as MenuItem).Tag); };
-            #endregion
-            #region Add MenuItems to ContextMenu
-            var result = new ContextMenu() { PlacementTarget = target };
-            result.Items.Add(item_fh);
-            result.Items.Add(item_fv);
-            result.Items.Add(new Separator());
-            result.Items.Add(item_r090);
-            result.Items.Add(item_r270);
-            result.Items.Add(item_r180);
-            result.Items.Add(new Separator());
-            result.Items.Add(item_reset);
-            result.Items.Add(new Separator());
-            result.Items.Add(item_gray);
-            result.Items.Add(item_blur);
-            result.Items.Add(item_sharp);
-            result.Items.Add(item_more);
-            result.Items.Add(new Separator());
-            result.Items.Add(item_size_crop);
-            result.Items.Add(item_size_to_source);
-            result.Items.Add(item_size_to_target);
-            result.Items.Add(new Separator());
-            result.Items.Add(item_slice_h);
-            result.Items.Add(item_slice_v);
-            result.Items.Add(new Separator());
-            result.Items.Add(item_reload);
-            result.Items.Add(new Separator());
-            result.Items.Add(item_copyinfo);
-            result.Items.Add(item_saveas);
-            #endregion
-            #region MoreEffects MenuItem
-            var item_more_oil = new MenuItem()
-            {
-                Header = "Oil Paint",
-                Uid = "OilPaint",
-                Tag = source
-            };
-            var item_more_charcoal = new MenuItem()
-            {
-                Header = "Charcoal",
-                Uid = "Charcoal",
-                Tag = source
-            };
-            var item_more_meanshift = new MenuItem()
-            {
-                Header = "Mean Shift",
-                Uid = "MeanShift",
-                Tag = source
-            };
-            #endregion
-            #region MoreEffects MenuItem Click event handles
-            item_more_oil.Click += (obj, evt) => { OilImage((bool)(obj as MenuItem).Tag); };
-            item_more_charcoal.Click += (obj, evt) => { CharcoalImage((bool)(obj as MenuItem).Tag); };
-            item_more_meanshift.Click += (obj, evt) => { MeanShiftImage((bool)(obj as MenuItem).Tag); };
-            #endregion
-            #region Add MoreEffects MenuItems to MoreEffects
-            item_more.Items.Add(item_more_oil);
-            item_more.Items.Add(item_more_charcoal);
-            item_more.Items.Add(new Separator());
-            item_more.Items.Add(item_more_meanshift);
-            #endregion
+                item_reload.Click += (obj, evt) => { ReloadImage((bool)(obj as MenuItem).Tag); };
+
+                item_copyinfo.Click += (obj, evt) => { CopyImageInfo((bool)(obj as MenuItem).Tag); };
+                item_saveas.Click += (obj, evt) => { SaveImageAs((bool)(obj as MenuItem).Tag); };
+                #endregion
+                #region Add MenuItems to ContextMenu
+                items.Add(item_fh);
+                items.Add(item_fv);
+                items.Add(new Separator());
+                items.Add(item_r090);
+                items.Add(item_r270);
+                items.Add(item_r180);
+                items.Add(new Separator());
+                items.Add(item_reset);
+                items.Add(new Separator());
+                items.Add(item_gray);
+                items.Add(item_blur);
+                items.Add(item_sharp);
+                items.Add(item_more);
+                items.Add(new Separator());
+                items.Add(item_size_crop);
+                items.Add(item_size_to_source);
+                items.Add(item_size_to_target);
+                items.Add(new Separator());
+                items.Add(item_slice_h);
+                items.Add(item_slice_v);
+                items.Add(new Separator());
+                items.Add(item_reload);
+                items.Add(new Separator());
+                items.Add(item_copyinfo);
+                items.Add(item_saveas);
+
+                //result.Items.Add(item_fh);
+                //result.Items.Add(item_fv);
+                //result.Items.Add(new Separator());
+                //result.Items.Add(item_r090);
+                //result.Items.Add(item_r270);
+                //result.Items.Add(item_r180);
+                //result.Items.Add(new Separator());
+                //result.Items.Add(item_reset);
+                //result.Items.Add(new Separator());
+                //result.Items.Add(item_gray);
+                //result.Items.Add(item_blur);
+                //result.Items.Add(item_sharp);
+                //result.Items.Add(item_more);
+                //result.Items.Add(new Separator());
+                //result.Items.Add(item_size_crop);
+                //result.Items.Add(item_size_to_source);
+                //result.Items.Add(item_size_to_target);
+                //result.Items.Add(new Separator());
+                //result.Items.Add(item_slice_h);
+                //result.Items.Add(item_slice_v);
+                //result.Items.Add(new Separator());
+                //result.Items.Add(item_reload);
+                //result.Items.Add(new Separator());
+                //result.Items.Add(item_copyinfo);
+                //result.Items.Add(item_saveas);
+                #endregion
+                #region MoreEffects MenuItem
+                var item_more_oil = new MenuItem()
+                {
+                    Header = "Oil Paint",
+                    Uid = "OilPaint",
+                    Tag = source
+                };
+                var item_more_charcoal = new MenuItem()
+                {
+                    Header = "Charcoal",
+                    Uid = "Charcoal",
+                    Tag = source
+                };
+                var item_more_meanshift = new MenuItem()
+                {
+                    Header = "Mean Shift",
+                    Uid = "MeanShift",
+                    Tag = source
+                };
+                #endregion
+                #region MoreEffects MenuItem Click event handles
+                item_more_oil.Click += (obj, evt) => { OilImage((bool)(obj as MenuItem).Tag); };
+                item_more_charcoal.Click += (obj, evt) => { CharcoalImage((bool)(obj as MenuItem).Tag); };
+                item_more_meanshift.Click += (obj, evt) => { MeanShiftImage((bool)(obj as MenuItem).Tag); };
+                #endregion
+                #region Add MoreEffects MenuItems to MoreEffects
+                item_more.Items.Add(item_more_oil);
+                item_more.Items.Add(item_more_charcoal);
+                item_more.Items.Add(new Separator());
+                item_more.Items.Add(item_more_meanshift);
+                #endregion
+
+                target.ContextMenuOpening += (obj, evt) =>
+                {
+                    item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
+                };
+            }
 
             if (target.ContextMenu is ContextMenu)
             {
@@ -1347,16 +1388,14 @@ namespace ImageCompare
                 {
                     if (item is MenuItem) (item as MenuItem).Items.Clear();
                 }
-                target.ContextMenu.Items.Clear();
             }
-
-            result.Locale();
-            target.ContextMenu = result;
-            target.ContextMenuOpening += (obj, evt) =>
+            else
             {
-                item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
-            };
-            target.DataContext = this;
+                var result = new ContextMenu() { PlacementTarget = target };
+                target.ContextMenu = result;
+            }
+            items.Locale();
+            target.ContextMenu.ItemsSource = new ObservableCollection<FrameworkElement>(items);
         }
 
         private void LocaleUI(CultureInfo culture = null)

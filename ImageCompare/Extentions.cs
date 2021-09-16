@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 
 using ImageMagick;
-using System.Windows.Controls;
 using Xceed.Wpf.Toolkit;
-using System.Windows.Media;
-using System.Windows.Controls.Primitives;
-using System.Diagnostics;
 
 namespace ImageCompare
 {
@@ -21,7 +21,7 @@ namespace ImageCompare
         private static CultureInfo resourceCulture = Properties.Resources.Culture ?? CultureInfo.CurrentCulture;
         private static System.Resources.ResourceManager resourceMan = Properties.Resources.ResourceManager;
         private static System.Resources.ResourceSet resourceSet = resourceMan.GetResourceSet(resourceCulture, true, true);
-        private static Dictionary<UIElement, bool> _be_locale_ = null;
+        private static Dictionary<FrameworkElement, bool> _be_locale_ = null;
 
         public static bool IsRecursiveCall(string method_name)
         {
@@ -66,11 +66,11 @@ namespace ImageCompare
             return (resourceSet.GetString(text));
         }
 
-        public static void Locale(this UIElement element)
+        public static void Locale(this FrameworkElement element)
         {
             try
             {
-                if (_be_locale_ == null) _be_locale_ = new Dictionary<UIElement, bool>();
+                if (_be_locale_ == null) _be_locale_ = new Dictionary<FrameworkElement, bool>();
                 if (_be_locale_.ContainsKey(element)) return;
 
                 if (element is Button)
@@ -88,12 +88,12 @@ namespace ImageCompare
                     var ui = element as MenuItem;
                     ui.Header = $"{ui.Uid}.Header".T() ?? ui.Header;
                     if (ui.Items.Count > 1)
-                        foreach (var mi in ui.Items) if (mi is UIElement) (mi as UIElement).Locale();
+                        foreach (var mi in ui.Items) if (mi is FrameworkElement) (mi as FrameworkElement).Locale();
                 }
                 else if (element is MenuBase)
                 {
                     var ui = element as MenuBase;
-                    foreach (var mi in ui.Items) if (mi is UIElement) (mi as UIElement).Locale();
+                    foreach (var mi in ui.Items) if (mi is FrameworkElement) (mi as FrameworkElement).Locale();
                 }
                 else if (element is ColorPicker)
                 {
@@ -111,7 +111,7 @@ namespace ImageCompare
                     for (int i = 0; i < child_count; i++)
                     {
                         var child = VisualTreeHelper.GetChild(element, i);
-                        if (child is UIElement) (child as UIElement).Locale();
+                        if (child is FrameworkElement) (child as FrameworkElement).Locale();
                     }
                 }
                 else
@@ -119,7 +119,7 @@ namespace ImageCompare
                     var childs = LogicalTreeHelper.GetChildren(element);
                     foreach (var child in childs)
                     {
-                        if (child is UIElement) (child as UIElement).Locale();
+                        if (child is FrameworkElement) (child as FrameworkElement).Locale();
                     }
                 }
 
@@ -134,14 +134,34 @@ namespace ImageCompare
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {element.Uid ?? element.ToString()} : {ex.Message}"); }
         }
 
-        public static void Locale(this UIElement element, CultureInfo culture)
+        public static void Locale(this FrameworkElement element, CultureInfo culture)
         {
             try
             {
                 ChangeLocale(culture);
-                if (!IsRecursiveCall("Locale") && _be_locale_ is Dictionary<UIElement, bool>) _be_locale_.Clear();
+                //if (!IsRecursiveCall("Locale") && _be_locale_ is Dictionary<FrameworkElement, bool>) _be_locale_.Clear();
 
                 Locale(element);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {ex.Message}"); }
+        }
+
+        public static void Locale(this IEnumerable<FrameworkElement> elements)
+        {
+            foreach(var element in elements)
+            {
+                Locale(element);
+            }
+        }
+
+        public static void Locale(this IEnumerable<FrameworkElement> elements, CultureInfo culture)
+        {
+            try
+            {
+                ChangeLocale(culture);
+                //if (!IsRecursiveCall("Locale") && _be_locale_ is Dictionary<FrameworkElement, bool>) _be_locale_.Clear();
+
+                Locale(elements);
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {ex.Message}"); }
         }
@@ -153,7 +173,7 @@ namespace ImageCompare
                 resourceSet = resourceMan.GetResourceSet(culture, true, true);
                 //Properties.Resources.Culture = culture;
                 resourceCulture = culture;
-                if (_be_locale_ == null) _be_locale_ = new Dictionary<UIElement, bool>();
+                if (_be_locale_ == null) _be_locale_ = new Dictionary<FrameworkElement, bool>();
                 else _be_locale_.Clear();
             }
         }
