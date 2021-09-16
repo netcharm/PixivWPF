@@ -73,36 +73,39 @@ namespace ImageCompare
                 if (_be_locale_ == null) _be_locale_ = new Dictionary<FrameworkElement, bool>();
                 if (_be_locale_.ContainsKey(element)) return;
 
-                if (element is Button)
+                if (!string.IsNullOrEmpty(element.Uid))
                 {
-                    var ui = element as Button;
-                    ui.Content = $"{ui.Uid}.Content".T() ?? ui.Content;
-                }
-                else if (element is TextBlock)
-                {
-                    var ui = element as TextBlock;
-                    ui.Text = $"{ui.Uid}.Text".T() ?? ui.Text;
-                }
-                else if (element is MenuItem)
-                {
-                    var ui = element as MenuItem;
-                    ui.Header = $"{ui.Uid}.Header".T() ?? ui.Header;
-                    if (ui.Items.Count > 1)
+                    if (element is Button)
+                    {
+                        var ui = element as Button;
+                        ui.Content = $"{ui.Uid}.Content".T() ?? ui.Content;
+                    }
+                    else if (element is TextBlock)
+                    {
+                        var ui = element as TextBlock;
+                        ui.Text = $"{ui.Uid}.Text".T() ?? ui.Text;
+                    }
+                    else if (element is MenuItem)
+                    {
+                        var ui = element as MenuItem;
+                        ui.Header = $"{ui.Uid}.Header".T() ?? ui.Header;
+                        if (ui.Items.Count > 1)
+                            foreach (var mi in ui.Items) if (mi is FrameworkElement) (mi as FrameworkElement).Locale();
+                    }
+                    else if (element is MenuBase)
+                    {
+                        var ui = element as MenuBase;
                         foreach (var mi in ui.Items) if (mi is FrameworkElement) (mi as FrameworkElement).Locale();
-                }
-                else if (element is MenuBase)
-                {
-                    var ui = element as MenuBase;
-                    foreach (var mi in ui.Items) if (mi is FrameworkElement) (mi as FrameworkElement).Locale();
-                }
-                else if (element is ColorPicker)
-                {
-                    var ui = element as ColorPicker;
-                    ui.AdvancedTabHeader = $"{ui.Uid}.AdvancedTabHeader".T() ?? ui.AdvancedTabHeader;
-                    ui.StandardTabHeader = $"{ui.Uid}.StandardTabHeader".T() ?? ui.StandardTabHeader;
-                    ui.AvailableColorsHeader = $"{ui.Uid}.AvailableColorsHeader".T() ?? ui.AvailableColorsHeader;
-                    ui.StandardColorsHeader = $"{ui.Uid}.StandardColorsHeader".T() ?? ui.StandardColorsHeader;
-                    ui.RecentColorsHeader = $"{ui.Uid}.RecentColorsHeader".T() ?? ui.RecentColorsHeader;
+                    }
+                    else if (element is ColorPicker)
+                    {
+                        var ui = element as ColorPicker;
+                        ui.AdvancedTabHeader = $"{ui.Uid}.AdvancedTabHeader".T() ?? ui.AdvancedTabHeader;
+                        ui.StandardTabHeader = $"{ui.Uid}.StandardTabHeader".T() ?? ui.StandardTabHeader;
+                        ui.AvailableColorsHeader = $"{ui.Uid}.AvailableColorsHeader".T() ?? ui.AvailableColorsHeader;
+                        ui.StandardColorsHeader = $"{ui.Uid}.StandardColorsHeader".T() ?? ui.StandardColorsHeader;
+                        ui.RecentColorsHeader = $"{ui.Uid}.RecentColorsHeader".T() ?? ui.RecentColorsHeader;
+                    }
                 }
 
                 var child_count = VisualTreeHelper.GetChildrenCount(element);

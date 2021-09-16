@@ -375,4 +375,10 @@
   <data name="UILanguageJa.Header" xml:space="preserve">
     <value>日本語</value>
   </data>
+  <data name="FillBoundingBox.Header" xml:space="preserve">
+    <value>境界を塗りつぶします</value>
+  </data>
+  <data name="InfoTipBounding" xml:space="preserve">
+    <value>境界サイズ       =</value>
+  </data>
 </root>

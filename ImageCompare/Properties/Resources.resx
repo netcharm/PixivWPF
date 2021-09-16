@@ -375,4 +375,10 @@
   <data name="UILanguageJa.Header" xml:space="preserve">
     <value>日本語</value>
   </data>
+  <data name="FillBoundingBox.Header" xml:space="preserve">
+    <value>Fill BoundingBox</value>
+  </data>
+  <data name="InfoTipBounding" xml:space="preserve">
+    <value>Bounding Box   =</value>
+  </data>
 </root>

@@ -349,6 +349,7 @@ namespace ImageCompare
                     }
                     var tip = new List<string>();
                     tip.Add($"{"InfoTipDimention".T()} {image.Width:F0}x{image.Height:F0}x{image.ChannelCount * image.Depth:F0}");
+                    tip.Add($"{"InfoTipBounding".T()} {image.BoundingBox.Width:F0}x{image.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
                     //tip.Add($"Colors         = {image.TotalColors}");
                     tip.Add($"{"InfoTipAttributes".T()}");
@@ -531,6 +532,17 @@ namespace ImageCompare
                 {
                     var scroll  = SourceImage is MagickImage ? ImageSourceScroll : ImageTargetScroll;
                     var image  = SourceImage is MagickImage ? SourceImage : TargetImage;
+
+                    var width = image.Width;
+                    var height = image.Height;
+
+                    if (SourceImage is MagickImage && TargetImage is MagickImage)
+                    {
+                        width = Math.Max(SourceImage.Width, TargetImage.Width);
+                        height = Math.Max(SourceImage.Height, TargetImage.Height);
+                    }
+
+
                     if (ZoomFitAll.IsChecked ?? false)
                     {
                         //ZoomRatio.Value = 1;
@@ -541,7 +553,7 @@ namespace ImageCompare
                     }
                     else if (ZoomFitWidth.IsChecked ?? false)
                     {
-                        var targetX = image.Width;
+                        var targetX = width;
                         var targetY = image.Height;
                         var ratio = scroll.ActualWidth / targetX;
                         var delta = scroll.VerticalScrollBarVisibility == ScrollBarVisibility.Hidden || targetY * ratio <= scroll.ActualHeight ? 0 : 14;
@@ -550,7 +562,7 @@ namespace ImageCompare
                     else if (ZoomFitHeight.IsChecked ?? false)
                     {
                         var targetX = image.Width;
-                        var targetY = image.Height;
+                        var targetY = height;
                         var ratio = scroll.ActualHeight / targetY;
                         var delta = scroll.HorizontalScrollBarVisibility == ScrollBarVisibility.Hidden || targetX * ratio <= scroll.ActualWidth ? 0 : 14;
                         ZoomRatio.Value = (scroll.ActualHeight - delta) / targetY;
@@ -1363,17 +1375,26 @@ namespace ImageCompare
                     Uid = "MeanShift",
                     Tag = source
                 };
+                var item_more_fillflood = new MenuItem()
+                {
+                    Header = "Fill BoundingBox",
+                    Uid = "FillBoundingBox",
+                    Tag = source
+                };
                 #endregion
                 #region MoreEffects MenuItem Click event handles
                 item_more_oil.Click += (obj, evt) => { OilImage((bool)(obj as MenuItem).Tag); };
                 item_more_charcoal.Click += (obj, evt) => { CharcoalImage((bool)(obj as MenuItem).Tag); };
                 item_more_meanshift.Click += (obj, evt) => { MeanShiftImage((bool)(obj as MenuItem).Tag); };
+                item_more_fillflood.Click += (obj, evt) => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_oil);
                 item_more.Items.Add(item_more_charcoal);
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_meanshift);
+                item_more.Items.Add(new Separator());
+                item_more.Items.Add(item_more_fillflood);
                 #endregion
 
                 target.ContextMenuOpening += (obj, evt) =>

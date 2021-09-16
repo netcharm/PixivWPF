@@ -94,7 +94,7 @@
                     <TextBlock x:Uid="Compose" Text="Compose" Margin="2 0"/>
                 </StackPanel>
             </Button>
-            <Slider x:Name="ImageCompareFuzzy" x:Uid="ImageCompareFuzzy" Width="112" HorizontalAlignment="Right" VerticalAlignment="Center"
+            <Slider x:Name="ImageCompareFuzzy" Width="112" HorizontalAlignment="Right" VerticalAlignment="Center"
                     Value="15" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5"
                     TickPlacement="None" Ticks="0.5, 1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100" 
                     IsSnapToTickEnabled="False" ValueChanged="ImageCompareFuzzy_ValueChanged">
@@ -102,7 +102,7 @@
                     <ToolTip x:Uid="ImageCompareFuzzyToolTip" Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="Fuzzy: {0:F0}%" />
                 </Slider.ToolTip>
             </Slider>
-            <TextBlock x:Name="ImageCompareFuzzyValue" x:Uid="ImageCompareFuzzyValue" Width="Auto"
+            <TextBlock x:Name="ImageCompareFuzzyValue" Width="Auto"
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ImageCompareFuzzy, Path=Value, StringFormat={}{0:F0}%}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>
@@ -138,14 +138,14 @@
                     <TextBlock x:Uid="ZoomFitHeightIcon" Text="&#xF616;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                 </StackPanel>
             </ToggleButton>
-            <Slider x:Name="ZoomRatio" Width="80" x:Uid="ZoomRatio" HorizontalAlignment="Right" VerticalAlignment="Center"
+            <Slider x:Name="ZoomRatio" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center"
                     Value="1" Minimum="0.25" Maximum="10" 
                     TickPlacement="None" Ticks="0.25, 0.5, 1, 2, 5, 10" IsSnapToTickEnabled="False" ValueChanged="ZoomRatio_ValueChanged">
                 <Slider.ToolTip>
                     <ToolTip x:Uid="ZoomRatioToolTip" Content="{Binding RelativeSource={RelativeSource Self}, Path=PlacementTarget.Value}" ContentStringFormat="{}{0:F2} X" />
                 </Slider.ToolTip>
             </Slider>
-            <TextBlock x:Name="ZoomRatioValue" x:Uid="ZoomRatioValue" Width="Auto"
+            <TextBlock x:Name="ZoomRatioValue" Width="Auto"
                        HorizontalAlignment="Right" VerticalAlignment="Center"
                        Text="{Binding ElementName=ZoomRatio, Path=Value, StringFormat={}{0:F2}X}"
                        ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"/>

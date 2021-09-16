@@ -426,7 +426,7 @@ namespace ImageCompare
                 {
                     if (SourceOriginal is MagickImage && !SourceOriginal.IsDisposed)
                     {
-                        SetImage(ImageType.Source, SourceOriginal, update: false);
+                        SetImage(source ? ImageType.Source : ImageType.Target, SourceOriginal, update: false);
                         action = true;
                     }
                     else
@@ -440,7 +440,7 @@ namespace ImageCompare
                 {
                     if (TargetOriginal is MagickImage && !TargetOriginal.IsDisposed)
                     {
-                        SetImage(ImageType.Target, TargetOriginal, update: false);
+                        SetImage(source ? ImageType.Source : ImageType.Target, TargetOriginal, update: false);
                         action = true;
                     }
                     else
@@ -794,6 +794,52 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void FillOutBoundBoxImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var radius = WeakEffects ? 5 : 10;
+                var sigma = WeakEffects ? 0.25 : 0.5;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (SourceImage.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) SourceImage.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
+                        SourceImage.BackgroundColor = MasklightColor ?? MagickColors.Transparent;
+                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, 1);
+                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, SourceImage.Width - 2, 1);
+                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, SourceImage.Width - 2, SourceImage.Height - 2);
+                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, SourceImage.Height - 2);
+                        action = true;
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (TargetImage.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) TargetImage.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
+                        TargetImage.BackgroundColor = MasklightColor ?? MagickColors.Transparent;
+                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, 1);
+                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, TargetImage.Width - 2, 1);
+                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, TargetImage.Width - 2, TargetImage.Height - 2);
+                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, TargetImage.Height - 2);
+                        action = true;
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void MeanShiftImage(bool source)
         {
             try
@@ -846,7 +892,10 @@ namespace ImageCompare
                 {
                     if (source is MagickImage && target is MagickImage)
                     {
-                        source.ColorFuzz = new Percentage(Math.Min(Math.Max(ImageCompareFuzzy.Minimum, ImageCompareFuzzy.Value), ImageCompareFuzzy.Maximum));
+                        var fuzzy = Math.Min(Math.Max(ImageCompareFuzzy.Minimum, ImageCompareFuzzy.Value), ImageCompareFuzzy.Maximum);
+                        if (source.ColorFuzz.ToDouble() != fuzzy) source.ColorFuzz = new Percentage(fuzzy);
+                        if (target.ColorFuzz.ToDouble() != fuzzy) target.ColorFuzz = new Percentage(fuzzy);
+
                         var i_src = ExchangeSourceTarget ? target : source;
                         var i_dst = ExchangeSourceTarget ? source : target;
 
