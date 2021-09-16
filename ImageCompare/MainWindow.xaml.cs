@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -40,6 +41,8 @@ namespace ImageCompare
         private string DefaultWindowTitle { get; set; } = string.Empty;
         private string DefaultCompareToolTip { get; set; } = string.Empty;
         private string DefaultComposeToolTip { get; set; } = string.Empty;
+
+        private CultureInfo DefaultCultureInfo { get; set; } = CultureInfo.CurrentCulture;
         #endregion
 
         #region Magick.Net Settings
@@ -942,6 +945,12 @@ namespace ImageCompare
                     if (!string.IsNullOrEmpty(value)) CachePath = value;
                 }
 
+                if (appSection.Settings.AllKeys.Contains("UILanguage"))
+                {
+                    var value = appSection.Settings["UILanguage"].Value;
+                    DefaultCultureInfo = CultureInfo.GetCultureInfoByIetfLanguageTag(value);
+                }
+
                 if (appSection.Settings.AllKeys.Contains("HighlightColor"))
                 {
                     var value = appSection.Settings["HighlightColor"].Value;
@@ -1027,6 +1036,11 @@ namespace ImageCompare
                     appSection.Settings["CachePath"].Value = CachePath;
                 else
                     appSection.Settings.Add("CachePath", CachePath);
+
+                if (appSection.Settings.AllKeys.Contains("UILanguage"))
+                    appSection.Settings["UILanguage"].Value = DefaultCultureInfo.IetfLanguageTag;
+                else
+                    appSection.Settings.Add("UILanguage", DefaultCultureInfo.IetfLanguageTag);
 
                 if (appSection.Settings.AllKeys.Contains("HighlightColor"))
                     appSection.Settings["HighlightColor"].Value = HighlightColor == null ? string.Empty : HighlightColor.ToHexString();
@@ -1326,45 +1340,75 @@ namespace ImageCompare
             item_more.Items.Add(new Separator());
             item_more.Items.Add(item_more_meanshift);
             #endregion
+
+            if (target.ContextMenu is ContextMenu)
+            {
+                foreach (var item in target.ContextMenu.Items)
+                {
+                    if (item is MenuItem) (item as MenuItem).Items.Clear();
+                }
+                target.ContextMenu.Items.Clear();
+            }
+
             result.Locale();
             target.ContextMenu = result;
             target.ContextMenuOpening += (obj, evt) =>
             {
                 item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
             };
+            target.DataContext = this;
         }
 
-        private void LocaleUI()
+        private void LocaleUI(CultureInfo culture = null)
         {
-            Title = $"{Uid}.Title".T() ?? Title;
+            Title = $"{Uid}.Title".T(culture) ?? Title;
             ImageToolBar.Locale();
-            //foreach (UIElement item in ImageToolBar.Items.Cast<UIElement>().Where(i => !(i is Separator)))
-            //{
-            //    if (item is Button)
-            //    {
-            //        var ui = item as Button;
-            //        ui.Content = $"{ui.Uid}.Content".T() ?? $"{ui.Uid}".T() ?? ui.Content;
-            //        ui.ToolTip = $"{ui.Uid}.Tooltip".T() ?? ui.ToolTip;
-            //    }
-            //    else if(item is TextBlock)
-            //    {
-            //        var ui = item as TextBlock;
-            //        ui.Text = $"{ui.Uid}.Text".T() ?? $"{ui.Uid}".T() ?? ui.Text;
-            //        ui.ToolTip = $"{ui.Uid}.Tooltip".T() ?? ui.ToolTip;
-            //    }
-            //    else if (item is ColorPicker)
-            //    {
-            //        var ui = item as ColorPicker;
-            //        ui.AdvancedTabHeader = $"{ui.Uid}.AdvancedTabHeader".T() ?? ui.AdvancedTabHeader;
-            //        ui.StandardTabHeader = $"{ui.Uid}.StandardTabHeader".T() ?? ui.StandardTabHeader;
-            //        ui.AvailableColorsHeader = $"{ui.Uid}.AvailableColorsHeader".T() ?? ui.AvailableColorsHeader;
-            //        ui.StandardColorsHeader = $"{ui.Uid}.StandardColorsHeader".T() ?? ui.StandardColorsHeader;
-            //        ui.RecentColorsHeader = $"{ui.Uid}.RecentColorsHeader".T() ?? ui.RecentColorsHeader;
-
-            //        ui.ToolTip = $"{ui.Uid}.Tooltip".T() ?? ui.ToolTip;
-            //    }
-            //}
+            if (ImageSource.ContextMenu is ContextMenu) CreateImageOpMenu(ImageSource);
+            if (ImageTarget.ContextMenu is ContextMenu) CreateImageOpMenu(ImageTarget);
+            ImageSource.ToolTip = GetImageInfo(ImageType.Source);
+            ImageTarget.ToolTip = GetImageInfo(ImageType.Target);
+            ImageResult.ToolTip = GetImageInfo(ImageType.Result);
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // 要检测冗余调用
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: 释放托管状态(托管对象)。
+                    if (_CanUpdate_ is SemaphoreSlim)
+                    {
+                        if (_CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
+                        _CanUpdate_.Dispose();
+                    }
+                }
+
+                // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
+                // TODO: 将大型字段设置为 null。
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: 仅当以上 Dispose(bool disposing) 拥有用于释放未托管资源的代码时才替代终结器。
+        // ~MainWindow() {
+        //   // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
+        //   Dispose(false);
+        // }
+
+        // 添加此代码以正确实现可处置模式。
+        public void Dispose()
+        {
+            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
+            Dispose(true);
+            // TODO: 如果在以上内容中替代了终结器，则取消注释以下行。
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
 
         public MainWindow()
         {
@@ -1375,7 +1419,7 @@ namespace ImageCompare
         {
             LoadConfig();
 
-            LocaleUI();
+            LocaleUI(DefaultCultureInfo);
 
             #region Some Default UI Settings
             Icon = new BitmapImage(new Uri("pack://application:,,,/ImageCompare;component/Resources/Compare.ico"));
@@ -1671,7 +1715,31 @@ namespace ImageCompare
         private void ImageActions_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            if (sender == ImageOpenSource)
+            if(sender == UILanguage)
+            {
+                if (UILanguage.ContextMenu is ContextMenu) UILanguage.ContextMenu.IsOpen = true;
+            }
+            else if (sender == UILanguageEn)
+            {
+                DefaultCultureInfo = CultureInfo.GetCultureInfo("en");
+                LocaleUI(DefaultCultureInfo);
+            }
+            else if (sender == UILanguageCn)
+            {
+                DefaultCultureInfo = CultureInfo.GetCultureInfo("zh-Hans");
+                LocaleUI(DefaultCultureInfo);
+            }
+            else if (sender == UILanguageTw)
+            {
+                DefaultCultureInfo = CultureInfo.GetCultureInfo("zh-Hant");
+                LocaleUI(DefaultCultureInfo);
+            }
+            else if (sender == UILanguageJa)
+            {
+                DefaultCultureInfo = CultureInfo.GetCultureInfo("ja-JP");
+                LocaleUI(DefaultCultureInfo);
+            }
+            else if (sender == ImageOpenSource)
             {
                 LoadImageFromFile(source: true);
             }
@@ -1789,46 +1857,6 @@ namespace ImageCompare
                 UsedChannels.ContextMenu.IsOpen = true;
             }
         }
-
-        #region IDisposable Support
-        private bool disposedValue = false; // 要检测冗余调用
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: 释放托管状态(托管对象)。
-                    if (_CanUpdate_ is SemaphoreSlim)
-                    {
-                        if (_CanUpdate_.CurrentCount < 1) _CanUpdate_.Release();
-                        _CanUpdate_.Dispose();
-                    }
-                }
-
-                // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
-                // TODO: 将大型字段设置为 null。
-
-                disposedValue = true;
-            }
-        }
-
-        // TODO: 仅当以上 Dispose(bool disposing) 拥有用于释放未托管资源的代码时才替代终结器。
-        // ~MainWindow() {
-        //   // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
-        //   Dispose(false);
-        // }
-
-        // 添加此代码以正确实现可处置模式。
-        public void Dispose()
-        {
-            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
-            Dispose(true);
-            // TODO: 如果在以上内容中替代了终结器，则取消注释以下行。
-            // GC.SuppressFinalize(this);
-        }
-        #endregion
 
     }
 }

@@ -226,7 +226,7 @@
     <value>左に90度回転します</value>
   </data>
   <data name="Rotate180.Header" xml:space="preserve">
-    <value>180度回転</value>
+    <value>180度回転します</value>
   </data>
   <data name="ResetTransforms.Header" xml:space="preserve">
     <value>変換のリセット</value>
@@ -314,5 +314,65 @@
   </data>
   <data name="InfoTipFileName" xml:space="preserve">
     <value>ファイル名       =</value>
+  </data>
+  <data name="HighlightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>カスタム</value>
+  </data>
+  <data name="HighlightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>規格</value>
+  </data>
+  <data name="HighlightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>カラーバリエーション</value>
+  </data>
+  <data name="HighlightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>標準色</value>
+  </data>
+  <data name="HighlightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>最近の色</value>
+  </data>
+  <data name="LowlightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>カスタム</value>
+  </data>
+  <data name="LowlightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>規格</value>
+  </data>
+  <data name="LowlightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>カラーバリエーション</value>
+  </data>
+  <data name="LowlightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>標準色</value>
+  </data>
+  <data name="LowlightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>最近の色</value>
+  </data>
+  <data name="MasklightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>カスタム</value>
+  </data>
+  <data name="MasklightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>規格</value>
+  </data>
+  <data name="MasklightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>カラーバリエーション</value>
+  </data>
+  <data name="MasklightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>標準色</value>
+  </data>
+  <data name="MasklightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>最近の色</value>
+  </data>
+  <data name="UILanguage.ToolTip" xml:space="preserve">
+    <value>UI言語セレクタ</value>
+  </data>
+  <data name="UILanguageEn.Header" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="UILanguageCn.Header" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="UILanguageTw.Header" xml:space="preserve">
+    <value>繁體中文</value>
+  </data>
+  <data name="UILanguageJa.Header" xml:space="preserve">
+    <value>日本語</value>
   </data>
 </root>

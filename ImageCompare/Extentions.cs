@@ -11,36 +11,66 @@ using System.Windows.Controls;
 using Xceed.Wpf.Toolkit;
 using System.Windows.Media;
 using System.Windows.Controls.Primitives;
+using System.Diagnostics;
 
 namespace ImageCompare
 {
     public static class Extentions
     {
+        #region Locale Resource Helper
         private static CultureInfo resourceCulture = Properties.Resources.Culture ?? CultureInfo.CurrentCulture;
         private static System.Resources.ResourceManager resourceMan = Properties.Resources.ResourceManager;
         private static System.Resources.ResourceSet resourceSet = resourceMan.GetResourceSet(resourceCulture, true, true);
+        private static Dictionary<UIElement, bool> _be_locale_ = null;
+
+        public static bool IsRecursiveCall(string method_name)
+        {
+            // get call stack
+            StackTrace stackTrace = new StackTrace();
+            var last_method_name = stackTrace.GetFrame(2).GetMethod().Name;
+            // get calling method name
+#if DEBUG
+            Debug.WriteLine(last_method_name);
+#endif
+            return (last_method_name.Equals(method_name));
+        }
 
         public static string _(this string text)
         {            
-            return (resourceMan.GetString(text));
+            return (GetString(text));
+        }
+
+        public static string _(this string text, CultureInfo culture)
+        {
+            return (GetString(text, culture));
         }
 
         public static string T(this string text)
         {
-            return (resourceMan.GetString(text));
+            return (GetString(text));
+        }
+
+        public static string T(this string text, CultureInfo culture)
+        {
+            return (GetString(text, culture));
         }
 
         public static string GetString(this string text)
         {
-            return (resourceMan.GetString(text));
+            return (resourceSet.GetString(text));
         }
 
-        private static Dictionary<UIElement, bool> _be_locale_ = null;
+        public static string GetString(this string text, CultureInfo culture)
+        {
+            ChangeLocale(culture);
+            return (resourceSet.GetString(text));
+        }
+
         public static void Locale(this UIElement element)
         {
             try
             {
-                if(_be_locale_ == null) _be_locale_ = new Dictionary<UIElement, bool>();
+                if (_be_locale_ == null) _be_locale_ = new Dictionary<UIElement, bool>();
                 if (_be_locale_.ContainsKey(element)) return;
 
                 if (element is Button)
@@ -57,6 +87,8 @@ namespace ImageCompare
                 {
                     var ui = element as MenuItem;
                     ui.Header = $"{ui.Uid}.Header".T() ?? ui.Header;
+                    if (ui.Items.Count > 1)
+                        foreach (var mi in ui.Items) if (mi is UIElement) (mi as UIElement).Locale();
                 }
                 else if (element is MenuBase)
                 {
@@ -72,36 +104,62 @@ namespace ImageCompare
                     ui.StandardColorsHeader = $"{ui.Uid}.StandardColorsHeader".T() ?? ui.StandardColorsHeader;
                     ui.RecentColorsHeader = $"{ui.Uid}.RecentColorsHeader".T() ?? ui.RecentColorsHeader;
                 }
-                //else
+
+                var child_count = VisualTreeHelper.GetChildrenCount(element);
+                if (child_count > 0)
                 {
-                    var child_count = VisualTreeHelper.GetChildrenCount(element);
-                    if (child_count > 0)
+                    for (int i = 0; i < child_count; i++)
                     {
-                        for (int i = 0; i < child_count; i++)
-                        {
-                            var child = VisualTreeHelper.GetChild(element, i);
-                            if (child is UIElement) (child as UIElement).Locale();
-                        }
-                    }
-                    else
-                    {
-                        var childs = LogicalTreeHelper.GetChildren(element);
-                        foreach (var child in childs)
-                        {
-                            if (child is UIElement) (child as UIElement).Locale();
-                        }
+                        var child = VisualTreeHelper.GetChild(element, i);
+                        if (child is UIElement) (child as UIElement).Locale();
                     }
                 }
+                else
+                {
+                    var childs = LogicalTreeHelper.GetChildren(element);
+                    foreach (var child in childs)
+                    {
+                        if (child is UIElement) (child as UIElement).Locale();
+                    }
+                }
+
                 if (element is FrameworkElement)
                 {
                     var ui = element as FrameworkElement;
-                    ui.ToolTip = $"{ui.Uid}.ToolTip".T() ?? ui.ToolTip;
+                    if (!string.IsNullOrEmpty(ui.Uid)) { ui.ToolTip = $"{ui.Uid}.ToolTip".T() ?? ui.ToolTip; }                   
                     if (!_be_locale_.ContainsKey(element)) _be_locale_.Add(element, true);
+                    if (ui.ContextMenu is ContextMenu) Locale(ui.ContextMenu);
                 }
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"{element.Uid ?? element.ToString()} : {ex.Message}"); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {element.Uid ?? element.ToString()} : {ex.Message}"); }
         }
 
+        public static void Locale(this UIElement element, CultureInfo culture)
+        {
+            try
+            {
+                ChangeLocale(culture);
+                if (!IsRecursiveCall("Locale") && _be_locale_ is Dictionary<UIElement, bool>) _be_locale_.Clear();
+
+                Locale(element);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"Locale : {ex.Message}"); }
+        }
+
+        public static void ChangeLocale(this CultureInfo culture)
+        {
+            if (culture is CultureInfo && resourceCulture != culture)
+            {
+                resourceSet = resourceMan.GetResourceSet(culture, true, true);
+                //Properties.Resources.Culture = culture;
+                resourceCulture = culture;
+                if (_be_locale_ == null) _be_locale_ = new Dictionary<UIElement, bool>();
+                else _be_locale_.Clear();
+            }
+        }
+        #endregion
+
+        #region Magick.Net Helper
         public static bool Valid(this MagickImage image)
         {
             return (image is MagickImage && !image.IsDisposed);
@@ -111,5 +169,6 @@ namespace ImageCompare
         {
             return (image == null || image.IsDisposed);
         }
+        #endregion
     }
 }

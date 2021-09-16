@@ -315,4 +315,64 @@
   <data name="InfoTipFileName" xml:space="preserve">
     <value>FileName       =</value>
   </data>
+  <data name="HighlightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="HighlightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="HighlightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>Available Colors</value>
+  </data>
+  <data name="HighlightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>Standard Colors</value>
+  </data>
+  <data name="HighlightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>Recent Colors</value>
+  </data>
+  <data name="LowlightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="LowlightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="LowlightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>Available Colors</value>
+  </data>
+  <data name="LowlightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>Standard Colors</value>
+  </data>
+  <data name="LowlightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>Recent Colors</value>
+  </data>
+  <data name="MasklightColorPick.AdvancedTabHeader" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="MasklightColorPick.StandardTabHeader" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="MasklightColorPick.AvailableColorsHeader" xml:space="preserve">
+    <value>Available Colors</value>
+  </data>
+  <data name="MasklightColorPick.StandardColorsHeader" xml:space="preserve">
+    <value>Standard Colors</value>
+  </data>
+  <data name="MasklightColorPick.RecentColorsHeader" xml:space="preserve">
+    <value>Recent Colors</value>
+  </data>
+  <data name="UILanguage.ToolTip" xml:space="preserve">
+    <value>UI Language Selector</value>
+  </data>
+  <data name="UILanguageEn.Header" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="UILanguageCn.Header" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="UILanguageTw.Header" xml:space="preserve">
+    <value>繁體中文</value>
+  </data>
+  <data name="UILanguageJa.Header" xml:space="preserve">
+    <value>日本語</value>
+  </data>
 </root>
