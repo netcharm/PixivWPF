@@ -1007,6 +1007,23 @@ namespace ImageCompare
             AppSettingsSection appSection = appCfg.AppSettings;
             try
             {
+                if (appSection.Settings.AllKeys.Contains("WindowPosition"))
+                {
+                    var value = appSection.Settings["WindowPosition"].Value;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        try
+                        {
+                            var rect = Rect.Parse(value);
+                            Top = rect.Top;
+                            Left = rect.Left;
+                            Width = Math.Min(MaxWidth, Math.Max(MinWidth, rect.Width));
+                            Height = Math.Min(MaxHeight, Math.Max(MinHeight, rect.Height));
+                        }
+                        catch { }
+                    }
+                }
+
                 if (appSection.Settings.AllKeys.Contains("CachePath"))
                 {
                     var value = appSection.Settings["CachePath"].Value;
@@ -1107,6 +1124,21 @@ namespace ImageCompare
             {
                 Configuration appCfg =  ConfigurationManager.OpenExeConfiguration(AppExec);
                 AppSettingsSection appSection = appCfg.AppSettings;
+
+                if (WindowState == System.Windows.WindowState.Normal)
+                {
+                    var rect = new Rect(Top, Left, Math.Min(MaxWidth, Math.Max(MinWidth, Width)), Math.Min(MaxHeight, Math.Max(MinHeight, Height)));
+                    if (appSection.Settings.AllKeys.Contains("WindowPosition"))
+                        appSection.Settings["WindowPosition"].Value = rect.ToString();
+                    else
+                        appSection.Settings.Add("WindowPosition", rect.ToString());
+                }
+
+                if (appSection.Settings.AllKeys.Contains("CachePath"))
+                    appSection.Settings["CachePath"].Value = CachePath;
+                else
+                    appSection.Settings.Add("CachePath", CachePath);
+
                 if (appSection.Settings.AllKeys.Contains("CachePath"))
                     appSection.Settings["CachePath"].Value = CachePath;
                 else
