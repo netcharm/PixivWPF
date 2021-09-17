@@ -47,7 +47,8 @@ namespace ImageCompare
         #endregion
 
         #region Magick.Net Settings
-        private string SupportedFiles { get; set; } = string.Empty;
+        private string AllSupportedFiles { get; set; } = string.Empty;
+        private string AllSupportedFilters { get; set; } = string.Empty;
 
         private int MaxCompareSize { get; set; } = 1024;
         private MagickGeometry CompareResizeGeometry { get; set; } = null;
@@ -218,7 +219,7 @@ namespace ImageCompare
                 if (dpiXProperty != null) { result.X = (int)dpiXProperty.GetValue(null, null); }
                 if (dpiYProperty != null) { result.Y = (int)dpiYProperty.GetValue(null, null); }
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             return (result);
         }
 
@@ -263,7 +264,7 @@ namespace ImageCompare
                         else if (picker.RecentColors.Where(c => c.Color.Equals(color)).Count() <= 0)
                             picker.RecentColors.Add(new ColorItem(color, ColorToHex(color)));
                     }
-                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); continue; }
+                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); continue; }
                 }
             }
         }
@@ -299,7 +300,7 @@ namespace ImageCompare
                             profiles[pn] = image.GetIptcProfile();
                         else if (pn.Equals("xmp", StringComparison.CurrentCultureIgnoreCase))
                             profiles[pn] = image.GetXmpProfile();
-
+#if DEBUG
                         var profile = profiles[pn];
                         if (profile is ExifProfile)
                         {
@@ -325,10 +326,11 @@ namespace ImageCompare
                             var xml = Encoding.UTF8.GetString(xmp.GetData());
                             //image.SetAttribute()
                         }
+#endif
                     }
                 }
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         private string GetImageInfo(ImageType type)
@@ -337,7 +339,7 @@ namespace ImageCompare
             try
             {
                 var image = GetImage(type);
-                if (image != null)
+                if (image is MagickImage && !image.IsDisposed)
                 {
                     var file = type == ImageType.Source ? SourceFile : type == ImageType.Target ? TargetFile : string.Empty;
                     var st = Stopwatch.StartNew();
@@ -352,7 +354,7 @@ namespace ImageCompare
                     if (image.BoundingBox != null)
                         tip.Add($"{"InfoTipBounding".T()} {image.BoundingBox.Width:F0}x{image.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
-                    //tip.Add($"Colors         = {image.TotalColors}");
+                    tip.Add($"{"InfoTipColors".T()} {image.TotalColors}");
                     tip.Add($"{"InfoTipAttributes".T()}");
                     foreach (var attr in image.AttributeNames)
                     {
@@ -364,7 +366,7 @@ namespace ImageCompare
                             if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
                             tip.Add($"  {attr.PadRight(32, ' ')}= { value }");
                         }
-                        catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show($"{attr} : {ex.Message}"); }
+                        catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, $"{attr} : {ex.Message}"); }
                     }
                     tip.Add($"{"InfoTipColorSpace".T()} {Path.GetFileName(image.ColorSpace.ToString())}");
                     tip.Add($"{"InfoTipFormatInfo".T()} {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
@@ -388,7 +390,7 @@ namespace ImageCompare
                     GetExif(image);
                 }
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             return (string.IsNullOrEmpty(result) ? null : result);
         }
 
@@ -522,7 +524,7 @@ namespace ImageCompare
 
                 CalcZoomRatio();
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         private void CalcZoomRatio()
@@ -570,7 +572,7 @@ namespace ImageCompare
                     }
                 }
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         private async void UpdateImageViewer(bool compose = false, bool assign = false)
@@ -608,11 +610,13 @@ namespace ImageCompare
                                 await Task.Delay(1);
                                 DoEvents();
                             }
-                            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+                            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
                         }
 
-                        ImageSource.ToolTip = GetImageInfo(ImageType.Source);
-                        ImageTarget.ToolTip = GetImageInfo(ImageType.Target);
+                        //ImageSource.ToolTip = GetImageInfo(ImageType.Source);
+                        //ImageTarget.ToolTip = GetImageInfo(ImageType.Target);
+                        ImageSource.ToolTip = "Waiting".T();
+                        ImageTarget.ToolTip = "Waiting".T();
 
                         ImageResult.Source = null;
                         if (ResultImage is MagickImage)
@@ -631,10 +635,11 @@ namespace ImageCompare
                             await Task.Delay(1);
                             DoEvents();
                         }
-                        ImageResult.ToolTip = GetImageInfo(ImageType.Result);
+                        //ImageResult.ToolTip = GetImageInfo(ImageType.Result);
+                        ImageResult.ToolTip = "Waiting".T();
                         CalcDisplay(set_ratio: false);
                     }
-                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
                     finally
                     {
                         ProcessStatus.IsIndeterminate = false;
@@ -698,7 +703,7 @@ namespace ImageCompare
                 encoder.Save(result);
                 await result.FlushAsync();
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             return (result);
         }
 
@@ -706,6 +711,39 @@ namespace ImageCompare
         {
             if (string.IsNullOrEmpty(fmt)) fmt = ".png";
             return ((await ToMemoryStream(bitmap, fmt)).ToArray());
+        }
+
+        public MagickImage Lut2Png(MagickImage lut)
+        {
+            MagickImage png = null;
+            try
+            {
+                using (var ms = new MemoryStream())
+                {
+                    lut.Write(ms, MagickFormat.Png);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    png = new MagickImage(ms);
+                }
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+            return (png);
+        }
+
+        public MagickImage Lut2Png(Stream lut)
+        {
+            MagickImage png = null;
+            try
+            {
+                using (var ms = new MemoryStream())
+                {
+                    var cube = new MagickImage(lut, MagickFormat.Cube);
+                    cube.Write(ms, MagickFormat.Png);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    png = new MagickImage(ms);
+                }
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+            return (png);
         }
 
         private async void LoadImageFromClipboard(bool source = true)
@@ -735,7 +773,7 @@ namespace ImageCompare
                                         if (files.Length > 0) LoadImageFromFiles(files.Select(f => f.Trim('"').Trim()).ToArray());
                                         break;
                                     }
-                                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+                                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
                                 }
                                 else
                                 {
@@ -750,7 +788,7 @@ namespace ImageCompare
 #if DEBUG
                                     catch (Exception ex) { Debug.WriteLine(ex.Message); }
 #else
-                                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+                                    catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
 #endif
                                 }
                             }
@@ -782,7 +820,7 @@ namespace ImageCompare
                     }
                     if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                 }
-                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             }, DispatcherPriority.Render);
         }
 
@@ -805,13 +843,19 @@ namespace ImageCompare
                             file_t = files.Skip(1).First();
                             using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
-                                SetImage(ImageType.Source, new MagickImage(fs), update: false);
+                                if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                                    SetImage(ImageType.Source, Lut2Png(fs), update: false);
+                                else
+                                    SetImage(ImageType.Source, new MagickImage(fs), update: false);
                                 SourceFile = file_s;
                                 action = true;
                             }
                             using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
-                                SetImage(ImageType.Target, new MagickImage(fs), update: false);
+                                if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                                    SetImage(ImageType.Source, Lut2Png(fs), update: false);
+                                else
+                                    SetImage(ImageType.Target, new MagickImage(fs), update: false);
                                 TargetFile = file_t;
                                 action = true;
                             }
@@ -823,7 +867,10 @@ namespace ImageCompare
                                 file_s = files.First();
                                 using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
                                 {
-                                    SetImage(ImageType.Source, new MagickImage(fs), update: false);
+                                    if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                                        SetImage(ImageType.Source, Lut2Png(fs), update: false);
+                                    else
+                                        SetImage(ImageType.Source, new MagickImage(fs), update: false);
                                     SourceFile = file_s;
                                     action = true;
                                 }
@@ -833,7 +880,10 @@ namespace ImageCompare
                                 file_t = files.First();
                                 using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
                                 {
-                                    SetImage(ImageType.Target, new MagickImage(fs), update: false);
+                                    if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                                        SetImage(ImageType.Source, Lut2Png(fs), update: false);
+                                    else
+                                        SetImage(ImageType.Target, new MagickImage(fs), update: false);
                                     TargetFile = file_t;
                                     action = true;
                                 }
@@ -842,7 +892,7 @@ namespace ImageCompare
                         if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                     }
                 }
-                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             }, DispatcherPriority.Render);
         }
 
@@ -850,7 +900,8 @@ namespace ImageCompare
         {
             var file_str = "AllSupportedImageFiles".T();
             var dlgOpen = new Microsoft.Win32.OpenFileDialog() { Multiselect = true, CheckFileExists = true, CheckPathExists = true, ValidateNames = true };
-            dlgOpen.Filter = $"{file_str}|{SupportedFiles}";
+            //dlgOpen.Filter = $"{file_str}|{AllSupportedFiles}|{AllSupportedFilters}";
+            dlgOpen.Filter = $"{file_str}|{AllSupportedFiles}";
             if (dlgOpen.ShowDialog() ?? false)
             {
                 var files = dlgOpen.FileNames.ToArray();
@@ -896,7 +947,7 @@ namespace ImageCompare
                     #endregion
                     Clipboard.SetDataObject(dataPackage, true);
                 }
-                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             }
         }
 
@@ -906,7 +957,7 @@ namespace ImageCompare
             {
                 if (ResultImage is MagickImage && !ResultImage.IsDisposed) SaveImageToFile(ResultImage);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         private void SaveImageAs(bool source)
@@ -944,7 +995,7 @@ namespace ImageCompare
                         image.Write(file);
                     }
                 }
-                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             }
         }
         #endregion
@@ -1047,7 +1098,7 @@ namespace ImageCompare
                 }
 
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         private void SaveConfig()
@@ -1144,7 +1195,7 @@ namespace ImageCompare
 
                 appCfg.Save();
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
         #endregion
 
@@ -1578,6 +1629,8 @@ namespace ImageCompare
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            //System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
+
             LoadConfig();
 
             LocaleUI(DefaultCultureInfo);
@@ -1605,10 +1658,12 @@ namespace ImageCompare
                 //ImageMagick.ResourceLimits.Area = 4096 * 4096;
                 //ImageMagick.ResourceLimits.Throttle = 
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
 
-            var fmts = GetSupportedImageFormats().Keys.ToList().Skip(4).Select(f => $"*.{f}");
-            SupportedFiles = string.Join(";", fmts);
+            var fmts = GetSupportedImageFormats();
+            var exts = GetSupportedImageFormats().Keys.ToList().Skip(4).Select(f => $"*.{f}");
+            AllSupportedFiles = string.Join(";", exts);
+            AllSupportedFilters = string.Join("|", fmts.Select(f => $"{f.Value}|*.{f.Key}"));
 
             CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
             #endregion
@@ -1838,7 +1893,7 @@ namespace ImageCompare
                     e.Handled = true;
                     LastZoomRatio = ZoomRatio.Value;
                 }
-                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             }
         }
 
@@ -1855,7 +1910,7 @@ namespace ImageCompare
                 int value = MaxCompareSize;
                 if (int.TryParse(MaxCompareSizeValue.Text, out value)) MaxCompareSize = Math.Max(0, Math.Min(2048, value));
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         private void ColorPick_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
@@ -1875,6 +1930,23 @@ namespace ImageCompare
                 var c = (sender as ColorPicker).SelectedColor ?? null;
                 MasklightColor = c == null || c == Colors.Transparent ? null : MagickColor.FromRgba(c.Value.R, c.Value.G, c.Value.B, c.Value.A);
             }
+        }
+
+        private void Image_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            try
+            {
+                if (sender is Image)
+                {
+                    var image = sender as Image;
+                    if (image.ToolTip is string && (image.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var type = image == ImageSource ? ImageType.Source : (image == ImageTarget ? ImageType.Target : ImageType.Result);
+                        image.ToolTip = GetImageInfo(type);
+                    }
+                }
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         private void ImageActions_Click(object sender, RoutedEventArgs e)
@@ -2022,6 +2094,5 @@ namespace ImageCompare
                 UsedChannels.ContextMenu.IsOpen = true;
             }
         }
-
     }
 }

@@ -29,5 +29,10 @@
             <Setter x:Uid="TextBoxStyleFontFamily" Property="FontFamily" Value="{StaticResource MonoSpaceFamily}"/>
             <Setter x:Uid="TextBoxStyleFontSize" Property="FontSize" Value="{StaticResource MonoSpaceSize}"/>
         </Style>
+        <!--Fixed Bug:[System.Windows.Data Error: 4 : Cannot find source for binding with reference...] When Dynamic add MenuItem to UI-->
+        <Style TargetType="MenuItem">
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
     </Application.Resources>
 </Application>

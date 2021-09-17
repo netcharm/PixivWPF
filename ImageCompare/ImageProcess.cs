@@ -36,13 +36,19 @@ namespace ImageCompare
             Dictionary<string, string> result = new Dictionary<string, string>();
             try
             {
-                var fmts = Enum.GetNames(typeof(MagickFormat));
-                foreach (var fmt in fmts)
+                foreach (var fmt in MagickNET.SupportedFormats)
                 {
-                    result.Add(fmt, "");
+                    if (fmt.IsReadable)
+                        result.Add(fmt.Format.ToString(), fmt.Description);
                 }
+
+                //var fmts = Enum.GetNames(typeof(MagickFormat));
+                //foreach (var fmt in fmts)
+                //{
+                //    result.Add(fmt, "");
+                //}
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             return (result);
         }
 
@@ -59,7 +65,7 @@ namespace ImageCompare
                     diff.Dispose();
                 }
             }
-            catch(Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch(Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             return (result);
         }
 
@@ -173,7 +179,7 @@ namespace ImageCompare
                     ResultImage = image;
                 }
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             if (update) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
         }
 
@@ -191,7 +197,7 @@ namespace ImageCompare
                 SetImage(type, new MagickImage(image), update: update);
 #endif
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -208,7 +214,7 @@ namespace ImageCompare
                 SetImage(type, new MagickImage(image), update: update);
 #endif
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -274,7 +280,7 @@ namespace ImageCompare
                     }
                 }
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -336,7 +342,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -371,7 +377,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -403,7 +409,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -435,7 +441,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -477,7 +483,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -513,7 +519,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -553,7 +559,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -595,7 +601,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -637,7 +643,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -698,7 +704,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -754,7 +760,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -792,7 +798,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -830,7 +836,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -866,7 +872,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -902,7 +908,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -939,7 +945,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -975,7 +981,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -1011,7 +1017,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -1047,7 +1053,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -1084,7 +1090,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -1127,7 +1133,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -1169,7 +1175,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -1215,7 +1221,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -1253,7 +1259,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -1290,7 +1296,7 @@ namespace ImageCompare
                 }
                 if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
-            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
         /// <summary>
@@ -1350,7 +1356,7 @@ namespace ImageCompare
                         }
                     }
                 }
-                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
                 finally
                 {
                     st.Stop();

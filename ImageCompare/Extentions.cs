@@ -78,17 +78,20 @@ namespace ImageCompare
                     if (element is Button)
                     {
                         var ui = element as Button;
-                        ui.Content = $"{ui.Uid}.Content".T() ?? ui.Content;
+                        var text = $"{ui.Uid}.Content".T();
+                        if (!string.IsNullOrEmpty(text)) ui.Content = text;
                     }
                     else if (element is TextBlock)
                     {
                         var ui = element as TextBlock;
-                        ui.Text = $"{ui.Uid}.Text".T() ?? ui.Text;
+                        var text = $"{ui.Uid}.Text".T();
+                        if (!string.IsNullOrEmpty(text)) ui.Text = text;
                     }
                     else if (element is MenuItem)
                     {
                         var ui = element as MenuItem;
-                        ui.Header = $"{ui.Uid}.Header".T() ?? ui.Header;
+                        var text = $"{ui.Uid}.Header".T();
+                        if (!string.IsNullOrEmpty(text)) ui.Header = text;
                         if (ui.Items.Count > 1)
                             foreach (var mi in ui.Items) if (mi is FrameworkElement) (mi as FrameworkElement).Locale();
                     }
@@ -100,11 +103,16 @@ namespace ImageCompare
                     else if (element is ColorPicker)
                     {
                         var ui = element as ColorPicker;
-                        ui.AdvancedTabHeader = $"{ui.Uid}.AdvancedTabHeader".T() ?? ui.AdvancedTabHeader;
-                        ui.StandardTabHeader = $"{ui.Uid}.StandardTabHeader".T() ?? ui.StandardTabHeader;
-                        ui.AvailableColorsHeader = $"{ui.Uid}.AvailableColorsHeader".T() ?? ui.AvailableColorsHeader;
-                        ui.StandardColorsHeader = $"{ui.Uid}.StandardColorsHeader".T() ?? ui.StandardColorsHeader;
-                        ui.RecentColorsHeader = $"{ui.Uid}.RecentColorsHeader".T() ?? ui.RecentColorsHeader;
+                        var text = $"{ui.Uid}.AdvancedTabHeader".T();
+                        if (!string.IsNullOrEmpty(text)) ui.AdvancedTabHeader = text;
+                        text = $"{ui.Uid}.StandardTabHeader".T();
+                        if (!string.IsNullOrEmpty(text)) ui.StandardTabHeader = text;
+                        text = $"{ui.Uid}.AvailableColorsHeader".T();
+                        if (!string.IsNullOrEmpty(text)) ui.AvailableColorsHeader = text;
+                        text = $"{ui.Uid}.StandardColorsHeader".T();
+                        if (!string.IsNullOrEmpty(text)) ui.StandardColorsHeader = text;
+                        text = $"{ui.Uid}.RecentColorsHeader".T();
+                        if (!string.IsNullOrEmpty(text)) ui.RecentColorsHeader = text;
                     }
                 }
 
@@ -129,7 +137,11 @@ namespace ImageCompare
                 if (element is FrameworkElement)
                 {
                     var ui = element as FrameworkElement;
-                    if (!string.IsNullOrEmpty(ui.Uid)) { ui.ToolTip = $"{ui.Uid}.ToolTip".T() ?? ui.ToolTip; }                   
+                    if (!string.IsNullOrEmpty(ui.Uid))
+                    {
+                        var tip = $"{ui.Uid}.ToolTip".T();
+                        if (!string.IsNullOrEmpty(tip)) ui.ToolTip = tip;
+                    }
                     if (!_be_locale_.ContainsKey(element)) _be_locale_.Add(element, true);
                     if (ui.ContextMenu is ContextMenu) Locale(ui.ContextMenu);
                 }

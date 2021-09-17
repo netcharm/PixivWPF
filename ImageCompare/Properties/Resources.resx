@@ -411,4 +411,10 @@
   <data name="ReMapColor.Header" xml:space="preserve">
     <value>Re-Map Color</value>
   </data>
+  <data name="InfoTipColors" xml:space="preserve">
+    <value>Colors         =</value>
+  </data>
+  <data name="Waiting" xml:space="preserve">
+    <value>Waiting ...</value>
+  </data>
 </root>
