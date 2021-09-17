@@ -417,4 +417,10 @@
   <data name="Waiting" xml:space="preserve">
     <value>请稍候 ...</value>
   </data>
+  <data name="AutoVignette.Header" xml:space="preserve">
+    <value>渐晕柔化图像边缘</value>
+  </data>
+  <data name="AutoWhiteBalance.Header" xml:space="preserve">
+    <value>自动调节白平衡</value>
+  </data>
 </root>

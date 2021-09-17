@@ -417,4 +417,10 @@
   <data name="Waiting" xml:space="preserve">
     <value>少々お待ちください ...</value>
   </data>
+  <data name="AutoVignette.Header" xml:space="preserve">
+    <value>画像のエッジを徐々にぼかします</value>
+  </data>
+  <data name="AutoWhiteBalance.Header" xml:space="preserve">
+    <value>自動調整ホワイトバランス</value>
+  </data>
 </root>

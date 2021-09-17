@@ -1446,6 +1446,12 @@ namespace ImageCompare
                     Uid = "AutoContrast",
                     Tag = source
                 };
+                var item_more_autowhitebalance = new MenuItem()
+                {
+                    Header = "Auto White Balance",
+                    Uid = "AutoWhiteBalance",
+                    Tag = source
+                };
                 var item_more_autoenhance = new MenuItem()
                 {
                     Header = "Auto Enhance",
@@ -1470,6 +1476,13 @@ namespace ImageCompare
                     Uid = "AutoThreshold",
                     Tag = source
                 };
+                var item_more_autovignette = new MenuItem()
+                {
+                    Header = "Auto Vignette",
+                    Uid = "AutoVignette",
+                    Tag = source
+                };
+
                 var item_more_blueshift = new MenuItem()
                 {
                     Header = "Blue Shift",
@@ -1513,14 +1526,16 @@ namespace ImageCompare
                 item_more_oil.Click += (obj, evt) => { OilImage((bool)(obj as MenuItem).Tag); };
                 item_more_charcoal.Click += (obj, evt) => { CharcoalImage((bool)(obj as MenuItem).Tag); };
 
+                item_more_autoequalize.Click += (obj, evt) => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); };
+                item_more_autoenhance.Click += (obj, evt) => { AutoEnhanceImage((bool)(obj as MenuItem).Tag); };
                 item_more_autolevel.Click += (obj, evt) => { AutoLevelImage((bool)(obj as MenuItem).Tag); };
                 item_more_autocontrast.Click += (obj, evt) => { AutoContrastImage((bool)(obj as MenuItem).Tag); };
-                item_more_autoenhance.Click += (obj, evt) => { AutoEnhanceImage((bool)(obj as MenuItem).Tag); };
-                item_more_autoequalize.Click += (obj, evt) => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); };
+                item_more_autowhitebalance.Click += (obj, evt) => { AutoWhiteBalanceImage((bool)(obj as MenuItem).Tag); };
                 item_more_autogamma.Click += (obj, evt) => { AutoGammaImage((bool)(obj as MenuItem).Tag); };
-                item_more_autothreshold.Click += (obj, evt) => { AutoThresholdImage((bool)(obj as MenuItem).Tag); };
 
+                item_more_autovignette.Click += (obj, evt) => { AutoVignetteImage((bool)(obj as MenuItem).Tag); };
                 item_more_blueshift.Click += (obj, evt) => { BlueShiftImage((bool)(obj as MenuItem).Tag); };
+                item_more_autothreshold.Click += (obj, evt) => { AutoThresholdImage((bool)(obj as MenuItem).Tag); };
                 item_more_remap.Click += (obj, evt) => { RemapImage((bool)(obj as MenuItem).Tag); };
                 item_more_haldclut.Click += (obj, evt) => { HaldClutImage((bool)(obj as MenuItem).Tag); };
 
@@ -1530,16 +1545,19 @@ namespace ImageCompare
                 item_more_fillflood.Click += (obj, evt) => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
+                item_more.Items.Add(item_more_autoequalize);
+                item_more.Items.Add(item_more_autoenhance);
+                item_more.Items.Add(item_more_autolevel);
+                item_more.Items.Add(item_more_autocontrast);
+                item_more.Items.Add(item_more_autowhitebalance);
+                item_more.Items.Add(item_more_autogamma);
+                item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_oil);
                 item_more.Items.Add(item_more_charcoal);
                 item_more.Items.Add(new Separator());
-                item_more.Items.Add(item_more_autolevel);
-                item_more.Items.Add(item_more_autocontrast);
-                item_more.Items.Add(item_more_autoenhance);
-                item_more.Items.Add(item_more_autoequalize);
-                item_more.Items.Add(item_more_autogamma);
-                item_more.Items.Add(item_more_autothreshold);
+                item_more.Items.Add(item_more_autovignette);
                 item_more.Items.Add(item_more_blueshift);
+                item_more.Items.Add(item_more_autothreshold);
                 item_more.Items.Add(item_more_remap);
                 item_more.Items.Add(item_more_haldclut);
                 item_more.Items.Add(new Separator());
@@ -1938,12 +1956,15 @@ namespace ImageCompare
             {
                 if (sender is Image)
                 {
-                    var image = sender as Image;
-                    if (image.ToolTip is string && (image.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                    Dispatcher.InvokeAsync(() =>
                     {
-                        var type = image == ImageSource ? ImageType.Source : (image == ImageTarget ? ImageType.Target : ImageType.Result);
-                        image.ToolTip = GetImageInfo(type);
-                    }
+                        var image = sender as Image;
+                        if (image.ToolTip is string && (image.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            var type = image == ImageSource ? ImageType.Source : (image == ImageTarget ? ImageType.Target : ImageType.Result);
+                            image.ToolTip = GetImageInfo(type);
+                        }
+                    }, DispatcherPriority.Background);
                 }
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }

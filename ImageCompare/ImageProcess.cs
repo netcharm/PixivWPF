@@ -915,6 +915,45 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void AutoWhiteBalanceImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var enhance = new Percentage(10);
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (WeakEffects) SourceImage.WhiteBalance();
+                        else SourceImage.WhiteBalance(enhance);
+                        //SourceImage.RePage();
+                        action = true;
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (WeakEffects) TargetImage.WhiteBalance();
+                        else TargetImage.WhiteBalance(enhance);
+                        //TargetImage.RePage();
+                        action = true;
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void AutoContrastImage(bool source)
         {
             try
@@ -1097,12 +1136,52 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void AutoVignetteImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var radios = WeakEffects ? 75 : 150;
+                var sigma = WeakEffects ? 67 : 67;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.Vignette(radios, sigma, 5, 5);
+                        //SourceImage.RePage();
+                        action = true;
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.Vignette(radios, sigma, 5, 5);
+                        //TargetImage.RePage();
+                        action = true;
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void RemapImage(bool source)
         {
             try
             {
                 var action = false;
-                var colors = WeakEffects ? 4096 : 65536;
+                var colors = WeakEffects ? 32768 : 65536;
+                var dither = WeakEffects ? DitherMethod.No :  DitherMethod.FloydSteinberg;
+                var depth = WeakEffects ? 3 : 7;
                 if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage)
@@ -1111,7 +1190,14 @@ namespace ImageCompare
                         if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
                         if (TargetImage is MagickImage)
                         {
-                            SourceImage.Map(TargetImage, new QuantizeSettings() { MeasureErrors = false, Colors = colors });
+                            var err = SourceImage.Map(TargetImage, new QuantizeSettings()
+                            {
+                                MeasureErrors = true,
+                                Colors = colors,
+                                ColorSpace = ColorSpace.sRGB,
+                                DitherMethod = dither,
+                                TreeDepth = depth
+                            });
                             //SourceImage.RePage();
                             action = true;
                         }
@@ -1125,7 +1211,14 @@ namespace ImageCompare
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
                         if (SourceImage is MagickImage)
                         {
-                            TargetImage.Map(TargetImage, new QuantizeSettings() { MeasureErrors = false, Colors = colors });
+                            var err = TargetImage.Map(TargetImage, new QuantizeSettings()
+                            {
+                                MeasureErrors = true,
+                                Colors = colors,
+                                ColorSpace = ColorSpace.sRGB,
+                                DitherMethod = dither,
+                                TreeDepth = depth
+                            });
                             //TargetImage.RePage();
                             action = true;
                         }
