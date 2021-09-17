@@ -1911,7 +1911,11 @@ namespace ImageCompare
                 e.Handled = true;
                 try
                 {
-                    if (e.Key == Key.F1 || e.SystemKey == Key.F1)
+                    if (Keyboard.Modifiers == ModifierKeys.Control && (e.Key == Key.W || e.SystemKey == Key.W))
+                    {
+                        Close();
+                    }
+                    else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
                     {
                         ImageActions_Click(ImageOpenSource, e);
                     }
