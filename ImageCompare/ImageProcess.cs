@@ -1141,15 +1141,15 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                var radios = WeakEffects ? 75 : 150;
-                var sigma = WeakEffects ? 67 : 67;
+                var radios = WeakEffects ? 50.0 : 150.0;
+                var sigma = WeakEffects ? 64 : 64;
                 if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage)
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        SourceImage.Vignette(radios, sigma, 5, 5);
+                        SourceImage.Vignette((new double[] { radios / 2.0, SourceImage.Width, SourceImage.Height }).Min(), sigma, 5, 5);
                         //SourceImage.RePage();
                         action = true;
                     }
@@ -1160,7 +1160,7 @@ namespace ImageCompare
                     {
                         if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        TargetImage.Vignette(radios, sigma, 5, 5);
+                        TargetImage.Vignette((new double[] { radios / 2.0, TargetImage.Width, TargetImage.Height }).Min(), sigma, 5, 5);
                         //TargetImage.RePage();
                         action = true;
                     }

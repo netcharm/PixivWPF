@@ -4,11 +4,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 using ImageMagick;
 using Xceed.Wpf.Toolkit;
@@ -192,6 +194,84 @@ namespace ImageCompare
                 else _be_locale_.Clear();
             }
         }
+        #endregion
+
+        #region Application Helper
+        private static object ExitFrame(object state)
+        {
+            ((DispatcherFrame)state).Continue = false;
+            return null;
+        }
+
+        private static SemaphoreSlim CanDoEvents = new SemaphoreSlim(1, 1);
+        public static async void DoEvents()
+        {
+            if (await CanDoEvents.WaitAsync(0))
+            {
+                try
+                {
+                    if (Application.Current.Dispatcher.CheckAccess())
+                    {
+                        await Dispatcher.Yield(DispatcherPriority.Render);
+                        //await System.Windows.Threading.Dispatcher.Yield();
+
+                        //DispatcherFrame frame = new DispatcherFrame();
+                        //await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                        //Dispatcher.PushFrame(frame);
+                    }
+                }
+                catch (Exception)
+                {
+                    try
+                    {
+                        if (Application.Current.Dispatcher.CheckAccess())
+                        {
+                            DispatcherFrame frame = new DispatcherFrame();
+                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { }));
+                            //Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Send, new Action(delegate { }));
+
+                            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(ExitFrame), frame);
+                            //await Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Render, new DispatcherOperationCallback(ExitFrame), frame);
+                            await Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Send, new DispatcherOperationCallback(ExitFrame), frame);
+                            Dispatcher.PushFrame(frame);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        await Task.Delay(1);
+                    }
+                }
+                finally
+                {
+                    //CanDoEvents.Release(max: 1);
+                    if (CanDoEvents is SemaphoreSlim && CanDoEvents.CurrentCount <= 0) CanDoEvents.Release();
+                }
+            }
+        }
+
+        public static void DoEvents(this FrameworkElement element)
+        {
+            try
+            {
+                DoEvents();
+            }
+            catch { }
+        }
+
+        public static async void InvokeAsync(this FrameworkElement element, Action action, bool realtime = false)
+        {
+            try
+            {
+                if (element is FrameworkElement)
+                {
+                    element.DoEvents();
+                    await Task.Delay(1);
+                    await element.Dispatcher.InvokeAsync(action, realtime ? DispatcherPriority.Render : DispatcherPriority.Background);
+                }
+            }
+            catch { }
+        }
+
         #endregion
 
         #region Magick.Net Helper

@@ -1344,28 +1344,27 @@ namespace ImageCompare
                 };
                 #endregion
                 #region Create MenuItem Click event handles
-                item_fh.Click += (obj, evt) => { FlopImage((bool)(obj as MenuItem).Tag); };
-                item_fv.Click += (obj, evt) => { FlipImage((bool)(obj as MenuItem).Tag); };
-                item_r090.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 90); };
-                item_r180.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 180); };
-                item_r270.Click += (obj, evt) => { RotateImage((bool)(obj as MenuItem).Tag, 270); };
-                item_reset.Click += (obj, evt) => { ResetImage((bool)(obj as MenuItem).Tag); };
+                item_fh.Click += (obj, evt) => { this.InvokeAsync(() => { FlopImage((bool)(obj as MenuItem).Tag); }); };
+                item_fv.Click += (obj, evt) => { this.InvokeAsync(() => { FlipImage((bool)(obj as MenuItem).Tag); }); };
+                item_r090.Click += (obj, evt) => { this.InvokeAsync(() => {RotateImage((bool)(obj as MenuItem).Tag, 90); }); };
+                item_r180.Click += (obj, evt) => { this.InvokeAsync(() => {RotateImage((bool)(obj as MenuItem).Tag, 180); }); };
+                item_r270.Click += (obj, evt) => { this.InvokeAsync(() => {RotateImage((bool)(obj as MenuItem).Tag, 270); }); };
+                item_reset.Click += (obj, evt) => { this.InvokeAsync(() => {ResetImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_gray.Click += (obj, evt) => { GrayscaleImage((bool)(obj as MenuItem).Tag); };
-                item_blur.Click += (obj, evt) => { BlurImage((bool)(obj as MenuItem).Tag); };
-                item_sharp.Click += (obj, evt) => { SharpImage((bool)(obj as MenuItem).Tag); };
-                item_more.Click += (obj, evt) => { };
+                item_gray.Click += (obj, evt) => { this.InvokeAsync(() => {GrayscaleImage((bool)(obj as MenuItem).Tag); }); };
+                item_blur.Click += (obj, evt) => { this.InvokeAsync(() => { BlurImage((bool)(obj as MenuItem).Tag); }); };
+                item_sharp.Click += (obj, evt) => { this.InvokeAsync(() => { SharpImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_size_crop.Click += (obj, evt) => { CropImage((bool)(obj as MenuItem).Tag); };
-                item_size_to_source.Click += (obj, evt) => { ResizeToImage(false); };
-                item_size_to_target.Click += (obj, evt) => { ResizeToImage(true); };
+                item_size_crop.Click += (obj, evt) => { this.InvokeAsync(() => { CropImage((bool)(obj as MenuItem).Tag); }); };
+                item_size_to_source.Click += (obj, evt) => { this.InvokeAsync(() => { ResizeToImage(false); }); };
+                item_size_to_target.Click += (obj, evt) => { this.InvokeAsync(() => { ResizeToImage(true); }); };
 
-                item_slice_h.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false); };
-                item_slice_v.Click += (obj, evt) => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true); };
+                item_slice_h.Click += (obj, evt) => { this.InvokeAsync(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false); }); };
+                item_slice_v.Click += (obj, evt) => { this.InvokeAsync(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true); }); };
 
-                item_reload.Click += (obj, evt) => { ReloadImage((bool)(obj as MenuItem).Tag); };
+                item_reload.Click += (obj, evt) => { this.InvokeAsync(() => { ReloadImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_copyinfo.Click += (obj, evt) => { CopyImageInfo((bool)(obj as MenuItem).Tag); };
+                item_copyinfo.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageInfo((bool)(obj as MenuItem).Tag); }); };
                 item_saveas.Click += (obj, evt) => { SaveImageAs((bool)(obj as MenuItem).Tag); };
                 #endregion
                 #region Add MenuItems to ContextMenu
@@ -1523,26 +1522,27 @@ namespace ImageCompare
                 };
                 #endregion
                 #region MoreEffects MenuItem Click event handles
-                item_more_oil.Click += (obj, evt) => { OilImage((bool)(obj as MenuItem).Tag); };
-                item_more_charcoal.Click += (obj, evt) => { CharcoalImage((bool)(obj as MenuItem).Tag); };
+                item_more_oil.Click += (obj, evt) => { this.InvokeAsync(() => { OilImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_charcoal.Click += (obj, evt) => { this.InvokeAsync(() => { CharcoalImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_more_autoequalize.Click += (obj, evt) => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); };
-                item_more_autoenhance.Click += (obj, evt) => { AutoEnhanceImage((bool)(obj as MenuItem).Tag); };
-                item_more_autolevel.Click += (obj, evt) => { AutoLevelImage((bool)(obj as MenuItem).Tag); };
-                item_more_autocontrast.Click += (obj, evt) => { AutoContrastImage((bool)(obj as MenuItem).Tag); };
-                item_more_autowhitebalance.Click += (obj, evt) => { AutoWhiteBalanceImage((bool)(obj as MenuItem).Tag); };
-                item_more_autogamma.Click += (obj, evt) => { AutoGammaImage((bool)(obj as MenuItem).Tag); };
+                item_more_autoequalize.Click += (obj, evt) => { this.InvokeAsync(() => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autoenhance.Click += (obj, evt) => { this.InvokeAsync(() => { AutoEnhanceImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autolevel.Click += (obj, evt) => { this.InvokeAsync(() => { AutoLevelImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autocontrast.Click += (obj, evt) => { this.InvokeAsync(() => { AutoContrastImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autowhitebalance.Click += (obj, evt) => { this.InvokeAsync(() => { AutoWhiteBalanceImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autogamma.Click += (obj, evt) => { this.InvokeAsync(() => { AutoGammaImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_more_autovignette.Click += (obj, evt) => { AutoVignetteImage((bool)(obj as MenuItem).Tag); };
-                item_more_blueshift.Click += (obj, evt) => { BlueShiftImage((bool)(obj as MenuItem).Tag); };
-                item_more_autothreshold.Click += (obj, evt) => { AutoThresholdImage((bool)(obj as MenuItem).Tag); };
-                item_more_remap.Click += (obj, evt) => { RemapImage((bool)(obj as MenuItem).Tag); };
-                item_more_haldclut.Click += (obj, evt) => { HaldClutImage((bool)(obj as MenuItem).Tag); };
+                item_more_autovignette.Click += (obj, evt) => { this.InvokeAsync(() => { AutoVignetteImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_more_meanshift.Click += (obj, evt) => { MeanShiftImage((bool)(obj as MenuItem).Tag); };
-                item_more_kmeans.Click += (obj, evt) => { KmeansImage((bool)(obj as MenuItem).Tag); };
+                item_more_blueshift.Click += (obj, evt) => { this.InvokeAsync(() => { BlueShiftImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autothreshold.Click += (obj, evt) => { this.InvokeAsync(() => { AutoThresholdImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_remap.Click += (obj, evt) => { this.InvokeAsync(() => { RemapImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_haldclut.Click += (obj, evt) => { this.InvokeAsync(() => { HaldClutImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_more_fillflood.Click += (obj, evt) => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); };
+                item_more_meanshift.Click += (obj, evt) => { this.InvokeAsync(() => { MeanShiftImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_kmeans.Click += (obj, evt) => { this.InvokeAsync(() => { KmeansImage((bool)(obj as MenuItem).Tag); }); };
+
+                item_more_fillflood.Click += (obj, evt) => { this.InvokeAsync(() => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); }); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_autoequalize);
@@ -1566,7 +1566,6 @@ namespace ImageCompare
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_fillflood);
                 #endregion
-
                 target.ContextMenuOpening += (obj, evt) =>
                 {
                     item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
@@ -1956,7 +1955,7 @@ namespace ImageCompare
             {
                 if (sender is Image)
                 {
-                    Dispatcher.InvokeAsync(() =>
+                    this.InvokeAsync(() =>
                     {
                         var image = sender as Image;
                         if (image.ToolTip is string && (image.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
@@ -1964,7 +1963,7 @@ namespace ImageCompare
                             var type = image == ImageSource ? ImageType.Source : (image == ImageTarget ? ImageType.Target : ImageType.Result);
                             image.ToolTip = GetImageInfo(type);
                         }
-                    }, DispatcherPriority.Background);
+                    });
                 }
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
