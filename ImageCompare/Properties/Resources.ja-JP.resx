@@ -376,7 +376,7 @@
     <value>日本語</value>
   </data>
   <data name="FillBoundingBox.Header" xml:space="preserve">
-    <value>境界を塗りつぶします</value>
+    <value>境界を自動的に埋める</value>
   </data>
   <data name="InfoTipBounding" xml:space="preserve">
     <value>境界サイズ       =</value>
@@ -391,6 +391,24 @@
     <value>自動二値化画像</value>
   </data>
   <data name="BlueShift.Header" xml:space="preserve">
-    <value>夜の月光の効果をまねます。</value>
+    <value>夜の月光の効果をまねます</value>
+  </data>
+  <data name="AutoContrast.Header" xml:space="preserve">
+    <value>コントラストの自動調整</value>
+  </data>
+  <data name="AutoEnhance.Header" xml:space="preserve">
+    <value>自動強化画像</value>
+  </data>
+  <data name="AutoEqualize.Header" xml:space="preserve">
+    <value>画像の自動均衡</value>
+  </data>
+  <data name="HaldClut.Header" xml:space="preserve">
+    <value>Hald CLUT を適用</value>
+  </data>
+  <data name="KmeansCluster.Header" xml:space="preserve">
+    <value>K-Means クラスター</value>
+  </data>
+  <data name="ReMapColor.Header" xml:space="preserve">
+    <value>色を再マッピング</value>
   </data>
 </root>

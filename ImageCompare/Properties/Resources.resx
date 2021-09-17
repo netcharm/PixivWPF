@@ -393,4 +393,22 @@
   <data name="BlueShift.Header" xml:space="preserve">
     <value>Blue Shift (Moonlight Night)</value>
   </data>
+  <data name="AutoContrast.Header" xml:space="preserve">
+    <value>Auto Contrast</value>
+  </data>
+  <data name="AutoEnhance.Header" xml:space="preserve">
+    <value>Auto Enhance</value>
+  </data>
+  <data name="AutoEqualize.Header" xml:space="preserve">
+    <value>Auto Equalize</value>
+  </data>
+  <data name="HaldClut.Header" xml:space="preserve">
+    <value>Apply Hald CLUT</value>
+  </data>
+  <data name="KmeansCluster.Header" xml:space="preserve">
+    <value>K-Means Cluster</value>
+  </data>
+  <data name="ReMapColor.Header" xml:space="preserve">
+    <value>Re-Map Color</value>
+  </data>
 </root>

@@ -837,7 +837,7 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private void AutoContrastImage(bool source)
+        private void AutoEqualizeImage(bool source)
         {
             try
             {
@@ -848,7 +848,7 @@ namespace ImageCompare
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        SourceImage.Contrast(WeakEffects);
+                        SourceImage.Equalize();
                         //SourceImage.RePage();
                         action = true;
                     }
@@ -859,7 +859,80 @@ namespace ImageCompare
                     {
                         if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        TargetImage.Contrast(WeakEffects);
+                        TargetImage.Equalize();
+                        //TargetImage.RePage();
+                        action = true;
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void AutoEnhanceImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.Enhance();
+                        //SourceImage.RePage();
+                        action = true;
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.Enhance();
+                        //TargetImage.RePage();
+                        action = true;
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void AutoContrastImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var enchance = !WeakEffects;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.Contrast(enchance);
+                        //SourceImage.RePage();
+                        action = true;
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.Contrast(enchance);
                         //TargetImage.RePage();
                         action = true;
                     }
@@ -1018,6 +1091,91 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void RemapImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var colors = WeakEffects ? 4096 : 65536;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (TargetImage is MagickImage)
+                        {
+                            SourceImage.Map(TargetImage, new QuantizeSettings() { MeasureErrors = false, Colors = colors });
+                            //SourceImage.RePage();
+                            action = true;
+                        }
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (SourceImage is MagickImage)
+                        {
+                            TargetImage.Map(TargetImage, new QuantizeSettings() { MeasureErrors = false, Colors = colors });
+                            //TargetImage.RePage();
+                            action = true;
+                        }
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void HaldClutImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (TargetImage is MagickImage)
+                        {
+                            SourceImage.HaldClut(TargetImage);
+                            //SourceImage.RePage();
+                            action = true;
+                        }
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (SourceImage is MagickImage)
+                        {
+                            TargetImage.HaldClut(SourceImage);
+                            //TargetImage.RePage();
+                            action = true;
+                        }
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void FillOutBoundBoxImage(bool source)
         {
             try
@@ -1089,6 +1247,43 @@ namespace ImageCompare
                         if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
                         TargetImage.MeanShift(radius, new Percentage(sigma));
+                        //TargetImage.RePage();
+                        action = true;
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void KmeansImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var sigma = WeakEffects ? 16 : 8;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.Kmeans(new KmeansSettings() { Tolerance = sigma, NumberColors = 64, MaxIterations = 100 });
+                        //SourceImage.RePage();
+                        action = true;
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.Kmeans(new KmeansSettings() { Tolerance = sigma, NumberColors = 64, MaxIterations = 100 });
                         //TargetImage.RePage();
                         action = true;
                     }

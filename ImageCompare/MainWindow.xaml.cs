@@ -1389,22 +1389,52 @@ namespace ImageCompare
                     Uid = "AutoLevel",
                     Tag = source
                 };
+                var item_more_autocontrast = new MenuItem()
+                {
+                    Header = "Auto Contrast",
+                    Uid = "AutoContrast",
+                    Tag = source
+                };
+                var item_more_autoenhance = new MenuItem()
+                {
+                    Header = "Auto Enhance",
+                    Uid = "AutoEnhance",
+                    Tag = source
+                };
+                var item_more_autoequalize = new MenuItem()
+                {
+                    Header = "Auto Equalize",
+                    Uid = "AutoEqualize",
+                    Tag = source
+                };
                 var item_more_autogamma = new MenuItem()
                 {
                     Header = "Auto Gamma",
                     Uid = "AutoGamma",
                     Tag = source
                 };
-                var item_more_autothreshold= new MenuItem()
+                var item_more_autothreshold = new MenuItem()
                 {
                     Header = "Auto Threshold",
                     Uid = "AutoThreshold",
                     Tag = source
                 };
-                var item_more_blueshift= new MenuItem()
+                var item_more_blueshift = new MenuItem()
                 {
                     Header = "Blue Shift",
                     Uid = "BlueShift",
+                    Tag = source
+                };
+                var item_more_remap = new MenuItem()
+                {
+                    Header = "Re-Map Color",
+                    Uid = "ReMapColor",
+                    Tag = source
+                };
+                var item_more_haldclut = new MenuItem()
+                {
+                    Header = "Hald Clut",
+                    Uid = "HaldClut",
                     Tag = source
                 };
 
@@ -1414,6 +1444,13 @@ namespace ImageCompare
                     Uid = "MeanShift",
                     Tag = source
                 };
+                var item_more_kmeans = new MenuItem()
+                {
+                    Header = "K-Means Cluster",
+                    Uid = "KmeansCluster",
+                    Tag = source
+                };
+
                 var item_more_fillflood = new MenuItem()
                 {
                     Header = "Fill BoundingBox",
@@ -1424,22 +1461,39 @@ namespace ImageCompare
                 #region MoreEffects MenuItem Click event handles
                 item_more_oil.Click += (obj, evt) => { OilImage((bool)(obj as MenuItem).Tag); };
                 item_more_charcoal.Click += (obj, evt) => { CharcoalImage((bool)(obj as MenuItem).Tag); };
+
                 item_more_autolevel.Click += (obj, evt) => { AutoLevelImage((bool)(obj as MenuItem).Tag); };
+                item_more_autocontrast.Click += (obj, evt) => { AutoContrastImage((bool)(obj as MenuItem).Tag); };
+                item_more_autoenhance.Click += (obj, evt) => { AutoEnhanceImage((bool)(obj as MenuItem).Tag); };
+                item_more_autoequalize.Click += (obj, evt) => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); };
                 item_more_autogamma.Click += (obj, evt) => { AutoGammaImage((bool)(obj as MenuItem).Tag); };
                 item_more_autothreshold.Click += (obj, evt) => { AutoThresholdImage((bool)(obj as MenuItem).Tag); };
+
                 item_more_blueshift.Click += (obj, evt) => { BlueShiftImage((bool)(obj as MenuItem).Tag); };
+                item_more_remap.Click += (obj, evt) => { RemapImage((bool)(obj as MenuItem).Tag); };
+                item_more_haldclut.Click += (obj, evt) => { HaldClutImage((bool)(obj as MenuItem).Tag); };
+
                 item_more_meanshift.Click += (obj, evt) => { MeanShiftImage((bool)(obj as MenuItem).Tag); };
+                item_more_kmeans.Click += (obj, evt) => { KmeansImage((bool)(obj as MenuItem).Tag); };
+
                 item_more_fillflood.Click += (obj, evt) => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
                 item_more.Items.Add(item_more_oil);
                 item_more.Items.Add(item_more_charcoal);
+                item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_autolevel);
+                item_more.Items.Add(item_more_autocontrast);
+                item_more.Items.Add(item_more_autoenhance);
+                item_more.Items.Add(item_more_autoequalize);
                 item_more.Items.Add(item_more_autogamma);
                 item_more.Items.Add(item_more_autothreshold);
                 item_more.Items.Add(item_more_blueshift);
+                item_more.Items.Add(item_more_remap);
+                item_more.Items.Add(item_more_haldclut);
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_meanshift);
+                item_more.Items.Add(item_more_kmeans);
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_fillflood);
                 #endregion

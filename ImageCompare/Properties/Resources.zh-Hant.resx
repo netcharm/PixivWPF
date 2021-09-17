@@ -376,7 +376,7 @@
     <value>日本語</value>
   </data>
   <data name="FillBoundingBox.Header" xml:space="preserve">
-    <value>填充邊界</value>
+    <value>自動填充邊界</value>
   </data>
   <data name="InfoTipBounding" xml:space="preserve">
     <value>邊界尺寸       =</value>
@@ -392,5 +392,23 @@
   </data>
   <data name="BlueShift.Header" xml:space="preserve">
     <value>模仿夜間月光效果</value>
+  </data>
+  <data name="AutoContrast.Header" xml:space="preserve">
+    <value>自動調節對比度</value>
+  </data>
+  <data name="AutoEnhance.Header" xml:space="preserve">
+    <value>自動增强影像</value>
+  </data>
+  <data name="AutoEqualize.Header" xml:space="preserve">
+    <value>自動均衡影像</value>
+  </data>
+  <data name="HaldClut.Header" xml:space="preserve">
+    <value>應用 Hald CLUT</value>
+  </data>
+  <data name="KmeansCluster.Header" xml:space="preserve">
+    <value>K-Means 聚類</value>
+  </data>
+  <data name="ReMapColor.Header" xml:space="preserve">
+    <value>重映射顏色</value>
   </data>
 </root>
