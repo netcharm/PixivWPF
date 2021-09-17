@@ -43,10 +43,13 @@ namespace ImageCompare
         private string DefaultCompareToolTip { get; set; } = string.Empty;
         private string DefaultComposeToolTip { get; set; } = string.Empty;
 
+        private Rect LastPositionSize { get; set; } = new Rect();
+
         private CultureInfo DefaultCultureInfo { get; set; } = CultureInfo.CurrentCulture;
         #endregion
 
         #region Magick.Net Settings
+        private Dictionary<string, string> AllSupportedFormats { get; set; } = new Dictionary<string, string>();
         private string AllSupportedFiles { get; set; } = string.Empty;
         private string AllSupportedFilters { get; set; } = string.Empty;
 
@@ -333,7 +336,20 @@ namespace ImageCompare
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
         }
 
+        Func<MagickImage, int> FuncTotalColors = (i)=> { return ((i is MagickImage && !i.IsDisposed) ? i.TotalColors : 0); };
+
+        private async Task<int> TotalColors(MagickImage image)
+        {
+            var result = 0;
+            Func<int> GetColorsCount = () => { return ((image is MagickImage && !image.IsDisposed) ? image.TotalColors : 0);};
+            result = await Dispatcher.InvokeAsync<int>(GetColorsCount, DispatcherPriority.Background);
+            return (result);
+        }
+#if DEBUG
+        private async Task<string> GetImageInfo(ImageType type)
+#else
         private string GetImageInfo(ImageType type)
+#endif
         {
             string result = string.Empty;
             try
@@ -354,22 +370,30 @@ namespace ImageCompare
                     if (image.BoundingBox != null)
                         tip.Add($"{"InfoTipBounding".T()} {image.BoundingBox.Width:F0}x{image.BoundingBox.Height:F0}");
                     tip.Add($"{"InfoTipResolution".T()} {image.Density.X:F0} DPI x {image.Density.Y:F0} DPI");
-                    tip.Add($"{"InfoTipColors".T()} {image.TotalColors}");
-                    tip.Add($"{"InfoTipAttributes".T()}");
-                    foreach (var attr in image.AttributeNames)
+                    //tip.Add($"{"InfoTipColors".T()} {TotalColors.Invoke(image)}");
+#if DEBUG
+                    if (Keyboard.Modifiers == ModifierKeys.Alt)
+                        tip.Add($"{"InfoTipColors".T()} {await TotalColors(image)}");
+#endif
+                    if (image.AttributeNames != null)
                     {
-                        try
+                        tip.Add($"{"InfoTipAttributes".T()}");
+                        foreach (var attr in image.AttributeNames)
                         {
-                            var value = image.GetAttribute(attr);
-                            if (string.IsNullOrEmpty(value)) continue;
-                            if (attr.Contains("WinXP")) value = DecodeHexUnicode(value);
-                            if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
-                            tip.Add($"  {attr.PadRight(32, ' ')}= { value }");
+                            try
+                            {
+                                var value = image.GetAttribute(attr);
+                                if (string.IsNullOrEmpty(value)) continue;
+                                if (attr.Contains("WinXP")) value = DecodeHexUnicode(value);
+                                if (value.Length > 64) value = $"{value.Substring(0, 64)} ...";
+                                tip.Add($"  {attr.PadRight(32, ' ')}= { value }");
+                            }
+                            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, $"{attr} : {ex.Message}"); }
                         }
-                        catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, $"{attr} : {ex.Message}"); }
                     }
-                    tip.Add($"{"InfoTipColorSpace".T()} {Path.GetFileName(image.ColorSpace.ToString())}");
-                    tip.Add($"{"InfoTipFormatInfo".T()} {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
+                    tip.Add($"{"InfoTipColorSpace".T()} {image.ColorSpace.ToString()}");
+                    if (image.FormatInfo != null)
+                        tip.Add($"{"InfoTipFormatInfo".T()} {image.FormatInfo.Format.ToString()}, {image.FormatInfo.MimeType}");
 #if Q16HDRI
                     tip.Add($"{"InfoTipMemoryUsage".T()} {SmartFileSize(image.Width * image.Height * image.ChannelCount * image.Depth * 4 / 8)}");
 #elif Q16
@@ -831,7 +855,7 @@ namespace ImageCompare
                 try
                 {
                     var action = false;
-                    files = files.Where(f => !string.IsNullOrEmpty(f)).ToArray();
+                    files = files.Where(f => !string.IsNullOrEmpty(f)).Where(f => AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
                     var count = files.Length;
                     if (count > 0)
                     {
@@ -1125,14 +1149,15 @@ namespace ImageCompare
                 Configuration appCfg =  ConfigurationManager.OpenExeConfiguration(AppExec);
                 AppSettingsSection appSection = appCfg.AppSettings;
 
-                if (WindowState == System.Windows.WindowState.Normal)
-                {
-                    var rect = new Rect(Top, Left, Math.Min(MaxWidth, Math.Max(MinWidth, Width)), Math.Min(MaxHeight, Math.Max(MinHeight, Height)));
-                    if (appSection.Settings.AllKeys.Contains("WindowPosition"))
-                        appSection.Settings["WindowPosition"].Value = rect.ToString();
-                    else
-                        appSection.Settings.Add("WindowPosition", rect.ToString());
-                }
+                var rect = new Rect(
+                        LastPositionSize.Top, LastPositionSize.Left,
+                        Math.Min(MaxWidth, Math.Max(MinWidth, LastPositionSize.Width)),
+                        Math.Min(MaxHeight, Math.Max(MinHeight, LastPositionSize.Height))
+                    );
+                if (appSection.Settings.AllKeys.Contains("WindowPosition"))
+                    appSection.Settings["WindowPosition"].Value = rect.ToString();
+                else
+                    appSection.Settings.Add("WindowPosition", rect.ToString());
 
                 if (appSection.Settings.AllKeys.Contains("CachePath"))
                     appSection.Settings["CachePath"].Value = CachePath;
@@ -1378,12 +1403,12 @@ namespace ImageCompare
                 #region Create MenuItem Click event handles
                 item_fh.Click += (obj, evt) => { this.InvokeAsync(() => { FlopImage((bool)(obj as MenuItem).Tag); }); };
                 item_fv.Click += (obj, evt) => { this.InvokeAsync(() => { FlipImage((bool)(obj as MenuItem).Tag); }); };
-                item_r090.Click += (obj, evt) => { this.InvokeAsync(() => {RotateImage((bool)(obj as MenuItem).Tag, 90); }); };
-                item_r180.Click += (obj, evt) => { this.InvokeAsync(() => {RotateImage((bool)(obj as MenuItem).Tag, 180); }); };
-                item_r270.Click += (obj, evt) => { this.InvokeAsync(() => {RotateImage((bool)(obj as MenuItem).Tag, 270); }); };
-                item_reset.Click += (obj, evt) => { this.InvokeAsync(() => {ResetImage((bool)(obj as MenuItem).Tag); }); };
+                item_r090.Click += (obj, evt) => { this.InvokeAsync(() => { RotateImage((bool)(obj as MenuItem).Tag, 90); }); };
+                item_r180.Click += (obj, evt) => { this.InvokeAsync(() => { RotateImage((bool)(obj as MenuItem).Tag, 180); }); };
+                item_r270.Click += (obj, evt) => { this.InvokeAsync(() => { RotateImage((bool)(obj as MenuItem).Tag, 270); }); };
+                item_reset.Click += (obj, evt) => { this.InvokeAsync(() => { ResetImage((bool)(obj as MenuItem).Tag); }); };
 
-                item_gray.Click += (obj, evt) => { this.InvokeAsync(() => {GrayscaleImage((bool)(obj as MenuItem).Tag); }); };
+                item_gray.Click += (obj, evt) => { this.InvokeAsync(() => { GrayscaleImage((bool)(obj as MenuItem).Tag); }); };
                 item_blur.Click += (obj, evt) => { this.InvokeAsync(() => { BlurImage((bool)(obj as MenuItem).Tag); }); };
                 item_sharp.Click += (obj, evt) => { this.InvokeAsync(() => { SharpImage((bool)(obj as MenuItem).Tag); }); };
 
@@ -1709,10 +1734,10 @@ namespace ImageCompare
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
 
-            var fmts = GetSupportedImageFormats();
-            var exts = GetSupportedImageFormats().Keys.ToList().Skip(4).Select(f => $"*.{f}");
+            AllSupportedFormats = GetSupportedImageFormats();
+            var exts = AllSupportedFormats.Keys.ToList().Skip(4).Select(f => $"*.{f}");
             AllSupportedFiles = string.Join(";", exts);
-            AllSupportedFilters = string.Join("|", fmts.Select(f => $"{f.Value}|*.{f.Key}"));
+            AllSupportedFilters = string.Join("|", AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
 
             CompareResizeGeometry = new MagickGeometry($"{MaxCompareSize}x{MaxCompareSize}>");
             #endregion
@@ -1849,6 +1874,8 @@ namespace ImageCompare
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
+            if (WindowState == System.Windows.WindowState.Normal)
+                LastPositionSize = new Rect(Top, Left, Width, Height);
             CalcDisplay(set_ratio: true);
         }
 
@@ -1874,6 +1901,76 @@ namespace ImageCompare
                 {
                     LoadImageFromFiles((files as IEnumerable<string>).ToArray(), e.Source == ImageSourceScroll || e.Source == ImageSource ? true : false);
                 }
+            }
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.IsDown)
+            {
+                e.Handled = true;
+                try
+                {
+                    if (e.Key == Key.F1 || e.SystemKey == Key.F1)
+                    {
+                        ImageActions_Click(ImageOpenSource, e);
+                    }
+                    else if (e.Key == Key.F2 || e.SystemKey == Key.F2)
+                    {
+                        ImageActions_Click(ImageOpenTarget, e);
+                    }
+                    else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
+                    {
+                        ImageActions_Click(ImagePasteSource, e);
+                    }
+                    else if (e.Key == Key.F4 || e.SystemKey == Key.F4)
+                    {
+                        ImageActions_Click(ImagePasteTarget, e);
+                    }
+                    else if (e.Key == Key.F5 || e.SystemKey == Key.F5)
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.Shift && ImageCompare.ContextMenu is ContextMenu)
+                            ImageCompare.ContextMenu.IsOpen = true;
+                        else
+                            ImageActions_Click(ImageCompare, e);
+                    }
+                    else if (e.Key == Key.F6 || e.SystemKey == Key.F6)
+                    {
+                        if (Keyboard.Modifiers == ModifierKeys.Shift && ImageCompose.ContextMenu is ContextMenu)
+                            ImageCompose.ContextMenu.IsOpen = true;
+                        else
+                            ImageActions_Click(ImageCompose, e);
+                    }
+                    else if (e.Key == Key.F7 || e.SystemKey == Key.F7)
+                    {
+                        ImageActions_Click(ImageCopyResult, e);
+                    }
+                    else if (e.Key == Key.F8 || e.SystemKey == Key.F8)
+                    {
+                        ImageActions_Click(ImageSaveResult, e);
+                    }
+                    else if (e.Key == Key.F9 || e.SystemKey == Key.F9)
+                    {
+                        if (ZoomFitNone.IsChecked ?? false) { ZoomFitAll.IsChecked = true; ImageActions_Click(ZoomFitAll, e); }
+                        else if (ZoomFitAll.IsChecked ?? false) { ZoomFitWidth.IsChecked = true; ImageActions_Click(ZoomFitWidth, e); }
+                        else if (ZoomFitWidth.IsChecked ?? false) { ZoomFitHeight.IsChecked = true; ImageActions_Click(ZoomFitHeight, e); }
+                        else if (ZoomFitHeight.IsChecked ?? false) { ZoomFitNone.IsChecked = true; ImageActions_Click(ZoomFitNone, e); }
+                    }
+                    else if (e.Key == Key.F10 || e.SystemKey == Key.F10)
+                    {
+                        ImageExchange.IsChecked = !ImageExchange.IsChecked;
+                        ImageActions_Click(ImageExchange, e);
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.S || e.SystemKey == Key.S))
+                    {
+                        if (ImageSource.Source != null && ImageSource.ContextMenu != null) ImageSource.ContextMenu.IsOpen = true;
+                    }
+                    else if (Keyboard.Modifiers == ModifierKeys.Alt && (e.Key == Key.T || e.SystemKey == Key.T))
+                    {
+                        if (ImageTarget.Source != null && ImageTarget.ContextMenu != null) ImageTarget.ContextMenu.IsOpen = true;
+                    }
+                }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             }
         }
 
@@ -1987,14 +2084,26 @@ namespace ImageCompare
             {
                 if (sender is Image)
                 {
+#if DEBUG
+                    this.InvokeAsync(async () =>
+#else
                     this.InvokeAsync(() =>
+#endif
                     {
-                        var image = sender as Image;
-                        if (image.ToolTip is string && (image.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                        try
                         {
-                            var type = image == ImageSource ? ImageType.Source : (image == ImageTarget ? ImageType.Target : ImageType.Result);
-                            image.ToolTip = GetImageInfo(type);
+                            var image = sender as Image;
+                            if (image.ToolTip is string && (image.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                var type = image == ImageSource ? ImageType.Source : (image == ImageTarget ? ImageType.Target : ImageType.Result);
+#if DEBUG
+                                image.ToolTip = await GetImageInfo(type);
+#else
+                                image.ToolTip = GetImageInfo(type);
+#endif
+                            }
                         }
+                        catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
                     });
                 }
             }
@@ -2146,5 +2255,6 @@ namespace ImageCompare
                 UsedChannels.ContextMenu.IsOpen = true;
             }
         }
+
     }
 }
