@@ -898,6 +898,44 @@ namespace ImageCompare
             }, DispatcherPriority.Render);
         }
 
+        private async void LoadImageFromPrevFile(bool source = true)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    var file = (ExchangeSourceTarget ? !source : source) ? SourceFile : TargetFile;
+                    var files = GetFiles(file);
+                    if (files.Count() > 0 && !string.IsNullOrEmpty(file))
+                    {
+                        var file_n = files.Where(f => f.EndsWith(file, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                        var idx = files.IndexOf(file_n);
+                        if (idx > 0) LoadImageFromFiles(new string[] { files[idx - 1] }, source);
+                    }
+                }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+            });
+        }
+
+        private async void LoadImageFromNextFile(bool source = true)
+        {
+            await Dispatcher.InvokeAsync(() => 
+            {
+                try
+                {
+                    var file = (ExchangeSourceTarget ? !source : source) ? SourceFile : TargetFile;
+                    var files = GetFiles(file);
+                    if (files.Count() > 0 && !string.IsNullOrEmpty(file))
+                    {
+                        var file_n = files.Where(f => f.EndsWith(file, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                        var idx = files.IndexOf(file_n);
+                        if (idx < files.Count - 1) LoadImageFromFiles(new string[] { files[idx + 1] }, source);
+                    }
+                }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+            });
+        }
+
         private async void LoadImageFromFiles(string[] files, bool source = true)
         {
             await Dispatcher.InvokeAsync(() =>
@@ -1430,6 +1468,7 @@ namespace ImageCompare
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE746", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
                 };
+
                 var item_copyto_source = new MenuItem()
                 {
                     Header = "Copy Image To Source",
@@ -1444,6 +1483,22 @@ namespace ImageCompare
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
                 };
+
+                var item_load_prev = new MenuItem()
+                {
+                    Header = "Load Prev Image File",
+                    Uid = "LoadPrevImageFile",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE1A5", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
+                var item_load_next = new MenuItem()
+                {
+                    Header = "Load Next Image File",
+                    Uid = "LoadNextImageFile",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE1A5", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
+
                 var item_reload = new MenuItem()
                 {
                     Header = "Reload Image",
@@ -1489,6 +1544,9 @@ namespace ImageCompare
                 item_copyto_source.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageToOther(source); }); };
                 item_copyto_target.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageToOther(source); }); };
 
+                item_load_prev.Click += (obj, evt) => { this.InvokeAsync(() => { LoadImageFromPrevFile((bool)(obj as MenuItem).Tag); }); };
+                item_load_next.Click += (obj, evt) => { this.InvokeAsync(() => { LoadImageFromNextFile((bool)(obj as MenuItem).Tag); }); };
+
                 item_reload.Click += (obj, evt) => { this.InvokeAsync(() => { ReloadImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_copyinfo.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageInfo((bool)(obj as MenuItem).Tag); }); };
@@ -1518,37 +1576,13 @@ namespace ImageCompare
                 items.Add(new Separator());
                 items.Add(item_copyto_source);
                 items.Add(item_copyto_target);
+                items.Add(item_load_prev);
+                items.Add(item_load_next);
                 items.Add(new Separator());
                 items.Add(item_reload);
                 items.Add(new Separator());
                 items.Add(item_copyinfo);
                 items.Add(item_saveas);
-
-                //result.Items.Add(item_fh);
-                //result.Items.Add(item_fv);
-                //result.Items.Add(new Separator());
-                //result.Items.Add(item_r090);
-                //result.Items.Add(item_r270);
-                //result.Items.Add(item_r180);
-                //result.Items.Add(new Separator());
-                //result.Items.Add(item_reset);
-                //result.Items.Add(new Separator());
-                //result.Items.Add(item_gray);
-                //result.Items.Add(item_blur);
-                //result.Items.Add(item_sharp);
-                //result.Items.Add(item_more);
-                //result.Items.Add(new Separator());
-                //result.Items.Add(item_size_crop);
-                //result.Items.Add(item_size_to_source);
-                //result.Items.Add(item_size_to_target);
-                //result.Items.Add(new Separator());
-                //result.Items.Add(item_slice_h);
-                //result.Items.Add(item_slice_v);
-                //result.Items.Add(new Separator());
-                //result.Items.Add(item_reload);
-                //result.Items.Add(new Separator());
-                //result.Items.Add(item_copyinfo);
-                //result.Items.Add(item_saveas);
                 #endregion
                 #region MoreEffects MenuItem
                 var item_more_oil = new MenuItem()
@@ -1701,6 +1735,9 @@ namespace ImageCompare
                     item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
                     item_copyto_source.Visibility = source ? Visibility.Collapsed : Visibility.Visible;
                     item_copyto_target.Visibility = source ? Visibility.Visible : Visibility.Collapsed;
+                    source = ExchangeSourceTarget ? !source : source;
+                    item_load_prev.IsEnabled = string.IsNullOrEmpty((ExchangeSourceTarget ? !source : source) ? SourceFile : TargetFile) ? false : true;
+                    item_load_next.IsEnabled = string.IsNullOrEmpty((ExchangeSourceTarget ? !source : source) ? SourceFile : TargetFile) ? false : true;
                 };
             }
 
@@ -1994,50 +2031,18 @@ namespace ImageCompare
                     else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
                     {
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        {
-                            var files = GetFiles(SourceFile);
-                            if (files.Count() > 0 && !string.IsNullOrEmpty(SourceFile))
-                            {
-                                var file = files.Where(f => f.EndsWith(SourceFile, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                                var idx = files.IndexOf(file);
-                                if (idx > 0) LoadImageFromFiles(new string[] { files[idx - 1] }, true);
-                            }
-                        }
+                            LoadImageFromPrevFile(true);
                         else if (Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            var files = GetFiles(SourceFile);
-                            if (files.Count() > 0 && !string.IsNullOrEmpty(SourceFile))
-                            {
-                                var file = files.Where(f => f.EndsWith(SourceFile, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                                var idx = files.IndexOf(file);
-                                if (idx < files.Count - 1) LoadImageFromFiles(new string[] { files[idx + 1] }, true);
-                            }
-                        }
+                            LoadImageFromNextFile(true);
                         else
                             ImageActions_Click(ImageOpenSource, e);
                     }
                     else if (e.Key == Key.F2 || e.SystemKey == Key.F2)
                     {
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
-                        {
-                            var files = GetFiles(TargetFile);
-                            if (files.Count() > 0 && !string.IsNullOrEmpty(TargetFile))
-                            {
-                                var file = files.Where(f => f.EndsWith(TargetFile, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                                var idx = files.IndexOf(file);
-                                if (idx > 0) LoadImageFromFiles(new string[] { files[idx - 1] }, false);
-                            }
-                        }
+                            LoadImageFromPrevFile(false);
                         else if (Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            var files = GetFiles(TargetFile);
-                            if (files.Count() > 0 && !string.IsNullOrEmpty(TargetFile))
-                            {
-                                var file = files.Where(f => f.EndsWith(TargetFile, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                                var idx = files.IndexOf(file);
-                                if (idx < files.Count - 1) LoadImageFromFiles(new string[] { files[idx + 1] }, false);
-                            }
-                        }
+                            LoadImageFromNextFile(false);
                         else
                             ImageActions_Click(ImageOpenTarget, e);
                     }

@@ -133,10 +133,10 @@
     <value>Copy Image Info</value>
   </data>
   <data name="ImageOpenSource.ToolTip" xml:space="preserve">
-    <value>[F1] Open The Source Picture</value>
+    <value>[F1] Open The Source Picture\n[Shift+F1] Load Prev Image File\n[Ctrl+F1] Load Next Image File</value>
   </data>
   <data name="ImageOpenTarget.ToolTip" xml:space="preserve">
-    <value>[F2] Open The Target Picture</value>
+    <value>[F2] Open The Target Picture\n[Shift+F2] Load Prev Image File\n[Ctrl+F2] Load Next Image File</value>
   </data>
   <data name="ImagePasteSource.ToolTip" xml:space="preserve">
     <value>[F3] Paste The Source Picture</value>
@@ -428,5 +428,11 @@
   </data>
   <data name="CopyToTarget.Header" xml:space="preserve">
     <value>Copy Image To Target</value>
+  </data>
+  <data name="LoadPrevImageFile.Header" xml:space="preserve">
+    <value>Load Prev Image File</value>
+  </data>
+  <data name="LoadNextImageFile.Header" xml:space="preserve">
+    <value>Load Next Image File</value>
   </data>
 </root>

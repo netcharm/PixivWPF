@@ -133,10 +133,10 @@
     <value>画像情報のコピー</value>
   </data>
   <data name="ImageOpenSource.ToolTip" xml:space="preserve">
-    <value>[F1] ソース画像を開く</value>
+    <value>[F1] ソース画像を開く\n[Shift+F1] 前の画像ファイルを読み込む\n[Ctrl+F1] 後の画像ファイルを読み込む</value>
   </data>
   <data name="ImageOpenTarget.ToolTip" xml:space="preserve">
-    <value>[F2] 対象画像を開く</value>
+    <value>[F2] 対象画像を開く\n[Shift+F2] 前の画像ファイルを読み込む\n[Ctrl+F2] 後の画像ファイルを読み込む</value>
   </data>
   <data name="ImagePasteTarget.ToolTip" xml:space="preserve">
     <value>[F4] ターゲット画像をペーストする</value>
@@ -253,13 +253,13 @@
     <value>適合先画像サイズ</value>
   </data>
   <data name="SlicingX.Header" xml:space="preserve">
-    <value>水平分割</value>
+    <value>水平分割画像</value>
   </data>
   <data name="SlicingY.Header" xml:space="preserve">
-    <value>垂直分割</value>
+    <value>垂直分割画像</value>
   </data>
   <data name="ReloadImage.Header" xml:space="preserve">
-    <value>リロード画像</value>
+    <value>画像を再読み込み</value>
   </data>
   <data name="CopyImageInfo.Header" xml:space="preserve">
     <value>画像情報のコピー</value>
@@ -409,7 +409,7 @@
     <value>K-Means クラスター</value>
   </data>
   <data name="ReMapColor.Header" xml:space="preserve">
-    <value>色を再マッピング</value>
+    <value>画像色を再マッピング</value>
   </data>
   <data name="InfoTipColors" xml:space="preserve">
     <value>色の数           =</value>
@@ -428,5 +428,11 @@
   </data>
   <data name="CopyToTarget.Header" xml:space="preserve">
     <value>画像をターゲットにコピー</value>
+  </data>
+  <data name="LoadNextImageFile.Header" xml:space="preserve">
+    <value>後の画像ファイルを読み込む</value>
+  </data>
+  <data name="LoadPrevImageFile.Header" xml:space="preserve">
+    <value>前の画像ファイルを読み込む</value>
   </data>
 </root>

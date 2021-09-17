@@ -133,10 +133,10 @@
     <value>複製影像資訊</value>
   </data>
   <data name="ImageOpenSource.ToolTip" xml:space="preserve">
-    <value>[F1] 打開來源影像</value>
+    <value>[F1] 打開來源影像\n[Shift+F1] 載入前一個影像檔案\n[Ctrl+F1] 載入後一個影像檔案</value>
   </data>
   <data name="ImageOpenTarget.ToolTip" xml:space="preserve">
-    <value>[F2] 打開目標影像</value>
+    <value>[F2] 打開目標影像\n[Shift+F2] 載入前一個影像檔案\n[Ctrl+F2] 載入後一個影像檔案</value>
   </data>
   <data name="ImagePasteTarget.ToolTip" xml:space="preserve">
     <value>[F4] 粘貼目標影像</value>
@@ -253,13 +253,13 @@
     <value>適配目標影像大小</value>
   </data>
   <data name="SlicingX.Header" xml:space="preserve">
-    <value>水准對分</value>
+    <value>水准對分影像</value>
   </data>
   <data name="SlicingY.Header" xml:space="preserve">
-    <value>垂直對分</value>
+    <value>垂直對分影像</value>
   </data>
   <data name="ReloadImage.Header" xml:space="preserve">
-    <value>重載影像</value>
+    <value>重新載入影像</value>
   </data>
   <data name="CopyImageInfo.Header" xml:space="preserve">
     <value>複製影像資訊</value>
@@ -409,7 +409,7 @@
     <value>K-Means 聚類</value>
   </data>
   <data name="ReMapColor.Header" xml:space="preserve">
-    <value>重映射顏色</value>
+    <value>重映射影像顏色</value>
   </data>
   <data name="InfoTipColors" xml:space="preserve">
     <value>色彩數量       =</value>
@@ -428,5 +428,11 @@
   </data>
   <data name="CopyToTarget.Header" xml:space="preserve">
     <value>複製影像到目標</value>
+  </data>
+  <data name="LoadNextImageFile.Header" xml:space="preserve">
+    <value>載入後一個影像檔案</value>
+  </data>
+  <data name="LoadPrevImageFile.Header" xml:space="preserve">
+    <value>載入前一個影像檔案</value>
   </data>
 </root>
