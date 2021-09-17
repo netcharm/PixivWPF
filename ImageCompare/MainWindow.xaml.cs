@@ -50,6 +50,7 @@ namespace ImageCompare
 
         #region Magick.Net Settings
         private Dictionary<string, string> AllSupportedFormats { get; set; } = new Dictionary<string, string>();
+        private IList<string> AllSupportedExts { get; set; } = new List<string>();
         private string AllSupportedFiles { get; set; } = string.Empty;
         private string AllSupportedFilters { get; set; } = string.Empty;
 
@@ -416,6 +417,24 @@ namespace ImageCompare
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             return (string.IsNullOrEmpty(result) ? null : result);
+        }
+
+        private IList<string> GetFiles(string file)
+        {
+            var files = new List<string>();
+            if (!string.IsNullOrEmpty(file))
+            {
+                try
+                {
+                    var dir = Path.GetDirectoryName(Path.IsPathRooted(file) ? file : Path.Combine(Directory.GetCurrentDirectory(), file));
+                    if (Directory.Exists(dir))
+                    {
+                        files.AddRange(Directory.EnumerateFiles(dir, "*.*").Where(f => AllSupportedExts.Contains(Path.GetExtension(f).ToLower())));
+                    }
+                }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+            }
+            return (files.Distinct().ToList());
         }
 
         private Point CalcOffset(Viewbox viewer, MouseEventArgs e)
@@ -803,7 +822,7 @@ namespace ImageCompare
                                 {
                                     try
                                     {
-                                        SetImage(source ? ImageType.Source : ImageType.Target, MagickImage.FromBase64(Regex.Replace(text, @"^data:.*?;base64,", "", RegexOptions.IgnoreCase)), update: false);
+                                        SetImage(source ^ ExchangeSourceTarget ? ImageType.Source : ImageType.Target, MagickImage.FromBase64(Regex.Replace(text, @"^data:.*?;base64,", "", RegexOptions.IgnoreCase)), update: false);
                                         if (source) SourceFile = string.Empty;
                                         else TargetFile = string.Empty;
                                         action = true;
@@ -855,6 +874,9 @@ namespace ImageCompare
                 try
                 {
                     var action = false;
+                    source = ExchangeSourceTarget ? !source : source;
+                    var type_s = ExchangeSourceTarget ? ImageType.Target : ImageType.Source;
+                    var type_t = ExchangeSourceTarget ? ImageType.Source : ImageType.Target;
                     files = files.Where(f => !string.IsNullOrEmpty(f)).Where(f => AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
                     var count = files.Length;
                     if (count > 0)
@@ -868,18 +890,18 @@ namespace ImageCompare
                             using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
                                 if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
-                                    SetImage(ImageType.Source, Lut2Png(fs), update: false);
+                                    SetImage(type_s, Lut2Png(fs), update: false);
                                 else
-                                    SetImage(ImageType.Source, new MagickImage(fs), update: false);
+                                    SetImage(type_s, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_s))), update: false);
                                 SourceFile = file_s;
                                 action = true;
                             }
                             using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
                                 if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
-                                    SetImage(ImageType.Source, Lut2Png(fs), update: false);
+                                    SetImage(type_t, Lut2Png(fs), update: false);
                                 else
-                                    SetImage(ImageType.Target, new MagickImage(fs), update: false);
+                                    SetImage(type_t, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_s))), update: false);
                                 TargetFile = file_t;
                                 action = true;
                             }
@@ -892,9 +914,9 @@ namespace ImageCompare
                                 using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
                                 {
                                     if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
-                                        SetImage(ImageType.Source, Lut2Png(fs), update: false);
+                                        SetImage(type_s, Lut2Png(fs), update: false);
                                     else
-                                        SetImage(ImageType.Source, new MagickImage(fs), update: false);
+                                        SetImage(type_s, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_s))), update: false);
                                     SourceFile = file_s;
                                     action = true;
                                 }
@@ -904,10 +926,10 @@ namespace ImageCompare
                                 file_t = files.First();
                                 using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
                                 {
-                                    if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
-                                        SetImage(ImageType.Source, Lut2Png(fs), update: false);
+                                    if (Path.GetExtension(file_t).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                                        SetImage(type_t, Lut2Png(fs), update: false);
                                     else
-                                        SetImage(ImageType.Target, new MagickImage(fs), update: false);
+                                        SetImage(type_t, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_t))), update: false);
                                     TargetFile = file_t;
                                     action = true;
                                 }
@@ -1735,7 +1757,8 @@ namespace ImageCompare
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
 
             AllSupportedFormats = GetSupportedImageFormats();
-            var exts = AllSupportedFormats.Keys.ToList().Skip(4).Select(f => $"*.{f}");
+            AllSupportedExts = AllSupportedFormats.Keys.ToList().Skip(4).Select(ext => $".{ext.ToLower()}").Where(ext => !ext.Equals(".txt")).ToList();
+            var exts = AllSupportedExts.Select(ext => $"*{ext}");
             AllSupportedFiles = string.Join(";", exts);
             AllSupportedFilters = string.Join("|", AllSupportedFormats.Select(f => $"{f.Value}|*.{f.Key}"));
 
@@ -1917,11 +1940,53 @@ namespace ImageCompare
                     }
                     else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
                     {
-                        ImageActions_Click(ImageOpenSource, e);
+                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        {
+                            var files = GetFiles(SourceFile);
+                            if (files.Count() > 0 && !string.IsNullOrEmpty(SourceFile))
+                            {
+                                var file = files.Where(f => f.EndsWith(SourceFile, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                                var idx = files.IndexOf(file);
+                                if (idx > 0) LoadImageFromFiles(new string[] { files[idx - 1] }, true);
+                            }
+                        }
+                        else if (Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            var files = GetFiles(SourceFile);
+                            if (files.Count() > 0 && !string.IsNullOrEmpty(SourceFile))
+                            {
+                                var file = files.Where(f => f.EndsWith(SourceFile, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                                var idx = files.IndexOf(file);
+                                if (idx < files.Count - 1) LoadImageFromFiles(new string[] { files[idx + 1] }, true);
+                            }
+                        }
+                        else
+                            ImageActions_Click(ImageOpenSource, e);
                     }
                     else if (e.Key == Key.F2 || e.SystemKey == Key.F2)
                     {
-                        ImageActions_Click(ImageOpenTarget, e);
+                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        {
+                            var files = GetFiles(TargetFile);
+                            if (files.Count() > 0 && !string.IsNullOrEmpty(TargetFile))
+                            {
+                                var file = files.Where(f => f.EndsWith(TargetFile, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                                var idx = files.IndexOf(file);
+                                if (idx > 0) LoadImageFromFiles(new string[] { files[idx - 1] }, false);
+                            }
+                        }
+                        else if (Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            var files = GetFiles(TargetFile);
+                            if (files.Count() > 0 && !string.IsNullOrEmpty(TargetFile))
+                            {
+                                var file = files.Where(f => f.EndsWith(TargetFile, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                                var idx = files.IndexOf(file);
+                                if (idx < files.Count - 1) LoadImageFromFiles(new string[] { files[idx + 1] }, false);
+                            }
+                        }
+                        else
+                            ImageActions_Click(ImageOpenTarget, e);
                     }
                     else if (e.Key == Key.F3 || e.SystemKey == Key.F3)
                     {
@@ -1955,10 +2020,20 @@ namespace ImageCompare
                     }
                     else if (e.Key == Key.F9 || e.SystemKey == Key.F9)
                     {
-                        if (ZoomFitNone.IsChecked ?? false) { ZoomFitAll.IsChecked = true; ImageActions_Click(ZoomFitAll, e); }
-                        else if (ZoomFitAll.IsChecked ?? false) { ZoomFitWidth.IsChecked = true; ImageActions_Click(ZoomFitWidth, e); }
-                        else if (ZoomFitWidth.IsChecked ?? false) { ZoomFitHeight.IsChecked = true; ImageActions_Click(ZoomFitHeight, e); }
-                        else if (ZoomFitHeight.IsChecked ?? false) { ZoomFitNone.IsChecked = true; ImageActions_Click(ZoomFitNone, e); }
+                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        {
+                            if (ZoomFitNone.IsChecked ?? false) { ZoomFitHeight.IsChecked = true; ImageActions_Click(ZoomFitHeight, e); }
+                            else if (ZoomFitAll.IsChecked ?? false) { ZoomFitNone.IsChecked = true; ImageActions_Click(ZoomFitNone, e); }
+                            else if (ZoomFitWidth.IsChecked ?? false) { ZoomFitAll.IsChecked = true; ImageActions_Click(ZoomFitAll, e); }
+                            else if (ZoomFitHeight.IsChecked ?? false) { ZoomFitWidth.IsChecked = true; ImageActions_Click(ZoomFitWidth, e); }
+                        }
+                        else
+                        {
+                            if (ZoomFitNone.IsChecked ?? false) { ZoomFitAll.IsChecked = true; ImageActions_Click(ZoomFitAll, e); }
+                            else if (ZoomFitAll.IsChecked ?? false) { ZoomFitWidth.IsChecked = true; ImageActions_Click(ZoomFitWidth, e); }
+                            else if (ZoomFitWidth.IsChecked ?? false) { ZoomFitHeight.IsChecked = true; ImageActions_Click(ZoomFitHeight, e); }
+                            else if (ZoomFitHeight.IsChecked ?? false) { ZoomFitNone.IsChecked = true; ImageActions_Click(ZoomFitNone, e); }
+                        }
                     }
                     else if (e.Key == Key.F10 || e.SystemKey == Key.F10)
                     {

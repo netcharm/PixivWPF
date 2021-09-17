@@ -38,7 +38,7 @@ namespace ImageCompare
         }
 
         public static string _(this string text)
-        {            
+        {
             return (GetString(text));
         }
 
@@ -59,13 +59,14 @@ namespace ImageCompare
 
         public static string GetString(this string text)
         {
-            return (resourceSet.GetString(text));
+            var t = resourceSet.GetString(text);
+            return (string.IsNullOrEmpty(t) ? null : t.Replace("\\n", Environment.NewLine));
         }
 
         public static string GetString(this string text, CultureInfo culture)
         {
             ChangeLocale(culture);
-            return (resourceSet.GetString(text));
+            return (GetString(text));
         }
 
         public static void Locale(this FrameworkElement element)
@@ -77,11 +78,17 @@ namespace ImageCompare
 
                 if (!string.IsNullOrEmpty(element.Uid))
                 {
-                    if (element is Button)
+#if DEBUG
+                    Debug.WriteLine($"==> UID: {element.Uid}");
+#endif
+                    if (element is ButtonBase)
                     {
-                        var ui = element as Button;
-                        var text = $"{ui.Uid}.Content".T();
-                        if (!string.IsNullOrEmpty(text)) ui.Content = text;
+                        var ui = element as ButtonBase;
+                        if (ui.Content is string)
+                        {
+                            var text = $"{ui.Uid}.Content".T();
+                            if (!string.IsNullOrEmpty(text)) ui.Content = text;
+                        }
                     }
                     else if (element is TextBlock)
                     {
@@ -92,15 +99,23 @@ namespace ImageCompare
                     else if (element is MenuItem)
                     {
                         var ui = element as MenuItem;
-                        var text = $"{ui.Uid}.Header".T();
-                        if (!string.IsNullOrEmpty(text)) ui.Header = text;
+                        if (ui.Header is string)
+                        {
+                            var text = $"{ui.Uid}.Header".T();
+                            if (!string.IsNullOrEmpty(text)) ui.Header = text;
+                        }
                         if (ui.Items.Count > 1)
-                            foreach (var mi in ui.Items) if (mi is FrameworkElement) (mi as FrameworkElement).Locale();
+                            foreach (var i in ui.Items) if (i is FrameworkElement) (i as FrameworkElement).Locale();
                     }
                     else if (element is MenuBase)
                     {
                         var ui = element as MenuBase;
-                        foreach (var mi in ui.Items) if (mi is FrameworkElement) (mi as FrameworkElement).Locale();
+                        foreach (var i in ui.Items) if (i is FrameworkElement) (i as FrameworkElement).Locale();
+                    }
+                    else if (element is ItemsControl)
+                    {
+                        var ui = element as ItemsControl;
+                        foreach (var i in ui.Items) if (i is FrameworkElement) (i as FrameworkElement).Locale();
                     }
                     else if (element is ColorPicker)
                     {
@@ -139,7 +154,7 @@ namespace ImageCompare
                 if (element is FrameworkElement)
                 {
                     var ui = element as FrameworkElement;
-                    if (!string.IsNullOrEmpty(ui.Uid))
+                    if (!string.IsNullOrEmpty(ui.Uid) && ui.ToolTip is string)
                     {
                         var tip = $"{ui.Uid}.ToolTip".T();
                         if (!string.IsNullOrEmpty(tip)) ui.ToolTip = tip;
@@ -165,7 +180,7 @@ namespace ImageCompare
 
         public static void Locale(this IEnumerable<FrameworkElement> elements)
         {
-            foreach(var element in elements)
+            foreach (var element in elements)
             {
                 Locale(element);
             }

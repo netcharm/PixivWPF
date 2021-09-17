@@ -133,16 +133,16 @@
     <value>复制图像信息</value>
   </data>
   <data name="ImageOpenSource.ToolTip" xml:space="preserve">
-    <value>打开来源图像</value>
+    <value>[F1] 打开来源图像</value>
   </data>
   <data name="ImageOpenTarget.ToolTip" xml:space="preserve">
-    <value>打开目标图像</value>
+    <value>[F2] 打开目标图像</value>
   </data>
   <data name="ImagePasteTarget.ToolTip" xml:space="preserve">
-    <value>粘贴目标图像</value>
+    <value>[F4] 粘贴目标图像</value>
   </data>
   <data name="ImagePasteSource.ToolTip" xml:space="preserve">
-    <value>粘贴来源图像</value>
+    <value>[F3] 粘贴来源图像</value>
   </data>
   <data name="ImageClear.ToolTip" xml:space="preserve">
     <value>清除来源和目标图像</value>
@@ -150,17 +150,17 @@
   <data name="UsedChannels.ToolTip" xml:space="preserve">
     <value>图像通道选择器</value>
   </data>
-  <data name="ImageToggle.ToolTip" xml:space="preserve">
-    <value>交换来源和目标图像</value>
+  <data name="ImageExchange.ToolTip" xml:space="preserve">
+    <value>[F10] 交换来源和目标图像</value>
   </data>
   <data name="ImageCompare.ToolTip" xml:space="preserve">
-    <value>比较来源图像和目标图像</value>
+    <value>[F5] 比较来源图像和目标图像\n[Shift+F5] 比较模式选择</value>
   </data>
   <data name="Compare.Text" xml:space="preserve">
     <value>比较</value>
   </data>
   <data name="ImageCompose.ToolTip" xml:space="preserve">
-    <value>合成来源图像和目标图像</value>
+    <value>[F6] 合成来源图像和目标图像\n[Shift+F6] 合成模式选择</value>
   </data>
   <data name="Compose.Text" xml:space="preserve">
     <value>合成</value>
@@ -169,22 +169,22 @@
     <value>图像处理进展</value>
   </data>
   <data name="ImageCopyResult.ToolTip" xml:space="preserve">
-    <value>复制结果图像</value>
+    <value>[F7] 复制结果图像</value>
   </data>
   <data name="ImageSaveResult.ToolTip" xml:space="preserve">
-    <value>保存结果图像</value>
+    <value>[F8] 保存结果图像</value>
   </data>
   <data name="ZoomFitNone.ToolTip" xml:space="preserve">
-    <value>图像自由显示</value>
+    <value>[F9] 图像自由显示</value>
   </data>
   <data name="ZoomFitAll.ToolTip" xml:space="preserve">
-    <value>图像全部显示</value>
+    <value>[F9] 图像全部显示</value>
   </data>
   <data name="ZoomFitWidth.ToolTip" xml:space="preserve">
-    <value>图像显示适合宽度</value>
+    <value>[F9] 图像显示适合宽度</value>
   </data>
   <data name="ZoomFitHeight.ToolTip" xml:space="preserve">
-    <value>图像显示适合高度</value>
+    <value>[F9] 图像显示适合高度</value>
   </data>
   <data name="UseSmallerImage.ToolTip" xml:space="preserve">
     <value>加载图像后使用较小的图像进行比较和合成</value>

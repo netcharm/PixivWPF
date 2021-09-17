@@ -39,7 +39,13 @@ namespace ImageCompare
                 foreach (var fmt in MagickNET.SupportedFormats)
                 {
                     if (fmt.IsReadable)
-                        result.Add(fmt.Format.ToString(), fmt.Description);
+                    {
+                        if (fmt.MimeType != null && fmt.MimeType.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (fmt.Description.StartsWith("video", StringComparison.CurrentCultureIgnoreCase)) continue;
+                        else if (fmt.MimeType != null && fmt.MimeType.StartsWith("image", StringComparison.CurrentCultureIgnoreCase))
+                            result.Add(fmt.Format.ToString(), fmt.Description);
+                        else result.Add(fmt.Format.ToString(), fmt.Description);
+                    }
                 }
 
                 //var fmts = Enum.GetNames(typeof(MagickFormat));
@@ -49,6 +55,22 @@ namespace ImageCompare
                 //}
             }
             catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+            return (result);
+        }
+
+        private Dictionary<string, MagickFormat> _supported_formats_ = new Dictionary<string, MagickFormat>();
+        private MagickFormat GetImageFileFormat(string ext)
+        {
+            var result = MagickFormat.Unknown;
+            try
+            {
+                if (_supported_formats_.Count <= 0)
+                {
+                    foreach (var fmt in MagickNET.SupportedFormats) _supported_formats_.Add($".{fmt.Format.ToString().ToLower()}", fmt.Format);
+                }
+                if (_supported_formats_.ContainsKey(ext.ToLower())) result = _supported_formats_[ext.ToLower()];
+            }
+            catch { }
             return (result);
         }
 
@@ -65,7 +87,7 @@ namespace ImageCompare
                     diff.Dispose();
                 }
             }
-            catch(Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
             return (result);
         }
 
@@ -130,8 +152,8 @@ namespace ImageCompare
                 if (image == null || image.IsDisposed) return;
                 if (type != ImageType.Result)
                 {
-                    bool source  = type == ImageType.Source ? true : false;
-                    if (source ^ ExchangeSourceTarget)
+                    bool source  = ExchangeSourceTarget ? (type == ImageType.Source ? false : true) : (type == ImageType.Source ? true : false);
+                    if (source)
                     {
                         if (image != SourceOriginal)
                         {

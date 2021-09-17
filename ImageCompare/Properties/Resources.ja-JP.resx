@@ -133,16 +133,16 @@
     <value>画像情報のコピー</value>
   </data>
   <data name="ImageOpenSource.ToolTip" xml:space="preserve">
-    <value>ソース画像を開く</value>
+    <value>[F1] ソース画像を開く</value>
   </data>
   <data name="ImageOpenTarget.ToolTip" xml:space="preserve">
-    <value>対象画像を開く</value>
+    <value>[F2] 対象画像を開く</value>
   </data>
   <data name="ImagePasteTarget.ToolTip" xml:space="preserve">
-    <value>ターゲット画像をペーストする</value>
+    <value>[F4] ターゲット画像をペーストする</value>
   </data>
   <data name="ImagePasteSource.ToolTip" xml:space="preserve">
-    <value>ソース画像をペーストする</value>
+    <value>[F3] ソース画像をペーストする</value>
   </data>
   <data name="ImageClear.ToolTip" xml:space="preserve">
     <value>クリアソースと宛先画像</value>
@@ -150,17 +150,17 @@
   <data name="UsedChannels.ToolTip" xml:space="preserve">
     <value>画像チャンネルセレクタ</value>
   </data>
-  <data name="ImageToggle.ToolTip" xml:space="preserve">
-    <value>ソースとターゲット画像を交換する</value>
+  <data name="ImageExchange.ToolTip" xml:space="preserve">
+    <value>[F10] ソースとターゲット画像を交換する</value>
   </data>
   <data name="ImageCompare.ToolTip" xml:space="preserve">
-    <value>ソースとターゲット画像を比較する</value>
+    <value>[F5] ソースとターゲット画像を比較する\n[Shift+F 5] 比較モード選択</value>
   </data>
   <data name="Compare.Text" xml:space="preserve">
     <value>比較する</value>
   </data>
   <data name="ImageCompose.ToolTip" xml:space="preserve">
-    <value>ソースとターゲット画像の作成</value>
+    <value>[F6] ソースとターゲット画像の作成\n[Shift+F 6] 合成モード選択</value>
   </data>
   <data name="Compose.Text" xml:space="preserve">
     <value>合成</value>
@@ -169,22 +169,22 @@
     <value>画像処理の進歩</value>
   </data>
   <data name="ImageCopyResult.ToolTip" xml:space="preserve">
-    <value>コピー結果画像</value>
+    <value>[F7] コピー結果画像</value>
   </data>
   <data name="ImageSaveResult.ToolTip" xml:space="preserve">
-    <value>保存結果画像</value>
+    <value>[F8] 保存結果画像</value>
   </data>
   <data name="ZoomFitNone.ToolTip" xml:space="preserve">
-    <value>画像を自由に表示</value>
+    <value>[F9] 画像を自由に表示</value>
   </data>
   <data name="ZoomFitAll.ToolTip" xml:space="preserve">
-    <value>全画像表示</value>
+    <value>[F9] 全画像表示</value>
   </data>
   <data name="ZoomFitWidth.ToolTip" xml:space="preserve">
-    <value>画像表示の幅</value>
+    <value>[F9] 画像表示の幅</value>
   </data>
   <data name="ZoomFitHeight.ToolTip" xml:space="preserve">
-    <value>画像表示の高さ</value>
+    <value>[F9] 画像表示の高さ</value>
   </data>
   <data name="UseSmallerImage.ToolTip" xml:space="preserve">
     <value>比較のためのより小さいイメージを使用して、ロードされたイメージの後、作曲する</value>

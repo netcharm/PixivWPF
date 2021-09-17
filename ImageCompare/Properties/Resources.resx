@@ -133,16 +133,16 @@
     <value>Copy Image Info</value>
   </data>
   <data name="ImageOpenSource.ToolTip" xml:space="preserve">
-    <value>Open The Source Picture</value>
+    <value>[F1] Open The Source Picture</value>
   </data>
   <data name="ImageOpenTarget.ToolTip" xml:space="preserve">
-    <value>Open The Target Picture</value>
+    <value>[F2] Open The Target Picture</value>
   </data>
   <data name="ImagePasteSource.ToolTip" xml:space="preserve">
-    <value>Paste The Source Picture</value>
+    <value>[F3] Paste The Source Picture</value>
   </data>
   <data name="ImagePasteTarget.ToolTip" xml:space="preserve">
-    <value>Paste The Target Picture</value>
+    <value>[F4] Paste The Target Picture</value>
   </data>
   <data name="ImageClear.ToolTip" xml:space="preserve">
     <value>Clear Source and Target Pictures</value>
@@ -150,17 +150,17 @@
   <data name="UsedChannels.ToolTip" xml:space="preserve">
     <value>Picture Channels Selector</value>
   </data>
-  <data name="ImageToggle.ToolTip" xml:space="preserve">
-    <value>Exchange Source and Target</value>
+  <data name="ImageExchange.ToolTip" xml:space="preserve">
+    <value>[F10] Exchange Source and Target</value>
   </data>
   <data name="ImageCompare.ToolTip" xml:space="preserve">
-    <value>Compare Source and Target Picture</value>
+    <value>[F5] Compare Source and Target Picture\n[Shift+F5] Compare Mode Selector</value>
   </data>
   <data name="Compare.Text" xml:space="preserve">
     <value>Compare</value>
   </data>
   <data name="ImageCompose.ToolTip" xml:space="preserve">
-    <value>Compose Source and Target Picture</value>
+    <value>[F6] Compose Source and Target Picture</value>
   </data>
   <data name="Compose.Text" xml:space="preserve">
     <value>Compose</value>
@@ -169,22 +169,22 @@
     <value>Picture Processing Progress</value>
   </data>
   <data name="ImageCopyResult.ToolTip" xml:space="preserve">
-    <value>Copy Result Picture</value>
+    <value>[F7] Copy Result Picture</value>
   </data>
   <data name="ImageSaveResult.ToolTip" xml:space="preserve">
-    <value>Save Result Picture</value>
+    <value>[F8] Save Result Picture</value>
   </data>
   <data name="ZoomFitNone.ToolTip" xml:space="preserve">
-    <value>Picture Fit None</value>
+    <value>[F9] Picture Fit None</value>
   </data>
   <data name="ZoomFitAll.ToolTip" xml:space="preserve">
-    <value>Picture Fit All</value>
+    <value>[F9] Picture Fit All</value>
   </data>
   <data name="ZoomFitWidth.ToolTip" xml:space="preserve">
-    <value>Picture Fit Width</value>
+    <value>[F9] Picture Fit Width</value>
   </data>
   <data name="ZoomFitHeight.ToolTip" xml:space="preserve">
-    <value>Picture Fit Height</value>
+    <value>[F9] Picture Fit Height</value>
   </data>
   <data name="UseSmallerImage.ToolTip" xml:space="preserve">
     <value>Using Smaller Image for Compare and Compose After Image Loaded</value>

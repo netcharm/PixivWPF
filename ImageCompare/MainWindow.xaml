@@ -78,7 +78,7 @@
                     <TextBlock x:Uid="UsedChannelsIcon" Text="&#xE81E;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray" />
                 </StackPanel>
             </Button>
-            <ToggleButton x:Name="ImageExchange" x:Uid="ImageToggle" ToolTip="Exchange Source and Target" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
+            <ToggleButton x:Name="ImageExchange" x:Uid="ImageExchange" ToolTip="Exchange Source and Target" ToolBar.OverflowMode="Never" HorizontalAlignment="Right" Click="ImageActions_Click">
                 <StackPanel x:Uid="ImageTogglePanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="ImageToggleIcon" Text="&#xE7FD;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
                     <!--<TextBlock Text="Toggle" Margin="2 0"/>-->
@@ -204,7 +204,6 @@
                     <TextBlock x:Uid="UseWeakEffectsIcon" Text="&#xE10C;" FontSize="16" FontFamily="Segoe MDL2 Assets" Foreground="Gray"/>
                 </StackPanel>
             </ToggleButton>
-
             <Button x:Name="UILanguage" x:Uid="UILanguage" ToolTip="UI Language Selector" ToolBar.OverflowMode="Never" Click="ImageActions_Click">
                 <StackPanel x:Uid="UILanguagePanel" Orientation="Horizontal" Margin="2">
                     <TextBlock x:Uid="UILanguageIcon" Text="&#xF2B7;" FontSize="16" FontFamily="Segoe MDL2 Assets"/>
