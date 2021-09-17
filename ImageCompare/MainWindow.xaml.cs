@@ -789,6 +789,37 @@ namespace ImageCompare
             return (png);
         }
 
+        private async void CopyImageToOther(bool source = true)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    var action = false;
+                    if (source ^ ExchangeSourceTarget)
+                    {
+                        if (SourceImage is MagickImage && !SourceImage.IsDisposed)
+                        {
+                            if (TargetImage is MagickImage && !TargetImage.IsDisposed) TargetImage.Dispose();
+                            TargetImage = new MagickImage(SourceImage);
+                            action = true;
+                        }
+                    }
+                    else
+                    {
+                        if (TargetImage is MagickImage && !TargetImage.IsDisposed)
+                        {
+                            if (SourceImage is MagickImage && !SourceImage.IsDisposed) SourceImage.Dispose();
+                            SourceImage = new MagickImage(TargetImage);
+                            action = true;
+                        }
+                    }
+                    if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+            }, DispatcherPriority.Render);
+        }
+
         private async void LoadImageFromClipboard(bool source = true)
         {
             await Dispatcher.InvokeAsync(() =>
@@ -1399,6 +1430,20 @@ namespace ImageCompare
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE746", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
                 };
+                var item_copyto_source = new MenuItem()
+                {
+                    Header = "Copy Image To Source",
+                    Uid = "CopyToSource",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
+                var item_copyto_target = new MenuItem()
+                {
+                    Header = "Copy Image To Target",
+                    Uid = "CopyToTarget",
+                    Tag = source,
+                    Icon = new TextBlock() { Text = "\uE16F", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
+                };
                 var item_reload = new MenuItem()
                 {
                     Header = "Reload Image",
@@ -1441,6 +1486,9 @@ namespace ImageCompare
                 item_slice_h.Click += (obj, evt) => { this.InvokeAsync(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: false); }); };
                 item_slice_v.Click += (obj, evt) => { this.InvokeAsync(() => { SlicingImage((bool)(obj as MenuItem).Tag, vertical: true); }); };
 
+                item_copyto_source.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageToOther(source); }); };
+                item_copyto_target.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageToOther(source); }); };
+
                 item_reload.Click += (obj, evt) => { this.InvokeAsync(() => { ReloadImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_copyinfo.Click += (obj, evt) => { this.InvokeAsync(() => { CopyImageInfo((bool)(obj as MenuItem).Tag); }); };
@@ -1467,6 +1515,9 @@ namespace ImageCompare
                 items.Add(new Separator());
                 items.Add(item_slice_h);
                 items.Add(item_slice_v);
+                items.Add(new Separator());
+                items.Add(item_copyto_source);
+                items.Add(item_copyto_target);
                 items.Add(new Separator());
                 items.Add(item_reload);
                 items.Add(new Separator());
@@ -1648,6 +1699,8 @@ namespace ImageCompare
                 target.ContextMenuOpening += (obj, evt) =>
                 {
                     item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
+                    item_copyto_source.Visibility = source ? Visibility.Collapsed : Visibility.Visible;
+                    item_copyto_target.Visibility = source ? Visibility.Visible : Visibility.Collapsed;
                 };
             }
 

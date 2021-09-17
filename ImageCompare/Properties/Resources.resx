@@ -423,4 +423,10 @@
   <data name="AutoWhiteBalance.Header" xml:space="preserve">
     <value>Auto White Balance</value>
   </data>
+  <data name="CopyToSource.Header" xml:space="preserve">
+    <value>Copy Image To Source</value>
+  </data>
+  <data name="CopyToTarget.Header" xml:space="preserve">
+    <value>Copy Image To Target</value>
+  </data>
 </root>

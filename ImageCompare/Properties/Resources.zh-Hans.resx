@@ -423,4 +423,10 @@
   <data name="AutoWhiteBalance.Header" xml:space="preserve">
     <value>自动调节白平衡</value>
   </data>
+  <data name="CopyToSource.Header" xml:space="preserve">
+    <value>复制图像到来源</value>
+  </data>
+  <data name="CopyToTarget.Header" xml:space="preserve">
+    <value>复制图像到目标</value>
+  </data>
 </root>
