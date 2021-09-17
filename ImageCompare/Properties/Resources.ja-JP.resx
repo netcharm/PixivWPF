@@ -427,6 +427,6 @@
     <value>ソースに画像をコピー</value>
   </data>
   <data name="CopyToTarget.Header" xml:space="preserve">
-    <value>複製影像到目標</value>
+    <value>画像をターゲットにコピー</value>
   </data>
 </root>
