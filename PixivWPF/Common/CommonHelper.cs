@@ -3150,10 +3150,16 @@ namespace PixivWPF.Common
                                     if (fileinfo.LastWriteTime.Ticks != fdt.Ticks) fileinfo.LastWriteTime = fdt;
                                     if (fileinfo.LastAccessTime.Ticks != fdt.Ticks) fileinfo.LastAccessTime = fdt;
 
-                                    int idx = -1;
-                                    var illust = await fileinfo.FullName.GetIllustId(out idx).GetIllust();
-                                    var fname = illust.GetOriginalUrl(idx).GetImageName((illust.PageCount ?? 0) <= 1);
-                                    if (!fileinfo.Name.Equals(fname)) fileinfo.MoveTo(Path.Combine(fileinfo.DirectoryName, fname));
+                                    if (fileinfo.Extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase) ||
+                                        fileinfo.Extension.Equals(".jpg", StringComparison.CurrentCultureIgnoreCase) ||
+                                        fileinfo.Extension.Equals(".webp", StringComparison.CurrentCultureIgnoreCase) ||
+                                        fileinfo.Extension.Equals(".gif", StringComparison.CurrentCultureIgnoreCase))
+                                    {
+                                        int idx = -1;
+                                        var illust = await fileinfo.FullName.GetIllustId(out idx).GetIllust();
+                                        var fname = illust.GetOriginalUrl(idx).GetImageName((illust.PageCount ?? 0) <= 1);
+                                        if (!fileinfo.Name.Equals(fname)) fileinfo.MoveTo(Path.Combine(fileinfo.DirectoryName, fname));
+                                    }
                                 }
                             }
                             catch (Exception ex) { var id = fileinfo is FileInfo ? fileinfo.Name : url.GetIllustId(); ex.ERROR($"Touch_{id}"); }
