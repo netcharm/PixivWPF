@@ -423,12 +423,30 @@ namespace ImageCompare
                         await Task.Delay(1);
                         DoEvents();
 
+                        var image_s = ImageSource.GetInformation();
+                        var image_t = ImageTarget.GetInformation();
+                        var image_r = ImageResult.GetInformation();
+
                         if (assign || ImageSource.Source == null || ImageTarget.Source == null)
                         {
                             try
                             {
-                                ImageSource.Source = ImageSource.GetInformation().Source;
-                                ImageTarget.Source = ImageTarget.GetInformation().Source;
+                                if (CompareImageForceScale)
+                                {
+                                    if (image_s.CurrentSize.Width > MaxCompareSize || image_s.CurrentSize.Height > MaxCompareSize)
+                                        image_s.Reload(CompareResizeGeometry);
+                                    if (image_t.CurrentSize.Width > MaxCompareSize && image_t.CurrentSize.Height > MaxCompareSize)
+                                        image_t.Reload(CompareResizeGeometry);
+                                }
+                                else
+                                {
+                                    if (image_s.CurrentSize.Width != image_s.OriginalSize.Width && image_s.CurrentSize.Height != image_s.OriginalSize.Height)
+                                        image_s.Reload();
+                                    if (image_t.CurrentSize.Width != image_t.OriginalSize.Width && image_t.CurrentSize.Height != image_t.OriginalSize.Height)
+                                        image_t.Reload();
+                                }
+                                ImageSource.Source = image_s.Source;
+                                ImageTarget.Source = image_t.Source;
 
                                 await Task.Delay(1);
                                 DoEvents();
@@ -444,20 +462,20 @@ namespace ImageCompare
                         ImageTarget.ToolTip = "Waiting".T();
 
                         ImageResult.Source = null;
-                        if (ImageResult.GetInformation().ValidCurrent)
+                        if (image_r.ValidCurrent)
                         {
-                            ImageResult.GetInformation().Dispose();
+                            image_r.Dispose();
                             await Task.Delay(1);
                             DoEvents();
                         }
-                        ImageSource.GetInformation().ChangeColorSpace(CompareImageForceColor);
-                        ImageTarget.GetInformation().ChangeColorSpace(CompareImageForceColor);
+                        image_s.ChangeColorSpace(CompareImageForceColor);
+                        image_t.ChangeColorSpace(CompareImageForceColor);
 
-                        ImageResult.GetInformation().Current = await Compare(ImageSource.GetInformation().Current, ImageTarget.GetInformation().Current, compose: compose);
+                        image_r.Current = await Compare(image_s.Current, image_t.Current, compose: compose);
 
                         await Task.Delay(1);
                         DoEvents();
-                        ImageResult.Source = ImageResult.GetInformation().Source;
+                        ImageResult.Source = image_r.Source;
                         await Task.Delay(1);
                         DoEvents();
 
@@ -485,14 +503,16 @@ namespace ImageCompare
                 try
                 {
                     var action = false;
-                    if (source && ImageSource.GetInformation().ValidCurrent)
+                    var image_s = ImageSource.GetInformation();
+                    var image_t = ImageTarget.GetInformation();
+                    if (source && image_s.ValidCurrent)
                     {
-                        ImageTarget.GetInformation().Current = new MagickImage(ImageSource.GetInformation().Current);
+                        image_t.Current = new MagickImage(image_s.Current);
                         action = true;
                     }
-                    else if(ImageTarget.GetInformation().ValidCurrent)
+                    else if(image_t.ValidCurrent)
                     {
-                        ImageSource.GetInformation().Current = new MagickImage(ImageTarget.GetInformation().Current);
+                        image_s.Current = new MagickImage(image_t.Current);
                         action = true;
                     }
                     if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
@@ -503,43 +523,47 @@ namespace ImageCompare
 
         private async void LoadImageFromPrevFile(bool source = true)
         {
-            await Dispatcher.InvokeAsync(() =>
+            await Dispatcher.InvokeAsync(async () =>
             {
+                var ret = false;
                 try
                 {
-                    if (source)
-                        ImageSource.GetInformation().LoadImageFromPrevFile();
-                    else
-                        ImageTarget.GetInformation().LoadImageFromPrevFile();
+                    var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                    ret = await image.LoadImageFromPrevFile();
+                    if (ret) UpdateImageViewer(assign: true);
                 }
                 catch (Exception ex) { ex.Message.ShowMessage(); }
+                return (ret);
             });
         }
 
         private async void LoadImageFromNextFile(bool source = true)
         {
-            await Dispatcher.InvokeAsync(() => 
+            await Dispatcher.InvokeAsync(async () =>
             {
+                var ret = false;
                 try
                 {
-                    if (source)
-                        ImageSource.GetInformation().LoadImageFromNextFile();
-                    else
-                        ImageTarget.GetInformation().LoadImageFromNextFile();
+                    var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                    ret = await image.LoadImageFromNextFile();
+                    if(ret) UpdateImageViewer(assign: true);
                 }
                 catch (Exception ex) { ex.Message.ShowMessage(); }
+                return (ret);
             });
         }
 
         private async void LoadImageFromFiles(string[] files, bool source = true)
         {
-            await Dispatcher.InvokeAsync(async () =>
+            await Dispatcher.InvokeAsync(() =>
             {
                 try
                 {
                     var action = false;
                     files = files.Where(f => !string.IsNullOrEmpty(f)).Where(f => Extensions.AllSupportedFormats.Keys.ToList().Select(e => $".{e.ToLower()}").ToList().Contains(Path.GetExtension(f).ToLower())).ToArray();
                     var count = files.Length;
+                    var image_s = ImageSource.GetInformation();
+                    var image_t = ImageTarget.GetInformation();
                     if (count > 0)
                     {
                         var file_s = string.Empty;
@@ -549,21 +573,14 @@ namespace ImageCompare
                             file_s = files.First();
                             file_t = files.Skip(1).First();
 
-                            action |= await ImageSource.GetInformation().LoadImageFromFile(file_s, false);
-                            action |= await ImageTarget.GetInformation().LoadImageFromFile(file_t, false);
+                            action |= image_s.LoadImageFromFile(file_s, false);
+                            action |= image_t.LoadImageFromFile(file_t, false);
                         }
                         else
                         {
-                            if (source)
-                            {
-                                file_s = files.First();
-                                action |= await ImageSource.GetInformation().LoadImageFromFile(file_s, false);
-                            }
-                            else
-                            {
-                                file_t = files.First();
-                                action |= await ImageTarget.GetInformation().LoadImageFromFile(file_t, false);
-                            }
+                            var image  = source ? image_s : image_t;
+                            file_s = files.First();
+                            action |= image.LoadImageFromFile(file_s, false);
                         }
                         if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
                     }
@@ -1235,9 +1252,9 @@ namespace ImageCompare
                     item_copyto_source.Visibility = source ? Visibility.Collapsed : Visibility.Visible;
                     item_copyto_target.Visibility = source ? Visibility.Visible : Visibility.Collapsed;
                     var show_load = false;
-                    if (obj is Image) { show_load = string.IsNullOrEmpty((obj as Image).GetInformation().FileName); }
-                    item_load_prev.IsEnabled = show_load ? false : true;
-                    item_load_next.IsEnabled = show_load ? false : true;
+                    if (obj is Image) { show_load = !string.IsNullOrEmpty((obj as Image).GetInformation().FileName); }
+                    item_load_prev.Visibility = show_load ? Visibility.Visible : Visibility.Collapsed;
+                    item_load_next.Visibility = show_load ? Visibility.Visible : Visibility.Collapsed;
                 };
             }
 
@@ -1311,14 +1328,12 @@ namespace ImageCompare
         public MainWindow()
         {
             InitializeComponent();
+            LoadConfig();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             //System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
-
-            LoadConfig();
-
             LocaleUI(DefaultCultureInfo);
 
             #region Some Default UI Settings
@@ -1340,7 +1355,7 @@ namespace ImageCompare
                 ImageMagick.OpenCL.SetCacheDirectory(magick_cache);
                 ImageMagick.ResourceLimits.Memory = 256 * 1024 * 1024;
                 ImageMagick.ResourceLimits.LimitMemory(new Percentage(5));
-                ImageMagick.ResourceLimits.Thread = 2;
+                ImageMagick.ResourceLimits.Thread = 4;
                 //ImageMagick.ResourceLimits.Area = 4096 * 4096;
                 //ImageMagick.ResourceLimits.Throttle = 
             }
@@ -1486,6 +1501,8 @@ namespace ImageCompare
 
         private void Window_Closed(object sender, EventArgs e)
         {
+            if(WindowState == System.Windows.WindowState.Normal)
+                LastPositionSize = new Rect(Top, Left, Width, Height);
             SaveConfig();
         }
 
@@ -1494,6 +1511,12 @@ namespace ImageCompare
             if (WindowState == System.Windows.WindowState.Normal)
                 LastPositionSize = new Rect(Top, Left, Width, Height);
             CalcDisplay(set_ratio: true);
+        }
+
+        private void Window_StateChanged(object sender, EventArgs e)
+        {
+            if (WindowState != System.Windows.WindowState.Normal)
+                LastPositionSize = new Rect(Top, Left, Width, Height);
         }
 
         private void Window_DragOver(object sender, DragEventArgs e)
@@ -1521,6 +1544,8 @@ namespace ImageCompare
             }
         }
 
+        private Key _last_key_ = Key.None;
+        private DateTime _last_key_time_ = DateTime.Now;
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.IsDown)
@@ -1532,6 +1557,14 @@ namespace ImageCompare
                     {
                         e.Handled = true;
                         Close();
+                    }
+                    else if ((e.Key == Key.Escape || e.SystemKey == Key.Escape) && _last_key_ == Key.Escape)
+                    {
+                        if ((DateTime.Now - _last_key_time_).TotalMilliseconds < 150)
+                        {
+                            e.Handled = true;
+                            Close();
+                        }
                     }
                     else if (e.Key == Key.F1 || e.SystemKey == Key.F1)
                     {
@@ -1623,6 +1656,8 @@ namespace ImageCompare
                         e.Handled = true;
                         if (ImageTarget.Source != null && ImageTarget.ContextMenu != null) ImageTarget.ContextMenu.IsOpen = true;
                     }
+                    _last_key_ = e.Key;
+                    _last_key_time_ = DateTime.Now;
                 }
                 catch (Exception ex) { ex.Message.ShowMessage(); }
             }
@@ -1767,7 +1802,7 @@ namespace ImageCompare
             catch (Exception ex) { ex.Message.ShowMessage(); }
         }
 
-        private void ImageActions_Click(object sender, RoutedEventArgs e)
+        private async void ImageActions_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
             if (sender == UILanguage)
@@ -1796,23 +1831,23 @@ namespace ImageCompare
             }
             else if (sender == ImageOpenSource)
             {
-                ImageSource.GetInformation().LoadImageFromFile();
-                //LoadImageFromFile(source: true);
+                var action = ImageSource.GetInformation().LoadImageFromFile();
+                if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
             }
             else if (sender == ImageOpenTarget)
             {
-                ImageTarget.GetInformation().LoadImageFromFile();
-                //LoadImageFromFile(source: false);
+                var action = ImageTarget.GetInformation().LoadImageFromFile();
+                if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
             }
             else if (sender == ImagePasteSource)
             {
-                ImageSource.GetInformation().LoadImageFromClipboard();
-                //LoadImageFromClipboard(source: true);
+                var action = await ImageSource.GetInformation().LoadImageFromClipboard();
+                if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
             }
             else if (sender == ImagePasteTarget)
             {
-                ImageTarget.GetInformation().LoadImageFromClipboard();
-                //LoadImageFromClipboard(source: false);
+                var action = await ImageTarget.GetInformation().LoadImageFromClipboard();
+                if(action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
             }
             else if (sender == ImageClear)
             {
@@ -1908,14 +1943,11 @@ namespace ImageCompare
             }
             else if (sender == UseSmallerImage)
             {
-                if (CompareImageForceScale)
-                    ScaleImage(CompareResizeGeometry);
-                else
-                    ScaleImage();
+                UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
             else if (sender == UseColorImage)
             {
-                ChangeColorSpace();
+                //ChangeColorSpace();
                 UpdateImageViewer(compose: LastOpIsCompose, assign: true);
             }
             else if (sender == UsedChannels)

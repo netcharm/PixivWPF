@@ -32,6 +32,7 @@ namespace ImageCompare
                 Reload();
             }
         }
+        public Size OriginalSize { get { return (ValidOriginal ? new Size(Original.Width, Original.Height) : new Size(0, 0)); } }
         private MagickImage _current_ = null;
         public MagickImage Current
         {
@@ -42,6 +43,10 @@ namespace ImageCompare
                 _current_ = value;
             }
         }
+        public Size CurrentSize { get { return (ValidCurrent ? new Size(Current.Width, Current.Height) : new Size(0, 0)); } }
+
+        private ColorSpace _last_colorspace_ = ColorSpace.Undefined;
+
         public ImageSource Source { get { return (ValidCurrent ? Current.ToBitmapSource() : null); } }
 
         public bool ValidCurrent { get { return (Current is MagickImage && !Current.IsDisposed); } }
@@ -51,6 +56,9 @@ namespace ImageCompare
 
         public string FileName { get; set; } = string.Empty;
 
+        public bool AutoScale { get; set; } = true;
+        public int AutoScaleSize { get; set; } = 1024;
+
         public bool Loaded { get; set; } = false;
         public bool Modified { get; set; } = false;
 
@@ -58,10 +66,11 @@ namespace ImageCompare
         public bool FlipY { get; set; } = false;
         public double Rotated { get; set; } = .0;
 
-        public async void LoadImageFromClipboard()
+        public async Task<bool> LoadImageFromClipboard()
         {
-            await Application.Current.Dispatcher.InvokeAsync(() =>
+            var result = await Application.Current.Dispatcher.InvokeAsync(() =>
             {
+                var ret = false;
                 try
                 {
                     var supported_fmts = new string[] { "PNG", "image/png", "image/jpg", "image/jpeg", "image/tif", "image/tiff", "image/bmp", "DeviceIndependentBitmap", "image/wbmp", "image/webp", "Text" };
@@ -81,6 +90,7 @@ namespace ImageCompare
                                     image.Dispose();
                                     FileName = string.Empty;
                                     Modified = true;
+                                    ret = true;
                                     break;
                                 }
 #if DEBUG
@@ -100,6 +110,7 @@ namespace ImageCompare
                                         Original = new MagickImage((obj as MemoryStream), MagickFormat.Unknown);
                                         FileName = string.Empty;
                                         Modified = true;
+                                        ret = true;
                                     }
                                 }
                             }
@@ -107,57 +118,67 @@ namespace ImageCompare
                     }
                 }
                 catch (Exception ex) { ex.Message.ShowMessage(); }
+                return(ret);
             }, DispatcherPriority.Render);
+            return (result);
         }
 
-        public async void LoadImageFromPrevFile()
-        {
-            await Application.Current.Dispatcher.InvokeAsync(async () =>
-            {
-                try
-                {
-                    if (!string.IsNullOrEmpty(FileName))
-                    {
-                        var file = FileName;
-                        var files = file.GetFiles();
-                        if (files.Count() > 0 && !string.IsNullOrEmpty(file))
-                        {
-                            var file_n = files.Where(f => f.EndsWith(file, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                            var idx = files.IndexOf(file_n);
-                            if (idx > 0) await LoadImageFromFile(files[idx - 1]);
-                        }
-                    }
-                }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
-            });
-        }
-
-        public async void LoadImageFromNextFile()
-        {
-            await Application.Current.Dispatcher.InvokeAsync(async () =>
-            {
-                try
-                {
-                    if (!string.IsNullOrEmpty(FileName))
-                    {
-                        var file = FileName;
-                        var files = file.GetFiles();
-                        if (files.Count() > 0 && !string.IsNullOrEmpty(file))
-                        {
-                            var file_n = files.Where(f => f.EndsWith(file, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
-                            var idx = files.IndexOf(file_n);
-                            if (idx < files.Count - 1) await LoadImageFromFile(files[idx + 1]);
-                        }
-                    }
-                }
-                catch (Exception ex) { ex.Message.ShowMessage(); }
-            });
-        }
-
-        public async Task<bool> LoadImageFromFile(string file, bool update = true)
+        public async Task<bool> LoadImageFromPrevFile()
         {
             var result = false;
-            result = await Application.Current.Dispatcher.InvokeAsync<bool>(() =>
+            result = await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                bool ret = false;
+                try
+                {
+                    if (!string.IsNullOrEmpty(FileName))
+                    {
+                        var file = FileName;
+                        var files = file.GetFiles();
+                        if (files.Count() > 0 && !string.IsNullOrEmpty(file))
+                        {
+                            var file_n = files.Where(f => f.EndsWith(file, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                            var idx = files.IndexOf(file_n);
+                            if (idx > 0) ret = LoadImageFromFile(files[idx - 1]);
+                        }
+                    }
+                }
+                catch (Exception ex) { ex.Message.ShowMessage(); }
+                return (ret);
+            });
+            return (result);
+        }
+
+        public async Task<bool> LoadImageFromNextFile()
+        {
+            var result = false;
+            result = await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                var ret = false;
+                try
+                {
+                    if (!string.IsNullOrEmpty(FileName))
+                    {
+                        var file = FileName;
+                        var files = file.GetFiles();
+                        if (files.Count() > 0 && !string.IsNullOrEmpty(file))
+                        {
+                            var file_n = files.Where(f => f.EndsWith(file, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                            var idx = files.IndexOf(file_n);
+                            if (idx < files.Count - 1) ret = LoadImageFromFile(files[idx + 1]);
+                        }
+                    }
+                }
+                catch (Exception ex) { ex.Message.ShowMessage(); }
+                return (ret);
+            });
+            return (result);
+        }
+
+        public bool LoadImageFromFile(string file, bool update = true)
+        {
+            var result = false;
+            result = Application.Current.MainWindow.Dispatcher.Invoke(() =>
             {
                 var ret = false;
                 try
@@ -187,8 +208,9 @@ namespace ImageCompare
             return (result);
         }
 
-        public void LoadImageFromFile()
+        public bool LoadImageFromFile()
         {
+            var result = false;
             try
             {
                 var file_str = "AllSupportedImageFiles".T();
@@ -198,10 +220,11 @@ namespace ImageCompare
                 if (dlgOpen.ShowDialog() ?? false)
                 {
                     var file = dlgOpen.FileName;
-                    new Action(async () => { await LoadImageFromFile(file); }).Invoke();                    
+                    result = new Func<bool>(() => { return (LoadImageFromFile(file)); }).Invoke();
                 }
             }
-            catch(Exception ex) { ex.Message.ShowMessage(); }
+            catch (Exception ex) { ex.Message.ShowMessage(); }
+            return (result);
         }
 
         public void Save(string file, string ext = ".png")
@@ -360,7 +383,8 @@ namespace ImageCompare
         {
             if (ValidCurrent && ValidOriginal)
             {
-                var color = force ? ColorSpace.sRGB : Original.ColorSpace;
+                if (Current.ColorSpace != Original.ColorSpace) _last_colorspace_ = Current.ColorSpace;
+                var color = force ? ColorSpace.sRGB : _last_colorspace_;// Original.ColorSpace;
                 if (color != Current.ColorSpace) Current.ColorSpace = color;
             }
         }
@@ -368,7 +392,7 @@ namespace ImageCompare
 #if DEBUG
         public async Task<string> GetImageInfo()
 #else
-        public string GetImageInfo(ImageType type)
+        public string GetImageInfo()
 #endif
         {
             string result = string.Empty;
@@ -481,11 +505,39 @@ namespace ImageCompare
                     ResetTransform();
                     Current = new MagickImage(Original);
                     Modified = true;
+                    _last_colorspace_ = Current.ColorSpace;
                     result = true;
                 }
             }
             catch (Exception ex) { ex.Message.ShowMessage(); }
             return (result);
+        }
+
+        public bool Reload(MagickGeometry geo)
+        {
+            var result = false;
+            try
+            {
+                if (ValidOriginal && geo is MagickGeometry)
+                {
+                    if (ValidCurrent) { Current.Dispose(); Current = null; }
+                    ResetTransform();
+                    Current = new MagickImage(Original);
+                    Current.Resize(geo);
+                    Current.RePage();
+                    _last_colorspace_ = Current.ColorSpace;
+                    Modified = true;
+                    result = true;
+                }
+            }
+            catch (Exception ex) { ex.Message.ShowMessage(); }
+            return (result);
+        }
+
+        public bool Reload(int size)
+        {
+            if (size <= 0) return (Reload());
+            else return (Reload(new MagickGeometry($"{size}x{size}>")));
         }
 
         public void Dispose()
