@@ -435,4 +435,16 @@
   <data name="LoadPrevImageFile.Header" xml:space="preserve">
     <value>載入前一個影像檔案</value>
   </data>
+  <data name="Invert.Header" xml:space="preserve">
+    <value>反轉影像顏色</value>
+  </data>
+  <data name="Polaroid.Header" xml:space="preserve">
+    <value>寶麗來風格影像</value>
+  </data>
+  <data name="Posterize.Header" xml:space="preserve">
+    <value>海報風格影像</value>
+  </data>
+  <data name="MedianFilter.Header" xml:space="preserve">
+    <value>中值過濾降噪</value>
+  </data>
 </root>

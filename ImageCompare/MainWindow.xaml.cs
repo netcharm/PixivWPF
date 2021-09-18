@@ -358,7 +358,7 @@ namespace ImageCompare
                 var image = GetImage(type);
                 if (image is MagickImage && !image.IsDisposed)
                 {
-                    var file = type == ImageType.Source ? SourceFile : type == ImageType.Target ? TargetFile : string.Empty;
+                    var file = ExchangeSourceTarget ? (type == ImageType.Source ? TargetFile : type == ImageType.Target ? SourceFile : string.Empty) : (type == ImageType.Source ? SourceFile : type == ImageType.Target ? TargetFile : string.Empty);
                     var st = Stopwatch.StartNew();
                     image.Density.ChangeUnits(DensityUnit.PixelsPerInch);
                     if (image.Density.X <= 0 || image.Density.Y <= 0)
@@ -546,13 +546,13 @@ namespace ImageCompare
                 {
                     if (SourceImage is MagickImage)
                     {
-                        ImageSourceBox.Width = SourceImage.Width;
-                        ImageSourceBox.Height = SourceImage.Height;
+                        ImageSourceBox.Width = ExchangeSourceTarget ? TargetImage.Width : SourceImage.Width;
+                        ImageSourceBox.Height = ExchangeSourceTarget ? TargetImage.Height : SourceImage.Height;
                     }
                     if (TargetImage is MagickImage)
                     {
-                        ImageTargetBox.Width = TargetImage.Width;
-                        ImageTargetBox.Height = TargetImage.Height;
+                        ImageTargetBox.Width = ExchangeSourceTarget ? SourceImage.Width : TargetImage.Width;
+                        ImageTargetBox.Height = ExchangeSourceTarget ? SourceImage.Height : TargetImage.Height;
                     }
                     if (ResultImage is MagickImage)
                     {
@@ -923,7 +923,9 @@ namespace ImageCompare
             {
                 try
                 {
-                    var file = (ExchangeSourceTarget ? !source : source) ? SourceFile : TargetFile;
+                    //var file = (ExchangeSourceTarget ? !source : source) ? SourceFile : TargetFile;
+                    var file = ExchangeSourceTarget ? (source ? TargetFile : SourceFile) : (source ? SourceFile : TargetFile);
+
                     var files = GetFiles(file);
                     if (files.Count() > 0 && !string.IsNullOrEmpty(file))
                     {
@@ -936,9 +938,44 @@ namespace ImageCompare
             });
         }
 
+        private async Task<bool> LoadImageFromFile(string file, ImageType type, bool update = true)
+        {
+            var result = false;
+            result = await Dispatcher.InvokeAsync<bool>(() =>
+            {
+                var ret = false;
+                try
+                {
+                    using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        if (Path.GetExtension(file).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                            SetImage(type, Lut2Png(fs), update: false);
+                        else
+                            try { SetImage(type, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file))), update: update); }
+                            catch { SetImage(type, new MagickImage(fs, MagickFormat.Unknown), update: update); }
+
+                        if (ExchangeSourceTarget)
+                        {
+                            if (type == ImageType.Source) TargetFile = file;
+                            else if (type == ImageType.Target) SourceFile = file;
+                        }
+                        else
+                        {
+                            if (type == ImageType.Source) SourceFile = file;
+                            else if (type == ImageType.Target) TargetFile = file;
+                        }
+                        ret = true;
+                    }
+                }
+                catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+                return (ret);
+            });
+            return (result);
+        }
+
         private async void LoadImageFromFiles(string[] files, bool source = true)
         {
-            await Dispatcher.InvokeAsync(() =>
+            await Dispatcher.InvokeAsync(async () =>
             {
                 try
                 {
@@ -956,52 +993,60 @@ namespace ImageCompare
                         {
                             file_s = files.First();
                             file_t = files.Skip(1).First();
-                            using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
-                            {
-                                if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
-                                    SetImage(type_s, Lut2Png(fs), update: false);
-                                else
-                                    SetImage(type_s, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_s))), update: false);
-                                SourceFile = file_s;
-                                action = true;
-                            }
-                            using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
-                            {
-                                if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
-                                    SetImage(type_t, Lut2Png(fs), update: false);
-                                else
-                                    SetImage(type_t, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_s))), update: false);
-                                TargetFile = file_t;
-                                action = true;
-                            }
+                            action |= await LoadImageFromFile(file_s, type_s, false);
+                            action |= await LoadImageFromFile(file_t, type_t, false);
+                            //using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            //{
+                            //    if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                            //        SetImage(type_s, Lut2Png(fs), update: false);
+                            //    else
+                            //        SetImage(type_s, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_s))), update: false);
+                            //    SourceFile = file_s;
+                            //    action = true;
+                            //}
+                            //using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            //{
+                            //    if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                            //        SetImage(type_t, Lut2Png(fs), update: false);
+                            //    else
+                            //        try { SetImage(type_t, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_s))), update: false); }
+                            //        catch { SetImage(type_t, new MagickImage(fs), update: false); }
+                            //    TargetFile = file_t;
+                            //    action = true;
+                            //}
                         }
                         else
                         {
                             if (source)
                             {
                                 file_s = files.First();
-                                using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
-                                {
-                                    if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
-                                        SetImage(type_s, Lut2Png(fs), update: false);
-                                    else
-                                        SetImage(type_s, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_s))), update: false);
-                                    SourceFile = file_s;
-                                    action = true;
-                                }
+                                action |= await LoadImageFromFile(file_s, type_s, false);
+                                //using (var fs = new FileStream(file_s, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                //{
+                                //    if (Path.GetExtension(file_s).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                                //        SetImage(type_s, Lut2Png(fs), update: false);
+                                //    else
+                                //        try { SetImage(type_s, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_s))), update: false); }
+                                //        catch { SetImage(type_s, new MagickImage(fs), update: false); }
+                                //    SourceFile = file_s;
+                                //    action = true;
+                                //}
                             }
                             else
                             {
                                 file_t = files.First();
-                                using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
-                                {
-                                    if (Path.GetExtension(file_t).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
-                                        SetImage(type_t, Lut2Png(fs), update: false);
-                                    else
-                                        SetImage(type_t, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_t))), update: false);
-                                    TargetFile = file_t;
-                                    action = true;
-                                }
+                                action |= await LoadImageFromFile(file_t, type_t, false);
+                                //using (var fs = new FileStream(file_t, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                //{
+                                //    if (Path.GetExtension(file_t).Equals(".cube", StringComparison.CurrentCultureIgnoreCase))
+                                //        SetImage(type_t, Lut2Png(fs), update: false);
+                                //    else
+                                //        try { SetImage(type_t, new MagickImage(fs, GetImageFileFormat(Path.GetExtension(file_t))), update: false); }
+                                //        catch { SetImage(type_s, new MagickImage(fs), update: false); }
+
+                                //    TargetFile = file_t;
+                                //    action = true;
+                                //}
                             }
                         }
                         if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
@@ -1665,6 +1710,31 @@ namespace ImageCompare
                     Tag = source
                 };
 
+                var item_more_medianfilter = new MenuItem()
+                {
+                    Header = "Median Filter",
+                    Uid = "MedianFilter",
+                    Tag = source
+                };
+                var item_more_invert = new MenuItem()
+                {
+                    Header = "Invert",
+                    Uid = "Invert",
+                    Tag = source
+                };
+                var item_more_posterize = new MenuItem()
+                {
+                    Header = "Posterize",
+                    Uid = "Posterize",
+                    Tag = source
+                };
+                var item_more_polaroid = new MenuItem()
+                {
+                    Header = "Polaroid",
+                    Uid = "Polaroid",
+                    Tag = source
+                };
+
                 var item_more_meanshift = new MenuItem()
                 {
                     Header = "Mean Shift",
@@ -1697,6 +1767,10 @@ namespace ImageCompare
                 item_more_autogamma.Click += (obj, evt) => { this.InvokeAsync(() => { AutoGammaImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_more_autovignette.Click += (obj, evt) => { this.InvokeAsync(() => { AutoVignetteImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_invert.Click += (obj, evt) => { this.InvokeAsync(() => { InvertImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_polaroid.Click += (obj, evt) => { this.InvokeAsync(() => { PolaroidImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_posterize.Click += (obj, evt) => { this.InvokeAsync(() => { PosterizeImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_medianfilter.Click += (obj, evt) => { this.InvokeAsync(() => { MedianFilterImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_more_blueshift.Click += (obj, evt) => { this.InvokeAsync(() => { BlueShiftImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_autothreshold.Click += (obj, evt) => { this.InvokeAsync(() => { AutoThresholdImage((bool)(obj as MenuItem).Tag); }); };
@@ -1718,6 +1792,9 @@ namespace ImageCompare
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_oil);
                 item_more.Items.Add(item_more_charcoal);
+                item_more.Items.Add(item_more_invert);
+                item_more.Items.Add(item_more_posterize);
+                item_more.Items.Add(item_more_polaroid);
                 item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_autovignette);
                 item_more.Items.Add(item_more_blueshift);
@@ -1725,6 +1802,7 @@ namespace ImageCompare
                 item_more.Items.Add(item_more_remap);
                 item_more.Items.Add(item_more_haldclut);
                 item_more.Items.Add(new Separator());
+                item_more.Items.Add(item_more_medianfilter);
                 item_more.Items.Add(item_more_meanshift);
                 item_more.Items.Add(item_more_kmeans);
                 item_more.Items.Add(new Separator());
@@ -1971,6 +2049,9 @@ namespace ImageCompare
             ZoomFitAll.IsChecked = true;
             ImageActions_Click(ZoomFitAll, e);
             #endregion
+
+            if (ImageSource.Tag == null) ImageSource.Tag = new ImageInfomation() { Tagetment = ImageSource };
+            if (ImageTarget.Tag == null) ImageTarget.Tag = new ImageInfomation() { Tagetment = ImageTarget };
 
             var args = Environment.GetCommandLineArgs();
             LoadImageFromFiles(args.Skip(1).ToArray());

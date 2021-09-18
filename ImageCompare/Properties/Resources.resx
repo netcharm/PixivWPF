@@ -435,4 +435,16 @@
   <data name="LoadNextImageFile.Header" xml:space="preserve">
     <value>Load Next Image File</value>
   </data>
+  <data name="Invert.Header" xml:space="preserve">
+    <value>Invert</value>
+  </data>
+  <data name="Polaroid.Header" xml:space="preserve">
+    <value>Polaroid</value>
+  </data>
+  <data name="Posterize.Header" xml:space="preserve">
+    <value>Posterize</value>
+  </data>
+  <data name="MedianFilter.Header" xml:space="preserve">
+    <value>Median Filter</value>
+  </data>
 </root>

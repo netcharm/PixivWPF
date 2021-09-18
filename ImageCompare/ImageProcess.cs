@@ -20,6 +20,18 @@ using Xceed.Wpf.Toolkit;
 
 namespace ImageCompare
 {
+    public class ImageInfomation
+    {
+        public MagickImage Current { get; set; } = null;
+        public MagickImage Original { get; set; } = null;
+        public FrameworkElement Tagetment { get; set; } = null;
+        public string FileName { get; set; } = string.Empty;
+        public bool Loaded { get; set; } = false;
+        public bool FlipX { get; set; } = false;
+        public bool FlipY { get; set; } = false;
+        public double Rotate { get; set; } = 0;
+    }
+
     public partial class MainWindow : Window
     {
         #region Image Processing Switch/Params
@@ -58,6 +70,7 @@ namespace ImageCompare
             return (result);
         }
 
+        private List<string> _auto_formats_ = new List<string>() { ".jpg", ".jpeg", ".png", ".bmp" };
         private Dictionary<string, MagickFormat> _supported_formats_ = new Dictionary<string, MagickFormat>();
         private MagickFormat GetImageFileFormat(string ext)
         {
@@ -68,7 +81,7 @@ namespace ImageCompare
                 {
                     foreach (var fmt in MagickNET.SupportedFormats) _supported_formats_.Add($".{fmt.Format.ToString().ToLower()}", fmt.Format);
                 }
-                if (_supported_formats_.ContainsKey(ext.ToLower())) result = _supported_formats_[ext.ToLower()];
+                if (_supported_formats_.ContainsKey(ext.ToLower()) && !_auto_formats_.Contains(ext.ToLower())) result = _supported_formats_[ext.ToLower()];
             }
             catch { }
             return (result);
@@ -827,6 +840,80 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void PolaroidImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                double angle = WeakEffects ? 3 : 5;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.Polaroid("❤❤", angle, PixelInterpolateMethod.Spline);
+                        //SourceImage.RePage();
+                        action = true;
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.Polaroid("❤❤", angle, PixelInterpolateMethod.Spline);
+                        //TargetImage.RePage();
+                        action = true;
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void PosterizeImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var levels = WeakEffects ? 12 : 6;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.Posterize(levels, DitherMethod.Riemersma, CompareImageChannels);
+                        //SourceImage.RePage();
+                        action = true;
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.Posterize(levels, DitherMethod.Riemersma, CompareImageChannels);
+                        //TargetImage.RePage();
+                        action = true;
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void CharcoalImage(bool source)
         {
             try
@@ -852,6 +939,42 @@ namespace ImageCompare
                         if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
                         TargetImage.Charcoal(radius, sigma);
+                        //TargetImage.RePage();
+                        action = true;
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        private void InvertImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        SourceImage.Negate(CompareImageChannels);
+                        //SourceImage.RePage();
+                        action = true;
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        TargetImage.Negate(CompareImageChannels);
                         //TargetImage.RePage();
                         action = true;
                     }
@@ -1202,7 +1325,7 @@ namespace ImageCompare
             {
                 var action = false;
                 var colors = WeakEffects ? 32768 : 65536;
-                var dither = WeakEffects ? DitherMethod.No :  DitherMethod.FloydSteinberg;
+                var dither = WeakEffects ? DitherMethod.No :  DitherMethod.Riemersma;
                 var depth = WeakEffects ? 3 : 7;
                 if (source ^ ExchangeSourceTarget)
                 {
@@ -1297,25 +1420,20 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
-        private void FillOutBoundBoxImage(bool source)
+        private void MedianFilterImage(bool source)
         {
             try
             {
                 var action = false;
-                var radius = WeakEffects ? 5 : 10;
-                var sigma = WeakEffects ? 0.25 : 0.5;
+                var radius = WeakEffects ? 3 : 5;
                 if (source ^ ExchangeSourceTarget)
                 {
                     if (SourceImage is MagickImage)
                     {
                         if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        if (SourceImage.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) SourceImage.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
-                        SourceImage.BackgroundColor = MasklightColor ?? MagickColors.Transparent;
-                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, 1);
-                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, SourceImage.Width - 2, 1);
-                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, SourceImage.Width - 2, SourceImage.Height - 2);
-                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, SourceImage.Height - 2);
+                        SourceImage.MedianFilter(radius);
+                        //SourceImage.RePage();
                         action = true;
                     }
                 }
@@ -1325,12 +1443,8 @@ namespace ImageCompare
                     {
                         if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
                         if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
-                        if (TargetImage.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) TargetImage.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
-                        TargetImage.BackgroundColor = MasklightColor ?? MagickColors.Transparent;
-                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, 1);
-                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, TargetImage.Width - 2, 1);
-                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, TargetImage.Width - 2, TargetImage.Height - 2);
-                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, TargetImage.Height - 2);
+                        TargetImage.MedianFilter(radius);
+                        //TargetImage.RePage();
                         action = true;
                     }
                 }
@@ -1418,6 +1532,52 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void FillOutBoundBoxImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var radius = WeakEffects ? 5 : 10;
+                var sigma = WeakEffects ? 0.25 : 0.5;
+                if (source ^ ExchangeSourceTarget)
+                {
+                    if (SourceImage is MagickImage)
+                    {
+                        if (SourceOriginal == null) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null && TargetImage is MagickImage) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (SourceImage.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) SourceImage.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
+                        SourceImage.BackgroundColor = MasklightColor ?? MagickColors.Transparent;
+                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, 1);
+                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, SourceImage.Width - 2, 1);
+                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, SourceImage.Width - 2, SourceImage.Height - 2);
+                        SourceImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, SourceImage.Height - 2);
+                        action = true;
+                    }
+                }
+                else
+                {
+                    if (TargetImage is MagickImage)
+                    {
+                        if (SourceOriginal == null && SourceImage is MagickImage) SourceOriginal = new MagickImage(SourceImage.Clone());
+                        if (TargetOriginal == null) TargetOriginal = new MagickImage(TargetImage.Clone());
+                        if (TargetImage.ColorFuzz.ToDouble() != ImageCompareFuzzy.Value) TargetImage.ColorFuzz = new Percentage(ImageCompareFuzzy.Value);
+                        TargetImage.BackgroundColor = MasklightColor ?? MagickColors.Transparent;
+                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, 1);
+                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, TargetImage.Width - 2, 1);
+                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, TargetImage.Width - 2, TargetImage.Height - 2);
+                        TargetImage.FloodFill(MasklightColor ?? MagickColors.Transparent, 1, TargetImage.Height - 2);
+                        action = true;
+                    }
+                }
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { Xceed.Wpf.Toolkit.MessageBox.Show(this, ex.Message); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="compose"></param>
         /// <returns></returns>
@@ -1465,6 +1625,7 @@ namespace ImageCompare
                                 tip.Add($"{"ResultTipMode".T()} {ErrorMetricMode.ToString()}");
                                 tip.Add($"{"ResultTipDifference".T()} {distance:F4}");
                                 result = new MagickImage(diff.Clone());
+                                //result.Comment = "NetCharm Created";
                                 await Task.Delay(1);
                                 DoEvents();
                             }

@@ -435,4 +435,16 @@
   <data name="LoadPrevImageFile.Header" xml:space="preserve">
     <value>前の画像ファイルを読み込む</value>
   </data>
+  <data name="Invert.Header" xml:space="preserve">
+    <value>画像の色を反転</value>
+  </data>
+  <data name="Polaroid.Header" xml:space="preserve">
+    <value>ポラロイドスタイルの画像</value>
+  </data>
+  <data name="Posterize.Header" xml:space="preserve">
+    <value>ポスタースタイルの画像</value>
+  </data>
+  <data name="MedianFilter.Header" xml:space="preserve">
+    <value>中間値フィルタノイズ低減</value>
+  </data>
 </root>
