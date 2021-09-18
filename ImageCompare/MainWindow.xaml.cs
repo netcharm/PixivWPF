@@ -1680,7 +1680,7 @@ namespace ImageCompare
             }
         }
 
-        private void ImageBox_MouseDown(object sender, MouseButtonEventArgs e)
+        private async void ImageBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = false;
             if (e.Device is MouseDevice)
@@ -1702,6 +1702,24 @@ namespace ImageCompare
                         mouse_start = e.GetPosition(ImageResultScroll);
                         mouse_origin = new Point(ImageResultScroll.HorizontalOffset, ImageResultScroll.VerticalOffset);
                     }
+                }
+                else if (e.ChangedButton == MouseButton.Middle)
+                {
+                    Close();
+                }
+                else if (e.ChangedButton == MouseButton.XButton1)
+                {
+                    var action = false;
+                    if (sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromNextFile();
+                    else if (sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromNextFile();
+                    if (action) UpdateImageViewer(assign: true);
+                }
+                else if (e.ChangedButton == MouseButton.XButton2)
+                {
+                    var action = false;
+                    if (sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromPrevFile();
+                    else if (sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromPrevFile();
+                    if (action) UpdateImageViewer(assign: true);
                 }
             }
         }

@@ -328,7 +328,7 @@ namespace ImageCompare
                     var dir = Path.GetDirectoryName(Path.IsPathRooted(file) ? file : Path.Combine(Directory.GetCurrentDirectory(), file));
                     if (Directory.Exists(dir))
                     {
-                        files.AddRange(Directory.EnumerateFiles(dir, "*.*").Where(f => AllSupportedExts.Contains(Path.GetExtension(f).ToLower())));
+                        files.AddRange(Directory.EnumerateFiles(dir, "*.*").Where(f => AllSupportedExts.Contains(Path.GetExtension(f).ToLower())).NaturalSort());
                     }
                 }
                 catch (Exception ex) { ex.Message.ShowMessage(); }
@@ -610,6 +610,24 @@ namespace ImageCompare
             return (result);
         }
         #endregion
+
+        public static IList<string> NaturalSort(this IList<string> list, int padding = 16)
+        {
+            try
+            {
+                return (list is IList<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))).ToList() : list);
+            }
+            catch (Exception ex) { ex.Message.ShowMessage(); return (list); }
+        }
+
+        public static IEnumerable<string> NaturalSort(this IEnumerable<string> list, int padding = 16)
+        {
+            try
+            {
+                return (list is IEnumerable<string> ? list.OrderBy(x => Regex.Replace(x, @"\d+", m => m.Value.PadLeft(padding, '0'))) : list);
+            }
+            catch (Exception ex) { ex.Message.ShowMessage(); return (list); }
+        }
 
         public static ImageInformation GetInformation(this FrameworkElement element)
         {
