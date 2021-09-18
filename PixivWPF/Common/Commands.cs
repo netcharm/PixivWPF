@@ -677,12 +677,45 @@ namespace PixivWPF.Common
                 if (IsNormalGallary(gallery))
                 {
                     var ids = new  List<string>();
-                    foreach (var item in gallery.GetSelected())
+                    var selected = gallery.GetSelected();
+                    if (selected.Count() < 2)
                     {
-                        if (item.IsWork())
+                        try
                         {
-                            var id = $"{item.Illust.GetPreviewUrl().GetImageCacheFile()}";
-                            if (!ids.Contains(id)) ids.Add(id);
+                            if (gallery.Items.Count >= 1)
+                            {
+                                if (selected.Count() == 0 || gallery.Items.Count <= 2)
+                                {
+                                    ids.AddRange(gallery.Items.Select(i => i.Illust.GetPreviewUrl().GetImageCacheFile()));
+                                }
+                                else
+                                {
+                                    var item = selected.First();
+                                    var idx = gallery.Items.IndexOf(item);
+                                    if (idx < item.Count - 1)
+                                    {
+                                        ids.Add(selected.First().Illust.GetPreviewUrl().GetImageCacheFile());
+                                        ids.Add(gallery.Items[idx + 1].Illust.GetPreviewUrl().GetImageCacheFile());
+                                    }
+                                    else
+                                    {
+                                        ids.Add(gallery.Items[idx - 1].Illust.GetPreviewUrl().GetImageCacheFile());
+                                        ids.Add(selected.First().Illust.GetPreviewUrl().GetImageCacheFile());
+                                    }
+                                }
+                            }
+                        }
+                        catch(Exception ex) { ex.ERROR("Compare"); }
+                    }
+                    else
+                    {
+                        foreach (var item in selected)
+                        {
+                            if (item.IsWork())
+                            {
+                                var id = $"{item.Illust.GetPreviewUrl().GetImageCacheFile()}";
+                                if (!ids.Contains(id)) ids.Add(id);
+                            }
                         }
                     }
                     Compare.Execute(ids);
@@ -693,12 +726,44 @@ namespace PixivWPF.Common
                     if (page is IllustDetailPage)
                     {
                         var ids = new  List<string>();
-                        foreach (var item in gallery.GetSelected())
+                        var selected = gallery.GetSelected();
+                        if (selected.Count() < 2)
                         {
-                            if (item.IsPage() || item.IsPages())
+                            try
                             {
-                                var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile()}";
-                                if (!ids.Contains(id)) ids.Add(id);
+                                if (gallery.Items.Count >= 1)
+                                {
+                                    if (selected.Count() == 0 || gallery.Items.Count <= 2)
+                                    {
+                                        ids.AddRange(gallery.Items.Select(i => i.Illust.GetPreviewUrl(i.Index).GetImageCacheFile()));
+                                    }
+                                    else
+                                    {
+                                        var item = selected.First();
+                                        if (item.Index < item.Count - 1)
+                                        {
+                                            ids.Add(item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile());
+                                            ids.Add(item.Illust.GetPreviewUrl(item.Index + 1).GetImageCacheFile());
+                                        }
+                                        else
+                                        {
+                                            ids.Add(item.Illust.GetPreviewUrl(item.Index - 1).GetImageCacheFile());
+                                            ids.Add(item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile());
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex) { ex.ERROR("Compare"); }
+                        }
+                        else
+                        {
+                            foreach (var item in gallery.GetSelected())
+                            {
+                                if (item.IsPage() || item.IsPages())
+                                {
+                                    var id = $"{item.Illust.GetPreviewUrl(item.Index).GetImageCacheFile()}";
+                                    if (!ids.Contains(id)) ids.Add(id);
+                                }
                             }
                         }
                         Compare.Execute(ids);
