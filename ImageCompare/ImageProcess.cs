@@ -303,6 +303,29 @@ namespace ImageCompare
         /// 
         /// </summary>
         /// <param name="source"></param>
+        private void ReduceNoiseImage(bool source)
+        {
+            try
+            {
+                var action = false;
+                var sigma = WeakSharp ? 5 : 10;
+
+                var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
+                if (image.ValidCurrent)
+                {
+                    image.Current.ReduceNoise(sigma);
+                    action = true;
+                }
+
+                if (action) UpdateImageViewer(compose: LastOpIsCompose, assign: true);
+            }
+            catch (Exception ex) { ex.Message.ShowMessage(); }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         private void ResizeToImage(bool source)
         {
             try
@@ -316,7 +339,7 @@ namespace ImageCompare
                     var s_image = source ? image_s.Current : image_t.Current;
                     var t_image = source ? image_t.Current : image_s.Current;
                     if (s_image.Width == t_image.Width || s_image.Height == t_image.Height)
-                        s_image.Extent(t_image.Width, t_image.Height, Gravity.Center, MagickColors.Transparent);
+                        s_image.Extent(t_image.Width, t_image.Height, Gravity.Center, MasklightColor ?? MagickColors.Transparent);
                     else
                         s_image.Resize(t_image.Width, t_image.Height);
                     s_image.RePage();
@@ -505,7 +528,7 @@ namespace ImageCompare
             try
             {
                 var action = false;
-                var levels = WeakEffects ? 12 : 6;
+                var levels = WeakEffects ? 32 : 16;
 
                 var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                 if (image.ValidCurrent)

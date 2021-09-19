@@ -397,10 +397,10 @@
     <value>コントラストの自動調整</value>
   </data>
   <data name="AutoEnhance.Header" xml:space="preserve">
-    <value>自動強化画像</value>
+    <value>自動画像効果の向上</value>
   </data>
   <data name="AutoEqualize.Header" xml:space="preserve">
-    <value>画像の自動均衡</value>
+    <value>自動画像のバランス</value>
   </data>
   <data name="HaldClut.Header" xml:space="preserve">
     <value>Hald色の検索表を適用する</value>
@@ -452,5 +452,8 @@
   </data>
   <data name="CLUT.Header" xml:space="preserve">
     <value>普通の色の検索表を適用します</value>
+  </data>
+  <data name="AutoReduceNoise.Header" xml:space="preserve">
+    <value>自動画像ノイズ低減</value>
   </data>
 </root>

@@ -176,7 +176,7 @@ namespace ImageCompare
             return (result);
         }
 
-        public bool LoadImageFromFile(string file, bool update = true)
+        public bool LoadImageFromFile(string file, bool update = false)
         {
             var result = false;
             result = Application.Current.MainWindow.Dispatcher.Invoke(() =>
@@ -405,12 +405,12 @@ namespace ImageCompare
                     var st = Stopwatch.StartNew();
 
                     var DPI_TEXT = string.Empty;
-                    var DPI_UNIT = Current.Density.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : ( Current.Density.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
                     if (Current.Density == null || Current.Density.X <= 0 || Current.Density.Y <= 0)
                     {
                         var dpi = Application.Current.GetSystemDPI();
                         Current.Density = new Density(dpi.X, dpi.Y, DensityUnit.PixelsPerInch);
                     }
+                    var DPI_UNIT = Current.Density.Units == DensityUnit.PixelsPerCentimeter ? "PPC" : (Current.Density.Units == DensityUnit.PixelsPerInch ? "PPI" : string.Empty);
                     DPI_TEXT = $"{Math.Ceiling(Current.Density.X):F0} {DPI_UNIT} x {Math.Ceiling(Current.Density.Y):F0} {DPI_UNIT}";
                     if (Current.Density.Units != DensityUnit.PixelsPerInch)
                     {

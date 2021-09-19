@@ -453,4 +453,7 @@
   <data name="CLUT.Header" xml:space="preserve">
     <value>Apply CLUT</value>
   </data>
+  <data name="AutoReduceNoise.Header" xml:space="preserve">
+    <value>Auto Reduce Noise</value>
+  </data>
 </root>

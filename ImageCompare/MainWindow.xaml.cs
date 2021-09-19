@@ -435,7 +435,7 @@ namespace ImageCompare
                                 {
                                     if (image_s.CurrentSize.Width > MaxCompareSize || image_s.CurrentSize.Height > MaxCompareSize)
                                         image_s.Reload(CompareResizeGeometry);
-                                    if (image_t.CurrentSize.Width > MaxCompareSize && image_t.CurrentSize.Height > MaxCompareSize)
+                                    if (image_t.CurrentSize.Width > MaxCompareSize || image_t.CurrentSize.Height > MaxCompareSize)
                                         image_t.Reload(CompareResizeGeometry);
                                 }
                                 else
@@ -458,8 +458,15 @@ namespace ImageCompare
                             catch (Exception ex) { ex.Message.ShowMessage(); }
                         }
 
-                        ImageSource.ToolTip = "Waiting".T();
-                        ImageTarget.ToolTip = "Waiting".T();
+                        if (image_s.ValidCurrent)
+                            ImageSource.ToolTip = "Waiting".T();
+                        else
+                            ImageSource.ToolTip = null;
+
+                        if (image_t.ValidCurrent)
+                            ImageTarget.ToolTip = "Waiting".T();
+                        else
+                            ImageTarget.ToolTip = null;
 
                         ImageResult.Source = null;
                         if (image_r.ValidCurrent)
@@ -479,7 +486,12 @@ namespace ImageCompare
                         await Task.Delay(1);
                         DoEvents();
 
-                        ImageResult.ToolTip = "Waiting".T();
+                        //ImageResult.ToolTip = "Waiting".T();
+                        if (image_r.ValidCurrent)
+                            ImageResult.ToolTip = "Waiting".T();
+                        else
+                            ImageResult.ToolTip = null;
+
                         CalcDisplay(set_ratio: false);
                     }
                     catch (Exception ex) { ex.Message.ShowMessage(); }
@@ -510,7 +522,7 @@ namespace ImageCompare
                         image_t.Current = new MagickImage(image_s.Current);
                         action = true;
                     }
-                    else if(image_t.ValidCurrent)
+                    else if (image_t.ValidCurrent)
                     {
                         image_s.Current = new MagickImage(image_t.Current);
                         action = true;
@@ -546,7 +558,7 @@ namespace ImageCompare
                 {
                     var image = source ? ImageSource.GetInformation() : ImageTarget.GetInformation();
                     ret = await image.LoadImageFromNextFile();
-                    if(ret) UpdateImageViewer(assign: true);
+                    if (ret) UpdateImageViewer(assign: true);
                 }
                 catch (Exception ex) { ex.Message.ShowMessage(); }
                 return (ret);
@@ -832,8 +844,10 @@ namespace ImageCompare
 
         private void CreateImageOpMenu(FrameworkElement target)
         {
-            bool source = target == ImageSource ? true : false;
+            //bool source = target == ImageSource ? true : false;
+            bool source = target == ImageSourceScroll ? true : false;
             var color_gray = new SolidColorBrush(Colors.Gray);
+            var color_smoke = new SolidColorBrush(Colors.WhiteSmoke);
             var effect_blur = new System.Windows.Media.Effects.BlurEffect() { Radius = 2, KernelType = System.Windows.Media.Effects.KernelType.Gaussian };
 
             var items = source ? cm_image_source : cm_image_target;
@@ -907,6 +921,7 @@ namespace ImageCompare
                     Tag = source,
                     Icon = new TextBlock() { Text = "\uE879", FontSize = DefaultFontSize, FontFamily = DefaultFontFamily, Foreground = color_gray }
                 };
+
                 var item_more = new MenuItem()
                 {
                     Header = "More Effects",
@@ -1112,6 +1127,12 @@ namespace ImageCompare
                     Uid = "AutoEnhance",
                     Tag = source
                 };
+                var item_more_autoreducenoise = new MenuItem()
+                {
+                    Header = "Auto Reduce Noise",
+                    Uid = "AutoReduceNoise",
+                    Tag = source
+                };
                 var item_more_autoequalize = new MenuItem()
                 {
                     Header = "Auto Equalize",
@@ -1212,6 +1233,7 @@ namespace ImageCompare
                 item_more_charcoal.Click += (obj, evt) => { this.InvokeAsync(() => { CharcoalImage((bool)(obj as MenuItem).Tag); }); };
 
                 item_more_autoequalize.Click += (obj, evt) => { this.InvokeAsync(() => { AutoEqualizeImage((bool)(obj as MenuItem).Tag); }); };
+                item_more_autoreducenoise.Click += (obj, evt) => { this.InvokeAsync(() => { ReduceNoiseImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_autoenhance.Click += (obj, evt) => { this.InvokeAsync(() => { AutoEnhanceImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_autolevel.Click += (obj, evt) => { this.InvokeAsync(() => { AutoLevelImage((bool)(obj as MenuItem).Tag); }); };
                 item_more_autocontrast.Click += (obj, evt) => { this.InvokeAsync(() => { AutoContrastImage((bool)(obj as MenuItem).Tag); }); };
@@ -1236,8 +1258,10 @@ namespace ImageCompare
                 item_more_fillflood.Click += (obj, evt) => { this.InvokeAsync(() => { FillOutBoundBoxImage((bool)(obj as MenuItem).Tag); }); };
                 #endregion
                 #region Add MoreEffects MenuItems to MoreEffects
-                item_more.Items.Add(item_more_autoequalize);
                 item_more.Items.Add(item_more_autoenhance);
+                item_more.Items.Add(item_more_autoreducenoise);
+                item_more.Items.Add(item_more_autoequalize);
+                item_more.Items.Add(new Separator());
                 item_more.Items.Add(item_more_autolevel);
                 item_more.Items.Add(item_more_autocontrast);
                 item_more.Items.Add(item_more_autowhitebalance);
@@ -1264,11 +1288,15 @@ namespace ImageCompare
                 #endregion
                 target.ContextMenuOpening += (obj, evt) =>
                 {
+                    var is_source = evt.Source == ImageSourceScroll || evt.Source == ImageSourceBox || evt.Source == ImageSource;
+                    var is_target = evt.Source == ImageTargetScroll || evt.Source == ImageTargetBox || evt.Source == ImageTarget;
+                    var image = is_source ? ImageSource : (is_target ? ImageTarget : ImageResult);
+                    if (image.Source == null) { evt.Handled = true; return; }
                     //item_saveas.Visibility = Keyboard.Modifiers == ModifierKeys.Shift ? Visibility.Visible : Visibility.Collapsed;
                     item_copyto_source.Visibility = source ? Visibility.Collapsed : Visibility.Visible;
                     item_copyto_target.Visibility = source ? Visibility.Visible : Visibility.Collapsed;
                     var show_load = false;
-                    if (obj is Image) { show_load = !string.IsNullOrEmpty((obj as Image).GetInformation().FileName); }
+                    if (image is Image) { show_load = !string.IsNullOrEmpty(image.GetInformation().FileName); }
                     item_load_prev.Visibility = show_load ? Visibility.Visible : Visibility.Collapsed;
                     item_load_next.Visibility = show_load ? Visibility.Visible : Visibility.Collapsed;
                 };
@@ -1296,9 +1324,9 @@ namespace ImageCompare
             ImageToolBar.Locale();
             if (ImageSource.ContextMenu is ContextMenu) CreateImageOpMenu(ImageSource);
             if (ImageTarget.ContextMenu is ContextMenu) CreateImageOpMenu(ImageTarget);
-            ImageSource.ToolTip = ImageSource.GetInformation().GetImageInfo();
-            ImageTarget.ToolTip = ImageTarget.GetInformation().GetImageInfo();
-            ImageResult.ToolTip = ImageResult.GetInformation().GetImageInfo();
+            ImageSource.ToolTip = ImageSource.Source == null ? null : ImageSource.GetInformation().GetImageInfo();
+            ImageTarget.ToolTip = ImageTarget.Source == null ? null : ImageTarget.GetInformation().GetImageInfo();
+            ImageResult.ToolTip = ImageResult.Source == null ? null : ImageResult.GetInformation().GetImageInfo();
         }
 
         #region IDisposable Support
@@ -1475,8 +1503,10 @@ namespace ImageCompare
             #endregion
 
             #region Create Image Flip/Rotate/Effects Menu
-            CreateImageOpMenu(ImageSource);
-            CreateImageOpMenu(ImageTarget);
+            //CreateImageOpMenu(ImageSource);
+            //CreateImageOpMenu(ImageTarget);
+            CreateImageOpMenu(ImageSourceScroll);
+            CreateImageOpMenu(ImageTargetScroll);
             #endregion
 
             #region Result Color Defaults Value
@@ -1517,7 +1547,7 @@ namespace ImageCompare
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            if(WindowState == System.Windows.WindowState.Normal)
+            if (WindowState == System.Windows.WindowState.Normal)
                 LastPositionSize = new Rect(Top, Left, Width, Height);
             SaveConfig();
         }
@@ -1719,22 +1749,25 @@ namespace ImageCompare
                         mouse_origin = new Point(ImageResultScroll.HorizontalOffset, ImageResultScroll.VerticalOffset);
                     }
                 }
-                else if (e.ChangedButton == MouseButton.Middle)
+                else if (e.ChangedButton == MouseButton.Middle && sender == this)
                 {
+                    e.Handled = true;
                     Close();
                 }
                 else if (e.ChangedButton == MouseButton.XButton1)
                 {
+                    e.Handled = true;
                     var action = false;
-                    if (sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromNextFile();
-                    else if (sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromNextFile();
+                    if (sender == ImageSourceScroll || sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromNextFile();
+                    else if (sender == ImageTargetScroll || sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromNextFile();
                     if (action) UpdateImageViewer(assign: true);
                 }
                 else if (e.ChangedButton == MouseButton.XButton2)
                 {
+                    e.Handled = true;
                     var action = false;
-                    if (sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromPrevFile();
-                    else if (sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromPrevFile();
+                    if (sender == ImageSourceScroll || sender == ImageSourceBox) action |= await ImageSource.GetInformation().LoadImageFromPrevFile();
+                    else if (sender == ImageTargetScroll || sender == ImageTargetBox) action |= await ImageTarget.GetInformation().LoadImageFromPrevFile();
                     if (action) UpdateImageViewer(assign: true);
                 }
             }
@@ -1809,7 +1842,7 @@ namespace ImageCompare
         {
             try
             {
-                if (sender is Image)
+                if (sender is FrameworkElement)
                 {
 #if DEBUG
                     this.InvokeAsync(async () =>
@@ -1819,13 +1852,22 @@ namespace ImageCompare
                     {
                         try
                         {
-                            var image = sender as Image;
-                            if (image.ToolTip is string && (image.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
+                            //var image = sender as Image;
+                            Image image = null;
+                            var is_source = e.Source == ImageSourceScroll || e.Source == ImageSourceBox || e.Source == ImageSource;
+                            var is_target = e.Source == ImageTargetScroll || e.Source == ImageTargetBox || e.Source == ImageTarget;
+                            var is_result = e.Source == ImageResultScroll || e.Source == ImageResultBox || e.Source == ImageResult;
+                            if (is_source) image = ImageSource;
+                            else if (is_target) image = ImageTarget;
+                            else if (is_result) image = ImageResult;
+
+                            var element = sender as FrameworkElement;
+                            if (element.ToolTip is string && (element.ToolTip as string).Equals("Waiting".T(), StringComparison.CurrentCultureIgnoreCase))
                             {
 #if DEBUG
-                                image.ToolTip = await image.GetInformation().GetImageInfo();
+                                element.ToolTip = await image.GetInformation().GetImageInfo();
 #else
-                                image.ToolTip = image.GetInformation().GetImageInfo();
+                                element.ToolTip = image.GetInformation().GetImageInfo();
 #endif
                             }
                         }
@@ -1881,7 +1923,7 @@ namespace ImageCompare
             else if (sender == ImagePasteTarget)
             {
                 var action = await ImageTarget.GetInformation().LoadImageFromClipboard();
-                if(action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
+                if (action) UpdateImageViewer(assign: true, compose: LastOpIsCompose);
             }
             else if (sender == ImageClear)
             {
